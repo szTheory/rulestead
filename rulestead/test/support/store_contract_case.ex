@@ -64,6 +64,59 @@ defmodule Rulestead.StoreContractCase do
         assert public_payload.active_ruleset.version == 1
       end
 
+      test "publishing a ruleset makes the latest environment snapshot fetchable" do
+        @store_control.put_flag!(valid_flag_attrs())
+
+        assert {:ok, %{version: 1}} = @store_module.save_draft_ruleset(save_draft_command())
+        assert {:ok, %{active_ruleset: %{version: 1}}} = @store_module.publish_ruleset(publish_ruleset_command())
+
+        assert {:ok, snapshot} = @store_module.fetch_snapshot(fetch_snapshot_command())
+        assert snapshot.environment_key == "test"
+        assert snapshot.version == 1
+        assert is_binary(snapshot.payload)
+        assert byte_size(snapshot.payload) > 0
+        assert String.length(snapshot.payload_checksum) == 64
+        assert snapshot.published_at
+        assert snapshot.metadata.schema_version == 1
+        assert snapshot.metadata.flag_count == 1
+
+        payload = :erlang.binary_to_term(snapshot.payload)
+
+        assert payload.schema_version == 1
+        assert payload.environment_key == "test"
+        assert payload.flags["checkout-redesign"].active_ruleset.version == 1
+        assert payload.flags["checkout-redesign"].draft_rulesets == []
+      end
+
+      test "snapshot fetch stays monotonic across repeated publishes" do
+        @store_control.put_flag!(valid_flag_attrs())
+
+        assert {:ok, %{version: 1}} = @store_module.save_draft_ruleset(save_draft_command())
+        assert {:ok, %{active_ruleset: %{version: 1}}} = @store_module.publish_ruleset(publish_ruleset_command())
+
+        assert {:ok, %{version: 2}} =
+                 @store_module.save_draft_ruleset(
+                   save_draft_command("checkout-redesign", "test", valid_ruleset_attrs(%{salt: "checkout-redesign:v2"}))
+                 )
+
+        assert {:ok, %{active_ruleset: %{version: 2}}} =
+                 @store_module.publish_ruleset(publish_ruleset_command("checkout-redesign", "test", version: 2))
+
+        assert {:ok, latest_snapshot} = @store_module.fetch_snapshot(fetch_snapshot_command())
+        assert latest_snapshot.version == 2
+
+        latest_payload = :erlang.binary_to_term(latest_snapshot.payload)
+        assert latest_payload.flags["checkout-redesign"].active_ruleset.version == 2
+
+        assert {:error, %Error{domain: :store, type: :invalid_command}} =
+                 @store_module.publish_ruleset(
+                   publish_ruleset_command("checkout-redesign", "test", version: 1)
+                 )
+
+        assert {:ok, unchanged_snapshot} = @store_module.fetch_snapshot(fetch_snapshot_command())
+        assert unchanged_snapshot.version == 2
+      end
+
       test "rejects invalid rulesets using the shared schema semantics" do
         @store_control.put_flag!(valid_flag_attrs())
 

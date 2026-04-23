@@ -44,10 +44,33 @@ defmodule Rulestead.StoreFixtures do
           value: %{value: true},
           conditions: [
             %{
-              attribute: "tenant_key",
+              attribute: "attributes.account.plan",
               operator: :equals,
-              value: %{equals: "acme"}
+              value: %{equals: "enterprise"}
             }
+          ]
+        },
+        %{
+          key: "target-segment",
+          name: "Target segment",
+          strategy: :segment_match,
+          audience_key: "vip-users",
+          conditions: [
+            %{
+              attribute: "attributes.email",
+              operator: :regex,
+              value: %{pattern: "@example\\.com$", options: "i"}
+            }
+          ]
+        },
+        %{
+          key: "variant-split",
+          name: "Checkout split",
+          strategy: :variant_split,
+          rollout: %{bucket_by: :subject, percentage: 100, salt: "checkout-rollout"},
+          variants: [
+            %{key: "control", weight: 50, value: %{value: "control"}},
+            %{key: "treatment", weight: 50, value: %{value: "treatment"}}
           ]
         }
       ]
@@ -93,6 +116,11 @@ defmodule Rulestead.StoreFixtures do
     Command.FetchFlag.new(flag_key, environment_key, opts)
   end
 
+  @spec fetch_snapshot_command(String.t() | atom(), keyword()) :: Command.FetchSnapshot.t()
+  def fetch_snapshot_command(environment_key \\ "test", opts \\ []) do
+    Command.FetchSnapshot.new(environment_key, opts)
+  end
+
   @spec save_draft_command(String.t() | atom(), String.t() | atom(), map(), keyword()) ::
           Command.SaveDraftRuleset.t()
   def save_draft_command(
@@ -122,5 +150,53 @@ defmodule Rulestead.StoreFixtures do
   @spec list_flags_command(keyword()) :: Command.ListFlags.t()
   def list_flags_command(opts \\ []) do
     Command.ListFlags.new(opts)
+  end
+
+  @spec invalid_path_ruleset_attrs() :: map()
+  def invalid_path_ruleset_attrs do
+    valid_ruleset_attrs(%{
+      rules: [
+        %{
+          key: "bad-path",
+          strategy: :forced_value,
+          value: %{value: true},
+          conditions: [
+            %{attribute: "traits[0].name", operator: :equals, value: %{equals: "vip"}}
+          ]
+        }
+      ]
+    })
+  end
+
+  @spec invalid_regex_ruleset_attrs() :: map()
+  def invalid_regex_ruleset_attrs do
+    valid_ruleset_attrs(%{
+      rules: [
+        %{
+          key: "bad-regex",
+          strategy: :segment_match,
+          audience_key: "vip-users",
+          conditions: [
+            %{attribute: "attributes.email", operator: :regex, value: %{pattern: "(", options: "("}}
+          ]
+        }
+      ]
+    })
+  end
+
+  @spec invalid_operator_payload_ruleset_attrs() :: map()
+  def invalid_operator_payload_ruleset_attrs do
+    valid_ruleset_attrs(%{
+      rules: [
+        %{
+          key: "bad-in",
+          strategy: :forced_value,
+          value: %{value: true},
+          conditions: [
+            %{attribute: "attributes.region", operator: :in, value: %{in: ["us", 1]}}
+          ]
+        }
+      ]
+    })
   end
 end
