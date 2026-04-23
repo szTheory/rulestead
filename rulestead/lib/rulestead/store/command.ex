@@ -6,6 +6,26 @@ defmodule Rulestead.Store.Command do
   remain adapter-private.
   """
 
+  defmodule FetchSnapshot do
+    @moduledoc false
+
+    @enforce_keys [:environment_key]
+    defstruct [:environment_key, version: nil]
+
+    @type t :: %__MODULE__{
+            environment_key: String.t() | atom(),
+            version: nil | pos_integer()
+          }
+
+    @spec new(String.t() | atom(), keyword()) :: t()
+    def new(environment_key, opts \\ []) do
+      %__MODULE__{
+        environment_key: environment_key,
+        version: Keyword.get(opts, :version)
+      }
+    end
+  end
+
   defmodule FetchFlag do
     @moduledoc false
 
