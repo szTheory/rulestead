@@ -11,5 +11,5 @@ mix credo --strict
 mix docs --warnings-as-errors
 mix hex.audit
 mix compile --no-optional-deps --warnings-as-errors
-"${RULESTEAD_REPO}/scripts/ci/check_package_whitelist.sh"
+RULESTEAD_REPO="${RULESTEAD_REPO}" "${RULESTEAD_REPO}/scripts/ci/check_package_whitelist.sh"
 mix dialyzer
