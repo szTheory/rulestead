@@ -45,6 +45,15 @@ defmodule Rulestead.StoreError do
     )
   end
 
+  @spec snapshot_not_found(String.t() | atom, keyword()) :: Error.t()
+  def snapshot_not_found(environment_key, opts \\ []) do
+    new(
+      :snapshot_not_found,
+      "runtime snapshot was not found for the requested environment",
+      Keyword.merge([metadata: %{environment_key: to_string(environment_key)}], opts)
+    )
+  end
+
   @spec invalid_command(String.t(), keyword()) :: Error.t()
   def invalid_command(message \\ "store command is invalid", opts \\ []) do
     new(:invalid_command, message, opts)

@@ -1,7 +1,7 @@
 defmodule Rulestead.Store.EctoContractTest do
   use Rulestead.StoreContractCase, store: Rulestead.Store.Ecto, control: __MODULE__.Control
 
-  alias Rulestead.{Environment, Flag, FlagEnvironment, Repo}
+  alias Rulestead.{Environment, Flag, FlagEnvironment, Repo, RuntimeSnapshot}
 
   defmodule Control do
     alias Ecto.Adapters.SQL.Sandbox
@@ -16,6 +16,7 @@ defmodule Rulestead.Store.EctoContractTest do
       checkout_repo()
 
       Repo.delete_all(Rulestead.AuditEvent)
+      Repo.delete_all(RuntimeSnapshot)
       Repo.delete_all(Rulestead.Ruleset)
       Repo.delete_all(FlagEnvironment)
       Repo.delete_all(Flag)
