@@ -4,7 +4,7 @@ defmodule Rulestead.Runtime.ClusterCase do
   alias Rulestead.Fake.Control
   alias Rulestead.Runtime.Supervisor
 
-  @convergence_timeout_ms 2_000
+  @convergence_timeout_ms 500
   @poll_interval_ms 25
 
   defmodule StoreProxy do

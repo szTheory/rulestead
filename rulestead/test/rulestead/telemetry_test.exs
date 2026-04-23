@@ -6,6 +6,14 @@ defmodule Rulestead.TelemetryTest do
   alias Rulestead.Runtime.{Cache, Refresh}
   alias Rulestead.Store.Command
 
+  defmodule RaisingSnapshotStore do
+    def fetch_snapshot(_command), do: raise("snapshot fetch exploded")
+  end
+
+  defmodule RaisingWriteStore do
+    def save_draft_ruleset(_command), do: raise("store write exploded")
+  end
+
   @moduletag :telemetry
 
   setup do
@@ -189,6 +197,197 @@ defmodule Rulestead.TelemetryTest do
     assert_receive {:safe_event, [:rulestead, :eval, :decide, :stop], :rule_match}, 1_000
     assert_receive {:safe_event, [:rulestead, :runtime, :cache, :stale_used], reason}, 1_000
     assert is_atom(reason)
+  end
+
+  test "admin mutation spans emit the documented start and stop events with bounded metadata", %{
+    environment_key: environment_key
+  } do
+    handler_id = "telemetry-admin-#{System.unique_integer([:positive])}"
+
+    attach_test_handler(handler_id, [
+      [:rulestead, :admin, :mutation, :start],
+      [:rulestead, :admin, :mutation, :stop]
+    ])
+
+    assert {:ok, _draft} =
+             Rulestead.save_draft_ruleset(
+               Command.SaveDraftRuleset.new("checkout-redesign", environment_key, ruleset_attrs(true))
+             )
+
+    save_start = assert_receive_event([:rulestead, :admin, :mutation, :start])
+    assert save_start.operation == "save_draft_ruleset"
+    assert save_start.audit_action == "save_draft_ruleset"
+    assert save_start.environment == environment_key
+
+    save_stop = assert_receive_event([:rulestead, :admin, :mutation, :stop])
+    assert save_stop.operation == "save_draft_ruleset"
+    assert save_stop.audit_action == "save_draft_ruleset"
+    assert save_stop.reason == :ok
+
+    assert {:ok, _published} =
+             Rulestead.publish_ruleset(Command.PublishRuleset.new("checkout-redesign", environment_key))
+
+    publish_start = assert_receive_event([:rulestead, :admin, :mutation, :start])
+    assert publish_start.operation == "publish_ruleset"
+    assert publish_start.audit_action == "publish_ruleset"
+
+    publish_stop = assert_receive_event([:rulestead, :admin, :mutation, :stop])
+    assert publish_stop.operation == "publish_ruleset"
+    assert publish_stop.audit_action == "publish_ruleset"
+    assert publish_stop.snapshot_version == 1
+
+    detach_test_handler(handler_id)
+  end
+
+  test "cache miss and store read exception events emit the documented metadata shapes", %{
+    environment_key: environment_key
+  } do
+    assert {:ok, _draft} =
+             Rulestead.save_draft_ruleset(
+               Command.SaveDraftRuleset.new("checkout-redesign", environment_key, ruleset_attrs(true))
+             )
+
+    assert {:ok, _published} =
+             Rulestead.publish_ruleset(Command.PublishRuleset.new("checkout-redesign", environment_key))
+
+    worker =
+      start_supervised!(
+        {Refresh,
+         name: nil,
+         environment_key: environment_key,
+         store: Rulestead.Fake,
+         pubsub: nil,
+         poll_interval_ms: 5_000,
+         refresh_jitter_ms: 0,
+         auto_tick?: false}
+      )
+
+    assert :ok = Refresh.sync(worker)
+
+    cache_handler = "telemetry-cache-miss-#{System.unique_integer([:positive])}"
+
+    attach_test_handler(cache_handler, [
+      [:rulestead, :runtime, :cache, :miss],
+      [:rulestead, :eval, :decide, :stop]
+    ])
+
+    assert {:error, %Rulestead.Error{type: :flag_not_found}} =
+             Runtime.enabled?(environment_key, "missing-flag", Context.new(actor: %{key: "user-1"}))
+
+    cache_miss = assert_receive_event([:rulestead, :runtime, :cache, :miss])
+    assert cache_miss.environment == environment_key
+    assert cache_miss.flag_key == "missing-flag"
+    assert cache_miss.reason == :cache_miss
+    assert is_integer(cache_miss.cache_age_ms)
+
+    eval_stop = assert_receive_event([:rulestead, :eval, :decide, :stop])
+    assert eval_stop.environment == environment_key
+    assert eval_stop.flag_key == "missing-flag"
+    assert eval_stop.reason == :flag_not_found
+    assert eval_stop.matched_rule_count == 0
+
+    detach_test_handler(cache_handler)
+
+    exception_handler = "telemetry-store-read-exception-#{System.unique_integer([:positive])}"
+
+    attach_test_handler(exception_handler, [
+      [:rulestead, :store, :read, :start],
+      [:rulestead, :store, :read, :exception]
+    ])
+
+    assert_raise RuntimeError, fn ->
+      start_supervised!(
+        {Refresh,
+         name: nil,
+         environment_key: "#{environment_key}-boom",
+         store: RaisingSnapshotStore,
+         pubsub: nil,
+         poll_interval_ms: 5_000,
+         refresh_jitter_ms: 0,
+         auto_tick?: false}
+      )
+    end
+
+    store_read_start = assert_receive_event([:rulestead, :store, :read, :start])
+    assert store_read_start.environment == "#{environment_key}-boom"
+    assert store_read_start.operation == "fetch_snapshot"
+
+    store_read_exception = assert_receive_event([:rulestead, :store, :read, :exception])
+    assert store_read_exception.environment == "#{environment_key}-boom"
+    assert %RuntimeError{message: "snapshot fetch exploded"} = store_read_exception.reason
+
+    detach_test_handler(exception_handler)
+  end
+
+  test "eval and store write exception events emit the documented metadata shapes", %{
+    environment_key: environment_key
+  } do
+    eval_handler = "telemetry-eval-exception-#{System.unique_integer([:positive])}"
+
+    attach_test_handler(eval_handler, [
+      [:rulestead, :eval, :decide, :exception]
+    ])
+
+    malformed_flag = %{
+      flag: %{key: "broken-flag", flag_type: :release, default_value: %{value: false}},
+      environment: %{key: environment_key},
+      active_ruleset: %{
+        version: 1,
+        salt: "broken",
+        rules: [
+          %{
+            key: "broken-rule",
+            strategy: :variant_split,
+            rollout: %{bucket_by: :subject, percentage: 100, salt: "broken"},
+            variants: [
+              %{key: "on", weight: "oops", value: %{value: true}}
+            ]
+          }
+        ]
+      }
+    }
+
+    assert_raise ArithmeticError, fn ->
+      Rulestead.evaluate(malformed_flag, Context.new(actor: %{key: "user-1"}))
+    end
+
+    eval_exception = assert_receive_event([:rulestead, :eval, :decide, :exception])
+    assert eval_exception.flag_key == "broken-flag"
+    assert eval_exception.environment == environment_key
+    assert eval_exception.has_targeting_key? == true
+    assert eval_exception.kind == :error
+    assert eval_exception.reason == :badarith
+    assert is_list(eval_exception.stacktrace)
+
+    detach_test_handler(eval_handler)
+
+    store_config = Application.get_env(:rulestead, :store)
+    Application.put_env(:rulestead, :store, RaisingWriteStore)
+
+    on_exit(fn ->
+      Application.put_env(:rulestead, :store, store_config)
+    end)
+
+    store_handler = "telemetry-store-write-exception-#{System.unique_integer([:positive])}"
+
+    attach_test_handler(store_handler, [
+      [:rulestead, :store, :write, :exception]
+    ])
+
+    assert {:error, %Rulestead.Error{type: :store_unavailable}} =
+             Rulestead.save_draft_ruleset(
+               Command.SaveDraftRuleset.new("checkout-redesign", environment_key, ruleset_attrs(true))
+             )
+
+    store_write_exception = assert_receive_event([:rulestead, :store, :write, :exception])
+    assert store_write_exception.flag_key == "checkout-redesign"
+    assert store_write_exception.environment == environment_key
+    assert store_write_exception.operation == "save_draft_ruleset"
+    assert store_write_exception.kind == :error
+    assert %RuntimeError{message: "store write exploded"} = store_write_exception.reason
+    assert is_list(store_write_exception.stacktrace)
+
+    detach_test_handler(store_handler)
   end
 
   test "stale cache usage and snapshot lifecycle events omit raw payloads and framework structs", %{

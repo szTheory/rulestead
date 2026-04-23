@@ -36,7 +36,7 @@ defmodule Rulestead.Runtime.ClusterRefreshTest do
 
     elapsed_ms = System.monotonic_time(:millisecond) - started_at
 
-    assert elapsed_ms <= ClusterCase.convergence_timeout_ms()
+    assert elapsed_ms < ClusterCase.convergence_timeout_ms()
 
     assert %{
              environments: [

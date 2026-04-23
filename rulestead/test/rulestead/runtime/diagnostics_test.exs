@@ -1,5 +1,5 @@
 defmodule Rulestead.Runtime.DiagnosticsTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
 
   alias Rulestead.{Context, Runtime}
   alias Rulestead.Runtime.{Cache, Snapshot}
