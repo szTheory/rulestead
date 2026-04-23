@@ -1,0 +1,71 @@
+defmodule Rulestead.MixProject do
+  use Mix.Project
+
+  @version "0.1.0"
+  @source_url "https://github.com/jon/rulestead"
+  @homepage_url "https://hexdocs.pm/rulestead"
+
+  def project do
+    [
+      app: :rulestead,
+      version: @version,
+      elixir: "~> 1.17",
+      start_permanent: Mix.env() == :prod,
+      deps: deps(),
+      package: package(),
+      docs: docs(),
+      dialyzer: dialyzer()
+    ]
+  end
+
+  def application do
+    [
+      extra_applications: [:logger]
+    ]
+  end
+
+  defp deps do
+    [
+      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
+      {:ex_doc, "~> 0.38", only: :dev, runtime: false}
+    ]
+  end
+
+  defp package do
+    [
+      name: "rulestead",
+      description: "Runtime decisions, made clear.",
+      licenses: ["MIT"],
+      links: %{
+        "GitHub" => @source_url,
+        "HexDocs" => @homepage_url,
+        "Changelog" => "#{@source_url}/blob/main/rulestead/CHANGELOG.md",
+        "Guides" => "#{@source_url}/tree/main/guides"
+      },
+      files:
+        ~w(lib priv/templates priv/repo/migrations guides .formatter.exs mix.exs README.md LICENSE CHANGELOG.md CONTRIBUTING.md SECURITY.md)
+    ]
+  end
+
+  defp docs do
+    [
+      main: "readme",
+      source_ref: "v#{@version}",
+      source_url: @source_url,
+      homepage_url: @homepage_url,
+      extras: ["README.md"],
+      skip_undefined_reference_warnings_on: &String.starts_with?(&1, "lib/")
+    ]
+  end
+
+  defp dialyzer do
+    [
+      plt_local_path: "priv/plts",
+      plt_core_path: "priv/plts",
+      plt_add_apps: [:ex_unit, :mix, :eex],
+      flags: [:error_handling, :extra_return, :missing_return],
+      ignore_warnings: ".dialyzer_ignore.exs",
+      list_unused_filters: true
+    ]
+  end
+end
