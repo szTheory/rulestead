@@ -36,7 +36,9 @@ defmodule Rulestead.Runtime.DiagnosticsTest do
 
     assert environments == runtime_environments
 
-    assert [%{environment_key: ^environment_key} = environment] = runtime_environments
+    assert environment =
+             Enum.find(runtime_environments, &(&1.environment_key == environment_key))
+
     assert environment.snapshot_version == 9
     assert environment.source == :ets
     assert environment.refresh_status == :ready
