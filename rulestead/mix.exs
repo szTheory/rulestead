@@ -2,7 +2,7 @@ defmodule Rulestead.MixProject do
   use Mix.Project
 
   @version "0.1.0"
-  @source_url "https://github.com/jon/rulestead"
+  @source_url "https://github.com/szTheory/rulestead"
   @homepage_url "https://hexdocs.pm/rulestead"
 
   def project do
@@ -26,6 +26,7 @@ defmodule Rulestead.MixProject do
 
   defp deps do
     [
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.38", only: :dev, runtime: false}
     ]

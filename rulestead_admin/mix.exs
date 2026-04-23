@@ -2,7 +2,7 @@ defmodule RulesteadAdmin.MixProject do
   use Mix.Project
 
   @version "0.1.0"
-  @source_url "https://github.com/jon/rulestead"
+  @source_url "https://github.com/szTheory/rulestead"
   @homepage_url "https://hexdocs.pm/rulestead_admin"
 
   def project do
