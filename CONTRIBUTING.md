@@ -13,7 +13,7 @@ Use `asdf install` if you rely on `.tool-versions`.
 
 ## Local services
 
-Phase 1 includes a local Postgres bootstrap:
+Phase 1 includes a local Postgres bootstrap via `docker-compose.yml`:
 
 ```bash
 docker compose up -d postgres
@@ -49,9 +49,19 @@ maintainer path is expected to converge on a root `mix ci.all` style flow.
 
 ## Tests
 
-Use the root and per-package surfaces that exist for the phase you are in.
-As Phase 1 completes, both sibling packages should compile and test green
-from their own directories.
+Run tests from the root and from each package directory:
+
+```bash
+# repo root
+mix test
+
+# sibling packages
+cd rulestead && mix test
+cd ../rulestead_admin && mix test
+```
+
+If a change depends on Postgres-backed flows, start the local service from
+`docker-compose.yml` first.
 
 ## Commits and pull requests
 

@@ -1,4 +1,5 @@
 # Deployment
 
-Documented in v0.1.0 when Phase 8 ships the release and deployment surface
-and this guide lands in Phase 8. See [ROADMAP](https://github.com/jon/rulestead/blob/main/.planning/ROADMAP.md).
+This recipe ships in Phase 8. Until then, deployment guidance is deferred so
+Phase 1 does not imply an already-shipped runtime or publish process. See
+[ROADMAP](../../.planning/ROADMAP.md).

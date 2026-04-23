@@ -17,7 +17,8 @@ Two operational rules follow from that:
 Document these settings exactly on `main`:
 
 - Required status checks:
-  - `release_gate`
+  - `release_gate` (aggregates `lint`, `test`, and `integration-placeholder`
+    from `ci.yml`)
   - `Validate PR title`
   - `dependency-review`
 - `actionlint` is not a required status check because it is path-filtered
@@ -68,6 +69,9 @@ with the minimum write scope needed for the workflow.
    intended for the milestone.
 4. Publish `rulestead_admin` only after the admin guard confirms the real
    macro implementation exists.
+
+Use this workflow as the recovery path if the normal release-please publish
+step fails after a release tag or release PR is otherwise correct.
 
 The admin guard is structural. It prevents empty-package squatting by
 blocking publication while `rulestead_admin/lib/rulestead_admin/router.ex`

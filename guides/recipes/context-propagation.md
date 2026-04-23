@@ -1,4 +1,5 @@
 # Context propagation
 
-Documented in v0.1.0 when Phase 5 ships host-app context propagation and
-this guide lands in Phase 8. See [ROADMAP](https://github.com/jon/rulestead/blob/main/.planning/ROADMAP.md).
+This recipe ships in Phase 8 after Phase 5 delivers the host-app context
+propagation surface. Until then, keep this guide as a roadmap marker only.
+See [ROADMAP](../../.planning/ROADMAP.md).
