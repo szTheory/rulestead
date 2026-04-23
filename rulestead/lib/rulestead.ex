@@ -11,7 +11,18 @@ defmodule Rulestead do
     context second
   """
 
-  alias Rulestead.{ConfigError, Context, Error, Evaluator, Explainer, Result, Runtime, Store, StoreError}
+  alias Rulestead.{
+    ConfigError,
+    Context,
+    Error,
+    Evaluator,
+    Explainer,
+    Result,
+    Runtime,
+    Store,
+    StoreError,
+    Telemetry
+  }
   alias Rulestead.Store.Command
 
   @version Mix.Project.config()[:version] || "0.1.0"
@@ -37,7 +48,7 @@ defmodule Rulestead do
   """
   @spec fetch_flag(Command.FetchFlag.t()) :: Store.result(map())
   def fetch_flag(%Command.FetchFlag{} = command) do
-    run_store(:fetch_flag, [command])
+    run_store(:fetch_flag, [command], command)
   end
 
   @doc """
@@ -55,7 +66,16 @@ defmodule Rulestead do
   """
   @spec save_draft_ruleset(Command.SaveDraftRuleset.t()) :: Store.result(map())
   def save_draft_ruleset(%Command.SaveDraftRuleset{} = command) do
-    run_store(:save_draft_ruleset, [command])
+    Telemetry.span(
+      [:rulestead, :admin, :mutation],
+      Telemetry.metadata(
+        Telemetry.command_metadata(command, %{operation: "save_draft_ruleset", audit_action: "save_draft_ruleset"})
+      ),
+      fn ->
+        result = run_store(:save_draft_ruleset, [command], command)
+        {result, admin_stop_metadata(result, command)}
+      end
+    )
   end
 
   @doc """
@@ -73,7 +93,16 @@ defmodule Rulestead do
   """
   @spec publish_ruleset(Command.PublishRuleset.t()) :: Store.result(map())
   def publish_ruleset(%Command.PublishRuleset{} = command) do
-    run_store(:publish_ruleset, [command])
+    Telemetry.span(
+      [:rulestead, :admin, :mutation],
+      Telemetry.metadata(
+        Telemetry.command_metadata(command, %{operation: "publish_ruleset", audit_action: "publish_ruleset"})
+      ),
+      fn ->
+        result = run_store(:publish_ruleset, [command], command)
+        {result, admin_stop_metadata(result, command)}
+      end
+    )
   end
 
   @doc """
@@ -91,7 +120,16 @@ defmodule Rulestead do
   """
   @spec archive_flag(Command.ArchiveFlag.t()) :: Store.result(map())
   def archive_flag(%Command.ArchiveFlag{} = command) do
-    run_store(:archive_flag, [command])
+    Telemetry.span(
+      [:rulestead, :admin, :mutation],
+      Telemetry.metadata(
+        Telemetry.command_metadata(command, %{operation: "archive_flag", audit_action: "archive_flag"})
+      ),
+      fn ->
+        result = run_store(:archive_flag, [command], command)
+        {result, admin_stop_metadata(result, command)}
+      end
+    )
   end
 
   @doc """
@@ -111,7 +149,7 @@ defmodule Rulestead do
   """
   @spec list_flags(Command.ListFlags.t()) :: Store.result([map()])
   def list_flags(%Command.ListFlags{} = command) do
-    run_store(:list_flags, [command])
+    run_store(:list_flags, [command], command)
   end
 
   @doc """
@@ -138,10 +176,24 @@ defmodule Rulestead do
   """
   @spec evaluate(map(), Context.t() | keyword() | map(), keyword()) :: {:ok, Result.t()} | {:error, Error.t()}
   def evaluate(flag_payload, context, opts \\ []) do
-    with {:ok, result} <- Evaluator.evaluate(flag_payload, normalize_eval_context(context, opts)) do
-      emit_warnings(result)
-      {:ok, result}
-    end
+    context = normalize_eval_context(context, opts)
+
+    Telemetry.span(
+      [:rulestead, :eval, :decide],
+      Telemetry.metadata(Telemetry.base_metadata(flag_payload, context)),
+      fn ->
+        result =
+          with {:ok, result} <- Evaluator.evaluate(flag_payload, context) do
+            emit_warnings(result)
+            {:ok, result}
+          end
+
+        {result, eval_stop_metadata(result, flag_payload, context)}
+      end
+    )
+  rescue
+    error ->
+      reraise(error, __STACKTRACE__)
   end
 
   @doc """
@@ -207,9 +259,9 @@ defmodule Rulestead do
   @spec diagnostics() :: map()
   def diagnostics, do: Runtime.diagnostics()
 
-  defp run_store(operation, args) do
+  defp run_store(operation, args, command) do
     case configured_store() do
-      {:ok, adapter} -> invoke_store(adapter, operation, args)
+      {:ok, adapter} -> invoke_store(adapter, operation, args, command)
       {:error, %Error{} = error} -> {:error, error}
     end
   end
@@ -263,7 +315,7 @@ defmodule Rulestead do
     end
   end
 
-  defp invoke_store(adapter, operation, args) do
+  defp invoke_store(adapter, operation, args, command) do
     arity = length(args)
 
     cond do
@@ -275,13 +327,28 @@ defmodule Rulestead do
          )}
 
       true ->
-        do_invoke_store(adapter, operation, args)
+        do_invoke_store(adapter, operation, args, command)
     end
   end
 
-  defp do_invoke_store(adapter, operation, args) do
-    result = apply(adapter, operation, args)
-    normalize_store_result(result, adapter, operation)
+  defp do_invoke_store(adapter, operation, args, command) do
+    kind = store_event_kind(operation)
+    command = command || List.first(args)
+
+    Telemetry.span(
+      [:rulestead, :store, kind],
+      Telemetry.metadata(
+        Telemetry.command_metadata(command, %{operation: Atom.to_string(operation)})
+      ),
+      fn ->
+        result =
+          adapter
+          |> apply(operation, args)
+          |> normalize_store_result(adapter, operation)
+
+        {result, store_stop_metadata(result, operation)}
+      end
+    )
   rescue
     error in [Error] ->
       {:error, error}
@@ -329,19 +396,68 @@ defmodule Rulestead do
 
   defp emit_warnings(%Result{debug_trace: %{warnings: warnings}} = result) when is_list(warnings) do
     Enum.each(warnings, fn warning ->
-      :telemetry.execute(
+      Telemetry.execute(
         [:rulestead, :eval, :warning],
         %{count: 1},
-        %{
-          flag_key: result.flag_key,
-          environment: result.debug_trace[:environment],
-          bucket_by: warning[:bucket_by],
-          reason: warning[:type],
-          strict?: warning[:strict?] || false
-        }
+        Telemetry.result_metadata(result, %{environment: result.debug_trace[:environment]}, %{
+          reason: warning[:type]
+        })
       )
     end)
   end
 
   defp emit_warnings(_result), do: :ok
+
+  defp eval_stop_metadata({:ok, %Result{} = result}, flag_payload, context) do
+    flag_payload
+    |> Telemetry.base_metadata(context)
+    |> Map.merge(Telemetry.result_metadata(result, context))
+  end
+
+  defp eval_stop_metadata({:error, %Error{} = error}, flag_payload, context) do
+    flag_payload
+    |> Telemetry.base_metadata(context)
+    |> Map.merge(%{reason: error.type, matched_rule_count: 0})
+  end
+
+  defp admin_stop_metadata({:ok, value}, command) do
+    command
+    |> Telemetry.command_metadata()
+    |> Map.merge(result_like_metadata(value))
+    |> Map.put(:reason, :ok)
+  end
+
+  defp admin_stop_metadata({:error, %Error{} = error}, command) do
+    command
+    |> Telemetry.command_metadata()
+    |> Map.put(:reason, error.type)
+  end
+
+  defp store_stop_metadata({:ok, value}, operation) do
+    value
+    |> result_like_metadata()
+    |> Map.put_new(:reason, store_success_reason(operation))
+  end
+
+  defp store_stop_metadata({:error, %Error{} = error}, _operation) do
+    %{reason: error.type}
+  end
+
+  defp result_like_metadata(value) when is_map(value) do
+    %{}
+    |> Map.put(:flag_key, get_in(value, [:flag, :key]))
+    |> Map.put(:flag_type, get_in(value, [:flag, :flag_type]))
+    |> Map.put(:environment, get_in(value, [:environment, :key]) || value[:environment_key])
+    |> Map.put(:snapshot_version, value[:version] || get_in(value, [:flag_environment, :active_ruleset_version]))
+  end
+
+  defp result_like_metadata(_value), do: %{}
+
+  defp store_event_kind(operation) when operation in [:fetch_flag, :fetch_snapshot, :list_flags], do: :read
+  defp store_event_kind(_operation), do: :write
+
+  defp store_success_reason(:fetch_snapshot), do: :fetched
+  defp store_success_reason(:fetch_flag), do: :fetched
+  defp store_success_reason(:list_flags), do: :listed
+  defp store_success_reason(_operation), do: :stored
 end

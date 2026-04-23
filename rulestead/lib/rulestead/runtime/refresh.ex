@@ -3,6 +3,7 @@ defmodule Rulestead.Runtime.Refresh do
 
   use GenServer
 
+  alias Rulestead.{Error, Telemetry}
   alias Rulestead.Runtime.{Backup, Cache, Config, Snapshot}
   alias Rulestead.Store.Command
 
@@ -142,10 +143,17 @@ defmodule Rulestead.Runtime.Refresh do
   end
 
   defp refresh(state) do
+    Telemetry.execute(
+      [:rulestead, :runtime, :cache, :refresh],
+      %{count: 1},
+      Telemetry.metadata(%{environment: state.environment_key, reason: :refresh})
+    )
+
     case fetch_snapshot(state) do
       {:ok, snapshot} ->
         with {:ok, compiled} <- Snapshot.compile(snapshot),
              {:ok, _applied} <- Cache.apply(compiled, source: :ets) do
+          emit_snapshot_applied(compiled, :ets)
           :ok = Backup.persist(compiled, snapshot: state.snapshot_opts)
           %{state | attempt: 0, next_backoff_ms: 0, next_due_ms: now_ms(state) + poll_delay(state)}
         else
@@ -159,7 +167,16 @@ defmodule Rulestead.Runtime.Refresh do
 
   defp fetch_snapshot(%{environment_key: environment_key, store: adapter}) when is_atom(adapter) do
     if Code.ensure_loaded?(adapter) and function_exported?(adapter, :fetch_snapshot, 1) do
-      adapter.fetch_snapshot(Command.FetchSnapshot.new(environment_key))
+      command = Command.FetchSnapshot.new(environment_key)
+
+      Telemetry.span(
+        [:rulestead, :store, :read],
+        Telemetry.metadata(Telemetry.command_metadata(command, %{operation: "fetch_snapshot"})),
+        fn ->
+          result = adapter.fetch_snapshot(command)
+          {result, refresh_store_stop_metadata(result)}
+        end
+      )
     else
       {:error, :store_unavailable}
     end
@@ -231,5 +248,34 @@ defmodule Rulestead.Runtime.Refresh do
       end
 
     incoming_version > current_version
+  end
+
+  defp emit_snapshot_applied(compiled, source) do
+    Telemetry.execute(
+      [:rulestead, :runtime, :snapshot, :applied],
+      %{count: 1},
+      Telemetry.metadata(%{
+        environment: compiled.environment_key,
+        snapshot_version: compiled.version,
+        reason: :applied,
+        source: source
+      })
+    )
+  end
+
+  defp refresh_store_stop_metadata({:ok, snapshot}) when is_map(snapshot) do
+    %{
+      environment: snapshot[:environment_key],
+      snapshot_version: snapshot[:version],
+      reason: :fetched
+    }
+  end
+
+  defp refresh_store_stop_metadata({:error, %Error{} = error}) do
+    %{reason: error.type}
+  end
+
+  defp refresh_store_stop_metadata({:error, error}) when is_atom(error) do
+    %{reason: error}
   end
 end

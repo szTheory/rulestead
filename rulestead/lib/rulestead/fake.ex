@@ -10,7 +10,7 @@ defmodule Rulestead.Fake do
   use GenServer
 
   alias Ecto.Changeset
-  alias Rulestead.{Environment, Flag, Ruleset, RulesetError, Store, StoreError}
+  alias Rulestead.{Environment, Flag, Ruleset, RulesetError, Store, StoreError, Telemetry}
   alias Rulestead.Store.Command
 
   @behaviour Store
@@ -646,6 +646,16 @@ defmodule Rulestead.Fake do
       inserted_at: state.now,
       updated_at: state.now
     }
+
+    Telemetry.execute(
+      [:rulestead, :runtime, :snapshot, :published],
+      %{count: 1},
+      Telemetry.metadata(%{
+        environment: environment_key,
+        snapshot_version: version,
+        reason: :published
+      })
+    )
 
     update_in(state.snapshots, fn snapshots ->
       Map.update(snapshots, environment_key, %{version => snapshot}, fn environment_snapshots ->
