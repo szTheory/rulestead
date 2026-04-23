@@ -1,0 +1,42 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-04-23T15:46:03Z",
+  "phase": "1",
+  "phase_name": "Repo Bootstrap, CI, Release Engineering Foundation",
+  "phase_dir": ".planning/phases/01-repo-bootstrap",
+  "plan": null,
+  "task": null,
+  "total_tasks": null,
+  "status": "paused",
+  "workflow_stage": "post-discuss, pre-plan",
+  "completed_tasks": [
+    {"id": "discuss-phase-1", "name": "Discussion phase for Phase 1 — 6 gray areas resolved via 4 parallel research subagents", "status": "done"},
+    {"id": "write-context", "name": "Write .planning/phases/01-repo-bootstrap/01-CONTEXT.md (10 decisions + 13 deferrals + canonical refs + specifics)", "status": "done"},
+    {"id": "write-discussion-log", "name": "Write .planning/phases/01-repo-bootstrap/01-DISCUSSION-LOG.md (process + resolutions + conflict resolution)", "status": "done"},
+    {"id": "update-state", "name": "Update .planning/STATE.md with latest activity + next action", "status": "done"},
+    {"id": "stage-files", "name": "git add .planning/phases/01-repo-bootstrap/ + .planning/STATE.md (NOT YET COMMITTED)", "status": "in_progress"}
+  ],
+  "remaining_tasks": [
+    {"id": "commit-context", "name": "Commit staged phase 1 context files with message 'docs(phase-1): capture discuss-phase context and decisions'", "status": "not_started"},
+    {"id": "plan-phase-1", "name": "Run /gsd-plan-phase 1 to produce PLAN.md from the locked context", "status": "not_started"}
+  ],
+  "blockers": [],
+  "human_actions_pending": [],
+  "decisions": [
+    {"decision": "D-01: Sibling directory layout (rulestead/ + rulestead_admin/) from day 1", "rationale": "PROJECT.md key decision lock-in + accrue's proven pattern + zero Phase 6 migration scar", "phase": "1"},
+    {"decision": "D-02: Linked-versions release-please config from commit 1 (tags: rulestead-v0.1.0 + rulestead_admin-v0.1.0)", "rationale": "Supersedes anchor doc §3.1 'start lean' advice; accrue's lockstep-fallback bash ported verbatim; release-please known bugs #1750/#2707/#1456/#1360 don't apply to Elixir workspace", "phase": "1"},
+    {"decision": "D-03: rulestead_admin skeleton exists but NEVER publishes to Hex until Phase 8", "rationale": "Hex CoC explicitly prohibits empty-package squatting; env-swap (RULESTEAD_ADMIN_HEX_RELEASE=1) solves chicken-and-egg; router.ex stub + defensive publish-hex.yml guard prevents accidental publish", "phase": "1"},
+    {"decision": "D-04: 7 workflow files day 1 (Option C modified) — no installer_path_gate/installer_golden (Phase 5), no verify-published-release.yml (Phase 8)", "rationale": "No false-green theater; release_gate aggregator pattern protects branch-protection stability; release-please bootstrap pain avoided; in range with Tesla (5) + Bandit (7) mature Elixir libs", "phase": "1"},
+    {"decision": "D-06: Dialyzer single-cell in lint job (not test matrix), flags [:error_handling, :extra_return, :missing_return] (drop :underspecs), add plt_core_path + ignore file + list_unused_filters", "rationale": "Copy Oban's pattern; saves ~2 CI min/PR; :underspecs deferred to v0.5 ratchet; plt_core_path fix is load-bearing for cache correctness", "phase": "1"},
+    {"decision": "D-07: Docs 'Option C-Plus' — root docs full, README full with pre-release banner, guides stubbed (3-min placeholders), Phase-8 docs (CONVENTIONS/cheatsheet/api_stability/extending) deferred entirely", "rationale": "README pressure-tests API (RDD doctrine); policy docs cost nothing at Phase 1; stubs keep ExDoc IA locked + CI green; Phase-8 docs document locked public surface that doesn't exist yet", "phase": "1"},
+    {"decision": "Release PR discipline: never merge release-please PR during Phases 1-7; first merge is Phase 8 v0.1.0 ship", "rationale": "Required for D-03 (admin never publishes empty) and for coherent linked-versions release at Phase 8", "phase": "1"},
+    {"decision": "Conflict resolution: Research Agent 1 (linked-versions day 1) wins over Research Agent 2 (single-package-then-migrate)", "rationale": "PROJECT.md explicit lock-in + accrue proof + Research 2's 'CHANGELOGs backfilled twice' critique doesn't apply to our unmerged-release-PR flow + tag-namespace migration scar is concrete and expensive", "phase": "1"}
+  ],
+  "uncommitted_files": [
+    ".planning/phases/01-repo-bootstrap/01-CONTEXT.md",
+    ".planning/phases/01-repo-bootstrap/01-DISCUSSION-LOG.md",
+    ".planning/STATE.md"
+  ],
+  "next_action": "git commit the staged files with message 'docs(phase-1): capture discuss-phase context and decisions', then run /gsd-plan-phase 1 to produce PLAN.md",
+  "context_notes": "Just finished discuss-phase-1. User requested deep parallel research across all 6 gray areas with directive to 'one-shot a perfect set of recommendations so I don't have to think.' Four readonly subagents ran in parallel covering: (1) monorepo+release-please+admin-content cluster, (2) CI lane breadth, (3) Dialyzer timing, (4) docs skeleton depth. All returned opinionated recommendations with ecosystem evidence (accrue, Oban, Tesla, Phoenix, Ecto, Broadway, FunWithFlags, Flipper Ruby, Unleash, etc.). One conflict between Research 1 and Research 2 on release-please shape — resolved in favor of Research 1 based on PROJECT.md lock-in + ecosystem evidence. CONTEXT.md is comprehensive (527 lines) with full implementation decisions, canonical references flagged MUST-READ, and 13 deferred items tagged to specific phases. Ready for plan-phase."
+}
