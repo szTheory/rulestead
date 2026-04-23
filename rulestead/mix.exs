@@ -30,6 +30,7 @@ defmodule Rulestead.MixProject do
     [
       {:ecto_sql, "~> 3.13"},
       {:jason, "~> 1.4"},
+      {:phoenix_pubsub, "~> 2.1"},
       {:postgrex, ">= 0.0.0"},
       {:stream_data, "~> 1.1", only: :test},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
