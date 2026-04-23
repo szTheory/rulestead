@@ -1,16 +1,23 @@
 defmodule Rulestead.Runtime do
   @moduledoc false
 
-  alias Rulestead.{Context, Evaluator, Explainer, Result}
+  alias Rulestead.{Context, Error, Evaluator, Explainer, Result}
   alias Rulestead.Runtime.{Cache, Diagnostics}
 
   @spec evaluate(String.t() | atom(), String.t() | atom(), Context.t() | keyword() | map()) ::
           {:ok, Result.t()} | {:error, Rulestead.Error.t()}
   def evaluate(environment_key, flag_key, context) do
-    with {:ok, %{flag_payload: flag_payload}} <- Cache.lookup(environment_key, flag_key),
-         {:ok, %Result{} = result} <- Evaluator.evaluate(flag_payload, Context.normalize(context)),
-         {:ok, cache_age_ms} <- Cache.cache_age_ms(environment_key) do
-      {:ok, Result.normalize(%{result | cache_age_ms: cache_age_ms})}
+    with {:ok, runtime_metadata} <- Cache.runtime_metadata(environment_key) do
+      case Cache.lookup(environment_key, flag_key) do
+        {:ok, %{flag_payload: flag_payload}} ->
+          with {:ok, %Result{} = result} <- Evaluator.evaluate(flag_payload, Context.normalize(context)),
+               {:ok, cache_age_ms} <- Cache.cache_age_ms(environment_key) do
+            {:ok, Result.normalize(%{result | cache_age_ms: cache_age_ms})}
+          end
+
+        {:error, %Error{type: :flag_not_found} = error} ->
+          maybe_degraded_result(flag_key, runtime_metadata, error)
+      end
     end
   end
 
@@ -56,4 +63,18 @@ defmodule Rulestead.Runtime do
 
   @spec diagnostics() :: map()
   def diagnostics, do: Diagnostics.current()
+
+  defp maybe_degraded_result(flag_key, %{refresh_status: :degraded, source: :none}, _error) do
+    {:ok,
+     Result.new(
+       flag_key: flag_key,
+       reason: :default,
+       enabled?: false,
+       value: nil,
+       variant: nil,
+       cache_age_ms: nil
+     )}
+  end
+
+  defp maybe_degraded_result(_flag_key, _runtime_metadata, error), do: {:error, error}
 end
