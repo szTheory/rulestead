@@ -14,8 +14,9 @@ defmodule Rulestead.Runtime.Cache do
           optional(:applied_at) => DateTime.t() | nil,
           optional(:applied_monotonic_ms) => integer() | nil,
           required(:refresh_status) => :ready | :degraded | :stale,
-          required(:source) => :ets | :none,
+          required(:source) => :ets | :disk | :none,
           optional(:last_refresh_error) => atom() | nil,
+          optional(:disk_backup_status) => atom(),
           optional(:metadata) => map(),
           optional(:flag_count) => non_neg_integer()
         }
@@ -52,12 +53,15 @@ defmodule Rulestead.Runtime.Cache do
     :ok
   end
 
-  @spec apply(Snapshot.t()) :: {:ok, %{applied?: boolean(), version: pos_integer()}} | {:error, Rulestead.Error.t()}
-  def apply(%Snapshot{} = snapshot) do
+  @spec apply(Snapshot.t(), keyword()) ::
+          {:ok, %{applied?: boolean(), version: pos_integer()}} | {:error, Rulestead.Error.t()}
+  def apply(%Snapshot{} = snapshot, opts \\ []) do
     ensure_tables()
 
     environment_key = snapshot.environment_key
     current_version = current_version(environment_key)
+    source = Keyword.get(opts, :source, :ets)
+    disk_backup_status = Keyword.get(opts, :disk_backup_status)
 
     if snapshot.version > current_version do
       applied_at = DateTime.utc_now()
@@ -89,8 +93,9 @@ defmodule Rulestead.Runtime.Cache do
            applied_at: applied_at,
            applied_monotonic_ms: applied_monotonic_ms,
            refresh_status: :ready,
-           source: :ets,
+           source: source,
            last_refresh_error: nil,
+           disk_backup_status: disk_backup_status || current_backup_status(environment_key),
            metadata: snapshot.metadata,
            flag_count: map_size(snapshot.flags)
          }}
@@ -149,7 +154,7 @@ defmodule Rulestead.Runtime.Cache do
          source: state.source,
          refresh_status: state.refresh_status,
          stale_used?: false,
-         disk_backup_status: :disabled,
+         disk_backup_status: Map.get(state, :disk_backup_status, :disabled),
          last_refresh_error: state.last_refresh_error
        }}
   end
@@ -194,6 +199,15 @@ defmodule Rulestead.Runtime.Cache do
     :ok
   end
 
+  @spec put_backup_status(String.t() | atom(), atom()) :: :ok
+  def put_backup_status(environment_key, status) when is_atom(status) do
+    ensure_tables()
+    environment_key = to_string(environment_key)
+    state = current_env_state(environment_key)
+    :ets.insert(@env_table, {environment_key, Map.put(state, :disk_backup_status, status)})
+    :ok
+  end
+
   defp current_version(environment_key) do
     case :ets.lookup(@env_table, environment_key) do
       [{^environment_key, %{version: version}}] when is_integer(version) -> version
@@ -229,6 +243,7 @@ defmodule Rulestead.Runtime.Cache do
     |> Map.put_new(:refresh_status, refresh_status_for(state))
     |> Map.put_new(:source, source_for(state))
     |> Map.put_new(:last_refresh_error, nil)
+    |> Map.put_new(:disk_backup_status, :disabled)
     |> Map.put_new(:metadata, %{})
     |> Map.put_new(:flag_count, 0)
   end
@@ -244,6 +259,7 @@ defmodule Rulestead.Runtime.Cache do
       refresh_status: :degraded,
       source: :none,
       last_refresh_error: nil,
+      disk_backup_status: :disabled,
       metadata: %{},
       flag_count: 0
     }
@@ -254,6 +270,13 @@ defmodule Rulestead.Runtime.Cache do
 
   defp source_for(%{version: version}) when is_integer(version) and version > 0, do: :ets
   defp source_for(_state), do: :none
+
+  defp current_backup_status(environment_key) do
+    case :ets.lookup(@env_table, environment_key) do
+      [{^environment_key, state}] -> Map.get(state, :disk_backup_status, :disabled)
+      [] -> :disabled
+    end
+  end
 
   defp normalize_error_code(%{type: type}) when is_atom(type), do: type
   defp normalize_error_code(type) when is_atom(type), do: type
