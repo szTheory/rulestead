@@ -23,7 +23,7 @@
 - `.credo.exs` with strict mode (custom checks added Phase 7)
 - CI workflows: lint lane (format / compile-warnings-as-errors / credo strict / `mix docs --warnings-as-errors` / `mix hex.audit` / `mix compile --no-optional-deps`), test matrix (1.17/26.x + 1.19/28.x with Postgres 15+ service container + healthcheck), integration placeholder
 - Path filters (skip CI on docs-only changes), concurrency group with `cancel-in-progress`, SHA-pinned actions with trailing version comments
-- Root files: README.md (60-second overview + 15-min quickstart skeleton), CHANGELOG.md, LICENSE, CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md, MAINTAINING.md, CLAUDE.md, AGENTS.md
+- Root files: README.md (60-second overview + 15-min quickstart skeleton), LICENSE, CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md, MAINTAINING.md, CLAUDE.md, AGENTS.md
 - ExDoc config with 3-folder guides split (`introduction/`, `flows/`, `recipes/`) + skeleton pages
 - PR title lint (conventional commits) via `amannn/action-semantic-pull-request@v5`
 - `scripts/ci/*.sh` pattern: every non-trivial CI step in a locally-runnable shell script
@@ -34,6 +34,17 @@
 3. `mix docs` produces warning-free HTML output
 4. CI workflow succeeds on a PR from a clean branch
 5. Release-please opens a v0.1.0 PR on merge to main (dry-run; no actual publish yet)
+
+**Plans:** 7 plans
+
+Plans:
+- [ ] `01-01-PLAN.md` — Shared repo tooling, local Postgres bootstrap, and linked-versions release metadata
+- [ ] `01-02-PLAN.md` — `rulestead/` core package skeleton, metadata, and empty-surface tests
+- [ ] `01-03-PLAN.md` — `rulestead_admin/` sibling package skeleton with guarded router stub
+- [ ] `01-04-PLAN.md` — Root README, contributor/security/legal docs, maintainer runbook, and agent instructions
+- [ ] `01-05-PLAN.md` — GitHub Actions workflows for CI, release-please, publish fallback, PR-title lint, and dependency review
+- [ ] `01-06-PLAN.md` — GitHub metadata files and locally runnable `scripts/ci/*.sh` workflow helpers
+- [ ] `01-07-PLAN.md` — ExDoc configuration plus `guides/` introduction/flows/recipes scaffolding
 
 **Dependencies:** none
 **Depends on:** —
