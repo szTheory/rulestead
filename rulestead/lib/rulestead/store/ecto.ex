@@ -17,7 +17,8 @@ defmodule Rulestead.Store.Ecto do
     Ruleset,
     RulesetError,
     Store,
-    StoreError
+    StoreError,
+    Telemetry
   }
 
   alias Rulestead.Store.Command
@@ -313,7 +314,19 @@ defmodule Rulestead.Store.Ecto do
     |> RuntimeSnapshot.changeset(attrs)
     |> repo.insert()
     |> case do
-      {:ok, snapshot} -> {:ok, snapshot}
+      {:ok, snapshot} ->
+        Telemetry.execute(
+          [:rulestead, :runtime, :snapshot, :published],
+          %{count: 1},
+          Telemetry.metadata(%{
+            environment: environment.key,
+            snapshot_version: snapshot.version,
+            reason: :published
+          })
+        )
+
+        {:ok, snapshot}
+
       {:error, %Changeset{} = changeset} -> {:error, changeset}
     end
   end
