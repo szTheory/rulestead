@@ -460,9 +460,50 @@ defmodule Rulestead.Store.Ecto do
       salt: ruleset.salt,
       published_at: ruleset.published_at,
       metadata: ruleset.metadata,
-      rules: ruleset.rules,
+      rules: Enum.map(ruleset.rules, &serialize_rule/1),
       inserted_at: ruleset.inserted_at,
       updated_at: ruleset.updated_at
+    }
+  end
+
+  defp serialize_rule(rule) when is_map(rule) do
+    %{
+      key: rule.key,
+      name: rule.name,
+      description: rule.description,
+      strategy: rule.strategy,
+      value: rule.value,
+      audience_id: rule.audience_id,
+      audience_key: rule.audience_key,
+      conditions: Enum.map(rule.conditions || [], &serialize_condition/1),
+      variants: Enum.map(rule.variants || [], &serialize_variant/1),
+      rollout: serialize_rollout(rule.rollout)
+    }
+  end
+
+  defp serialize_condition(condition) when is_map(condition) do
+    %{
+      attribute: condition.attribute,
+      operator: condition.operator,
+      value: condition.value
+    }
+  end
+
+  defp serialize_variant(variant) when is_map(variant) do
+    %{
+      key: variant.key,
+      value: variant.value,
+      weight: variant.weight
+    }
+  end
+
+  defp serialize_rollout(nil), do: nil
+
+  defp serialize_rollout(rollout) when is_map(rollout) do
+    %{
+      bucket_by: rollout.bucket_by,
+      percentage: rollout.percentage,
+      salt: rollout.salt
     }
   end
 
