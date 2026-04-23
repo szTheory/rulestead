@@ -1,0 +1,111 @@
+---
+description: Rulestead — Elixir-native feature flag library. Load every session.
+alwaysApply: true
+---
+
+# Rulestead — Project Guide for AI Agents
+
+## What this is
+
+Rulestead is an OSS, batteries-included, Elixir-native feature-flag + experimentation + remote-config library for Phoenix/Plug/Ecto/LiveView/Oban apps. Ships as sibling Hex packages: `rulestead` (core: evaluator + store + snapshot cache + context + rules + variants + explain + telemetry + seams + installer + `Rulestead.Fake` test adapter) and `rulestead_admin` (LiveView admin UI).
+
+**Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
+
+## Primary sources of truth (read these first, every session)
+
+- `.planning/PROJECT.md` — current project state, requirements status, key decisions
+- `.planning/ROADMAP.md` — 8-phase v0.1.0 plan, dependency graph, coverage audit
+- `.planning/REQUIREMENTS.md` — 74 v1 requirements + v2/v3 tracked + out-of-scope
+- `.planning/STATE.md` — current phase, latest activity, next action
+- `.planning/research/SUMMARY.md` + `.planning/research/STACK.md` — imported research
+
+## Anchor documents in `prompts/` (load selectively per phase)
+
+The three **master docs** (load every phase):
+- `prompts/elixir_feature_flags_research_brief.md` — 1720-line product vision (primary source of truth for *what* rulestead is)
+- `prompts/rulestead-engineering-dna-from-prior-libs.md` — validated patterns from 7 prior shipped Elixir OSS libs (primary source of truth for *how* we build it). Convergence rule: 5-of-7 or more = adopt without debate.
+- `prompts/rulestead-domain-language-field-guide.md` — canonical vocabulary (use these terms exactly)
+
+**Topical docs** (load when working in that area):
+- `prompts/rulestead-release-engineering-and-ci.md` — Phases 1, 8
+- `prompts/rulestead-testing-and-e2e-strategy.md` — Phases 2, 3, 5
+- `prompts/rulestead-admin-ux-and-operator-ia.md` — Phases 6, 7
+- `prompts/rulestead-telemetry-observability-and-audit.md` — Phases 4, 7
+- `prompts/rulestead-security-privacy-and-threat-model.md` — Phase 7
+- `prompts/rulestead-personas-jtbd-and-onboarding.md` — Phases 1, 5, 6, 8
+- `prompts/rulestead-host-app-integration-seam.md` — Phase 5
+- `prompts/rulestead-brand-book.md` — Phases 6, 7 (admin UI)
+
+**Background** (ecosystem best practices, shared with Jon's prior libs):
+- `prompts/The 2026 Phoenix-Elixir ecosystem map for senior engineers.md`
+- `prompts/elixir-best-practices-deep-research.md`
+- `prompts/phoenix-best-practices-deep-research.md`
+- `prompts/phoenix-live-view-best-practices-deep-research.md`
+- `prompts/ecto-best-practices-deep-research.md`
+- `prompts/elixir-plug-ecto-phoenix-system-design-best-practices-deep-research.md`
+- `prompts/elixir-opensource-libs-best-practices-deep-research.md`
+- `prompts/elixir-oss-lib-ci-cd-best-practices-deep-research.md`
+
+## Tech stack (locked for v0.1.0)
+
+- Elixir `~> 1.17` (CI matrix: 1.17/OTP 26.x + 1.19/OTP 28.x)
+- Phoenix `~> 1.7`, Phoenix.LiveView `~> 1.0`, Plug `~> 1.15`
+- Ecto `~> 3.11`, PostgreSQL `>= 15`
+- Oban `~> 2.17` (optional dep), telemetry `~> 1.2`, NimbleOptions `~> 1.0`
+- ExUnit + Mox + StreamData for tests; `Ecto.Adapters.SQL.Sandbox` `mode: :manual`
+- MIT license; Hex-published via release-please (linked-versions for sibling packages)
+
+## Non-negotiable principles (from research brief + engineering DNA)
+
+1. **Runtime purity** — Evaluator must be pure: zero I/O, zero DB reads on hot path, no ambient process-dictionary context magic. Always go through snapshot + ETS cache.
+2. **Ordered rules, first-match-wins** — Not gate precedence. Teachable, simulatable, explainable.
+3. **Deterministic bucketing** — From `(flag_key, rule_key, salt, targeting_key)`. Stable rollouts, migratable hash.
+4. **Sibling packages from day 1** — `rulestead` + `rulestead_admin` with linked-versions release-please (accrue/mailglass pattern).
+5. **Explain API is first-class** — Not a support tool. Ship `Rulestead.explain/2` with human-readable trace from day 1.
+6. **Lifecycle hygiene mandatory** — Every flag requires `owner` + `expected_expiration` at creation. Surface stale/potentially-stale in UI + telemetry.
+7. **No PII in telemetry, logs, or audit** — Enforced by custom Credo checks (`NoRawTraitsInTelemetryMeta`, `NoRawTraitsInLogger`).
+8. **Host owns auth** — `Rulestead.Admin.Policy` behavior; library ships no auth stack.
+9. **Error struct + typed sub-errors + closed `:type` atom** — Locked public contract. Pattern-match by struct, never by message.
+10. **Telemetry events are public API** — Listed in `api_stability.md`, versioned, deprecations require major bump.
+
+## GSD workflow settings (see `.planning/config.json`)
+
+- Mode: **yolo** — auto-approve, just execute
+- Granularity: **standard** — balanced phase size
+- Parallelization: **enabled** — independent plans run simultaneously
+- Git tracking: **enabled** — planning docs committed
+- Model profile: **balanced** — Sonnet for most agents
+- Research agents: **disabled** — anchor docs in `prompts/` substitute (already research-grade)
+- Plan check: **enabled** — verifies plans before execution
+- Verifier: **enabled** — confirms phase deliverables
+- Auto-advance: **enabled** — chain phases automatically
+
+## Current state
+
+Phase 1 is the next action. Run `/gsd-discuss-phase 1` or `/gsd-plan-phase 1`.
+
+## Conventions (carried over from prior libs — port verbatim)
+
+- Conventional Commits + `release-please` + PR title lint
+- Scripts-first CI surface — every non-trivial step in `scripts/ci/*.sh` with `set -euo pipefail`
+- Post-publish verification trio: `mix verify.workspace_clean`, `mix verify.release_publish`, `mix verify.release_parity`
+- Daily drift cron with single rolling GitHub issue (`JasonEtco/create-an-issue@v2`, `update_existing: true`)
+- 3-folder guides split: `introduction/` / `flows/` / `recipes/`
+- `api_stability.md` enumerates locked public surface
+- `CONVENTIONS.md` codifies discipline rules (paired with custom Credo checks)
+- Fake adapter as merge-gate target (real-Postgres integration tests run nightly)
+- Golden-diff installer test under `test/fixtures/install_golden/{tree,STDOUT.txt}` with timestamp normalization
+- Hex `package.files` whitelist (never auto-include whole repo; never include `test/example/`, `*_ops/`, `.planning/`, `prompts/`)
+- Per-phase `mix verify.phaseNN` tasks (never a kitchen-sink verifier)
+
+## What NOT to do
+
+- Don't re-derive research — `prompts/` anchor docs are already research-grade; use them directly.
+- Don't compete with LaunchDarkly as a hosted platform. Rulestead is self-hostable OSS.
+- Don't build a stats engine for experiments. Expose impression/tracking hooks; analytics lives in the user's warehouse.
+- Don't make DB reads the default runtime evaluation path.
+- Don't hide precedence in clever magic.
+- Don't make flag creation work without owner + expected_expiration.
+- Don't use percentage-of-time as a first-class rollout type (research brief §6.1 footgun).
+- Don't bundle an auth stack.
+- Don't put `:email`, `:ip`, `:user_agent`, `:phone`, `:name`, or similar raw traits into telemetry meta or Logger metadata.

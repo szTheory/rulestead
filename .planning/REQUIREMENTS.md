@@ -178,28 +178,33 @@ Tracked but not in current roadmap. Surface for promotion at v0.2 kickoff.
 
 ## Traceability
 
-Populated during roadmap creation.
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| EVAL-01..09 | TBD | Pending |
-| CTX-01..05 | TBD | Pending |
-| STORE-01..07 | TBD | Pending |
-| RULE-01..04 | TBD | Pending |
-| TEL-01..04 | TBD | Pending |
-| ADMIN-01..10 | TBD | Pending |
-| INST-01..06 | TBD | Pending |
-| LIFE-01..04 | TBD | Pending |
-| TEST-01..05 | TBD | Pending |
-| SEC-01..04 | TBD | Pending |
-| ERR-01..04 | TBD | Pending |
-| REL-01..06 | TBD | Pending |
-| DOC-01..06 | TBD | Pending |
+| EVAL-01..09 | Phase 3 | Pending |
+| CTX-01 | Phase 3 | Pending |
+| CTX-02..05 | Phase 5 | Pending |
+| STORE-01, STORE-07 | Phase 2 | Pending |
+| STORE-02..06 | Phase 4 | Pending |
+| RULE-01..04 | Phase 3 | Pending |
+| TEL-01, TEL-02, TEL-04 | Phase 4 | Pending |
+| TEL-03 | Phase 7 | Pending |
+| ADMIN-01, ADMIN-02, ADMIN-03, ADMIN-08, ADMIN-10 | Phase 6 | Pending |
+| ADMIN-04, ADMIN-05, ADMIN-06, ADMIN-07, ADMIN-09 | Phase 7 | Pending |
+| INST-01..06 | Phase 5 | Pending |
+| LIFE-01..04 | Phase 6 | Pending |
+| TEST-04 | Phase 3 | Pending |
+| TEST-01, TEST-02, TEST-03, TEST-05 | Phase 5 | Pending |
+| SEC-01..04 | Phase 7 | Pending |
+| ERR-01..04 | Phase 2 | Pending |
+| REL-01, REL-02, REL-05 | Phase 1 | Pending |
+| REL-03, REL-04, REL-06 | Phase 8 | Pending |
+| DOC-01, DOC-02, DOC-03 | Phase 1 | Pending |
+| DOC-04, DOC-05, DOC-06 | Phase 8 | Pending |
 
 **Coverage:**
-- v1 requirements: 70 total (EVAL:9, CTX:5, STORE:7, RULE:4, TEL:4, ADMIN:10, INST:6, LIFE:4, TEST:5, SEC:4, ERR:4, REL:6, DOC:6)
-- Mapped to phases: 0 (roadmap pending)
-- Unmapped: 70 ⚠️ (pre-roadmap expected state)
+- v1 requirements: 74 total (EVAL:9, CTX:5, STORE:7, RULE:4, TEL:4, ADMIN:10, INST:6, LIFE:4, TEST:5, SEC:4, ERR:4, REL:6, DOC:6)
+- Mapped to phases: 74
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-04-23*
