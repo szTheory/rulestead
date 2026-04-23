@@ -1,8 +1,4 @@
 # Deployment
 
-This guide lands when the runtime and release surfaces are ready for
-production deployment guidance.
-
-Current status: Phase 1 is foundation work only. See the
-[ROADMAP](../../.planning/ROADMAP.md) for the phase where deployment
-guidance becomes real.
+Documented in v0.1.0 when Phase 8 ships the release and deployment surface
+and this guide lands in Phase 8. See [ROADMAP](https://github.com/jon/rulestead/blob/main/.planning/ROADMAP.md).

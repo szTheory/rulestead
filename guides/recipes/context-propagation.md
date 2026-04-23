@@ -1,7 +1,4 @@
 # Context propagation
 
-This guide lands when the Context builders and host-app seams are shipped.
-
-Current status: Phase 1 is foundation work only. See the
-[ROADMAP](../../.planning/ROADMAP.md) for the phase where context
-propagation guidance becomes real.
+Documented in v0.1.0 when Phase 5 ships host-app context propagation and
+this guide lands in Phase 8. See [ROADMAP](https://github.com/jon/rulestead/blob/main/.planning/ROADMAP.md).
