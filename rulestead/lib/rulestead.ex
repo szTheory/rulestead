@@ -2,15 +2,16 @@ defmodule Rulestead do
   @moduledoc """
   Root public module for the `rulestead` package.
 
-  Phase 2 reserves the stable bang/non-bang public API shape:
+  Phase 3 keeps the store-facing APIs from Phase 2 and adds the pure evaluator
+  over an explicit in-memory authored flag payload:
 
   - store-facing calls return `{:ok, value} | {:error, %Rulestead.Error{}}`
   - bang variants raise the same `%Rulestead.Error{}`
-  - `evaluate/3` and `evaluate!/3` are intentionally reserved stubs until
-    the runtime evaluator lands in Phase 3
+  - evaluation helpers consume an authored flag payload first and explicit
+    context second
   """
 
-  alias Rulestead.{ConfigError, Error, EvaluationError, Store, StoreError}
+  alias Rulestead.{ConfigError, Context, Error, Evaluator, Explainer, Result, Runtime, Store, StoreError}
   alias Rulestead.Store.Command
 
   @version Mix.Project.config()[:version] || "0.1.0"
@@ -133,26 +134,78 @@ defmodule Rulestead do
   end
 
   @doc """
-  Reserved Phase 2 stub for the future runtime evaluator.
+  Evaluates an authored in-memory flag payload against an explicit context.
   """
-  @spec evaluate(String.t() | atom(), term(), keyword()) :: {:error, Error.t()}
-  def evaluate(flag_key, context, opts \\ []) do
-    {:error,
-     EvaluationError.not_implemented(
-       metadata: evaluator_metadata(flag_key, opts),
-       details: evaluator_details(context)
-     )}
+  @spec evaluate(map(), Context.t() | keyword() | map(), keyword()) :: {:ok, Result.t()} | {:error, Error.t()}
+  def evaluate(flag_payload, context, opts \\ []) do
+    with {:ok, result} <- Evaluator.evaluate(flag_payload, normalize_eval_context(context, opts)) do
+      emit_warnings(result)
+      {:ok, result}
+    end
   end
 
   @doc """
   Bang variant of `evaluate/3`.
   """
-  @spec evaluate!(String.t() | atom(), term(), keyword()) :: no_return()
-  def evaluate!(flag_key, context, opts \\ []) do
-    flag_key
+  @spec evaluate!(map(), Context.t() | keyword() | map(), keyword()) :: Result.t()
+  def evaluate!(flag_payload, context, opts \\ []) do
+    flag_payload
     |> evaluate(context, opts)
     |> unwrap!()
   end
+
+  @doc """
+  Returns the boolean enabled projection for an authored flag payload.
+  """
+  @spec enabled?(map(), Context.t() | keyword() | map()) :: {:ok, boolean()} | {:error, Error.t()}
+  def enabled?(flag_payload, context) do
+    with {:ok, %Result{} = result} <- evaluate(flag_payload, context) do
+      {:ok, result.enabled?}
+    end
+  end
+
+  @doc """
+  Returns the projected value for an authored flag payload.
+  """
+  @spec get_value(map(), Context.t() | keyword() | map(), term()) :: {:ok, term()} | {:error, Error.t()}
+  def get_value(flag_payload, context, default) do
+    with {:ok, %Result{} = result} <- evaluate(flag_payload, context) do
+      value =
+        cond do
+          result.reason == :default and is_nil(result.value) -> default
+          is_nil(result.value) -> default
+          true -> result.value
+        end
+
+      {:ok, value}
+    end
+  end
+
+  @doc """
+  Returns the assigned variant key for an authored flag payload.
+  """
+  @spec get_variant(map(), Context.t() | keyword() | map()) :: {:ok, String.t() | nil} | {:error, Error.t()}
+  def get_variant(flag_payload, context) do
+    with {:ok, %Result{} = result} <- evaluate(flag_payload, context) do
+      {:ok, result.variant}
+    end
+  end
+
+  @doc """
+  Returns a human-readable explanation derived from the evaluation trace.
+  """
+  @spec explain(map(), Context.t() | keyword() | map()) :: {:ok, String.t()} | {:error, Error.t()}
+  def explain(flag_payload, context) do
+    with {:ok, %Result{} = result} <- evaluate(flag_payload, context) do
+      {:ok, Explainer.explain(result.debug_trace)}
+    end
+  end
+
+  @doc """
+  Returns bounded runtime diagnostics for the local node.
+  """
+  @spec diagnostics() :: map()
+  def diagnostics, do: Runtime.diagnostics()
 
   defp run_store(operation, args) do
     case configured_store() do
@@ -264,17 +317,31 @@ defmodule Rulestead do
   defp unwrap!({:ok, value}), do: value
   defp unwrap!({:error, %Error{} = error}), do: raise(error)
 
-  defp evaluator_metadata(flag_key, opts) do
-    %{
-      feature: "evaluate/3",
-      flag_key: to_string(flag_key),
-      strict?: Keyword.get(opts, :strict?, false)
-    }
+  defp normalize_eval_context(context, opts) do
+    context = Context.normalize(context)
+
+    if Keyword.has_key?(opts, :strict?) do
+      Context.normalize(Map.put(Map.from_struct(context), :strict?, Keyword.get(opts, :strict?)))
+    else
+      context
+    end
   end
 
-  defp evaluator_details(context) do
-    [%{message: "runtime evaluator is not available in Phase 2", context_type: inspect(context.__struct__ || context)}]
-  rescue
-    _error -> [%{message: "runtime evaluator is not available in Phase 2"}]
+  defp emit_warnings(%Result{debug_trace: %{warnings: warnings}} = result) when is_list(warnings) do
+    Enum.each(warnings, fn warning ->
+      :telemetry.execute(
+        [:rulestead, :eval, :warning],
+        %{count: 1},
+        %{
+          flag_key: result.flag_key,
+          environment: result.debug_trace[:environment],
+          bucket_by: warning[:bucket_by],
+          reason: warning[:type],
+          strict?: warning[:strict?] || false
+        }
+      )
+    end)
   end
+
+  defp emit_warnings(_result), do: :ok
 end
