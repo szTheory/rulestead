@@ -11,6 +11,7 @@ defmodule Rulestead.MixProject do
       version: @version,
       elixir: "~> 1.17",
       start_permanent: Mix.env() == :prod,
+      elixirc_paths: elixirc_paths(Mix.env()),
       deps: deps(),
       package: package(),
       docs: docs(),
@@ -26,11 +27,17 @@ defmodule Rulestead.MixProject do
 
   defp deps do
     [
+      {:ecto_sql, "~> 3.13"},
+      {:jason, "~> 1.4"},
+      {:postgrex, ">= 0.0.0"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.38", only: :dev, runtime: false}
     ]
   end
+
+  defp elixirc_paths(:test), do: ["lib", "test/support"]
+  defp elixirc_paths(_), do: ["lib"]
 
   defp package do
     [
