@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.1.0
 milestone_name: Release
-status: unknown
-last_updated: "2026-04-23T19:04:29.861Z"
+status: active
+last_updated: "2026-04-23T21:33:00Z"
 progress:
-  total_phases: 2
-  completed_phases: 1
-  total_plans: 14
-  completed_plans: 12
-  percent: 86
+  total_phases: 8
+  completed_phases: 4
+  total_plans: 23
+  completed_plans: 23
+  percent: 50
 ---
 
 # State: Rulestead
@@ -19,7 +19,7 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-23)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
-**Current focus:** Phase 02
+**Current focus:** Phases 05 and 06 — host-app seams and admin UI part 1
 **Milestone:** v0.1.0 (8 phases)
 
 ## Roadmap Reference
@@ -28,10 +28,10 @@ See: `.planning/ROADMAP.md` (updated 2026-04-23)
 
 | # | Phase | Status | Requirements |
 |---|---|---|---|
-| 1 | Repo Bootstrap, CI, Release Engineering Foundation | pending | REL-01, 02, 05; DOC-01, 02, 03 |
-| 2 | Data Model, Error Model, Ecto Store, Fake Adapter | pending | STORE-01, 07; ERR-01..04; ADMIN-08 (schema) |
-| 3 | Context, Rules, Deterministic Bucketing, Pure Evaluator | pending | EVAL-01..09; CTX-01; RULE-01..04; TEST-04 |
-| 4 | Snapshot Cache, Runtime Refresh, Telemetry, Explain | pending | STORE-02..06; TEL-01, 02, 04 |
+| 1 | Repo Bootstrap, CI, Release Engineering Foundation | complete | REL-01, 02, 05; DOC-01, 02, 03 |
+| 2 | Data Model, Error Model, Ecto Store, Fake Adapter | complete | STORE-01, 07; ERR-01..04; ADMIN-08 (schema) |
+| 3 | Context, Rules, Deterministic Bucketing, Pure Evaluator | complete | EVAL-01..09; CTX-01; RULE-01..04; TEST-04 |
+| 4 | Snapshot Cache, Runtime Refresh, Telemetry, Explain | complete | STORE-02..06; TEL-01, 02, 04 |
 | 5 | Host-App Seams: Plug, LiveView, Oban, Installer, Test Helpers | pending | CTX-02..05; INST-01..06; TEST-01, 02, 03, 05 |
 | 6 | Admin UI Part 1: Flag List, Detail, Rule Editor, Environments, Lifecycle | pending | ADMIN-01, 02, 03, 08 (UI), 10; LIFE-01..04 |
 | 7 | Admin UI Part 2: Simulation, Rollouts, Kill Switch, Audit, Security | pending | ADMIN-04, 05, 06, 07, 09; SEC-01..04; TEL-03 |
@@ -59,8 +59,10 @@ These are the primary source of truth — loaded selectively per phase:
 
 - 2026-04-23 — Project initialized via `/gsd-new-project`. PROJECT.md, REQUIREMENTS.md (74 v1 reqs + v2/v3 tracked + out-of-scope), ROADMAP.md (8 phases), research/ imported from prompts/ anchor docs. Config: yolo + standard granularity + parallel + research agents disabled (prompts/ docs substitute) + plan_check + verifier enabled.
 - 2026-04-23 — Phase 1 discussion complete via `/gsd-discuss-phase 1` (all 6 gray areas resolved with 4-subagent parallel research). 10 implementation decisions locked (D-01 sibling layout, D-02 linked-versions release-please, D-03 skeleton-unpublished admin, D-04 7-workflow CI surface, D-05 tool-versions + package whitelists, D-06 single-cell Dialyzer in lint job, D-07 C-Plus docs skeleton, D-08 branch protection, D-09 formatter/credo, D-10 integration placeholder). 13 items deferred to later phases (D-11–D-22, documented in CONTEXT.md). One anchor-doc drift flagged (rulestead-release-engineering-and-ci.md §3.1 superseded by D-02). Files: `.planning/phases/01-repo-bootstrap/01-CONTEXT.md`, `01-DISCUSSION-LOG.md`.
-- 2026-04-23 — Phase 2 Plan 03 executed. Added authoring schemas for flags, environments, flag-environment joins, audiences, audit events, and immutable embedded rulesets plus Postgres migrations with UUID defaults, uniqueness constraints, append-only audit triggers, and idempotent default environment seeds. Files: `.planning/phases/02-data-model-error-model-ecto-store-fake-adapter/02-03-SUMMARY.md`, `rulestead/lib/rulestead/{flag,environment,flag_environment,audience,audit_event,ruleset}.ex`, `rulestead/priv/repo/migrations/20260423020100_create_rulestead_authoring_tables.exs`.
+- 2026-04-23 — Phase 2 executed end-to-end. Added the internal Ecto repo/test harness, locked the public `%Rulestead.Error{}` and key-first `Rulestead.Store` contract, shipped the authoring schemas and migrations, implemented both fake and Ecto store adapters behind the shared contract suite, and added the minimal `mix rulestead.install` migration/config slice plus install smoke coverage. Files: `.planning/phases/02-data-model-error-model-ecto-store-fake-adapter/*-SUMMARY.md`, `rulestead/lib/rulestead/{error,store,repo,fake,flag,environment,flag_environment,audience,audit_event,ruleset}.ex`, `rulestead/lib/rulestead/store/ecto.ex`, `rulestead/lib/rulestead/install*.ex`, `rulestead/lib/mix/tasks/rulestead.install.ex`.
+- 2026-04-23 — Phase 3 executed end-to-end. Added the canonical runtime context/result contracts, tightened authored ruleset validation, shipped deterministic SHA-256 bucketing and the pure evaluator plus root facade/explain wiring, and locked the contract with StreamData properties and focused regression tests. Files: `.planning/phases/03-context-rules-deterministic-bucketing-pure-evaluator/*-SUMMARY.md`, `rulestead/lib/rulestead/{context,result,bucket,evaluator,explainer}.ex`, `rulestead/lib/rulestead.ex`, `rulestead/test/rulestead/*`.
+- 2026-04-23 — Phase 4 executed end-to-end and re-verified cleanly. Added persisted runtime snapshots, ETS-backed keyed runtime APIs, refresh supervision with PubSub plus polling, optional backup restore, the Phase 4 telemetry contract, and the cluster/hot-path/exception-path proof suite. Files: `.planning/phases/04-snapshot-cache-runtime-refresh-telemetry-explain-wiring/*-SUMMARY.md`, `04-VERIFICATION.md`, `rulestead/lib/rulestead/runtime/*.ex`, `rulestead/lib/rulestead/telemetry.ex`, `guides/flows/telemetry.md`, `rulestead/test/rulestead/{runtime,telemetry,integration}/*`.
 
 ## Next Action
 
-Execute `02-04-PLAN.md` to build the contract-faithful fake adapter and shared adapter contract suite on top of the Phase 2 data model.
+Run `/gsd-plan-phase 5` and `/gsd-plan-phase 6` next. Phase 4 is complete and those two phases are now the parallel work frontier.
