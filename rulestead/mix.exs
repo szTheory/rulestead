@@ -53,8 +53,22 @@ defmodule Rulestead.MixProject do
       source_ref: "v#{@version}",
       source_url: @source_url,
       homepage_url: @homepage_url,
-      extras: ["README.md"],
-      skip_undefined_reference_warnings_on: &String.starts_with?(&1, "lib/")
+      extras: [
+        "README.md",
+        "../guides/introduction/installation.md",
+        "../guides/introduction/getting-started.md",
+        "../guides/introduction/upgrading.md",
+        "../guides/flows/evaluation.md",
+        "../guides/flows/rulesets.md",
+        "../guides/flows/rollout.md",
+        "../guides/flows/admin-ui.md",
+        "../guides/flows/explainability.md",
+        "../guides/flows/multi-env.md"
+      ],
+      # Original Phase 1 shape: skip_undefined_reference_warnings_on: &String.starts_with?(&1, "lib/")
+      skip_undefined_reference_warnings_on: fn ref ->
+        is_binary(ref) and String.starts_with?(ref, "lib/")
+      end
     ]
   end
 
