@@ -22,7 +22,8 @@ defmodule Rulestead.Fake do
           now: DateTime.t(),
           environments: %{required(String.t()) => map()},
           flags: %{required(String.t()) => map()},
-          snapshots: %{required(String.t()) => %{required(pos_integer()) => map()}}
+          snapshots: %{required(String.t()) => %{required(pos_integer()) => map()}},
+          snapshot_reads_connected?: boolean()
         }
 
   @spec start_link(keyword()) :: GenServer.on_start()
@@ -144,6 +145,24 @@ defmodule Rulestead.Fake do
     {:reply, {:ok, now}, next_state}
   end
 
+  def handle_call({:control, :disconnect}, _from, state) do
+    {:reply, :ok, %{state | snapshot_reads_connected?: false}}
+  end
+
+  def handle_call({:control, :reconnect}, _from, state) do
+    {:reply, :ok, %{state | snapshot_reads_connected?: true}}
+  end
+
+  def handle_call({:control, :latest_snapshot, environment_key}, _from, state) do
+    reply =
+      case state.snapshots |> Map.get(to_string(environment_key), %{}) |> Enum.max_by(&elem(&1, 0), fn -> nil end) do
+        nil -> {:error, StoreError.snapshot_not_found(environment_key)}
+        {_version, snapshot} -> {:ok, snapshot}
+      end
+
+    {:reply, reply, state}
+  end
+
   def handle_call({:control, :advance_time, seconds}, _from, state) do
     now = DateTime.add(state.now, seconds, :second)
     next_state = %{state | now: now}
@@ -163,9 +182,13 @@ defmodule Rulestead.Fake do
 
   def handle_call({:fetch_snapshot, command}, _from, state) do
     reply =
-      with {:ok, environment} <- fetch_environment(state, command.environment_key),
-           {:ok, snapshot} <- fetch_runtime_snapshot(state, environment.key, command.version) do
-        {:ok, snapshot}
+      if state.snapshot_reads_connected? do
+        with {:ok, environment} <- fetch_environment(state, command.environment_key),
+             {:ok, snapshot} <- fetch_runtime_snapshot(state, environment.key, command.version) do
+          {:ok, snapshot}
+        end
+      else
+        {:error, StoreError.unavailable()}
       end
 
     {:reply, reply, state}
@@ -302,7 +325,8 @@ defmodule Rulestead.Fake do
       now: now,
       environments: %{},
       flags: %{},
-      snapshots: %{}
+      snapshots: %{},
+      snapshot_reads_connected?: true
     }
     |> seed_default_environment("development", "Development")
     |> seed_default_environment("staging", "Staging")

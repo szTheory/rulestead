@@ -98,4 +98,42 @@ defmodule Rulestead.Fake.Control do
       {:error, error} -> raise error
     end
   end
+
+  @spec latest_snapshot!(String.t() | atom()) :: map()
+  def latest_snapshot!(environment_key) do
+    ensure_started()
+
+    case GenServer.call(Fake, {:control, :latest_snapshot, environment_key}) do
+      {:ok, snapshot} -> snapshot
+      {:error, error} -> raise error
+    end
+  end
+
+  @spec disconnect!() :: :ok
+  def disconnect! do
+    ensure_started()
+    GenServer.call(Fake, {:control, :disconnect})
+  end
+
+  @spec reconnect!() :: :ok
+  def reconnect! do
+    ensure_started()
+    GenServer.call(Fake, {:control, :reconnect})
+  end
+
+  @spec publish!(module() | atom(), String.t() | atom(), pos_integer()) :: :ok
+  def publish!(pubsub, environment_key, snapshot_version) do
+    if Code.ensure_loaded?(Phoenix.PubSub) do
+      Phoenix.PubSub.broadcast(
+        pubsub,
+        Rulestead.Runtime.Config.snapshot()[:pubsub_topic],
+        {:rulestead_runtime_refresh,
+         %{environment_key: to_string(environment_key), snapshot_version: snapshot_version}}
+      )
+
+      :ok
+    else
+      raise "Phoenix.PubSub is not available"
+    end
+  end
 end

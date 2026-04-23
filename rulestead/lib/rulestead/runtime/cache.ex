@@ -196,7 +196,8 @@ defmodule Rulestead.Runtime.Cache do
 
   defp current_version(environment_key) do
     case :ets.lookup(@env_table, environment_key) do
-      [{^environment_key, %{version: version}}] -> version
+      [{^environment_key, %{version: version}}] when is_integer(version) -> version
+      [{^environment_key, _state}] -> 0
       [] -> 0
     end
   end

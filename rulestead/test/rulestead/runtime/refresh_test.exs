@@ -84,13 +84,11 @@ defmodule Rulestead.Runtime.RefreshTest do
 
   test "refresh failures back off and keep serving the last known good snapshot", %{
     environment_key: environment_key,
-    pubsub_name: pubsub_name,
     worker: worker
   } do
-    version_two = publish_ruleset_version(environment_key, false)
+    _version_two = publish_ruleset_version(environment_key, false)
     Control.disconnect!()
 
-    Control.publish!(pubsub_name, environment_key, version_two.version)
     assert :ok = Refresh.refresh_now(worker)
 
     assert {:ok, true} =
