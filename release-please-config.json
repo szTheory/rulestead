@@ -1,0 +1,30 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "separate-pull-requests": false,
+  "include-component-in-tag": true,
+  "bump-minor-pre-major": true,
+  "bump-patch-for-minor-pre-major": true,
+  "plugins": [
+    {
+      "type": "linked-versions",
+      "groupName": "rulestead-monorepo",
+      "components": ["rulestead", "rulestead_admin"]
+    }
+  ],
+  "packages": {
+    "rulestead": {
+      "component": "rulestead",
+      "release-type": "elixir",
+      "package-name": "rulestead",
+      "changelog-path": "rulestead/CHANGELOG.md",
+      "include-component-in-tag": true
+    },
+    "rulestead_admin": {
+      "component": "rulestead_admin",
+      "release-type": "elixir",
+      "package-name": "rulestead_admin",
+      "changelog-path": "rulestead_admin/CHANGELOG.md",
+      "include-component-in-tag": true
+    }
+  }
+}
