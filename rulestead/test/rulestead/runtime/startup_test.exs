@@ -37,9 +37,9 @@ defmodule Rulestead.Runtime.StartupTest do
 
     assert Process.alive?(supervisor)
 
-    assert %{node: _, environments: [%{environment_key: ^environment_key} = environment]} =
-             Runtime.diagnostics()
-
+    assert %{node: _, environments: environments} = Runtime.diagnostics()
+    environment = Enum.find(environments, &(&1.environment_key == environment_key))
+    assert environment
     assert environment.refresh_status == :degraded
     assert environment.snapshot_version == nil
     assert environment.source == :none
@@ -84,7 +84,9 @@ defmodule Rulestead.Runtime.StartupTest do
     assert {:ok, true} =
              Runtime.enabled?(environment_key, "checkout-redesign", Context.new(actor: %{key: "user-1"}))
 
-    assert %{environments: [%{environment_key: ^environment_key} = environment]} = Runtime.diagnostics()
+    assert %{environments: environments} = Runtime.diagnostics()
+    environment = Enum.find(environments, &(&1.environment_key == environment_key))
+    assert environment
     assert environment.snapshot_version == snapshot.version
     assert environment.source == :ets
     assert environment.refresh_status == :stale

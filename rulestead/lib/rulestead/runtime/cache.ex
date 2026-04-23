@@ -8,11 +8,14 @@ defmodule Rulestead.Runtime.Cache do
 
   @type env_state :: %{
           required(:environment_key) => String.t(),
-          required(:version) => pos_integer(),
-          required(:published_at) => DateTime.t(),
-          required(:generated_at) => DateTime.t() | nil,
-          required(:applied_at) => DateTime.t(),
-          required(:applied_monotonic_ms) => integer(),
+          optional(:version) => pos_integer() | nil,
+          optional(:published_at) => DateTime.t() | nil,
+          optional(:generated_at) => DateTime.t() | nil,
+          optional(:applied_at) => DateTime.t() | nil,
+          optional(:applied_monotonic_ms) => integer() | nil,
+          required(:refresh_status) => :ready | :degraded | :stale,
+          required(:source) => :ets | :none,
+          optional(:last_refresh_error) => atom() | nil,
           optional(:metadata) => map(),
           optional(:flag_count) => non_neg_integer()
         }
@@ -25,6 +28,29 @@ defmodule Rulestead.Runtime.Cache do
           required(:published_at) => DateTime.t(),
           required(:applied_at) => DateTime.t()
         }
+
+  @spec ensure_tables() :: :ok
+  def ensure_tables do
+    ensure_table(@flags_table)
+    ensure_table(@env_table)
+    :ok
+  end
+
+  @spec register_environment(String.t() | atom()) :: :ok
+  def register_environment(environment_key) do
+    ensure_tables()
+    environment_key = to_string(environment_key)
+
+    case :ets.lookup(@env_table, environment_key) do
+      [] ->
+        :ets.insert(@env_table, {environment_key, empty_env_state(environment_key)})
+
+      [{^environment_key, state}] ->
+        :ets.insert(@env_table, {environment_key, normalize_env_state(state)})
+    end
+
+    :ok
+  end
 
   @spec apply(Snapshot.t()) :: {:ok, %{applied?: boolean(), version: pos_integer()}} | {:error, Rulestead.Error.t()}
   def apply(%Snapshot{} = snapshot) do
@@ -62,6 +88,9 @@ defmodule Rulestead.Runtime.Cache do
            generated_at: snapshot.generated_at,
            applied_at: applied_at,
            applied_monotonic_ms: applied_monotonic_ms,
+           refresh_status: :ready,
+           source: :ets,
+           last_refresh_error: nil,
            metadata: snapshot.metadata,
            flag_count: map_size(snapshot.flags)
          }}
@@ -91,15 +120,18 @@ defmodule Rulestead.Runtime.Cache do
     environment_key = to_string(environment_key)
 
     case :ets.lookup(@env_table, environment_key) do
-      [{^environment_key, state}] -> {:ok, state}
+      [{^environment_key, state}] -> {:ok, normalize_env_state(state)}
       [] -> {:error, EvaluationError.new(:flag_not_found, "runtime environment was not loaded", metadata: %{environment_key: environment_key})}
     end
   end
 
-  @spec cache_age_ms(String.t() | atom()) :: {:ok, non_neg_integer()} | {:error, Rulestead.Error.t()}
+  @spec cache_age_ms(String.t() | atom()) :: {:ok, non_neg_integer() | nil} | {:error, Rulestead.Error.t()}
   def cache_age_ms(environment_key) do
     with {:ok, %{applied_monotonic_ms: applied_monotonic_ms}} <- environment(environment_key) do
-      {:ok, max(System.monotonic_time(:millisecond) - applied_monotonic_ms, 0)}
+      case applied_monotonic_ms do
+        value when is_integer(value) -> {:ok, max(System.monotonic_time(:millisecond) - value, 0)}
+        _ -> {:ok, nil}
+      end
     end
   end
 
@@ -114,12 +146,13 @@ defmodule Rulestead.Runtime.Cache do
          applied_at: state.applied_at,
          published_at: state.published_at,
          cache_age_ms: cache_age_ms,
-         source: :ets,
-         refresh_status: :ready,
+         source: state.source,
+         refresh_status: state.refresh_status,
          stale_used?: false,
-         disk_backup_status: :disabled
+         disk_backup_status: :disabled,
+         last_refresh_error: state.last_refresh_error
        }}
-    end
+  end
   end
 
   @spec diagnostics() :: [map()]
@@ -145,16 +178,27 @@ defmodule Rulestead.Runtime.Cache do
     :ok
   end
 
+  @spec mark_refresh_failed(String.t() | atom(), term()) :: :ok
+  def mark_refresh_failed(environment_key, error \\ nil) do
+    ensure_tables()
+    environment_key = to_string(environment_key)
+    state = current_env_state(environment_key)
+
+    next_state =
+      state
+      |> Map.put(:refresh_status, refresh_status_for(state))
+      |> Map.put(:source, source_for(state))
+      |> Map.put(:last_refresh_error, normalize_error_code(error))
+
+    :ets.insert(@env_table, {environment_key, next_state})
+    :ok
+  end
+
   defp current_version(environment_key) do
     case :ets.lookup(@env_table, environment_key) do
       [{^environment_key, %{version: version}}] -> version
       [] -> 0
     end
-  end
-
-  defp ensure_tables do
-    ensure_table(@flags_table)
-    ensure_table(@env_table)
   end
 
   defp ensure_table(name) do
@@ -166,4 +210,51 @@ defmodule Rulestead.Runtime.Cache do
         name
     end
   end
+
+  defp current_env_state(environment_key) do
+    case :ets.lookup(@env_table, environment_key) do
+      [{^environment_key, state}] -> normalize_env_state(state)
+      [] -> empty_env_state(environment_key)
+    end
+  end
+
+  defp normalize_env_state(state) do
+    state
+    |> Map.put_new(:version, nil)
+    |> Map.put_new(:published_at, nil)
+    |> Map.put_new(:generated_at, nil)
+    |> Map.put_new(:applied_at, nil)
+    |> Map.put_new(:applied_monotonic_ms, nil)
+    |> Map.put_new(:refresh_status, refresh_status_for(state))
+    |> Map.put_new(:source, source_for(state))
+    |> Map.put_new(:last_refresh_error, nil)
+    |> Map.put_new(:metadata, %{})
+    |> Map.put_new(:flag_count, 0)
+  end
+
+  defp empty_env_state(environment_key) do
+    %{
+      environment_key: environment_key,
+      version: nil,
+      published_at: nil,
+      generated_at: nil,
+      applied_at: nil,
+      applied_monotonic_ms: nil,
+      refresh_status: :degraded,
+      source: :none,
+      last_refresh_error: nil,
+      metadata: %{},
+      flag_count: 0
+    }
+  end
+
+  defp refresh_status_for(%{version: version}) when is_integer(version) and version > 0, do: :stale
+  defp refresh_status_for(_state), do: :degraded
+
+  defp source_for(%{version: version}) when is_integer(version) and version > 0, do: :ets
+  defp source_for(_state), do: :none
+
+  defp normalize_error_code(%{type: type}) when is_atom(type), do: type
+  defp normalize_error_code(type) when is_atom(type), do: type
+  defp normalize_error_code(_error), do: :refresh_failed
 end

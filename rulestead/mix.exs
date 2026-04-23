@@ -21,7 +21,8 @@ defmodule Rulestead.MixProject do
 
   def application do
     [
-      extra_applications: [:logger]
+      extra_applications: [:logger],
+      mod: {Rulestead.Application, []}
     ]
   end
 
@@ -30,6 +31,7 @@ defmodule Rulestead.MixProject do
       {:ecto_sql, "~> 3.13"},
       {:jason, "~> 1.4"},
       {:postgrex, ">= 0.0.0"},
+      {:stream_data, "~> 1.1", only: :test},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.38", only: :dev, runtime: false}
