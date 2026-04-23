@@ -7,19 +7,19 @@
 
 ### Evaluation (EVAL)
 
-- [ ] **EVAL-01**: App code can evaluate a boolean flag via `Rulestead.enabled?/2` with a Context or Plug conn
-- [ ] **EVAL-02**: App code can resolve a multivariate value via `Rulestead.get_value/3` (typed: boolean/string/integer/float/map)
-- [ ] **EVAL-03**: App code can get an assigned variant via `Rulestead.get_variant/2`
+- [ ] **EVAL-01**: App code can evaluate a boolean flag via `Rulestead.enabled?/2` by passing an in-memory authored flag payload as the first argument and a `Rulestead.Context` or map/keyword input normalized by `Rulestead.Context.new/1` as the second; the non-bang call returns `{:ok, boolean}` or `{:error, %Rulestead.Error{}}`
+- [ ] **EVAL-02**: App code can resolve a multivariate value via `Rulestead.get_value/3` by passing the in-memory authored flag payload first, context second, and an explicit default third; the non-bang call returns `{:ok, value}` or `{:error, %Rulestead.Error{}}` (typed: boolean/string/integer/float/map)
+- [ ] **EVAL-03**: App code can get an assigned variant via `Rulestead.get_variant/2` by passing the in-memory authored flag payload first and context second; the non-bang call returns `{:ok, variant_key | nil}` or `{:error, %Rulestead.Error{}}`
 - [ ] **EVAL-04**: Evaluator returns a structured `Rulestead.Result` (value, variant, reason, matched_rule, flag_key, flag_version, cache_age_ms, optional debug_trace)
 - [ ] **EVAL-05**: Rules are evaluated in order, first-match-wins; default value applies if none match
 - [ ] **EVAL-06**: Bucketing is deterministic from `(flag_key, rule_key, salt, targeting_key)` — same inputs → same bucket across 10k property-test runs
-- [ ] **EVAL-07**: Missing `targeting_key` on sticky rules emits telemetry warning and (strict mode) fails closed
-- [ ] **EVAL-08**: `Rulestead.explain/2` returns a human-readable trace (matched rule, conditions passed/failed, bucket calc, reason, snapshot version, environment)
+- [ ] **EVAL-07**: Missing `targeting_key` on sticky rules emits one sanitized telemetry warning in permissive mode and returns `{:error, %Rulestead.Error{type: :missing_targeting_key}}` from non-bang evaluation APIs in strict mode
+- [ ] **EVAL-08**: `Rulestead.explain/2` accepts the in-memory authored flag payload first and context second, and returns `{:ok, human_readable_trace}` or `{:error, %Rulestead.Error{}}`
 - [ ] **EVAL-09**: Evaluator is pure — no I/O, no DB reads on hot path, no ambient process-dictionary surprises
 
 ### Context & Propagation (CTX)
 
-- [ ] **CTX-01**: Explicit `Rulestead.Context` struct builder (`targeting_key`, `subject`, `tenant_key`, `environment`, `attributes`, `request_id`, `session_id`, `strict?`)
+- [ ] **CTX-01**: Explicit `Rulestead.Context` struct builder (`actor`, `targeting_key`, `tenant_key`, `environment`, `attributes`, `request_id`, `session_id`, `strict?`), with `subject` accepted only as an input alias during normalization if needed
 - [ ] **CTX-02**: `Rulestead.Phoenix.context_from_conn/1` builds Context from a Plug.Conn
 - [ ] **CTX-03**: `Rulestead.LiveView.context_from_socket/1` builds Context from a LiveView socket
 - [ ] **CTX-04**: `Rulestead.Oban.context_from_job/1` + Oban middleware attaches Context at enqueue
@@ -185,9 +185,9 @@ Tracked but not in current roadmap. Surface for promotion at v0.2 kickoff.
 | CTX-02..05 | Phase 5 | Pending |
 | STORE-01 | Phase 2 | Complete |
 | STORE-07 | Phase 2 | Pending |
-| STORE-02..06 | Phase 4 | Pending |
+| STORE-02..06 | Phase 4 | Complete |
 | RULE-01..04 | Phase 3 | Pending |
-| TEL-01, TEL-02, TEL-04 | Phase 4 | Pending |
+| TEL-01, TEL-02, TEL-04 | Phase 4 | Complete |
 | TEL-03 | Phase 7 | Pending |
 | ADMIN-08 (schema) | Phase 2 | Complete |
 | ADMIN-01, ADMIN-02, ADMIN-03, ADMIN-08 (UI), ADMIN-10 | Phase 6 | Pending |
