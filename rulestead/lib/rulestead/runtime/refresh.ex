@@ -3,7 +3,7 @@ defmodule Rulestead.Runtime.Refresh do
 
   use GenServer
 
-  alias Rulestead.Runtime.{Cache, Config, Snapshot}
+  alias Rulestead.Runtime.{Backup, Cache, Config, Snapshot}
   alias Rulestead.Store.Command
 
   @refresh_message :rulestead_runtime_refresh
@@ -20,6 +20,7 @@ defmodule Rulestead.Runtime.Refresh do
           next_due_ms: integer(),
           next_backoff_ms: non_neg_integer(),
           auto_tick?: boolean(),
+          snapshot_opts: keyword(),
           clock: (() -> DateTime.t())
         }
 
@@ -73,10 +74,12 @@ defmodule Rulestead.Runtime.Refresh do
       next_due_ms: 0,
       next_backoff_ms: 0,
       auto_tick?: Keyword.get(opts, :auto_tick?, true),
+      snapshot_opts: snapshot_config,
       clock: Keyword.get(opts, :clock, default_clock(Keyword.get(opts, :store, Config.store(opts))))
     }
 
     Cache.register_environment(environment_key)
+    :ok = Backup.restore(environment_key, opts)
     subscribe(state)
     state = refresh(state)
     {:ok, schedule_next(state)}
@@ -142,7 +145,8 @@ defmodule Rulestead.Runtime.Refresh do
     case fetch_snapshot(state) do
       {:ok, snapshot} ->
         with {:ok, compiled} <- Snapshot.compile(snapshot),
-             {:ok, _applied} <- Cache.apply(compiled) do
+             {:ok, _applied} <- Cache.apply(compiled, source: :ets) do
+          :ok = Backup.persist(compiled, snapshot: state.snapshot_opts)
           %{state | attempt: 0, next_backoff_ms: 0, next_due_ms: now_ms(state) + poll_delay(state)}
         else
           {:error, error} -> fail_refresh(state, error)
