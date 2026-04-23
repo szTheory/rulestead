@@ -177,7 +177,11 @@ defmodule Rulestead.StoreFixtures do
           strategy: :segment_match,
           audience_key: "vip-users",
           conditions: [
-            %{attribute: "attributes.email", operator: :regex, value: %{pattern: "(", options: "("}}
+            %{
+              attribute: "attributes.email",
+              operator: :regex,
+              value: %{pattern: "(", options: "("}
+            }
           ]
         }
       ]

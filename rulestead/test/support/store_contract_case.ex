@@ -68,7 +68,9 @@ defmodule Rulestead.StoreContractCase do
         @store_control.put_flag!(valid_flag_attrs())
 
         assert {:ok, %{version: 1}} = @store_module.save_draft_ruleset(save_draft_command())
-        assert {:ok, %{active_ruleset: %{version: 1}}} = @store_module.publish_ruleset(publish_ruleset_command())
+
+        assert {:ok, %{active_ruleset: %{version: 1}}} =
+                 @store_module.publish_ruleset(publish_ruleset_command())
 
         assert {:ok, snapshot} = @store_module.fetch_snapshot(fetch_snapshot_command())
         assert snapshot.environment_key == "test"
@@ -92,15 +94,23 @@ defmodule Rulestead.StoreContractCase do
         @store_control.put_flag!(valid_flag_attrs())
 
         assert {:ok, %{version: 1}} = @store_module.save_draft_ruleset(save_draft_command())
-        assert {:ok, %{active_ruleset: %{version: 1}}} = @store_module.publish_ruleset(publish_ruleset_command())
+
+        assert {:ok, %{active_ruleset: %{version: 1}}} =
+                 @store_module.publish_ruleset(publish_ruleset_command())
 
         assert {:ok, %{version: 2}} =
                  @store_module.save_draft_ruleset(
-                   save_draft_command("checkout-redesign", "test", valid_ruleset_attrs(%{salt: "checkout-redesign:v2"}))
+                   save_draft_command(
+                     "checkout-redesign",
+                     "test",
+                     valid_ruleset_attrs(%{salt: "checkout-redesign:v2"})
+                   )
                  )
 
         assert {:ok, %{active_ruleset: %{version: 2}}} =
-                 @store_module.publish_ruleset(publish_ruleset_command("checkout-redesign", "test", version: 2))
+                 @store_module.publish_ruleset(
+                   publish_ruleset_command("checkout-redesign", "test", version: 2)
+                 )
 
         assert {:ok, latest_snapshot} = @store_module.fetch_snapshot(fetch_snapshot_command())
         assert latest_snapshot.version == 2

@@ -13,6 +13,7 @@ defmodule Rulestead.Store.Ecto do
     Flag,
     FlagEnvironment,
     Repo,
+    RuntimeSnapshot,
     Ruleset,
     RulesetError,
     Store,
@@ -20,6 +21,8 @@ defmodule Rulestead.Store.Ecto do
   }
 
   alias Rulestead.Store.Command
+
+  @snapshot_schema_version 1
 
   @behaviour Store
 
@@ -29,6 +32,26 @@ defmodule Rulestead.Store.Ecto do
          {:ok, flag, flag_environment} <-
            fetch_flag_environment(command.flag_key, environment.key) do
       {:ok, build_flag_payload(flag, environment, flag_environment, command.include_ruleset?)}
+    end
+  end
+
+  @impl Store
+  def fetch_snapshot(%Command.FetchSnapshot{} = command) do
+    with {:ok, environment} <- fetch_environment(command.environment_key) do
+      command
+      |> runtime_snapshot_query(environment.key)
+      |> Repo.one()
+      |> case do
+        nil ->
+          {:error,
+           StoreError.snapshot_not_found(
+             environment.key,
+             metadata: snapshot_lookup_metadata(environment.key, command.version)
+           )}
+
+        snapshot ->
+          {:ok, serialize_runtime_snapshot(snapshot)}
+      end
     end
   end
 
@@ -73,20 +96,25 @@ defmodule Rulestead.Store.Ecto do
          :ok <- ensure_not_archived(command.flag_key, flag),
          {:ok, ruleset} <-
            resolve_publishable_ruleset(flag_environment, environment.key, command.version) do
+      published_at = now()
+
       Multi.new()
       |> Multi.update(
         :ruleset,
-        Ruleset.changeset(ruleset, %{status: :published, published_at: now()})
+        Ruleset.changeset(ruleset, %{status: :published, published_at: published_at})
       )
       |> Multi.update(
         :flag_environment,
         FlagEnvironment.changeset(flag_environment, %{
           active_ruleset_id: ruleset.id,
           status: :active,
-          last_published_at: now()
+          last_published_at: published_at
         })
       )
-      |> Multi.update(:flag, Changeset.change(flag, updated_at: now()))
+      |> Multi.update(:flag, Changeset.change(flag, updated_at: published_at))
+      |> Multi.run(:runtime_snapshot, fn repo, _changes ->
+        insert_runtime_snapshot(repo, environment, published_at)
+      end)
       |> audit_multi(:audit_event, command, ruleset, environment)
       |> Repo.transact()
       |> case do
@@ -265,6 +293,65 @@ defmodule Rulestead.Store.Ecto do
   defp active_version(flag_environment),
     do: flag_environment.active_ruleset && flag_environment.active_ruleset.version
 
+  defp insert_runtime_snapshot(repo, environment, published_at) do
+    snapshot_payload = build_environment_snapshot_payload(repo, environment)
+    payload = :erlang.term_to_binary(snapshot_payload)
+
+    attrs = %{
+      environment_key: environment.key,
+      version: next_snapshot_version(repo, environment.key),
+      payload: payload,
+      payload_checksum: payload_checksum(payload),
+      metadata: %{
+        schema_version: @snapshot_schema_version,
+        flag_count: map_size(snapshot_payload.flags)
+      },
+      published_at: published_at
+    }
+
+    %RuntimeSnapshot{}
+    |> RuntimeSnapshot.changeset(attrs)
+    |> repo.insert()
+    |> case do
+      {:ok, snapshot} -> {:ok, snapshot}
+      {:error, %Changeset{} = changeset} -> {:error, changeset}
+    end
+  end
+
+  defp build_environment_snapshot_payload(repo, environment) do
+    flags =
+      environment_snapshot_flags_query(environment.key)
+      |> repo.all()
+      |> Map.new(fn flag ->
+        [flag_environment] = flag.flag_environments
+
+        {flag.key, build_flag_payload(flag, environment, flag_environment, true)}
+      end)
+
+    %{
+      schema_version: @snapshot_schema_version,
+      environment_key: environment.key,
+      generated_at: now(),
+      flags: flags
+    }
+  end
+
+  defp next_snapshot_version(repo, environment_key) do
+    from(snapshot in RuntimeSnapshot,
+      where: snapshot.environment_key == ^environment_key,
+      select: max(snapshot.version)
+    )
+    |> repo.one()
+    |> Kernel.||(0)
+    |> Kernel.+(1)
+  end
+
+  defp payload_checksum(payload) do
+    :sha256
+    |> :crypto.hash(payload)
+    |> Base.encode16(case: :lower)
+  end
+
   defp build_flag_payload(flag, environment, flag_environment, include_ruleset?) do
     %{
       flag: flag_summary(flag),
@@ -365,6 +452,29 @@ defmodule Rulestead.Store.Ecto do
       updated_at: ruleset.updated_at
     }
   end
+
+  defp serialize_runtime_snapshot(snapshot) do
+    %{
+      id: snapshot.id,
+      environment_key: snapshot.environment_key,
+      version: snapshot.version,
+      payload: snapshot.payload,
+      payload_checksum: snapshot.payload_checksum,
+      metadata: normalize_metadata(snapshot.metadata),
+      published_at: snapshot.published_at,
+      inserted_at: snapshot.inserted_at,
+      updated_at: snapshot.updated_at
+    }
+  end
+
+  defp normalize_metadata(metadata) when is_map(metadata) do
+    %{
+      schema_version: metadata[:schema_version] || metadata["schema_version"],
+      flag_count: metadata[:flag_count] || metadata["flag_count"]
+    }
+  end
+
+  defp normalize_metadata(_metadata), do: %{}
 
   defp list_environment_filter(nil), do: {:ok, nil}
 
@@ -519,5 +629,38 @@ defmodule Rulestead.Store.Ecto do
       on: env.id == fe.environment_id and env.key == ^to_string(environment_key),
       preload: [flag_environments: {fe, [:environment, :active_ruleset]}]
     )
+  end
+
+  defp environment_snapshot_flags_query(environment_key) do
+    from(flag in Flag,
+      where: is_nil(flag.archived_at),
+      join: fe in assoc(flag, :flag_environments),
+      on: fe.flag_id == flag.id and fe.status == :active and not is_nil(fe.active_ruleset_id),
+      join: env in assoc(fe, :environment),
+      on: env.id == fe.environment_id and env.key == ^to_string(environment_key),
+      order_by: [asc: flag.key],
+      preload: [flag_environments: {fe, [:environment, :active_ruleset]}]
+    )
+  end
+
+  defp runtime_snapshot_query(%Command.FetchSnapshot{version: nil}, environment_key) do
+    from(snapshot in RuntimeSnapshot,
+      where: snapshot.environment_key == ^environment_key,
+      order_by: [desc: snapshot.version],
+      limit: 1
+    )
+  end
+
+  defp runtime_snapshot_query(%Command.FetchSnapshot{version: version}, environment_key) do
+    from(snapshot in RuntimeSnapshot,
+      where: snapshot.environment_key == ^environment_key and snapshot.version == ^version,
+      limit: 1
+    )
+  end
+
+  defp snapshot_lookup_metadata(environment_key, nil), do: %{environment_key: environment_key}
+
+  defp snapshot_lookup_metadata(environment_key, version) do
+    %{environment_key: environment_key, version: version}
   end
 end

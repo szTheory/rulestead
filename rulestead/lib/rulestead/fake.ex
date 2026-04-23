@@ -16,11 +16,13 @@ defmodule Rulestead.Fake do
   @behaviour Store
 
   @default_now ~U[2026-01-01 00:00:00Z]
+  @snapshot_schema_version 1
 
   @type state :: %{
           now: DateTime.t(),
           environments: %{required(String.t()) => map()},
-          flags: %{required(String.t()) => map()}
+          flags: %{required(String.t()) => map()},
+          snapshots: %{required(String.t()) => %{required(pos_integer()) => map()}}
         }
 
   @spec start_link(keyword()) :: GenServer.on_start()
@@ -42,6 +44,11 @@ defmodule Rulestead.Fake do
   @impl Store
   def fetch_flag(%Command.FetchFlag{} = command) do
     call({:fetch_flag, command})
+  end
+
+  @impl Store
+  def fetch_snapshot(%Command.FetchSnapshot{} = command) do
+    call({:fetch_snapshot, command})
   end
 
   @impl Store
@@ -150,6 +157,16 @@ defmodule Rulestead.Fake do
                                                                               flag_environment ->
         {:ok, build_flag_payload(flag, environment, flag_environment, command.include_ruleset?)}
       end)
+
+    {:reply, reply, state}
+  end
+
+  def handle_call({:fetch_snapshot, command}, _from, state) do
+    reply =
+      with {:ok, environment} <- fetch_environment(state, command.environment_key),
+           {:ok, snapshot} <- fetch_runtime_snapshot(state, environment.key, command.version) do
+        {:ok, snapshot}
+      end
 
     {:reply, reply, state}
   end
@@ -284,7 +301,8 @@ defmodule Rulestead.Fake do
     %{
       now: now,
       environments: %{},
-      flags: %{}
+      flags: %{},
+      snapshots: %{}
     }
     |> seed_default_environment("development", "Development")
     |> seed_default_environment("staging", "Staging")
@@ -580,8 +598,100 @@ defmodule Rulestead.Fake do
         }
       )
       |> put_in([:flags, to_string(flag_key), :updated_at], state.now)
+      |> put_runtime_snapshot(environment_key)
 
     {:ok, next_state}
+  end
+
+  defp put_runtime_snapshot(state, environment_key) do
+    snapshot_payload = build_environment_snapshot_payload(state, environment_key)
+    payload = :erlang.term_to_binary(snapshot_payload)
+    version = next_snapshot_version(state, environment_key)
+
+    snapshot = %{
+      id: Ecto.UUID.generate(),
+      environment_key: environment_key,
+      version: version,
+      payload: payload,
+      payload_checksum: payload_checksum(payload),
+      metadata: %{
+        schema_version: @snapshot_schema_version,
+        flag_count: map_size(snapshot_payload.flags)
+      },
+      published_at: state.now,
+      inserted_at: state.now,
+      updated_at: state.now
+    }
+
+    update_in(state.snapshots, fn snapshots ->
+      Map.update(snapshots, environment_key, %{version => snapshot}, fn environment_snapshots ->
+        Map.put(environment_snapshots, version, snapshot)
+      end)
+    end)
+  end
+
+  defp build_environment_snapshot_payload(state, environment_key) do
+    flags =
+      state.flags
+      |> Map.values()
+      |> Enum.reject(&archived?/1)
+      |> Enum.filter(fn flag ->
+        match?(
+          %{status: :active, active_ruleset_version: version} when not is_nil(version),
+          flag.environments[environment_key]
+        )
+      end)
+      |> Enum.sort_by(& &1.key)
+      |> Map.new(fn flag ->
+        flag_environment = flag.environments[environment_key]
+        environment = state.environments[environment_key]
+
+        {flag.key, build_flag_payload(flag, environment, flag_environment, true)}
+      end)
+
+    %{
+      schema_version: @snapshot_schema_version,
+      environment_key: environment_key,
+      generated_at: state.now,
+      flags: flags
+    }
+  end
+
+  defp next_snapshot_version(state, environment_key) do
+    state.snapshots
+    |> Map.get(environment_key, %{})
+    |> Map.keys()
+    |> Enum.max(fn -> 0 end)
+    |> Kernel.+(1)
+  end
+
+  defp fetch_runtime_snapshot(state, environment_key, nil) do
+    case state.snapshots
+         |> Map.get(environment_key, %{})
+         |> Enum.max_by(&elem(&1, 0), fn -> nil end) do
+      nil -> {:error, StoreError.snapshot_not_found(environment_key)}
+      {_version, snapshot} -> {:ok, snapshot}
+    end
+  end
+
+  defp fetch_runtime_snapshot(state, environment_key, version) do
+    case get_in(state.snapshots, [environment_key, version]) do
+      nil ->
+        {:error,
+         StoreError.snapshot_not_found(
+           environment_key,
+           metadata: %{environment_key: environment_key, version: version}
+         )}
+
+      snapshot ->
+        {:ok, snapshot}
+    end
+  end
+
+  defp payload_checksum(payload) do
+    :sha256
+    |> :crypto.hash(payload)
+    |> Base.encode16(case: :lower)
   end
 
   defp build_flag_payload(flag, environment, flag_environment, include_ruleset?) do
