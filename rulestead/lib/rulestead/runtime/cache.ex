@@ -219,7 +219,11 @@ defmodule Rulestead.Runtime.Cache do
   defp ensure_table(name) do
     case :ets.whereis(name) do
       :undefined ->
-        :ets.new(name, [:named_table, :public, :set, {:read_concurrency, true}])
+        try do
+          :ets.new(name, [:named_table, :public, :set, {:read_concurrency, true}])
+        rescue
+          ArgumentError -> name
+        end
 
       _tid ->
         name
@@ -267,6 +271,11 @@ defmodule Rulestead.Runtime.Cache do
 
   defp refresh_status_for(%{version: version}) when is_integer(version) and version > 0, do: :stale
   defp refresh_status_for(_state), do: :degraded
+
+  defp source_for(%{version: version, source: source})
+       when is_integer(version) and version > 0 and source in [:ets, :disk] do
+    source
+  end
 
   defp source_for(%{version: version}) when is_integer(version) and version > 0, do: :ets
   defp source_for(_state), do: :none
