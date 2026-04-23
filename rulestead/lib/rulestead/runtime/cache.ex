@@ -103,6 +103,38 @@ defmodule Rulestead.Runtime.Cache do
     end
   end
 
+  @spec runtime_metadata(String.t() | atom()) :: {:ok, map()} | {:error, Rulestead.Error.t()}
+  def runtime_metadata(environment_key) do
+    with {:ok, state} <- environment(environment_key),
+         {:ok, cache_age_ms} <- cache_age_ms(environment_key) do
+      {:ok,
+       %{
+         environment_key: state.environment_key,
+         snapshot_version: state.version,
+         applied_at: state.applied_at,
+         published_at: state.published_at,
+         cache_age_ms: cache_age_ms,
+         source: :ets,
+         refresh_status: :ready,
+         stale_used?: false,
+         disk_backup_status: :disabled
+       }}
+    end
+  end
+
+  @spec diagnostics() :: [map()]
+  def diagnostics do
+    ensure_tables()
+
+    @env_table
+    |> :ets.tab2list()
+    |> Enum.map(fn {_environment_key, state} ->
+      {:ok, metadata} = runtime_metadata(state.environment_key)
+      metadata
+    end)
+    |> Enum.sort_by(& &1.environment_key)
+  end
+
   @spec reset(String.t() | atom()) :: :ok
   def reset(environment_key) do
     ensure_tables()
