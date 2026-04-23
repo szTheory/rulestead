@@ -63,7 +63,13 @@ defmodule Rulestead.MixProject do
         "../guides/flows/rollout.md",
         "../guides/flows/admin-ui.md",
         "../guides/flows/explainability.md",
-        "../guides/flows/multi-env.md"
+        "../guides/flows/multi-env.md",
+        "../guides/recipes/testing.md",
+        "../guides/recipes/telemetry.md",
+        "../guides/recipes/ecto-conventions.md",
+        "../guides/recipes/oban-background-jobs.md",
+        "../guides/recipes/deployment.md",
+        "../guides/recipes/context-propagation.md"
       ],
       # Original Phase 1 shape: skip_undefined_reference_warnings_on: &String.starts_with?(&1, "lib/")
       skip_undefined_reference_warnings_on: fn ref ->
