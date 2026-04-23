@@ -58,7 +58,6 @@ boundary.
 
 - `[:rulestead, :admin, :mutation, :start]`
 - `[:rulestead, :admin, :mutation, :stop]`
-- `[:rulestead, :admin, :mutation, :exception]`
 
 These wrap the current Phase 4 public mutation verbs: save draft, publish
 ruleset, and archive flag.

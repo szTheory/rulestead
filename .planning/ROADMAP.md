@@ -38,15 +38,15 @@
 **Plans:** 9 plans
 
 Plans:
-- [ ] `01-01-PLAN.md` — Shared repo tooling, local Postgres bootstrap, and linked-versions release metadata
-- [ ] `01-02-PLAN.md` — `rulestead/` core package skeleton, metadata, and empty-surface tests
-- [ ] `01-03-PLAN.md` — `rulestead_admin/` sibling package skeleton with guarded router stub
-- [ ] `01-04-PLAN.md` — Root README, contributor/security/legal docs, maintainer runbook, and agent instructions
-- [ ] `01-05-PLAN.md` — Locally runnable `scripts/ci/*.sh` helpers plus GitHub Actions workflows for CI, release-please, publish fallback, PR-title lint, and dependency review
-- [ ] `01-06-PLAN.md` — GitHub metadata files for Dependabot, PRs, CODEOWNERS, and issue templates
-- [ ] `01-07-PLAN.md` — ExDoc configuration plus `guides/` introduction and flow scaffolding
-- [ ] `01-08-PLAN.md` — Recipe guide scaffolding and final ExDoc extras wiring
-- [ ] `01-09-PLAN.md` — Clean-branch CI smoke verification and linked-versions release-please bootstrap evidence capture
+- [x] `01-01-PLAN.md` — Shared repo tooling, local Postgres bootstrap, and linked-versions release metadata
+- [x] `01-02-PLAN.md` — `rulestead/` core package skeleton, metadata, and empty-surface tests
+- [x] `01-03-PLAN.md` — `rulestead_admin/` sibling package skeleton with guarded router stub
+- [x] `01-04-PLAN.md` — Root README, contributor/security/legal docs, maintainer runbook, and agent instructions
+- [x] `01-05-PLAN.md` — Locally runnable `scripts/ci/*.sh` helpers plus GitHub Actions workflows for CI, release-please, publish fallback, PR-title lint, and dependency review
+- [x] `01-06-PLAN.md` — GitHub metadata files for Dependabot, PRs, CODEOWNERS, and issue templates
+- [x] `01-07-PLAN.md` — ExDoc configuration plus `guides/` introduction and flow scaffolding
+- [x] `01-08-PLAN.md` — Recipe guide scaffolding and final ExDoc extras wiring
+- [x] `01-09-PLAN.md` — Clean-branch CI smoke verification and linked-versions release-please bootstrap evidence capture
 
 **Dependencies:** none
 **Depends on:** —
@@ -87,8 +87,8 @@ Plans:
 - [x] `02-01-PLAN.md` — Internal repo bootstrap and shared Ecto sandbox harness for Phase 2 tests
 - [x] `02-02-PLAN.md` — Public error envelope, key-first store behavior, and reserved bang/non-bang API conventions
 - [x] `02-03-PLAN.md` — Authoring schemas and migrations for flags, environments, rulesets, audiences, and audit events
-- [ ] `02-04-PLAN.md` — Contract-faithful fake adapter plus shared adapter contract suite
-- [ ] `02-05-PLAN.md` — Ecto adapter, minimal installer, and fresh Phoenix app install+migrate smoke proof
+- [x] `02-04-PLAN.md` — Contract-faithful fake adapter plus shared adapter contract suite
+- [x] `02-05-PLAN.md` — Ecto adapter, minimal installer, and fresh Phoenix app install+migrate smoke proof
 
 **Dependencies:** Phase 1 (package skeleton + CI)
 **Depends on:** 1
@@ -97,13 +97,13 @@ Plans:
 
 ## Phase 3 — Context, Rules, Deterministic Bucketing, Pure Evaluator
 
-**Goal:** The pure, fast, deterministic runtime evaluator that is the heart of rulestead. `Rulestead.enabled?`, `get_value`, `get_variant`, `evaluate`, and `explain` all work against an in-memory ruleset. First-match-wins, deterministic bucketing, structured `Result` output. Property tests lock determinism invariants.
+**Goal:** The pure, fast, deterministic runtime evaluator that is the heart of rulestead. `Rulestead.enabled?`, `get_value`, `get_variant`, `evaluate`, and `explain` all work against an explicit in-memory authored flag payload carrying the active ruleset. First-match-wins, deterministic bucketing, structured `Result` output. Property tests lock determinism invariants.
 
-**Requirements (19):** EVAL-01, EVAL-02, EVAL-03, EVAL-04, EVAL-05, EVAL-06, EVAL-07, EVAL-08, EVAL-09, CTX-01, RULE-01, RULE-02, RULE-03, RULE-04, TEST-04
+**Requirements (15):** EVAL-01, EVAL-02, EVAL-03, EVAL-04, EVAL-05, EVAL-06, EVAL-07, EVAL-08, EVAL-09, CTX-01, RULE-01, RULE-02, RULE-03, RULE-04, TEST-04
 
 **Scope:**
-- `Rulestead.Context` struct + builder with fields: `targeting_key`, `subject`, `tenant_key`, `environment`, `attributes`, `request_id`, `session_id`, `strict?`
-- Public API: `Rulestead.enabled?/2`, `Rulestead.get_value/3`, `Rulestead.get_variant/2`, `Rulestead.evaluate/3`, `Rulestead.explain/2`
+- `Rulestead.Context` struct + builder with fields: `actor`, `targeting_key`, `tenant_key`, `environment`, `attributes`, `request_id`, `session_id`, `strict?`; `subject` is accepted only as an input alias during normalization if needed
+- Public API: `Rulestead.enabled?/2`, `Rulestead.get_value/3`, `Rulestead.get_variant/2`, `Rulestead.evaluate/3`, and `Rulestead.explain/2` take the in-memory authored flag payload / active ruleset document as the first argument and explicit `Rulestead.Context` input as the remaining argument(s); no Phase 3 API performs flag-key lookup or hidden store access, and Plug/conn builders remain Phase 5 host-app seams
 - `Rulestead.Result` struct: `value`, `enabled?`, `variant`, `reason`, `matched_rule`, `flag_key`, `flag_version`, `cache_age_ms`, optional `debug_trace`
 - Condition predicates: `equals`, `in`, `not_in`, `gt`, `lt`, `gte`, `lte`, `regex`, `exists`
 - Segments as reusable condition bundles referenced from rules
@@ -111,16 +111,24 @@ Plans:
 - Deterministic bucketing: stable hash of `(flag_key, rule_key, salt, targeting_key)` → 0..99 bucket; weights map bucket → variant
 - Selectable bucketing strategy per rule: `:subject` / `:account` / `:tenant` / `:session`
 - First-match-wins ordered evaluation; default value if no rule matches
-- Missing-targeting-key behavior: telemetry warning in permissive mode; `Rulestead.Error{type: :missing_targeting_key}` in strict mode
-- `explain/2` output: matched rule, each condition passed/failed, bucket value + variant chosen, reason label, snapshot version, environment
+- Missing-targeting-key behavior: a single sanitized telemetry warning event in permissive mode; strict mode returns `{:error, %Rulestead.Error{type: :missing_targeting_key}}` from non-bang evaluation APIs and `evaluate!/3` raises the same typed error
+- `explain/2` output: matched rule, each condition passed/failed, bucket value + variant chosen, reason label, environment; Phase 4 adds snapshot/cache diagnostics
 - StreamData property tests: same `(flag_key, rule_key, salt, targeting_key)` → same bucket across 10k runs; weight sums; rule ordering invariants
 
 **Success criteria:**
 1. 10k-run StreamData property test passes for bucketing determinism
 2. `Rulestead.explain/2` returns a structured trace that names the matched rule or explains why no rule matched
 3. `Rulestead.enabled?("flag", ctx)` is pure — zero I/O, no process-dictionary reads
-4. Strict mode raises a typed error on missing `targeting_key` for sticky rules
+4. Strict mode returns `{:error, %Rulestead.Error{type: :missing_targeting_key}}` from non-bang evaluation APIs on missing `targeting_key` for sticky rules, and `evaluate!/3` raises the same typed error
 5. Variant weights that don't sum to 100 fail at save time with a `Rulestead.RulesetError`
+
+**Plans:** 4 plans
+
+Plans:
+- [x] `03-01-PLAN.md` — Canonical `Rulestead.Context`/`Rulestead.Result` contracts plus evaluator error constructors
+- [x] `03-02-PLAN.md` — Ruleset embed validation tightening for conditions, variants, rollouts, and segment references
+- [x] `03-03-PLAN.md` — Deterministic bucket engine, pure evaluator, root API projections, and human explainer
+- [x] `03-04-PLAN.md` — StreamData property suites for bucketing, precedence, and explain/evaluate invariants
 
 **Dependencies:** Phase 2 (schemas + Store behavior so evaluator reads from a uniform source)
 **Depends on:** 2
@@ -155,6 +163,15 @@ Note: `TEL-03` (no-PII enforcement via Credo check) lands in Phase 7 with the re
 3. Snapshot refresh round-trip (admin write → PubSub → all nodes refreshed) completes in <500ms in a 2-node test cluster
 4. Disk backup restores evaluator on boot without control-plane connectivity
 5. `mix test --include telemetry` verifies every documented event fires with the documented metadata shape
+
+**Plans:** 5 plans
+
+Plans:
+- [x] `04-01-PLAN.md` — Persisted runtime snapshot schema plus store publication/fetch contract and adapter parity
+- [x] `04-02-PLAN.md` — ETS snapshot compilation, explicit `Rulestead.Runtime` keyed APIs, diagnostics, and explain composition
+- [x] `04-03-PLAN.md` — Supervised runtime ownership, PubSub + polling refresh orchestration, and degraded startup semantics
+- [x] `04-04-PLAN.md` — Optional flat-file backup plus outage, restart, and two-node convergence proof
+- [x] `04-05-PLAN.md` — Telemetry wrapper, public event catalog guide, and DB-free hot-path verification
 
 **Dependencies:** Phase 3 (pure evaluator to wrap in snapshot cache)
 **Depends on:** 3
