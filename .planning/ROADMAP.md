@@ -35,16 +35,18 @@
 4. CI workflow succeeds on a PR from a clean branch
 5. Release-please opens a v0.1.0 PR on merge to main (dry-run; no actual publish yet)
 
-**Plans:** 7 plans
+**Plans:** 9 plans
 
 Plans:
 - [ ] `01-01-PLAN.md` — Shared repo tooling, local Postgres bootstrap, and linked-versions release metadata
 - [ ] `01-02-PLAN.md` — `rulestead/` core package skeleton, metadata, and empty-surface tests
 - [ ] `01-03-PLAN.md` — `rulestead_admin/` sibling package skeleton with guarded router stub
 - [ ] `01-04-PLAN.md` — Root README, contributor/security/legal docs, maintainer runbook, and agent instructions
-- [ ] `01-05-PLAN.md` — GitHub Actions workflows for CI, release-please, publish fallback, PR-title lint, and dependency review
-- [ ] `01-06-PLAN.md` — GitHub metadata files and locally runnable `scripts/ci/*.sh` workflow helpers
-- [ ] `01-07-PLAN.md` — ExDoc configuration plus `guides/` introduction/flows/recipes scaffolding
+- [ ] `01-05-PLAN.md` — Locally runnable `scripts/ci/*.sh` helpers plus GitHub Actions workflows for CI, release-please, publish fallback, PR-title lint, and dependency review
+- [ ] `01-06-PLAN.md` — GitHub metadata files for Dependabot, PRs, CODEOWNERS, and issue templates
+- [ ] `01-07-PLAN.md` — ExDoc configuration plus `guides/` introduction and flow scaffolding
+- [ ] `01-08-PLAN.md` — Recipe guide scaffolding and final ExDoc extras wiring
+- [ ] `01-09-PLAN.md` — Clean-branch CI smoke verification and linked-versions release-please bootstrap evidence capture
 
 **Dependencies:** none
 **Depends on:** —
@@ -78,6 +80,15 @@ Note: `ADMIN-08` splits — schema + data model here; UI behavior in Phase 6 (tr
 3. `Rulestead.Error` structs pattern-match by `:type` atom in tests
 4. Error structs encode to JSON without leaking `:cause` payload
 5. Both real and fake stores pass an identical behavior-contract test suite
+
+**Plans:** 5 plans
+
+Plans:
+- [x] `02-01-PLAN.md` — Internal repo bootstrap and shared Ecto sandbox harness for Phase 2 tests
+- [x] `02-02-PLAN.md` — Public error envelope, key-first store behavior, and reserved bang/non-bang API conventions
+- [x] `02-03-PLAN.md` — Authoring schemas and migrations for flags, environments, rulesets, audiences, and audit events
+- [ ] `02-04-PLAN.md` — Contract-faithful fake adapter plus shared adapter contract suite
+- [ ] `02-05-PLAN.md` — Ecto adapter, minimal installer, and fresh Phoenix app install+migrate smoke proof
 
 **Dependencies:** Phase 1 (package skeleton + CI)
 **Depends on:** 1

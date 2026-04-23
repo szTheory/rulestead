@@ -27,7 +27,7 @@
 
 ### Store & Snapshots (STORE)
 
-- [ ] **STORE-01**: Ecto-backed authoring store with Postgres migrations shipped via `mix rulestead.install`
+- [x] **STORE-01**: Ecto-backed authoring store with Postgres migrations shipped via `mix rulestead.install`
 - [ ] **STORE-02**: Snapshot serialization (versioned binary payload) published on write
 - [ ] **STORE-03**: ETS compiled snapshot cache with Phoenix.PubSub refresh + polling fallback
 - [ ] **STORE-04**: Cache age and snapshot version exposed in debug/diagnostics output
@@ -58,7 +58,7 @@
 - [ ] **ADMIN-05**: Rollout controls — percentage rollout editor with rule ordering preview
 - [ ] **ADMIN-06**: Kill switch — bookmarkable one-click disable per flag per environment with confirmation
 - [ ] **ADMIN-07**: Audit timeline — who changed what, before/after diff, environment, linked actor
-- [ ] **ADMIN-08**: Environments model — dev/staging/prod with per-env behavior on a single flag identity; prod stricter
+- [x] **ADMIN-08**: Environments model — dev/staging/prod with per-env behavior on a single flag identity; prod stricter
 - [ ] **ADMIN-09**: Lifecycle view — owner, expected expiration, stale / potentially-stale markers, last changed
 - [ ] **ADMIN-10**: Admin mounts via single line in `router.ex`; authorization delegates to `Rulestead.Admin.Policy` behavior supplied by host
 
@@ -183,12 +183,14 @@ Tracked but not in current roadmap. Surface for promotion at v0.2 kickoff.
 | EVAL-01..09 | Phase 3 | Pending |
 | CTX-01 | Phase 3 | Pending |
 | CTX-02..05 | Phase 5 | Pending |
-| STORE-01, STORE-07 | Phase 2 | Pending |
+| STORE-01 | Phase 2 | Complete |
+| STORE-07 | Phase 2 | Pending |
 | STORE-02..06 | Phase 4 | Pending |
 | RULE-01..04 | Phase 3 | Pending |
 | TEL-01, TEL-02, TEL-04 | Phase 4 | Pending |
 | TEL-03 | Phase 7 | Pending |
-| ADMIN-01, ADMIN-02, ADMIN-03, ADMIN-08, ADMIN-10 | Phase 6 | Pending |
+| ADMIN-08 (schema) | Phase 2 | Complete |
+| ADMIN-01, ADMIN-02, ADMIN-03, ADMIN-08 (UI), ADMIN-10 | Phase 6 | Pending |
 | ADMIN-04, ADMIN-05, ADMIN-06, ADMIN-07, ADMIN-09 | Phase 7 | Pending |
 | INST-01..06 | Phase 5 | Pending |
 | LIFE-01..04 | Phase 6 | Pending |
