@@ -12,6 +12,8 @@ defmodule Rulestead do
   """
 
   alias Rulestead.{
+    Admin.Authorizer,
+    Admin.Redaction,
     ConfigError,
     Context,
     Error,
@@ -176,6 +178,79 @@ defmodule Rulestead do
     command
     |> archive_flag()
     |> unwrap!()
+  end
+
+  @doc """
+  Engages a per-flag per-environment kill switch.
+  """
+  @spec engage_kill_switch(Command.EngageKillSwitch.t()) :: Store.result(map())
+  def engage_kill_switch(%Command.EngageKillSwitch{} = command) do
+    admin_write(:engage_kill_switch, command)
+  end
+
+  @spec engage_kill_switch(String.t() | atom(), String.t() | atom(), map(), keyword()) :: Store.result(map())
+  def engage_kill_switch(flag_key, environment_key, actor, opts \\ []) do
+    flag_key
+    |> Command.EngageKillSwitch.new(environment_key,
+      actor: actor,
+      reason: Keyword.get(opts, :reason),
+      metadata: Keyword.get(opts, :metadata, %{})
+    )
+    |> engage_kill_switch()
+  end
+
+  @doc """
+  Releases a per-flag per-environment kill switch.
+  """
+  @spec release_kill_switch(Command.ReleaseKillSwitch.t()) :: Store.result(map())
+  def release_kill_switch(%Command.ReleaseKillSwitch{} = command) do
+    admin_write(:release_kill_switch, command)
+  end
+
+  @spec release_kill_switch(String.t() | atom(), String.t() | atom(), map(), keyword()) :: Store.result(map())
+  def release_kill_switch(flag_key, environment_key, actor, opts \\ []) do
+    flag_key
+    |> Command.ReleaseKillSwitch.new(environment_key,
+      actor: actor,
+      reason: Keyword.get(opts, :reason),
+      metadata: Keyword.get(opts, :metadata, %{})
+    )
+    |> release_kill_switch()
+  end
+
+  @doc """
+  Lists redacted audit events for one flag or all flags.
+  """
+  @spec list_audit_events(Command.ListAuditEvents.t() | keyword()) :: Store.result(Command.Page.t(map()))
+  def list_audit_events(command_or_opts \\ Command.ListAuditEvents.new())
+
+  def list_audit_events(%Command.ListAuditEvents{} = command) do
+    admin_read(:list_audit_events, command)
+  end
+
+  def list_audit_events(opts) when is_list(opts) do
+    opts
+    |> Command.ListAuditEvents.new()
+    |> list_audit_events()
+  end
+
+  @doc """
+  Writes a linked inverse action for a prior audit event.
+  """
+  @spec rollback_audit_event(Command.RollbackAuditEvent.t()) :: Store.result(map())
+  def rollback_audit_event(%Command.RollbackAuditEvent{} = command) do
+    admin_write(:rollback_audit_event, command)
+  end
+
+  @spec rollback_audit_event(String.t(), keyword()) :: Store.result(map())
+  def rollback_audit_event(audit_event_id, opts \\ []) when is_binary(audit_event_id) do
+    audit_event_id
+    |> Command.RollbackAuditEvent.new(
+      actor: Keyword.get(opts, :actor),
+      reason: Keyword.get(opts, :reason),
+      metadata: Keyword.get(opts, :metadata, %{})
+    )
+    |> rollback_audit_event()
   end
 
   @doc """
@@ -348,6 +423,36 @@ defmodule Rulestead do
   def explain(flag_payload, context) do
     with {:ok, %Result{} = result} <- evaluate(flag_payload, context) do
       {:ok, Explainer.explain(result.debug_trace)}
+    end
+  end
+
+  @doc """
+  Admin-safe runtime simulation for one flag and environment.
+  """
+  @spec simulate_flag(String.t() | atom(), String.t() | atom(), Context.t() | keyword() | map(), keyword()) ::
+          {:ok, map()} | {:error, Error.t()}
+  def simulate_flag(flag_key, environment_key, context, opts \\ []) do
+    actor = Keyword.get(opts, :actor)
+
+    with :ok <- authorize_admin_read(actor, :simulate_flag, %{resource_type: :flag, resource_key: flag_key}, environment_key),
+         {:ok, result} <- Runtime.evaluate(environment_key, flag_key, context) do
+      redacted = Redaction.redact_metadata(%{traits: Context.normalize(context).attributes}, allow: Keyword.get(opts, :allow, ["targeting_key"]))
+      {:ok, %{result: result, redacted_context: redacted}}
+    end
+  end
+
+  @doc """
+  Admin-safe explain seam for one flag and environment.
+  """
+  @spec explain_flag(String.t() | atom(), String.t() | atom(), Context.t() | keyword() | map(), keyword()) ::
+          {:ok, map()} | {:error, Error.t()}
+  def explain_flag(flag_key, environment_key, context, opts \\ []) do
+    actor = Keyword.get(opts, :actor)
+
+    with :ok <- authorize_admin_read(actor, :explain_flag, %{resource_type: :flag, resource_key: flag_key}, environment_key),
+         {:ok, explanation} <- Runtime.explain(environment_key, flag_key, context) do
+      redacted = Redaction.redact_metadata(%{traits: Context.normalize(context).attributes}, allow: Keyword.get(opts, :allow, ["targeting_key"]))
+      {:ok, %{explanation: explanation, redacted_context: redacted}}
     end
   end
 
@@ -532,17 +637,66 @@ defmodule Rulestead do
   end
 
   defp admin_write(operation, command) do
+    redacted_command = redact_command(command)
+    resource = command_resource(redacted_command)
+    action = command_action(operation)
+
     Telemetry.span(
       [:rulestead, :admin, :mutation],
       Telemetry.metadata(
-        Telemetry.command_metadata(command, %{operation: Atom.to_string(operation), audit_action: Atom.to_string(operation)})
+        Telemetry.command_metadata(redacted_command, %{operation: Atom.to_string(operation), audit_action: Atom.to_string(operation)})
       ),
       fn ->
-        result = run_store(operation, [command], command)
-        {result, admin_stop_metadata(result, command)}
+        result =
+          with :ok <- authorize_admin_write(redacted_command, action, resource),
+               do: run_store(operation, [redacted_command], redacted_command)
+
+        {result, admin_stop_metadata(result, redacted_command)}
       end
     )
   end
+
+  defp admin_read(operation, command) do
+    action = command_action(operation)
+
+    with :ok <- authorize_admin_read(command.actor, action, command_resource(command), Map.get(command, :environment_key)) do
+      run_store(operation, [command], command)
+    end
+  end
+
+  defp authorize_admin_write(command, action, resource) do
+    case Authorizer.authorize(command.actor, action, resource, Map.get(command, :environment_key)) do
+      :ok -> :ok
+      {:error, error, _denied_audit} -> {:error, error}
+    end
+  end
+
+  defp authorize_admin_read(actor, action, resource, environment_key) do
+    case Authorizer.authorize(actor, action, resource, environment_key) do
+      :ok -> :ok
+      {:error, error, _denied_audit} -> {:error, error}
+    end
+  end
+
+  defp redact_command(command) do
+    allow = ["request_id", "source", "reason", "targeting_key", "plan", "nested.region"]
+    redacted_metadata = Redaction.redact_metadata(Map.get(command, :metadata, %{}), allow: allow)
+    Map.put(command, :metadata, redacted_metadata.audit)
+  end
+
+  defp command_resource(%Command.RollbackAuditEvent{audit_event_id: audit_event_id}) do
+    %{resource_type: :audit_event, resource_key: audit_event_id}
+  end
+
+  defp command_resource(command) do
+    %{resource_type: :flag, resource_key: Map.get(command, :flag_key)}
+  end
+
+  defp command_action(:engage_kill_switch), do: :engage_kill_switch
+  defp command_action(:release_kill_switch), do: :release_kill_switch
+  defp command_action(:rollback_audit_event), do: :rollback_audit_event
+  defp command_action(:list_audit_events), do: :list_audit_events
+  defp command_action(operation), do: operation
 
   defp store_stop_metadata({:ok, value}, operation) do
     value
