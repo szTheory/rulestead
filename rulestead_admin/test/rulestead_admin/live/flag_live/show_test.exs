@@ -4,18 +4,40 @@ defmodule RulesteadAdmin.Live.FlagLive.ShowTest do
   alias Rulestead.Fake.Control
   alias Rulestead.Store.Command
 
+  defmodule AllowPolicy do
+    @behaviour Rulestead.Admin.Policy
+
+    def can?(_actor, _action, _resource, _environment_key), do: true
+  end
+
+  defmodule AuditRestrictedPolicy do
+    @behaviour Rulestead.Admin.Policy
+
+    def can?(_actor, :list_audit_events, _resource, _environment_key), do: false
+    def can?(_actor, _action, _resource, _environment_key), do: true
+  end
+
   setup_all do
     start_supervised!(RulesteadAdmin.TestEndpoint)
     :ok
   end
 
   setup %{conn: conn} do
+    previous_policy = Application.get_env(:rulestead, :admin_policy)
     Application.put_env(:rulestead, :store, Rulestead.Fake)
+    Application.put_env(:rulestead, :admin_policy, AllowPolicy)
     Application.put_env(:rulestead, :admin_lifecycle,
       warning_after_seconds: 1_800,
       stale_after_seconds: 3_600,
       now: ~U[2026-04-23 16:00:00Z]
     )
+
+    on_exit(fn ->
+      case previous_policy do
+        nil -> Application.delete_env(:rulestead, :admin_policy)
+        value -> Application.put_env(:rulestead, :admin_policy, value)
+      end
+    end)
 
     now = ~U[2026-04-23 16:00:00Z]
     Control.reset!(now: now)
@@ -69,7 +91,7 @@ defmodule RulesteadAdmin.Live.FlagLive.ShowTest do
     assert html =~ "Active"
   end
 
-  test "detail distinguishes active and draft rulesets, links to rules workspace, and renders only an audit placeholder", %{conn: conn} do
+  test "detail links to the dedicated phase 7 routes and keeps audit summary on the read surface", %{conn: conn} do
     {:ok, view, html} = live(conn, "/admin/flags/checkout-redesign?env=prod")
 
     assert html =~ "Active ruleset"
@@ -77,10 +99,39 @@ defmodule RulesteadAdmin.Live.FlagLive.ShowTest do
     assert html =~ "Draft ruleset"
     assert html =~ "Version 2"
     assert has_element?(view, "a[href='/admin/flags/checkout-redesign/rules?env=prod']")
+    assert has_element?(view, "a[href='/admin/flags/checkout-redesign/kill?env=prod']")
+    assert has_element?(view, "a[href='/admin/flags/checkout-redesign/timeline?env=prod']")
     assert html =~ "Open rules workspace"
-    assert html =~ "Audit timeline arrives in Phase 7"
-    refute html =~ "simulate"
-    refute html =~ "kill switch"
+    assert html =~ "Open kill switch"
+    assert html =~ "Open audit timeline"
+    assert html =~ "Use the dedicated timeline for append-only history"
+  end
+
+  test "detail reads audit data with the current session actor and hides restricted reasons", %{conn: conn} do
+    assert {:ok, _payload} =
+             Rulestead.engage_kill_switch("checkout-redesign", "prod", %{id: "op-1", display: "Priya", roles: [:admin]},
+               reason: "incident bridge"
+             )
+
+    Application.put_env(:rulestead, :admin_policy, AuditRestrictedPolicy)
+
+    restricted_conn =
+      conn
+      |> Phoenix.ConnTest.recycle()
+      |> Phoenix.ConnTest.init_test_session(%{
+        "current_actor" => %{id: 8, email: "viewer@example.com", roles: ["viewer"]},
+        "rulestead_admin_last_env" => "prod",
+        "rulestead_admin_environments" => [
+          %{"key" => "dev", "name" => "Development"},
+          %{"key" => "staging", "name" => "Staging"},
+          %{"key" => "prod", "name" => "Production"}
+        ]
+      })
+
+    {:ok, _view, html} = live(restricted_conn, "/admin/flags/checkout-redesign?env=prod")
+
+    assert html =~ "Kill switch active"
+    refute html =~ "incident bridge"
   end
 
   defp seed_flag!(attrs) do

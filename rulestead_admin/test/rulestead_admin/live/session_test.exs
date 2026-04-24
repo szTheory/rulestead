@@ -90,6 +90,24 @@ defmodule RulesteadAdmin.Live.SessionTest do
            }
   end
 
+  test "shared route helpers preserve non-default mount roots for phase 7 screens" do
+    assigns = %{
+      current_environment: %{key: "staging", name: "Staging"},
+      available_environments: [
+        %{key: "staging", name: "Staging"},
+        %{key: "prod", name: "Production"}
+      ]
+    }
+
+    assert Session.current_path(assigns, "/ops/flags/checkout-redesign/rollouts") ==
+             "/ops/flags/checkout-redesign/rollouts?env=staging"
+
+    assert Session.env_links(assigns, "/ops/flags/audit", %{"mutation" => "ruleset.publish"}) == %{
+             "prod" => "/ops/flags/audit?env=prod&mutation=ruleset.publish",
+             "staging" => "/ops/flags/audit?env=staging&mutation=ruleset.publish"
+           }
+  end
+
   test "shell renders a global environment picker with explicit production styling" do
     html =
       render_component(&Shell.page/1,

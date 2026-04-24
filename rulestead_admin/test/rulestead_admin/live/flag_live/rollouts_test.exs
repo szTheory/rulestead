@@ -4,19 +4,42 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
   alias Rulestead.Fake.Control
   alias Rulestead.Store.Command
 
+  defmodule AllowPolicy do
+    @behaviour Rulestead.Admin.Policy
+
+    def can?(_actor, _action, _resource, _environment_key), do: true
+  end
+
+  defmodule DenyWritesPolicy do
+    @behaviour Rulestead.Admin.Policy
+
+    def can?(_actor, :access_admin, _resource, _environment_key), do: true
+    def can?(_actor, :list_audit_events, _resource, _environment_key), do: true
+    def can?(_actor, _action, _resource, _environment_key), do: false
+  end
+
   setup_all do
     start_supervised!(RulesteadAdmin.TestEndpoint)
     :ok
   end
 
   setup %{conn: conn} do
+    previous_policy = Application.get_env(:rulestead, :admin_policy)
     Application.put_env(:rulestead, :store, Rulestead.Fake)
+    Application.put_env(:rulestead, :admin_policy, AllowPolicy)
 
     Application.put_env(:rulestead, :admin_lifecycle,
       warning_after_seconds: 1_800,
       stale_after_seconds: 3_600,
       now: ~U[2026-04-23 16:00:00Z]
     )
+
+    on_exit(fn ->
+      case previous_policy do
+        nil -> Application.delete_env(:rulestead, :admin_policy)
+        value -> Application.put_env(:rulestead, :admin_policy, value)
+      end
+    end)
 
     now = ~U[2026-04-23 16:00:00Z]
     Control.reset!(now: now)
@@ -169,6 +192,46 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
     assert risky_html =~ "Reason for risky jump"
     refute risky_html =~ "Published to Production"
 
+    assert Enum.at(Rulestead.fetch_flag!("checkout-redesign", "prod").active_ruleset.rules, 1).rollout.percentage ==
+             25
+  end
+
+  test "rollout draft and publish writes fail closed when the current actor lacks permission", %{conn: conn} do
+    Application.put_env(:rulestead, :admin_policy, DenyWritesPolicy)
+
+    denied_conn =
+      conn
+      |> Phoenix.ConnTest.recycle()
+      |> Phoenix.ConnTest.init_test_session(%{
+        "current_actor" => %{id: "viewer-1", email: "viewer@example.com", display: "Viewer", roles: ["viewer"]},
+        "rulestead_admin_last_env" => "prod",
+        "rulestead_admin_environments" => [
+          %{"key" => "dev", "name" => "Development"},
+          %{"key" => "staging", "name" => "Staging"},
+          %{"key" => "prod", "name" => "Production"}
+        ]
+      })
+
+    {:ok, view, _html} = live(denied_conn, "/admin/flags/checkout-redesign/rollouts?env=prod")
+
+    denied_save_html =
+      view
+      |> form("form[aria-label='Rollout controls form']", %{"rollout" => %{"percentage" => "50"}})
+      |> render_change()
+      |> then(fn _html ->
+        view
+        |> element("button[phx-click='save_draft']")
+        |> render_click()
+      end)
+
+    assert denied_save_html =~ "caller is not authorized to perform this action"
+
+    denied_publish_html =
+      view
+      |> element("button[phx-click='publish']")
+      |> render_click()
+
+    assert denied_publish_html =~ "caller is not authorized to perform this action"
     assert Enum.at(Rulestead.fetch_flag!("checkout-redesign", "prod").active_ruleset.rules, 1).rollout.percentage ==
              25
   end
