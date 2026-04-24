@@ -2,7 +2,7 @@
 
 ## Current Milestone: v0.2.0 Governance and Operator Confidence
 
-**Status:** Phase 9 execution in progress (2 of 5 plans complete)
+**Status:** Phase 9 execution in progress (3 of 5 plans complete)
 **Phases:** 9-13
 **Requirements:** [.planning/REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/REQUIREMENTS.md)
 
@@ -31,7 +31,7 @@ Plans:
 
 - [x] 09-01-PLAN.md — Lock governance domain contracts for change requests, approvals, and governed mutation states
 - [x] 09-02-PLAN.md — Add store schema, command contracts, and audit correlation fields for governed changes
-- [ ] 09-03-PLAN.md — Expand the host-owned policy seam for change-request requirements and self-approval guards
+- [x] 09-03-PLAN.md — Expand the host-owned policy seam for change-request requirements and self-approval guards
 - [ ] 09-04-PLAN.md — Wire the root facade and adapter parity for governed submit/approve/reject/cancel/execute flows
 - [ ] 09-05-PLAN.md — Prove governance safety rules with contract tests and a scripts-first verifier
 
@@ -143,4 +143,4 @@ Plans:
 - Webhook ingress and outbound delivery have a high blast radius; they must stay on the same authorization and audit rails as direct admin actions.
 
 ---
-*Last updated: 2026-04-24 after completing 09-02*
+*Last updated: 2026-04-24 after completing 09-03*

@@ -8,8 +8,8 @@
 ### Governance (GOV)
 
 - [x] **GOV-01**: Operator can submit a change request instead of directly executing a governed production mutation.
-- [ ] **GOV-02**: Host policy can require approvals by environment and action for publish, rollout, kill-switch, and settings mutations.
-- [ ] **GOV-03**: Default governance policy prevents self-approval for production change requests unless the host explicitly overrides it.
+- [x] **GOV-02**: Host policy can require approvals by environment and action for publish, rollout, kill-switch, and settings mutations.
+- [x] **GOV-03**: Default governance policy prevents self-approval for production change requests unless the host explicitly overrides it.
 - [x] **GOV-04**: Approval, rejection, execution, and cancellation of change requests append correlated immutable audit events.
 - [ ] **GOV-05**: Admin review surfaces show diff, simulation context, actor, environment, and approval state before execution.
 
@@ -61,8 +61,8 @@
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | GOV-01 | Phase 9 | Completed in 09-02 |
-| GOV-02 | Phase 9 | Pending |
-| GOV-03 | Phase 9 | Pending |
+| GOV-02 | Phase 9 | Completed in 09-03 |
+| GOV-03 | Phase 9 | Completed in 09-03 |
 | GOV-04 | Phase 9 | Completed in 09-02 |
 | GOV-05 | Phase 11 | Pending |
 | SCH-01 | Phase 10 | Pending |
@@ -84,4 +84,4 @@
 
 ---
 *Requirements defined: 2026-04-24*
-*Last updated: 2026-04-24 after milestone v0.2.0 definition*
+*Last updated: 2026-04-24 after completing 09-03*
