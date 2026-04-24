@@ -9,6 +9,7 @@ defmodule RulesteadAdmin.Components.Shell do
   attr :current_environment, :map, required: true
   attr :environments, :list, default: []
   attr :env_links, :map, default: %{}
+  slot :header_actions
   slot :inner_block, required: true
 
   def page(assigns) do
@@ -21,6 +22,9 @@ defmodule RulesteadAdmin.Components.Shell do
           <p class="rs-shell__kicker"><%= @page_kicker %></p>
           <h1 class="rs-shell__title"><%= @page_title %></h1>
           <p class="rs-shell__summary"><%= @page_summary %></p>
+          <div :if={@header_actions != []} class="rs-shell__header-actions">
+            <%= render_slot(@header_actions) %>
+          </div>
         </div>
         <section class="rs-shell__env" aria-label="Environment">
           <p class="rs-shell__env-label">Environment</p>
