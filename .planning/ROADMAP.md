@@ -32,8 +32,8 @@ Plans:
 - [x] 09-01-PLAN.md — Lock governance domain contracts for change requests, approvals, and governed mutation states
 - [x] 09-02-PLAN.md — Add store schema, command contracts, and audit correlation fields for governed changes
 - [x] 09-03-PLAN.md — Expand the host-owned policy seam for change-request requirements and self-approval guards
-- [ ] 09-04-PLAN.md — Wire the root facade and adapter parity for governed submit/approve/reject/cancel/execute flows
-- [ ] 09-05-PLAN.md — Prove governance safety rules with contract tests and a scripts-first verifier
+- [x] 09-04-PLAN.md — Wire the root facade and adapter parity for governed submit/approve/reject/cancel/execute flows
+- [x] 09-05-PLAN.md — Prove governance safety rules with contract tests and a scripts-first verifier
 
 **Details:**
 
