@@ -11,6 +11,7 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
 
   setup %{conn: conn} do
     Application.put_env(:rulestead, :store, Rulestead.Fake)
+
     Application.put_env(:rulestead, :admin_lifecycle,
       warning_after_seconds: 1_800,
       stale_after_seconds: 3_600,
@@ -50,7 +51,8 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
     {:ok, conn: conn}
   end
 
-  test "page shows rollout rule context, keeps variant weights locked, and saves draft percentage edits only", %{conn: conn} do
+  test "page shows rollout rule context, keeps variant weights locked, and saves draft percentage edits only",
+       %{conn: conn} do
     {:ok, view, html} = live(conn, "/admin/flags/checkout-redesign/rollouts?env=prod")
 
     assert html =~ "Rollout controls"
@@ -92,7 +94,9 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
     assert Enum.at(detail.active_ruleset.rules, 1).rollout.percentage == 25
   end
 
-  test "preview samples a bounded deterministic set without persisting hidden changes", %{conn: conn} do
+  test "preview samples a bounded deterministic set without persisting hidden changes", %{
+    conn: conn
+  } do
     {:ok, view, _html} = live(conn, "/admin/flags/checkout-redesign/rollouts?env=prod")
 
     preview_html =
@@ -179,8 +183,13 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
       ]
     }
 
-    assert {:ok, _draft} = Rulestead.save_draft_ruleset(Command.SaveDraftRuleset.new(flag_key, environment_key, ruleset))
-    assert {:ok, _published} = Rulestead.publish_ruleset(Command.PublishRuleset.new(flag_key, environment_key))
+    assert {:ok, _draft} =
+             Rulestead.save_draft_ruleset(
+               Command.SaveDraftRuleset.new(flag_key, environment_key, ruleset)
+             )
+
+    assert {:ok, _published} =
+             Rulestead.publish_ruleset(Command.PublishRuleset.new(flag_key, environment_key))
   end
 
   defp ensure_environment!(key, name) do

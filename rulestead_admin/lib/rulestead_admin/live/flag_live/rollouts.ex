@@ -3,69 +3,503 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
 
   use Phoenix.LiveView
 
-  alias RulesteadAdmin.Components.{FlagComponents, OperatorComponents, Shell}
+  alias Rulestead.Context
+  alias Rulestead.Store.Command
+  alias RulesteadAdmin.Components.{FlagComponents, OperatorComponents, RolloutComponents, Shell}
   alias RulesteadAdmin.Live.Session
+
+  @sample_size 20
+  @ladder_steps [5, 25, 50, 100]
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, :page, nil)}
+    {:ok,
+     socket
+     |> assign(:flag_key, nil)
+     |> assign(:current_path, "/admin/flags")
+     |> assign(:sample_size, @sample_size)
+     |> assign(:ladder_steps, @ladder_steps)
+     |> assign(:detail, nil)
+     |> assign(:rollout_rule_key, nil)
+     |> assign(:rollout_rule_index, nil)
+     |> assign(:source_ruleset, nil)
+     |> assign(:percentage, nil)
+     |> assign(:preview, nil)
+     |> assign(:editable?, false)
+     |> assign(:status_message, nil)
+     |> assign(:error_message, nil)
+     |> assign(:env_links, %{})}
   end
 
   @impl true
-  def handle_params(%{"key" => key}, _uri, socket) do
-    page =
-      socket.assigns
-      |> Session.placeholder_assigns(
-        current_path: "/admin/flags/#{key}/rollouts",
-        page_title: "#{key} rollout controls",
-        page_kicker: "Rollouts",
-        page_summary: "Draft-aware rollout screen reserved for explicit ramps, previews, and publish confirmations."
+  def handle_params(%{"key" => flag_key}, uri, socket) do
+    env = query_params(uri)["env"] || socket.assigns.current_environment.key
+
+    socket =
+      socket
+      |> assign(:flag_key, flag_key)
+      |> assign(:current_path, build_path(flag_key, env))
+      |> assign(:env_links, detail_env_links(flag_key, socket.assigns.available_environments))
+      |> load_page(flag_key, env)
+
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("validate", %{"rollout" => params}, socket) do
+    percentage = normalize_percentage(params["percentage"], socket.assigns.percentage)
+
+    {:noreply,
+     socket
+     |> assign(:percentage, percentage)
+     |> assign(:preview, nil)
+     |> assign(:status_message, nil)}
+  end
+
+  def handle_event("preview", _params, socket) do
+    with {:ok, preview} <-
+           build_preview(
+             socket.assigns.detail,
+             socket.assigns.source_ruleset,
+             socket.assigns.rollout_rule_index,
+             socket.assigns.percentage
+           ) do
+      {:noreply,
+       socket
+       |> assign(:preview, preview)
+       |> assign(:status_message, "Preview refreshed for #{socket.assigns.percentage}%")
+       |> assign(:error_message, nil)}
+    else
+      {:error, error} ->
+        {:noreply, assign(socket, :error_message, error.message)}
+    end
+  end
+
+  def handle_event("save_draft", _params, socket) do
+    persist_rollout(socket, :draft)
+  end
+
+  def handle_event("publish", _params, socket) do
+    persist_rollout(socket, :publish)
+  end
+
+  @impl true
+  def render(assigns) do
+    assigns =
+      assigns
+      |> assign(:current_rule, current_rollout_rule(assigns))
+      |> assign(:page_title, assigns.flag_key || "Rollout controls")
+      |> assign(
+        :page_summary,
+        "Widen exposure explicitly, preview a bounded sample, and keep first-match order visible before saving or publishing."
       )
-      |> Map.put(:flag_key, key)
-
-    {:noreply, assign(socket, :page, page)}
-  end
-
-  @impl true
-  def render(%{page: page} = assigns) when is_map(page) do
-    assigns = assign(assigns, :page, page)
 
     ~H"""
     <Shell.page
-      page_title={@page.page_title}
-      page_kicker={@page.page_kicker}
-      page_summary={@page.page_summary}
-      current_environment={@page.current_environment}
-      environments={@page.environments}
-      env_links={@page.env_links}
+      page_title={@page_title}
+      page_kicker="Rollout controls"
+      page_summary={@page_summary}
+      current_environment={@current_environment}
+      environments={@available_environments}
+      env_links={@env_links}
     >
       <:header_actions>
-        <a href={"/admin/flags/#{@page.flag_key}/rules?env=#{@page.current_environment.key}"}>Open rules workspace</a>
+        <a href={"/admin/flags/#{@flag_key}?env=#{@current_environment.key}"}>Back to detail</a>
+        <a href={"/admin/flags/#{@flag_key}/rules?env=#{@current_environment.key}"}>Open rules workspace</a>
       </:header_actions>
 
       <OperatorComponents.banner
-        title="Rollouts stay monotonic and explicit"
-        body="This screen will layer preview-rich percentage ramps on top of the existing draft and publish boundary."
+        title="Safe rollout ramps stay explicit"
+        body="This page adjusts rollout percentage only. Variant composition stays fixed here, draft and publish remain separate, and preview feedback never writes behind your back."
         tone="warning"
       />
 
-      <OperatorComponents.policy_state policy_state={@page.policy_state} />
+      <OperatorComponents.policy_state policy_state={Session.policy_state(assigns)} />
 
-      <OperatorComponents.summary_grid
-        items={[
-          %{title: "Route", value: @page.current_path, tone: "neutral"},
-          %{title: "Current scope", value: @page.current_environment.name, tone: "neutral"},
-          %{title: "Persistence", value: "No hidden saves", tone: "warning"}
-        ]}
-      />
+      <p :if={@error_message} role="alert"><%= @error_message %></p>
 
-      <FlagComponents.section_card title="Empty state">
-        <p>No rollout plan has been drafted for this environment yet.</p>
-        <p>The final implementation will keep preview feedback responsive while preserving explicit save and publish actions.</p>
-      </FlagComponents.section_card>
+      <div :if={@detail} class="rs-rollouts">
+        <OperatorComponents.summary_grid
+          items={[
+            %{title: "Owner", value: @detail.lifecycle.owner, tone: "neutral"},
+            %{title: "Environment", value: @detail.environment.name, tone: "neutral"},
+            %{title: "Lifecycle", value: humanize(@detail.lifecycle.state), tone: "neutral"},
+            %{title: "Current exposure", value: "#{current_percentage(@current_rule)}%", tone: "accent"}
+          ]}
+        />
 
-      <OperatorComponents.rollout_ladder steps={["5%", "25%", "50%", "100%"]} current="25%" />
+        <p :if={@status_message} role="status"><%= @status_message %></p>
+
+        <div class="rs-rollouts__layout">
+          <section class="rs-rollouts__main">
+            <FlagComponents.section_card title="First-match order">
+              <p>Rule <%= (@rollout_rule_index || 0) + 1 %> of <%= length(source_rules(@source_ruleset)) %> is the current rollout rule.</p>
+              <RolloutComponents.order_context
+                entries={order_entries(@source_ruleset, @rollout_rule_key)}
+                current_rule_key={@rollout_rule_key}
+              />
+            </FlagComponents.section_card>
+
+            <FlagComponents.section_card title="Rollout percentage">
+              <form aria-label="Rollout controls form" phx-change="validate">
+                <div class="rs-rollouts__field">
+                  <label for="rollout-percentage">Rollout percentage</label>
+                  <input
+                    id="rollout-percentage"
+                    type="number"
+                    name="rollout[percentage]"
+                    min="0"
+                    max="100"
+                    value={@percentage}
+                  />
+                  <p>Widen exposure only. This route never edits variant weights.</p>
+                </div>
+              </form>
+
+              <div class="rs-rollouts__actions">
+                <button type="button" phx-click="preview">Preview sample</button>
+                <button :if={@editable?} type="button" phx-click="save_draft">Save draft</button>
+                <button :if={@editable?} type="button" phx-click="publish">Publish</button>
+              </div>
+            </FlagComponents.section_card>
+
+            <RolloutComponents.preview_panel preview={@preview} percentage={@percentage} sample_size={@sample_size} />
+          </section>
+
+          <aside class="rs-rollouts__sidebar">
+            <RolloutComponents.ladder
+              steps={@ladder_steps}
+              current={current_percentage(@current_rule)}
+              selected={@percentage}
+            />
+
+            <RolloutComponents.variant_weights variants={variant_rows(@current_rule)} />
+          </aside>
+        </div>
+      </div>
     </Shell.page>
     """
+  end
+
+  defp persist_rollout(socket, mode) do
+    detail = socket.assigns.detail
+
+    ruleset =
+      updated_ruleset(
+        socket.assigns.source_ruleset,
+        socket.assigns.rollout_rule_index,
+        socket.assigns.percentage,
+        detail.flag.key,
+        detail.environment.key
+      )
+
+    with {:ok, _draft} <-
+           Rulestead.save_draft_ruleset(
+             Command.SaveDraftRuleset.new(detail.flag.key, detail.environment.key, ruleset)
+           ),
+         {:ok, _published} <- maybe_publish(mode, detail.flag.key, detail.environment.key) do
+      message =
+        case mode do
+          :draft -> "Draft saved for #{detail.environment.name}"
+          :publish -> "Published to #{detail.environment.name}"
+        end
+
+      {:noreply,
+       socket
+       |> assign(:status_message, message)
+       |> assign(:preview, nil)
+       |> load_page(detail.flag.key, detail.environment.key)}
+    else
+      {:error, error} ->
+        {:noreply, assign(socket, :error_message, error.message)}
+    end
+  end
+
+  defp maybe_publish(:draft, _flag_key, _environment_key), do: {:ok, :draft_only}
+
+  defp maybe_publish(:publish, flag_key, environment_key),
+    do: Rulestead.publish_ruleset(Command.PublishRuleset.new(flag_key, environment_key))
+
+  defp load_page(socket, flag_key, env) do
+    case Rulestead.fetch_flag(flag_key, env) do
+      {:ok, detail} ->
+        ruleset = source_ruleset(detail)
+        {rollout_rule, rollout_rule_index} = find_rollout_rule(ruleset)
+
+        socket
+        |> assign(:detail, detail)
+        |> assign(:source_ruleset, ruleset)
+        |> assign(:rollout_rule_key, field(rollout_rule, :key))
+        |> assign(:rollout_rule_index, rollout_rule_index)
+        |> assign(:percentage, current_percentage(rollout_rule))
+        |> assign(:preview, nil)
+        |> assign(:editable?, is_nil(detail.flag.archived_at) and not is_nil(rollout_rule))
+        |> assign(
+          :error_message,
+          if(is_nil(rollout_rule),
+            do: "No rollout rule is available for this environment.",
+            else: nil
+          )
+        )
+
+      {:error, error} ->
+        socket
+        |> assign(:detail, nil)
+        |> assign(:source_ruleset, nil)
+        |> assign(:rollout_rule_key, nil)
+        |> assign(:rollout_rule_index, nil)
+        |> assign(:percentage, nil)
+        |> assign(:preview, nil)
+        |> assign(:editable?, false)
+        |> assign(:error_message, error.message)
+    end
+  end
+
+  defp build_preview(detail, source_ruleset, rollout_rule_index, percentage) do
+    preview_ruleset =
+      updated_ruleset(
+        source_ruleset,
+        rollout_rule_index,
+        percentage,
+        detail.flag.key,
+        detail.environment.key
+      )
+
+    preview_payload = Map.put(detail, :active_ruleset, preview_ruleset)
+    rollout_rule_key = preview_ruleset.rules |> Enum.at(rollout_rule_index) |> field(:key)
+
+    sample_rows =
+      1..@sample_size
+      |> Enum.map(fn index ->
+        targeting_key = sample_targeting_key(detail.flag.key, detail.environment.key, index)
+
+        context =
+          Context.new(%{
+            targeting_key: targeting_key,
+            environment: detail.environment.key,
+            attributes: %{"segment" => "standard"}
+          })
+
+        case Rulestead.evaluate(preview_payload, context) do
+          {:ok, result} ->
+            %{
+              targeting_key: targeting_key,
+              matched_rule: result.matched_rule,
+              variant: result.variant || "fallback"
+            }
+
+          {:error, error} ->
+            %{targeting_key: targeting_key, matched_rule: "error", variant: error.message}
+        end
+      end)
+
+    matched_count = Enum.count(sample_rows, &(&1.matched_rule == rollout_rule_key))
+    variant_counts = Enum.frequencies_by(sample_rows, & &1.variant)
+
+    {:ok,
+     %{
+       sample_size: @sample_size,
+       intended_percentage: percentage,
+       observed_percentage: round(matched_count * 100 / @sample_size),
+       variant_counts: variant_counts
+     }}
+  end
+
+  defp updated_ruleset(source_ruleset, rollout_rule_index, percentage, flag_key, environment_key) do
+    rules =
+      source_rules(source_ruleset)
+      |> Enum.with_index()
+      |> Enum.map(fn {rule, index} ->
+        if index == rollout_rule_index do
+          update_rollout_percentage(rule, percentage)
+        else
+          serialize_rule(rule)
+        end
+      end)
+
+    %{
+      salt: field(source_ruleset, :salt, "#{flag_key}:#{environment_key}:rollouts"),
+      rules: rules
+    }
+  end
+
+  defp update_rollout_percentage(rule, percentage) do
+    rule
+    |> serialize_rule()
+    |> Map.update!(:rollout, &Map.put(&1, :percentage, percentage))
+  end
+
+  defp source_ruleset(detail) do
+    cond do
+      detail.draft_rulesets != [] -> List.first(detail.draft_rulesets)
+      detail.active_ruleset -> detail.active_ruleset
+      true -> %{rules: []}
+    end
+  end
+
+  defp find_rollout_rule(ruleset) do
+    ruleset
+    |> source_rules()
+    |> Enum.with_index()
+    |> Enum.find_value({nil, nil}, fn {rule, index} ->
+      if rollout_rule?(rule), do: {rule, index}, else: nil
+    end)
+  end
+
+  defp source_rules(nil), do: []
+  defp source_rules(ruleset), do: field(ruleset, :rules, [])
+
+  defp rollout_rule?(rule) do
+    not is_nil(field(rule, :rollout)) and
+      field(rule, :strategy) in [
+        :percentage_rollout,
+        :variant_split,
+        "percentage_rollout",
+        "variant_split"
+      ]
+  end
+
+  defp current_rollout_rule(assigns) do
+    assigns.source_ruleset
+    |> source_rules()
+    |> Enum.at(assigns.rollout_rule_index || 0)
+  end
+
+  defp current_percentage(nil), do: 0
+  defp current_percentage(rule), do: rule |> field(:rollout, %{}) |> field(:percentage, 0)
+
+  defp order_entries(source_ruleset, current_rule_key) do
+    source_ruleset
+    |> source_rules()
+    |> Enum.with_index(1)
+    |> Enum.map(fn {rule, index} ->
+      %{
+        label: "Rule #{index}",
+        title: field(rule, :name, field(rule, :key, "Untitled rule")),
+        current?: field(rule, :key) == current_rule_key
+      }
+    end)
+  end
+
+  defp variant_rows(nil), do: []
+
+  defp variant_rows(rule) do
+    rule
+    |> field(:variants, [])
+    |> Enum.map(fn variant ->
+      %{key: field(variant, :key, "variant"), weight: field(variant, :weight, 0)}
+    end)
+  end
+
+  defp serialize_rule(rule) do
+    %{
+      key: field(rule, :key),
+      name: field(rule, :name),
+      description: field(rule, :description),
+      strategy: normalize_strategy(field(rule, :strategy)),
+      value: serialize_plain_map(field(rule, :value, %{})),
+      audience_id: field(rule, :audience_id),
+      audience_key: field(rule, :audience_key),
+      conditions: Enum.map(field(rule, :conditions, []), &serialize_condition/1),
+      variants: Enum.map(field(rule, :variants, []), &serialize_variant/1),
+      rollout: serialize_rollout(field(rule, :rollout))
+    }
+    |> Enum.reject(fn {_key, value} -> is_nil(value) end)
+    |> Enum.into(%{})
+  end
+
+  defp serialize_condition(condition) do
+    %{
+      attribute: field(condition, :attribute),
+      operator: normalize_strategy(field(condition, :operator)),
+      value: serialize_plain_map(field(condition, :value, %{}))
+    }
+  end
+
+  defp serialize_variant(variant) do
+    %{
+      key: field(variant, :key),
+      value: serialize_plain_map(field(variant, :value, %{})),
+      weight: field(variant, :weight, 0)
+    }
+  end
+
+  defp serialize_rollout(nil), do: nil
+
+  defp serialize_rollout(rollout) do
+    %{
+      bucket_by: normalize_strategy(field(rollout, :bucket_by)),
+      percentage: field(rollout, :percentage, 0),
+      salt: field(rollout, :salt)
+    }
+    |> Enum.reject(fn {_key, value} -> is_nil(value) end)
+    |> Enum.into(%{})
+  end
+
+  defp serialize_plain_map(nil), do: %{}
+
+  defp serialize_plain_map(value) when is_map(value) do
+    value
+    |> maybe_from_struct()
+    |> Enum.into(%{}, fn {key, item} -> {key, serialize_plain_value(item)} end)
+  end
+
+  defp serialize_plain_map(value), do: %{value: serialize_plain_value(value)}
+
+  defp serialize_plain_value(value) when is_map(value), do: serialize_plain_map(value)
+
+  defp serialize_plain_value(value) when is_list(value),
+    do: Enum.map(value, &serialize_plain_value/1)
+
+  defp serialize_plain_value(value), do: value
+
+  defp normalize_strategy(value) when is_binary(value), do: String.to_atom(value)
+  defp normalize_strategy(value), do: value
+
+  defp normalize_percentage(nil, current), do: current || 0
+
+  defp normalize_percentage(value, current) do
+    case Integer.parse(to_string(value)) do
+      {parsed, _rest} -> min(max(parsed, 0), 100)
+      :error -> current || 0
+    end
+  end
+
+  defp sample_targeting_key(flag_key, environment_key, index),
+    do: "#{flag_key}:#{environment_key}:preview:#{index}"
+
+  defp detail_env_links(flag_key, environments) do
+    Enum.into(environments, %{}, fn environment ->
+      {environment.key, build_path(flag_key, environment.key)}
+    end)
+  end
+
+  defp build_path(flag_key, env), do: "/admin/flags/#{flag_key}/rollouts?env=#{env}"
+
+  defp query_params(uri) do
+    uri
+    |> URI.parse()
+    |> Map.get(:query)
+    |> case do
+      nil -> %{}
+      query -> URI.decode_query(query)
+    end
+  end
+
+  defp humanize(value) when is_atom(value), do: humanize(to_string(value))
+
+  defp humanize(value) when is_binary(value),
+    do: value |> String.replace("_", " ") |> String.capitalize()
+
+  defp humanize(value), do: to_string(value)
+
+  defp maybe_from_struct(%{__struct__: _} = value), do: Map.from_struct(value)
+  defp maybe_from_struct(value), do: value
+
+  defp field(value, key, default \\ nil)
+  defp field(nil, _key, default), do: default
+
+  defp field(value, key, default) when is_map(value) do
+    Map.get(value, key, Map.get(value, to_string(key), default))
   end
 end
