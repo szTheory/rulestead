@@ -12,7 +12,7 @@ defmodule Rulestead.Governance.ChangeRequestContractTest do
                :publish_ruleset,
                :advance_rollout,
                :engage_kill_switch,
-               :manage_settings
+               :release_kill_switch
              ]
     end
   end
@@ -99,19 +99,38 @@ defmodule Rulestead.Governance.ChangeRequestContractTest do
     test "approval requirement keeps self-approval posture explicit" do
       approval_requirement =
         ApprovalRequirement.new(
-          action: :manage_settings,
+          action: :release_kill_switch,
           environment_key: :prod,
           required_approvals: 1,
           self_approval_allowed?: true
         )
 
       assert ApprovalRequirement.serialize(approval_requirement) == %{
-               action: :manage_settings,
+               action: :release_kill_switch,
                environment_key: "prod",
                required_approvals: 1,
                change_request_required?: false,
                self_approval_allowed?: true
              }
+    end
+
+    test "release kill switch is preserved without a legacy manage settings fallback" do
+      assert ChangeRequest.new(
+               state: :submitted,
+               action: :release_kill_switch,
+               environment_key: "prod",
+               resource_type: :flag,
+               resource_key: "checkout-redesign",
+               submitted_by: %{id: "user_123"},
+               command: %{},
+               approval_requirement: %{action: :release_kill_switch},
+               correlation_id: "corr-123"
+             ).action == :release_kill_switch
+
+      assert ApprovalRequirement.new(action: :release_kill_switch).action ==
+               :release_kill_switch
+
+      refute :manage_settings in ChangeRequest.governed_actions()
     end
   end
 end

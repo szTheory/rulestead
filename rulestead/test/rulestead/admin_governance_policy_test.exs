@@ -81,6 +81,23 @@ defmodule Rulestead.AdminGovernancePolicyTest do
            }
   end
 
+  test "bounded governance vocabulary includes release kill switch without legacy manage settings fallback" do
+    assert Rulestead.Admin.Policy.governance_actions() == [
+             :publish_ruleset,
+             :advance_rollout,
+             :engage_kill_switch,
+             :release_kill_switch
+           ]
+
+    assert {:ok, %ApprovalRequirement{action: :release_kill_switch}} =
+             Authorizer.authorize_governed_action(
+               %{id: "operator-1", roles: [:operator]},
+               :release_kill_switch,
+               %{resource_type: :flag, resource_key: "checkout-redesign"},
+               "staging"
+             )
+  end
+
   test "authorizer returns a policy snapshot and blocks direct governed production execution" do
     Application.put_env(:rulestead, :admin_policy, __MODULE__.SelectiveGovernancePolicy)
 
