@@ -4,6 +4,9 @@ defmodule RulesteadAdmin.Live.FlagLive.SimulateAccessibilityTest do
   alias Rulestead.Fake.Control
   alias Rulestead.Runtime.{Cache, Refresh}
   alias Rulestead.Store.Command
+  alias RulesteadAdmin.TestSupport.AxeAudit
+
+  @admin_actor %{id: 7, email: "priya@example.com", roles: [:admin]}
 
   setup_all do
     start_supervised!(RulesteadAdmin.TestEndpoint)
@@ -60,22 +63,24 @@ defmodule RulesteadAdmin.Live.FlagLive.SimulateAccessibilityTest do
     {:ok, conn: conn}
   end
 
-  test "simulation screen passes the package accessibility audit before and after rendering summary and disclosures", %{conn: conn} do
+  test "simulation screen passes the package accessibility audit before and after rendering summary and disclosures",
+       %{conn: conn} do
     {:ok, view, html} = live(conn, "/admin/flags/checkout-redesign/simulate?env=prod")
-    assert_accessible(html)
+    AxeAudit.assert_accessible!(html)
 
     result_html =
       view
       |> form("form[aria-label='Simulation form']", simulation_params())
       |> render_submit()
 
-    assert_accessible(result_html)
+    AxeAudit.assert_accessible!(result_html)
     assert result_html =~ "Simulation summary"
     assert result_html =~ "Trace detail"
     assert result_html =~ "Copy as test fixture"
   end
 
-  test "visible metadata redacts non-allowlisted traits while fixture export keeps the canonical literal", %{conn: conn} do
+  test "visible metadata redacts non-allowlisted traits while fixture export keeps the canonical literal",
+       %{conn: conn} do
     {:ok, view, _html} = live(conn, "/admin/flags/checkout-redesign/simulate?env=prod")
 
     result_html =
@@ -91,43 +96,6 @@ defmodule RulesteadAdmin.Live.FlagLive.SimulateAccessibilityTest do
     refute visible_metadata =~ "203.0.113.8"
     assert fixture_export =~ "\"email\" => \"sam@example.com\""
     assert fixture_export =~ "\"ip\" => \"203.0.113.8\""
-  end
-
-  defp assert_accessible(html) do
-    doc = LazyHTML.from_fragment(html)
-
-    unlabeled_controls =
-      doc
-      |> LazyHTML.query("input:not([type='hidden']), select, textarea")
-      |> Enum.filter(&(not wrapped_by_label?(&1) and missing_aria_label?(&1)))
-
-    empty_buttons =
-      doc
-      |> LazyHTML.query("button, a")
-      |> Enum.filter(&(String.trim(LazyHTML.text(&1)) == ""))
-
-    table_issues =
-      doc
-      |> LazyHTML.query("table")
-      |> Enum.filter(&(missing_aria_label?(&1) and Enum.empty?(LazyHTML.query(&1, "caption"))))
-
-    assert unlabeled_controls == []
-    assert empty_buttons == []
-    assert table_issues == []
-  end
-
-  defp wrapped_by_label?(node) do
-    case LazyHTML.parent_node(node) do
-      nil -> false
-      parent -> parent["label"] != []
-    end
-  end
-
-  defp missing_aria_label?(node) do
-    case LazyHTML.attribute(node, "aria-label") do
-      [] -> true
-      labels -> Enum.all?(labels, &(String.trim(&1) == ""))
-    end
   end
 
   defp section_text(html, selector) do
@@ -191,8 +159,17 @@ defmodule RulesteadAdmin.Live.FlagLive.SimulateAccessibilityTest do
       ]
     }
 
-    assert {:ok, _draft} = Rulestead.save_draft_ruleset(Command.SaveDraftRuleset.new(flag_key, environment_key, ruleset))
-    assert {:ok, _published} = Rulestead.publish_ruleset(Command.PublishRuleset.new(flag_key, environment_key))
+    assert {:ok, _draft} =
+             Rulestead.save_draft_ruleset(
+               Command.SaveDraftRuleset.new(flag_key, environment_key, ruleset,
+                 actor: @admin_actor
+               )
+             )
+
+    assert {:ok, _published} =
+             Rulestead.publish_ruleset(
+               Command.PublishRuleset.new(flag_key, environment_key, actor: @admin_actor)
+             )
   end
 
   defp ensure_environment!(key, name) do

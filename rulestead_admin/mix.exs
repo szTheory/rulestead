@@ -27,6 +27,7 @@ defmodule RulesteadAdmin.MixProject do
 
   defp deps do
     [
+      {:a11y_audit, "~> 0.3.1", only: :test},
       {:lazy_html, ">= 0.0.0", only: :test},
       {:phoenix, "~> 1.8.1"},
       {:phoenix_html, "~> 4.2"},
