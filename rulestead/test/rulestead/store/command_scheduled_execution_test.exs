@@ -62,28 +62,31 @@ defmodule Rulestead.Store.CommandScheduledExecutionTest do
              idempotency_key: "idem_123"
            } = scheduled_execution
 
-    assert ScheduledExecution.serialize(scheduled_execution) == %{
-             id: "se-123",
-             state: :scheduled,
-             action: :publish_ruleset,
-             change_request_id: "cr-123",
-             scheduled_by: %{"id" => "42", "type" => "operator", "display" => "Scheduler"},
-             approved_by_snapshot: [
-               %{"id" => "u-1", "type" => "operator", "display" => "Approver One"},
-               %{"id" => "u_2", "type" => "operator", "display" => "Approver Two"}
-             ],
-             scheduled_for: ~U[2026-04-25 12:30:00Z],
-             executed_at: ~U[2026-04-25 12:35:00Z],
-             attempt_count: 2,
-             failure_reason: "timed out",
-             correlation_id: "corr_123",
-             idempotency_key: "idem_123",
-             command_snapshot: %{"version" => 7, "rollout" => %{"stage" => "confirm"}},
-             metadata: %{
-               "request_id" => "req-123",
-               "source" => "admin_ui",
-               "nested" => %{"correlation_id" => "corr-123"}
-             }
+    serialized = ScheduledExecution.serialize(scheduled_execution)
+
+    assert serialized.id == "se-123"
+    assert serialized.state == :scheduled
+    assert serialized.action == :publish_ruleset
+    assert serialized.change_request_id == "cr-123"
+    assert serialized.scheduled_by == %{"id" => "42", "type" => "operator", "display" => "Scheduler"}
+
+    assert serialized.approved_by_snapshot == [
+             %{"id" => "u-1", "type" => "operator", "display" => "Approver One"},
+             %{"id" => "u_2", "type" => "operator", "display" => "Approver Two"}
+           ]
+
+    assert serialized.scheduled_for == ~U[2026-04-25 12:30:00Z]
+    assert serialized.executed_at == ~U[2026-04-25 12:35:00Z]
+    assert serialized.attempt_count == 2
+    assert serialized.failure_reason == "timed out"
+    assert serialized.correlation_id == "corr_123"
+    assert serialized.idempotency_key == "idem_123"
+    assert serialized.command_snapshot == %{"version" => 7, "rollout" => %{"stage" => "confirm"}}
+
+    assert serialized.metadata == %{
+             "request_id" => "req-123",
+             "source" => "admin_ui",
+             "nested" => %{"correlation_id" => "corr-123"}
            }
   end
 
