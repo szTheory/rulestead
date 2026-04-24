@@ -2,6 +2,7 @@ defmodule RulesteadAdmin.Live.FlagLive.SimulateTest do
   use RulesteadAdmin.ConnCase, async: false
 
   alias Rulestead.Fake.Control
+  alias Rulestead.Runtime.{Cache, Refresh}
   alias Rulestead.Store.Command
 
   setup_all do
@@ -28,11 +29,26 @@ defmodule RulesteadAdmin.Live.FlagLive.SimulateTest do
     )
 
     publish_ruleset!("checkout-redesign", "prod")
+    Cache.reset("prod")
+
+    worker =
+      start_supervised!(
+        {Refresh,
+         name: nil,
+         environment_key: "prod",
+         store: Rulestead.Fake,
+         pubsub: nil,
+         poll_interval_ms: 5_000,
+         refresh_jitter_ms: 0,
+         auto_tick?: false}
+      )
+
+    assert :ok = Refresh.sync(worker)
 
     conn =
       conn
       |> Phoenix.ConnTest.init_test_session(%{
-        "current_actor" => %{id: 7, email: "priya@example.com"},
+        "current_actor" => %{id: 7, email: "priya@example.com", roles: ["admin"]},
         "rulestead_admin_last_env" => "prod",
         "rulestead_admin_environments" => [
           %{"key" => "dev", "name" => "Development"},
@@ -101,11 +117,13 @@ defmodule RulesteadAdmin.Live.FlagLive.SimulateTest do
       |> element("button[phx-click='export_fixture']")
       |> render_click()
 
-    assert exported_html =~ "%Rulestead.Context{"
-    assert exported_html =~ "targeting_key: \"support-user-42\""
-    assert exported_html =~ "environment: \"prod\""
-    assert exported_html =~ "attributes: %{"
-    assert exported_html =~ "email: \"sam@example.com\""
+    fixture_export = fixture_export_text(exported_html)
+
+    assert fixture_export =~ "%Rulestead.Context{"
+    assert fixture_export =~ "targeting_key: \"support-user-42\""
+    assert fixture_export =~ "environment: \"prod\""
+    assert fixture_export =~ "attributes: %{"
+    assert fixture_export =~ "\"email\" => \"sam@example.com\""
 
     reset_html =
       view
@@ -175,5 +193,12 @@ defmodule RulesteadAdmin.Live.FlagLive.SimulateTest do
     else
       assert %{key: ^key, name: ^name} = Control.put_environment!(%{key: key, name: name})
     end
+  end
+
+  defp fixture_export_text(html) do
+    html
+    |> LazyHTML.from_fragment()
+    |> LazyHTML.query("textarea[aria-label='ExUnit fixture export']")
+    |> LazyHTML.text()
   end
 end
