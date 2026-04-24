@@ -1,4 +1,4 @@
-defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
+defmodule RulesteadAdmin.Live.FlagLive.RolloutsAccessibilityTest do
   use RulesteadAdmin.ConnCase, async: false
 
   alias Rulestead.Fake.Control
@@ -11,7 +11,6 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
 
   setup %{conn: conn} do
     Application.put_env(:rulestead, :store, Rulestead.Fake)
-
     Application.put_env(:rulestead, :admin_lifecycle,
       warning_after_seconds: 1_800,
       stale_after_seconds: 3_600,
@@ -22,7 +21,6 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
     Control.reset!(now: now)
     Control.set_now!(now)
     ensure_environment!("prod", "Production")
-    ensure_environment!("staging", "Staging")
 
     seed_flag!(
       key: "checkout-redesign",
@@ -31,7 +29,7 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
       description: "Checkout experiment for the new payment flow",
       expected_expiration: ~D[2026-05-01],
       permanent: false,
-      environment_keys: ["prod", "staging"]
+      environment_keys: ["prod"]
     )
 
     publish_ruleset!("checkout-redesign", "prod")
@@ -51,53 +49,9 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
     {:ok, conn: conn}
   end
 
-  test "page shows rollout rule context, keeps variant weights locked, and saves draft percentage edits only",
-       %{conn: conn} do
+  test "rollout page stays accessible before preview, after preview, and when risky confirmation is present", %{conn: conn} do
     {:ok, view, html} = live(conn, "/admin/flags/checkout-redesign/rollouts?env=prod")
-
-    assert html =~ "Rollout controls"
-    assert html =~ "Owner"
-    assert html =~ "growth"
-    assert html =~ "Production"
-    assert html =~ "Rule 2 of 3"
-    assert html =~ "VIP allowlist"
-    assert html =~ "Checkout canary"
-    assert html =~ "Fallback disabled"
-    assert html =~ "Variant weights stay locked on this page"
-    assert html =~ "control"
-    assert html =~ "80%"
-    assert html =~ "treatment"
-    assert html =~ "20%"
-
-    changed_html =
-      view
-      |> form("form[aria-label='Rollout controls form']", %{"rollout" => %{"percentage" => "50"}})
-      |> render_change()
-
-    assert changed_html =~ "50%"
-    refute changed_html =~ "Draft saved for Production"
-
-    saved_html =
-      view
-      |> element("button[phx-click='save_draft']")
-      |> render_click()
-
-    assert saved_html =~ "Draft saved for Production"
-
-    detail = Rulestead.fetch_flag!("checkout-redesign", "prod")
-    [draft | _rest] = detail.draft_rulesets
-    rollout_rule = Enum.at(draft.rules, 1)
-
-    assert rollout_rule.rollout.percentage == 50
-    assert Enum.map(rollout_rule.variants, & &1.weight) == [80, 20]
-    assert detail.active_ruleset.version == 1
-    assert Enum.at(detail.active_ruleset.rules, 1).rollout.percentage == 25
-  end
-
-  test "preview samples a bounded deterministic set without persisting hidden changes", %{
-    conn: conn
-  } do
-    {:ok, view, _html} = live(conn, "/admin/flags/checkout-redesign/rollouts?env=prod")
+    assert_accessible(html)
 
     preview_html =
       view
@@ -109,49 +63,9 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
         |> render_click()
       end)
 
+    assert_accessible(preview_html)
     assert preview_html =~ "Sample preview"
-    assert preview_html =~ "20 deterministic sample keys"
-    assert preview_html =~ "Intended exposure"
-    assert preview_html =~ "50%"
     assert preview_html =~ "Observed assignments"
-    assert preview_html =~ "Preview only"
-
-    detail = Rulestead.fetch_flag!("checkout-redesign", "prod")
-
-    assert detail.draft_rulesets == []
-    assert Enum.at(detail.active_ruleset.rules, 1).rollout.percentage == 25
-  end
-
-  test "ordered first-match context stays visible around the rollout rule", %{conn: conn} do
-    {:ok, _view, html} = live(conn, "/admin/flags/checkout-redesign/rollouts?env=prod")
-
-    assert html =~ "First-match order"
-    assert html =~ "Rule 1"
-    assert html =~ "Rule 2"
-    assert html =~ "Rule 3"
-    assert html =~ "Current rollout rule"
-  end
-
-  test "safe next-step publish stays direct and explicit", %{conn: conn} do
-    {:ok, view, _html} = live(conn, "/admin/flags/checkout-redesign/rollouts?env=prod")
-
-    published_html =
-      view
-      |> form("form[aria-label='Rollout controls form']", %{"rollout" => %{"percentage" => "50"}})
-      |> render_change()
-      |> then(fn _html ->
-        view
-        |> element("button[phx-click='publish']")
-        |> render_click()
-      end)
-
-    assert published_html =~ "Published to Production"
-    refute published_html =~ "Risky jump requires confirmation"
-    assert Enum.at(Rulestead.fetch_flag!("checkout-redesign", "prod").active_ruleset.rules, 1).rollout.percentage == 50
-  end
-
-  test "risky jumps block publish until the operator confirms with a reason", %{conn: conn} do
-    {:ok, view, _html} = live(conn, "/admin/flags/checkout-redesign/rollouts?env=prod")
 
     risky_html =
       view
@@ -163,10 +77,40 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
         |> render_click()
       end)
 
+    assert_accessible(risky_html)
     assert risky_html =~ "Risky jump requires confirmation"
     assert risky_html =~ "Reason for risky jump"
-    refute risky_html =~ "Published to Production"
-    assert Enum.at(Rulestead.fetch_flag!("checkout-redesign", "prod").active_ruleset.rules, 1).rollout.percentage == 25
+  end
+
+  defp assert_accessible(html) do
+    doc = LazyHTML.from_fragment(html)
+
+    unlabeled_controls =
+      doc
+      |> LazyHTML.query("input:not([type='hidden']), select, textarea")
+      |> Enum.filter(&(not wrapped_by_label?(&1) and missing_aria_label?(&1)))
+
+    empty_buttons =
+      doc
+      |> LazyHTML.query("button, a")
+      |> Enum.filter(&(String.trim(LazyHTML.text(&1)) == ""))
+
+    assert unlabeled_controls == []
+    assert empty_buttons == []
+  end
+
+  defp wrapped_by_label?(node) do
+    case LazyHTML.parent_node(node) do
+      nil -> false
+      parent -> parent["label"] != []
+    end
+  end
+
+  defp missing_aria_label?(node) do
+    case LazyHTML.attribute(node, "aria-label") do
+      [] -> true
+      labels -> Enum.all?(labels, &(String.trim(&1) == ""))
+    end
   end
 
   defp seed_flag!(attrs) do
@@ -220,13 +164,8 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
       ]
     }
 
-    assert {:ok, _draft} =
-             Rulestead.save_draft_ruleset(
-               Command.SaveDraftRuleset.new(flag_key, environment_key, ruleset)
-             )
-
-    assert {:ok, _published} =
-             Rulestead.publish_ruleset(Command.PublishRuleset.new(flag_key, environment_key))
+    assert {:ok, _draft} = Rulestead.save_draft_ruleset(Command.SaveDraftRuleset.new(flag_key, environment_key, ruleset))
+    assert {:ok, _published} = Rulestead.publish_ruleset(Command.PublishRuleset.new(flag_key, environment_key))
   end
 
   defp ensure_environment!(key, name) do
