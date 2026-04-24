@@ -24,6 +24,11 @@ defmodule RulesteadAdmin.Router do
           live "/:key", RulesteadAdmin.Live.FlagLive.Show, :show
           live "/:key/edit", RulesteadAdmin.Live.FlagLive.Form, :edit
           live "/:key/rules", RulesteadAdmin.Live.FlagLive.Rules, :index
+          live "/:key/simulate", RulesteadAdmin.Live.FlagLive.Simulate, :show
+          live "/:key/rollouts", RulesteadAdmin.Live.FlagLive.Rollouts, :show
+          live "/:key/kill", RulesteadAdmin.Live.FlagLive.Kill, :show
+          live "/:key/timeline", RulesteadAdmin.Live.FlagLive.Timeline, :show
+          live "/audit", RulesteadAdmin.Live.AuditLive.Index, :index
         end
       end
     end

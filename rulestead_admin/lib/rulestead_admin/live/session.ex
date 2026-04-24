@@ -28,6 +28,7 @@ defmodule RulesteadAdmin.Live.Session do
         |> assign(:rulestead_admin_policy, resolved.policy)
         |> assign(:rulestead_admin_mount_path, resolved.mount_path)
         |> assign(:rulestead_admin_env_source, resolved.env_source)
+        |> assign(:rulestead_admin_policy_state, policy_state(resolved))
         |> assign(:rulestead_admin_session, resolved)
 
       {:cont, socket}
@@ -70,13 +71,48 @@ defmodule RulesteadAdmin.Live.Session do
     }
   end
 
-  @spec env_links(Socket.t() | map(), String.t()) :: %{required(String.t()) => String.t()}
-  def env_links(socket_or_assigns, current_path) when is_binary(current_path) do
+  @spec current_path(Socket.t() | map(), String.t(), map()) :: String.t()
+  def current_path(socket_or_assigns, base_path, params \\ %{})
+      when is_binary(base_path) and is_map(params) do
+    env_key =
+      socket_or_assigns
+      |> fetch_assign(:current_environment, %{})
+      |> Map.get(:key, "dev")
+
+    params
+    |> Map.put("env", env_key)
+    |> encode_params()
+    |> then(&"#{base_path}?#{&1}")
+  end
+
+  @spec env_links(Socket.t() | map(), String.t(), map()) :: %{required(String.t()) => String.t()}
+  def env_links(socket_or_assigns, base_path, params \\ %{})
+      when is_binary(base_path) and is_map(params) do
     socket_or_assigns
     |> fetch_assign(:available_environments, [])
     |> Enum.into(%{}, fn env ->
-      {env.key, current_path <> "?env=" <> env.key}
+      {env.key, current_path(%{current_environment: env}, base_path, params)}
     end)
+  end
+
+  @spec policy_state(Socket.t() | map() | resolved()) :: map()
+  def policy_state(%{environment: environment}) when is_map(environment) do
+    tone = if production_env?(environment), do: "critical", else: "warning"
+    label = if production_env?(environment), do: "Production policy", else: "Environment policy"
+
+    %{
+      environment_key: environment.key,
+      production?: production_env?(environment),
+      tone: tone,
+      label: label,
+      summary: policy_summary(environment)
+    }
+  end
+
+  def policy_state(socket_or_assigns) do
+    socket_or_assigns
+    |> fetch_assign(:current_environment)
+    |> then(&policy_state(%{environment: &1}))
   end
 
   @spec placeholder_assigns(Socket.t() | map(), keyword()) :: map()
@@ -92,7 +128,9 @@ defmodule RulesteadAdmin.Live.Session do
       page_summary: page_summary,
       current_environment: fetch_assign(socket_or_assigns, :current_environment),
       environments: fetch_assign(socket_or_assigns, :available_environments, []),
-      env_links: env_links(socket_or_assigns, current_path)
+      current_path: current_path(socket_or_assigns, current_path),
+      env_links: env_links(socket_or_assigns, current_path),
+      policy_state: policy_state(socket_or_assigns)
     }
   end
 
@@ -126,6 +164,17 @@ defmodule RulesteadAdmin.Live.Session do
   defp default_environment([environment | _rest]), do: environment
   defp default_environment([]), do: %{key: "dev", name: "Development"}
 
+  defp production_env?(%{key: key}) when key in ["prod", "production"], do: true
+  defp production_env?(_environment), do: false
+
+  defp policy_summary(environment) do
+    if production_env?(environment) do
+      "Production actions should stay explicit and auditable."
+    else
+      "Confirm environment scope before saving or publishing changes."
+    end
+  end
+
   defp fetch_assign(socket_or_assigns, key, default \\ nil)
   defp fetch_assign(%Socket{} = socket, key, default), do: Map.get(socket.assigns, key, default)
   defp fetch_assign(assigns, key, default) when is_map(assigns), do: Map.get(assigns, key, default)
@@ -137,4 +186,11 @@ defmodule RulesteadAdmin.Live.Session do
   defp blank_to_nil(value), do: value
 
   defp present?(value), do: not is_nil(blank_to_nil(value))
+
+  defp encode_params(params) do
+    params
+    |> Enum.reject(fn {_key, value} -> is_nil(value) or value == "" end)
+    |> Enum.sort_by(fn {key, _value} -> key end)
+    |> URI.encode_query()
+  end
 end
