@@ -11,6 +11,12 @@ log_step "running Phase 09 governance safety contract suites in rulestead"
 (
   cd "${RULESTEAD_REPO}/rulestead"
   mix test \
+    test/rulestead/governance/change_request_contract_test.exs \
+    test/rulestead/store/command_governance_test.exs \
+    test/rulestead/audit_event_governance_test.exs \
+    test/rulestead/admin_governance_policy_test.exs \
+    test/rulestead/governance_facade_contract_test.exs \
+    test/rulestead/store/governance_adapter_contract_test.exs \
     test/rulestead/governance_safety_contract_test.exs \
     test/rulestead/governance_threat_model_test.exs
 )

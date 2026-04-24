@@ -27,7 +27,12 @@ defmodule Rulestead.Admin.Authorizer do
     normalized_actor = normalize_actor(actor)
     normalized_resource = normalize_resource(resource)
 
-    case authorize_normalized(normalized_actor, action, normalized_resource, normalized_environment) do
+    case authorize_normalized(
+           normalized_actor,
+           action,
+           normalized_resource,
+           normalized_environment
+         ) do
       :ok -> :ok
       {:error, error, audit_payload} -> {:error, error, audit_payload}
     end
@@ -40,9 +45,20 @@ defmodule Rulestead.Admin.Authorizer do
     normalized_actor = normalize_actor(actor)
     normalized_resource = normalize_resource(resource)
 
-    with :ok <- authorize_normalized(normalized_actor, action, normalized_resource, normalized_environment),
+    with :ok <-
+           authorize_normalized(
+             normalized_actor,
+             action,
+             normalized_resource,
+             normalized_environment
+           ),
          %ApprovalRequirement{} = requirement <-
-           resolve_approval_requirement(normalized_actor, action, normalized_resource, normalized_environment),
+           resolve_approval_requirement(
+             normalized_actor,
+             action,
+             normalized_resource,
+             normalized_environment
+           ),
          false <- requirement.change_request_required? do
       {:ok, requirement}
     else
@@ -51,7 +67,12 @@ defmodule Rulestead.Admin.Authorizer do
 
       true ->
         requirement =
-          resolve_approval_requirement(normalized_actor, action, normalized_resource, normalized_environment)
+          resolve_approval_requirement(
+            normalized_actor,
+            action,
+            normalized_resource,
+            normalized_environment
+          )
 
         deny(
           :change_request_required,
@@ -76,8 +97,14 @@ defmodule Rulestead.Admin.Authorizer do
     normalized_actor = normalize_actor(actor)
     normalized_submitter = normalize_actor(submitter)
     normalized_resource = normalize_resource(resource)
+
     requirement =
-      resolve_approval_requirement(normalized_actor, action, normalized_resource, normalized_environment)
+      resolve_approval_requirement(
+        normalized_actor,
+        action,
+        normalized_resource,
+        normalized_environment
+      )
 
     with :ok <-
            authorize_normalized(
@@ -263,8 +290,13 @@ defmodule Rulestead.Admin.Authorizer do
 
   defp normalize_resource(resource) when is_map(resource) do
     %{
-      resource_type: normalize_role(resource[:resource_type] || resource["resource_type"]),
-      resource_key: stringify(resource[:resource_key] || resource["resource_key"] || resource[:flag_key] || resource["flag_key"])
+      resource_type:
+        normalize_resource_type(resource[:resource_type] || resource["resource_type"]),
+      resource_key:
+        stringify(
+          resource[:resource_key] || resource["resource_key"] || resource[:flag_key] ||
+            resource["flag_key"]
+        )
     }
   end
 
@@ -272,8 +304,41 @@ defmodule Rulestead.Admin.Authorizer do
 
   defp normalize_role(nil), do: nil
   defp normalize_role(value) when is_atom(value), do: value
-  defp normalize_role(value) when is_binary(value), do: value |> String.trim() |> String.to_atom()
+
+  defp normalize_role(value) when is_binary(value) do
+    value
+    |> String.trim()
+    |> case do
+      "" -> nil
+      "viewer" -> :viewer
+      "auditor" -> :auditor
+      "operator" -> :operator
+      "engineer" -> :engineer
+      "admin" -> :admin
+      "incident_commander" -> :incident_commander
+      "prod_operator" -> :prod_operator
+      _ -> nil
+    end
+  end
+
   defp normalize_role(_value), do: nil
+
+  defp normalize_resource_type(nil), do: nil
+  defp normalize_resource_type(value) when is_atom(value), do: value
+
+  defp normalize_resource_type(value) when is_binary(value) do
+    value
+    |> String.trim()
+    |> case do
+      "" -> nil
+      "flag" -> :flag
+      "audit_event" -> :audit_event
+      "ruleset" -> :ruleset
+      _ -> nil
+    end
+  end
+
+  defp normalize_resource_type(_value), do: nil
 
   defp stringify(nil), do: nil
   defp stringify(value) when is_binary(value), do: String.trim(value)

@@ -62,6 +62,7 @@ defmodule Rulestead.Governance.ChangeRequestContractTest do
                  action: :publish_ruleset,
                  environment_key: "prod",
                  required_approvals: 2,
+                 change_request_required?: false,
                  self_approval_allowed?: false
                },
                correlation_id: "req_123"
@@ -108,6 +109,7 @@ defmodule Rulestead.Governance.ChangeRequestContractTest do
                action: :manage_settings,
                environment_key: "prod",
                required_approvals: 1,
+               change_request_required?: false,
                self_approval_allowed?: true
              }
     end

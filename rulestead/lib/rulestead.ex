@@ -25,6 +25,7 @@ defmodule Rulestead do
     StoreError,
     Telemetry
   }
+
   alias Rulestead.Store.Command
 
   @version Mix.Project.config()[:version] || "0.1.0"
@@ -161,7 +162,8 @@ defmodule Rulestead do
     admin_write(:engage_kill_switch, command)
   end
 
-  @spec engage_kill_switch(String.t() | atom(), String.t() | atom(), map(), keyword()) :: Store.result(map())
+  @spec engage_kill_switch(String.t() | atom(), String.t() | atom(), map(), keyword()) ::
+          Store.result(map())
   def engage_kill_switch(flag_key, environment_key, actor, opts \\ []) do
     flag_key
     |> Command.EngageKillSwitch.new(environment_key,
@@ -180,7 +182,8 @@ defmodule Rulestead do
     admin_write(:release_kill_switch, command)
   end
 
-  @spec release_kill_switch(String.t() | atom(), String.t() | atom(), map(), keyword()) :: Store.result(map())
+  @spec release_kill_switch(String.t() | atom(), String.t() | atom(), map(), keyword()) ::
+          Store.result(map())
   def release_kill_switch(flag_key, environment_key, actor, opts \\ []) do
     flag_key
     |> Command.ReleaseKillSwitch.new(environment_key,
@@ -194,7 +197,8 @@ defmodule Rulestead do
   @doc """
   Lists redacted audit events for one flag or all flags.
   """
-  @spec list_audit_events(Command.ListAuditEvents.t() | keyword()) :: Store.result(Command.Page.t(map()))
+  @spec list_audit_events(Command.ListAuditEvents.t() | keyword()) ::
+          Store.result(Command.Page.t(map()))
   def list_audit_events(command_or_opts \\ Command.ListAuditEvents.new())
 
   def list_audit_events(%Command.ListAuditEvents{} = command) do
@@ -289,7 +293,13 @@ defmodule Rulestead do
           {:ok, Rulestead.Governance.ApprovalRequirement.t()}
           | {:error, Rulestead.Error.t(), Authorizer.audit_payload()}
   def authorize_change_request_approval(actor, submitter, action, resource, environment_key) do
-    Authorizer.authorize_change_request_approval(actor, submitter, action, resource, environment_key)
+    Authorizer.authorize_change_request_approval(
+      actor,
+      submitter,
+      action,
+      resource,
+      environment_key
+    )
   end
 
   @doc """
@@ -376,7 +386,8 @@ defmodule Rulestead do
   @doc """
   Records bounded evaluation freshness using root-level arguments.
   """
-  @spec record_evaluation(String.t() | atom(), String.t() | atom(), DateTime.t()) :: Store.result(map())
+  @spec record_evaluation(String.t() | atom(), String.t() | atom(), DateTime.t()) ::
+          Store.result(map())
   def record_evaluation(flag_key, environment_key, %DateTime{} = last_evaluated_at) do
     flag_key
     |> Command.RecordEvaluation.new(environment_key, last_evaluated_at)
@@ -386,7 +397,8 @@ defmodule Rulestead do
   @doc """
   Evaluates an authored in-memory flag payload against an explicit context.
   """
-  @spec evaluate(map(), Context.t() | keyword() | map(), keyword()) :: {:ok, Result.t()} | {:error, Error.t()}
+  @spec evaluate(map(), Context.t() | keyword() | map(), keyword()) ::
+          {:ok, Result.t()} | {:error, Error.t()}
   def evaluate(flag_payload, context, opts \\ []) do
     context = normalize_eval_context(context, opts)
 
@@ -431,7 +443,8 @@ defmodule Rulestead do
   @doc """
   Returns the projected value for an authored flag payload.
   """
-  @spec get_value(map(), Context.t() | keyword() | map(), term()) :: {:ok, term()} | {:error, Error.t()}
+  @spec get_value(map(), Context.t() | keyword() | map(), term()) ::
+          {:ok, term()} | {:error, Error.t()}
   def get_value(flag_payload, context, default) do
     with {:ok, %Result{} = result} <- evaluate(flag_payload, context) do
       value =
@@ -448,7 +461,8 @@ defmodule Rulestead do
   @doc """
   Returns the assigned variant key for an authored flag payload.
   """
-  @spec get_variant(map(), Context.t() | keyword() | map()) :: {:ok, String.t() | nil} | {:error, Error.t()}
+  @spec get_variant(map(), Context.t() | keyword() | map()) ::
+          {:ok, String.t() | nil} | {:error, Error.t()}
   def get_variant(flag_payload, context) do
     with {:ok, %Result{} = result} <- evaluate(flag_payload, context) do
       {:ok, result.variant}
@@ -468,14 +482,29 @@ defmodule Rulestead do
   @doc """
   Admin-safe runtime simulation for one flag and environment.
   """
-  @spec simulate_flag(String.t() | atom(), String.t() | atom(), Context.t() | keyword() | map(), keyword()) ::
+  @spec simulate_flag(
+          String.t() | atom(),
+          String.t() | atom(),
+          Context.t() | keyword() | map(),
+          keyword()
+        ) ::
           {:ok, map()} | {:error, Error.t()}
   def simulate_flag(flag_key, environment_key, context, opts \\ []) do
     actor = Keyword.get(opts, :actor)
 
-    with :ok <- authorize_admin_read(actor, :simulate_flag, %{resource_type: :flag, resource_key: flag_key}, environment_key),
+    with :ok <-
+           authorize_admin_read(
+             actor,
+             :simulate_flag,
+             %{resource_type: :flag, resource_key: flag_key},
+             environment_key
+           ),
          {:ok, result} <- Runtime.evaluate(environment_key, flag_key, context) do
-      redacted = Redaction.redact_metadata(%{traits: Context.normalize(context).attributes}, allow: Keyword.get(opts, :allow, ["targeting_key"]))
+      redacted =
+        Redaction.redact_metadata(%{traits: Context.normalize(context).attributes},
+          allow: Keyword.get(opts, :allow, ["targeting_key"])
+        )
+
       {:ok, %{result: result, redacted_context: redacted}}
     end
   end
@@ -483,14 +512,29 @@ defmodule Rulestead do
   @doc """
   Admin-safe explain seam for one flag and environment.
   """
-  @spec explain_flag(String.t() | atom(), String.t() | atom(), Context.t() | keyword() | map(), keyword()) ::
+  @spec explain_flag(
+          String.t() | atom(),
+          String.t() | atom(),
+          Context.t() | keyword() | map(),
+          keyword()
+        ) ::
           {:ok, map()} | {:error, Error.t()}
   def explain_flag(flag_key, environment_key, context, opts \\ []) do
     actor = Keyword.get(opts, :actor)
 
-    with :ok <- authorize_admin_read(actor, :explain_flag, %{resource_type: :flag, resource_key: flag_key}, environment_key),
+    with :ok <-
+           authorize_admin_read(
+             actor,
+             :explain_flag,
+             %{resource_type: :flag, resource_key: flag_key},
+             environment_key
+           ),
          {:ok, explanation} <- Runtime.explain(environment_key, flag_key, context) do
-      redacted = Redaction.redact_metadata(%{traits: Context.normalize(context).attributes}, allow: Keyword.get(opts, :allow, ["targeting_key"]))
+      redacted =
+        Redaction.redact_metadata(%{traits: Context.normalize(context).attributes},
+          allow: Keyword.get(opts, :allow, ["targeting_key"])
+        )
+
       {:ok, %{explanation: explanation, redacted_context: redacted}}
     end
   end
@@ -509,7 +553,8 @@ defmodule Rulestead do
   end
 
   defp configured_store do
-    case Application.get_env(:rulestead, :store) || Application.get_env(:rulestead, :store_adapter) do
+    case Application.get_env(:rulestead, :store) ||
+           Application.get_env(:rulestead, :store_adapter) do
       nil ->
         {:error, ConfigError.store_not_configured(metadata: %{config_key: "store"})}
 
@@ -528,14 +573,21 @@ defmodule Rulestead do
         normalize_configured_adapter(adapter, config)
 
       invalid ->
-        {:error, ConfigError.store_adapter_invalid(metadata: %{configured_value: inspect(invalid)})}
+        {:error,
+         ConfigError.store_adapter_invalid(metadata: %{configured_value: inspect(invalid)})}
     end
   end
 
   defp normalize_configured_adapter(adapter, config) when is_atom(adapter) do
     case ensure_adapter_module(adapter) do
-      {:ok, adapter} -> {:ok, adapter}
-      {:error, error} -> {:error, Error.normalize(Map.put(Map.from_struct(error), :metadata, %{configured_value: inspect(config)}))}
+      {:ok, adapter} ->
+        {:ok, adapter}
+
+      {:error, error} ->
+        {:error,
+         Error.normalize(
+           Map.put(Map.from_struct(error), :metadata, %{configured_value: inspect(config)})
+         )}
     end
   end
 
@@ -604,7 +656,9 @@ defmodule Rulestead do
   end
 
   defp normalize_store_result({:ok, value}, _adapter, _operation), do: {:ok, value}
-  defp normalize_store_result({:error, %Error{} = error}, _adapter, _operation), do: {:error, error}
+
+  defp normalize_store_result({:error, %Error{} = error}, _adapter, _operation),
+    do: {:error, error}
 
   defp normalize_store_result(nil, adapter, operation) do
     {:error,
@@ -636,7 +690,8 @@ defmodule Rulestead do
     end
   end
 
-  defp emit_warnings(%Result{debug_trace: %{warnings: warnings}} = result) when is_list(warnings) do
+  defp emit_warnings(%Result{debug_trace: %{warnings: warnings}} = result)
+       when is_list(warnings) do
     Enum.each(warnings, fn warning ->
       Telemetry.execute(
         [:rulestead, :eval, :warning],
@@ -710,7 +765,8 @@ defmodule Rulestead do
   end
 
   defp authorize_admin_write(:approve_change_request, command, _action, resource) do
-    with {:ok, change_request} <- fetch_change_request_for_authorization(command.change_request_id) do
+    with {:ok, change_request} <-
+           fetch_change_request_for_authorization(command.change_request_id) do
       command
       |> Map.get(:actor)
       |> Authorizer.authorize_change_request_approval(
@@ -725,7 +781,8 @@ defmodule Rulestead do
 
   defp authorize_admin_write(operation, command, action, resource)
        when operation in [:reject_change_request, :cancel_change_request, :execute_change_request] do
-    with {:ok, change_request} <- fetch_change_request_for_authorization(command.change_request_id) do
+    with {:ok, change_request} <-
+           fetch_change_request_for_authorization(command.change_request_id) do
       Authorizer.authorize(
         Map.get(command, :actor),
         action,
@@ -756,13 +813,24 @@ defmodule Rulestead do
   end
 
   defp authorize_admin_write(_operation, command, action, resource) do
-    Authorizer.authorize(Map.get(command, :actor), action, resource, Map.get(command, :environment_key))
+    Authorizer.authorize(
+      Map.get(command, :actor),
+      action,
+      resource,
+      Map.get(command, :environment_key)
+    )
   end
 
   defp admin_read(operation, command) do
     action = command_action(operation)
 
-    with :ok <- authorize_admin_read(command.actor, action, command_resource(command), Map.get(command, :environment_key)) do
+    with :ok <-
+           authorize_admin_read(
+             command.actor,
+             action,
+             command_resource(command),
+             Map.get(command, :environment_key)
+           ) do
       run_store(operation, [command], command)
     end
   end
@@ -780,7 +848,10 @@ defmodule Rulestead do
     Map.put(command, :metadata, redacted_metadata.audit)
   end
 
-  defp command_resource(%Command.SubmitChangeRequest{resource_type: resource_type, resource_key: resource_key}) do
+  defp command_resource(%Command.SubmitChangeRequest{
+         resource_type: resource_type,
+         resource_key: resource_key
+       }) do
     %{resource_type: stringify_resource(resource_type), resource_key: resource_key}
   end
 
@@ -860,14 +931,22 @@ defmodule Rulestead do
       %{}
       |> Map.put(:flag_key, get_in(value, [:flag, :key]))
       |> Map.put(:flag_type, get_in(value, [:flag, :flag_type]))
-      |> Map.put(:environment, get_in(value, [:environment, :key]) || Map.get(value, :environment_key))
-      |> Map.put(:snapshot_version, Map.get(value, :version) || get_in(value, [:flag_environment, :active_ruleset_version]))
+      |> Map.put(
+        :environment,
+        get_in(value, [:environment, :key]) || Map.get(value, :environment_key)
+      )
+      |> Map.put(
+        :snapshot_version,
+        Map.get(value, :version) || get_in(value, [:flag_environment, :active_ruleset_version])
+      )
     end
   end
 
   defp result_like_metadata(_value), do: %{}
 
-  defp store_event_kind(operation) when operation in [:fetch_flag, :fetch_snapshot, :list_flags], do: :read
+  defp store_event_kind(operation) when operation in [:fetch_flag, :fetch_snapshot, :list_flags],
+    do: :read
+
   defp store_event_kind(_operation), do: :write
 
   defp store_success_reason(:fetch_snapshot), do: :fetched
@@ -880,19 +959,28 @@ defmodule Rulestead do
   end
 
   defp fetch_change_request_for_authorization(change_request_id) do
-    case run_store(:fetch_change_request, [Command.FetchChangeRequest.new(change_request_id)], nil) do
+    case run_store(
+           :fetch_change_request,
+           [Command.FetchChangeRequest.new(change_request_id)],
+           nil
+         ) do
       {:ok, %{change_request: change_request}} -> {:ok, change_request}
       {:error, %Error{} = error} -> {:error, error}
     end
   end
 
   defp normalize_governance_authorization({:ok, _requirement}), do: :ok
-  defp normalize_governance_authorization({:error, error, denied_audit}), do: {:error, error, denied_audit}
+
+  defp normalize_governance_authorization({:error, error, denied_audit}),
+    do: {:error, error, denied_audit}
 
   defp governance_change_request_resource(change_request, fallback_resource) do
     case {Map.get(change_request, :resource_type), Map.get(change_request, :resource_key)} do
-      {nil, nil} -> fallback_resource
-      {resource_type, resource_key} -> %{resource_type: stringify_resource(resource_type), resource_key: resource_key}
+      {nil, nil} ->
+        fallback_resource
+
+      {resource_type, resource_key} ->
+        %{resource_type: stringify_resource(resource_type), resource_key: resource_key}
     end
   end
 
@@ -901,7 +989,10 @@ defmodule Rulestead do
     |> String.trim()
     |> case do
       "" -> :flag
-      value -> String.to_atom(value)
+      "flag" -> :flag
+      "audit_event" -> :audit_event
+      "ruleset" -> :ruleset
+      _ -> :flag
     end
   end
 
