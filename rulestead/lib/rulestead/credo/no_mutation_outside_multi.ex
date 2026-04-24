@@ -33,7 +33,7 @@ defmodule Rulestead.Credo.NoMutationOutsideMulti do
       issue =
         format_issue(issue_meta,
           message: @message,
-          trigger: repo_trigger(function),
+          trigger: Atom.to_string(function),
           line_no: meta[:line],
           column: meta[:column]
         )
@@ -57,8 +57,6 @@ defmodule Rulestead.Credo.NoMutationOutsideMulti do
   defp rulestead_schema?({:__aliases__, _, [:Rulestead, module]}) when module in @rulestead_modules, do: true
   defp rulestead_schema?({:__aliases__, _, [module]}) when module in @rulestead_modules, do: true
   defp rulestead_schema?(_ast), do: false
-
-  defp repo_trigger(function), do: "Repo.#{function}"
 
   defp lintable_file?(filename) when is_binary(filename) do
     not String.contains?(filename, "test/") or String.contains?(filename, "credo_fixtures")
