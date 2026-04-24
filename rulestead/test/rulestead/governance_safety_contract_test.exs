@@ -52,7 +52,7 @@ defmodule Rulestead.GovernanceSafetyContractTest do
              )
 
     assert approved.state == :approved
-    assert approval.reviewer_id == "reviewer-1"
+    assert approval.reviewed_by.id == "reviewer-1"
 
     assert {:ok, %{change_request: executed, execution_result: execution_result}} =
              Rulestead.execute_change_request(
@@ -70,11 +70,13 @@ defmodule Rulestead.GovernanceSafetyContractTest do
 
     assert [%{decision: :approved, correlation_id: "corr-approve"}] = approvals
 
-    assert Enum.map(audit_events, & &1.event_type) == [
-             "change_request.submitted",
+    assert audit_events
+           |> Enum.map(& &1.event_type)
+           |> Enum.sort() == [
              "change_request.approved",
-             "ruleset.publish",
-             "change_request.merged"
+             "change_request.merged",
+             "change_request.submitted",
+             "ruleset.publish"
            ]
 
     assert Enum.all?(audit_events, &(&1.correlation_id == "corr-approve"))

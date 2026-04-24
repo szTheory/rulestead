@@ -696,6 +696,9 @@ defmodule Rulestead do
             :ok ->
               run_store(operation, [redacted_command], redacted_command)
 
+            {:error, error} ->
+              {:error, error}
+
             {:error, error, denied_audit} ->
               maybe_persist_denied_mutation(operation, redacted_command, denied_audit)
               {:error, error}
@@ -707,20 +710,49 @@ defmodule Rulestead do
   end
 
   defp authorize_admin_write(:approve_change_request, command, _action, resource) do
-    metadata = Map.get(command, :metadata, %{})
-
-    Authorizer.authorize_change_request_approval(
-      Map.get(command, :actor),
-      Map.get(metadata, "submitter", %{}),
-      governance_action(metadata),
-      resource,
-      governance_environment(command, metadata)
-    )
+    with {:ok, change_request} <- fetch_change_request_for_authorization(command.change_request_id) do
+      command
+      |> Map.get(:actor)
+      |> Authorizer.authorize_change_request_approval(
+        change_request.submitted_by,
+        change_request.action,
+        governance_change_request_resource(change_request, resource),
+        change_request.environment_key
+      )
+      |> normalize_governance_authorization()
+    end
   end
 
   defp authorize_admin_write(operation, command, action, resource)
-       when operation in [:submit_change_request, :reject_change_request, :cancel_change_request, :execute_change_request] do
-    Authorizer.authorize(Map.get(command, :actor), action, resource, governance_environment(command, Map.get(command, :metadata, %{})))
+       when operation in [:reject_change_request, :cancel_change_request, :execute_change_request] do
+    with {:ok, change_request} <- fetch_change_request_for_authorization(command.change_request_id) do
+      Authorizer.authorize(
+        Map.get(command, :actor),
+        action,
+        governance_change_request_resource(change_request, resource),
+        change_request.environment_key
+      )
+    end
+  end
+
+  defp authorize_admin_write(:submit_change_request, command, action, resource) do
+    Authorizer.authorize(
+      Map.get(command, :actor),
+      action,
+      resource,
+      governance_environment(command, Map.get(command, :metadata, %{}))
+    )
+  end
+
+  defp authorize_admin_write(:publish_ruleset, command, _action, resource) do
+    command
+    |> Map.get(:actor)
+    |> Authorizer.authorize_governed_action(
+      :publish_ruleset,
+      resource,
+      Map.get(command, :environment_key)
+    )
+    |> normalize_governance_authorization()
   end
 
   defp authorize_admin_write(_operation, command, action, resource) do
@@ -843,18 +875,25 @@ defmodule Rulestead do
   defp store_success_reason(:list_flags), do: :listed
   defp store_success_reason(_operation), do: :stored
 
-  defp governance_action(metadata) do
-    case Map.get(metadata, "action") do
-      action when is_atom(action) -> action
-      action when is_binary(action) -> String.to_existing_atom(action)
-      _ -> :manage_settings
-    end
-  rescue
-    ArgumentError -> :manage_settings
-  end
-
   defp governance_environment(command, metadata) do
     Map.get(command, :environment_key) || Map.get(metadata, "environment_key")
+  end
+
+  defp fetch_change_request_for_authorization(change_request_id) do
+    case run_store(:fetch_change_request, [Command.FetchChangeRequest.new(change_request_id)], nil) do
+      {:ok, %{change_request: change_request}} -> {:ok, change_request}
+      {:error, %Error{} = error} -> {:error, error}
+    end
+  end
+
+  defp normalize_governance_authorization({:ok, _requirement}), do: :ok
+  defp normalize_governance_authorization({:error, error, denied_audit}), do: {:error, error, denied_audit}
+
+  defp governance_change_request_resource(change_request, fallback_resource) do
+    case {Map.get(change_request, :resource_type), Map.get(change_request, :resource_key)} do
+      {nil, nil} -> fallback_resource
+      {resource_type, resource_key} -> %{resource_type: stringify_resource(resource_type), resource_key: resource_key}
+    end
   end
 
   defp stringify_resource(resource_type) when is_binary(resource_type) do

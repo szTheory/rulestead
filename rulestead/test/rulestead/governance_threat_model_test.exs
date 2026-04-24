@@ -89,7 +89,7 @@ defmodule Rulestead.GovernanceThreatModelTest do
                request_id: "corr-execute"
              ))
              |> then(fn {:ok, %{change_request: submitted}} ->
-               assert {:ok, %{change_request: approved}} =
+               assert {:ok, %{change_request: _approved}} =
                         Rulestead.approve_change_request(
                           Command.ApproveChangeRequest.new(submitted.id,
                             actor: reviewer,
@@ -127,15 +127,15 @@ defmodule Rulestead.GovernanceThreatModelTest do
     assert Map.has_key?(correlated, "corr-cancelled")
 
     assert Enum.map(correlated["corr-execute"], & &1.event_type) == [
-             "change_request.approved",
-             "change_request.merged",
              "change_request.submitted",
-             "ruleset.publish"
+             "change_request.approved",
+             "ruleset.publish",
+             "change_request.merged"
            ]
 
     assert Enum.map(correlated["corr-cancelled"], & &1.event_type) == [
-             "change_request.cancelled",
-             "change_request.submitted"
+             "change_request.submitted",
+             "change_request.cancelled"
            ]
 
     assert Enum.all?(correlated["corr-execute"], &(&1.metadata["change_request_id"] == executed_request.id))
