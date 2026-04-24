@@ -2,7 +2,7 @@
 
 ## Current Milestone: v0.2.0 Governance and Operator Confidence
 
-**Status:** Phase 10 complete (4 of 4 plans complete)
+**Status:** Phase 11 complete (4 of 4 plans complete)
 **Phases:** 9-13
 **Requirements:** [.planning/REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/REQUIREMENTS.md)
 
@@ -68,10 +68,10 @@ Plans:
 
 Plans:
 
-- [ ] 11-01: Mounted routes, navigation, and operator IA additions for change requests and schedule views
-- [ ] 11-02: Change-request detail/review screens with diff, simulation context, and approval actions
-- [ ] 11-03: Schedule list/calendar surfaces with status, cancellation, and failure details
-- [ ] 11-04: Accessibility and sibling-package verification for the new governance UI flows
+- [x] 11-01: Mounted routes, navigation, and operator IA additions for change requests and schedule views
+- [x] 11-02: Change-request detail/review screens with diff, simulation context, and approval actions
+- [x] 11-03: Schedule list/calendar surfaces with status, cancellation, and failure details
+- [x] 11-04: Accessibility and sibling-package verification for the new governance UI flows
 
 **Details:**
 
@@ -143,4 +143,4 @@ Plans:
 - Webhook ingress and outbound delivery have a high blast radius; they must stay on the same authorization and audit rails as direct admin actions.
 
 ---
-*Last updated: 2026-04-24 after completing 10-04*
+*Last updated: 2026-04-24 after completing 11-04*
