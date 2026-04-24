@@ -93,11 +93,25 @@ defmodule Rulestead.GovernanceAdapterContractTest do
       assert "change_request.merged" in event_types
       assert "ruleset.publish" in event_types
       assert Enum.all?(audit_events, &(&1.correlation_id == "corr-123"))
+      assert Enum.all?(audit_events, &(&1.resource_key == "checkout-redesign"))
 
       assert {:ok, %Command.Page{entries: entries}} =
-               adapter.list_change_requests(Command.ListChangeRequests.new(environment_key: "test", status: :executed))
+               adapter.list_change_requests(
+                 Command.ListChangeRequests.new(environment_key: "test", status: :executed)
+               )
 
       assert Enum.any?(entries, &(&1.id == submitted.id and &1.state == :executed))
+
+      assert {:ok, %Command.Page{entries: string_entries}} =
+               adapter.list_change_requests(
+                 Command.ListChangeRequests.new(
+                   environment_key: "test",
+                   action: "publish_ruleset",
+                   status: "executed"
+                 )
+               )
+
+      assert Enum.any?(string_entries, &(&1.id == submitted.id and &1.state == :executed))
     end)
   end
 
@@ -126,7 +140,9 @@ defmodule Rulestead.GovernanceAdapterContractTest do
       assert rejected.state == :rejected
 
       assert {:error, %Rulestead.Error{type: :invalid_command}} =
-               adapter.execute_change_request(Command.ExecuteChangeRequest.new(rejected.id, actor: reviewer))
+               adapter.execute_change_request(
+                 Command.ExecuteChangeRequest.new(rejected.id, actor: reviewer)
+               )
 
       assert {:ok, %{change_request: cancelled_request}} =
                adapter.submit_change_request(
@@ -145,7 +161,9 @@ defmodule Rulestead.GovernanceAdapterContractTest do
       assert cancelled.state == :cancelled
 
       assert {:error, %Rulestead.Error{type: :invalid_command}} =
-               adapter.execute_change_request(Command.ExecuteChangeRequest.new(cancelled.id, actor: reviewer))
+               adapter.execute_change_request(
+                 Command.ExecuteChangeRequest.new(cancelled.id, actor: reviewer)
+               )
     end)
   end
 
@@ -190,7 +208,9 @@ defmodule Rulestead.GovernanceAdapterContractTest do
              )
 
     assert {:ok, _} =
-             adapter.publish_ruleset(StoreFixtures.publish_ruleset_command("checkout-redesign", "test"))
+             adapter.publish_ruleset(
+               StoreFixtures.publish_ruleset_command("checkout-redesign", "test")
+             )
 
     assert {:ok, _} =
              adapter.save_draft_ruleset(
@@ -223,8 +243,14 @@ defmodule Rulestead.GovernanceAdapterContractTest do
   end
 
   defp ensure_phase9_schema! do
-    Rulestead.Repo.query!("ALTER TABLE flags ADD COLUMN IF NOT EXISTS permanent boolean DEFAULT false")
-    Rulestead.Repo.query!("ALTER TABLE flag_environments ADD COLUMN IF NOT EXISTS last_evaluated_at timestamp(6) with time zone")
+    Rulestead.Repo.query!(
+      "ALTER TABLE flags ADD COLUMN IF NOT EXISTS permanent boolean DEFAULT false"
+    )
+
+    Rulestead.Repo.query!(
+      "ALTER TABLE flag_environments ADD COLUMN IF NOT EXISTS last_evaluated_at timestamp(6) with time zone"
+    )
+
     Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS change_requests (
       id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
       status text NOT NULL DEFAULT 'submitted',
@@ -246,8 +272,15 @@ defmodule Rulestead.GovernanceAdapterContractTest do
       inserted_at timestamp(6) with time zone NOT NULL,
       updated_at timestamp(6) with time zone NOT NULL
     )")
-    Rulestead.Repo.query!("CREATE UNIQUE INDEX IF NOT EXISTS change_requests_correlation_id_index ON change_requests (correlation_id)")
-    Rulestead.Repo.query!("CREATE INDEX IF NOT EXISTS change_requests_environment_status_index ON change_requests (environment_key, status)")
+
+    Rulestead.Repo.query!(
+      "CREATE UNIQUE INDEX IF NOT EXISTS change_requests_correlation_id_index ON change_requests (correlation_id)"
+    )
+
+    Rulestead.Repo.query!(
+      "CREATE INDEX IF NOT EXISTS change_requests_environment_status_index ON change_requests (environment_key, status)"
+    )
+
     Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS approvals (
       id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
       change_request_id uuid NOT NULL REFERENCES change_requests(id) ON DELETE CASCADE,
@@ -261,7 +294,13 @@ defmodule Rulestead.GovernanceAdapterContractTest do
       reviewed_at timestamp(6) with time zone NOT NULL,
       inserted_at timestamp(6) with time zone NOT NULL
     )")
-    Rulestead.Repo.query!("CREATE UNIQUE INDEX IF NOT EXISTS approvals_change_request_reviewer_index ON approvals (change_request_id, reviewer_id)")
-    Rulestead.Repo.query!("CREATE INDEX IF NOT EXISTS approvals_change_request_reviewed_at_index ON approvals (change_request_id, reviewed_at)")
+
+    Rulestead.Repo.query!(
+      "CREATE UNIQUE INDEX IF NOT EXISTS approvals_change_request_reviewer_index ON approvals (change_request_id, reviewer_id)"
+    )
+
+    Rulestead.Repo.query!(
+      "CREATE INDEX IF NOT EXISTS approvals_change_request_reviewed_at_index ON approvals (change_request_id, reviewed_at)"
+    )
   end
 end

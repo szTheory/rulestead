@@ -36,7 +36,8 @@ defmodule Rulestead.Store.Ecto do
     with {:ok, environment} <- fetch_environment(command.environment_key),
          {:ok, flag, flag_environment} <-
            fetch_flag_environment(command.flag_key, environment.key) do
-      {:ok, build_flag_detail_payload(flag, environment, flag_environment, command.include_ruleset?)}
+      {:ok,
+       build_flag_detail_payload(flag, environment, flag_environment, command.include_ruleset?)}
     end
   end
 
@@ -138,7 +139,8 @@ defmodule Rulestead.Store.Ecto do
   def save_draft_ruleset(%Command.SaveDraftRuleset{} = command) do
     case audit_result(command) do
       :denied ->
-        with {:ok, audit_event} <- insert_audit_only_event(command, audit_event_type(command), :denied) do
+        with {:ok, audit_event} <-
+               insert_audit_only_event(command, audit_event_type(command), :denied) do
           {:ok, %{audit_event: AuditEvent.serialize(audit_event)}}
         end
 
@@ -179,7 +181,8 @@ defmodule Rulestead.Store.Ecto do
   def publish_ruleset(%Command.PublishRuleset{} = command) do
     case audit_result(command) do
       :denied ->
-        with {:ok, audit_event} <- insert_audit_only_event(command, audit_event_type(command), :denied) do
+        with {:ok, audit_event} <-
+               insert_audit_only_event(command, audit_event_type(command), :denied) do
           {:ok, %{audit_event: AuditEvent.serialize(audit_event)}}
         end
 
@@ -220,7 +223,8 @@ defmodule Rulestead.Store.Ecto do
               {:error, ruleset_error(changeset, command.flag_key, command.environment_key)}
 
             {:error, :flag_environment, %Changeset{} = changeset, _changes} ->
-              {:error, store_changeset_error(changeset, command.flag_key, command.environment_key)}
+              {:error,
+               store_changeset_error(changeset, command.flag_key, command.environment_key)}
 
             {:error, _operation, reason, _changes} ->
               {:error, StoreError.unavailable(cause: reason)}
@@ -236,7 +240,8 @@ defmodule Rulestead.Store.Ecto do
   def archive_flag(%Command.ArchiveFlag{} = command) do
     case audit_result(command) do
       :denied ->
-        with {:ok, audit_event} <- insert_audit_only_event(command, audit_event_type(command), :denied) do
+        with {:ok, audit_event} <-
+               insert_audit_only_event(command, audit_event_type(command), :denied) do
           {:ok, %{audit_event: AuditEvent.serialize(audit_event)}}
         end
 
@@ -260,7 +265,12 @@ defmodule Rulestead.Store.Ecto do
             |> case do
               {:ok, _changes} ->
                 archived_flag = flag_by_key_query(command.flag_key) |> Repo.one()
-                Enum.each(archived_flag.flag_environments, &insert_runtime_snapshot(Repo, &1.environment, archived_at))
+
+                Enum.each(
+                  archived_flag.flag_environments,
+                  &insert_runtime_snapshot(Repo, &1.environment, archived_at)
+                )
+
                 {:ok, build_archive_payload(archived_flag)}
 
               {:error, :flag, %Changeset{} = changeset, _changes} ->
@@ -349,7 +359,8 @@ defmodule Rulestead.Store.Ecto do
               _ -> timestamp
             end
 
-          _ -> timestamp
+          _ ->
+            timestamp
         end
 
       flag_environment
@@ -405,10 +416,15 @@ defmodule Rulestead.Store.Ecto do
           )
           |> Repo.transact()
           |> case do
-            {:ok, _changes} -> fetch_flag(Command.FetchFlag.new(command.flag_key, command.environment_key))
+            {:ok, _changes} ->
+              fetch_flag(Command.FetchFlag.new(command.flag_key, command.environment_key))
+
             {:error, :flag_environment, %Changeset{} = changeset, _changes} ->
-              {:error, store_changeset_error(changeset, command.flag_key, command.environment_key)}
-            {:error, _operation, reason, _changes} -> {:error, StoreError.unavailable(cause: reason)}
+              {:error,
+               store_changeset_error(changeset, command.flag_key, command.environment_key)}
+
+            {:error, _operation, reason, _changes} ->
+              {:error, StoreError.unavailable(cause: reason)}
           end
         end
     end
@@ -418,7 +434,8 @@ defmodule Rulestead.Store.Ecto do
   def release_kill_switch(%Command.ReleaseKillSwitch{} = command) do
     case audit_result(command) do
       :denied ->
-        with {:ok, audit_event} <- insert_audit_only_event(command, "kill_switch.release", :denied) do
+        with {:ok, audit_event} <-
+               insert_audit_only_event(command, "kill_switch.release", :denied) do
           {:ok, %{audit_event: AuditEvent.serialize(audit_event)}}
         end
 
@@ -428,7 +445,12 @@ defmodule Rulestead.Store.Ecto do
                fetch_flag_environment(command.flag_key, environment.key),
              :ok <- ensure_not_archived(command.flag_key, flag) do
           before_state = audit_state(flag_environment)
-          next_status = if(flag_environment.status == :killswitched, do: :active, else: flag_environment.status || :active)
+
+          next_status =
+            if(flag_environment.status == :killswitched,
+              do: :active,
+              else: flag_environment.status || :active
+            )
 
           Multi.new()
           |> Multi.update(
@@ -450,10 +472,15 @@ defmodule Rulestead.Store.Ecto do
           )
           |> Repo.transact()
           |> case do
-            {:ok, _changes} -> fetch_flag(Command.FetchFlag.new(command.flag_key, command.environment_key))
+            {:ok, _changes} ->
+              fetch_flag(Command.FetchFlag.new(command.flag_key, command.environment_key))
+
             {:error, :flag_environment, %Changeset{} = changeset, _changes} ->
-              {:error, store_changeset_error(changeset, command.flag_key, command.environment_key)}
-            {:error, _operation, reason, _changes} -> {:error, StoreError.unavailable(cause: reason)}
+              {:error,
+               store_changeset_error(changeset, command.flag_key, command.environment_key)}
+
+            {:error, _operation, reason, _changes} ->
+              {:error, StoreError.unavailable(cause: reason)}
           end
         end
     end
@@ -474,7 +501,13 @@ defmodule Rulestead.Store.Ecto do
       |> Repo.all()
       |> Enum.map(&AuditEvent.serialize/1)
 
-    {:ok, %Command.Page{entries: entries, limit: command.limit, has_next_page?: false, has_previous_page?: false}}
+    {:ok,
+     %Command.Page{
+       entries: entries,
+       limit: command.limit,
+       has_next_page?: false,
+       has_previous_page?: false
+     }}
   end
 
   @impl Store
@@ -499,10 +532,13 @@ defmodule Rulestead.Store.Ecto do
     end)
     |> Multi.run(:audit_event, fn repo, %{change_request: change_request} ->
       audit_command = governance_audit_command(command, change_request, "submitted")
-      repo.insert(audit_event_changeset(%AuditEvent{}, audit_command, "change_request.submitted", :ok, %{
-        resource_key: change_request.resource_key,
-        environment_key: change_request.environment_key
-      }))
+
+      repo.insert(
+        audit_event_changeset(%AuditEvent{}, audit_command, "change_request.submitted", :ok, %{
+          resource_key: change_request.resource_key,
+          environment_key: change_request.environment_key
+        })
+      )
     end)
     |> Repo.transact()
     |> case do
@@ -528,22 +564,36 @@ defmodule Rulestead.Store.Ecto do
       end)
       |> Multi.run(:change_request, fn repo, _changes ->
         approved_count = approved_count(repo, change_request.id) + 1
-        next_status = if(approved_count >= required_approvals(change_request.approval_requirement_snapshot), do: "approved", else: "submitted")
-        update_change_request(repo, change_request, %{status: next_status, resolved_at: if(next_status == "approved", do: reviewed_at, else: nil), updated_at: reviewed_at})
+
+        next_status =
+          if(approved_count >= required_approvals(change_request.approval_requirement_snapshot),
+            do: "approved",
+            else: "submitted"
+          )
+
+        update_change_request(repo, change_request, %{
+          status: next_status,
+          resolved_at: if(next_status == "approved", do: reviewed_at, else: nil),
+          updated_at: reviewed_at
+        })
       end)
-      |> Multi.run(:audit_event, fn repo, %{approval: approval, change_request: updated_change_request} ->
+      |> Multi.run(:audit_event, fn repo,
+                                    %{approval: approval, change_request: updated_change_request} ->
         audit_command =
           governance_audit_command(command, updated_change_request, "approved")
           |> Map.update!(:metadata, &Map.put(&1, "approval_id", approval.id))
 
-        repo.insert(audit_event_changeset(%AuditEvent{}, audit_command, "change_request.approved", :ok, %{
-          resource_key: updated_change_request.resource_key,
-          environment_key: updated_change_request.environment_key
-        }))
+        repo.insert(
+          audit_event_changeset(%AuditEvent{}, audit_command, "change_request.approved", :ok, %{
+            resource_key: updated_change_request.resource_key,
+            environment_key: updated_change_request.environment_key
+          })
+        )
       end)
       |> Repo.transact()
       |> case do
-        {:ok, %{approval: approval, change_request: updated_change_request, audit_event: audit_event}} ->
+        {:ok,
+         %{approval: approval, change_request: updated_change_request, audit_event: audit_event}} ->
           emit_governance_telemetry(:approved, command, updated_change_request, audit_event)
 
           {:ok,
@@ -569,17 +619,24 @@ defmodule Rulestead.Store.Ecto do
         insert_approval(repo, change_request, command, "rejected", reviewed_at)
       end)
       |> Multi.run(:change_request, fn repo, _changes ->
-        update_change_request(repo, change_request, %{status: "rejected", resolved_at: reviewed_at, updated_at: reviewed_at})
+        update_change_request(repo, change_request, %{
+          status: "rejected",
+          resolved_at: reviewed_at,
+          updated_at: reviewed_at
+        })
       end)
-      |> Multi.run(:audit_event, fn repo, %{approval: approval, change_request: updated_change_request} ->
+      |> Multi.run(:audit_event, fn repo,
+                                    %{approval: approval, change_request: updated_change_request} ->
         audit_command =
           governance_audit_command(command, updated_change_request, "rejected")
           |> Map.update!(:metadata, &Map.put(&1, "approval_id", approval.id))
 
-        repo.insert(audit_event_changeset(%AuditEvent{}, audit_command, "change_request.rejected", :ok, %{
-          resource_key: updated_change_request.resource_key,
-          environment_key: updated_change_request.environment_key
-        }))
+        repo.insert(
+          audit_event_changeset(%AuditEvent{}, audit_command, "change_request.rejected", :ok, %{
+            resource_key: updated_change_request.resource_key,
+            environment_key: updated_change_request.environment_key
+          })
+        )
       end)
       |> Repo.transact()
       |> case do
@@ -601,14 +658,21 @@ defmodule Rulestead.Store.Ecto do
 
       Multi.new()
       |> Multi.run(:change_request, fn repo, _changes ->
-        update_change_request(repo, change_request, %{status: "cancelled", resolved_at: cancelled_at, updated_at: cancelled_at})
+        update_change_request(repo, change_request, %{
+          status: "cancelled",
+          resolved_at: cancelled_at,
+          updated_at: cancelled_at
+        })
       end)
       |> Multi.run(:audit_event, fn repo, %{change_request: updated_change_request} ->
         audit_command = governance_audit_command(command, updated_change_request, "cancelled")
-        repo.insert(audit_event_changeset(%AuditEvent{}, audit_command, "change_request.cancelled", :ok, %{
-          resource_key: updated_change_request.resource_key,
-          environment_key: updated_change_request.environment_key
-        }))
+
+        repo.insert(
+          audit_event_changeset(%AuditEvent{}, audit_command, "change_request.cancelled", :ok, %{
+            resource_key: updated_change_request.resource_key,
+            environment_key: updated_change_request.environment_key
+          })
+        )
       end)
       |> Repo.transact()
       |> case do
@@ -625,9 +689,15 @@ defmodule Rulestead.Store.Ecto do
   def execute_change_request(%Command.ExecuteChangeRequest{} = command) do
     with {:ok, change_request} <- fetch_change_request_row(command.change_request_id),
          :ok <- ensure_governance_transition(change_request, ["approved"]),
-         {:ok, execution_result, updated_change_request, audit_event} <- execute_governed_change(change_request, command) do
+         {:ok, execution_result, updated_change_request, audit_event} <-
+           execute_governed_change(change_request, command) do
       emit_governance_telemetry(:merged, command, updated_change_request, audit_event)
-      {:ok, %{change_request: serialize_change_request_row(updated_change_request), execution_result: execution_result}}
+
+      {:ok,
+       %{
+         change_request: serialize_change_request_row(updated_change_request),
+         execution_result: execution_result
+       }}
     end
   end
 
@@ -649,19 +719,49 @@ defmodule Rulestead.Store.Ecto do
       from(cr in "change_requests",
         order_by: [desc: field(cr, :inserted_at)],
         limit: ^command.limit,
-        select: map(cr, [:id, :status, :governed_action, :environment_key, :resource_type, :resource_key, :submitter_id, :submitter_type, :submitter_display, :reason, :approval_requirement_snapshot, :command_snapshot, :metadata, :correlation_id, :submitted_at, :resolved_at, :executed_at, :inserted_at, :updated_at])
+        select:
+          map(cr, [
+            :id,
+            :status,
+            :governed_action,
+            :environment_key,
+            :resource_type,
+            :resource_key,
+            :submitter_id,
+            :submitter_type,
+            :submitter_display,
+            :reason,
+            :approval_requirement_snapshot,
+            :command_snapshot,
+            :metadata,
+            :correlation_id,
+            :submitted_at,
+            :resolved_at,
+            :executed_at,
+            :inserted_at,
+            :updated_at
+          ])
       )
       |> maybe_filter_change_request(:environment_key, command.environment_key)
       |> maybe_filter_change_request(:resource_type, command.resource_type)
       |> maybe_filter_change_request(:resource_key, command.resource_key)
       |> maybe_filter_change_request(:submitter_id, command.submitted_by_id)
-      |> maybe_filter_change_request(:governed_action, command.action && Atom.to_string(command.action))
-      |> maybe_filter_change_request(:status, command.status && Atom.to_string(command.status))
+      |> maybe_filter_change_request(
+        :governed_action,
+        normalize_change_request_filter(command.action)
+      )
+      |> maybe_filter_change_request(:status, normalize_change_request_filter(command.status))
       |> Repo.all()
       |> Enum.map(&normalize_governance_row/1)
       |> Enum.map(&serialize_change_request_row/1)
 
-    {:ok, %Command.Page{entries: entries, limit: command.limit, has_next_page?: false, has_previous_page?: false}}
+    {:ok,
+     %Command.Page{
+       entries: entries,
+       limit: command.limit,
+       has_next_page?: false,
+       has_previous_page?: false
+     }}
   end
 
   defp fetch_environment(environment_key) do
@@ -787,7 +887,8 @@ defmodule Rulestead.Store.Ecto do
 
         {:ok, snapshot}
 
-      {:error, %Changeset{} = changeset} -> {:error, changeset}
+      {:error, %Changeset{} = changeset} ->
+        {:error, changeset}
     end
   end
 
@@ -882,6 +983,7 @@ defmodule Rulestead.Store.Ecto do
 
   defp build_update_payload(flag, previous_owner) do
     {environment, flag_environment} = preferred_environment(flag)
+
     build_flag_detail_payload(flag, environment, flag_environment, true)
     |> Map.put(:recent_owners, recent_owners(flag.owner, previous_owner))
   end
@@ -923,7 +1025,15 @@ defmodule Rulestead.Store.Ecto do
   end
 
   defp audience_summary(audience) do
-    Map.take(audience, [:id, :key, :description, :definition, :archived_at, :inserted_at, :updated_at])
+    Map.take(audience, [
+      :id,
+      :key,
+      :description,
+      :definition,
+      :archived_at,
+      :inserted_at,
+      :updated_at
+    ])
   end
 
   defp flag_environment_summary(flag_environment) do
@@ -1059,7 +1169,7 @@ defmodule Rulestead.Store.Ecto do
       query,
       [flag, _, _],
       ilike(flag.key, ^normalized) or
-      ilike(fragment("coalesce(?, '')", flag.description), ^normalized)
+        ilike(fragment("coalesce(?, '')", flag.description), ^normalized)
     )
   end
 
@@ -1068,6 +1178,11 @@ defmodule Rulestead.Store.Ecto do
   defp maybe_filter_change_request(query, field_name, value) do
     where(query, [cr], field(cr, ^field_name) == ^value)
   end
+
+  defp normalize_change_request_filter(nil), do: nil
+  defp normalize_change_request_filter(value) when is_atom(value), do: Atom.to_string(value)
+  defp normalize_change_request_filter(value) when is_binary(value), do: String.trim(value)
+  defp normalize_change_request_filter(_value), do: nil
 
   defp ruleset_error(changeset, flag_key, environment_key) do
     details = collect_changeset_details(changeset)
@@ -1140,12 +1255,16 @@ defmodule Rulestead.Store.Ecto do
         else: %{status: :killswitched, kill_switch_variant_key: "default"}
 
     with {:ok, environment} <- fetch_environment(audit_event.environment_key),
-         {:ok, flag, flag_environment} <- fetch_flag_environment(audit_event.resource_key, environment.key),
+         {:ok, flag, flag_environment} <-
+           fetch_flag_environment(audit_event.resource_key, environment.key),
          :ok <- ensure_not_archived(audit_event.resource_key, flag) do
       before_state = audit_state(flag_environment)
 
       Multi.new()
-      |> Multi.update(:flag_environment, FlagEnvironment.changeset(flag_environment, inverse_status))
+      |> Multi.update(
+        :flag_environment,
+        FlagEnvironment.changeset(flag_environment, inverse_status)
+      )
       |> Multi.insert(
         :audit_event,
         audit_event_changeset(%AuditEvent{}, command, "audit.rollback", :ok, %{
@@ -1166,7 +1285,8 @@ defmodule Rulestead.Store.Ecto do
           {:ok, %{audit_event: AuditEvent.serialize(rollback_event)}}
 
         {:error, :flag_environment, %Changeset{} = changeset, _changes} ->
-          {:error, store_changeset_error(changeset, audit_event.resource_key, audit_event.environment_key)}
+          {:error,
+           store_changeset_error(changeset, audit_event.resource_key, audit_event.environment_key)}
 
         {:error, _operation, reason, _changes} ->
           {:error, StoreError.unavailable(cause: reason)}
@@ -1249,7 +1369,8 @@ defmodule Rulestead.Store.Ecto do
       event_type: event_type,
       resource_type: "flag",
       resource_key: to_string(Map.get(opts, :resource_key, Map.get(command, :flag_key))),
-      environment_key: to_string(Map.get(opts, :environment_key, Map.get(command, :environment_key))),
+      environment_key:
+        to_string(Map.get(opts, :environment_key, Map.get(command, :environment_key))),
       actor_id: actor_value(command.actor, "id"),
       actor_type: to_string(actor_value(command.actor, "type") || "operator"),
       actor_display: actor_value(command.actor, "display"),
@@ -1294,7 +1415,27 @@ defmodule Rulestead.Store.Ecto do
     }
 
     case repo.insert_all("change_requests", [attrs],
-           returning: [:id, :status, :governed_action, :environment_key, :resource_type, :resource_key, :submitter_id, :submitter_type, :submitter_display, :reason, :approval_requirement_snapshot, :command_snapshot, :metadata, :correlation_id, :submitted_at, :resolved_at, :executed_at, :inserted_at, :updated_at]
+           returning: [
+             :id,
+             :status,
+             :governed_action,
+             :environment_key,
+             :resource_type,
+             :resource_key,
+             :submitter_id,
+             :submitter_type,
+             :submitter_display,
+             :reason,
+             :approval_requirement_snapshot,
+             :command_snapshot,
+             :metadata,
+             :correlation_id,
+             :submitted_at,
+             :resolved_at,
+             :executed_at,
+             :inserted_at,
+             :updated_at
+           ]
          ) do
       {1, [row]} -> {:ok, normalize_governance_row(row)}
       _ -> {:error, StoreError.unavailable()}
@@ -1316,14 +1457,27 @@ defmodule Rulestead.Store.Ecto do
     }
 
     case repo.insert_all("approvals", [attrs],
-           returning: [:id, :change_request_id, :decision, :reviewer_id, :reviewer_type, :reviewer_display, :reason, :metadata, :correlation_id, :reviewed_at, :inserted_at]
+           returning: [
+             :id,
+             :change_request_id,
+             :decision,
+             :reviewer_id,
+             :reviewer_type,
+             :reviewer_display,
+             :reason,
+             :metadata,
+             :correlation_id,
+             :reviewed_at,
+             :inserted_at
+           ]
          ) do
       {1, [row]} -> {:ok, normalize_governance_row(row)}
       _ -> {:error, StoreError.unavailable()}
     end
   rescue
     error in [ConstraintError] ->
-      {:error, StoreError.invalid_command("reviewer has already recorded a decision", cause: error)}
+      {:error,
+       StoreError.invalid_command("reviewer has already recorded a decision", cause: error)}
   end
 
   defp update_change_request(repo, change_request, attrs) do
@@ -1343,7 +1497,28 @@ defmodule Rulestead.Store.Ecto do
   defp fetch_change_request_row(change_request_id) do
     case from(cr in "change_requests",
            where: field(cr, :id) == ^uuid_param(change_request_id),
-           select: map(cr, [:id, :status, :governed_action, :environment_key, :resource_type, :resource_key, :submitter_id, :submitter_type, :submitter_display, :reason, :approval_requirement_snapshot, :command_snapshot, :metadata, :correlation_id, :submitted_at, :resolved_at, :executed_at, :inserted_at, :updated_at])
+           select:
+             map(cr, [
+               :id,
+               :status,
+               :governed_action,
+               :environment_key,
+               :resource_type,
+               :resource_key,
+               :submitter_id,
+               :submitter_type,
+               :submitter_display,
+               :reason,
+               :approval_requirement_snapshot,
+               :command_snapshot,
+               :metadata,
+               :correlation_id,
+               :submitted_at,
+               :resolved_at,
+               :executed_at,
+               :inserted_at,
+               :updated_at
+             ])
          )
          |> Repo.one() do
       nil -> {:error, StoreError.invalid_command("change request was not found")}
@@ -1355,7 +1530,20 @@ defmodule Rulestead.Store.Ecto do
     from(a in "approvals",
       where: field(a, :change_request_id) == ^uuid_param(change_request_id),
       order_by: [asc: field(a, :reviewed_at)],
-      select: map(a, [:id, :change_request_id, :decision, :reviewer_id, :reviewer_type, :reviewer_display, :reason, :metadata, :correlation_id, :reviewed_at, :inserted_at])
+      select:
+        map(a, [
+          :id,
+          :change_request_id,
+          :decision,
+          :reviewer_id,
+          :reviewer_type,
+          :reviewer_display,
+          :reason,
+          :metadata,
+          :correlation_id,
+          :reviewed_at,
+          :inserted_at
+        ])
     )
     |> Repo.all()
     |> Enum.map(&normalize_governance_row/1)
@@ -1371,7 +1559,9 @@ defmodule Rulestead.Store.Ecto do
 
   defp approved_count(repo, change_request_id) do
     from(a in "approvals",
-      where: field(a, :change_request_id) == ^uuid_param(change_request_id) and field(a, :decision) == "approved",
+      where:
+        field(a, :change_request_id) == ^uuid_param(change_request_id) and
+          field(a, :decision) == "approved",
       select: count("*")
     )
     |> repo.one()
@@ -1381,7 +1571,8 @@ defmodule Rulestead.Store.Ecto do
     if change_request.status in allowed_statuses do
       :ok
     else
-      {:error, StoreError.invalid_command("change request is not in a valid state for this operation")}
+      {:error,
+       StoreError.invalid_command("change request is not in a valid state for this operation")}
     end
   end
 
@@ -1390,7 +1581,9 @@ defmodule Rulestead.Store.Ecto do
 
     exists? =
       from(a in "approvals",
-        where: field(a, :change_request_id) == ^uuid_param(change_request_id) and field(a, :reviewer_id) == ^reviewer_id,
+        where:
+          field(a, :change_request_id) == ^uuid_param(change_request_id) and
+            field(a, :reviewer_id) == ^reviewer_id,
         select: count("*")
       )
       |> Repo.one()
@@ -1420,7 +1613,8 @@ defmodule Rulestead.Store.Ecto do
         display: change_request.submitter_display
       },
       command: change_request.command_snapshot,
-      approval_requirement: normalize_approval_requirement_snapshot(change_request.approval_requirement_snapshot),
+      approval_requirement:
+        normalize_approval_requirement_snapshot(change_request.approval_requirement_snapshot),
       correlation_id: change_request.correlation_id
     }
     |> ChangeRequest.new()
@@ -1482,13 +1676,22 @@ defmodule Rulestead.Store.Ecto do
 
   defp execute_governed_change(%{governed_action: "publish_ruleset"} = change_request, command) do
     with {:ok, environment} <- fetch_environment(change_request.environment_key),
-         {:ok, flag, flag_environment} <- fetch_flag_environment(change_request.resource_key, environment.key),
-         {:ok, ruleset} <- resolve_publishable_ruleset(flag_environment, environment.key, change_request.command_snapshot["version"]) do
+         {:ok, flag, flag_environment} <-
+           fetch_flag_environment(change_request.resource_key, environment.key),
+         {:ok, ruleset} <-
+           resolve_publishable_ruleset(
+             flag_environment,
+             environment.key,
+             change_request.command_snapshot["version"]
+           ) do
       published_at = now()
       previous_ruleset = active_ruleset(flag_environment)
 
       Multi.new()
-      |> Multi.update(:ruleset, Ruleset.changeset(ruleset, %{status: :published, published_at: published_at}))
+      |> Multi.update(
+        :ruleset,
+        Ruleset.changeset(ruleset, %{status: :published, published_at: published_at})
+      )
       |> Multi.update(
         :flag_environment,
         FlagEnvironment.changeset(flag_environment, %{
@@ -1498,7 +1701,9 @@ defmodule Rulestead.Store.Ecto do
         })
       )
       |> Multi.update(:flag, Changeset.change(flag, updated_at: published_at))
-      |> Multi.run(:runtime_snapshot, fn repo, _changes -> insert_runtime_snapshot(repo, environment, published_at) end)
+      |> Multi.run(:runtime_snapshot, fn repo, _changes ->
+        insert_runtime_snapshot(repo, environment, published_at)
+      end)
       |> Multi.run(:ruleset_audit_event, fn repo, _changes ->
         publish_command =
           Command.PublishRuleset.new(change_request.resource_key, environment.key,
@@ -1514,28 +1719,42 @@ defmodule Rulestead.Store.Ecto do
             }
           )
 
-        repo.insert(audit_event_changeset(%AuditEvent{}, publish_command, "ruleset.publish", :ok, %{
-          before: ruleset_audit_state(previous_ruleset),
-          after: ruleset_audit_state(ruleset),
-          diff: ruleset_position_diff(previous_ruleset, ruleset),
-          resource_key: change_request.resource_key,
-          environment_key: environment.key
-        }))
+        repo.insert(
+          audit_event_changeset(%AuditEvent{}, publish_command, "ruleset.publish", :ok, %{
+            before: ruleset_audit_state(previous_ruleset),
+            after: ruleset_audit_state(ruleset),
+            diff: ruleset_position_diff(previous_ruleset, ruleset),
+            resource_key: change_request.resource_key,
+            environment_key: environment.key
+          })
+        )
       end)
       |> Multi.run(:change_request, fn repo, _changes ->
-        update_change_request(repo, change_request, %{status: "executed", resolved_at: published_at, executed_at: published_at, updated_at: published_at})
+        update_change_request(repo, change_request, %{
+          status: "executed",
+          resolved_at: published_at,
+          executed_at: published_at,
+          updated_at: published_at
+        })
       end)
       |> Multi.run(:audit_event, fn repo, %{change_request: updated_change_request} ->
         audit_command = governance_audit_command(command, updated_change_request, "merged")
-        repo.insert(audit_event_changeset(%AuditEvent{}, audit_command, "change_request.merged", :ok, %{
-          resource_key: updated_change_request.resource_key,
-          environment_key: updated_change_request.environment_key
-        }))
+
+        repo.insert(
+          audit_event_changeset(%AuditEvent{}, audit_command, "change_request.merged", :ok, %{
+            resource_key: updated_change_request.resource_key,
+            environment_key: updated_change_request.environment_key
+          })
+        )
       end)
       |> Repo.transact()
       |> case do
         {:ok, %{change_request: updated_change_request, audit_event: audit_event}} ->
-          {:ok, execution_result} = fetch_flag(Command.FetchFlag.new(change_request.resource_key, change_request.environment_key))
+          {:ok, execution_result} =
+            fetch_flag(
+              Command.FetchFlag.new(change_request.resource_key, change_request.environment_key)
+            )
+
           {:ok, execution_result, updated_change_request, audit_event}
 
         {:error, _operation, reason, _changes} ->
@@ -1567,7 +1786,10 @@ defmodule Rulestead.Store.Ecto do
   end
 
   defp normalize_governance_failure(%Rulestead.Error{} = error), do: error
-  defp normalize_governance_failure(%Changeset{} = changeset), do: StoreError.unavailable(cause: changeset)
+
+  defp normalize_governance_failure(%Changeset{} = changeset),
+    do: StoreError.unavailable(cause: changeset)
+
   defp normalize_governance_failure(other), do: StoreError.unavailable(cause: other)
 
   defp actor_value(nil, _key), do: nil
@@ -1578,8 +1800,10 @@ defmodule Rulestead.Store.Ecto do
       action: governance_action(snapshot["action"] || snapshot[:action] || "manage_settings"),
       environment_key: snapshot["environment_key"] || snapshot[:environment_key],
       required_approvals: snapshot["required_approvals"] || snapshot[:required_approvals] || 0,
-      change_request_required?: snapshot["change_request_required?"] || snapshot[:change_request_required?] || false,
-      self_approval_allowed?: snapshot["self_approval_allowed?"] || snapshot[:self_approval_allowed?] || false
+      change_request_required?:
+        snapshot["change_request_required?"] || snapshot[:change_request_required?] || false,
+      self_approval_allowed?:
+        snapshot["self_approval_allowed?"] || snapshot[:self_approval_allowed?] || false
     }
   end
 
@@ -1617,17 +1841,24 @@ defmodule Rulestead.Store.Ecto do
   end
 
   defp maybe_filter_audit_flag(query, nil), do: query
-  defp maybe_filter_audit_flag(query, flag_key), do: where(query, [event], event.resource_key == ^to_string(flag_key))
+
+  defp maybe_filter_audit_flag(query, flag_key),
+    do: where(query, [event], event.resource_key == ^to_string(flag_key))
 
   defp maybe_filter_audit_environment(query, nil), do: query
+
   defp maybe_filter_audit_environment(query, environment_key),
     do: where(query, [event], event.environment_key == ^to_string(environment_key))
 
   defp maybe_filter_audit_actor_id(query, nil), do: query
-  defp maybe_filter_audit_actor_id(query, actor_id), do: where(query, [event], event.actor_id == ^actor_id)
+
+  defp maybe_filter_audit_actor_id(query, actor_id),
+    do: where(query, [event], event.actor_id == ^actor_id)
 
   defp maybe_filter_audit_mutation(query, nil), do: query
-  defp maybe_filter_audit_mutation(query, mutation), do: where(query, [event], event.event_type == ^mutation)
+
+  defp maybe_filter_audit_mutation(query, mutation),
+    do: where(query, [event], event.event_type == ^mutation)
 
   defp maybe_filter_audit_occurred_after(query, %DateTime{} = occurred_after),
     do: where(query, [event], event.occurred_at >= ^occurred_after)
@@ -1739,7 +1970,11 @@ defmodule Rulestead.Store.Ecto do
   end
 
   defp lifecycle(flag, flag_environment) do
-    Lifecycle.classify(flag_summary(flag), flag_environment_summary(flag_environment), lifecycle_opts())
+    Lifecycle.classify(
+      flag_summary(flag),
+      flag_environment_summary(flag_environment),
+      lifecycle_opts()
+    )
   end
 
   defp lifecycle_opts do
@@ -1751,7 +1986,10 @@ defmodule Rulestead.Store.Ecto do
       from(flag in Flag, order_by: [desc: flag.updated_at], select: flag.owner)
       |> Repo.all()
 
-    [normalize_owner(current_owner), normalize_owner(extra_owner) | Enum.map(owners, &normalize_owner/1)]
+    [
+      normalize_owner(current_owner),
+      normalize_owner(extra_owner) | Enum.map(owners, &normalize_owner/1)
+    ]
     |> Enum.reject(&is_nil/1)
     |> Enum.uniq()
     |> Enum.take(5)
@@ -1835,8 +2073,14 @@ defmodule Rulestead.Store.Ecto do
     %Command.Page{
       entries: page_entries,
       limit: command.limit,
-      next_cursor: if(length(filtered_entries) > command.limit and last_entry, do: encode_cursor(last_entry, command.sort)),
-      prev_cursor: if((command.after || command.before) && first_entry, do: encode_cursor(first_entry, command.sort)),
+      next_cursor:
+        if(length(filtered_entries) > command.limit and last_entry,
+          do: encode_cursor(last_entry, command.sort)
+        ),
+      prev_cursor:
+        if((command.after || command.before) && first_entry,
+          do: encode_cursor(first_entry, command.sort)
+        ),
       has_next_page?: length(filtered_entries) > command.limit,
       has_previous_page?: not is_nil(command.after) or not is_nil(command.before)
     }
@@ -1853,16 +2097,24 @@ defmodule Rulestead.Store.Ecto do
   end
 
   defp compare_cursor(entry, decoded, :inserted_at, :after),
-    do: {entry.flag.inserted_at, entry.flag.key, entry.environment.key} < {decoded.sort_value, decoded.flag_key, decoded.environment_key}
+    do:
+      {entry.flag.inserted_at, entry.flag.key, entry.environment.key} <
+        {decoded.sort_value, decoded.flag_key, decoded.environment_key}
 
   defp compare_cursor(entry, decoded, :inserted_at, :before),
-    do: {entry.flag.inserted_at, entry.flag.key, entry.environment.key} > {decoded.sort_value, decoded.flag_key, decoded.environment_key}
+    do:
+      {entry.flag.inserted_at, entry.flag.key, entry.environment.key} >
+        {decoded.sort_value, decoded.flag_key, decoded.environment_key}
 
   defp compare_cursor(entry, decoded, :updated_at, :after),
-    do: {entry.flag.updated_at, entry.flag.key, entry.environment.key} < {decoded.sort_value, decoded.flag_key, decoded.environment_key}
+    do:
+      {entry.flag.updated_at, entry.flag.key, entry.environment.key} <
+        {decoded.sort_value, decoded.flag_key, decoded.environment_key}
 
   defp compare_cursor(entry, decoded, :updated_at, :before),
-    do: {entry.flag.updated_at, entry.flag.key, entry.environment.key} > {decoded.sort_value, decoded.flag_key, decoded.environment_key}
+    do:
+      {entry.flag.updated_at, entry.flag.key, entry.environment.key} >
+        {decoded.sort_value, decoded.flag_key, decoded.environment_key}
 
   defp compare_cursor(entry, decoded, _sort, :after),
     do: {entry.flag.key, entry.environment.key} > {decoded.flag_key, decoded.environment_key}
@@ -1907,7 +2159,7 @@ defmodule Rulestead.Store.Ecto do
       [environment],
       ilike(environment.key, ^normalized) or
         ilike(environment.name, ^normalized) or
-      ilike(fragment("coalesce(?, '')", environment.description), ^normalized)
+        ilike(fragment("coalesce(?, '')", environment.description), ^normalized)
     )
   end
 
@@ -1926,7 +2178,8 @@ defmodule Rulestead.Store.Ecto do
     where(
       query,
       [audience],
-      ilike(audience.key, ^normalized) or ilike(fragment("coalesce(?, '')", audience.description), ^normalized)
+      ilike(audience.key, ^normalized) or
+        ilike(fragment("coalesce(?, '')", audience.description), ^normalized)
     )
   end
 
@@ -2037,7 +2290,9 @@ defmodule Rulestead.Store.Ecto do
     from(flag in Flag,
       where: is_nil(flag.archived_at),
       join: fe in assoc(flag, :flag_environments),
-      on: fe.flag_id == flag.id and fe.status in [:active, :killswitched] and not is_nil(fe.active_ruleset_id),
+      on:
+        fe.flag_id == flag.id and fe.status in [:active, :killswitched] and
+          not is_nil(fe.active_ruleset_id),
       join: env in assoc(fe, :environment),
       on: env.id == fe.environment_id and env.key == ^to_string(environment_key),
       order_by: [asc: flag.key],
