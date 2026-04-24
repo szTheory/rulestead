@@ -76,7 +76,11 @@ defmodule RulesteadAdmin.Live.SessionTest do
           "dev" => "/admin/flags?env=dev",
           "prod" => "/admin/flags?env=prod"
         },
-        inner_block: fn -> "Flag list placeholder" end
+        inner_block: [
+          %{
+            inner_block: fn _changed, _slot_value -> "Flag list placeholder" end
+          }
+        ]
       )
 
     assert html =~ "Environment"
