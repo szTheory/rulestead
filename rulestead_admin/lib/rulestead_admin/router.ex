@@ -21,6 +21,7 @@ defmodule RulesteadAdmin.Router do
           on_mount: [{RulesteadAdmin.Live.Session, :default}] do
           live "/", RulesteadAdmin.Live.FlagLive.Index, :index
           live "/new", RulesteadAdmin.Live.FlagLive.Form, :new
+          live "/audit", RulesteadAdmin.Live.AuditLive.Index, :index
           live "/:key", RulesteadAdmin.Live.FlagLive.Show, :show
           live "/:key/edit", RulesteadAdmin.Live.FlagLive.Form, :edit
           live "/:key/rules", RulesteadAdmin.Live.FlagLive.Rules, :index
@@ -28,7 +29,6 @@ defmodule RulesteadAdmin.Router do
           live "/:key/rollouts", RulesteadAdmin.Live.FlagLive.Rollouts, :show
           live "/:key/kill", RulesteadAdmin.Live.FlagLive.Kill, :show
           live "/:key/timeline", RulesteadAdmin.Live.FlagLive.Timeline, :show
-          live "/audit", RulesteadAdmin.Live.AuditLive.Index, :index
         end
       end
     end

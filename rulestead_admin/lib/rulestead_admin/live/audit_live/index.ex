@@ -174,7 +174,12 @@ defmodule RulesteadAdmin.Live.AuditLive.Index do
   defp matches_actor?(_entry, ""), do: true
 
   defp matches_actor?(entry, actor) do
-    String.contains?(String.downcase(entry.actor_display), String.downcase(actor))
+    actor_display =
+      entry.actor_display
+      |> to_string()
+      |> String.downcase()
+
+    String.contains?(actor_display, String.downcase(actor))
   end
 
   defp matches_mutation?(_entry, nil), do: true

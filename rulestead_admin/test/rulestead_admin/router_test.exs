@@ -40,5 +40,6 @@ defmodule RulesteadAdmin.RouterTest do
     assert rendered =~ "/:key/kill"
     assert rendered =~ "/:key/timeline"
     assert rendered =~ "/audit"
+    assert :binary.match(rendered, "\"/audit\"") < :binary.match(rendered, "\"/:key\"")
   end
 end
