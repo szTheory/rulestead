@@ -1,52 +1,54 @@
 # Rulestead
 
 > **Runtime decisions, made clear.**
-> Batteries-included Elixir-native feature flags, experimentation, and
-> remote config, with a mountable Phoenix LiveView admin.
-
-> ⚠️ **Pre-release.** v0.1.0 is in active development (Phase 1 of 8). The
-> quickstart below describes the target API for v0.1.0 and will ship as
-> tested against published Hex tarballs in Phase 8. Track progress in
-> [ROADMAP](.planning/ROADMAP.md).
+> Typed feature flags, variants, and remote config for Elixir apps, with an
+> optional mounted Phoenix LiveView admin.
 
 ## What this is (60 seconds)
 
-Rulestead gives Elixir apps typed flags, staged rollouts, and a built-in
-LiveView admin with explainability baked in. Every decision is intended to
-be deterministic, auditable, and explainable, so operators can answer
-"why did this flip?" without guesswork.
+Rulestead ships as two sibling Hex packages:
 
-The repository is structured as two sibling packages from day one:
-`rulestead` for the evaluation/runtime surface and `rulestead_admin` for
-the optional mountable admin UI. Phase 1 establishes that shape, the CI
-surface, and the release engineering spine.
+- `rulestead` for the runtime evaluator, installer, context builders, and test helpers
+- `rulestead_admin` for the optional host-mounted admin UI
 
-## Who it's for
-
-- App Dev: `Rulestead.enabled?("checkout_v2", conn)` in 15 minutes.
-- Tech Lead: staged rollouts, auditability, and a clear release path.
-- PM / Operator: a calm admin UI instead of terminal-only flag control.
-- Support: explain pages for "why did user X see Y?"
-- SRE: fast kill switch and health-focused runtime controls.
-- OSS Contributor: narrow behaviours, explicit docs, and reproducible CI.
+The runtime promise is simple: evaluation stays deterministic, rule precedence
+is explicit, and operators can explain why a decision happened without reverse
+engineering application state.
 
 ## 15-minute quickstart
 
+If you want the runtime plus the admin UI, add both packages:
+
 ```elixir
-# 1. Add to mix.exs
-{:rulestead, "~> 0.1"},
-{:rulestead_admin, "~> 0.1"}
+defp deps do
+  [
+    {:rulestead, "~> 0.1"},
+    {:rulestead_admin, "~> 0.1"}
+  ]
+end
 ```
 
+If you only need runtime evaluation in application code, start with:
+
+```elixir
+defp deps do
+  [
+    {:rulestead, "~> 0.1"}
+  ]
+end
+```
+
+Install and migrate:
+
 ```bash
-# 2. Install
 mix deps.get
 mix rulestead.install
 mix ecto.migrate
 ```
 
+Gate a code path:
+
 ```elixir
-# 3. Use it
 if Rulestead.enabled?("checkout_v2", conn) do
   render_v2(conn)
 else
@@ -54,52 +56,74 @@ else
 end
 ```
 
+Mount the admin UI only if your app needs it:
+
 ```elixir
-# 4. Optional admin UI in your router
-import Rulestead.Admin.Router
+import RulesteadAdmin.Router
 
-rulestead_admin "/admin/flags",
-  policy: MyApp.RulesteadAdminPolicy
+scope "/" do
+  pipe_through :browser
+
+  rulestead_admin "/admin/flags", policy: MyApp.RulesteadPolicy
+end
 ```
 
-```bash
-# 5. Toggle from CLI or UI
-mix rulestead.set_flag checkout_v2 true --env dev
-```
-
-The full walkthrough for Context builders, variants, testing, and
-LiveView helpers lands in
+The guided walkthrough continues in
 [Getting Started](guides/introduction/getting-started.md).
 
-## Feature highlights
+## Choose your path
 
-- Typed flags for boolean, string, integer, float, JSON, and variants.
-- Deterministic bucketing so the same actor stays in the same bucket.
-- Structured explain traces for support and incident response.
-- Mountable admin UI with Phoenix-native seams.
-- Release engineering designed for linked-version sibling packages.
+### Build with Rulestead
 
-## Current Phase
+Use the runtime package to evaluate booleans, variants, and typed values from
+controllers, LiveViews, jobs, or explicit `%Rulestead.Context{}` structs.
 
-Phase 1 is repo bootstrap. That means:
+- Start with [Installation](guides/introduction/installation.md)
+- Continue with [Getting Started](guides/introduction/getting-started.md)
+- Go deeper with [Evaluation](guides/flows/evaluation.md),
+  [Rulesets](guides/flows/rulesets.md), and
+  [Testing](guides/recipes/testing.md)
 
-- The package layout, docs surface, and CI/release foundation are being
-  created now.
-- The intended v0.1 API is documented here to pressure-test the shape
-  early.
-- Phase 8 is the first release merge. Release Please PRs stay advisory
-  until then.
+### Operate via Admin UI
 
-## Repository Layout
+Use the optional `rulestead_admin` package when a host Phoenix app needs a
+mounted operator surface with host-owned authorization and environment-aware
+URLs.
 
-- `rulestead/`: core package
-- `rulestead_admin/`: optional admin package
-- `guides/`: shared docs consumed by ExDoc
-- `.planning/`: roadmap, requirements, and phase execution artifacts
-- `prompts/`: anchor docs and research context for future phases
+- Start with [rulestead_admin/README.md](rulestead_admin/README.md)
+- Continue with [Admin UI](guides/flows/admin-ui.md),
+  [Explainability](guides/flows/explainability.md), and
+  [Multi-environment usage](guides/flows/multi-env.md)
 
-## Contributing
+### Extend Rulestead
 
-Start with [CONTRIBUTING.md](CONTRIBUTING.md) for local setup and
-[MAINTAINING.md](MAINTAINING.md) for the release and branch-protection
-rules that keep the repo honest while the library is still pre-1.0.
+Use the shared docs and repo conventions when you are changing the library
+itself or integrating it into a larger release process.
+
+- Read [CONVENTIONS.md](CONVENTIONS.md)
+- Read [CONTRIBUTING.md](CONTRIBUTING.md) and [MAINTAINING.md](MAINTAINING.md)
+- Use [Telemetry](guides/flows/telemetry.md) and
+  [Context propagation](guides/recipes/context-propagation.md) as the current
+  contract docs
+
+## Why teams adopt it
+
+- Deterministic evaluation and sticky bucketing for predictable rollouts
+- Ordered rules with first-match-wins precedence
+- Explainable decisions for support, operators, and incident response
+- Test helpers and fake-backed workflows that do not require Postgres in the hot loop
+- A sibling-package layout so runtime-only apps do not carry LiveView admin weight
+
+## Repository layout
+
+- `rulestead/` — runtime package
+- `rulestead_admin/` — optional admin package
+- `guides/` — shared HexDocs guides
+- `prompts/` — product and engineering reference docs
+
+## Versioning and upgrade posture
+
+Rulestead is shipping its first public `v0.1.0` release. Expect additive docs
+and patch-level fixes inside `v0.1.x`; treat minor bumps before `1.0` as the
+window where package contracts can still tighten. The current guidance lives in
+[Upgrading](guides/introduction/upgrading.md).
