@@ -108,15 +108,41 @@ human review of the publish run.
 
 Hex publish completion is not the end of the release checklist.
 
-After publish succeeds, continue into the dedicated post-publish verification
-wave and run the live artifact checks there:
+After `publish-hex.yml` completes and both sibling packages are visible on Hex,
+transition immediately into the live post-publish verification wave:
 
-- `mix verify.release_publish <version>`
-- `mix verify.release_parity <version>`
+```bash
+bash scripts/ci/verify_published_release.sh 0.1.0
+```
 
-That wave is where live Hex / HexDocs proof belongs. This publish plan stops
-at ordered publication plus the explicit handoff so the irreversible step and
-the live verification step stay auditable.
+That wrapper is the canonical REL-03 / REL-04 entrypoint. It first confirms
+that `rulestead` and `rulestead_admin` expose the requested version on Hex,
+then runs the required trio in order:
+
+1. `mix verify.workspace_clean`
+2. `mix verify.release_publish <version>`
+3. `mix verify.release_parity <version>`
+
+Capture durable evidence from the live run:
+
+- the full command output from `bash scripts/ci/verify_published_release.sh <version>`
+- the live package URLs for `rulestead` and `rulestead_admin`
+- the versioned HexDocs URL for `rulestead`
+- confirmation that the fresh `mix new` consumer proof passed
+- confirmation that the fresh `mix phx.new` admin mount/boot proof passed
+
+Treat any failure here as a release blocker, not informational drift. A failed
+`verify.release_publish` run means the published artifacts do not satisfy the
+documented install or mount contract yet. A failed `verify.release_parity` run
+means the Hex tarball differs from the tagged source and must be investigated
+before the release can be considered verified.
+
+The recurring drift monitor lives in `.github/workflows/verify-published-release.yml`.
+It reuses the same shell entrypoint on a daily cron and on manual dispatch,
+resolves the latest shared stable sibling release from Hex, and opens or updates
+one rolling GitHub issue only when published verification actually fails or the
+sibling versions drift out of lockstep. Before the first live publish exists,
+the workflow exits cleanly instead of opening a false-positive drift issue.
 
 ## Deferred Phase 8 artifacts
 
