@@ -2,6 +2,7 @@ defmodule Rulestead.AdminSecurityContractTest do
   use ExUnit.Case, async: false
 
   alias Rulestead.{Admin.Authorizer, Admin.Redaction, AuthError, Error, Store.Command}
+  alias Rulestead.StoreFixtures
 
   setup do
     previous_policy = Application.get_env(:rulestead, :admin_policy)
@@ -116,6 +117,132 @@ defmodule Rulestead.AdminSecurityContractTest do
     refute Map.has_key?(telemetry.traits, :email)
     refute Map.has_key?(telemetry.traits, :ip)
     refute Map.has_key?(telemetry.traits.nested, :secret_token)
+  end
+
+  test "configured host policy denials are final for draft, publish, and archive writes" do
+    seed_flag!()
+
+    actor = %{id: "prod-operator-1", roles: [:prod_operator]}
+    ruleset = StoreFixtures.valid_ruleset_attrs(%{salt: "checkout-redesign:v2"})
+
+    assert {:error, %Error{domain: :auth, type: :unauthorized}} =
+             Rulestead.save_draft_ruleset(
+               StoreFixtures.save_draft_command("checkout-redesign", "test", ruleset, actor: actor)
+             )
+
+    assert {:error, %Error{domain: :auth, type: :unauthorized}} =
+             Rulestead.publish_ruleset(
+               StoreFixtures.publish_ruleset_command("checkout-redesign", "test", actor: actor)
+             )
+
+    assert {:error, %Error{domain: :auth, type: :unauthorized}} =
+             Rulestead.archive_flag(StoreFixtures.archive_flag_command("checkout-redesign", actor: actor))
+  end
+
+  test "denied draft, publish, and archive writes append denied audit rows instead of calling direct writes" do
+    seed_flag!()
+
+    actor = %{id: "viewer-1", roles: [:viewer]}
+    ruleset = StoreFixtures.valid_ruleset_attrs(%{salt: "checkout-redesign:v2"})
+
+    assert {:error, %Error{type: :unauthorized}} =
+             Rulestead.save_draft_ruleset(
+               StoreFixtures.save_draft_command("checkout-redesign", "test", ruleset,
+                 actor: actor,
+                 metadata: %{request_id: "req-draft"}
+               )
+             )
+
+    assert {:error, %Error{type: :unauthorized}} =
+             Rulestead.publish_ruleset(
+               StoreFixtures.publish_ruleset_command("checkout-redesign", "test",
+                 actor: actor,
+                 metadata: %{request_id: "req-publish"}
+               )
+             )
+
+    assert {:error, %Error{type: :unauthorized}} =
+             Rulestead.archive_flag(
+               StoreFixtures.archive_flag_command("checkout-redesign",
+                 actor: actor,
+                 metadata: %{request_id: "req-archive"}
+               )
+             )
+
+    assert {:ok, page} =
+             Rulestead.list_audit_events(
+               flag_key: "checkout-redesign",
+               environment_key: "test",
+               actor: %{id: "aud-1", roles: [:auditor]},
+               limit: 10
+             )
+
+    denied =
+      page.entries
+      |> Enum.filter(&(&1.result == :denied))
+      |> Enum.map(&{&1.event_type, &1.result, &1.actor_id, &1.metadata["request_id"]})
+
+    assert {"ruleset.save_draft", :denied, "viewer-1", "req-draft"} in denied
+    assert {"ruleset.publish", :denied, "viewer-1", "req-publish"} in denied
+    assert {"flag.archive", :denied, "viewer-1", "req-archive"} in denied
+
+    assert {:ok, detail} = Rulestead.fetch_flag("checkout-redesign", "test")
+    assert detail.flag.archived_at == nil
+    assert detail.active_ruleset.version == 1
+    assert detail.draft_rulesets == []
+  end
+
+  test "fallback roles still authorize when no host policy module is configured" do
+    seed_flag!()
+    Application.delete_env(:rulestead, :admin_policy)
+
+    actor = %{id: "operator-1", roles: [:operator]}
+    ruleset = StoreFixtures.valid_ruleset_attrs(%{salt: "checkout-redesign:v2"})
+
+    assert {:ok, %{version: 2}} =
+             Rulestead.save_draft_ruleset(
+               StoreFixtures.save_draft_command("checkout-redesign", "test", ruleset, actor: actor)
+             )
+
+    assert {:ok, published} =
+             Rulestead.publish_ruleset(
+               StoreFixtures.publish_ruleset_command("checkout-redesign", "test", version: 2, actor: actor)
+             )
+
+    assert published.active_ruleset.version == 2
+
+    assert {:ok, archived} =
+             Rulestead.archive_flag(StoreFixtures.archive_flag_command("checkout-redesign", actor: actor))
+
+    assert archived.archived?
+  end
+
+  defp seed_flag! do
+    Application.delete_env(:rulestead, :admin_policy)
+
+    assert {:ok, _} =
+             Rulestead.create_flag(
+               StoreFixtures.valid_flag_attrs(%{
+                 permanent: true,
+                 actor: %{id: "seed-operator", roles: [:operator]}
+               })
+             )
+
+    assert {:ok, _} =
+             Rulestead.save_draft_ruleset(
+               StoreFixtures.save_draft_command("checkout-redesign", "test", StoreFixtures.valid_ruleset_attrs(),
+                 actor: %{id: "seed-operator", roles: [:operator]}
+               )
+             )
+
+    assert {:ok, _} =
+             Rulestead.publish_ruleset(
+               StoreFixtures.publish_ruleset_command("checkout-redesign", "test",
+                 actor: %{id: "seed-operator", roles: [:operator]}
+               )
+             )
+
+    Application.put_env(:rulestead, :admin_policy, __MODULE__.DenyAllPolicy)
   end
 
   defmodule DenyAllPolicy do
