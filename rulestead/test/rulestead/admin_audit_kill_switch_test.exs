@@ -84,6 +84,88 @@ defmodule Rulestead.AdminAuditKillSwitchFakeTest do
              Enum.map(page.entries, &Map.take(&1, [:event_type, :result]))
   end
 
+  test "ruleset publish audit rows include reorder diff metadata and audit filters run before limit" do
+    seed_flag!()
+    operator = %{id: "operator-9", roles: [:operator], display: "On-call operator"}
+    earlier = ~U[2026-01-01 00:10:00Z]
+    later = ~U[2026-01-01 00:20:00Z]
+
+    first_ruleset =
+      StoreFixtures.valid_ruleset_attrs(%{
+        salt: "checkout-redesign:v2",
+        rules: reorder_rules(["force-enabled", "target-segment", "variant-split"])
+      })
+
+    second_ruleset =
+      StoreFixtures.valid_ruleset_attrs(%{
+        salt: "checkout-redesign:v3",
+        rules: reorder_rules(["variant-split", "force-enabled", "target-segment"])
+      })
+
+    Rulestead.Fake.Control.set_now!(earlier)
+
+    assert {:ok, _} =
+             Rulestead.save_draft_ruleset(
+               StoreFixtures.save_draft_command("checkout-redesign", "test", first_ruleset, actor: operator)
+             )
+
+    assert {:ok, _} =
+             Rulestead.publish_ruleset(
+               StoreFixtures.publish_ruleset_command("checkout-redesign", "test", version: 2, actor: operator)
+             )
+
+    Rulestead.Fake.Control.set_now!(later)
+
+    assert {:ok, _} =
+             Rulestead.save_draft_ruleset(
+               StoreFixtures.save_draft_command("checkout-redesign", "test", second_ruleset, actor: operator)
+             )
+
+    assert {:ok, _} =
+             Rulestead.publish_ruleset(
+               StoreFixtures.publish_ruleset_command("checkout-redesign", "test", version: 3, actor: operator)
+             )
+
+    Rulestead.Fake.Control.set_now!(DateTime.add(later, 10, :second))
+
+    assert {:ok, _} =
+             Rulestead.engage_kill_switch("checkout-redesign", "test", operator, reason: "incident")
+
+    assert {:ok, filtered_page} =
+             Rulestead.list_audit_events(
+               flag_key: "checkout-redesign",
+               actor: %{id: "aud-1", roles: [:auditor]},
+               limit: 1,
+               actor_id: "operator-9",
+               mutation: "ruleset.publish",
+               environment_key: "test",
+               occurred_after: DateTime.add(later, -1, :second),
+               occurred_before: DateTime.add(later, 1, :second)
+             )
+
+    assert [%{event_type: "ruleset.publish"} = publish_event] = filtered_page.entries
+    assert publish_event.actor_id == "operator-9"
+    assert publish_event.actor_display == "On-call operator"
+    assert publish_event.metadata["version"] == 3
+    assert get_in(publish_event.metadata, ["before", "rules"]) == [
+             %{"key" => "force-enabled", "position" => 0},
+             %{"key" => "target-segment", "position" => 1},
+             %{"key" => "variant-split", "position" => 2}
+           ]
+
+    assert get_in(publish_event.metadata, ["after", "rules"]) == [
+             %{"key" => "variant-split", "position" => 0},
+             %{"key" => "force-enabled", "position" => 1},
+             %{"key" => "target-segment", "position" => 2}
+           ]
+
+    assert get_in(publish_event.metadata, ["diff", "rules"]) == [
+             %{"from" => 2, "key" => "variant-split", "to" => 0},
+             %{"from" => 0, "key" => "force-enabled", "to" => 1},
+             %{"from" => 1, "key" => "target-segment", "to" => 2}
+           ]
+  end
+
   test "rollback writes a new linked audit event instead of mutating history" do
     seed_flag!()
 
@@ -130,6 +212,15 @@ defmodule Rulestead.AdminAuditKillSwitchFakeTest do
 
     assert {:ok, _} = Rulestead.save_draft_ruleset(StoreFixtures.save_draft_command())
     assert {:ok, _} = Rulestead.publish_ruleset(StoreFixtures.publish_ruleset_command())
+  end
+
+  defp reorder_rules(order) do
+    by_key =
+      StoreFixtures.valid_ruleset_attrs()
+      |> Map.fetch!(:rules)
+      |> Map.new(&{&1.key, &1})
+
+    Enum.map(order, &Map.fetch!(by_key, &1))
   end
 end
 
@@ -189,6 +280,74 @@ defmodule Rulestead.AdminAuditKillSwitchEctoTest do
              Rulestead.rollback_audit_event(event.id, actor: %{id: "op-1", roles: [:operator]}, reason: "revert")
 
     assert rollback.audit_event.metadata["rollback_of_event_id"] == event.id
+  end
+
+  test "ecto audit queries support mutation actor and date filters before limit" do
+    seed_environment!("test")
+    operator = %{id: "operator-9", roles: [:operator], display: "On-call operator"}
+
+    assert {:ok, _} =
+             StoreEcto.create_flag(Command.CreateFlag.new(StoreFixtures.valid_flag_attrs(%{permanent: true, actor: operator})))
+
+    first_ruleset =
+      StoreFixtures.valid_ruleset_attrs(%{
+        salt: "checkout-redesign:v2",
+        rules: reorder_rules(["force-enabled", "target-segment", "variant-split"])
+      })
+
+    second_ruleset =
+      StoreFixtures.valid_ruleset_attrs(%{
+        salt: "checkout-redesign:v3",
+        rules: reorder_rules(["variant-split", "force-enabled", "target-segment"])
+      })
+
+    assert {:ok, _} =
+             StoreEcto.save_draft_ruleset(
+               StoreFixtures.save_draft_command("checkout-redesign", "test", first_ruleset, actor: operator)
+             )
+
+    assert {:ok, _} =
+             StoreEcto.publish_ruleset(
+               StoreFixtures.publish_ruleset_command("checkout-redesign", "test", version: 1, actor: operator)
+             )
+
+    Process.sleep(5)
+    after_first_publish = DateTime.utc_now() |> DateTime.add(-1, :second)
+
+    assert {:ok, _} =
+             StoreEcto.save_draft_ruleset(
+               StoreFixtures.save_draft_command("checkout-redesign", "test", second_ruleset, actor: operator)
+             )
+
+    assert {:ok, _} =
+             StoreEcto.publish_ruleset(
+               StoreFixtures.publish_ruleset_command("checkout-redesign", "test", version: 2, actor: operator)
+             )
+
+    assert {:ok, filtered_page} =
+             StoreEcto.list_audit_events(
+               Command.ListAuditEvents.new(
+                 flag_key: "checkout-redesign",
+                 environment_key: "test",
+                 actor: %{id: "aud-1", roles: [:auditor]},
+                 actor_id: "operator-9",
+                 mutation: "ruleset.publish",
+                 occurred_before: after_first_publish,
+                 limit: 1
+               )
+             )
+
+    assert [%{event_type: "ruleset.publish"} = publish_event] = filtered_page.entries
+    assert publish_event.actor_id == "operator-9"
+  end
+
+  defp reorder_rules(order) do
+    by_key =
+      StoreFixtures.valid_ruleset_attrs()
+      |> Map.fetch!(:rules)
+      |> Map.new(&{&1.key, &1})
+
+    Enum.map(order, &Map.fetch!(by_key, &1))
   end
 
   defp seed_environment!(key) do
