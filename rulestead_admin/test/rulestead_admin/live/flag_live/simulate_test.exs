@@ -5,6 +5,8 @@ defmodule RulesteadAdmin.Live.FlagLive.SimulateTest do
   alias Rulestead.Runtime.{Cache, Refresh}
   alias Rulestead.Store.Command
 
+  @admin_actor %{id: 7, email: "priya@example.com", roles: [:admin]}
+
   setup_all do
     start_supervised!(RulesteadAdmin.TestEndpoint)
     :ok
@@ -60,14 +62,19 @@ defmodule RulesteadAdmin.Live.FlagLive.SimulateTest do
     {:ok, conn: conn}
   end
 
-  test "running a simulation renders summary-first result details for one actor context", %{conn: conn} do
+  test "running a simulation renders summary-first result details for one actor context", %{
+    conn: conn
+  } do
     {:ok, view, html} = live(conn, "/admin/flags/checkout-redesign/simulate?env=prod")
 
     assert html =~ "Run simulation"
 
     result_html =
       view
-      |> form("form[aria-label='Simulation form']", simulation_params("plan=enterprise\nemail=sam@example.com"))
+      |> form(
+        "form[aria-label='Simulation form']",
+        simulation_params("plan=enterprise\nemail=sam@example.com")
+      )
       |> render_submit()
 
     assert result_html =~ "Simulation summary"
@@ -80,15 +87,22 @@ defmodule RulesteadAdmin.Live.FlagLive.SimulateTest do
     assert result_html =~ "Cache age"
     assert String.contains?(result_html, "Simulation summary")
     assert String.contains?(result_html, "Trace detail")
-    assert :binary.match(result_html, "Simulation summary") < :binary.match(result_html, "Trace detail")
+
+    assert :binary.match(result_html, "Simulation summary") <
+             :binary.match(result_html, "Trace detail")
   end
 
-  test "trace details stay collapsed until operators explicitly open the disclosure", %{conn: conn} do
+  test "trace details stay collapsed until operators explicitly open the disclosure", %{
+    conn: conn
+  } do
     {:ok, view, _html} = live(conn, "/admin/flags/checkout-redesign/simulate?env=prod")
 
     result_html =
       view
-      |> form("form[aria-label='Simulation form']", simulation_params("plan=enterprise\nemail=sam@example.com"))
+      |> form(
+        "form[aria-label='Simulation form']",
+        simulation_params("plan=enterprise\nemail=sam@example.com")
+      )
       |> render_submit()
 
     assert has_element?(view, "details[aria-label='Trace detail']")
@@ -98,7 +112,8 @@ defmodule RulesteadAdmin.Live.FlagLive.SimulateTest do
     assert result_html =~ "Bucket math"
   end
 
-  test "operators can apply and reset a page-scoped archetype and export an ExUnit fixture literal", %{conn: conn} do
+  test "operators can apply and reset a page-scoped archetype and export an ExUnit fixture literal",
+       %{conn: conn} do
     {:ok, view, html} = live(conn, "/admin/flags/checkout-redesign/simulate?env=prod")
 
     assert html =~ "No saved archetype applied"
@@ -181,8 +196,17 @@ defmodule RulesteadAdmin.Live.FlagLive.SimulateTest do
       ]
     }
 
-    assert {:ok, _draft} = Rulestead.save_draft_ruleset(Command.SaveDraftRuleset.new(flag_key, environment_key, ruleset))
-    assert {:ok, _published} = Rulestead.publish_ruleset(Command.PublishRuleset.new(flag_key, environment_key))
+    assert {:ok, _draft} =
+             Rulestead.save_draft_ruleset(
+               Command.SaveDraftRuleset.new(flag_key, environment_key, ruleset,
+                 actor: @admin_actor
+               )
+             )
+
+    assert {:ok, _published} =
+             Rulestead.publish_ruleset(
+               Command.PublishRuleset.new(flag_key, environment_key, actor: @admin_actor)
+             )
   end
 
   defp ensure_environment!(key, name) do
