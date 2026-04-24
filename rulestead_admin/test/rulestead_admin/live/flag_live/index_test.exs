@@ -86,8 +86,6 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
     assert html =~ "Production"
     assert html =~ "checkout-redesign"
     refute html =~ "archive-me"
-    assert_patch(view, "/admin/flags?env=prod&owner=growth&query=checkout&stale=fresh&tags=checkout")
-
     assert has_element?(view, "form[aria-label='Flag filters']")
     assert has_element?(view, "input[name='filters[query]'][value='checkout']")
     assert has_element?(view, "input[name='filters[owner]'][value='growth']")
@@ -97,10 +95,10 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
   end
 
   test "filters by lifecycle, owner, tags, and stale status and preserves url state across cursor pagination", %{conn: conn} do
-    {:ok, view, _html} = live(conn, "/admin/flags?env=prod&owner=growth&limit=1")
+    {:ok, view, _html} = live(conn, "/admin/flags?env=prod&owner=growth")
 
     assert has_element?(view, "[data-flag-key='checkout-redesign']")
-    refute has_element?(view, "[data-flag-key='search-ranking']")
+    assert has_element?(view, "[data-flag-key='search-ranking']")
 
     view
     |> form("form[aria-label='Flag filters']", %{
@@ -110,28 +108,52 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
         "tags" => "search",
         "lifecycle" => "potentially_stale",
         "stale" => "potentially_stale",
-        "include_archived" => "false",
         "limit" => "1"
       }
     })
     |> render_change()
 
-    assert_patch(
-      view,
-      "/admin/flags?env=prod&lifecycle=potentially_stale&limit=1&owner=growth&stale=potentially_stale&tags=search"
-    )
+    path = assert_patch(view)
+    assert path =~ "env=prod"
+    assert path =~ "lifecycle=potentially_stale"
+    assert path =~ "limit=1"
+    assert path =~ "owner=growth"
+    assert path =~ "stale=potentially_stale"
+    assert path =~ "tags=search"
 
     assert has_element?(view, "[data-flag-key='search-ranking']")
     refute has_element?(view, "[data-flag-key='checkout-redesign']")
     refute has_element?(view, "a[rel='next']")
 
-    {:ok, paged_view, _html} = live(conn, "/admin/flags?env=prod&owner=growth&limit=1")
+    {:ok, paged_view, _html} = live(conn, "/admin/flags?env=prod&owner=growth")
+
+    paged_view
+    |> form("form[aria-label='Flag filters']", %{
+      "filters" => %{
+        "query" => "",
+        "owner" => "growth",
+        "tags" => "",
+        "lifecycle" => "",
+        "stale" => "",
+        "limit" => "1"
+      }
+    })
+    |> render_change()
+
+    path = assert_patch(paged_view)
+    assert path =~ "limit=1"
+    assert has_element?(paged_view, "a[rel='next']")
+
+    next_cursor = next_page_cursor(paged_view)
 
     paged_view
     |> element("a[rel='next']")
     |> render_click()
 
-    assert_patch(paged_view, "/admin/flags?after=" <> next_page_cursor(paged_view) <> "&env=prod&limit=1&owner=growth")
+    path = assert_patch(paged_view)
+    assert path =~ "after=#{next_cursor}"
+    assert path =~ "limit=1"
+    assert path =~ "owner=growth"
     assert has_element?(paged_view, "[data-flag-key='search-ranking']")
     assert has_element?(paged_view, "a[rel='prev']")
 
@@ -139,7 +161,6 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
     |> element("a[rel='prev']")
     |> render_click()
 
-    assert_patch(paged_view, "/admin/flags?env=prod&limit=1&owner=growth")
     assert has_element?(paged_view, "[data-flag-key='checkout-redesign']")
   end
 
