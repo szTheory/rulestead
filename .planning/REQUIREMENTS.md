@@ -46,7 +46,7 @@
 
 - [ ] **TEL-01**: `Rulestead.Telemetry.span/3` wrapper emits `[:rulestead, domain, resource, action, :start|:stop|:exception]` spans for every public operation
 - [ ] **TEL-02**: Event catalog documented in `guides/flows/telemetry.md`; events versioned as public API
-- [ ] **TEL-03**: No PII / secrets / raw payloads in telemetry meta — enforced by custom Credo check `NoRawTraitsInTelemetryMeta`
+- [x] **TEL-03**: No PII / secrets / raw payloads in telemetry meta — enforced by custom Credo check `NoRawTraitsInTelemetryMeta`
 - [ ] **TEL-04**: Telemetry handlers never raise; tolerate any reason atom and meta shape
 
 ### Admin UI (ADMIN — rulestead_admin package)
@@ -90,8 +90,8 @@
 
 - [ ] **SEC-01**: `Rulestead.Admin.Policy` behavior — host supplies authorization; library ships no auth assumptions
 - [ ] **SEC-02**: Environment-sensitive authorization — read-only / non-prod editor / prod editor roles
-- [ ] **SEC-03**: Secure traits / redacted logging — attribute allowlists; PII never enters telemetry or audit by default
-- [ ] **SEC-04**: Custom Credo check `NoRawTraitsInLogger` enforces redaction discipline
+- [x] **SEC-03**: Secure traits / redacted logging — attribute allowlists; PII never enters telemetry or audit by default
+- [x] **SEC-04**: Custom Credo check `NoRawTraitsInLogger` enforces redaction discipline
 
 ### Error Model (ERR)
 
