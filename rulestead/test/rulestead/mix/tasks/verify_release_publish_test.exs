@@ -2,6 +2,7 @@ defmodule Rulestead.Mix.Tasks.VerifyReleasePublishTest do
   use ExUnit.Case, async: false
 
   alias Mix.Tasks.Verify.ReleasePublish
+  alias Rulestead.Test.ReleasePublishFixture
 
   defmodule FixtureDouble do
     def setup_core_consumer!(tmp_dir, version, opts) do
@@ -104,5 +105,128 @@ defmodule Rulestead.Mix.Tasks.VerifyReleasePublishTest do
 
     assert report.hexdocs == {:ok, 200}
     assert Enum.map(report.consumers, & &1.name) == [:rulestead, :rulestead_admin]
+  end
+
+  test "shared fixture helper writes a fresh mix new consumer with versioned Hex deps" do
+    tmp_dir = tmp_dir()
+    on_exit(fn -> File.rm_rf!(tmp_dir) end)
+
+    consumer =
+      ReleasePublishFixture.setup_core_consumer!(tmp_dir, "0.1.0",
+        generator_runner: &generator_runner/4
+      )
+
+    mix_exs = File.read!(Path.join(consumer.app_dir, "mix.exs"))
+
+    assert mix_exs =~ ~s({:rulestead, "~> 0.1.0"})
+    refute mix_exs =~ "path:"
+    assert consumer.deps == [%{app: :rulestead, requirement: "~> 0.1.0"}]
+  end
+
+  test "shared fixture helper encodes the admin mount, session, and env-query contract" do
+    tmp_dir = tmp_dir()
+    on_exit(fn -> File.rm_rf!(tmp_dir) end)
+
+    consumer =
+      ReleasePublishFixture.setup_admin_consumer!(tmp_dir, "0.1.0",
+        generator_runner: &generator_runner/4
+      )
+
+    mix_exs = File.read!(Path.join(consumer.app_dir, "mix.exs"))
+    router = File.read!(Path.join(consumer.app_dir, "lib/admin_consumer_web/router.ex"))
+
+    assert mix_exs =~ ~s({:rulestead, "~> 0.1.0"})
+    assert mix_exs =~ ~s({:rulestead_admin, "~> 0.1.0"})
+    refute mix_exs =~ "path:"
+    assert router =~ "use RulesteadAdmin.Router"
+    assert router =~ ~s(rulestead_admin "/flags", policy: AdminConsumer.RulesteadPolicy)
+    assert consumer.contract.mount_path == "/flags"
+    assert consumer.contract.session_keys == [
+             "current_actor",
+             "rulestead_admin_environments",
+             "rulestead_admin_last_env"
+           ]
+    assert consumer.contract.env_query_param == "env"
+  end
+
+  test "verify.release_publish can plan with the shared fixture helper" do
+    tmp_dir = tmp_dir()
+    on_exit(fn -> File.rm_rf!(tmp_dir) end)
+
+    plan =
+      ReleasePublish.plan("0.1.0",
+        fixture_module: ReleasePublishFixture,
+        tmp_dir: tmp_dir,
+        generator_runner: &generator_runner/4
+      )
+
+    assert Enum.map(plan.consumers, & &1.name) == [:rulestead, :rulestead_admin]
+    assert Enum.all?(plan.consumers, fn consumer ->
+             Enum.all?(consumer.deps, &(Map.get(&1, :path) == nil))
+           end)
+  end
+
+  defp tmp_dir do
+    path = Path.join(System.tmp_dir!(), "release-publish-fixture-#{System.unique_integer([:positive])}")
+    File.mkdir_p!(path)
+    path
+  end
+
+  defp generator_runner("mix", ["new", app_name | _rest], cd, _opts) do
+    app_dir = Path.join(cd, app_name)
+    File.mkdir_p!(app_dir)
+
+    File.write!(Path.join(app_dir, "mix.exs"), minimal_mix_exs(module_name(app_name)))
+    :ok
+  end
+
+  defp generator_runner("mix", ["phx.new", app_name | _rest], cd, _opts) do
+    app_dir = Path.join(cd, app_name)
+    router_path = Path.join([app_dir, "lib", "#{app_name}_web", "router.ex"])
+
+    File.mkdir_p!(Path.dirname(router_path))
+    File.mkdir_p!(Path.join(app_dir, "config"))
+
+    File.write!(Path.join(app_dir, "mix.exs"), minimal_mix_exs(module_name(app_name)))
+
+    File.write!(
+      router_path,
+      """
+      defmodule #{module_name(app_name)}Web.Router do
+        use #{module_name(app_name)}Web, :router
+
+        pipeline :browser do
+          plug :fetch_session
+        end
+      end
+      """
+    )
+
+    :ok
+  end
+
+  defp minimal_mix_exs(module_name) do
+    """
+    defmodule #{module_name}.MixProject do
+      use Mix.Project
+
+      def project do
+        [app: :#{Macro.underscore(module_name)}, version: "0.1.0", deps: deps()]
+      end
+
+      def application do
+        [extra_applications: [:logger]]
+      end
+
+      defp deps do
+        []
+      end
+    end
+    """
+  end
+
+  defp module_name(app_name) do
+    app_name
+    |> Macro.camelize()
   end
 end
