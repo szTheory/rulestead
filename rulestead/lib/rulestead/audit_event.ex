@@ -33,17 +33,22 @@ defmodule Rulestead.AuditEvent do
   @spec metadata(map() | keyword()) :: map()
   def metadata(attrs \\ %{}) when is_list(attrs) or is_map(attrs) do
     attrs = Map.new(attrs)
+    context = normalize_context(Map.get(attrs, :context) || Map.get(attrs, "context"))
 
     %{
       "before" => normalize_map(Map.get(attrs, :before) || Map.get(attrs, "before")),
       "after" => normalize_map(Map.get(attrs, :after) || Map.get(attrs, "after")),
       "diff" => normalize_map(Map.get(attrs, :diff) || Map.get(attrs, "diff")),
       "links" => normalize_map(Map.get(attrs, :links) || Map.get(attrs, "links")),
-      "context" => normalize_map(Map.get(attrs, :context) || Map.get(attrs, "context"))
+      "context" => context
     }
     |> maybe_put("request_id", Map.get(attrs, :request_id) || Map.get(attrs, "request_id"))
     |> maybe_put("source", Map.get(attrs, :source) || Map.get(attrs, "source"))
     |> maybe_put("rollback_of_event_id", Map.get(attrs, :rollback_of_event_id) || Map.get(attrs, "rollback_of_event_id"))
+    |> maybe_put("change_request_id", governance_value(attrs, context, :change_request_id))
+    |> maybe_put("approval_id", governance_value(attrs, context, :approval_id))
+    |> maybe_put("governance_action", governance_value(attrs, context, :governance_action))
+    |> maybe_put("execution_stage", governance_value(attrs, context, :execution_stage))
   end
 
   @spec serialize(t()) :: map()
@@ -128,10 +133,46 @@ defmodule Rulestead.AuditEvent do
 
   defp normalize_map(_value), do: %{}
 
+  defp normalize_context(nil), do: %{}
+
+  defp normalize_context(map) when is_map(map) do
+    map
+    |> normalize_map()
+    |> drop_sensitive_context_keys()
+  end
+
+  defp normalize_context(_value), do: %{}
+
   defp normalize_value(value) when is_map(value), do: normalize_map(value)
   defp normalize_value(value) when is_list(value), do: Enum.map(value, &normalize_value/1)
   defp normalize_value(value), do: value
 
   defp maybe_put(map, _key, nil), do: map
   defp maybe_put(map, key, value), do: Map.put(map, key, value)
+
+  defp governance_value(attrs, context, key) do
+    attrs
+    |> Map.get(key)
+    |> Kernel.||(Map.get(attrs, Atom.to_string(key)))
+    |> Kernel.||(Map.get(context, Atom.to_string(key)))
+    |> normalize_governance_value()
+  end
+
+  defp drop_sensitive_context_keys(map) do
+    map
+    |> Map.drop(["session", "session_data", "session_id", "session_token", "socket_session"])
+    |> Map.new(fn
+      {key, value} when is_map(value) -> {key, drop_sensitive_context_keys(value)}
+      {key, value} when is_list(value) -> {key, Enum.map(value, &drop_sensitive_list_value/1)}
+      entry -> entry
+    end)
+  end
+
+  defp drop_sensitive_list_value(value) when is_map(value), do: drop_sensitive_context_keys(value)
+  defp drop_sensitive_list_value(value), do: value
+
+  defp normalize_governance_value(value) when is_atom(value) and not is_nil(value),
+    do: Atom.to_string(value)
+
+  defp normalize_governance_value(value), do: value
 end
