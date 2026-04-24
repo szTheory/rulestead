@@ -1,9 +1,3 @@
-unless Code.ensure_loaded?(Oban.Job) do
-  defmodule Oban.Job do
-    defstruct id: nil, args: %{}, meta: %{}, worker: nil, scheduled_at: nil
-  end
-end
-
 defmodule Rulestead.ObanScheduledExecutionTest do
   use Rulestead.RepoCase, async: false
 
@@ -19,9 +13,31 @@ defmodule Rulestead.ObanScheduledExecutionTest do
 
     alias Rulestead.Store.Command
 
+    def fetch_scheduled_execution(%Command.FetchScheduledExecution{} = command) do
+      {:ok,
+       %{
+         scheduled_execution: %{
+           id: command.scheduled_execution_id,
+           action: :publish_ruleset,
+           environment_key: "prod",
+           attempt_count: 0,
+           state: :scheduled
+         }
+       }}
+    end
+
     def execute_scheduled_execution(%Command.ExecuteScheduledExecution{} = command) do
       send(self(), {:execute_scheduled_execution, command})
-      {:ok, %{scheduled_execution: %{id: command.scheduled_execution_id, state: :completed}}}
+      {:ok,
+       %{
+         scheduled_execution: %{
+           id: command.scheduled_execution_id,
+           action: :publish_ruleset,
+           environment_key: "prod",
+           attempt_count: 1,
+           state: :completed
+         }
+       }}
     end
 
     for callback <- [
@@ -51,7 +67,6 @@ defmodule Rulestead.ObanScheduledExecutionTest do
           :schedule_governed_action,
           :cancel_scheduled_execution,
           :requeue_scheduled_execution,
-          :fetch_scheduled_execution,
           :list_scheduled_executions
         ] do
       def unquote(callback)(_), do: raise("unexpected callback #{unquote(callback)}/1")
