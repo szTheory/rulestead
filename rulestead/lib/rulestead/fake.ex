@@ -136,6 +136,10 @@ defmodule Rulestead.Fake do
     {:reply, {:ok, state}, state}
   end
 
+  def handle_call({:control, :restore, restored_state}, _from, _state) when is_map(restored_state) do
+    {:reply, :ok, restored_state}
+  end
+
   def handle_call({:control, :now}, _from, state) do
     {:reply, {:ok, state.now}, state}
   end
