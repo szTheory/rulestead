@@ -1,0 +1,155 @@
+# Job id contract — stable YAML `jobs:` keys relied on by docs and issue links:
+#   verify-published-release
+# `name:` strings evolve freely; `id:` strings are immutable without coordinated docs updates.
+name: verify-published-release
+
+on:
+  schedule:
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: Optional published release version; defaults to the latest stable version shared by both sibling packages
+        required: false
+        type: string
+
+concurrency:
+  group: verify-published-release-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  verify-published-release:
+    name: verify-published-release
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: erlef/setup-beam@8251c48667b97e88a0a24ec512f5b72a039fcea7 # v1
+        with:
+          version-file: .tool-versions
+          version-type: strict
+      - id: resolve
+        name: Resolve published release version
+        env:
+          INPUT_RELEASE_VERSION: ${{ inputs.release_version }}
+        run: |
+          set -euo pipefail
+
+          requested="${INPUT_RELEASE_VERSION:-}"
+
+          if [[ -n "${requested}" ]]; then
+            echo "status=ok" >> "${GITHUB_OUTPUT}"
+            echo "version=${requested}" >> "${GITHUB_OUTPUT}"
+            echo "message=Using manually supplied release version ${requested}." >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+
+          core_api="https://hex.pm/api/packages/rulestead"
+          admin_api="https://hex.pm/api/packages/rulestead_admin"
+          core_json="${RUNNER_TEMP}/rulestead-package.json"
+          admin_json="${RUNNER_TEMP}/rulestead-admin-package.json"
+
+          core_status="$(curl -sS -o "${core_json}" -w "%{http_code}" "${core_api}" || true)"
+          admin_status="$(curl -sS -o "${admin_json}" -w "%{http_code}" "${admin_api}" || true)"
+
+          if [[ "${core_status}" == "404" || "${admin_status}" == "404" ]]; then
+            echo "status=missing" >> "${GITHUB_OUTPUT}"
+            echo "version=" >> "${GITHUB_OUTPUT}"
+            echo "message=No shared published sibling release is visible on Hex yet; skipping drift verification." >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+
+          if [[ "${core_status}" != "200" || "${admin_status}" != "200" ]]; then
+            echo "status=error" >> "${GITHUB_OUTPUT}"
+            echo "version=" >> "${GITHUB_OUTPUT}"
+            echo "message=Hex API lookup failed (rulestead=${core_status}, rulestead_admin=${admin_status})." >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+
+          core_version="$(jq -r '.latest_stable_version // empty' "${core_json}")"
+          admin_version="$(jq -r '.latest_stable_version // empty' "${admin_json}")"
+
+          if [[ -z "${core_version}" || -z "${admin_version}" ]]; then
+            echo "status=missing" >> "${GITHUB_OUTPUT}"
+            echo "version=" >> "${GITHUB_OUTPUT}"
+            echo "message=Hex did not return a latest stable version for both sibling packages; skipping drift verification." >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+
+          if [[ "${core_version}" != "${admin_version}" ]]; then
+            echo "status=mismatch" >> "${GITHUB_OUTPUT}"
+            echo "version=" >> "${GITHUB_OUTPUT}"
+            echo "message=Sibling packages disagree on latest stable Hex version (rulestead=${core_version}, rulestead_admin=${admin_version})." >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+
+          echo "status=ok" >> "${GITHUB_OUTPUT}"
+          echo "version=${core_version}" >> "${GITHUB_OUTPUT}"
+          echo "message=Resolved shared latest stable release ${core_version} from Hex." >> "${GITHUB_OUTPUT}"
+      - name: Skip before the first live publish
+        if: steps.resolve.outputs.status == 'missing'
+        run: echo "${{ steps.resolve.outputs.message }}"
+      - id: verify
+        name: Run published release verification trio
+        if: steps.resolve.outputs.status == 'ok'
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          bash scripts/ci/verify_published_release.sh "${{ steps.resolve.outputs.version }}" | tee "${RUNNER_TEMP}/verify-published-release.log"
+      - name: Build rolling drift issue template
+        id: issue-template
+        if: steps.resolve.outputs.status != 'missing' && (steps.resolve.outputs.status != 'ok' || steps.verify.outcome == 'failure')
+        env:
+          RELEASE_VERSION: ${{ steps.resolve.outputs.version }}
+          DRIFT_REASON: ${{ steps.resolve.outputs.message }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+
+          issue_file=".github/verify-published-release-drift.md"
+          mkdir -p .github
+
+          {
+            echo "---"
+            echo "title: Release drift: published verification failed"
+            echo "labels: area:release, severity:drift"
+            echo "---"
+            echo
+            echo "Published release verification failed."
+            echo
+            if [[ -n "${RELEASE_VERSION}" ]]; then
+              echo "- Release version: \`${RELEASE_VERSION}\`"
+            else
+              echo "- Release version: unresolved"
+            fi
+            echo "- Reason: ${DRIFT_REASON}"
+            echo "- Workflow run: ${RUN_URL}"
+            echo
+            echo "Re-run locally with:"
+            echo
+            echo "\`\`\`bash"
+            echo "bash scripts/ci/verify_published_release.sh ${RELEASE_VERSION:-<version>}"
+            echo "\`\`\`"
+          } > "${issue_file}"
+
+          echo "filename=${issue_file}" >> "${GITHUB_OUTPUT}"
+      - name: Open or update rolling drift issue
+        if: steps.resolve.outputs.status != 'missing' && (steps.resolve.outputs.status != 'ok' || steps.verify.outcome == 'failure')
+        uses: JasonEtco/create-an-issue@1b14a70e4d8dc185e5cc76d3bec9eab20257b2c5 # v2.9.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          filename: ${{ steps.issue-template.outputs.filename }}
+          update_existing: true
+          search_existing: open
+      - name: Fail on verification drift
+        if: steps.resolve.outputs.status != 'missing' && (steps.resolve.outputs.status != 'ok' || steps.verify.outcome == 'failure')
+        run: |
+          echo "${{ steps.resolve.outputs.message }}" >&2
+          if [[ "${{ steps.verify.outcome }}" == "failure" ]]; then
+            echo "published release verification trio failed for ${{ steps.resolve.outputs.version }}" >&2
+          fi
+          exit 1
