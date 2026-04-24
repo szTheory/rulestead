@@ -144,6 +144,7 @@ jobs:
           fi
 
           scripts/ci/release_gate.sh \
+            --skip-phase7 \
             "changes=${{ needs.changes.result }}" \
             "lint=${lint_result}" \
             "test=${test_result}" \

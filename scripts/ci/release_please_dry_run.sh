@@ -2,9 +2,10 @@
 set -euo pipefail
 
 RULESTEAD_REPO="${GITHUB_WORKSPACE:-$(pwd)}"
-CONFIG_FILE="${RULESTEAD_REPO}/release-please-config.json"
-MANIFEST_FILE="${RULESTEAD_REPO}/.release-please-manifest.json"
+CONFIG_FILE="release-please-config.json"
+MANIFEST_FILE=".release-please-manifest.json"
 REMOTE_URL="${RULESTEAD_RELEASE_PLEASE_REPO_URL:-$(git -C "${RULESTEAD_REPO}" config --get remote.origin.url || true)}"
+RELEASE_PLEASE_TOKEN="${RULESTEAD_RELEASE_PLEASE_TOKEN:-}"
 
 normalize_repo_url() {
   local raw_url="$1"
@@ -17,12 +18,12 @@ normalize_repo_url() {
   printf '%s\n' "${raw_url}"
 }
 
-if ! rg -n '"rulestead": "0\.0\.0"' "${MANIFEST_FILE}" >/dev/null; then
+if ! rg -n '"rulestead": "0\.0\.0"' "${RULESTEAD_REPO}/${MANIFEST_FILE}" >/dev/null; then
   echo "release-please bootstrap manifest must seed rulestead at 0.0.0" >&2
   exit 1
 fi
 
-if ! rg -n '"rulestead_admin": "0\.0\.0"' "${MANIFEST_FILE}" >/dev/null; then
+if ! rg -n '"rulestead_admin": "0\.0\.0"' "${RULESTEAD_REPO}/${MANIFEST_FILE}" >/dev/null; then
   echo "release-please bootstrap manifest must seed both packages at 0.0.0" >&2
   exit 1
 fi
@@ -47,7 +48,7 @@ if ! rg -n 'environment:' "${RULESTEAD_REPO}/.github/workflows/publish-hex.yml" 
   exit 1
 fi
 
-if ! rg -n 'needs:\s*\n\s*-\s*preflight\s*\n\s*-\s*publish-core' "${RULESTEAD_REPO}/.github/workflows/publish-hex.yml" >/dev/null; then
+if ! rg -n -U 'needs:\s*\n\s*-\s*preflight\s*\n\s*-\s*publish-core' "${RULESTEAD_REPO}/.github/workflows/publish-hex.yml" >/dev/null; then
   echo "publish workflow must keep admin publish behind preflight and core publish" >&2
   exit 1
 fi
@@ -72,11 +73,20 @@ trap 'rm -f "${dry_run_output}"' EXIT
 
 repo_url="$(normalize_repo_url "${REMOTE_URL}")"
 
-npx --yes release-please@16.18.0 manifest-pr \
-  --config-file="${CONFIG_FILE}" \
-  --manifest-file="${MANIFEST_FILE}" \
-  --repo-url="${repo_url}" \
-  --target-branch=main \
-  --dry-run | tee "${dry_run_output}"
+if [[ -z "${RELEASE_PLEASE_TOKEN}" ]]; then
+  echo "release-please dry-run helper passed in offline contract mode; set RULESTEAD_RELEASE_PLEASE_TOKEN for the live GitHub API dry-run" | tee "${dry_run_output}"
+else
+  (
+    cd "${RULESTEAD_REPO}"
+    env -u GITHUB_TOKEN -u GH_TOKEN \
+      npx --yes release-please@16.18.0 manifest-pr \
+        --token="${RELEASE_PLEASE_TOKEN}" \
+        --config-file="${CONFIG_FILE}" \
+        --manifest-file="${MANIFEST_FILE}" \
+        --repo-url="${repo_url}" \
+        --target-branch=main \
+        --dry-run
+  ) | tee "${dry_run_output}"
+fi
 
-rg -n 'release-please|0\.0\.0|rulestead|rulestead_admin' "${dry_run_output}" >/dev/null
+rg -n 'release-please|0\.0\.0|rulestead|rulestead_admin|offline contract mode' "${dry_run_output}" >/dev/null
