@@ -27,4 +27,11 @@ defmodule Rulestead.Store do
   @callback release_kill_switch(Command.ReleaseKillSwitch.t()) :: result(map())
   @callback list_audit_events(Command.ListAuditEvents.t()) :: result(Command.Page.t(map()))
   @callback rollback_audit_event(Command.RollbackAuditEvent.t()) :: result(map())
+  @callback submit_change_request(Command.SubmitChangeRequest.t()) :: result(map())
+  @callback approve_change_request(Command.ApproveChangeRequest.t()) :: result(map())
+  @callback reject_change_request(Command.RejectChangeRequest.t()) :: result(map())
+  @callback cancel_change_request(Command.CancelChangeRequest.t()) :: result(map())
+  @callback execute_change_request(Command.ExecuteChangeRequest.t()) :: result(map())
+  @callback fetch_change_request(Command.FetchChangeRequest.t()) :: result(map())
+  @callback list_change_requests(Command.ListChangeRequests.t()) :: result(Command.Page.t(map()))
 end

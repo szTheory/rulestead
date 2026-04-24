@@ -6,6 +6,94 @@ defmodule Rulestead.Store.Command do
   remain adapter-private.
   """
 
+  alias Rulestead.Governance.ApprovalRequirement
+
+  defmodule GovernanceSupport do
+    @moduledoc false
+
+    def fetch_required!(attrs, key) do
+      case fetch(attrs, key) do
+        nil -> raise KeyError, key: key, term: attrs
+        value -> value
+      end
+    end
+
+    def fetch(attrs, key), do: Map.get(attrs, key) || Map.get(attrs, Atom.to_string(key))
+
+    def normalize_string(value) when is_binary(value) do
+      value
+      |> String.trim()
+      |> case do
+        "" -> nil
+        normalized -> normalized
+      end
+    end
+
+    def normalize_string(value) when is_atom(value), do: value |> Atom.to_string() |> normalize_string()
+    def normalize_string(value) when is_integer(value), do: Integer.to_string(value)
+    def normalize_string(value), do: value
+
+    def normalize_actor(nil), do: nil
+
+    def normalize_actor(actor) when is_list(actor) or is_map(actor) do
+      actor = Map.new(actor)
+
+      %{}
+      |> maybe_put("id", fetch(actor, :id) |> normalize_string())
+      |> maybe_put("type", fetch(actor, :type) |> normalize_string())
+      |> maybe_put("display", fetch(actor, :display) |> normalize_string())
+    end
+
+    def normalize_actor(_actor), do: nil
+
+    def normalize_metadata(metadata), do: metadata |> normalize_map() |> drop_sensitive_keys()
+    def normalize_command(metadata), do: normalize_map(metadata)
+
+    def normalize_approval_requirement(%ApprovalRequirement{} = requirement),
+      do: requirement |> ApprovalRequirement.serialize() |> normalize_map()
+
+    def normalize_approval_requirement(requirement) when is_list(requirement) or is_map(requirement),
+      do: requirement |> ApprovalRequirement.new() |> ApprovalRequirement.serialize() |> normalize_map()
+
+    def normalize_approval_requirement(_requirement), do: %{}
+
+    def normalize_map(nil), do: %{}
+    def normalize_map(value) when is_list(value), do: value |> Map.new() |> normalize_map()
+
+    def normalize_map(map) when is_map(map) do
+      Map.new(map, fn
+        {key, value} when is_map(value) -> {to_string(key), normalize_map(value)}
+        {key, value} when is_list(value) -> {to_string(key), Enum.map(value, &normalize_value/1)}
+        {key, value} -> {to_string(key), normalize_value(value)}
+      end)
+    end
+
+    def normalize_map(_value), do: %{}
+
+    def normalize_value(value) when is_map(value), do: normalize_map(value)
+    def normalize_value(value) when is_list(value), do: Enum.map(value, &normalize_value/1)
+    def normalize_value(value) when is_boolean(value), do: value
+    def normalize_value(nil), do: nil
+    def normalize_value(value) when is_atom(value), do: Atom.to_string(value)
+    def normalize_value(value), do: value
+
+    def maybe_put(map, _key, nil), do: map
+    def maybe_put(map, key, value), do: Map.put(map, key, value)
+
+    defp drop_sensitive_keys(map) do
+      map
+      |> Map.drop(["admin_session", "session", "session_data", "session_id", "session_token", "socket"])
+      |> Map.new(fn
+        {key, value} when is_map(value) -> {key, drop_sensitive_keys(value)}
+        {key, value} when is_list(value) -> {key, Enum.map(value, &drop_sensitive_value/1)}
+        entry -> entry
+      end)
+    end
+
+    defp drop_sensitive_value(value) when is_map(value), do: drop_sensitive_keys(value)
+    defp drop_sensitive_value(value), do: value
+  end
+
   defmodule FetchSnapshot do
     @moduledoc false
 
@@ -476,6 +564,235 @@ defmodule Rulestead.Store.Command do
         actor: Keyword.get(opts, :actor),
         reason: Keyword.get(opts, :reason),
         metadata: Keyword.get(opts, :metadata, %{})
+      }
+    end
+  end
+
+  defmodule SubmitChangeRequest do
+    @moduledoc false
+
+    alias Rulestead.Store.Command.GovernanceSupport
+
+    @enforce_keys [:action, :environment_key, :resource_type, :resource_key, :command, :approval_requirement]
+    defstruct [
+      :action,
+      :environment_key,
+      :resource_type,
+      :resource_key,
+      :command,
+      :approval_requirement,
+      actor: nil,
+      reason: nil,
+      metadata: %{}
+    ]
+
+    @type t :: %__MODULE__{
+            action: atom(),
+            environment_key: String.t() | nil,
+            resource_type: String.t() | nil,
+            resource_key: String.t() | nil,
+            command: map(),
+            approval_requirement: map(),
+            actor: nil | map(),
+            reason: nil | String.t(),
+            metadata: map()
+          }
+
+    @spec new(map() | keyword(), keyword()) :: t()
+    def new(attrs, opts \\ []) when is_map(attrs) or is_list(attrs) do
+      attrs = Map.new(attrs)
+
+      %__MODULE__{
+        action: GovernanceSupport.fetch_required!(attrs, :action),
+        environment_key:
+          attrs |> GovernanceSupport.fetch_required!(:environment_key) |> GovernanceSupport.normalize_string(),
+        resource_type:
+          attrs |> GovernanceSupport.fetch_required!(:resource_type) |> GovernanceSupport.normalize_string(),
+        resource_key:
+          attrs |> GovernanceSupport.fetch_required!(:resource_key) |> GovernanceSupport.normalize_string(),
+        command:
+          attrs |> GovernanceSupport.fetch_required!(:command) |> GovernanceSupport.normalize_command(),
+        approval_requirement:
+          attrs
+          |> GovernanceSupport.fetch_required!(:approval_requirement)
+          |> GovernanceSupport.normalize_approval_requirement(),
+        actor:
+          opts
+          |> Keyword.get(:actor, GovernanceSupport.fetch(attrs, :actor))
+          |> GovernanceSupport.normalize_actor(),
+        reason:
+          opts
+          |> Keyword.get(:reason, GovernanceSupport.fetch(attrs, :reason))
+          |> GovernanceSupport.normalize_string(),
+        metadata:
+          opts
+          |> Keyword.get(:metadata, GovernanceSupport.fetch(attrs, :metadata))
+          |> GovernanceSupport.normalize_metadata()
+      }
+    end
+  end
+
+  defmodule ApproveChangeRequest do
+    @moduledoc false
+
+    alias Rulestead.Store.Command.GovernanceSupport
+
+    @enforce_keys [:change_request_id]
+    defstruct [:change_request_id, actor: nil, reason: nil, metadata: %{}]
+
+    @type t :: %__MODULE__{
+            change_request_id: String.t() | nil,
+            actor: nil | map(),
+            reason: nil | String.t(),
+            metadata: map()
+          }
+
+    @spec new(String.t(), keyword()) :: t()
+    def new(change_request_id, opts \\ []) do
+      %__MODULE__{
+        change_request_id: GovernanceSupport.normalize_string(change_request_id),
+        actor: Keyword.get(opts, :actor) |> GovernanceSupport.normalize_actor(),
+        reason: Keyword.get(opts, :reason) |> GovernanceSupport.normalize_string(),
+        metadata: Keyword.get(opts, :metadata, %{}) |> GovernanceSupport.normalize_metadata()
+      }
+    end
+  end
+
+  defmodule RejectChangeRequest do
+    @moduledoc false
+
+    alias Rulestead.Store.Command.GovernanceSupport
+
+    @enforce_keys [:change_request_id]
+    defstruct [:change_request_id, actor: nil, reason: nil, metadata: %{}]
+
+    @type t :: %__MODULE__{
+            change_request_id: String.t() | nil,
+            actor: nil | map(),
+            reason: nil | String.t(),
+            metadata: map()
+          }
+
+    @spec new(String.t(), keyword()) :: t()
+    def new(change_request_id, opts \\ []) do
+      %__MODULE__{
+        change_request_id: GovernanceSupport.normalize_string(change_request_id),
+        actor: Keyword.get(opts, :actor) |> GovernanceSupport.normalize_actor(),
+        reason: Keyword.get(opts, :reason) |> GovernanceSupport.normalize_string(),
+        metadata: Keyword.get(opts, :metadata, %{}) |> GovernanceSupport.normalize_metadata()
+      }
+    end
+  end
+
+  defmodule CancelChangeRequest do
+    @moduledoc false
+
+    alias Rulestead.Store.Command.GovernanceSupport
+
+    @enforce_keys [:change_request_id]
+    defstruct [:change_request_id, actor: nil, reason: nil, metadata: %{}]
+
+    @type t :: %__MODULE__{
+            change_request_id: String.t() | nil,
+            actor: nil | map(),
+            reason: nil | String.t(),
+            metadata: map()
+          }
+
+    @spec new(String.t(), keyword()) :: t()
+    def new(change_request_id, opts \\ []) do
+      %__MODULE__{
+        change_request_id: GovernanceSupport.normalize_string(change_request_id),
+        actor: Keyword.get(opts, :actor) |> GovernanceSupport.normalize_actor(),
+        reason: Keyword.get(opts, :reason) |> GovernanceSupport.normalize_string(),
+        metadata: Keyword.get(opts, :metadata, %{}) |> GovernanceSupport.normalize_metadata()
+      }
+    end
+  end
+
+  defmodule ExecuteChangeRequest do
+    @moduledoc false
+
+    alias Rulestead.Store.Command.GovernanceSupport
+
+    @enforce_keys [:change_request_id]
+    defstruct [:change_request_id, actor: nil, reason: nil, metadata: %{}]
+
+    @type t :: %__MODULE__{
+            change_request_id: String.t() | nil,
+            actor: nil | map(),
+            reason: nil | String.t(),
+            metadata: map()
+          }
+
+    @spec new(String.t(), keyword()) :: t()
+    def new(change_request_id, opts \\ []) do
+      %__MODULE__{
+        change_request_id: GovernanceSupport.normalize_string(change_request_id),
+        actor: Keyword.get(opts, :actor) |> GovernanceSupport.normalize_actor(),
+        reason: Keyword.get(opts, :reason) |> GovernanceSupport.normalize_string(),
+        metadata: Keyword.get(opts, :metadata, %{}) |> GovernanceSupport.normalize_metadata()
+      }
+    end
+  end
+
+  defmodule FetchChangeRequest do
+    @moduledoc false
+
+    alias Rulestead.Store.Command.GovernanceSupport
+
+    @enforce_keys [:change_request_id]
+    defstruct [:change_request_id]
+
+    @type t :: %__MODULE__{
+            change_request_id: String.t() | nil
+          }
+
+    @spec new(String.t()) :: t()
+    def new(change_request_id) do
+      %__MODULE__{change_request_id: GovernanceSupport.normalize_string(change_request_id)}
+    end
+  end
+
+  defmodule ListChangeRequests do
+    @moduledoc false
+
+    alias Rulestead.Store.Command.GovernanceSupport
+
+    defstruct environment_key: nil,
+              action: nil,
+              status: nil,
+              resource_type: nil,
+              resource_key: nil,
+              submitted_by_id: nil,
+              limit: 50,
+              after: nil,
+              before: nil
+
+    @type t :: %__MODULE__{
+            environment_key: nil | String.t(),
+            action: nil | atom() | String.t(),
+            status: nil | atom() | String.t(),
+            resource_type: nil | String.t(),
+            resource_key: nil | String.t(),
+            submitted_by_id: nil | String.t(),
+            limit: pos_integer(),
+            after: nil | String.t(),
+            before: nil | String.t()
+          }
+
+    @spec new(keyword()) :: t()
+    def new(opts \\ []) do
+      %__MODULE__{
+        environment_key: Keyword.get(opts, :environment_key) |> GovernanceSupport.normalize_string(),
+        action: Keyword.get(opts, :action),
+        status: Keyword.get(opts, :status),
+        resource_type: Keyword.get(opts, :resource_type) |> GovernanceSupport.normalize_string(),
+        resource_key: Keyword.get(opts, :resource_key) |> GovernanceSupport.normalize_string(),
+        submitted_by_id: Keyword.get(opts, :submitted_by_id) |> GovernanceSupport.normalize_string(),
+        limit: Keyword.get(opts, :limit, 50),
+        after: Keyword.get(opts, :after),
+        before: Keyword.get(opts, :before)
       }
     end
   end
