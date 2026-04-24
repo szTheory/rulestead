@@ -23,12 +23,12 @@ defmodule Rulestead.Credo.NoSocketCapturedInAsync do
   end
 
   defp traverse({function, meta, args} = ast, issues, issue_meta) when function in @async_functions do
-    {ast, issues ++ issues_for_async_args(args, meta, issue_meta)}
+    {ast, issues ++ issues_for_async_args(args, function, meta, issue_meta)}
   end
 
   defp traverse(ast, issues, _issue_meta), do: {ast, issues}
 
-  defp issues_for_async_args(args, meta, issue_meta) do
+  defp issues_for_async_args(args, function, meta, issue_meta) do
     args
     |> Enum.filter(&closure?/1)
     |> Enum.flat_map(fn closure ->
@@ -36,7 +36,7 @@ defmodule Rulestead.Credo.NoSocketCapturedInAsync do
         [
           format_issue(issue_meta,
             message: @message,
-            trigger: Atom.to_string(elem(closure, 0)),
+            trigger: Atom.to_string(function),
             line_no: meta[:line],
             column: meta[:column]
           )

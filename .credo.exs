@@ -11,7 +11,7 @@
           "../rulestead_admin/{config,lib,test}/**/*.{ex,exs}",
           "rulestead_admin/{config,lib,test}/**/*.{ex,exs}"
         ],
-        excluded: [~r"/_build/", ~r"/deps/"]
+        excluded: [~r"/_build/", ~r"/deps/", ~r"/test/support/credo_fixtures/"]
       },
       requires: [
         "lib/rulestead/credo/no_raw_traits_in_telemetry_meta.ex",

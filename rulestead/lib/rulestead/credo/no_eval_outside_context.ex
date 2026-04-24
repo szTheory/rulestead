@@ -31,7 +31,7 @@ defmodule Rulestead.Credo.NoEvalOutsideContext do
     issue =
       format_issue(issue_meta,
         message: @message,
-        trigger: "Rulestead.Evaluator.#{function}",
+        trigger: Atom.to_string(function),
         line_no: meta[:line],
         column: meta[:column]
       )
