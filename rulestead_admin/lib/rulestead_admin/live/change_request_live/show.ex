@@ -26,9 +26,11 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Show do
           current_path: base_path,
           page_title: "Change request review",
           page_kicker: "Governance",
-          page_summary: "Dedicated review route for proposed changes, approval state, and explicit next-step execution decisions."
+          page_summary:
+            "Dedicated review route for proposed changes, approval state, and explicit next-step execution decisions."
         )
         |> Map.merge(%{
+          navigation_links: navigation_links(socket, :change_requests),
           queue_path: Session.current_path(socket, index_path()),
           schedule_path: Session.current_path(socket, schedule_path()),
           audit_path: Session.current_path(socket, audit_path()),
@@ -54,6 +56,7 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Show do
       current_environment={@page.current_environment}
       environments={@page.environments}
       env_links={@page.env_links}
+      navigation_links={@page.navigation_links}
     >
       <section>
         <h2>Request <code><%= @page.request_id %></code></h2>
@@ -75,6 +78,23 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Show do
   defp index_path, do: "/admin/flags/change-requests"
   defp schedule_path, do: "/admin/flags/schedule"
   defp audit_path, do: "/admin/flags/audit"
+
+  defp navigation_links(socket, current) do
+    [
+      nav_link("Flags", Session.current_path(socket, mount_path(socket)), current == :flags),
+      nav_link(
+        "Change requests",
+        Session.current_path(socket, index_path()),
+        current == :change_requests
+      ),
+      nav_link("Schedule", Session.current_path(socket, schedule_path()), current == :schedule),
+      nav_link("Audit", Session.current_path(socket, audit_path()), current == :audit)
+    ]
+  end
+
+  defp nav_link(label, path, current?), do: %{label: label, path: path, current?: current?}
+
+  defp mount_path(socket), do: socket.assigns.rulestead_admin_mount_path
 
   defp apply_resolved(socket, params) do
     resolved =

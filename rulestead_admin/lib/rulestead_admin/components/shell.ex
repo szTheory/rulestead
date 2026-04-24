@@ -3,14 +3,15 @@ defmodule RulesteadAdmin.Components.Shell do
 
   use Phoenix.Component
 
-  attr :page_title, :string, required: true
-  attr :page_kicker, :string, required: true
-  attr :page_summary, :string, required: true
-  attr :current_environment, :map, required: true
-  attr :environments, :list, default: []
-  attr :env_links, :map, default: %{}
-  slot :header_actions
-  slot :inner_block, required: true
+  attr(:page_title, :string, required: true)
+  attr(:page_kicker, :string, required: true)
+  attr(:page_summary, :string, required: true)
+  attr(:current_environment, :map, required: true)
+  attr(:environments, :list, default: [])
+  attr(:env_links, :map, default: %{})
+  attr(:navigation_links, :list, default: [])
+  slot(:header_actions)
+  slot(:inner_block, required: true)
 
   def page(assigns) do
     assigns = assign(assigns, :env_tone, env_tone(assigns.current_environment))
@@ -43,6 +44,17 @@ defmodule RulesteadAdmin.Components.Shell do
           </div>
         </section>
       </header>
+
+      <nav :if={@navigation_links != []} class="rs-shell__nav" aria-label="Governance navigation">
+        <a
+          :for={link <- @navigation_links}
+          href={link.path}
+          class="rs-shell__nav-link"
+          aria-current={if(link.current?, do: "page", else: nil)}
+        >
+          <%= link.label %>
+        </a>
+      </nav>
 
       <main class="rs-shell__body">
         <%= render_slot(@inner_block) %>

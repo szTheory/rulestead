@@ -25,9 +25,11 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Index do
           current_path: base_path(),
           page_title: "Schedule",
           page_kicker: "Scheduled changes",
-          page_summary: "Dense route-backed list home for upcoming, running, completed, failed, quarantined, and cancelled executions."
+          page_summary:
+            "Dense route-backed list home for upcoming, running, completed, failed, quarantined, and cancelled executions."
         )
         |> Map.merge(%{
+          navigation_links: navigation_links(socket, :schedule),
           sample_schedule_path: Session.current_path(socket, "#{base_path()}/sched-456"),
           change_requests_path: Session.current_path(socket, change_requests_path()),
           audit_path: Session.current_path(socket, audit_path()),
@@ -50,6 +52,7 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Index do
       current_environment={@page.current_environment}
       environments={@page.environments}
       env_links={@page.env_links}
+      navigation_links={@page.navigation_links}
     >
       <section>
         <h2>List-first operator console</h2>
@@ -74,6 +77,21 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Index do
   defp audit_path, do: "/admin/flags/audit"
 
   defp mount_path(socket), do: socket.assigns.rulestead_admin_mount_path
+
+  defp navigation_links(socket, current) do
+    [
+      nav_link("Flags", Session.current_path(socket, mount_path(socket)), current == :flags),
+      nav_link(
+        "Change requests",
+        Session.current_path(socket, change_requests_path()),
+        current == :change_requests
+      ),
+      nav_link("Schedule", Session.current_path(socket, base_path()), current == :schedule),
+      nav_link("Audit", Session.current_path(socket, audit_path()), current == :audit)
+    ]
+  end
+
+  defp nav_link(label, path, current?), do: %{label: label, path: path, current?: current?}
 
   defp apply_resolved(socket, params) do
     resolved =
