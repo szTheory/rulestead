@@ -61,6 +61,35 @@ defmodule RulesteadAdmin.Live.SessionTest do
     assert resolved_from_invalid_url.env_source == :default
   end
 
+  test "shared route helpers build canonical env paths and policy state for phase 7 screens" do
+    assigns = %{
+      current_environment: %{key: "prod", name: "Production"},
+      available_environments: [
+        %{key: "dev", name: "Development"},
+        %{key: "prod", name: "Production"}
+      ]
+    }
+
+    assert Session.current_path(assigns, "/admin/flags/pricing/simulate") ==
+             "/admin/flags/pricing/simulate?env=prod"
+
+    assert Session.current_path(assigns, "/admin/audit", %{"actor" => "sam", "before" => nil}) ==
+             "/admin/audit?actor=sam&env=prod"
+
+    assert Session.env_links(assigns, "/admin/flags/pricing/kill", %{"tab" => "confirm"}) == %{
+             "dev" => "/admin/flags/pricing/kill?env=dev&tab=confirm",
+             "prod" => "/admin/flags/pricing/kill?env=prod&tab=confirm"
+           }
+
+    assert Session.policy_state(assigns) == %{
+             environment_key: "prod",
+             production?: true,
+             tone: "critical",
+             label: "Production policy",
+             summary: "Production actions should stay explicit and auditable."
+           }
+  end
+
   test "shell renders a global environment picker with explicit production styling" do
     html =
       render_component(&Shell.page/1,

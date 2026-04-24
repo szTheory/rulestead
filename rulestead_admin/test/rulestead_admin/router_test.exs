@@ -30,7 +30,15 @@ defmodule RulesteadAdmin.RouterTest do
     assert rendered =~ "RulesteadAdmin.Live.FlagLive.Index"
     assert rendered =~ "RulesteadAdmin.Live.FlagLive.Show"
     assert rendered =~ "RulesteadAdmin.Live.FlagLive.Rules"
-    refute rendered =~ "simulate"
-    refute rendered =~ "timeline"
+    assert rendered =~ "RulesteadAdmin.Live.FlagLive.Simulate"
+    assert rendered =~ "RulesteadAdmin.Live.FlagLive.Rollouts"
+    assert rendered =~ "RulesteadAdmin.Live.FlagLive.Kill"
+    assert rendered =~ "RulesteadAdmin.Live.FlagLive.Timeline"
+    assert rendered =~ "RulesteadAdmin.Live.AuditLive.Index"
+    assert rendered =~ "/:key/simulate"
+    assert rendered =~ "/:key/rollouts"
+    assert rendered =~ "/:key/kill"
+    assert rendered =~ "/:key/timeline"
+    assert rendered =~ "/audit"
   end
 end
