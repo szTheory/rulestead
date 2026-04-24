@@ -52,6 +52,42 @@ defmodule Rulestead do
   end
 
   @doc """
+  Creates a flag through the configured store adapter.
+  """
+  @spec create_flag(Command.CreateFlag.t()) :: Store.result(map())
+  def create_flag(%Command.CreateFlag{} = command) do
+    admin_write(:create_flag, command)
+  end
+
+  @doc """
+  Creates a flag from root-level attributes.
+  """
+  @spec create_flag(map() | keyword(), keyword()) :: Store.result(map())
+  def create_flag(attrs, opts \\ []) when is_map(attrs) or is_list(attrs) do
+    attrs
+    |> Command.CreateFlag.new(opts)
+    |> create_flag()
+  end
+
+  @doc """
+  Updates flag metadata through the configured store adapter.
+  """
+  @spec update_flag(Command.UpdateFlag.t()) :: Store.result(map())
+  def update_flag(%Command.UpdateFlag{} = command) do
+    admin_write(:update_flag, command)
+  end
+
+  @doc """
+  Updates a flag from root-level attributes.
+  """
+  @spec update_flag(String.t() | atom(), map() | keyword(), keyword()) :: Store.result(map())
+  def update_flag(flag_key, attrs, opts \\ []) when is_map(attrs) or is_list(attrs) do
+    flag_key
+    |> Command.UpdateFlag.new(attrs, opts)
+    |> update_flag()
+  end
+
+  @doc """
   Bang variant of `fetch_flag/3`.
   """
   @spec fetch_flag!(String.t() | atom(), String.t() | atom(), keyword()) :: map()
@@ -147,28 +183,70 @@ defmodule Rulestead do
 
   Phase 2 keeps this as the shared list/search surface for store adapters.
   """
-  @spec list_flags(Command.ListFlags.t()) :: Store.result([map()])
+  @spec list_flags() :: Store.result(Command.Page.t(map()))
+  def list_flags do
+    list_flags(Command.ListFlags.new())
+  end
+
+  @spec list_flags(keyword()) :: Store.result(Command.Page.t(map()))
+  def list_flags(opts) when is_list(opts) do
+    opts
+    |> Command.ListFlags.new()
+    |> list_flags()
+  end
+
+  @spec list_flags(Command.ListFlags.t()) :: Store.result(Command.Page.t(map()))
   def list_flags(%Command.ListFlags{} = command) do
     run_store(:list_flags, [command], command)
   end
 
   @doc """
-  Lists flags with default query options.
-  """
-  @spec list_flags() :: Store.result([map()])
-  def list_flags do
-    list_flags(Command.ListFlags.new())
-  end
-
-  @doc """
   Bang variant of `list_flags/0` and `list_flags/1`.
   """
-  @spec list_flags!() :: [map()]
-  @spec list_flags!(Command.ListFlags.t()) :: [map()]
+  @spec list_flags!() :: Command.Page.t(map())
+  @spec list_flags!(Command.ListFlags.t() | keyword()) :: Command.Page.t(map())
   def list_flags!(command \\ Command.ListFlags.new()) do
     command
     |> list_flags()
     |> unwrap!()
+  end
+
+  @doc """
+  Lists environments through the configured store adapter.
+  """
+  @spec list_environments() :: Store.result([map()])
+  def list_environments do
+    list_environments(Command.ListEnvironments.new())
+  end
+
+  @spec list_environments(keyword()) :: Store.result([map()])
+  def list_environments(opts) when is_list(opts) do
+    opts
+    |> Command.ListEnvironments.new()
+    |> list_environments()
+  end
+
+  @spec list_environments(Command.ListEnvironments.t()) :: Store.result([map()])
+  def list_environments(%Command.ListEnvironments{} = command) do
+    run_store(:list_environments, [command], command)
+  end
+
+  @doc """
+  Records bounded evaluation freshness for one flag/environment pair.
+  """
+  @spec record_evaluation(Command.RecordEvaluation.t()) :: Store.result(map())
+  def record_evaluation(%Command.RecordEvaluation{} = command) do
+    admin_write(:record_evaluation, command)
+  end
+
+  @doc """
+  Records bounded evaluation freshness using root-level arguments.
+  """
+  @spec record_evaluation(String.t() | atom(), String.t() | atom(), DateTime.t()) :: Store.result(map())
+  def record_evaluation(flag_key, environment_key, %DateTime{} = last_evaluated_at) do
+    flag_key
+    |> Command.RecordEvaluation.new(environment_key, last_evaluated_at)
+    |> record_evaluation()
   end
 
   @doc """
@@ -431,6 +509,19 @@ defmodule Rulestead do
     command
     |> Telemetry.command_metadata()
     |> Map.put(:reason, error.type)
+  end
+
+  defp admin_write(operation, command) do
+    Telemetry.span(
+      [:rulestead, :admin, :mutation],
+      Telemetry.metadata(
+        Telemetry.command_metadata(command, %{operation: Atom.to_string(operation), audit_action: Atom.to_string(operation)})
+      ),
+      fn ->
+        result = run_store(operation, [command], command)
+        {result, admin_stop_metadata(result, command)}
+      end
+    )
   end
 
   defp store_stop_metadata({:ok, value}, operation) do
