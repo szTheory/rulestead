@@ -52,9 +52,8 @@ defmodule Mix.Tasks.Verify.ReleasePublish do
 
   def plan(version, opts \\ []) do
     fixture_module = Keyword.get(opts, :fixture_module, @default_fixture_module)
-    notify = Keyword.get(opts, :notify)
     tmp_dir = Keyword.get(opts, :tmp_dir, tmp_dir())
-    fixture_opts = [notify: notify]
+    fixture_opts = Keyword.drop(opts, [:fixture_module, :tmp_dir])
 
     %{
       version: validate_version!(version),
