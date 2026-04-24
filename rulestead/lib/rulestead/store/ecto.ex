@@ -1915,93 +1915,9 @@ defmodule Rulestead.Store.Ecto do
     Map.merge(command, %{metadata: metadata, actor: command.actor, reason: command.reason})
   end
 
-  defp execute_governed_change(%{governed_action: "publish_ruleset"} = change_request, command) do
-    with {:ok, environment} <- fetch_environment(change_request.environment_key),
-         {:ok, flag, flag_environment} <-
-           fetch_flag_environment(change_request.resource_key, environment.key),
-         {:ok, ruleset} <-
-           resolve_publishable_ruleset(
-             flag_environment,
-             environment.key,
-             change_request.command_snapshot["version"]
-           ) do
-      published_at = now()
-      previous_ruleset = active_ruleset(flag_environment)
-
-      Multi.new()
-      |> Multi.update(
-        :ruleset,
-        Ruleset.changeset(ruleset, %{status: :published, published_at: published_at})
-      )
-      |> Multi.update(
-        :flag_environment,
-        FlagEnvironment.changeset(flag_environment, %{
-          active_ruleset_id: ruleset.id,
-          status: :active,
-          last_published_at: published_at
-        })
-      )
-      |> Multi.update(:flag, Changeset.change(flag, updated_at: published_at))
-      |> Multi.run(:runtime_snapshot, fn repo, _changes ->
-        insert_runtime_snapshot(repo, environment, published_at)
-      end)
-      |> Multi.run(:ruleset_audit_event, fn repo, _changes ->
-        publish_command =
-          Command.PublishRuleset.new(change_request.resource_key, environment.key,
-            version: change_request.command_snapshot["version"],
-            actor: command.actor,
-            reason: command.reason,
-            metadata: %{
-              request_id: change_request.correlation_id,
-              source: change_request.metadata["source"],
-              change_request_id: change_request.id,
-              governance_action: change_request.governed_action,
-              execution_stage: "execute"
-            }
-          )
-
-        repo.insert(
-          audit_event_changeset(%AuditEvent{}, publish_command, "ruleset.publish", :ok, %{
-            before: ruleset_audit_state(previous_ruleset),
-            after: ruleset_audit_state(ruleset),
-            diff: ruleset_position_diff(previous_ruleset, ruleset),
-            resource_key: change_request.resource_key,
-            environment_key: environment.key
-          })
-        )
-      end)
-      |> Multi.run(:change_request, fn repo, _changes ->
-        update_change_request(repo, change_request, %{
-          status: "executed",
-          resolved_at: published_at,
-          executed_at: published_at,
-          updated_at: published_at
-        })
-      end)
-      |> Multi.run(:audit_event, fn repo, %{change_request: updated_change_request} ->
-        audit_command = governance_audit_command(command, updated_change_request, "merged")
-
-        repo.insert(
-          audit_event_changeset(%AuditEvent{}, audit_command, "change_request.merged", :ok, %{
-            resource_key: updated_change_request.resource_key,
-            environment_key: updated_change_request.environment_key
-          })
-        )
-      end)
-      |> Repo.transact()
-      |> case do
-        {:ok, %{change_request: updated_change_request, audit_event: audit_event}} ->
-          {:ok, execution_result} =
-            fetch_flag(
-              Command.FetchFlag.new(change_request.resource_key, change_request.environment_key)
-            )
-
-      {:ok, execution_result, updated_change_request, audit_event}
-
-        {:error, _operation, reason, _changes} ->
-          {:error, normalize_governance_failure(reason)}
-      end
-    end
+  defp execute_governed_change(%{governed_action: governed_action} = change_request, command)
+       when governed_action in ["publish_ruleset", "advance_rollout", "engage_kill_switch", "release_kill_switch"] do
+    execute_bounded_governed_action(governed_action, change_request, command)
   end
 
   defp execute_governed_change(_change_request, _command) do
@@ -2097,70 +2013,226 @@ defmodule Rulestead.Store.Ecto do
     end
   end
 
-  defp perform_scheduled_execution(%{governed_action: "publish_ruleset"} = scheduled_execution, command) do
-    version = scheduled_execution.command_snapshot["version"]
-
-    with {:ok, environment} <- fetch_environment(scheduled_execution.environment_key),
-         {:ok, flag, flag_environment} <-
-           fetch_flag_environment(scheduled_execution.resource_key, environment.key),
-         {:ok, ruleset} <- resolve_publishable_ruleset(flag_environment, environment.key, version) do
-      published_at = now()
-      previous_ruleset = active_ruleset(flag_environment)
-
-      Multi.new()
-      |> Multi.update(
-        :ruleset,
-        Ruleset.changeset(ruleset, %{status: :published, published_at: published_at})
-      )
-      |> Multi.update(
-        :flag_environment,
-        FlagEnvironment.changeset(flag_environment, %{
-          active_ruleset_id: ruleset.id,
-          status: :active,
-          last_published_at: published_at
-        })
-      )
-      |> Multi.update(:flag, Changeset.change(flag, updated_at: published_at))
-      |> Multi.run(:runtime_snapshot, fn repo, _changes ->
-        insert_runtime_snapshot(repo, environment, published_at)
-      end)
-      |> Multi.run(:ruleset_audit_event, fn repo, _changes ->
-        publish_command =
-          Command.PublishRuleset.new(scheduled_execution.resource_key, environment.key,
-            version: version,
-            actor: command.actor,
-            reason: command.reason,
-            metadata: %{
-              request_id: scheduled_execution.correlation_id,
-              source: scheduled_execution.metadata["source"],
-              scheduled_execution_id: scheduled_execution.id,
-              execution_stage: "scheduled_execution"
-            }
-          )
-
-        repo.insert(
-          audit_event_changeset(%AuditEvent{}, publish_command, "ruleset.publish", :ok, %{
-            before: ruleset_audit_state(previous_ruleset),
-            after: ruleset_audit_state(ruleset),
-            diff: ruleset_position_diff(previous_ruleset, ruleset),
-            resource_key: scheduled_execution.resource_key,
-            environment_key: environment.key
-          })
-        )
-      end)
-      |> Repo.transact()
-      |> case do
-        {:ok, _changes} ->
-          fetch_flag(Command.FetchFlag.new(scheduled_execution.resource_key, scheduled_execution.environment_key))
-
-        {:error, _operation, reason, _changes} ->
-          {:error, normalize_governance_failure(reason)}
-      end
-    end
+  defp perform_scheduled_execution(%{governed_action: governed_action} = scheduled_execution, command)
+       when governed_action in ["publish_ruleset", "advance_rollout", "engage_kill_switch", "release_kill_switch"] do
+    execute_direct_scheduled_action(governed_action, scheduled_execution, command)
   end
 
   defp perform_scheduled_execution(_scheduled_execution, _command) do
     {:error, StoreError.invalid_command("governed action is not implemented")}
+  end
+
+  defp execute_bounded_governed_action("publish_ruleset", change_request, command) do
+    with {:ok, _environment, _flag, flag_environment} <-
+           fetch_schedulable_flag_context(change_request.resource_key, change_request.environment_key),
+         {:ok, _ruleset} <-
+           ensure_publishable_ruleset(
+             flag_environment,
+             change_request.environment_key,
+             change_request.command_snapshot["version"]
+           ),
+         {:ok, execution_result} <-
+           publish_ruleset(
+             Command.PublishRuleset.new(change_request.resource_key, change_request.environment_key,
+               version: change_request.command_snapshot["version"],
+               actor: command.actor,
+               reason: command.reason,
+               metadata: %{
+                 request_id: change_request.correlation_id,
+                 source: change_request.metadata["source"],
+                 change_request_id: change_request.id,
+                 governance_action: change_request.governed_action,
+                 execution_stage: "execute"
+               }
+             )
+           ) do
+      persisted_change_request =
+        case fetch_change_request_row(change_request.id) do
+          {:ok, current_change_request} -> current_change_request
+          {:error, _error} -> change_request
+        end
+
+      {:ok, execution_result, persisted_change_request, nil}
+    end
+  end
+
+  defp execute_bounded_governed_action("engage_kill_switch", change_request, command) do
+    with {:ok, _environment, _flag, flag_environment} <-
+           fetch_schedulable_flag_context(change_request.resource_key, change_request.environment_key),
+         :ok <- ensure_kill_switch_transition(flag_environment, :engage),
+         {:ok, execution_result} <-
+           engage_kill_switch(
+             Command.EngageKillSwitch.new(change_request.resource_key, change_request.environment_key,
+               actor: command.actor,
+               reason: command.reason,
+               metadata: %{
+                 request_id: change_request.correlation_id,
+                 source: change_request.metadata["source"],
+                 change_request_id: change_request.id,
+                 governance_action: change_request.governed_action,
+                 execution_stage: "execute"
+               }
+             )
+           ) do
+      {:ok, execution_result, change_request, nil}
+    end
+  end
+
+  defp execute_bounded_governed_action("release_kill_switch", change_request, command) do
+    with {:ok, _environment, _flag, flag_environment} <-
+           fetch_schedulable_flag_context(change_request.resource_key, change_request.environment_key),
+         :ok <- ensure_kill_switch_transition(flag_environment, :release),
+         {:ok, execution_result} <-
+           release_kill_switch(
+             Command.ReleaseKillSwitch.new(change_request.resource_key, change_request.environment_key,
+               actor: command.actor,
+               reason: command.reason,
+               metadata: %{
+                 request_id: change_request.correlation_id,
+                 source: change_request.metadata["source"],
+                 change_request_id: change_request.id,
+                 governance_action: change_request.governed_action,
+                 execution_stage: "execute"
+               }
+             )
+           ) do
+      {:ok, execution_result, change_request, nil}
+    end
+  end
+
+  defp execute_bounded_governed_action("advance_rollout", change_request, _command) do
+    with {:ok, _environment, _flag, flag_environment} <-
+           fetch_schedulable_flag_context(change_request.resource_key, change_request.environment_key),
+         :ok <- ensure_rollout_stage_available(flag_environment, change_request.command_snapshot) do
+      {:error, StoreError.invalid_command("rollout_stage_conflict")}
+    end
+  end
+
+  defp execute_direct_scheduled_action("publish_ruleset", scheduled_execution, command) do
+    with {:ok, _environment, _flag, flag_environment} <-
+           fetch_schedulable_flag_context(
+             scheduled_execution.resource_key,
+             scheduled_execution.environment_key
+           ),
+         {:ok, _ruleset} <-
+           ensure_publishable_ruleset(
+             flag_environment,
+             scheduled_execution.environment_key,
+             scheduled_execution.command_snapshot["version"]
+           ) do
+      publish_ruleset(
+        Command.PublishRuleset.new(
+          scheduled_execution.resource_key,
+          scheduled_execution.environment_key,
+          version: scheduled_execution.command_snapshot["version"],
+          actor: command.actor,
+          reason: command.reason,
+          metadata: %{
+            request_id: scheduled_execution.correlation_id,
+            source: scheduled_execution.metadata["source"],
+            scheduled_execution_id: scheduled_execution.id,
+            execution_stage: "scheduled_execution"
+          }
+        )
+      )
+    end
+  end
+
+  defp execute_direct_scheduled_action("engage_kill_switch", scheduled_execution, command) do
+    with {:ok, _environment, _flag, flag_environment} <-
+           fetch_schedulable_flag_context(
+             scheduled_execution.resource_key,
+             scheduled_execution.environment_key
+           ),
+         :ok <- ensure_kill_switch_transition(flag_environment, :engage) do
+      engage_kill_switch(
+        Command.EngageKillSwitch.new(
+          scheduled_execution.resource_key,
+          scheduled_execution.environment_key,
+          actor: command.actor,
+          reason: command.reason,
+          metadata: %{
+            request_id: scheduled_execution.correlation_id,
+            source: scheduled_execution.metadata["source"],
+            scheduled_execution_id: scheduled_execution.id,
+            execution_stage: "scheduled_execution"
+          }
+        )
+      )
+    end
+  end
+
+  defp execute_direct_scheduled_action("release_kill_switch", scheduled_execution, command) do
+    with {:ok, _environment, _flag, flag_environment} <-
+           fetch_schedulable_flag_context(
+             scheduled_execution.resource_key,
+             scheduled_execution.environment_key
+           ),
+         :ok <- ensure_kill_switch_transition(flag_environment, :release) do
+      release_kill_switch(
+        Command.ReleaseKillSwitch.new(
+          scheduled_execution.resource_key,
+          scheduled_execution.environment_key,
+          actor: command.actor,
+          reason: command.reason,
+          metadata: %{
+            request_id: scheduled_execution.correlation_id,
+            source: scheduled_execution.metadata["source"],
+            scheduled_execution_id: scheduled_execution.id,
+            execution_stage: "scheduled_execution"
+          }
+        )
+      )
+    end
+  end
+
+  defp execute_direct_scheduled_action("advance_rollout", scheduled_execution, _command) do
+    with {:ok, _environment, _flag, flag_environment} <-
+           fetch_schedulable_flag_context(
+             scheduled_execution.resource_key,
+             scheduled_execution.environment_key
+           ),
+         :ok <- ensure_rollout_stage_available(flag_environment, scheduled_execution.command_snapshot) do
+      {:error, StoreError.invalid_command("rollout_stage_conflict")}
+    end
+  end
+
+  defp fetch_schedulable_flag_context(resource_key, environment_key) do
+    with {:ok, environment} <- fetch_environment(environment_key),
+         {:ok, flag, flag_environment} <- fetch_flag_environment(resource_key, environment.key),
+         :ok <- ensure_schedulable_flag_not_archived(flag) do
+      {:ok, environment, flag, flag_environment}
+    end
+  end
+
+  defp ensure_schedulable_flag_not_archived(%{archived_at: nil}), do: :ok
+  defp ensure_schedulable_flag_not_archived(_flag), do: {:error, StoreError.invalid_command("archived_resource")}
+
+  defp ensure_publishable_ruleset(flag_environment, environment_key, version) do
+    case resolve_publishable_ruleset(flag_environment, environment_key, version) do
+      {:ok, ruleset} -> {:ok, ruleset}
+      {:error, _error} -> {:error, StoreError.invalid_command("ruleset_not_publishable")}
+    end
+  end
+
+  defp ensure_kill_switch_transition(flag_environment, :engage) do
+    if flag_environment.status == :killswitched or not is_nil(flag_environment.kill_switch_variant_key) do
+      {:error, StoreError.invalid_command("kill_switch_already_engaged")}
+    else
+      :ok
+    end
+  end
+
+  defp ensure_kill_switch_transition(flag_environment, :release) do
+    if flag_environment.status == :killswitched or not is_nil(flag_environment.kill_switch_variant_key) do
+      :ok
+    else
+      {:error, StoreError.invalid_command("kill_switch_already_released")}
+    end
+  end
+
+  defp ensure_rollout_stage_available(_flag_environment, _command_snapshot) do
+    {:error, StoreError.invalid_command("rollout_stage_conflict")}
   end
 
   defp finalize_scheduled_execution_success(scheduled_execution, attempt, command, execution_result) do

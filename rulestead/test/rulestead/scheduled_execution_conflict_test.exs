@@ -15,10 +15,11 @@ defmodule Rulestead.ScheduledExecutionConflictTest do
   test "stale or conflicting scheduled targets fail visibly with bounded failure reasons" do
     Enum.each(@adapters, fn adapter ->
       reset_adapter!(adapter)
-      seed_flag_with_draft!(adapter)
+      seed_flag_with_draft!(adapter, "checkout-archived")
 
-      archived_publish = schedule_action!(adapter, :publish_ruleset, %{"version" => 2})
-      archive_flag!(adapter)
+      archived_publish =
+        schedule_action!(adapter, "checkout-archived", :publish_ruleset, %{"version" => 2})
+      archive_flag!(adapter, "checkout-archived")
 
       assert_conflict_reason(
         adapter,
@@ -27,9 +28,10 @@ defmodule Rulestead.ScheduledExecutionConflictTest do
       )
 
       reset_adapter!(adapter)
-      seed_flag_with_draft!(adapter)
+      seed_flag_with_draft!(adapter, "checkout-not-publishable")
 
-      not_publishable = schedule_action!(adapter, :publish_ruleset, %{"version" => 99})
+      not_publishable =
+        schedule_action!(adapter, "checkout-not-publishable", :publish_ruleset, %{"version" => 99})
 
       assert_conflict_reason(
         adapter,
@@ -38,10 +40,15 @@ defmodule Rulestead.ScheduledExecutionConflictTest do
       )
 
       reset_adapter!(adapter)
-      seed_flag_with_draft!(adapter)
+      seed_flag_with_draft!(adapter, "checkout-rollout")
 
       missing_stage =
-        schedule_action!(adapter, :advance_rollout, %{"stage" => "missing-stage", "percentage" => 50})
+        schedule_action!(
+          adapter,
+          "checkout-rollout",
+          :advance_rollout,
+          %{"stage" => "missing-stage", "percentage" => 50}
+        )
 
       assert_conflict_reason(
         adapter,
@@ -50,13 +57,14 @@ defmodule Rulestead.ScheduledExecutionConflictTest do
       )
 
       reset_adapter!(adapter)
-      seed_flag_with_draft!(adapter)
+      seed_flag_with_draft!(adapter, "checkout-kill-switch")
 
-      engage = schedule_action!(adapter, :engage_kill_switch, %{})
+      engage = schedule_action!(adapter, "checkout-kill-switch", :engage_kill_switch, %{})
       assert {:ok, %{scheduled_execution: engaged}} = execute_scheduled!(adapter, engage.id)
       assert engaged.state == :completed
 
-      already_engaged = schedule_action!(adapter, :engage_kill_switch, %{})
+      already_engaged =
+        schedule_action!(adapter, "checkout-kill-switch", :engage_kill_switch, %{})
 
       assert_conflict_reason(
         adapter,
@@ -64,11 +72,12 @@ defmodule Rulestead.ScheduledExecutionConflictTest do
         "kill_switch_already_engaged"
       )
 
-      release = schedule_action!(adapter, :release_kill_switch, %{})
+      release = schedule_action!(adapter, "checkout-kill-switch", :release_kill_switch, %{})
       assert {:ok, %{scheduled_execution: released}} = execute_scheduled!(adapter, release.id)
       assert released.state == :completed
 
-      already_released = schedule_action!(adapter, :release_kill_switch, %{})
+      already_released =
+        schedule_action!(adapter, "checkout-kill-switch", :release_kill_switch, %{})
 
       assert_conflict_reason(
         adapter,
@@ -89,7 +98,9 @@ defmodule Rulestead.ScheduledExecutionConflictTest do
     assert List.last(attempts).failure_reason == expected_reason
   end
 
-  defp schedule_action!(adapter, action, command_payload) do
+  defp schedule_action!(adapter, flag_key, action, command_payload) do
+    request_id = "req-#{flag_key}-#{action}-#{System.unique_integer([:positive])}"
+
     assert {:ok, %{scheduled_execution: scheduled_execution}} =
              adapter.schedule_governed_action(
                Command.ScheduleGovernedAction.new(
@@ -97,13 +108,13 @@ defmodule Rulestead.ScheduledExecutionConflictTest do
                    action: action,
                    environment_key: "test",
                    resource_type: "flag",
-                   resource_key: "checkout-redesign",
+                   resource_key: flag_key,
                    command: command_payload,
                    scheduled_for: ~U[2026-04-25 20:00:00Z],
                    execution_mode: :policy_bypass,
                    actor: %{id: "scheduler-1", type: "operator", display: "Scheduler"},
                    reason: "Run bounded scheduled action",
-                   metadata: %{request_id: "req-#{action}", source: :admin_ui}
+                   metadata: %{request_id: request_id, source: :admin_ui}
                  }
                )
              )
@@ -121,10 +132,10 @@ defmodule Rulestead.ScheduledExecutionConflictTest do
     )
   end
 
-  defp archive_flag!(adapter) do
+  defp archive_flag!(adapter, flag_key) do
     assert {:ok, _} =
              adapter.archive_flag(
-               Command.ArchiveFlag.new("checkout-redesign",
+               Command.ArchiveFlag.new(flag_key,
                  actor: %{id: "archiver-1", type: "operator", display: "Archiver"},
                  reason: "Archived before schedule fired",
                  metadata: %{request_id: "req-archive", source: :admin_ui}
@@ -132,11 +143,11 @@ defmodule Rulestead.ScheduledExecutionConflictTest do
              )
   end
 
-  defp seed_flag_with_draft!(adapter) do
+  defp seed_flag_with_draft!(adapter, flag_key) do
     assert {:ok, _} =
              adapter.create_flag(
-               StoreFixtures.flag_command(
-                 key: "checkout-redesign",
+               Command.CreateFlag.new(
+                 StoreFixtures.valid_flag_attrs(%{key: flag_key, permanent: true}),
                  actor: %{id: "creator-1", type: "operator", display: "Creator"}
                )
              )
@@ -144,7 +155,7 @@ defmodule Rulestead.ScheduledExecutionConflictTest do
     assert {:ok, _} =
              adapter.save_draft_ruleset(
                StoreFixtures.save_draft_command(
-                 "checkout-redesign",
+                 flag_key,
                  "test",
                  StoreFixtures.valid_ruleset_attrs(%{salt: "checkout-redesign:v2"})
                )

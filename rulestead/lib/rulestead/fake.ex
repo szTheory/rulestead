@@ -1776,65 +1776,9 @@ defmodule Rulestead.Fake do
 
   defp normalize_failure_reason(reason), do: inspect(reason)
 
-  defp execute_governed_change(
-         state,
-         %{governed_action: "publish_ruleset"} = change_request,
-         command
-       ) do
-    version = change_request.command_snapshot["version"]
-
-    with {:ok, environment} <- fetch_environment(state, change_request.environment_key),
-         {:ok, flag, flag_environment} <-
-           fetch_flag_environment(state, change_request.resource_key, environment.key),
-         {:ok, ruleset_record} <- resolve_publishable_ruleset(flag, environment.key, version),
-         {:ok, next_state} <-
-           publish_ruleset_record(
-             state,
-             change_request.resource_key,
-             environment.key,
-             flag_environment,
-             ruleset_record
-           ) do
-      publish_command =
-        Command.PublishRuleset.new(change_request.resource_key, environment.key,
-          version: version,
-          actor: command.actor,
-          reason: command.reason,
-          metadata: %{
-            request_id: change_request.correlation_id,
-            source: change_request.metadata["source"],
-            change_request_id: change_request.id,
-            governance_action: change_request.governed_action,
-            execution_stage: "execute"
-          }
-        )
-
-      before_ruleset =
-        active_ruleset_payload(flag, environment.key, flag_environment.active_ruleset_version)
-
-      updated_flag = next_state.flags[to_string(change_request.resource_key)]
-      updated_flag_environment = updated_flag.environments[environment.key]
-
-      execution_result =
-        build_flag_detail_payload(
-          next_state,
-          updated_flag,
-          environment,
-          updated_flag_environment,
-          true
-        )
-
-      {audit_event, post_audit_state} =
-        append_audit_event(next_state, publish_command, "ruleset.publish", :ok,
-          before: ruleset_audit_state(before_ruleset),
-          after: ruleset_audit_state(ruleset_record),
-          diff: ruleset_position_diff(before_ruleset, ruleset_record),
-          metadata: %{"version" => ruleset_record.version}
-        )
-
-      {:ok, execution_result,
-       %{post_audit_state | audit_events: [audit_event | post_audit_state.audit_events]}}
-    end
+  defp execute_governed_change(state, %{governed_action: governed_action} = change_request, command)
+       when governed_action in ["publish_ruleset", "advance_rollout", "engage_kill_switch", "release_kill_switch"] do
+    execute_bounded_governed_change(state, governed_action, change_request, command)
   end
 
   defp execute_governed_change(_state, _change_request, _command) do
@@ -1955,73 +1899,340 @@ defmodule Rulestead.Fake do
     end
   end
 
-  defp perform_scheduled_execution(state, %{governed_action: "publish_ruleset"} = scheduled_execution, command) do
-    version = scheduled_execution.command_snapshot["version"]
-
-    result =
-      with {:ok, environment} <- fetch_environment(state, scheduled_execution.environment_key),
-           {:ok, flag, flag_environment} <-
-             fetch_flag_environment(state, scheduled_execution.resource_key, environment.key),
-           {:ok, ruleset_record} <- resolve_publishable_ruleset(flag, environment.key, version),
-           {:ok, next_state} <-
-             publish_ruleset_record(
-               state,
-               scheduled_execution.resource_key,
-               environment.key,
-               flag_environment,
-               ruleset_record
-             ) do
-        publish_command =
-          Command.PublishRuleset.new(scheduled_execution.resource_key, environment.key,
-            version: version,
-            actor: command.actor,
-            reason: command.reason,
-            metadata: %{
-              request_id: scheduled_execution.correlation_id,
-              source: scheduled_execution.metadata["source"],
-              scheduled_execution_id: scheduled_execution.id,
-              execution_stage: "scheduled_execution"
-            }
-          )
-
-        before_ruleset =
-          active_ruleset_payload(flag, environment.key, flag_environment.active_ruleset_version)
-
-        {audit_event, post_audit_state} =
-          append_audit_event(next_state, publish_command, "ruleset.publish", :ok,
-            before: ruleset_audit_state(before_ruleset),
-            after: ruleset_audit_state(ruleset_record),
-            diff: ruleset_position_diff(before_ruleset, ruleset_record),
-            metadata: %{"version" => ruleset_record.version}
-          )
-
-        updated_state = %{post_audit_state | audit_events: [audit_event | post_audit_state.audit_events]}
-        updated_flag = updated_state.flags[to_string(scheduled_execution.resource_key)]
-        updated_flag_environment = updated_flag.environments[environment.key]
-
-        execution_result =
-          build_flag_detail_payload(
-            updated_state,
-            updated_flag,
-            environment,
-            updated_flag_environment,
-            true
-          )
-
-        {:ok, execution_result, updated_state}
-      end
-
-    case result do
-      {:ok, execution_result, next_state} ->
-        {:ok, execution_result, next_state}
-
-      {:error, error} ->
-        {:error, error, state}
-    end
+  defp perform_scheduled_execution(state, %{governed_action: governed_action} = scheduled_execution, command)
+       when governed_action in ["publish_ruleset", "advance_rollout", "engage_kill_switch", "release_kill_switch"] do
+    execute_direct_scheduled_action(state, governed_action, scheduled_execution, command)
   end
 
   defp perform_scheduled_execution(state, _scheduled_execution, _command) do
     {:error, StoreError.invalid_command("governed action is not implemented"), state}
+  end
+
+  defp execute_bounded_governed_change(state, "publish_ruleset", change_request, command) do
+    version = change_request.command_snapshot["version"]
+
+    with {:ok, environment, flag, flag_environment} <-
+           fetch_schedulable_flag_context(state, change_request.resource_key, change_request.environment_key),
+         {:ok, ruleset_record} <- ensure_publishable_ruleset(flag, environment.key, version),
+         {:ok, next_state} <-
+           publish_ruleset_record(
+             state,
+             change_request.resource_key,
+             environment.key,
+             flag_environment,
+             ruleset_record
+           ) do
+      publish_command =
+        Command.PublishRuleset.new(change_request.resource_key, environment.key,
+          version: version,
+          actor: command.actor,
+          reason: command.reason,
+          metadata: %{
+            request_id: change_request.correlation_id,
+            source: change_request.metadata["source"],
+            change_request_id: change_request.id,
+            governance_action: change_request.governed_action,
+            execution_stage: "execute"
+          }
+        )
+
+      before_ruleset =
+        active_ruleset_payload(flag, environment.key, flag_environment.active_ruleset_version)
+
+      updated_flag = next_state.flags[to_string(change_request.resource_key)]
+      updated_flag_environment = updated_flag.environments[environment.key]
+
+      execution_result =
+        build_flag_detail_payload(
+          next_state,
+          updated_flag,
+          environment,
+          updated_flag_environment,
+          true
+        )
+
+      {audit_event, post_audit_state} =
+        append_audit_event(next_state, publish_command, "ruleset.publish", :ok,
+          before: ruleset_audit_state(before_ruleset),
+          after: ruleset_audit_state(ruleset_record),
+          diff: ruleset_position_diff(before_ruleset, ruleset_record),
+          metadata: %{"version" => ruleset_record.version}
+        )
+
+      {:ok, execution_result,
+       %{post_audit_state | audit_events: [audit_event | post_audit_state.audit_events]}}
+    end
+  end
+
+  defp execute_bounded_governed_change(state, "engage_kill_switch", change_request, command) do
+    with {:ok, environment, _flag, flag_environment} <-
+           fetch_schedulable_flag_context(state, change_request.resource_key, change_request.environment_key),
+         :ok <- ensure_kill_switch_transition(flag_environment, :engage) do
+      execute_kill_switch_transition(
+        state,
+        change_request.resource_key,
+        environment.key,
+        flag_environment,
+        :engage,
+        command,
+        %{
+          "request_id" => change_request.correlation_id,
+          "source" => change_request.metadata["source"],
+          "change_request_id" => change_request.id,
+          "governance_action" => change_request.governed_action,
+          "execution_stage" => "execute"
+        }
+      )
+    end
+  end
+
+  defp execute_bounded_governed_change(state, "release_kill_switch", change_request, command) do
+    with {:ok, environment, _flag, flag_environment} <-
+           fetch_schedulable_flag_context(state, change_request.resource_key, change_request.environment_key),
+         :ok <- ensure_kill_switch_transition(flag_environment, :release) do
+      execute_kill_switch_transition(
+        state,
+        change_request.resource_key,
+        environment.key,
+        flag_environment,
+        :release,
+        command,
+        %{
+          "request_id" => change_request.correlation_id,
+          "source" => change_request.metadata["source"],
+          "change_request_id" => change_request.id,
+          "governance_action" => change_request.governed_action,
+          "execution_stage" => "execute"
+        }
+      )
+    end
+  end
+
+  defp execute_bounded_governed_change(state, "advance_rollout", change_request, _command) do
+    with {:ok, _environment, _flag, flag_environment} <-
+           fetch_schedulable_flag_context(state, change_request.resource_key, change_request.environment_key),
+         :ok <- ensure_rollout_stage_available(flag_environment, change_request.command_snapshot) do
+      {:error, "rollout_stage_conflict", state}
+    end
+  end
+
+  defp execute_direct_scheduled_action(state, "publish_ruleset", scheduled_execution, command) do
+    version = scheduled_execution.command_snapshot["version"]
+
+    with {:ok, environment, flag, flag_environment} <-
+           fetch_schedulable_flag_context(state, scheduled_execution.resource_key, scheduled_execution.environment_key),
+         {:ok, ruleset_record} <- ensure_publishable_ruleset(flag, environment.key, version),
+         {:ok, next_state} <-
+           publish_ruleset_record(
+             state,
+             scheduled_execution.resource_key,
+             environment.key,
+             flag_environment,
+             ruleset_record
+           ) do
+      publish_command =
+        Command.PublishRuleset.new(scheduled_execution.resource_key, environment.key,
+          version: version,
+          actor: command.actor,
+          reason: command.reason,
+          metadata: %{
+            request_id: scheduled_execution.correlation_id,
+            source: scheduled_execution.metadata["source"],
+            scheduled_execution_id: scheduled_execution.id,
+            execution_stage: "scheduled_execution"
+          }
+        )
+
+      before_ruleset =
+        active_ruleset_payload(flag, environment.key, flag_environment.active_ruleset_version)
+
+      {audit_event, post_audit_state} =
+        append_audit_event(next_state, publish_command, "ruleset.publish", :ok,
+          before: ruleset_audit_state(before_ruleset),
+          after: ruleset_audit_state(ruleset_record),
+          diff: ruleset_position_diff(before_ruleset, ruleset_record),
+          metadata: %{"version" => ruleset_record.version}
+        )
+
+      updated_state = %{post_audit_state | audit_events: [audit_event | post_audit_state.audit_events]}
+      updated_flag = updated_state.flags[to_string(scheduled_execution.resource_key)]
+      updated_flag_environment = updated_flag.environments[environment.key]
+
+      execution_result =
+        build_flag_detail_payload(
+          updated_state,
+          updated_flag,
+          environment,
+          updated_flag_environment,
+          true
+        )
+
+      {:ok, execution_result, updated_state}
+    else
+      {:error, error} -> {:error, error, state}
+    end
+  end
+
+  defp execute_direct_scheduled_action(state, "engage_kill_switch", scheduled_execution, command) do
+    with {:ok, environment, _flag, flag_environment} <-
+           fetch_schedulable_flag_context(state, scheduled_execution.resource_key, scheduled_execution.environment_key),
+         :ok <- ensure_kill_switch_transition(flag_environment, :engage) do
+      execute_kill_switch_transition(
+        state,
+        scheduled_execution.resource_key,
+        environment.key,
+        flag_environment,
+        :engage,
+        command,
+        %{
+          "request_id" => scheduled_execution.correlation_id,
+          "source" => scheduled_execution.metadata["source"],
+          "scheduled_execution_id" => scheduled_execution.id,
+          "execution_stage" => "scheduled_execution"
+        }
+      )
+    else
+      {:error, error} -> {:error, error, state}
+    end
+  end
+
+  defp execute_direct_scheduled_action(state, "release_kill_switch", scheduled_execution, command) do
+    with {:ok, environment, _flag, flag_environment} <-
+           fetch_schedulable_flag_context(state, scheduled_execution.resource_key, scheduled_execution.environment_key),
+         :ok <- ensure_kill_switch_transition(flag_environment, :release) do
+      execute_kill_switch_transition(
+        state,
+        scheduled_execution.resource_key,
+        environment.key,
+        flag_environment,
+        :release,
+        command,
+        %{
+          "request_id" => scheduled_execution.correlation_id,
+          "source" => scheduled_execution.metadata["source"],
+          "scheduled_execution_id" => scheduled_execution.id,
+          "execution_stage" => "scheduled_execution"
+        }
+      )
+    else
+      {:error, error} -> {:error, error, state}
+    end
+  end
+
+  defp execute_direct_scheduled_action(state, "advance_rollout", scheduled_execution, _command) do
+    with {:ok, _environment, _flag, flag_environment} <-
+           fetch_schedulable_flag_context(state, scheduled_execution.resource_key, scheduled_execution.environment_key),
+         :ok <- ensure_rollout_stage_available(flag_environment, scheduled_execution.command_snapshot) do
+      {:error, "rollout_stage_conflict", state}
+    else
+      {:error, error} -> {:error, error, state}
+    end
+  end
+
+  defp fetch_schedulable_flag_context(state, flag_key, environment_key) do
+    with {:ok, environment} <- fetch_environment(state, environment_key),
+         {:ok, flag, flag_environment} <- fetch_flag_environment(state, flag_key, environment.key),
+         :ok <- ensure_schedulable_flag_not_archived(flag) do
+      {:ok, environment, flag, flag_environment}
+    end
+  end
+
+  defp ensure_schedulable_flag_not_archived(flag) do
+    if archived?(flag) do
+      {:error, "archived_resource"}
+    else
+      :ok
+    end
+  end
+
+  defp ensure_publishable_ruleset(flag, environment_key, version) do
+    case resolve_publishable_ruleset(flag, environment_key, version) do
+      {:ok, ruleset_record} -> {:ok, ruleset_record}
+      {:error, _error} -> {:error, "ruleset_not_publishable"}
+    end
+  end
+
+  defp ensure_kill_switch_transition(flag_environment, :engage) do
+    if flag_environment.status == :killswitched or not is_nil(flag_environment.kill_switch_variant_key) do
+      {:error, "kill_switch_already_engaged"}
+    else
+      :ok
+    end
+  end
+
+  defp ensure_kill_switch_transition(flag_environment, :release) do
+    if flag_environment.status == :killswitched or not is_nil(flag_environment.kill_switch_variant_key) do
+      :ok
+    else
+      {:error, "kill_switch_already_released"}
+    end
+  end
+
+  defp ensure_rollout_stage_available(_flag_environment, _command_snapshot),
+    do: {:error, "rollout_stage_conflict"}
+
+  defp execute_kill_switch_transition(state, flag_key, environment_key, flag_environment, direction, command, metadata) do
+    updated_flag_environment =
+      case direction do
+        :engage ->
+          flag_environment
+          |> Map.put(:status, :killswitched)
+          |> Map.put(:kill_switch_variant_key, "default")
+          |> Map.put(:updated_at, state.now)
+
+        :release ->
+          flag_environment
+          |> Map.put(:status, if(flag_environment.status == :killswitched, do: :active, else: flag_environment.status || :active))
+          |> Map.put(:kill_switch_variant_key, nil)
+          |> Map.put(:updated_at, state.now)
+      end
+
+    next_state =
+      put_in(
+        state.flags[to_string(flag_key)].environments[environment_key],
+        updated_flag_environment
+      )
+      |> put_runtime_snapshot(environment_key)
+
+    event_type =
+      case direction do
+        :engage -> "kill_switch.engage"
+        :release -> "kill_switch.release"
+      end
+
+    audit_command =
+      case direction do
+        :engage ->
+          Command.EngageKillSwitch.new(flag_key, environment_key,
+            actor: command.actor,
+            reason: command.reason,
+            metadata: metadata
+          )
+
+        :release ->
+          Command.ReleaseKillSwitch.new(flag_key, environment_key,
+            actor: command.actor,
+            reason: command.reason,
+            metadata: metadata
+          )
+      end
+
+    {audit_event, next_state} =
+      append_audit_event(next_state, audit_command, event_type, :ok,
+        before: audit_state(flag_environment),
+        after: audit_state(updated_flag_environment)
+      )
+
+    payload =
+      build_flag_detail_payload(
+        next_state,
+        next_state.flags[to_string(flag_key)],
+        next_state.environments[environment_key],
+        updated_flag_environment,
+        true
+      )
+
+    {:ok, payload, %{next_state | audit_events: [audit_event | next_state.audit_events]}}
   end
 
   defp emit_governance_telemetry(event, command, change_request, audit_event) do
