@@ -12,7 +12,9 @@ defmodule Rulestead.Governance.ApprovalRequirement do
   ]
   defstruct [:action, :environment_key, :required_approvals, :change_request_required?, :self_approval_allowed?]
 
-  @type action :: :publish_ruleset | :advance_rollout | :engage_kill_switch | :manage_settings
+  @governed_actions [:publish_ruleset, :advance_rollout, :engage_kill_switch, :release_kill_switch]
+
+  @type action :: :publish_ruleset | :advance_rollout | :engage_kill_switch | :release_kill_switch
 
   @type t :: %__MODULE__{
           action: action(),
@@ -50,11 +52,9 @@ defmodule Rulestead.Governance.ApprovalRequirement do
     }
   end
 
-  defp normalize_action(action)
-       when action in [:publish_ruleset, :advance_rollout, :engage_kill_switch, :manage_settings],
-       do: action
+  defp normalize_action(action) when action in @governed_actions, do: action
 
-  defp normalize_action(_action), do: :manage_settings
+  defp normalize_action(_action), do: hd(@governed_actions)
 
   defp normalize_required_approvals(value) when is_integer(value) and value >= 0, do: value
   defp normalize_required_approvals(_value), do: 0

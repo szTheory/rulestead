@@ -7,7 +7,12 @@ defmodule Rulestead.Admin.Policy do
   """
 
   @type governance_action ::
-          :publish_ruleset | :advance_rollout | :engage_kill_switch | :manage_settings
+          :publish_ruleset | :advance_rollout | :engage_kill_switch | :release_kill_switch
+
+  @governance_actions [:publish_ruleset, :advance_rollout, :engage_kill_switch, :release_kill_switch]
+
+  @spec governance_actions() :: [governance_action()]
+  def governance_actions, do: @governance_actions
 
   @callback can?(
               actor :: term(),

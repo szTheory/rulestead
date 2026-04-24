@@ -8,7 +8,7 @@ defmodule Rulestead.Admin.Authorizer do
   @viewer_roles ~w(viewer auditor operator engineer admin incident_commander prod_operator)a
   @editor_roles ~w(operator engineer admin incident_commander prod_operator)a
   @production_roles ~w(admin incident_commander prod_operator)a
-  @governed_actions [:publish_ruleset, :advance_rollout, :engage_kill_switch, :manage_settings]
+  @governed_actions [:publish_ruleset, :advance_rollout, :engage_kill_switch, :release_kill_switch]
 
   @type audit_payload :: %{
           required(:action) => atom(),
@@ -83,6 +83,17 @@ defmodule Rulestead.Admin.Authorizer do
           approval_requirement: requirement
         )
     end
+  end
+
+  @spec approval_requirement(term(), atom(), term(), String.t() | atom() | nil) ::
+          ApprovalRequirement.t()
+  def approval_requirement(actor, action, resource, environment_key) do
+    resolve_approval_requirement(
+      normalize_actor(actor),
+      action,
+      normalize_resource(resource),
+      normalize_environment(environment_key)
+    )
   end
 
   @spec authorize_change_request_approval(

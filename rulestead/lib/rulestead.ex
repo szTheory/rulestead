@@ -19,6 +19,7 @@ defmodule Rulestead do
     Error,
     Evaluator,
     Explainer,
+    Governance.ApprovalRequirement,
     Result,
     Runtime,
     Store,
@@ -268,6 +269,63 @@ defmodule Rulestead do
   @spec execute_change_request(Command.ExecuteChangeRequest.t()) :: Store.result(map())
   def execute_change_request(%Command.ExecuteChangeRequest{} = command) do
     admin_write(:execute_change_request, command)
+  end
+
+  @doc """
+  Schedules an approved governed change request through the configured store adapter.
+  """
+  @spec schedule_change_request(Command.ScheduleChangeRequest.t()) :: Store.result(map())
+  def schedule_change_request(%Command.ScheduleChangeRequest{} = command) do
+    admin_write(:schedule_change_request, command)
+  end
+
+  @doc """
+  Schedules a narrowly allowed direct governed action through the configured store adapter.
+  """
+  @spec schedule_governed_action(Command.ScheduleGovernedAction.t()) :: Store.result(map())
+  def schedule_governed_action(%Command.ScheduleGovernedAction{} = command) do
+    admin_write(:schedule_governed_action, command)
+  end
+
+  @doc """
+  Cancels a scheduled execution through the configured store adapter.
+  """
+  @spec cancel_scheduled_execution(Command.CancelScheduledExecution.t()) :: Store.result(map())
+  def cancel_scheduled_execution(%Command.CancelScheduledExecution{} = command) do
+    admin_write(:cancel_scheduled_execution, command)
+  end
+
+  @doc """
+  Requeues a quarantined scheduled execution through the configured store adapter.
+  """
+  @spec requeue_scheduled_execution(Command.RequeueScheduledExecution.t()) :: Store.result(map())
+  def requeue_scheduled_execution(%Command.RequeueScheduledExecution{} = command) do
+    admin_write(:requeue_scheduled_execution, command)
+  end
+
+  @doc """
+  Fetches one scheduled execution through the configured store adapter.
+  """
+  @spec fetch_scheduled_execution(Command.FetchScheduledExecution.t()) :: Store.result(map())
+  def fetch_scheduled_execution(%Command.FetchScheduledExecution{} = command) do
+    run_store(:fetch_scheduled_execution, [command], command)
+  end
+
+  @doc """
+  Lists scheduled executions through the configured store adapter.
+  """
+  @spec list_scheduled_executions(Command.ListScheduledExecutions.t() | keyword()) ::
+          Store.result(Command.Page.t(map()))
+  def list_scheduled_executions(command_or_opts \\ Command.ListScheduledExecutions.new())
+
+  def list_scheduled_executions(%Command.ListScheduledExecutions{} = command) do
+    run_store(:list_scheduled_executions, [command], command)
+  end
+
+  def list_scheduled_executions(opts) when is_list(opts) do
+    opts
+    |> Command.ListScheduledExecutions.new()
+    |> list_scheduled_executions()
   end
 
   @doc """
@@ -733,7 +791,7 @@ defmodule Rulestead do
   defp admin_write(operation, command) do
     redacted_command = redact_command(command)
     resource = command_resource(redacted_command)
-    action = command_action(operation)
+    action = command_action(operation, redacted_command)
 
     Telemetry.span(
       [:rulestead, :admin, :mutation],
@@ -746,20 +804,23 @@ defmodule Rulestead do
         |> Map.merge(Telemetry.governance_metadata(redacted_command, %{action: action}))
       ),
       fn ->
-        result =
+        {result, executed_command} =
           case authorize_admin_write(operation, redacted_command, action, resource) do
             :ok ->
-              run_store(operation, [redacted_command], redacted_command)
+              {run_store(operation, [redacted_command], redacted_command), redacted_command}
+
+            {:ok, authorized_command} ->
+              {run_store(operation, [authorized_command], authorized_command), authorized_command}
 
             {:error, error} ->
-              {:error, error}
+              {{:error, error}, redacted_command}
 
             {:error, error, denied_audit} ->
               maybe_persist_denied_mutation(operation, redacted_command, denied_audit)
-              {:error, error}
+              {{:error, error}, redacted_command}
           end
 
-        {result, admin_stop_metadata(result, redacted_command)}
+        {result, admin_stop_metadata(result, executed_command)}
       end
     )
   end
@@ -812,6 +873,23 @@ defmodule Rulestead do
     |> normalize_governance_authorization()
   end
 
+  defp authorize_admin_write(
+         :schedule_governed_action,
+         %Command.ScheduleGovernedAction{} = command,
+         _action,
+         resource
+       ) do
+    actor = Map.get(command, :actor)
+    environment_key = Map.get(command, :environment_key)
+
+    with :ok <- ensure_bounded_scheduled_action(command.action),
+         requirement <- Authorizer.approval_requirement(actor, command.action, resource, environment_key),
+         {:ok, approval_requirement} <-
+           authorize_direct_scheduled_execution(actor, command, resource, environment_key, requirement) do
+      {:ok, %{command | approval_requirement: ApprovalRequirement.serialize(approval_requirement)}}
+    end
+  end
+
   defp authorize_admin_write(_operation, command, action, resource) do
     Authorizer.authorize(
       Map.get(command, :actor),
@@ -822,7 +900,7 @@ defmodule Rulestead do
   end
 
   defp admin_read(operation, command) do
-    action = command_action(operation)
+    action = command_action(operation, command)
 
     with :ok <-
            authorize_admin_read(
@@ -843,12 +921,19 @@ defmodule Rulestead do
   end
 
   defp redact_command(command) do
-    allow = ["request_id", "source", "reason", "targeting_key", "plan", "nested.region"]
+    allow = ["request_id", "source", "reason", "emergency_reason", "targeting_key", "plan", "nested.region"]
     redacted_metadata = Redaction.redact_metadata(Map.get(command, :metadata, %{}), allow: allow)
     Map.put(command, :metadata, redacted_metadata.audit)
   end
 
   defp command_resource(%Command.SubmitChangeRequest{
+         resource_type: resource_type,
+         resource_key: resource_key
+       }) do
+    %{resource_type: stringify_resource(resource_type), resource_key: resource_key}
+  end
+
+  defp command_resource(%Command.ScheduleGovernedAction{
          resource_type: resource_type,
          resource_key: resource_key
        }) do
@@ -876,16 +961,20 @@ defmodule Rulestead do
     %{resource_type: :flag, resource_key: Map.get(command, :flag_key)}
   end
 
-  defp command_action(:submit_change_request), do: :submit_change_request
-  defp command_action(:approve_change_request), do: :approve_change_request
-  defp command_action(:reject_change_request), do: :reject_change_request
-  defp command_action(:cancel_change_request), do: :cancel_change_request
-  defp command_action(:execute_change_request), do: :execute_change_request
-  defp command_action(:engage_kill_switch), do: :engage_kill_switch
-  defp command_action(:release_kill_switch), do: :release_kill_switch
-  defp command_action(:rollback_audit_event), do: :rollback_audit_event
-  defp command_action(:list_audit_events), do: :list_audit_events
-  defp command_action(operation), do: operation
+  defp command_action(:submit_change_request, _command), do: :submit_change_request
+  defp command_action(:approve_change_request, _command), do: :approve_change_request
+  defp command_action(:reject_change_request, _command), do: :reject_change_request
+  defp command_action(:cancel_change_request, _command), do: :cancel_change_request
+  defp command_action(:execute_change_request, _command), do: :execute_change_request
+  defp command_action(:schedule_change_request, _command), do: :execute_change_request
+  defp command_action(:cancel_scheduled_execution, _command), do: :execute_change_request
+  defp command_action(:requeue_scheduled_execution, _command), do: :execute_change_request
+  defp command_action(:schedule_governed_action, %Command.ScheduleGovernedAction{action: action}), do: action
+  defp command_action(:engage_kill_switch, _command), do: :engage_kill_switch
+  defp command_action(:release_kill_switch, _command), do: :release_kill_switch
+  defp command_action(:rollback_audit_event, _command), do: :rollback_audit_event
+  defp command_action(:list_audit_events, _command), do: :list_audit_events
+  defp command_action(operation, _command), do: operation
 
   defp maybe_persist_denied_mutation(operation, command, denied_audit)
        when operation in [
@@ -973,6 +1062,70 @@ defmodule Rulestead do
 
   defp normalize_governance_authorization({:error, error, denied_audit}),
     do: {:error, error, denied_audit}
+
+  defp authorize_direct_scheduled_execution(
+         actor,
+         %Command.ScheduleGovernedAction{execution_mode: :policy_bypass, action: action} = _command,
+         resource,
+         environment_key,
+         _requirement
+       ) do
+    case Authorizer.authorize_governed_action(actor, action, resource, environment_key) do
+      {:ok, requirement} -> {:ok, requirement}
+      {:error, error, denied_audit} -> {:error, error, denied_audit}
+    end
+  end
+
+  defp authorize_direct_scheduled_execution(
+         actor,
+         %Command.ScheduleGovernedAction{
+           execution_mode: :emergency_bypass,
+           action: action,
+           metadata: metadata,
+           reason: reason
+         },
+         resource,
+         environment_key,
+         requirement
+       ) do
+    with :ok <- ensure_emergency_metadata(reason, metadata),
+         :ok <- Authorizer.authorize(actor, action, resource, environment_key) do
+      {:ok, requirement}
+    end
+  end
+
+  defp authorize_direct_scheduled_execution(_actor, %Command.ScheduleGovernedAction{}, _resource, _environment_key, _requirement) do
+    {:error, StoreError.invalid_command("direct scheduled actions must use policy_bypass or emergency_bypass")}
+  end
+
+  defp ensure_bounded_scheduled_action(action) do
+    if action in Rulestead.Admin.Policy.governance_actions() do
+      :ok
+    else
+      {:error,
+       StoreError.invalid_command(
+         "scheduled direct actions are limited to publish, rollout, and kill-switch operations"
+       )}
+    end
+  end
+
+  defp ensure_emergency_metadata(reason, metadata) do
+    emergency_reason = Map.get(metadata || %{}, "emergency_reason")
+
+    cond do
+      is_nil(reason) or String.trim(reason) == "" ->
+        {:error, StoreError.invalid_command("emergency_bypass requires an explicit operator reason")}
+
+      is_nil(emergency_reason) or String.trim(emergency_reason) == "" ->
+        {:error,
+         StoreError.invalid_command(
+           "emergency_bypass requires metadata[\"emergency_reason\"]"
+         )}
+
+      true ->
+        :ok
+    end
+  end
 
   defp governance_change_request_resource(change_request, fallback_resource) do
     case {Map.get(change_request, :resource_type), Map.get(change_request, :resource_key)} do

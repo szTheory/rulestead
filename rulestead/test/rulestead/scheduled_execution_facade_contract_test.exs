@@ -2,6 +2,7 @@ defmodule Rulestead.ScheduledExecutionFacadeContractTest do
   use Rulestead.RepoCase, async: false
 
   alias Rulestead.Governance.ApprovalRequirement
+  alias Rulestead.Store.Ecto, as: StoreEcto
   alias Rulestead.Store.Command
   alias Rulestead.StoreFixtures
 
@@ -13,35 +14,44 @@ defmodule Rulestead.ScheduledExecutionFacadeContractTest do
 
   test "approved change requests can be scheduled and fetched/listed from the public facade" do
     seed_publishable_flag!()
+    previous_policy = Application.get_env(:rulestead, :admin_policy)
+    Application.put_env(:rulestead, :admin_policy, __MODULE__.AllowAllPolicy)
+
+    on_exit(fn ->
+      case previous_policy do
+        nil -> Application.delete_env(:rulestead, :admin_policy)
+        value -> Application.put_env(:rulestead, :admin_policy, value)
+      end
+    end)
 
     assert {:ok, %{change_request: change_request}} =
              Rulestead.submit_change_request(
                Command.SubmitChangeRequest.new(
-                 %{
-                   action: :publish_ruleset,
-                   environment_key: "test",
-                   resource_type: "flag",
-                   resource_key: "checkout-redesign",
-                   command: %{"version" => 2}
-                 },
-                 actor: %{id: "operator-1", type: "operator", display: "Operator One"},
-                 reason: "Schedule reviewed publish",
-                 approval_requirement:
-                   ApprovalRequirement.new(
-                     action: :publish_ruleset,
-                     environment_key: "test",
-                     required_approvals: 1,
-                     change_request_required?: true,
-                     self_approval_allowed?: true
-                   ),
-                 metadata: %{request_id: "req-cr-submit", source: :admin_ui}
-               )
+                %{
+                  action: :publish_ruleset,
+                  environment_key: "test",
+                  resource_type: "flag",
+                  resource_key: "checkout-redesign",
+                  command: %{"version" => 2},
+                  approval_requirement:
+                    ApprovalRequirement.new(
+                      action: :publish_ruleset,
+                      environment_key: "test",
+                      required_approvals: 1,
+                      change_request_required?: true,
+                      self_approval_allowed?: true
+                    )
+                },
+                actor: %{id: "operator-1", type: "operator", display: "Operator One", roles: [:operator]},
+                reason: "Schedule reviewed publish",
+                metadata: %{request_id: "req-cr-submit", source: :admin_ui}
+              )
              )
 
     assert {:ok, %{change_request: approved_change_request}} =
              Rulestead.approve_change_request(
                Command.ApproveChangeRequest.new(change_request.id,
-                 actor: %{id: "reviewer-1", type: "operator", display: "Reviewer One"},
+                 actor: %{id: "reviewer-1", type: "operator", display: "Reviewer One", roles: [:operator]},
                  reason: "Approved for scheduling",
                  metadata: %{request_id: "req-cr-approve", source: :admin_ui}
                )
@@ -55,7 +65,7 @@ defmodule Rulestead.ScheduledExecutionFacadeContractTest do
                  %{
                    change_request_id: approved_change_request.id,
                    scheduled_for: scheduled_for,
-                   actor: %{id: "scheduler-1", type: "operator", display: "Scheduler One"},
+                   actor: %{id: "scheduler-1", type: "operator", display: "Scheduler One", roles: [:operator]},
                    reason: "Wait for launch window",
                    metadata: %{request_id: "req-schedule-cr", source: :admin_ui}
                  }
@@ -206,17 +216,24 @@ defmodule Rulestead.ScheduledExecutionFacadeContractTest do
     def allow_self_approval?(_actor, _action, _resource, _environment_key), do: true
   end
 
+  defmodule AllowAllPolicy do
+    @behaviour Rulestead.Admin.Policy
+
+    @impl true
+    def can?(_actor, _action, _resource, _environment_key), do: true
+  end
+
   defp seed_publishable_flag! do
     assert {:ok, _} =
-             Rulestead.create_flag(
-               StoreFixtures.flag_command(
-                 key: "checkout-redesign",
+             StoreEcto.create_flag(
+               Command.CreateFlag.new(
+                 StoreFixtures.valid_flag_attrs(%{permanent: true}),
                  actor: %{id: "creator-1", type: "operator", display: "Creator One"}
                )
              )
 
     assert {:ok, _} =
-             Rulestead.save_draft_ruleset(
+             StoreEcto.save_draft_ruleset(
                StoreFixtures.save_draft_command(
                  "checkout-redesign",
                  "test",

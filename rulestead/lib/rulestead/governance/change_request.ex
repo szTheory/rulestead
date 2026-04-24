@@ -7,7 +7,7 @@ defmodule Rulestead.Governance.ChangeRequest do
 
   @states [:submitted, :approved, :rejected, :cancelled, :executed]
   @terminal_states [:rejected, :cancelled, :executed]
-  @governed_actions [:publish_ruleset, :advance_rollout, :engage_kill_switch, :manage_settings]
+  @governed_actions [:publish_ruleset, :advance_rollout, :engage_kill_switch, :release_kill_switch]
 
   @enforce_keys [
     :state,
@@ -34,7 +34,7 @@ defmodule Rulestead.Governance.ChangeRequest do
   ]
 
   @type state :: :submitted | :approved | :rejected | :cancelled | :executed
-  @type action :: :publish_ruleset | :advance_rollout | :engage_kill_switch | :manage_settings
+  @type action :: :publish_ruleset | :advance_rollout | :engage_kill_switch | :release_kill_switch
 
   @type actor_summary :: %{
           optional(:id) => String.t(),
@@ -105,7 +105,7 @@ defmodule Rulestead.Governance.ChangeRequest do
   defp normalize_state(_state), do: :submitted
 
   defp normalize_action(action) when action in @governed_actions, do: action
-  defp normalize_action(_action), do: :manage_settings
+  defp normalize_action(_action), do: hd(@governed_actions)
 
   defp normalize_actor_summary(actor) when is_map(actor) do
     %{}
