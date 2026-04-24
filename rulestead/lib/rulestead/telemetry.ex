@@ -7,7 +7,7 @@ defmodule Rulestead.Telemetry do
 
   @handler_table :rulestead_telemetry_handlers
   @shared_keys ~w(flag_key flag_type environment snapshot_version cache_age_ms reason has_targeting_key? matched_rule_count)a
-  @optional_keys ~w(operation source refresh_status audit_action error_kind)a
+  @optional_keys ~w(operation source refresh_status audit_action error_kind change_request_id correlation_id audit_event_id resource_key)a
 
   @type event_prefix :: [atom()]
   @type event_name :: [atom()]
@@ -117,6 +117,22 @@ defmodule Rulestead.Telemetry do
     |> Map.put_new(:has_targeting_key?, false)
   end
 
+  @spec governance_metadata(struct(), map()) :: map()
+  def governance_metadata(command, attrs \\ %{}) when is_struct(command) and is_map(attrs) do
+    command_map = Map.from_struct(command)
+    metadata = Map.get(command_map, :metadata, %{})
+
+    %{}
+    |> Map.put_new(:operation, governance_operation(command))
+    |> Map.put_new(:change_request_id, Map.get(attrs, :change_request_id) || Map.get(command_map, :change_request_id))
+    |> Map.put_new(:correlation_id, Map.get(attrs, :correlation_id) || Map.get(metadata, "correlation_id"))
+    |> Map.put_new(:audit_event_id, Map.get(attrs, :audit_event_id) || Map.get(metadata, "audit_event_id"))
+    |> Map.put_new(:resource_key, Map.get(attrs, :resource_key) || Map.get(metadata, "resource_key"))
+    |> Map.put_new(:environment, Map.get(attrs, :environment_key) || Map.get(command_map, :environment_key) || Map.get(metadata, "environment_key"))
+    |> Map.put_new(:audit_action, Map.get(attrs, :action))
+    |> Map.put_new(:reason, Map.get(attrs, :event))
+  end
+
   @spec dispatch(event_name(), map(), metadata(), event_name()) :: :ok
   def dispatch(event, measurements, metadata, registered_event) do
     ensure_handler_table()
@@ -186,7 +202,9 @@ defmodule Rulestead.Telemetry do
   defp sanitize_value(:snapshot_version, value) when is_integer(value) and value > 0, do: value
   defp sanitize_value(key, value) when key in [:has_targeting_key?] and is_boolean(value), do: value
   defp sanitize_value(key, value) when key in [:matched_rule_count] and is_integer(value) and value >= 0, do: value
-  defp sanitize_value(key, value) when key in [:flag_key, :environment, :operation, :audit_action], do: stringify(value)
+  defp sanitize_value(key, value)
+       when key in [:flag_key, :environment, :operation, :audit_action, :change_request_id, :correlation_id, :audit_event_id, :resource_key],
+       do: stringify(value)
   defp sanitize_value(key, value) when key in [:flag_type, :reason, :source, :refresh_status, :error_kind], do: normalize_atom(value)
   defp sanitize_value(_key, _value), do: nil
 
@@ -201,6 +219,13 @@ defmodule Rulestead.Telemetry do
   defp normalize_atom(value) when is_binary(value), do: value |> String.trim() |> binary_atom()
 
   defp normalize_atom(_value), do: nil
+
+  defp governance_operation(%module{}) do
+    module
+    |> Module.split()
+    |> List.last()
+    |> Macro.underscore()
+  end
 
   defp binary_atom(""), do: nil
 

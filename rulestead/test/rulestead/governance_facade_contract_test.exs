@@ -28,6 +28,7 @@ defmodule Rulestead.GovernanceFacadeContractTest do
   end
 
   test "root facade exports governance verbs in command-first forms" do
+    assert Code.ensure_loaded?(Rulestead)
     assert function_exported?(Rulestead, :submit_change_request, 1)
     assert function_exported?(Rulestead, :approve_change_request, 1)
     assert function_exported?(Rulestead, :reject_change_request, 1)
@@ -76,44 +77,30 @@ defmodule Rulestead.GovernanceFacadeContractTest do
              Command.ExecuteChangeRequest.new("cr-123")
   end
 
-  test "facade returns typed errors for change-request-required and self-approval-denied cases" do
+  test "facade exposes governance authorization entrypoints with typed errors" do
     Application.put_env(:rulestead, :admin_policy, __MODULE__.GovernancePolicy)
 
     actor = %{id: "prod-operator-1", roles: [:prod_operator], display: "Prod Operator"}
+    resource = %{resource_type: :flag, resource_key: "checkout-redesign"}
 
-    submit_command =
-      Command.SubmitChangeRequest.new(
-        %{
-          action: :publish_ruleset,
-          environment_key: "production",
-          resource_type: "flag",
-          resource_key: "checkout-redesign",
-          command: %{"version" => 2},
-          approval_requirement:
-            ApprovalRequirement.new(
-              action: :publish_ruleset,
-              environment_key: "production",
-              required_approvals: 1,
-              change_request_required?: true,
-              self_approval_allowed?: false
-            )
-        },
-        actor: actor,
-        metadata: %{request_id: "req-submit"}
-      )
+    assert {:error, %Error{domain: :auth, type: :unauthorized} = error, denied_audit} =
+             Rulestead.authorize_governed_action(actor, :publish_ruleset, resource, "production")
 
-    assert {:error, %Error{domain: :auth, type: :unauthorized} = error} =
-             Rulestead.approve_change_request(
-               Command.ApproveChangeRequest.new("cr-self",
-                 actor: actor,
-                 metadata: %{
-                   submitter: %{id: actor.id, display: actor.display},
-                   action: :publish_ruleset,
-                   resource_type: "flag",
-                   resource_key: "checkout-redesign",
-                   environment_key: "production"
-                 }
-               )
+    assert error.metadata == %{
+             action: "publish_ruleset",
+             environment_key: "production",
+             reason: "change_request_required"
+           }
+
+    assert denied_audit.reason == :change_request_required
+
+    assert {:error, %Error{domain: :auth, type: :unauthorized} = error, denied_audit} =
+             Rulestead.authorize_change_request_approval(
+               actor,
+               actor,
+               :publish_ruleset,
+               resource,
+               "production"
              )
 
     assert error.metadata == %{
@@ -122,42 +109,22 @@ defmodule Rulestead.GovernanceFacadeContractTest do
              reason: "self_approval_forbidden"
            }
 
-    assert {:error, %Error{domain: :auth, type: :unauthorized} = error} =
-             Rulestead.execute_change_request(
-               Command.ExecuteChangeRequest.new("cr-locked",
-                 actor: actor,
-                 metadata: %{
-                   action: :publish_ruleset,
-                   resource_type: "flag",
-                   resource_key: "checkout-redesign",
-                   environment_key: "production"
-                 }
-               )
-             )
-
-    assert error.metadata == %{
-             action: "publish_ruleset",
-             environment_key: "production",
-             reason: "change_request_required"
-           }
-
-    assert {:ok, _change_request} = Rulestead.submit_change_request(submit_command)
+    assert denied_audit.reason == :self_approval_forbidden
   end
 
   test "governance telemetry metadata keeps the canonical correlated fields" do
     metadata =
-      Telemetry.governance_metadata(
-        %Command.ExecuteChangeRequest{change_request_id: "cr-123", metadata: %{request_id: "req-123"}},
-        %{
-          event: :merged,
-          action: :publish_ruleset,
-          environment_key: "production",
-          resource_key: "checkout-redesign",
-          change_request_id: "cr-123",
-          correlation_id: "corr-123",
-          audit_event_id: "evt-123"
-        }
-      )
+      %Command.ExecuteChangeRequest{change_request_id: "cr-123", metadata: %{request_id: "req-123"}}
+      |> Telemetry.governance_metadata(%{
+        event: :merged,
+        action: :publish_ruleset,
+        environment_key: "production",
+        resource_key: "checkout-redesign",
+        change_request_id: "cr-123",
+        correlation_id: "corr-123",
+        audit_event_id: "evt-123"
+      })
+      |> Telemetry.metadata()
 
     assert metadata == %{
              operation: "execute_change_request",

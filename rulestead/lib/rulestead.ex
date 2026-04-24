@@ -227,6 +227,72 @@ defmodule Rulestead do
   end
 
   @doc """
+  Submits a governed change request through the configured store adapter.
+  """
+  @spec submit_change_request(Command.SubmitChangeRequest.t()) :: Store.result(map())
+  def submit_change_request(%Command.SubmitChangeRequest{} = command) do
+    admin_write(:submit_change_request, command)
+  end
+
+  @doc """
+  Approves a governed change request through the configured store adapter.
+  """
+  @spec approve_change_request(Command.ApproveChangeRequest.t()) :: Store.result(map())
+  def approve_change_request(%Command.ApproveChangeRequest{} = command) do
+    admin_write(:approve_change_request, command)
+  end
+
+  @doc """
+  Rejects a governed change request through the configured store adapter.
+  """
+  @spec reject_change_request(Command.RejectChangeRequest.t()) :: Store.result(map())
+  def reject_change_request(%Command.RejectChangeRequest{} = command) do
+    admin_write(:reject_change_request, command)
+  end
+
+  @doc """
+  Cancels a governed change request through the configured store adapter.
+  """
+  @spec cancel_change_request(Command.CancelChangeRequest.t()) :: Store.result(map())
+  def cancel_change_request(%Command.CancelChangeRequest{} = command) do
+    admin_write(:cancel_change_request, command)
+  end
+
+  @doc """
+  Executes an approved governed change request through the configured store adapter.
+  """
+  @spec execute_change_request(Command.ExecuteChangeRequest.t()) :: Store.result(map())
+  def execute_change_request(%Command.ExecuteChangeRequest{} = command) do
+    admin_write(:execute_change_request, command)
+  end
+
+  @doc """
+  Resolves whether a governed action must go through a change request.
+  """
+  @spec authorize_governed_action(term(), atom(), term(), String.t() | atom() | nil) ::
+          {:ok, Rulestead.Governance.ApprovalRequirement.t()}
+          | {:error, Rulestead.Error.t(), Authorizer.audit_payload()}
+  def authorize_governed_action(actor, action, resource, environment_key) do
+    Authorizer.authorize_governed_action(actor, action, resource, environment_key)
+  end
+
+  @doc """
+  Resolves whether an actor may approve a specific change request.
+  """
+  @spec authorize_change_request_approval(
+          term(),
+          term(),
+          atom(),
+          term(),
+          String.t() | atom() | nil
+        ) ::
+          {:ok, Rulestead.Governance.ApprovalRequirement.t()}
+          | {:error, Rulestead.Error.t(), Authorizer.audit_payload()}
+  def authorize_change_request_approval(actor, submitter, action, resource, environment_key) do
+    Authorizer.authorize_change_request_approval(actor, submitter, action, resource, environment_key)
+  end
+
+  @doc """
   Lists flags through the configured store adapter.
 
   Phase 2 keeps this as the shared list/search surface for store adapters.
@@ -617,11 +683,16 @@ defmodule Rulestead do
     Telemetry.span(
       [:rulestead, :admin, :mutation],
       Telemetry.metadata(
-        Telemetry.command_metadata(redacted_command, %{operation: Atom.to_string(operation), audit_action: Atom.to_string(operation)})
+        redacted_command
+        |> Telemetry.command_metadata(%{
+          operation: Atom.to_string(operation),
+          audit_action: Atom.to_string(action)
+        })
+        |> Map.merge(Telemetry.governance_metadata(redacted_command, %{action: action}))
       ),
       fn ->
         result =
-          case Authorizer.authorize(Map.get(redacted_command, :actor), action, resource, Map.get(redacted_command, :environment_key)) do
+          case authorize_admin_write(operation, redacted_command, action, resource) do
             :ok ->
               run_store(operation, [redacted_command], redacted_command)
 
@@ -633,6 +704,27 @@ defmodule Rulestead do
         {result, admin_stop_metadata(result, redacted_command)}
       end
     )
+  end
+
+  defp authorize_admin_write(:approve_change_request, command, _action, resource) do
+    metadata = Map.get(command, :metadata, %{})
+
+    Authorizer.authorize_change_request_approval(
+      Map.get(command, :actor),
+      Map.get(metadata, "submitter", %{}),
+      governance_action(metadata),
+      resource,
+      governance_environment(command, metadata)
+    )
+  end
+
+  defp authorize_admin_write(operation, command, action, resource)
+       when operation in [:submit_change_request, :reject_change_request, :cancel_change_request, :execute_change_request] do
+    Authorizer.authorize(Map.get(command, :actor), action, resource, governance_environment(command, Map.get(command, :metadata, %{})))
+  end
+
+  defp authorize_admin_write(_operation, command, action, resource) do
+    Authorizer.authorize(Map.get(command, :actor), action, resource, Map.get(command, :environment_key))
   end
 
   defp admin_read(operation, command) do
@@ -656,14 +748,36 @@ defmodule Rulestead do
     Map.put(command, :metadata, redacted_metadata.audit)
   end
 
+  defp command_resource(%Command.SubmitChangeRequest{resource_type: resource_type, resource_key: resource_key}) do
+    %{resource_type: stringify_resource(resource_type), resource_key: resource_key}
+  end
+
   defp command_resource(%Command.RollbackAuditEvent{audit_event_id: audit_event_id}) do
     %{resource_type: :audit_event, resource_key: audit_event_id}
+  end
+
+  defp command_resource(command)
+       when is_map(command) do
+    metadata = Map.get(command, :metadata, %{})
+
+    case {Map.get(metadata, "resource_type"), Map.get(metadata, "resource_key")} do
+      {nil, _} ->
+        %{resource_type: :flag, resource_key: Map.get(command, :flag_key)}
+
+      {resource_type, resource_key} ->
+        %{resource_type: stringify_resource(resource_type), resource_key: resource_key}
+    end
   end
 
   defp command_resource(command) do
     %{resource_type: :flag, resource_key: Map.get(command, :flag_key)}
   end
 
+  defp command_action(:submit_change_request), do: :submit_change_request
+  defp command_action(:approve_change_request), do: :approve_change_request
+  defp command_action(:reject_change_request), do: :reject_change_request
+  defp command_action(:cancel_change_request), do: :cancel_change_request
+  defp command_action(:execute_change_request), do: :execute_change_request
   defp command_action(:engage_kill_switch), do: :engage_kill_switch
   defp command_action(:release_kill_switch), do: :release_kill_switch
   defp command_action(:rollback_audit_event), do: :rollback_audit_event
@@ -728,4 +842,30 @@ defmodule Rulestead do
   defp store_success_reason(:fetch_flag), do: :fetched
   defp store_success_reason(:list_flags), do: :listed
   defp store_success_reason(_operation), do: :stored
+
+  defp governance_action(metadata) do
+    case Map.get(metadata, "action") do
+      action when is_atom(action) -> action
+      action when is_binary(action) -> String.to_existing_atom(action)
+      _ -> :manage_settings
+    end
+  rescue
+    ArgumentError -> :manage_settings
+  end
+
+  defp governance_environment(command, metadata) do
+    Map.get(command, :environment_key) || Map.get(metadata, "environment_key")
+  end
+
+  defp stringify_resource(resource_type) when is_binary(resource_type) do
+    resource_type
+    |> String.trim()
+    |> case do
+      "" -> :flag
+      value -> String.to_atom(value)
+    end
+  end
+
+  defp stringify_resource(resource_type) when is_atom(resource_type), do: resource_type
+  defp stringify_resource(_resource_type), do: :flag
 end
