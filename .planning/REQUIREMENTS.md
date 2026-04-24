@@ -16,7 +16,8 @@
 ### Scheduled Changes (SCH)
 
 - [x] **SCH-01**: Operator can schedule a ruleset publish, rollout advance, or kill-switch action for future execution.
-- [ ] **SCH-02**: Scheduled changes execute durably and idempotently through the supported job path, surviving retries and restarts without duplicate side effects.
+- [x] **SCH-02
+**: Scheduled changes execute durably and idempotently through the supported job path, surviving retries and restarts without duplicate side effects.
 - [ ] **SCH-03**: Operator can view upcoming, completed, failed, and canceled scheduled changes in the mounted admin UI.
 - [x] **SCH-04**: Execution of a scheduled change records audit correlation and exposes operator-meaningful status and failure reason.
 
@@ -66,9 +67,9 @@
 | GOV-04 | Phase 9 | Completed in 09-02 |
 | GOV-05 | Phase 11 | Pending |
 | SCH-01 | Phase 10 | Completed in 10-01 |
-| SCH-02 | Phase 10 | Pending |
+| SCH-02 | Phase 10 | Completed in 10-02 |
 | SCH-03 | Phase 11 | Pending |
-| SCH-04 | Phase 10 | Completed in 10-01 |
+| SCH-04 | Phase 10 | Completed in 10-02 |
 | HOOK-01 | Phase 12 | Pending |
 | HOOK-02 | Phase 12 | Pending |
 | HOOK-03 | Phase 12 | Pending |
@@ -84,4 +85,4 @@
 
 ---
 *Requirements defined: 2026-04-24*
-*Last updated: 2026-04-24 after completing 10-01*
+*Last updated: 2026-04-24 after completing 10-02*

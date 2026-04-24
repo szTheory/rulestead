@@ -2,7 +2,7 @@
 
 ## Current Milestone: v0.2.0 Governance and Operator Confidence
 
-**Status:** Phase 10 execution in progress (1 of 4 plans complete)
+**Status:** Phase 10 execution in progress (2 of 4 plans complete)
 **Phases:** 9-13
 **Requirements:** [.planning/REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/REQUIREMENTS.md)
 
@@ -50,7 +50,7 @@ Plans:
 Plans:
 
 - [x] 10-01-PLAN.md — Scheduled-change schema, command contracts, and lifecycle state model
-- [ ] 10-02-PLAN.md — Oban-backed executor for due changes with idempotent retry and recovery semantics
+- [x] 10-02-PLAN.md — Oban-backed executor for due changes with idempotent retry and recovery semantics
 - [ ] 10-03-PLAN.md — Rollout-stage and kill-switch scheduling integration through the governed command path
 - [ ] 10-04-PLAN.md — Audit, telemetry, and focused failure-handling verification for scheduled execution
 
@@ -143,4 +143,4 @@ Plans:
 - Webhook ingress and outbound delivery have a high blast radius; they must stay on the same authorization and audit rails as direct admin actions.
 
 ---
-*Last updated: 2026-04-24 after completing 10-01*
+*Last updated: 2026-04-24 after completing 10-02*
