@@ -3,6 +3,9 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsAccessibilityTest do
 
   alias Rulestead.Fake.Control
   alias Rulestead.Store.Command
+  alias RulesteadAdmin.TestSupport.AxeAudit
+
+  @admin_actor %{id: 7, email: "priya@example.com", roles: [:admin]}
 
   setup_all do
     start_supervised!(RulesteadAdmin.TestEndpoint)
@@ -53,7 +56,7 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsAccessibilityTest do
   test "rollout page stays accessible before preview, after preview, and when risky confirmation is present",
        %{conn: conn} do
     {:ok, view, html} = live(conn, "/admin/flags/checkout-redesign/rollouts?env=prod")
-    assert_accessible(html)
+    AxeAudit.assert_accessible!(html)
 
     preview_html =
       view
@@ -65,7 +68,7 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsAccessibilityTest do
         |> render_click()
       end)
 
-    assert_accessible(preview_html)
+    AxeAudit.assert_accessible!(preview_html)
     assert preview_html =~ "Sample preview"
     assert preview_html =~ "Observed assignments"
 
@@ -79,40 +82,9 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsAccessibilityTest do
         |> render_click()
       end)
 
-    assert_accessible(risky_html)
+    AxeAudit.assert_accessible!(risky_html)
     assert risky_html =~ "Risky jump requires confirmation"
     assert risky_html =~ "Reason for risky jump"
-  end
-
-  defp assert_accessible(html) do
-    doc = LazyHTML.from_fragment(html)
-
-    unlabeled_controls =
-      doc
-      |> LazyHTML.query("input:not([type='hidden']), select, textarea")
-      |> Enum.filter(&(not wrapped_by_label?(&1) and missing_aria_label?(&1)))
-
-    empty_buttons =
-      doc
-      |> LazyHTML.query("button, a")
-      |> Enum.filter(&(String.trim(LazyHTML.text(&1)) == ""))
-
-    assert unlabeled_controls == []
-    assert empty_buttons == []
-  end
-
-  defp wrapped_by_label?(node) do
-    case LazyHTML.parent_node(node) do
-      nil -> false
-      parent -> parent["label"] != []
-    end
-  end
-
-  defp missing_aria_label?(node) do
-    case LazyHTML.attribute(node, "aria-label") do
-      [] -> true
-      labels -> Enum.all?(labels, &(String.trim(&1) == ""))
-    end
   end
 
   defp seed_flag!(attrs) do
@@ -168,11 +140,15 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsAccessibilityTest do
 
     assert {:ok, _draft} =
              Rulestead.save_draft_ruleset(
-               Command.SaveDraftRuleset.new(flag_key, environment_key, ruleset)
+               Command.SaveDraftRuleset.new(flag_key, environment_key, ruleset,
+                 actor: @admin_actor
+               )
              )
 
     assert {:ok, _published} =
-             Rulestead.publish_ruleset(Command.PublishRuleset.new(flag_key, environment_key))
+             Rulestead.publish_ruleset(
+               Command.PublishRuleset.new(flag_key, environment_key, actor: @admin_actor)
+             )
   end
 
   defp ensure_environment!(key, name) do

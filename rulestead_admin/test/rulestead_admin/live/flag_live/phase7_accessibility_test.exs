@@ -3,6 +3,9 @@ defmodule RulesteadAdmin.Live.FlagLive.Phase7AccessibilityTest do
 
   alias Rulestead.Fake.Control
   alias Rulestead.Store.Command
+  alias RulesteadAdmin.TestSupport.AxeAudit
+
+  @admin_actor %{id: 7, email: "priya@example.com", roles: [:admin]}
 
   setup_all do
     start_supervised!(RulesteadAdmin.TestEndpoint)
@@ -20,9 +23,10 @@ defmodule RulesteadAdmin.Live.FlagLive.Phase7AccessibilityTest do
     publish_ruleset!("checkout-redesign", "prod")
 
     assert {:ok, _} =
-             Rulestead.engage_kill_switch("checkout-redesign", "prod", %{id: "op-1", display: "Priya", roles: [:admin]},
-               reason: "incident"
-             )
+             Rulestead.engage_kill_switch(
+               "checkout-redesign",
+               "prod",
+               %{id: "op-1", display: "Priya", roles: [:admin]}, reason: "incident")
 
     conn =
       conn
@@ -41,60 +45,37 @@ defmodule RulesteadAdmin.Live.FlagLive.Phase7AccessibilityTest do
 
   test "kill, per-flag timeline, and global audit screens stay accessible", %{conn: conn} do
     {:ok, _kill_view, kill_html} = live(conn, "/admin/flags/checkout-redesign/kill?env=prod")
-    assert_accessible(kill_html)
+    AxeAudit.assert_accessible!(kill_html)
 
-    {:ok, timeline_view, timeline_html} = live(conn, "/admin/flags/checkout-redesign/timeline?env=prod")
-    assert_accessible(timeline_html)
+    {:ok, timeline_view, timeline_html} =
+      live(conn, "/admin/flags/checkout-redesign/timeline?env=prod")
+
+    AxeAudit.assert_accessible!(timeline_html)
 
     rollback_html =
       timeline_view
       |> element("button[phx-click='rollback']")
       |> render_click()
 
-    assert_accessible(rollback_html)
+    AxeAudit.assert_accessible!(rollback_html)
 
     {:ok, audit_view, audit_html} = live(conn, "/admin/flags/audit?env_filter=all")
-    assert_accessible(audit_html)
+    AxeAudit.assert_accessible!(audit_html)
 
     filtered_html =
       audit_view
       |> form("form[aria-label='Audit filters']", %{
-        "filters" => %{"actor" => "Priya", "env_filter" => "prod", "mutation" => "", "from" => "", "to" => ""}
+        "filters" => %{
+          "actor" => "Priya",
+          "env_filter" => "prod",
+          "mutation" => "",
+          "from" => "",
+          "to" => ""
+        }
       })
       |> render_change()
 
-    assert_accessible(filtered_html)
-  end
-
-  defp assert_accessible(html) do
-    doc = LazyHTML.from_fragment(html)
-
-    unlabeled_controls =
-      doc
-      |> LazyHTML.query("input:not([type='hidden']), select, textarea")
-      |> Enum.filter(&(not wrapped_by_label?(&1) and missing_aria_label?(&1)))
-
-    empty_buttons =
-      doc
-      |> LazyHTML.query("button, a")
-      |> Enum.filter(&(String.trim(LazyHTML.text(&1)) == ""))
-
-    assert unlabeled_controls == []
-    assert empty_buttons == []
-  end
-
-  defp wrapped_by_label?(node) do
-    case LazyHTML.parent_node(node) do
-      nil -> false
-      parent -> parent["label"] != []
-    end
-  end
-
-  defp missing_aria_label?(node) do
-    case LazyHTML.attribute(node, "aria-label") do
-      [] -> true
-      labels -> Enum.all?(labels, &(String.trim(&1) == ""))
-    end
+    AxeAudit.assert_accessible!(filtered_html)
   end
 
   defp seed_flag! do
@@ -126,8 +107,17 @@ defmodule RulesteadAdmin.Live.FlagLive.Phase7AccessibilityTest do
       ]
     }
 
-    assert {:ok, _draft} = Rulestead.save_draft_ruleset(Command.SaveDraftRuleset.new(flag_key, environment_key, ruleset))
-    assert {:ok, _published} = Rulestead.publish_ruleset(Command.PublishRuleset.new(flag_key, environment_key))
+    assert {:ok, _draft} =
+             Rulestead.save_draft_ruleset(
+               Command.SaveDraftRuleset.new(flag_key, environment_key, ruleset,
+                 actor: @admin_actor
+               )
+             )
+
+    assert {:ok, _published} =
+             Rulestead.publish_ruleset(
+               Command.PublishRuleset.new(flag_key, environment_key, actor: @admin_actor)
+             )
   end
 
   defp ensure_environment!(key, name) do
