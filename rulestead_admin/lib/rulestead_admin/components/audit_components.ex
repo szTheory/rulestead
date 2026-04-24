@@ -140,6 +140,9 @@ defmodule RulesteadAdmin.Components.AuditComponents do
           <code>{@entry.after_summary}</code>
         </div>
       </div>
+      <ul :if={Map.get(@entry, :diff_lines, []) != []} class="rs-diff-card__positions">
+        <li :for={line <- @entry.diff_lines}>{line}</li>
+      </ul>
     </section>
     """
   end

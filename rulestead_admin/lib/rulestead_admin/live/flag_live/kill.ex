@@ -4,6 +4,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Kill do
   use Phoenix.LiveView
 
   alias RulesteadAdmin.Components.{AuditComponents, FlagComponents, Shell}
+  alias RulesteadAdmin.Live.Session
 
   @impl true
   def mount(_params, _session, socket) do
@@ -11,7 +12,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Kill do
      socket
      |> assign(:detail, nil)
      |> assign(:flag_key, nil)
-     |> assign(:current_path, "/admin/flags")
+     |> assign(:current_path, nil)
      |> assign(:env_links, %{})
      |> assign(:error_message, nil)
      |> assign(:confirmation_error, nil)
@@ -23,12 +24,13 @@ defmodule RulesteadAdmin.Live.FlagLive.Kill do
   @impl true
   def handle_params(%{"key" => key}, uri, socket) do
     env = query_params(uri)["env"] || socket.assigns.current_environment.key
+    base_path = build_base_path(socket, key)
 
     socket =
       socket
       |> assign(:flag_key, key)
-      |> assign(:current_path, build_path("/admin/flags/#{key}/kill", env))
-      |> assign(:env_links, detail_env_links(key, socket.assigns.available_environments))
+      |> assign(:current_path, Session.current_path(socket, base_path))
+      |> assign(:env_links, Session.env_links(socket, base_path))
       |> load_detail(key, env)
 
     {:noreply, socket}
@@ -46,7 +48,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Kill do
       env_links={@env_links}
     >
       <:header_actions>
-        <a :if={@flag_key} href={"/admin/flags/#{@flag_key}?env=#{@current_environment.key}"}>Back to detail</a>
+        <a :if={@flag_key} href={path_for(assigns, "/#{@flag_key}")}>Back to detail</a>
       </:header_actions>
 
       <p :if={@error_message} role="alert">{@error_message}</p>
@@ -57,9 +59,9 @@ defmodule RulesteadAdmin.Live.FlagLive.Kill do
           active?={kill_switch_active?(@detail)}
           flag_key={@detail.flag.key}
           environment_name={@detail.environment.name}
-          reason={latest_reason(@detail)}
+          reason={latest_reason(@detail, @current_actor)}
           kill_path={@current_path}
-          timeline_path={build_path("/admin/flags/#{@detail.flag.key}/timeline", @detail.environment.key)}
+          timeline_path={path_for(assigns, "/#{@detail.flag.key}/timeline")}
         />
 
         <div class="rs-summary-grid" aria-label="Kill switch summary">
@@ -176,14 +178,6 @@ defmodule RulesteadAdmin.Live.FlagLive.Kill do
     end
   end
 
-  defp detail_env_links(key, environments) do
-    Enum.into(environments, %{}, fn environment ->
-      {environment.key, build_path("/admin/flags/#{key}/kill", environment.key)}
-    end)
-  end
-
-  defp build_path(base, env), do: "#{base}?env=#{env}"
-
   defp query_params(uri) do
     uri
     |> URI.parse()
@@ -217,21 +211,21 @@ defmodule RulesteadAdmin.Live.FlagLive.Kill do
 
   defp kill_switch_active?(detail), do: detail.flag_environment.status == :killswitched
 
-  defp latest_reason(detail) do
+  defp latest_reason(detail, actor) do
     detail
-    |> fetch_latest_audit_reason()
+    |> fetch_latest_audit_reason(actor)
     |> case do
       nil -> nil
       value -> value
     end
   end
 
-  defp fetch_latest_audit_reason(detail) do
+  defp fetch_latest_audit_reason(detail, actor) do
     with {:ok, page} <-
            Rulestead.list_audit_events(
              flag_key: detail.flag.key,
              environment_key: detail.environment.key,
-             actor: detail_actor()
+             actor: actor
            ),
          event when is_map(event) <-
            Enum.find(page.entries, &(&1.event_type in ["kill_switch.engage", "kill_switch.release"])) do
@@ -241,5 +235,15 @@ defmodule RulesteadAdmin.Live.FlagLive.Kill do
     end
   end
 
-  defp detail_actor, do: %{id: "kill-page", roles: [:auditor]}
+  defp build_base_path(socket, key), do: admin_base_path(socket, "/#{key}/kill")
+
+  defp path_for(socket, suffix), do: Session.current_path(socket, admin_base_path(socket, suffix))
+
+  defp admin_base_path(socket_or_assigns, suffix),
+    do: "#{fetch_mount_path(socket_or_assigns)}#{suffix}"
+
+  defp fetch_mount_path(%Phoenix.LiveView.Socket{} = socket),
+    do: socket.assigns.rulestead_admin_mount_path
+
+  defp fetch_mount_path(%{rulestead_admin_mount_path: mount_path}), do: mount_path
 end

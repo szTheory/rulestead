@@ -16,7 +16,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
     {:ok,
      socket
      |> assign(:flag_key, nil)
-     |> assign(:current_path, "/admin/flags")
+     |> assign(:current_path, nil)
      |> assign(:sample_size, @sample_size)
      |> assign(:ladder_steps, @ladder_steps)
      |> assign(:detail, nil)
@@ -37,12 +37,13 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
   @impl true
   def handle_params(%{"key" => flag_key}, uri, socket) do
     env = query_params(uri)["env"] || socket.assigns.current_environment.key
+    base_path = build_base_path(socket, flag_key)
 
     socket =
       socket
       |> assign(:flag_key, flag_key)
-      |> assign(:current_path, build_path(flag_key, env))
-      |> assign(:env_links, detail_env_links(flag_key, socket.assigns.available_environments))
+      |> assign(:current_path, Session.current_path(socket, base_path))
+      |> assign(:env_links, Session.env_links(socket, base_path))
       |> load_page(flag_key, env)
 
     {:noreply, socket}
@@ -141,8 +142,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
       env_links={@env_links}
     >
       <:header_actions>
-        <a href={"/admin/flags/#{@flag_key}?env=#{@current_environment.key}"}>Back to detail</a>
-        <a href={"/admin/flags/#{@flag_key}/rules?env=#{@current_environment.key}"}>Open rules workspace</a>
+        <a href={path_for(assigns, "/#{@flag_key}")}>Back to detail</a>
+        <a href={path_for(assigns, "/#{@flag_key}/rules")}>Open rules workspace</a>
       </:header_actions>
 
       <OperatorComponents.banner
@@ -239,9 +240,12 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
 
     with {:ok, _draft} <-
            Rulestead.save_draft_ruleset(
-             Command.SaveDraftRuleset.new(detail.flag.key, detail.environment.key, ruleset)
+             Command.SaveDraftRuleset.new(detail.flag.key, detail.environment.key, ruleset,
+               actor: socket.assigns.current_actor,
+               metadata: command_metadata(socket, "rollouts.save_draft", rollout_reason(socket, mode))
+             )
            ),
-         {:ok, _published} <- maybe_publish(mode, detail.flag.key, detail.environment.key) do
+         {:ok, _published} <- maybe_publish(mode, detail.flag.key, detail.environment.key, socket) do
       message =
         case mode do
           :draft -> "Draft saved for #{detail.environment.name}"
@@ -261,10 +265,16 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
     end
   end
 
-  defp maybe_publish(:draft, _flag_key, _environment_key), do: {:ok, :draft_only}
+  defp maybe_publish(:draft, _flag_key, _environment_key, _socket), do: {:ok, :draft_only}
 
-  defp maybe_publish(:publish, flag_key, environment_key),
-    do: Rulestead.publish_ruleset(Command.PublishRuleset.new(flag_key, environment_key))
+  defp maybe_publish(:publish, flag_key, environment_key, socket) do
+    Rulestead.publish_ruleset(
+      Command.PublishRuleset.new(flag_key, environment_key,
+        actor: socket.assigns.current_actor,
+        metadata: command_metadata(socket, "rollouts.publish", rollout_reason(socket, :publish))
+      )
+    )
+  end
 
   defp load_page(socket, flag_key, env) do
     case Rulestead.fetch_flag(flag_key, env) do
@@ -543,14 +553,6 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
   defp sample_targeting_key(flag_key, environment_key, index),
     do: "#{flag_key}:#{environment_key}:preview:#{index}"
 
-  defp detail_env_links(flag_key, environments) do
-    Enum.into(environments, %{}, fn environment ->
-      {environment.key, build_path(flag_key, environment.key)}
-    end)
-  end
-
-  defp build_path(flag_key, env), do: "/admin/flags/#{flag_key}/rollouts?env=#{env}"
-
   defp query_params(uri) do
     uri
     |> URI.parse()
@@ -570,6 +572,34 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
 
   defp maybe_from_struct(%{__struct__: _} = value), do: Map.from_struct(value)
   defp maybe_from_struct(value), do: value
+
+  defp build_base_path(socket, flag_key), do: admin_base_path(socket, "/#{flag_key}/rollouts")
+
+  defp path_for(socket, suffix), do: Session.current_path(socket, admin_base_path(socket, suffix))
+
+  defp admin_base_path(socket_or_assigns, suffix),
+    do: "#{fetch_mount_path(socket_or_assigns)}#{suffix}"
+
+  defp fetch_mount_path(%Phoenix.LiveView.Socket{} = socket),
+    do: socket.assigns.rulestead_admin_mount_path
+
+  defp fetch_mount_path(%{rulestead_admin_mount_path: mount_path}), do: mount_path
+
+  defp command_metadata(socket, source, reason) do
+    %{
+      request_id: socket.id,
+      source: source,
+      reason: reason,
+      plan: "07-09",
+      environment_key: socket.assigns.current_environment.key
+    }
+  end
+
+  defp rollout_reason(socket, mode) do
+    percentage = socket.assigns.percentage || 0
+    prefix = if(mode == :draft, do: "Saved rollout draft", else: "Published rollout")
+    "#{prefix} at #{percentage}% for #{socket.assigns.current_environment.key}"
+  end
 
   defp field(value, key, default \\ nil)
   defp field(nil, _key, default), do: default

@@ -4,16 +4,17 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
   use Phoenix.LiveView
 
   alias RulesteadAdmin.Components.{AuditComponents, FlagComponents, Shell}
+  alias RulesteadAdmin.Live.Session
 
   @impl true
   def mount(_params, _session, socket) do
     {:ok,
      socket
      |> assign(:flag_key, nil)
-     |> assign(:current_path, "/admin/flags")
-      |> assign(:detail, nil)
+     |> assign(:current_path, nil)
+     |> assign(:detail, nil)
      |> assign(:error_message, nil)
-      |> assign(:env_links, %{})}
+     |> assign(:env_links, %{})}
   end
 
   @impl true
@@ -21,13 +22,13 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
     query = query_params(uri)
     key = params["key"]
     env = query["env"] || socket.assigns.current_environment.key
-    current_path = build_path("/admin/flags/#{key}", env)
+    base_path = detail_base_path(socket, key)
 
     socket =
       socket
       |> assign(:flag_key, key)
-      |> assign(:current_path, current_path)
-      |> assign(:env_links, detail_env_links(key, socket.assigns.available_environments))
+      |> assign(:current_path, Session.current_path(socket, base_path))
+      |> assign(:env_links, Session.env_links(socket, base_path))
       |> load_detail(key, env)
 
     {:noreply, socket}
@@ -48,10 +49,10 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
 
       <div :if={@detail} class="rs-detail">
         <div class="rs-detail__actions">
-          <a href={"/admin/flags/#{@detail.flag.key}/edit?env=#{@detail.environment.key}"}>Edit metadata</a>
-          <a href={"/admin/flags/#{@detail.flag.key}/rules?env=#{@detail.environment.key}"}>Open rules workspace</a>
-          <a href={"/admin/flags/#{@detail.flag.key}/kill?env=#{@detail.environment.key}"}>Open kill switch</a>
-          <a href={"/admin/flags/#{@detail.flag.key}/timeline?env=#{@detail.environment.key}"}>Open audit timeline</a>
+          <a href={path_for(assigns, "/#{@detail.flag.key}/edit")}>Edit metadata</a>
+          <a href={path_for(assigns, "/#{@detail.flag.key}/rules")}>Open rules workspace</a>
+          <a href={path_for(assigns, "/#{@detail.flag.key}/kill")}>Open kill switch</a>
+          <a href={path_for(assigns, "/#{@detail.flag.key}/timeline")}>Open audit timeline</a>
         </div>
 
         <AuditComponents.kill_switch_banner
@@ -59,9 +60,9 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
           active?={true}
           flag_key={@detail.flag.key}
           environment_name={@detail.environment.name}
-          reason={latest_reason(@detail)}
-          kill_path={"/admin/flags/#{@detail.flag.key}/kill?env=#{@detail.environment.key}"}
-          timeline_path={"/admin/flags/#{@detail.flag.key}/timeline?env=#{@detail.environment.key}"}
+          reason={latest_reason(@detail, @current_actor)}
+          kill_path={path_for(assigns, "/#{@detail.flag.key}/kill")}
+          timeline_path={path_for(assigns, "/#{@detail.flag.key}/timeline")}
           show_release_button={true}
         />
 
@@ -166,14 +167,6 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
     end
   end
 
-  defp detail_env_links(key, environments) do
-    Enum.into(environments, %{}, fn environment ->
-      {environment.key, build_path("/admin/flags/#{key}", environment.key)}
-    end)
-  end
-
-  defp build_path(base, env), do: "#{base}?env=#{env}"
-
   defp query_params(uri) do
     uri
     |> URI.parse()
@@ -193,12 +186,12 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
 
   defp kill_switch_active?(detail), do: detail.flag_environment.status == :killswitched
 
-  defp latest_reason(detail) do
+  defp latest_reason(detail, actor) do
     with {:ok, page} <-
            Rulestead.list_audit_events(
              flag_key: detail.flag.key,
              environment_key: detail.environment.key,
-             actor: %{id: "detail-page", roles: [:auditor]}
+             actor: actor
            ),
          event when is_map(event) <-
            Enum.find(page.entries, &(&1.event_type in ["kill_switch.engage", "kill_switch.release"])) do
@@ -207,4 +200,16 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
       _ -> nil
     end
   end
+
+  defp detail_base_path(socket, key), do: admin_base_path(socket, "/#{key}")
+
+  defp path_for(socket, suffix), do: Session.current_path(socket, admin_base_path(socket, suffix))
+
+  defp admin_base_path(socket_or_assigns, suffix),
+    do: "#{fetch_mount_path(socket_or_assigns)}#{suffix}"
+
+  defp fetch_mount_path(%Phoenix.LiveView.Socket{} = socket),
+    do: socket.assigns.rulestead_admin_mount_path
+
+  defp fetch_mount_path(%{rulestead_admin_mount_path: mount_path}), do: mount_path
 end
