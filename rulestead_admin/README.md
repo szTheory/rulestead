@@ -1,15 +1,18 @@
 # rulestead_admin
 
-`rulestead_admin` is the optional mounted LiveView admin package for Rulestead.
+`rulestead_admin` is the optional mounted admin package for Rulestead.
 
-Phase 6 ships the mounted list, detail, metadata form, and dedicated rules
-workspace surfaces. The package remains unpublished until Phase 8.
+This README documents the host-facing contract only. Internal LiveView modules,
+socket assigns, CSS/DOM structure, and other implementation details are not
+part of the public package promise.
 
 ## Mount seam
 
 Mount the admin routes from the host router with the package macro:
 
 ```elixir
+import RulesteadAdmin.Router
+
 scope "/" do
   pipe_through :browser
 
@@ -17,32 +20,31 @@ scope "/" do
 end
 ```
 
-The `policy:` option is required. The policy module owns host authorization
-through the `Rulestead.Admin.Policy` behaviour.
+The `policy:` option is required. The host policy module owns authorization via
+the `Rulestead.Admin.Policy` behaviour.
 
-## Session and environment model
+## Host session contract
 
 The mounted package expects the host session to provide:
 
 - `"current_actor"` for policy checks
 - `"rulestead_admin_environments"` as the environment picker source
-- `"rulestead_admin_last_env"` as the remembered fallback when the URL omits `?env=`
+- `"rulestead_admin_last_env"` as the remembered fallback when the URL omits `env`
 
-The URL query param `env` is the canonical environment selector for all Phase 6
-screens, including the dedicated `/admin/flags/:key/rules` workspace.
+## URL contract
 
-## Rules workspace
+The query param `?env=` is the canonical environment selector for mounted admin
+pages. Host apps should preserve it in links and redirects when they build
+adjacent tooling around the admin surface.
 
-The rules workspace keeps `Save draft` and `Publish` as distinct actions and
-loads reusable audience definitions through `Rulestead.list_audiences/1`. This
-lets segment-match rules reference shared audiences instead of repeating inline
-conditions for every flag.
+## When to install this package
 
-## Not in this package yet
+Add `rulestead_admin` only when your Phoenix app needs the mounted operator UI.
+Applications that only evaluate flags at runtime can depend on `rulestead`
+alone.
 
-Phase 7 workflows are still absent here. The package does not yet ship:
+## Next docs
 
-- simulation or explain workbenches
-- rollout controls
-- kill switch UI
-- audit timeline drilldowns
+- Root overview: [../README.md](../README.md)
+- Installation choices: [../guides/introduction/installation.md](../guides/introduction/installation.md)
+- Operator guidance: [../guides/flows/admin-ui.md](../guides/flows/admin-ui.md)
