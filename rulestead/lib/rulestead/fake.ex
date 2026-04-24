@@ -18,6 +18,8 @@ defmodule Rulestead.Fake do
     Flag,
     Governance.Approval,
     Governance.ChangeRequest,
+    Governance.ExecutionAttempt,
+    Governance.ScheduledExecution,
     Ruleset,
     RulesetError,
     Store,
@@ -39,6 +41,8 @@ defmodule Rulestead.Fake do
           flags: %{required(String.t()) => map()},
           change_requests: %{required(String.t()) => map()},
           approvals: %{required(String.t()) => [map()]},
+          scheduled_executions: %{required(String.t()) => map()},
+          execution_attempts: %{required(String.t()) => [map()]},
           audit_events: [map()],
           snapshots: %{required(String.t()) => %{required(pos_integer()) => map()}},
           snapshot_reads_connected?: boolean()
@@ -168,6 +172,41 @@ defmodule Rulestead.Fake do
   @impl Store
   def list_change_requests(%Command.ListChangeRequests{} = command) do
     call({:list_change_requests, command})
+  end
+
+  @impl Store
+  def schedule_change_request(%Command.ScheduleChangeRequest{} = command) do
+    call({:schedule_change_request, command})
+  end
+
+  @impl Store
+  def schedule_governed_action(%Command.ScheduleGovernedAction{} = command) do
+    call({:schedule_governed_action, command})
+  end
+
+  @impl Store
+  def cancel_scheduled_execution(%Command.CancelScheduledExecution{} = command) do
+    call({:cancel_scheduled_execution, command})
+  end
+
+  @impl Store
+  def requeue_scheduled_execution(%Command.RequeueScheduledExecution{} = command) do
+    call({:requeue_scheduled_execution, command})
+  end
+
+  @impl Store
+  def execute_scheduled_execution(%Command.ExecuteScheduledExecution{} = command) do
+    call({:execute_scheduled_execution, command})
+  end
+
+  @impl Store
+  def fetch_scheduled_execution(%Command.FetchScheduledExecution{} = command) do
+    call({:fetch_scheduled_execution, command})
+  end
+
+  @impl Store
+  def list_scheduled_executions(%Command.ListScheduledExecutions{} = command) do
+    call({:list_scheduled_executions, command})
   end
 
   @doc false
@@ -986,6 +1025,173 @@ defmodule Rulestead.Fake do
       }}, state}
   end
 
+  def handle_call({:schedule_change_request, command}, _from, state) do
+    reply =
+      with {:ok, change_request} <- fetch_change_request_record(state, command.change_request_id),
+           :ok <- ensure_governance_transition(change_request, ["approved"]) do
+        scheduled_execution =
+          new_scheduled_execution_record(state, %{
+            change_request_id: change_request.id,
+            governed_action: change_request.governed_action,
+            environment_key: change_request.environment_key,
+            resource_type: change_request.resource_type,
+            resource_key: change_request.resource_key,
+            execution_mode: "change_request",
+            scheduled_by_id: actor_value(command.actor, "id"),
+            scheduled_by_type: actor_value(command.actor, "type") || "operator",
+            scheduled_by_display: actor_value(command.actor, "display"),
+            approved_by_snapshot: approved_snapshot(state, change_request.id),
+            scheduled_for: command.scheduled_for,
+            command_snapshot: change_request.command_snapshot,
+            approval_requirement_snapshot: change_request.approval_requirement_snapshot,
+            metadata: command.metadata,
+            correlation_id: change_request.correlation_id,
+            idempotency_key: "scheduled_execution:change_request:#{change_request.id}"
+          })
+
+        next_state = put_in(state.scheduled_executions[scheduled_execution.id], scheduled_execution)
+        {:ok, %{scheduled_execution: serialize_scheduled_execution(scheduled_execution), attempts: []}, next_state}
+      end
+
+    case reply do
+      {:ok, payload, next_state} -> {:reply, {:ok, payload}, next_state}
+      {:error, error} -> {:reply, {:error, error}, state}
+    end
+  end
+
+  def handle_call({:schedule_governed_action, command}, _from, state) do
+    correlation_id = governance_correlation_id(command)
+
+    scheduled_execution =
+      new_scheduled_execution_record(state, %{
+        change_request_id: nil,
+        governed_action: Atom.to_string(command.action),
+        environment_key: command.environment_key,
+        resource_type: command.resource_type,
+        resource_key: command.resource_key,
+        execution_mode: Atom.to_string(command.execution_mode),
+        scheduled_by_id: actor_value(command.actor, "id"),
+        scheduled_by_type: actor_value(command.actor, "type") || "operator",
+        scheduled_by_display: actor_value(command.actor, "display"),
+        approved_by_snapshot: [],
+        scheduled_for: command.scheduled_for,
+        command_snapshot: command.command,
+        approval_requirement_snapshot: command.approval_requirement,
+        metadata: command.metadata,
+        correlation_id: correlation_id,
+        idempotency_key: "scheduled_execution:#{correlation_id}"
+      })
+
+    next_state = put_in(state.scheduled_executions[scheduled_execution.id], scheduled_execution)
+    {:reply, {:ok, %{scheduled_execution: serialize_scheduled_execution(scheduled_execution), attempts: []}}, next_state}
+  end
+
+  def handle_call({:cancel_scheduled_execution, command}, _from, state) do
+    reply =
+      with {:ok, scheduled_execution} <- fetch_scheduled_execution_record(state, command.scheduled_execution_id),
+           :ok <- ensure_scheduled_transition(scheduled_execution.state, ["scheduled", "running"]) do
+        updated =
+          scheduled_execution
+          |> Map.put(:state, "cancelled")
+          |> Map.put(:failure_reason, command.reason)
+          |> Map.put(:execution_metadata, scheduled_transition_metadata(scheduled_execution.execution_metadata, "cancelled", command, state.now))
+          |> Map.put(:updated_at, state.now)
+
+        next_state = put_in(state.scheduled_executions[updated.id], updated)
+        {:ok, %{scheduled_execution: serialize_scheduled_execution(updated), attempts: []}, next_state}
+      end
+
+    case reply do
+      {:ok, payload, next_state} -> {:reply, {:ok, payload}, next_state}
+      {:error, error} -> {:reply, {:error, error}, state}
+    end
+  end
+
+  def handle_call({:requeue_scheduled_execution, command}, _from, state) do
+    reply =
+      with {:ok, scheduled_execution} <- fetch_scheduled_execution_record(state, command.scheduled_execution_id),
+           :ok <- ensure_scheduled_transition(scheduled_execution.state, ["quarantined"]) do
+        updated =
+          scheduled_execution
+          |> Map.put(:state, "scheduled")
+          |> Map.put(:failure_reason, nil)
+          |> Map.put(:execution_metadata, scheduled_transition_metadata(scheduled_execution.execution_metadata, "requeued", command, state.now))
+          |> Map.put(:updated_at, state.now)
+
+        next_state = put_in(state.scheduled_executions[updated.id], updated)
+
+        {:ok,
+         %{
+           scheduled_execution: serialize_scheduled_execution(updated),
+           attempts: list_execution_attempts(state, updated.id) |> Enum.map(&serialize_execution_attempt/1)
+         }, next_state}
+      end
+
+    case reply do
+      {:ok, payload, next_state} -> {:reply, {:ok, payload}, next_state}
+      {:error, error} -> {:reply, {:error, error}, state}
+    end
+  end
+
+  def handle_call({:execute_scheduled_execution, command}, _from, state) do
+    case fetch_scheduled_execution_record(state, command.scheduled_execution_id) do
+      {:ok, %{state: "completed"} = scheduled_execution} ->
+        {:reply,
+         {:ok,
+          %{
+            scheduled_execution: serialize_scheduled_execution(scheduled_execution),
+            attempts: list_execution_attempts(state, scheduled_execution.id) |> Enum.map(&serialize_execution_attempt/1)
+          }}, state}
+
+      {:ok, %{state: "cancelled"}} ->
+        {:reply, {:error, StoreError.invalid_command("scheduled execution is cancelled")}, state}
+
+      {:ok, %{state: "quarantined"}} ->
+        {:reply, {:error, StoreError.invalid_command("scheduled execution requires explicit requeue")}, state}
+
+      {:ok, scheduled_execution} ->
+        case run_scheduled_execution(state, scheduled_execution, command) do
+          {:ok, payload, next_state} -> {:reply, {:ok, payload}, next_state}
+          {:error, error, next_state} -> {:reply, {:error, error}, next_state}
+        end
+
+      {:error, error} ->
+        {:reply, {:error, error}, state}
+    end
+  end
+
+  def handle_call({:fetch_scheduled_execution, command}, _from, state) do
+    reply =
+      with {:ok, scheduled_execution} <- fetch_scheduled_execution_record(state, command.scheduled_execution_id) do
+        {:ok,
+         %{
+           scheduled_execution: serialize_scheduled_execution(scheduled_execution),
+           attempts: list_execution_attempts(state, scheduled_execution.id) |> Enum.map(&serialize_execution_attempt/1)
+         }}
+      end
+
+    {:reply, reply, state}
+  end
+
+  def handle_call({:list_scheduled_executions, command}, _from, state) do
+    entries =
+      state.scheduled_executions
+      |> Map.values()
+      |> Enum.filter(&matches_scheduled_execution_filter?(&1, command))
+      |> Enum.sort_by(& &1.scheduled_for, DateTime)
+      |> Enum.take(command.limit)
+      |> Enum.map(&serialize_scheduled_execution/1)
+
+    {:reply,
+     {:ok,
+      %Command.Page{
+        entries: entries,
+        limit: command.limit,
+        has_next_page?: false,
+        has_previous_page?: false
+      }}, state}
+  end
+
   defp call(message) do
     case Process.whereis(__MODULE__) do
       nil -> {:error, StoreError.unavailable(details: [%{message: "fake store is not started"}])}
@@ -1000,6 +1206,8 @@ defmodule Rulestead.Fake do
       audiences: %{},
       change_requests: %{},
       approvals: %{},
+      scheduled_executions: %{},
+      execution_attempts: %{},
       audit_events: [],
       flags: %{},
       snapshots: %{},
@@ -1486,8 +1694,36 @@ defmodule Rulestead.Fake do
   defp governance_state("cancelled"), do: :cancelled
   defp governance_state("executed"), do: :executed
 
+  defp scheduled_state("scheduled"), do: :scheduled
+  defp scheduled_state("running"), do: :running
+  defp scheduled_state("completed"), do: :completed
+  defp scheduled_state("failed"), do: :failed
+  defp scheduled_state("quarantined"), do: :quarantined
+  defp scheduled_state("cancelled"), do: :cancelled
+  defp scheduled_state(_state), do: :scheduled
+
   defp governance_decision("approved"), do: :approved
   defp governance_decision(_decision), do: :rejected
+
+  defp execution_attempt_state("running"), do: :running
+  defp execution_attempt_state("completed"), do: :completed
+  defp execution_attempt_state("failed"), do: :failed
+  defp execution_attempt_state("quarantined"), do: :quarantined
+  defp execution_attempt_state("cancelled"), do: :cancelled
+  defp execution_attempt_state(_state), do: :failed
+
+  defp scheduled_execution_mode("change_request"), do: :change_request
+  defp scheduled_execution_mode("policy_bypass"), do: :policy_bypass
+  defp scheduled_execution_mode("emergency_bypass"), do: :emergency_bypass
+  defp scheduled_execution_mode(_mode), do: :change_request
+
+  defp ensure_scheduled_transition(state, allowed_states) do
+    if state in allowed_states do
+      :ok
+    else
+      {:error, StoreError.invalid_command("scheduled execution is not in a valid state for this operation")}
+    end
+  end
 
   defp governance_action(action) when is_binary(action) do
     action
@@ -1518,6 +1754,27 @@ defmodule Rulestead.Fake do
   defp governance_correlation_id(command) do
     get_in(command.metadata, ["request_id"]) || Ecto.UUID.generate()
   end
+
+  defp scheduled_transition_metadata(existing, state, command, now) do
+    Map.merge(existing || %{}, %{
+      "last_transition" => state,
+      "last_transition_at" => DateTime.to_iso8601(now),
+      "last_actor" => command.actor || %{},
+      "last_reason" => command.reason,
+      "request_id" => command.metadata[:request_id] || command.metadata["request_id"]
+    })
+  end
+
+  defp normalize_failure_reason(%Rulestead.Error{message: message}), do: normalize_failure_reason(message)
+
+  defp normalize_failure_reason(reason) when is_binary(reason) do
+    case String.trim(reason) do
+      "" -> "scheduled execution failed"
+      value -> value
+    end
+  end
+
+  defp normalize_failure_reason(reason), do: inspect(reason)
 
   defp execute_governed_change(
          state,
@@ -1584,6 +1841,189 @@ defmodule Rulestead.Fake do
     {:error, StoreError.invalid_command("governed action is not implemented")}
   end
 
+  defp run_scheduled_execution(state, scheduled_execution, command) do
+    attempt_number = scheduled_execution.attempt_count + 1
+
+    attempt = %{
+      id: Ecto.UUID.generate(),
+      scheduled_execution_id: scheduled_execution.id,
+      attempt_number: attempt_number,
+      state: "running",
+      started_at: state.now,
+      finished_at: nil,
+      failure_reason: nil,
+      metadata: command.metadata
+    }
+
+    state_with_attempt =
+      update_in(state.execution_attempts[scheduled_execution.id], fn attempts ->
+        (attempts || []) ++ [attempt]
+      end)
+
+    case perform_scheduled_execution(state_with_attempt, scheduled_execution, command) do
+      {:ok, execution_result, execution_state} ->
+        updated_attempt =
+          attempt
+          |> Map.put(:state, "completed")
+          |> Map.put(:finished_at, execution_state.now)
+
+        updated_scheduled_execution =
+          execution_state.scheduled_executions[scheduled_execution.id]
+          |> Map.put(:state, "completed")
+          |> Map.put(:attempt_count, attempt_number)
+          |> Map.put(:executed_at, execution_state.now)
+          |> Map.put(:failure_reason, nil)
+          |> Map.put(
+            :execution_metadata,
+            scheduled_transition_metadata(
+              scheduled_execution.execution_metadata,
+              "completed",
+              command,
+              execution_state.now
+            )
+          )
+          |> Map.put(:updated_at, execution_state.now)
+
+        next_state =
+          execution_state
+          |> put_in([:execution_attempts, scheduled_execution.id], replace_attempt(execution_state, updated_attempt))
+          |> put_in([:scheduled_executions, scheduled_execution.id], updated_scheduled_execution)
+
+        {:ok,
+         %{
+           scheduled_execution: serialize_scheduled_execution(updated_scheduled_execution),
+           execution_result: execution_result,
+           attempts: list_execution_attempts(next_state, scheduled_execution.id) |> Enum.map(&serialize_execution_attempt/1)
+         }, next_state}
+
+      {:error, error, execution_state} ->
+        failure_reason = normalize_failure_reason(error)
+        next_state_name = if attempt_number >= 3, do: "quarantined", else: "scheduled"
+        attempt_state = if next_state_name == "quarantined", do: "quarantined", else: "failed"
+
+        updated_attempt =
+          attempt
+          |> Map.put(:state, attempt_state)
+          |> Map.put(:finished_at, execution_state.now)
+          |> Map.put(:failure_reason, failure_reason)
+
+        updated_scheduled_execution =
+          scheduled_execution
+          |> Map.put(:state, next_state_name)
+          |> Map.put(:attempt_count, attempt_number)
+          |> Map.put(:failure_reason, failure_reason)
+          |> Map.put(
+            :execution_metadata,
+            scheduled_transition_metadata(
+              scheduled_execution.execution_metadata,
+              next_state_name,
+              command,
+              execution_state.now
+            )
+          )
+          |> Map.put(:updated_at, execution_state.now)
+
+        next_state =
+          execution_state
+          |> put_in([:execution_attempts, scheduled_execution.id], replace_attempt(execution_state, updated_attempt))
+          |> put_in([:scheduled_executions, scheduled_execution.id], updated_scheduled_execution)
+
+        {:error, StoreError.invalid_command(failure_reason), next_state}
+    end
+  end
+
+  defp perform_scheduled_execution(state, %{change_request_id: change_request_id}, command)
+       when is_binary(change_request_id) do
+    with {:ok, change_request} <- fetch_change_request_record(state, change_request_id),
+         {:ok, execution_result, next_state} <- execute_governed_change(state, change_request, command) do
+      updated_change_request =
+        change_request
+        |> Map.put(:status, "executed")
+        |> Map.put(:resolved_at, next_state.now)
+        |> Map.put(:executed_at, next_state.now)
+        |> Map.put(:updated_at, next_state.now)
+
+      audit_command = governance_audit_command(command, updated_change_request, "merged")
+      {audit_event, post_audit_state} = append_audit_event(next_state, audit_command, "change_request.merged", :ok)
+
+      final_state =
+        post_audit_state
+        |> put_in([:change_requests, change_request.id], updated_change_request)
+        |> update_in([:audit_events], fn events -> [audit_event | events] end)
+
+      {:ok, execution_result, final_state}
+    end
+  end
+
+  defp perform_scheduled_execution(state, %{governed_action: "publish_ruleset"} = scheduled_execution, command) do
+    version = scheduled_execution.command_snapshot["version"]
+
+    result =
+      with {:ok, environment} <- fetch_environment(state, scheduled_execution.environment_key),
+           {:ok, flag, flag_environment} <-
+             fetch_flag_environment(state, scheduled_execution.resource_key, environment.key),
+           {:ok, ruleset_record} <- resolve_publishable_ruleset(flag, environment.key, version),
+           {:ok, next_state} <-
+             publish_ruleset_record(
+               state,
+               scheduled_execution.resource_key,
+               environment.key,
+               flag_environment,
+               ruleset_record
+             ) do
+        publish_command =
+          Command.PublishRuleset.new(scheduled_execution.resource_key, environment.key,
+            version: version,
+            actor: command.actor,
+            reason: command.reason,
+            metadata: %{
+              request_id: scheduled_execution.correlation_id,
+              source: scheduled_execution.metadata["source"],
+              scheduled_execution_id: scheduled_execution.id,
+              execution_stage: "scheduled_execution"
+            }
+          )
+
+        before_ruleset =
+          active_ruleset_payload(flag, environment.key, flag_environment.active_ruleset_version)
+
+        {audit_event, post_audit_state} =
+          append_audit_event(next_state, publish_command, "ruleset.publish", :ok,
+            before: ruleset_audit_state(before_ruleset),
+            after: ruleset_audit_state(ruleset_record),
+            diff: ruleset_position_diff(before_ruleset, ruleset_record),
+            metadata: %{"version" => ruleset_record.version}
+          )
+
+        updated_state = %{post_audit_state | audit_events: [audit_event | post_audit_state.audit_events]}
+        updated_flag = updated_state.flags[to_string(scheduled_execution.resource_key)]
+        updated_flag_environment = updated_flag.environments[environment.key]
+
+        execution_result =
+          build_flag_detail_payload(
+            updated_state,
+            updated_flag,
+            environment,
+            updated_flag_environment,
+            true
+          )
+
+        {:ok, execution_result, updated_state}
+      end
+
+    case result do
+      {:ok, execution_result, next_state} ->
+        {:ok, execution_result, next_state}
+
+      {:error, error} ->
+        {:error, error, state}
+    end
+  end
+
+  defp perform_scheduled_execution(state, _scheduled_execution, _command) do
+    {:error, StoreError.invalid_command("governed action is not implemented"), state}
+  end
+
   defp emit_governance_telemetry(event, command, change_request, audit_event) do
     Telemetry.execute(
       [:rulestead, :admin, :change_request, event],
@@ -1631,6 +2071,152 @@ defmodule Rulestead.Fake do
 
     matches_environment and matches_action and matches_status and matches_resource_type and
       matches_resource_key and matches_submitter
+  end
+
+  defp fetch_scheduled_execution_record(state, scheduled_execution_id) do
+    case Map.fetch(state.scheduled_executions, to_string(scheduled_execution_id)) do
+      {:ok, scheduled_execution} -> {:ok, scheduled_execution}
+      :error -> {:error, StoreError.invalid_command("scheduled execution was not found")}
+    end
+  end
+
+  defp approved_snapshot(state, change_request_id) do
+    state.approvals
+    |> Map.get(change_request_id, [])
+    |> Enum.filter(&(&1.decision == "approved"))
+    |> Enum.map(fn approval ->
+      %{
+        "id" => approval.reviewer_id,
+        "type" => approval.reviewer_type,
+        "display" => approval.reviewer_display
+      }
+    end)
+  end
+
+  defp new_scheduled_execution_record(state, attrs) do
+    %{
+      id: Ecto.UUID.generate(),
+      state: "scheduled",
+      change_request_id: attrs.change_request_id,
+      governed_action: attrs.governed_action,
+      environment_key: attrs.environment_key,
+      resource_type: attrs.resource_type,
+      resource_key: attrs.resource_key,
+      execution_mode: attrs.execution_mode,
+      scheduled_by_id: attrs.scheduled_by_id,
+      scheduled_by_type: attrs.scheduled_by_type,
+      scheduled_by_display: attrs.scheduled_by_display,
+      approved_by_snapshot: attrs.approved_by_snapshot,
+      execution_metadata: %{},
+      scheduled_for: attrs.scheduled_for,
+      executed_at: nil,
+      attempt_count: 0,
+      failure_reason: nil,
+      last_oban_job_id: nil,
+      command_snapshot: attrs.command_snapshot,
+      approval_requirement_snapshot: attrs.approval_requirement_snapshot,
+      metadata: attrs.metadata,
+      correlation_id: attrs.correlation_id,
+      idempotency_key: attrs.idempotency_key,
+      inserted_at: state.now,
+      updated_at: state.now
+    }
+  end
+
+  defp replace_attempt(state, updated_attempt) do
+    state.execution_attempts
+    |> Map.get(updated_attempt.scheduled_execution_id, [])
+    |> Enum.map(fn attempt ->
+      if attempt.id == updated_attempt.id, do: updated_attempt, else: attempt
+    end)
+  end
+
+  defp list_execution_attempts(state, scheduled_execution_id) do
+    state.execution_attempts
+    |> Map.get(scheduled_execution_id, [])
+    |> Enum.sort_by(& &1.attempt_number)
+  end
+
+  defp serialize_scheduled_execution(row) do
+    %{
+      id: row.id,
+      state: scheduled_state(row.state),
+      action: governance_action(row.governed_action),
+      change_request_id: row.change_request_id,
+      environment_key: row.environment_key,
+      resource_type: row.resource_type,
+      resource_key: row.resource_key,
+      execution_mode: scheduled_execution_mode(row.execution_mode),
+      scheduled_by: %{
+        "id" => row.scheduled_by_id,
+        "type" => row.scheduled_by_type,
+        "display" => row.scheduled_by_display
+      },
+      approved_by_snapshot: row.approved_by_snapshot || [],
+      execution_metadata: row.execution_metadata || %{},
+      scheduled_for: row.scheduled_for,
+      executed_at: row.executed_at,
+      attempt_count: row.attempt_count,
+      failure_reason: row.failure_reason,
+      last_oban_job_id: row.last_oban_job_id,
+      correlation_id: row.correlation_id,
+      idempotency_key: row.idempotency_key,
+      command_snapshot: row.command_snapshot || %{},
+      approval_requirement_snapshot: row.approval_requirement_snapshot || %{},
+      metadata: row.metadata || %{}
+    }
+    |> ScheduledExecution.new()
+    |> ScheduledExecution.serialize()
+    |> Map.put(:id, row.id)
+  end
+
+  defp serialize_execution_attempt(row) do
+    %{
+      id: row.id,
+      scheduled_execution_id: row.scheduled_execution_id,
+      attempt_number: row.attempt_number,
+      state: execution_attempt_state(row.state),
+      started_at: row.started_at,
+      finished_at: row.finished_at,
+      failure_reason: row.failure_reason,
+      metadata: row.metadata || %{}
+    }
+    |> ExecutionAttempt.new()
+    |> ExecutionAttempt.serialize()
+    |> Map.put(:id, row.id)
+  end
+
+  defp matches_scheduled_execution_filter?(scheduled_execution, command) do
+    matches_environment =
+      is_nil(command.environment_key) or scheduled_execution.environment_key == command.environment_key
+
+    matches_state =
+      is_nil(command.state) or scheduled_execution.state == normalize_change_request_filter(command.state)
+
+    matches_action =
+      is_nil(command.action) or scheduled_execution.governed_action == normalize_change_request_filter(command.action)
+
+    matches_resource_type =
+      is_nil(command.resource_type) or scheduled_execution.resource_type == command.resource_type
+
+    matches_resource_key =
+      is_nil(command.resource_key) or scheduled_execution.resource_key == command.resource_key
+
+    matches_actor =
+      is_nil(command.scheduled_by_id) or scheduled_execution.scheduled_by_id == command.scheduled_by_id
+
+    matches_change_request =
+      is_nil(command.change_request_id) or scheduled_execution.change_request_id == command.change_request_id
+
+    matches_after =
+      is_nil(command.after) or DateTime.compare(scheduled_execution.scheduled_for, command.after) != :lt
+
+    matches_before =
+      is_nil(command.before) or DateTime.compare(scheduled_execution.scheduled_for, command.before) != :gt
+
+    matches_environment and matches_state and matches_action and matches_resource_type and
+      matches_resource_key and matches_actor and matches_change_request and matches_after and
+      matches_before
   end
 
   defp actor_value(nil, _key), do: nil

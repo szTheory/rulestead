@@ -12,10 +12,14 @@ defmodule Rulestead.Store.Ecto do
     Audience,
     Governance.Approval,
     Governance.ChangeRequest,
+    Governance.ExecutionAttempt,
+    Governance.ScheduledExecution,
     AuditEvent,
+    Context,
     Environment,
     Flag,
     FlagEnvironment,
+    Oban,
     Repo,
     RuntimeSnapshot,
     Ruleset,
@@ -28,6 +32,7 @@ defmodule Rulestead.Store.Ecto do
   alias Rulestead.Store.Command
 
   @snapshot_schema_version 1
+  @scheduled_execution_retry_limit 3
 
   @behaviour Store
 
@@ -754,6 +759,242 @@ defmodule Rulestead.Store.Ecto do
       |> Repo.all()
       |> Enum.map(&normalize_governance_row/1)
       |> Enum.map(&serialize_change_request_row/1)
+
+    {:ok,
+     %Command.Page{
+       entries: entries,
+       limit: command.limit,
+       has_next_page?: false,
+       has_previous_page?: false
+     }}
+  end
+
+  @impl Store
+  def schedule_change_request(%Command.ScheduleChangeRequest{} = command) do
+    with {:ok, change_request} <- fetch_change_request_row(command.change_request_id),
+         :ok <- ensure_governance_transition(change_request, ["approved"]),
+         {:ok, approvals} <- approved_snapshot(change_request.id) do
+      attrs = %{
+        state: "scheduled",
+        change_request_id: uuid_param(change_request.id),
+        governed_action: change_request.governed_action,
+        environment_key: change_request.environment_key,
+        resource_type: change_request.resource_type,
+        resource_key: change_request.resource_key,
+        execution_mode: "change_request",
+        scheduled_by_id: actor_value(command.actor, "id"),
+        scheduled_by_type: actor_value(command.actor, "type") || "operator",
+        scheduled_by_display: actor_value(command.actor, "display"),
+        approved_by_snapshot: approvals,
+        execution_metadata: %{},
+        scheduled_for: command.scheduled_for,
+        executed_at: nil,
+        attempt_count: 0,
+        failure_reason: nil,
+        last_oban_job_id: nil,
+        command_snapshot: change_request.command_snapshot,
+        approval_requirement_snapshot: change_request.approval_requirement_snapshot,
+        metadata: command.metadata,
+        correlation_id: change_request.correlation_id,
+        idempotency_key: "scheduled_execution:change_request:#{change_request.id}",
+        inserted_at: now(),
+        updated_at: now()
+      }
+
+      insert_scheduled_execution(attrs, command)
+    end
+  end
+
+  @impl Store
+  def schedule_governed_action(%Command.ScheduleGovernedAction{} = command) do
+    correlation_id = governance_correlation_id(command)
+    inserted_at = now()
+
+    attrs = %{
+      state: "scheduled",
+      change_request_id: nil,
+      governed_action: Atom.to_string(command.action),
+      environment_key: command.environment_key,
+      resource_type: command.resource_type,
+      resource_key: command.resource_key,
+      execution_mode: Atom.to_string(command.execution_mode),
+      scheduled_by_id: actor_value(command.actor, "id"),
+      scheduled_by_type: actor_value(command.actor, "type") || "operator",
+      scheduled_by_display: actor_value(command.actor, "display"),
+      approved_by_snapshot: [],
+      execution_metadata: %{},
+      scheduled_for: command.scheduled_for,
+      executed_at: nil,
+      attempt_count: 0,
+      failure_reason: nil,
+      last_oban_job_id: nil,
+      command_snapshot: command.command,
+      approval_requirement_snapshot: command.approval_requirement,
+      metadata: command.metadata,
+      correlation_id: correlation_id,
+      idempotency_key: "scheduled_execution:#{correlation_id}",
+      inserted_at: inserted_at,
+      updated_at: inserted_at
+    }
+
+    insert_scheduled_execution(attrs, command)
+  end
+
+  @impl Store
+  def cancel_scheduled_execution(%Command.CancelScheduledExecution{} = command) do
+    with {:ok, scheduled_execution} <- fetch_scheduled_execution_row(command.scheduled_execution_id),
+         :ok <- ensure_scheduled_transition(scheduled_execution.state, ["scheduled", "running"]) do
+      updates = [
+        state: "cancelled",
+        failure_reason: command.reason,
+        executed_at: scheduled_execution.executed_at,
+        execution_metadata:
+          scheduled_transition_metadata(
+            scheduled_execution.execution_metadata,
+            "cancelled",
+            command
+          ),
+        updated_at: now()
+      ]
+
+      case update_scheduled_execution_row(scheduled_execution.id, updates) do
+        {:ok, updated} ->
+          {:ok, %{scheduled_execution: serialize_scheduled_execution_row(updated), attempts: []}}
+
+        {:error, error} ->
+          {:error, error}
+      end
+    end
+  end
+
+  @impl Store
+  def requeue_scheduled_execution(%Command.RequeueScheduledExecution{} = command) do
+    with {:ok, scheduled_execution} <- fetch_scheduled_execution_row(command.scheduled_execution_id),
+         :ok <- ensure_scheduled_transition(scheduled_execution.state, ["quarantined"]) do
+      Multi.new()
+      |> Multi.run(:scheduled_execution, fn repo, _changes ->
+        repo.update_all(
+          from(se in "scheduled_executions", where: field(se, :id) == ^uuid_param(scheduled_execution.id)),
+          set: [
+            state: "scheduled",
+            failure_reason: nil,
+            execution_metadata:
+              scheduled_transition_metadata(
+                scheduled_execution.execution_metadata,
+                "requeued",
+                command
+              ),
+            updated_at: now()
+          ]
+        )
+
+        fetch_scheduled_execution_row(scheduled_execution.id)
+      end)
+      |> Multi.run(:oban_job, fn repo, %{scheduled_execution: updated} ->
+        enqueue_scheduled_execution_job(repo, updated, command.actor, now())
+      end)
+      |> Multi.run(:persist_job_id, fn repo, %{scheduled_execution: updated, oban_job: oban_job} ->
+        repo.update_all(
+          from(se in "scheduled_executions", where: field(se, :id) == ^uuid_param(updated.id)),
+          set: [last_oban_job_id: oban_job.id, updated_at: now()]
+        )
+
+        fetch_scheduled_execution_row(updated.id)
+      end)
+      |> Repo.transact()
+      |> case do
+        {:ok, %{persist_job_id: updated}} ->
+          {:ok,
+           %{
+             scheduled_execution: serialize_scheduled_execution_row(updated),
+             attempts: list_execution_attempt_rows(updated.id) |> Enum.map(&serialize_execution_attempt_row/1)
+           }}
+
+        {:error, _operation, reason, _changes} ->
+          {:error, normalize_governance_failure(reason)}
+      end
+    end
+  end
+
+  @impl Store
+  def execute_scheduled_execution(%Command.ExecuteScheduledExecution{} = command) do
+    with {:ok, scheduled_execution} <- fetch_scheduled_execution_row(command.scheduled_execution_id) do
+      case scheduled_execution.state do
+        "completed" ->
+          {:ok,
+           %{
+             scheduled_execution: serialize_scheduled_execution_row(scheduled_execution),
+             attempts: list_execution_attempt_rows(scheduled_execution.id) |> Enum.map(&serialize_execution_attempt_row/1)
+           }}
+
+        "cancelled" ->
+          {:error, StoreError.invalid_command("scheduled execution is cancelled")}
+
+        "quarantined" ->
+          {:error, StoreError.invalid_command("scheduled execution requires explicit requeue")}
+
+        _other ->
+          run_scheduled_execution(command, scheduled_execution)
+      end
+    end
+  end
+
+  @impl Store
+  def fetch_scheduled_execution(%Command.FetchScheduledExecution{} = command) do
+    with {:ok, scheduled_execution} <- fetch_scheduled_execution_row(command.scheduled_execution_id) do
+      {:ok,
+       %{
+         scheduled_execution: serialize_scheduled_execution_row(scheduled_execution),
+         attempts: list_execution_attempt_rows(scheduled_execution.id) |> Enum.map(&serialize_execution_attempt_row/1)
+       }}
+    end
+  end
+
+  @impl Store
+  def list_scheduled_executions(%Command.ListScheduledExecutions{} = command) do
+    entries =
+      from(se in "scheduled_executions",
+        order_by: [asc: field(se, :scheduled_for), asc: field(se, :inserted_at)],
+        limit: ^command.limit,
+        select:
+          map(se, [
+            :id,
+            :state,
+            :change_request_id,
+            :governed_action,
+            :environment_key,
+            :resource_type,
+            :resource_key,
+            :execution_mode,
+            :scheduled_by_id,
+            :scheduled_by_type,
+            :scheduled_by_display,
+            :approved_by_snapshot,
+            :execution_metadata,
+            :scheduled_for,
+            :executed_at,
+            :attempt_count,
+            :failure_reason,
+            :last_oban_job_id,
+            :command_snapshot,
+            :approval_requirement_snapshot,
+            :metadata,
+            :correlation_id,
+            :idempotency_key
+          ])
+      )
+      |> maybe_filter_scheduled_execution(:environment_key, command.environment_key)
+      |> maybe_filter_scheduled_execution(:resource_type, command.resource_type)
+      |> maybe_filter_scheduled_execution(:resource_key, command.resource_key)
+      |> maybe_filter_scheduled_execution(:change_request_id, command.change_request_id)
+      |> maybe_filter_scheduled_execution(:scheduled_by_id, command.scheduled_by_id)
+      |> maybe_filter_scheduled_state(command.state)
+      |> maybe_filter_scheduled_action(command.action)
+      |> maybe_filter_scheduled_window(:after, command.after)
+      |> maybe_filter_scheduled_window(:before, command.before)
+      |> Repo.all()
+      |> Enum.map(&normalize_scheduled_execution_row/1)
+      |> Enum.map(&serialize_scheduled_execution_row/1)
 
     {:ok,
      %Command.Page{
@@ -1755,7 +1996,7 @@ defmodule Rulestead.Store.Ecto do
               Command.FetchFlag.new(change_request.resource_key, change_request.environment_key)
             )
 
-          {:ok, execution_result, updated_change_request, audit_event}
+      {:ok, execution_result, updated_change_request, audit_event}
 
         {:error, _operation, reason, _changes} ->
           {:error, normalize_governance_failure(reason)}
@@ -1765,6 +2006,331 @@ defmodule Rulestead.Store.Ecto do
 
   defp execute_governed_change(_change_request, _command) do
     {:error, StoreError.invalid_command("governed action is not implemented")}
+  end
+
+  defp insert_scheduled_execution(attrs, command) do
+    Multi.new()
+    |> Multi.run(:scheduled_execution, fn repo, _changes ->
+      case repo.insert_all("scheduled_executions", [attrs], returning: scheduled_execution_fields()) do
+        {1, [row]} -> {:ok, normalize_scheduled_execution_row(row)}
+        _ -> {:error, StoreError.unavailable()}
+      end
+    end)
+    |> Multi.run(:oban_job, fn repo, %{scheduled_execution: scheduled_execution} ->
+      enqueue_scheduled_execution_job(repo, scheduled_execution, command.actor, scheduled_execution.scheduled_for)
+    end)
+    |> Multi.run(:persist_job_id, fn repo, %{scheduled_execution: scheduled_execution, oban_job: oban_job} ->
+      repo.update_all(
+        from(se in "scheduled_executions", where: field(se, :id) == ^uuid_param(scheduled_execution.id)),
+        set: [last_oban_job_id: oban_job.id, updated_at: now()]
+      )
+
+      fetch_scheduled_execution_row(scheduled_execution.id)
+    end)
+    |> Repo.transact()
+    |> case do
+      {:ok, %{persist_job_id: scheduled_execution}} ->
+        {:ok, %{scheduled_execution: serialize_scheduled_execution_row(scheduled_execution), attempts: []}}
+
+      {:error, _operation, reason, _changes} ->
+        {:error, normalize_governance_failure(reason)}
+    end
+  end
+
+  defp enqueue_scheduled_execution_job(repo, scheduled_execution, actor, scheduled_at) do
+    existing_job_id =
+      from(job in "oban_jobs",
+        where:
+          fragment("?->>'scheduled_execution_id' = ?", field(job, :args), ^scheduled_execution.id) and
+            field(job, :state) in ["scheduled", "available", "executing", "retryable"],
+        select: field(job, :id),
+        limit: 1
+      )
+      |> repo.one()
+
+    case existing_job_id do
+      nil ->
+        job =
+          scheduled_execution
+          |> ScheduledExecution.new()
+          |> Map.put(:scheduled_for, scheduled_at)
+          |> Oban.scheduled_execution_job(
+            Context.new(
+              actor: Map.new(actor || %{}),
+              environment: scheduled_execution.environment_key,
+              request_id: scheduled_execution.correlation_id,
+              attributes: %{"source" => "scheduled_execution_worker"}
+            )
+          )
+
+        case repo.insert_all("oban_jobs", [job], returning: [:id, :worker, :args, :scheduled_at, :state]) do
+          {1, [row]} -> {:ok, Map.new(row)}
+          _ -> {:error, StoreError.unavailable()}
+        end
+
+      job_id ->
+        {:ok, %{id: job_id}}
+    end
+  end
+
+  defp run_scheduled_execution(command, scheduled_execution) do
+    attempt_number = scheduled_execution.attempt_count + 1
+    started_at = now()
+
+    with {:ok, attempt} <- insert_execution_attempt_row(scheduled_execution.id, attempt_number, "running", started_at, nil, command.metadata) do
+      case perform_scheduled_execution(scheduled_execution, command) do
+        {:ok, execution_result} ->
+          finalize_scheduled_execution_success(scheduled_execution, attempt, command, execution_result)
+
+        {:error, reason} ->
+          finalize_scheduled_execution_failure(scheduled_execution, attempt, command, reason)
+      end
+    end
+  end
+
+  defp perform_scheduled_execution(%{change_request_id: change_request_id} = _scheduled_execution, command)
+       when is_binary(change_request_id) do
+    with {:ok, change_request} <- fetch_change_request_row(change_request_id),
+         {:ok, execution_result, _updated_change_request, _audit_event} <-
+           execute_governed_change(change_request, command) do
+      {:ok, execution_result}
+    end
+  end
+
+  defp perform_scheduled_execution(%{governed_action: "publish_ruleset"} = scheduled_execution, command) do
+    version = scheduled_execution.command_snapshot["version"]
+
+    with {:ok, environment} <- fetch_environment(scheduled_execution.environment_key),
+         {:ok, flag, flag_environment} <-
+           fetch_flag_environment(scheduled_execution.resource_key, environment.key),
+         {:ok, ruleset} <- resolve_publishable_ruleset(flag_environment, environment.key, version) do
+      published_at = now()
+      previous_ruleset = active_ruleset(flag_environment)
+
+      Multi.new()
+      |> Multi.update(
+        :ruleset,
+        Ruleset.changeset(ruleset, %{status: :published, published_at: published_at})
+      )
+      |> Multi.update(
+        :flag_environment,
+        FlagEnvironment.changeset(flag_environment, %{
+          active_ruleset_id: ruleset.id,
+          status: :active,
+          last_published_at: published_at
+        })
+      )
+      |> Multi.update(:flag, Changeset.change(flag, updated_at: published_at))
+      |> Multi.run(:runtime_snapshot, fn repo, _changes ->
+        insert_runtime_snapshot(repo, environment, published_at)
+      end)
+      |> Multi.run(:ruleset_audit_event, fn repo, _changes ->
+        publish_command =
+          Command.PublishRuleset.new(scheduled_execution.resource_key, environment.key,
+            version: version,
+            actor: command.actor,
+            reason: command.reason,
+            metadata: %{
+              request_id: scheduled_execution.correlation_id,
+              source: scheduled_execution.metadata["source"],
+              scheduled_execution_id: scheduled_execution.id,
+              execution_stage: "scheduled_execution"
+            }
+          )
+
+        repo.insert(
+          audit_event_changeset(%AuditEvent{}, publish_command, "ruleset.publish", :ok, %{
+            before: ruleset_audit_state(previous_ruleset),
+            after: ruleset_audit_state(ruleset),
+            diff: ruleset_position_diff(previous_ruleset, ruleset),
+            resource_key: scheduled_execution.resource_key,
+            environment_key: environment.key
+          })
+        )
+      end)
+      |> Repo.transact()
+      |> case do
+        {:ok, _changes} ->
+          fetch_flag(Command.FetchFlag.new(scheduled_execution.resource_key, scheduled_execution.environment_key))
+
+        {:error, _operation, reason, _changes} ->
+          {:error, normalize_governance_failure(reason)}
+      end
+    end
+  end
+
+  defp perform_scheduled_execution(_scheduled_execution, _command) do
+    {:error, StoreError.invalid_command("governed action is not implemented")}
+  end
+
+  defp finalize_scheduled_execution_success(scheduled_execution, attempt, command, execution_result) do
+    finished_at = now()
+
+    Multi.new()
+    |> Multi.run(:attempt, fn repo, _changes ->
+      update_execution_attempt_row(repo, attempt.id, "completed", finished_at, nil, command.metadata)
+    end)
+    |> Multi.run(:scheduled_execution, fn repo, _changes ->
+      repo.update_all(
+        from(se in "scheduled_executions", where: field(se, :id) == ^uuid_param(scheduled_execution.id)),
+        set: [
+          state: "completed",
+          attempt_count: scheduled_execution.attempt_count + 1,
+          executed_at: finished_at,
+          failure_reason: nil,
+          execution_metadata:
+            scheduled_transition_metadata(
+              scheduled_execution.execution_metadata,
+              "completed",
+              command
+            ),
+          updated_at: finished_at
+        ]
+      )
+
+      fetch_scheduled_execution_row(scheduled_execution.id)
+    end)
+    |> Repo.transact()
+    |> case do
+      {:ok, %{scheduled_execution: updated}} ->
+        {:ok,
+         %{
+           scheduled_execution: serialize_scheduled_execution_row(updated),
+           execution_result: execution_result,
+           attempts: list_execution_attempt_rows(updated.id) |> Enum.map(&serialize_execution_attempt_row/1)
+         }}
+
+      {:error, _operation, reason, _changes} ->
+        {:error, normalize_governance_failure(reason)}
+    end
+  end
+
+  defp finalize_scheduled_execution_failure(scheduled_execution, attempt, command, %Rulestead.Error{} = error) do
+    finalize_scheduled_execution_failure(scheduled_execution, attempt, command, error.message)
+  end
+
+  defp finalize_scheduled_execution_failure(scheduled_execution, attempt, command, reason) do
+    finished_at = now()
+    failure_reason = normalize_failure_reason(reason)
+    next_attempt_count = scheduled_execution.attempt_count + 1
+    next_state = if next_attempt_count >= @scheduled_execution_retry_limit, do: "quarantined", else: "scheduled"
+    attempt_state = if next_state == "quarantined", do: "quarantined", else: "failed"
+
+    Multi.new()
+    |> Multi.run(:attempt, fn repo, _changes ->
+      update_execution_attempt_row(repo, attempt.id, attempt_state, finished_at, failure_reason, command.metadata)
+    end)
+    |> Multi.run(:scheduled_execution, fn repo, _changes ->
+      repo.update_all(
+        from(se in "scheduled_executions", where: field(se, :id) == ^uuid_param(scheduled_execution.id)),
+        set: [
+          state: next_state,
+          attempt_count: next_attempt_count,
+          failure_reason: failure_reason,
+          execution_metadata:
+            scheduled_transition_metadata(
+              scheduled_execution.execution_metadata,
+              next_state,
+              command
+            ),
+          updated_at: finished_at
+        ]
+      )
+
+      fetch_scheduled_execution_row(scheduled_execution.id)
+    end)
+    |> Repo.transact()
+    |> case do
+      {:ok, _changes} ->
+        {:error, StoreError.invalid_command(failure_reason)}
+
+      {:error, _operation, txn_reason, _changes} ->
+        {:error, normalize_governance_failure(txn_reason)}
+    end
+  end
+
+  defp insert_execution_attempt_row(scheduled_execution_id, attempt_number, state, started_at, failure_reason, metadata) do
+    attrs = %{
+      scheduled_execution_id: uuid_param(scheduled_execution_id),
+      attempt_number: attempt_number,
+      state: state,
+      started_at: started_at,
+      finished_at: nil,
+      failure_reason: failure_reason,
+      metadata: metadata,
+      inserted_at: started_at
+    }
+
+    case Repo.insert_all("execution_attempts", [attrs], returning: execution_attempt_fields()) do
+      {1, [row]} -> {:ok, normalize_execution_attempt_row(row)}
+      _ -> {:error, StoreError.unavailable()}
+    end
+  end
+
+  defp update_execution_attempt_row(repo, attempt_id, state, finished_at, failure_reason, metadata) do
+    repo.update_all(
+      from(attempt in "execution_attempts", where: field(attempt, :id) == ^uuid_param(attempt_id)),
+      set: [state: state, finished_at: finished_at, failure_reason: failure_reason, metadata: metadata]
+    )
+
+    case from(attempt in "execution_attempts",
+           where: field(attempt, :id) == ^uuid_param(attempt_id),
+           select: map(attempt, ^execution_attempt_fields())
+         )
+         |> repo.one() do
+      nil -> {:error, StoreError.invalid_command("execution attempt was not found")}
+      row -> {:ok, normalize_execution_attempt_row(row)}
+    end
+  end
+
+  defp fetch_scheduled_execution_row(scheduled_execution_id) do
+    case from(se in "scheduled_executions",
+           where: field(se, :id) == ^uuid_param(scheduled_execution_id),
+           select: map(se, ^scheduled_execution_fields())
+         )
+         |> Repo.one() do
+      nil -> {:error, StoreError.invalid_command("scheduled execution was not found")}
+      row -> {:ok, normalize_scheduled_execution_row(row)}
+    end
+  end
+
+  defp update_scheduled_execution_row(scheduled_execution_id, updates) do
+    Repo.update_all(
+      from(se in "scheduled_executions", where: field(se, :id) == ^uuid_param(scheduled_execution_id)),
+      set: updates
+    )
+
+    fetch_scheduled_execution_row(scheduled_execution_id)
+  end
+
+  defp list_execution_attempt_rows(scheduled_execution_id) do
+    from(attempt in "execution_attempts",
+      where: field(attempt, :scheduled_execution_id) == ^uuid_param(scheduled_execution_id),
+      order_by: [asc: field(attempt, :attempt_number)],
+      select: map(attempt, ^execution_attempt_fields())
+    )
+    |> Repo.all()
+    |> Enum.map(&normalize_execution_attempt_row/1)
+  end
+
+  defp approved_snapshot(change_request_id) do
+    {:ok,
+     from(a in "approvals",
+       where:
+         field(a, :change_request_id) == ^uuid_param(change_request_id) and
+           field(a, :decision) == "approved",
+       order_by: [asc: field(a, :reviewed_at)],
+       select:
+         map(a, [:reviewer_id, :reviewer_type, :reviewer_display])
+     )
+     |> Repo.all()
+     |> Enum.map(fn approval ->
+       %{
+         "id" => approval.reviewer_id,
+         "type" => approval.reviewer_type,
+         "display" => approval.reviewer_display
+       }
+     end)}
   end
 
   defp emit_governance_telemetry(event, command, change_request, audit_event) do
@@ -1812,6 +2378,178 @@ defmodule Rulestead.Store.Ecto do
     |> maybe_normalize_uuid(:id)
     |> maybe_normalize_uuid(:change_request_id)
   end
+
+  defp normalize_scheduled_execution_row(row) when is_map(row) do
+    row
+    |> maybe_normalize_uuid(:id)
+    |> maybe_normalize_uuid(:change_request_id)
+    |> Map.update(:approved_by_snapshot, [], &normalize_array_map/1)
+  end
+
+  defp normalize_execution_attempt_row(row) when is_map(row) do
+    row
+    |> maybe_normalize_uuid(:id)
+    |> maybe_normalize_uuid(:scheduled_execution_id)
+  end
+
+  defp serialize_scheduled_execution_row(row) do
+    %{
+      id: row.id,
+      state: scheduled_state(row.state),
+      action: governance_action(row.governed_action),
+      change_request_id: row.change_request_id,
+      environment_key: row.environment_key,
+      resource_type: row.resource_type,
+      resource_key: row.resource_key,
+      execution_mode: scheduled_execution_mode(row.execution_mode),
+      scheduled_by: %{
+        "id" => row.scheduled_by_id,
+        "type" => row.scheduled_by_type,
+        "display" => row.scheduled_by_display
+      },
+      approved_by_snapshot: normalize_array_map(row.approved_by_snapshot),
+      execution_metadata: row.execution_metadata || %{},
+      scheduled_for: row.scheduled_for,
+      executed_at: row.executed_at,
+      attempt_count: row.attempt_count,
+      failure_reason: row.failure_reason,
+      last_oban_job_id: row.last_oban_job_id,
+      correlation_id: row.correlation_id,
+      idempotency_key: row.idempotency_key,
+      command_snapshot: row.command_snapshot || %{},
+      approval_requirement_snapshot: row.approval_requirement_snapshot || %{},
+      metadata: row.metadata || %{}
+    }
+    |> ScheduledExecution.new()
+    |> ScheduledExecution.serialize()
+    |> Map.put(:id, row.id)
+  end
+
+  defp serialize_execution_attempt_row(row) do
+    %{
+      id: row.id,
+      scheduled_execution_id: row.scheduled_execution_id,
+      attempt_number: row.attempt_number,
+      state: execution_attempt_state(row.state),
+      started_at: row.started_at,
+      finished_at: row.finished_at,
+      failure_reason: row.failure_reason,
+      metadata: row.metadata || %{}
+    }
+    |> ExecutionAttempt.new()
+    |> ExecutionAttempt.serialize()
+    |> Map.put(:id, row.id)
+  end
+
+  defp scheduled_execution_fields do
+    [
+      :id,
+      :state,
+      :change_request_id,
+      :governed_action,
+      :environment_key,
+      :resource_type,
+      :resource_key,
+      :execution_mode,
+      :scheduled_by_id,
+      :scheduled_by_type,
+      :scheduled_by_display,
+      :approved_by_snapshot,
+      :execution_metadata,
+      :scheduled_for,
+      :executed_at,
+      :attempt_count,
+      :failure_reason,
+      :last_oban_job_id,
+      :command_snapshot,
+      :approval_requirement_snapshot,
+      :metadata,
+      :correlation_id,
+      :idempotency_key
+    ]
+  end
+
+  defp execution_attempt_fields do
+    [
+      :id,
+      :scheduled_execution_id,
+      :attempt_number,
+      :state,
+      :started_at,
+      :finished_at,
+      :failure_reason,
+      :metadata
+    ]
+  end
+
+  defp scheduled_state("scheduled"), do: :scheduled
+  defp scheduled_state("running"), do: :running
+  defp scheduled_state("completed"), do: :completed
+  defp scheduled_state("failed"), do: :failed
+  defp scheduled_state("quarantined"), do: :quarantined
+  defp scheduled_state("cancelled"), do: :cancelled
+  defp scheduled_state(_state), do: :scheduled
+
+  defp execution_attempt_state("running"), do: :running
+  defp execution_attempt_state("completed"), do: :completed
+  defp execution_attempt_state("failed"), do: :failed
+  defp execution_attempt_state("quarantined"), do: :quarantined
+  defp execution_attempt_state("cancelled"), do: :cancelled
+  defp execution_attempt_state(_state), do: :failed
+
+  defp scheduled_execution_mode("change_request"), do: :change_request
+  defp scheduled_execution_mode("policy_bypass"), do: :policy_bypass
+  defp scheduled_execution_mode("emergency_bypass"), do: :emergency_bypass
+  defp scheduled_execution_mode(_mode), do: :change_request
+
+  defp ensure_scheduled_transition(state, allowed_states) do
+    if state in allowed_states do
+      :ok
+    else
+      {:error, StoreError.invalid_command("scheduled execution is not in a valid state for this operation")}
+    end
+  end
+
+  defp maybe_filter_scheduled_execution(query, _field, nil), do: query
+
+  defp maybe_filter_scheduled_execution(query, field_name, value) do
+    where(query, [scheduled_execution], field(scheduled_execution, ^field_name) == ^to_string(value))
+  end
+
+  defp maybe_filter_scheduled_state(query, nil), do: query
+  defp maybe_filter_scheduled_state(query, value), do: where(query, [se], field(se, :state) == ^normalize_change_request_filter(value))
+
+  defp maybe_filter_scheduled_action(query, nil), do: query
+  defp maybe_filter_scheduled_action(query, value), do: where(query, [se], field(se, :governed_action) == ^normalize_change_request_filter(value))
+
+  defp maybe_filter_scheduled_window(query, :after, nil), do: query
+  defp maybe_filter_scheduled_window(query, :after, %DateTime{} = value), do: where(query, [se], field(se, :scheduled_for) >= ^value)
+  defp maybe_filter_scheduled_window(query, :before, nil), do: query
+  defp maybe_filter_scheduled_window(query, :before, %DateTime{} = value), do: where(query, [se], field(se, :scheduled_for) <= ^value)
+
+  defp scheduled_transition_metadata(existing, state, command) do
+    Map.merge(existing || %{}, %{
+      "last_transition" => state,
+      "last_transition_at" => DateTime.to_iso8601(now()),
+      "last_actor" => command.actor || %{},
+      "last_reason" => command.reason,
+      "request_id" => command.metadata[:request_id] || command.metadata["request_id"]
+    })
+  end
+
+  defp normalize_failure_reason(%Rulestead.Error{message: message}), do: normalize_failure_reason(message)
+
+  defp normalize_failure_reason(reason) when is_binary(reason) do
+    case String.trim(reason) do
+      "" -> "scheduled execution failed"
+      value -> value
+    end
+  end
+
+  defp normalize_failure_reason(reason), do: inspect(reason)
+
+  defp normalize_array_map(values) when is_list(values), do: Enum.map(values, &Map.new/1)
+  defp normalize_array_map(_values), do: []
 
   defp maybe_normalize_uuid(row, key) do
     case Map.get(row, key) do

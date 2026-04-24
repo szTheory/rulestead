@@ -126,7 +126,8 @@ defmodule Rulestead.ObanScheduledExecutionTest do
              )
 
     assert scheduled_execution.change_request_id == approved.id
-    assert scheduled_execution.scheduled_for == scheduled_for
+    assert DateTime.truncate(scheduled_execution.scheduled_for, :second) ==
+             DateTime.truncate(scheduled_for, :second)
     assert scheduled_execution.state == :scheduled
 
     [job] =
