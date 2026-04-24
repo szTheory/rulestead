@@ -7,6 +7,7 @@ defmodule Rulestead.Integration.AdminLifecycleRuntimeTest do
 
   setup do
     Application.put_env(:rulestead, :store, Rulestead.Fake)
+    Application.delete_env(:rulestead, :admin_policy)
     Application.put_env(:rulestead, :admin_lifecycle,
       warning_after_seconds: 1_800,
       stale_after_seconds: 3_600,
@@ -31,7 +32,8 @@ defmodule Rulestead.Integration.AdminLifecycleRuntimeTest do
                permanent: false,
                expected_expiration: ~D[2026-05-01],
                environment_keys: ["test"],
-               tags: ["checkout"]
+               tags: ["checkout"],
+               actor: %{id: "seed-operator", roles: [:operator]}
              })
 
     ruleset =
@@ -54,8 +56,19 @@ defmodule Rulestead.Integration.AdminLifecycleRuntimeTest do
         ]
       })
 
-    assert {:ok, _} = Rulestead.save_draft_ruleset(StoreFixtures.save_draft_command("checkout-redesign", "test", ruleset))
-    assert {:ok, _} = Rulestead.publish_ruleset(StoreFixtures.publish_ruleset_command("checkout-redesign", "test"))
+    assert {:ok, _} =
+             Rulestead.save_draft_ruleset(
+               StoreFixtures.save_draft_command("checkout-redesign", "test", ruleset,
+                 actor: %{id: "seed-operator", roles: [:operator]}
+               )
+             )
+
+    assert {:ok, _} =
+             Rulestead.publish_ruleset(
+               StoreFixtures.publish_ruleset_command("checkout-redesign", "test",
+                 actor: %{id: "seed-operator", roles: [:operator]}
+               )
+             )
     apply_latest_snapshot!("test")
 
     stale_detail = Rulestead.fetch_flag!("checkout-redesign", "test")
@@ -69,7 +82,12 @@ defmodule Rulestead.Integration.AdminLifecycleRuntimeTest do
         not is_nil(refreshed_detail.lifecycle.last_evaluated_at)
     end)
 
-    assert {:ok, archived} = Rulestead.archive_flag(StoreFixtures.archive_flag_command("checkout-redesign"))
+    assert {:ok, archived} =
+             Rulestead.archive_flag(
+               StoreFixtures.archive_flag_command("checkout-redesign",
+                 actor: %{id: "seed-operator", roles: [:operator]}
+               )
+             )
     assert archived.archived?
 
     archived_detail = Rulestead.fetch_flag!("checkout-redesign", "test")
@@ -81,6 +99,84 @@ defmodule Rulestead.Integration.AdminLifecycleRuntimeTest do
 
     assert {:error, %Rulestead.Error{type: :flag_not_found}} =
              Runtime.enabled?("test", "checkout-redesign", Context.new(actor: %{key: "user-1"}))
+  end
+
+  test "kill switch publishes fresh runtime snapshots and refresh changes live evaluation" do
+    Rulestead.Fake.Control.set_now!(~U[2026-04-23 16:00:00Z])
+
+    assert {:ok, _} =
+             Rulestead.create_flag(%{
+               key: "checkout-redesign",
+               description: "Checkout rollout",
+               flag_type: :release,
+               value_type: :boolean,
+               default_value: %{value: false},
+               owner: "growth",
+               permanent: true,
+               environment_keys: ["test"],
+               actor: %{id: "seed-operator", roles: [:operator]}
+             })
+
+    ruleset =
+      StoreFixtures.valid_ruleset_attrs(%{
+        salt: "checkout-redesign:v1",
+        rules: [
+          %{
+            key: "force-enabled",
+            name: "Force enabled",
+            strategy: :forced_value,
+            value: %{value: true},
+            conditions: [
+              %{
+                attribute: "actor.key",
+                operator: :equals,
+                value: %{equals: "user-1"}
+              }
+            ]
+          }
+        ]
+      })
+
+    assert {:ok, _} =
+             Rulestead.save_draft_ruleset(
+               StoreFixtures.save_draft_command("checkout-redesign", "test", ruleset,
+                 actor: %{id: "seed-operator", roles: [:operator]}
+               )
+             )
+
+    assert {:ok, _} =
+             Rulestead.publish_ruleset(
+               StoreFixtures.publish_ruleset_command("checkout-redesign", "test",
+                 actor: %{id: "seed-operator", roles: [:operator]}
+               )
+             )
+
+    baseline_snapshot = Rulestead.Fake.Control.latest_snapshot!("test")
+    apply_latest_snapshot!("test")
+
+    assert {:ok, true} = Runtime.enabled?("test", "checkout-redesign", Context.new(actor: %{key: "user-1"}))
+
+    assert {:ok, _} =
+             Rulestead.engage_kill_switch("checkout-redesign", "test", %{id: "op-1", roles: [:operator]},
+               reason: "incident"
+             )
+
+    kill_snapshot = Rulestead.Fake.Control.latest_snapshot!("test")
+    assert kill_snapshot.version > baseline_snapshot.version
+    apply_latest_snapshot!("test")
+
+    assert {:ok, false} = Runtime.enabled?("test", "checkout-redesign", Context.new(actor: %{key: "user-1"}))
+
+    assert {:ok, _} =
+             Rulestead.release_kill_switch("checkout-redesign", "test", %{id: "op-1", roles: [:operator]},
+               reason: "resolved"
+             )
+
+    release_snapshot = Rulestead.Fake.Control.latest_snapshot!("test")
+    assert release_snapshot.version > kill_snapshot.version
+    apply_latest_snapshot!("test")
+
+    assert {:ok, true} = Runtime.enabled?("test", "checkout-redesign", Context.new(actor: %{key: "user-1"}))
   end
 
   defp assert_eventually(fun, attempts \\ 20)
