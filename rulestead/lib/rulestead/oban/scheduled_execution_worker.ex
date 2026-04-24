@@ -30,11 +30,16 @@ defmodule Rulestead.Oban.ScheduledExecutionWorker do
         }
       )
 
-    maybe_emit(:started, scheduled_execution, command, nil)
+    if telemetry_transition?(scheduled_execution, :started) do
+      maybe_emit(:started, scheduled_execution, command, nil)
+    end
 
     case configured_store().execute_scheduled_execution(command) do
       {:ok, %{scheduled_execution: completed} = result} ->
-        maybe_emit(:succeeded, completed, command, nil)
+        if telemetry_transition?(scheduled_execution, :succeeded) do
+          maybe_emit(:succeeded, completed, command, nil)
+        end
+
         {:ok, result}
 
       {:error, _reason} = error ->
@@ -94,6 +99,12 @@ defmodule Rulestead.Oban.ScheduledExecutionWorker do
 
   defp attempt_count_for(:started, scheduled_execution), do: scheduled_execution.attempt_count + 1
   defp attempt_count_for(_event, scheduled_execution), do: scheduled_execution.attempt_count
+
+  defp telemetry_transition?(%{state: state}, event)
+       when event in [:started, :succeeded] and state in [:completed, :cancelled, :quarantined],
+       do: false
+
+  defp telemetry_transition?(_scheduled_execution, _event), do: true
 
   defp executed_by(actor) when is_map(actor) do
     case Map.get(actor, "id") || Map.get(actor, :id) do
