@@ -55,7 +55,7 @@
 - [ ] **ADMIN-02**: Flag detail page — description, type, default value, ordered rules, per-env status, audit timeline
 - [ ] **ADMIN-03**: Rule editor — create/edit/reorder/delete rules; add conditions; assign variant weights
 - [ ] **ADMIN-04**: Simulation / "explain" page — operator enters targeting_key + traits + env, sees value/variant/matched rule/trace
-- [ ] **ADMIN-05**: Rollout controls — percentage rollout editor with rule ordering preview
+- [x] **ADMIN-05**: Rollout controls — percentage rollout editor with rule ordering preview
 - [ ] **ADMIN-06**: Kill switch — bookmarkable one-click disable per flag per environment with confirmation
 - [ ] **ADMIN-07**: Audit timeline — who changed what, before/after diff, environment, linked actor
 - [x] **ADMIN-08**: Environments model — dev/staging/prod with per-env behavior on a single flag identity; prod stricter

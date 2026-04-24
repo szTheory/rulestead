@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.1.0
 milestone_name: Release
 status: active
-last_updated: "2026-04-23T21:33:00Z"
+last_updated: "2026-04-24T09:59:10.826Z"
 progress:
   total_phases: 8
-  completed_phases: 4
-  total_plans: 23
-  completed_plans: 23
-  percent: 50
+  completed_phases: 7
+  total_plans: 42
+  completed_plans: 42
+  percent: 100
 ---
 
 # State: Rulestead
@@ -19,7 +19,7 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-23)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
-**Current focus:** Phases 05 and 06 — host-app seams and admin UI part 1
+**Current focus:** Phase 07 verification follow-up
 **Milestone:** v0.1.0 (8 phases)
 
 ## Roadmap Reference
@@ -32,8 +32,8 @@ See: `.planning/ROADMAP.md` (updated 2026-04-23)
 | 2 | Data Model, Error Model, Ecto Store, Fake Adapter | complete | STORE-01, 07; ERR-01..04; ADMIN-08 (schema) |
 | 3 | Context, Rules, Deterministic Bucketing, Pure Evaluator | complete | EVAL-01..09; CTX-01; RULE-01..04; TEST-04 |
 | 4 | Snapshot Cache, Runtime Refresh, Telemetry, Explain | complete | STORE-02..06; TEL-01, 02, 04 |
-| 5 | Host-App Seams: Plug, LiveView, Oban, Installer, Test Helpers | pending | CTX-02..05; INST-01..06; TEST-01, 02, 03, 05 |
-| 6 | Admin UI Part 1: Flag List, Detail, Rule Editor, Environments, Lifecycle | pending | ADMIN-01, 02, 03, 08 (UI), 10; LIFE-01..04 |
+| 5 | Host-App Seams: Plug, LiveView, Oban, Installer, Test Helpers | complete | CTX-02..05; INST-01..06; TEST-01, 02, 03, 05 |
+| 6 | Admin UI Part 1: Flag List, Detail, Rule Editor, Environments, Lifecycle | planned | ADMIN-01, 02, 03, 08 (UI), 10; LIFE-01..04 |
 | 7 | Admin UI Part 2: Simulation, Rollouts, Kill Switch, Audit, Security | pending | ADMIN-04, 05, 06, 07, 09; SEC-01..04; TEL-03 |
 | 8 | Docs, API Stability, Cheatsheet, Post-Publish Verify, v0.1.0 Release | pending | REL-03, 04, 06; DOC-04, 05, 06 |
 
@@ -62,7 +62,10 @@ These are the primary source of truth — loaded selectively per phase:
 - 2026-04-23 — Phase 2 executed end-to-end. Added the internal Ecto repo/test harness, locked the public `%Rulestead.Error{}` and key-first `Rulestead.Store` contract, shipped the authoring schemas and migrations, implemented both fake and Ecto store adapters behind the shared contract suite, and added the minimal `mix rulestead.install` migration/config slice plus install smoke coverage. Files: `.planning/phases/02-data-model-error-model-ecto-store-fake-adapter/*-SUMMARY.md`, `rulestead/lib/rulestead/{error,store,repo,fake,flag,environment,flag_environment,audience,audit_event,ruleset}.ex`, `rulestead/lib/rulestead/store/ecto.ex`, `rulestead/lib/rulestead/install*.ex`, `rulestead/lib/mix/tasks/rulestead.install.ex`.
 - 2026-04-23 — Phase 3 executed end-to-end. Added the canonical runtime context/result contracts, tightened authored ruleset validation, shipped deterministic SHA-256 bucketing and the pure evaluator plus root facade/explain wiring, and locked the contract with StreamData properties and focused regression tests. Files: `.planning/phases/03-context-rules-deterministic-bucketing-pure-evaluator/*-SUMMARY.md`, `rulestead/lib/rulestead/{context,result,bucket,evaluator,explainer}.ex`, `rulestead/lib/rulestead.ex`, `rulestead/test/rulestead/*`.
 - 2026-04-23 — Phase 4 executed end-to-end and re-verified cleanly. Added persisted runtime snapshots, ETS-backed keyed runtime APIs, refresh supervision with PubSub plus polling, optional backup restore, the Phase 4 telemetry contract, and the cluster/hot-path/exception-path proof suite. Files: `.planning/phases/04-snapshot-cache-runtime-refresh-telemetry-explain-wiring/*-SUMMARY.md`, `04-VERIFICATION.md`, `rulestead/lib/rulestead/runtime/*.ex`, `rulestead/lib/rulestead/telemetry.ex`, `guides/flows/telemetry.md`, `rulestead/test/rulestead/{runtime,telemetry,integration}/*`.
+- 2026-04-24 — Phase 5 executed end-to-end. Added explicit Plug/Phoenix/LiveView/Oban host seams over `Rulestead.Runtime`, expanded `mix rulestead.install` with validated Phase 5 config and idempotent endpoint/router injection, shipped fake-backed public test helpers, and locked the install surface with fresh-app smoke plus golden-diff proof. Files: `.planning/phases/05-host-app-seams-plug-liveview-oban-installer-test-helpers/*-SUMMARY.md`, `rulestead/lib/rulestead/{plug,phoenix,live_view,oban,config,test_helpers}.ex`, `rulestead/lib/rulestead/install*.ex`, `rulestead/test/rulestead/{plug_test,live_view_test,oban_test,test_helpers_test}.exs`, `rulestead/test/rulestead/integration/{install_smoke_test,install_golden_test}.exs`, `rulestead/test/support/install_fixture.ex`, `rulestead/test/fixtures/install_golden/*`, `rulestead_admin/lib/rulestead_admin/router.ex`.
+- 2026-04-24 — Phase 6 planning completed and verified. Added `06-CONTEXT.md`, `06-PATTERNS.md`, and five execution-ready plans covering root-facade admin contracts, lifecycle persistence/stale tracking, `rulestead_admin` package bootstrapping, list/detail/form screens with accessibility proof, and the rules workspace with reusable audience targeting. Verification passed after a revision loop closed missing metadata-create/edit UI, segment-picker, cursor-pagination, and a11y coverage gaps. Files: `.planning/phases/06-admin-ui-flag-list-detail-rule-editor-environments-lifecycle/{06-CONTEXT.md,06-PATTERNS.md,06-01-PLAN.md,06-02-PLAN.md,06-03-PLAN.md,06-04-PLAN.md,06-05-PLAN.md}`.
+- 2026-04-24 — Phase 7 plan 10 executed. Added a shared Axe-backed accessibility helper for `rulestead_admin`, converted the simulation/rollout/kill/audit route checks away from heuristic DOM assertions, and aligned the Phase 7 accessibility fixtures with the current actor-aware ruleset command path. Files: `.planning/phases/07-admin-ui-simulation-rollouts-kill-switch-audit-security-redaction/07-10-SUMMARY.md`, `rulestead_admin/mix.exs`, `rulestead_admin/mix.lock`, `rulestead_admin/test/support/axe_audit.ex`, `rulestead_admin/test/rulestead_admin/live/flag_live/{simulate_accessibility_test,rollouts_accessibility_test,phase7_accessibility_test}.exs`.
 
 ## Next Action
 
-Run `/gsd-plan-phase 5` and `/gsd-plan-phase 6` next. Phase 4 is complete and those two phases are now the parallel work frontier.
+Re-run Phase 7 verification or plan follow-up fixes for the remaining verification gaps outside 07-10.
