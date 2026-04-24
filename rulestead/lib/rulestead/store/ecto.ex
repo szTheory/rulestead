@@ -9,6 +9,7 @@ defmodule Rulestead.Store.Ecto do
 
   alias Rulestead.{
     Admin.Lifecycle,
+    Audience,
     AuditEvent,
     Environment,
     Flag,
@@ -290,6 +291,20 @@ defmodule Rulestead.Store.Ecto do
       |> Enum.map(&environment_summary/1)
 
     {:ok, environments}
+  end
+
+  @impl Store
+  def list_audiences(%Command.ListAudiences{} = command) do
+    audiences =
+      Audience
+      |> maybe_filter_archived_audiences(command.include_archived?)
+      |> maybe_filter_audience_query(command.query)
+      |> order_by([audience], asc: audience.key)
+      |> limit(^command.limit)
+      |> Repo.all()
+      |> Enum.map(&audience_summary/1)
+
+    {:ok, audiences}
   end
 
   @impl Store
@@ -581,6 +596,10 @@ defmodule Rulestead.Store.Ecto do
 
   defp environment_summary(environment) do
     Map.take(environment, [:id, :key, :name, :description, :inserted_at, :updated_at])
+  end
+
+  defp audience_summary(audience) do
+    Map.take(audience, [:id, :key, :description, :definition, :archived_at, :inserted_at, :updated_at])
   end
 
   defp flag_environment_summary(flag_environment) do
@@ -1019,7 +1038,26 @@ defmodule Rulestead.Store.Ecto do
       [environment],
       ilike(environment.key, ^normalized) or
         ilike(environment.name, ^normalized) or
-        ilike(fragment("coalesce(?, '')", environment.description), ^normalized)
+      ilike(fragment("coalesce(?, '')", environment.description), ^normalized)
+    )
+  end
+
+  defp maybe_filter_archived_audiences(query, true), do: query
+
+  defp maybe_filter_archived_audiences(query, false) do
+    where(query, [audience], is_nil(audience.archived_at))
+  end
+
+  defp maybe_filter_audience_query(query, nil), do: query
+  defp maybe_filter_audience_query(query, ""), do: query
+
+  defp maybe_filter_audience_query(query, search) do
+    normalized = "%#{String.trim(search)}%"
+
+    where(
+      query,
+      [audience],
+      ilike(audience.key, ^normalized) or ilike(fragment("coalesce(?, '')", audience.description), ^normalized)
     )
   end
 

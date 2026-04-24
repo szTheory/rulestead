@@ -21,6 +21,7 @@ defmodule Rulestead.Fake do
   @type state :: %{
           now: DateTime.t(),
           environments: %{required(String.t()) => map()},
+          audiences: %{required(String.t()) => map()},
           flags: %{required(String.t()) => map()},
           snapshots: %{required(String.t()) => %{required(pos_integer()) => map()}},
           snapshot_reads_connected?: boolean()
@@ -85,6 +86,11 @@ defmodule Rulestead.Fake do
   @impl Store
   def list_environments(%Command.ListEnvironments{} = command) do
     call({:list_environments, command})
+  end
+
+  @impl Store
+  def list_audiences(%Command.ListAudiences{} = command) do
+    call({:list_audiences, command})
   end
 
   @impl Store
@@ -396,6 +402,21 @@ defmodule Rulestead.Fake do
     {:reply, {:ok, environments}, state}
   end
 
+  def handle_call({:list_audiences, command}, _from, state) do
+    audiences =
+      state
+      |> Map.get(:audiences, %{})
+      |> Map.values()
+      |> Enum.reject(fn audience ->
+        Map.get(audience, :archived_at) && not command.include_archived?
+      end)
+      |> Enum.filter(&matches_audience_query?(&1, command.query))
+      |> Enum.sort_by(& &1.key)
+      |> Enum.take(command.limit)
+
+    {:reply, {:ok, audiences}, state}
+  end
+
   def handle_call({:record_evaluation, command}, _from, state) do
     reply =
       with {:ok, environment} <- fetch_environment(state, command.environment_key),
@@ -445,6 +466,7 @@ defmodule Rulestead.Fake do
     %{
       now: now,
       environments: %{},
+      audiences: %{},
       flags: %{},
       snapshots: %{},
       snapshot_reads_connected?: true
@@ -1308,6 +1330,17 @@ defmodule Rulestead.Fake do
       String.contains?(String.downcase(environment.key), normalized_query) or
       String.contains?(String.downcase(environment.name || ""), normalized_query) or
       String.contains?(String.downcase(environment.description || ""), normalized_query)
+  end
+
+  defp matches_audience_query?(_audience, nil), do: true
+  defp matches_audience_query?(_audience, ""), do: true
+
+  defp matches_audience_query?(audience, query) do
+    normalized_query = query |> to_string() |> String.trim() |> String.downcase()
+
+    normalized_query == "" or
+      String.contains?(String.downcase(audience.key || ""), normalized_query) or
+      String.contains?(String.downcase(audience.description || ""), normalized_query)
   end
 
   defp apply_flag_update(flag, command, now) do

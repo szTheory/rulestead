@@ -314,6 +314,27 @@ defmodule Rulestead.Store.Command do
     end
   end
 
+  defmodule ListAudiences do
+    @moduledoc false
+
+    defstruct query: nil, limit: 50, include_archived?: false
+
+    @type t :: %__MODULE__{
+            query: nil | String.t(),
+            limit: pos_integer(),
+            include_archived?: boolean()
+          }
+
+    @spec new(keyword()) :: t()
+    def new(opts \\ []) do
+      %__MODULE__{
+        query: Keyword.get(opts, :query),
+        limit: Keyword.get(opts, :limit, 50),
+        include_archived?: Keyword.get(opts, :include_archived?, false)
+      }
+    end
+  end
+
   defmodule RecordEvaluation do
     @moduledoc false
 
