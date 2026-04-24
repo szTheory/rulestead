@@ -3,7 +3,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
 
   use Phoenix.LiveView
 
-  alias RulesteadAdmin.Components.{FlagComponents, Shell}
+  alias RulesteadAdmin.Components.{AuditComponents, FlagComponents, Shell}
 
   @impl true
   def mount(_params, _session, socket) do
@@ -51,7 +51,20 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
         <div class="rs-detail__actions">
           <a href={"/admin/flags/#{@detail.flag.key}/edit?env=#{@detail.environment.key}"}>Edit metadata</a>
           <a href={"/admin/flags/#{@detail.flag.key}/rules?env=#{@detail.environment.key}"}>Open rules workspace</a>
+          <a href={"/admin/flags/#{@detail.flag.key}/kill?env=#{@detail.environment.key}"}>Open kill switch</a>
+          <a href={"/admin/flags/#{@detail.flag.key}/timeline?env=#{@detail.environment.key}"}>Open audit timeline</a>
         </div>
+
+        <AuditComponents.kill_switch_banner
+          :if={kill_switch_active?(@detail)}
+          active?={true}
+          flag_key={@detail.flag.key}
+          environment_name={@detail.environment.name}
+          reason={latest_reason(@detail)}
+          kill_path={"/admin/flags/#{@detail.flag.key}/kill?env=#{@detail.environment.key}"}
+          timeline_path={"/admin/flags/#{@detail.flag.key}/timeline?env=#{@detail.environment.key}"}
+          show_release_button={true}
+        />
 
         <div class="rs-detail__hero">
           <div>
@@ -115,11 +128,30 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
         </FlagComponents.section_card>
 
         <FlagComponents.section_card title="Audit">
-          <p>Audit timeline arrives in Phase 7. This screen stays focused on the current state only.</p>
+          <p>This screen stays focused on current state. Use the dedicated timeline for append-only history and rollback context.</p>
         </FlagComponents.section_card>
       </div>
     </Shell.page>
     """
+  end
+
+  @impl true
+  def handle_event("release_kill_switch", _params, socket) do
+    case Rulestead.release_kill_switch(
+           socket.assigns.flag_key,
+           socket.assigns.current_environment.key,
+           socket.assigns.current_actor,
+           reason: "Released from flag detail banner"
+         ) do
+      {:ok, _payload} ->
+        {:noreply,
+         socket
+         |> assign(:error_message, nil)
+         |> load_detail(socket.assigns.flag_key, socket.assigns.current_environment.key)}
+
+      {:error, error} ->
+        {:noreply, assign(socket, :error_message, error.message)}
+    end
   end
 
   defp load_detail(socket, key, env) do
@@ -156,4 +188,21 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
   defp humanize(value) when is_atom(value), do: humanize(to_string(value))
   defp humanize(value) when is_binary(value), do: value |> String.replace("_", " ") |> String.capitalize()
   defp humanize(value), do: to_string(value)
+
+  defp kill_switch_active?(detail), do: detail.flag_environment.status == :killswitched
+
+  defp latest_reason(detail) do
+    with {:ok, page} <-
+           Rulestead.list_audit_events(
+             flag_key: detail.flag.key,
+             environment_key: detail.environment.key,
+             actor: %{id: "detail-page", roles: [:auditor]}
+           ),
+         event when is_map(event) <-
+           Enum.find(page.entries, &(&1.event_type in ["kill_switch.engage", "kill_switch.release"])) do
+      event.reason
+    else
+      _ -> nil
+    end
+  end
 end
