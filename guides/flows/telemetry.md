@@ -20,7 +20,7 @@ this guide are additive-only for the rest of `v0.1.x`.
 - `[:rulestead, :eval, :decide, :exception]`
 
 Emitted by the pure evaluator surface in `Rulestead.evaluate/3` and the keyed
-runtime surface in `Rulestead.Runtime.evaluate/3`.
+runtime evaluation surface.
 
 ### Runtime Cache
 
