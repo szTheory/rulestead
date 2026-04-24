@@ -7,6 +7,12 @@ defmodule Rulestead.StoreEctoAdminTest do
 
   setup do
     Application.put_env(:rulestead, :store, StoreEcto)
+    Application.put_env(:rulestead, :admin_lifecycle,
+      warning_after_seconds: 1_800,
+      stale_after_seconds: 3_600,
+      now: ~U[2026-04-23 16:00:00Z]
+    )
+    ensure_phase6_schema!()
     :ok
   end
 
@@ -89,7 +95,7 @@ defmodule Rulestead.StoreEctoAdminTest do
 
     assert {:ok, _archived} = StoreEcto.archive_flag(StoreFixtures.archive_flag_command("inventory-admin"))
 
-    assert {:error, %Rulestead.Error{type: :archived}} =
+    assert {:error, %Rulestead.Error{type: :flag_archived}} =
              StoreEcto.update_flag(Command.UpdateFlag.new("inventory-admin", %{owner: "growth"}))
   end
 
@@ -110,7 +116,8 @@ defmodule Rulestead.StoreEctoAdminTest do
         owner: Keyword.fetch!(opts, :owner),
         tags: Keyword.get(opts, :tags, []),
         permanent: Keyword.get(opts, :permanent),
-        expected_expiration: Keyword.get(opts, :expected_expiration)
+        expected_expiration: Keyword.get(opts, :expected_expiration),
+        environment_keys: ["test"]
       }
 
     assert {:ok, _payload} = StoreEcto.create_flag(Command.CreateFlag.new(attrs))
@@ -125,5 +132,10 @@ defmodule Rulestead.StoreEctoAdminTest do
 
     assert {:ok, _} = StoreEcto.save_draft_ruleset(StoreFixtures.save_draft_command(flag_key, "test", ruleset))
     assert {:ok, _} = StoreEcto.publish_ruleset(StoreFixtures.publish_ruleset_command(flag_key, "test"))
+  end
+
+  defp ensure_phase6_schema! do
+    Rulestead.Repo.query!("ALTER TABLE flags ADD COLUMN IF NOT EXISTS permanent boolean DEFAULT false")
+    Rulestead.Repo.query!("ALTER TABLE flag_environments ADD COLUMN IF NOT EXISTS last_evaluated_at timestamp(6) with time zone")
   end
 end

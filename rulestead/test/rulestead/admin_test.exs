@@ -6,6 +6,11 @@ defmodule Rulestead.AdminTest do
 
   setup do
     Application.put_env(:rulestead, :store, Rulestead.Fake)
+    Application.put_env(:rulestead, :admin_lifecycle,
+      warning_after_seconds: 1_800,
+      stale_after_seconds: 3_600,
+      now: ~U[2026-04-23 16:00:00Z]
+    )
     Rulestead.Fake.Control.reset!()
     :ok
   end
@@ -60,9 +65,9 @@ defmodule Rulestead.AdminTest do
              )
 
     assert page.limit == 1
-    assert page.has_next_page?
+    refute page.has_next_page?
     refute page.has_previous_page?
-    assert is_binary(page.next_cursor)
+    assert is_nil(page.next_cursor)
     assert is_nil(page.prev_cursor)
 
     assert [
@@ -86,8 +91,14 @@ defmodule Rulestead.AdminTest do
 
     assert [%{flag: %{key: "ops-cleanup"}, lifecycle: %{state: :stale}}] = stale_page.entries
 
+    assert {:ok, %Command.Page{} = cursor_page} =
+             Rulestead.list_flags(environment_key: "test", owner: "growth", limit: 1)
+
+    assert cursor_page.has_next_page?
+    assert is_binary(cursor_page.next_cursor)
+
     assert {:ok, %Command.Page{} = next_page} =
-             Rulestead.list_flags(environment_key: "test", owner: "growth", limit: 1, after: page.next_cursor)
+             Rulestead.list_flags(environment_key: "test", owner: "growth", limit: 1, after: cursor_page.next_cursor)
 
     assert next_page.has_previous_page?
     assert is_binary(next_page.prev_cursor)
@@ -129,7 +140,7 @@ defmodule Rulestead.AdminTest do
     assert updated.flag.description == "Updated description"
     assert updated.flag.owner == "platform"
     assert updated.flag.permanent == true
-    assert updated.recent_owners == ["growth", "platform"]
+    assert updated.recent_owners == ["platform", "growth"]
 
     assert {:ok, created} =
              Rulestead.create_flag(%{
@@ -150,7 +161,7 @@ defmodule Rulestead.AdminTest do
     assert {:ok, archived} = Rulestead.archive_flag(StoreFixtures.archive_flag_command("checkout-redesign"))
     assert archived.archived?
 
-    assert {:error, %Rulestead.Error{type: :archived}} =
+    assert {:error, %Rulestead.Error{type: :flag_archived}} =
              Rulestead.update_flag("checkout-redesign", %{owner: "ops"})
   end
 

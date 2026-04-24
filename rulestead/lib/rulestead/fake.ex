@@ -10,7 +10,7 @@ defmodule Rulestead.Fake do
   use GenServer
 
   alias Ecto.Changeset
-  alias Rulestead.{Environment, Flag, Ruleset, RulesetError, Store, StoreError, Telemetry}
+  alias Rulestead.{Admin.Lifecycle, Environment, Flag, Ruleset, RulesetError, Store, StoreError, Telemetry}
   alias Rulestead.Store.Command
 
   @behaviour Store
@@ -53,6 +53,16 @@ defmodule Rulestead.Fake do
   end
 
   @impl Store
+  def create_flag(%Command.CreateFlag{} = command) do
+    call({:create_flag, command})
+  end
+
+  @impl Store
+  def update_flag(%Command.UpdateFlag{} = command) do
+    call({:update_flag, command})
+  end
+
+  @impl Store
   def save_draft_ruleset(%Command.SaveDraftRuleset{} = command) do
     call({:save_draft_ruleset, command})
   end
@@ -70,6 +80,16 @@ defmodule Rulestead.Fake do
   @impl Store
   def list_flags(%Command.ListFlags{} = command) do
     call({:list_flags, command})
+  end
+
+  @impl Store
+  def list_environments(%Command.ListEnvironments{} = command) do
+    call({:list_environments, command})
+  end
+
+  @impl Store
+  def record_evaluation(%Command.RecordEvaluation{} = command) do
+    call({:record_evaluation, command})
   end
 
   @doc false
@@ -178,7 +198,7 @@ defmodule Rulestead.Fake do
       with_fetch_context(state, command.flag_key, command.environment_key, fn flag,
                                                                               environment,
                                                                               flag_environment ->
-        {:ok, build_flag_payload(flag, environment, flag_environment, command.include_ruleset?)}
+        {:ok, build_flag_detail_payload(state, flag, environment, flag_environment, command.include_ruleset?)}
       end)
 
     {:reply, reply, state}
@@ -196,6 +216,48 @@ defmodule Rulestead.Fake do
       end
 
     {:reply, reply, state}
+  end
+
+  def handle_call({:create_flag, command}, _from, state) do
+    attrs = %{
+      key: command.key,
+      description: command.description,
+      flag_type: command.flag_type,
+      value_type: command.value_type,
+      default_value: command.default_value,
+      owner: command.owner,
+      expected_expiration: command.expected_expiration,
+      permanent: command.permanent,
+      tags: command.tags,
+      environment_keys: command.environment_keys
+    }
+
+    case do_put_flag(state, attrs) do
+      {:ok, flag_payload, next_state} -> {:reply, {:ok, flag_payload}, next_state}
+      {:error, error} -> {:reply, {:error, error}, state}
+    end
+  end
+
+  def handle_call({:update_flag, command}, _from, state) do
+    flag_key = to_string(command.flag_key)
+
+    reply =
+      case Map.fetch(state.flags, flag_key) do
+        :error ->
+          {:error, StoreError.flag_not_found(command.flag_key, :all)}
+
+        {:ok, flag} ->
+          with :ok <- ensure_not_archived(command.flag_key, flag),
+               {:ok, updated_flag} <- apply_flag_update(flag, command, state.now) do
+            next_state = put_in(state.flags[flag_key], updated_flag)
+            {:ok, build_update_payload(next_state, updated_flag), next_state}
+          end
+      end
+
+    case reply do
+      {:ok, payload, next_state} -> {:reply, {:ok, payload}, next_state}
+      {:error, error} -> {:reply, {:error, error}, state}
+    end
   end
 
   def handle_call({:save_draft_ruleset, command}, _from, state) do
@@ -252,7 +314,7 @@ defmodule Rulestead.Fake do
                refreshed_flag_environment = refreshed_flag.environments[environment.key]
 
                payload =
-                 build_flag_payload(refreshed_flag, environment, refreshed_flag_environment, true)
+                 build_flag_detail_payload(next_state, refreshed_flag, environment, refreshed_flag_environment, true)
 
                {:ok, payload, next_state}
 
@@ -290,7 +352,10 @@ defmodule Rulestead.Fake do
             end)
           end)
 
-        next_state = put_in(state.flags[flag_key], archived_flag)
+        next_state =
+          put_in(state.flags[flag_key], archived_flag)
+          |> rebuild_flag_snapshots(archived_flag)
+
         payload = build_archive_payload(archived_flag)
         {:reply, {:ok, payload}, next_state}
     end
@@ -299,7 +364,7 @@ defmodule Rulestead.Fake do
   def handle_call({:list_flags, command}, _from, state) do
     reply =
       with_list_environment(state, command.environment_key, fn environment_filter ->
-        flags =
+        entries =
           state.flags
           |> Map.values()
           |> Enum.flat_map(&list_entries_for_flag(&1, state.environments, environment_filter))
@@ -307,14 +372,66 @@ defmodule Rulestead.Fake do
             archived?(entry.flag) and not command.include_archived?
           end)
           |> Enum.filter(&matches_query?(&1, command.query))
+          |> Enum.map(&build_list_entry(state, &1))
+          |> maybe_filter_owner(command.owner)
+          |> maybe_filter_tags(command.tags)
+          |> maybe_filter_lifecycle(command.lifecycle)
+          |> maybe_filter_stale(command.stale)
           |> sort_entries(command.sort)
-          |> Enum.drop(command.offset)
-          |> Enum.take(command.limit)
 
-        {:ok, Enum.map(flags, &entry_to_payload/1)}
+        {:ok, paginate_entries(entries, command)}
       end)
 
     {:reply, reply, state}
+  end
+
+  def handle_call({:list_environments, command}, _from, state) do
+    environments =
+      state.environments
+      |> Map.values()
+      |> Enum.filter(&matches_environment_query?(&1, command.query))
+      |> Enum.sort_by(& &1.key)
+      |> Enum.take(command.limit)
+
+    {:reply, {:ok, environments}, state}
+  end
+
+  def handle_call({:record_evaluation, command}, _from, state) do
+    reply =
+      with {:ok, environment} <- fetch_environment(state, command.environment_key),
+           {:ok, _flag, flag_environment} <-
+             fetch_flag_environment(state, command.flag_key, environment.key) do
+        timestamp = DateTime.truncate(command.last_evaluated_at, :microsecond)
+
+        next_timestamp =
+          case flag_environment[:last_evaluated_at] do
+            %DateTime{} = existing ->
+              case DateTime.compare(existing, timestamp) do
+                :gt -> existing
+                _ -> timestamp
+              end
+
+            _ -> timestamp
+          end
+
+        next_state =
+          put_in(
+            state.flags[to_string(command.flag_key)].environments[environment.key].last_evaluated_at,
+            next_timestamp
+          )
+
+        {:ok,
+         %{
+           flag_key: to_string(command.flag_key),
+           environment_key: environment.key,
+           last_evaluated_at: next_timestamp
+         }, next_state}
+      end
+
+    case reply do
+      {:ok, payload, next_state} -> {:reply, {:ok, payload}, next_state}
+      {:error, error} -> {:reply, {:error, error}, state}
+    end
   end
 
   defp call(message) do
@@ -403,7 +520,7 @@ defmodule Rulestead.Fake do
          )}
       else
         {flag_record, next_state} = build_flag_record(state, flag, environment_keys)
-        {:ok, build_archive_payload(flag_record), next_state}
+        {:ok, build_create_payload(next_state, flag_record), next_state}
       end
     else
       {:error, %Changeset{} = changeset_error} ->
@@ -442,6 +559,7 @@ defmodule Rulestead.Fake do
           kill_switch_variant_key: nil,
           active_ruleset_version: nil,
           last_published_at: nil,
+          last_evaluated_at: nil,
           inserted_at: acc_state.now,
           updated_at: acc_state.now
         }
@@ -458,8 +576,10 @@ defmodule Rulestead.Fake do
       default_value: flag.default_value,
       owner: flag.owner,
       expected_expiration: flag.expected_expiration,
+      permanent: flag.permanent,
       tags: flag.tags,
       archived_at: flag.archived_at,
+      previous_owners: [flag.owner],
       inserted_at: state.now,
       updated_at: state.now,
       environments: environments,
@@ -750,12 +870,36 @@ defmodule Rulestead.Fake do
     }
   end
 
+  defp build_flag_detail_payload(state, flag, environment, flag_environment, include_ruleset?) do
+    build_flag_payload(flag, environment, flag_environment, include_ruleset?)
+    |> decorate_payload(state, flag, environment, flag_environment)
+  end
+
   defp build_archive_payload(flag) do
     %{
       flag: flag_summary(flag),
       archived?: archived?(flag),
       environment_keys: flag.environments |> Map.keys() |> Enum.sort()
     }
+  end
+
+  defp build_create_payload(state, flag) do
+    %{
+      flag: flag_summary(flag),
+      archived?: archived?(flag),
+      environment_keys: flag.environments |> Map.keys() |> Enum.sort(),
+      environments:
+        flag.environments
+        |> Map.keys()
+        |> Enum.map(&state.environments[&1])
+        |> Enum.sort_by(& &1.key),
+      recent_owners: recent_owners(state, flag.owner)
+    }
+  end
+
+  defp build_update_payload(state, flag) do
+    {environment, flag_environment} = preferred_environment(state, flag)
+    build_flag_detail_payload(state, flag, environment, flag_environment, true)
   end
 
   defp flag_summary(flag) do
@@ -768,6 +912,7 @@ defmodule Rulestead.Fake do
       :default_value,
       :owner,
       :expected_expiration,
+      :permanent,
       :tags,
       :archived_at,
       :inserted_at,
@@ -783,6 +928,7 @@ defmodule Rulestead.Fake do
       :kill_switch_variant_key,
       :active_ruleset_version,
       :last_published_at,
+      :last_evaluated_at,
       :inserted_at,
       :updated_at
     ])
@@ -846,12 +992,12 @@ defmodule Rulestead.Fake do
   end
 
   defp sort_entries(entries, :inserted_at),
-    do: Enum.sort_by(entries, & &1.flag.inserted_at, {:desc, DateTime})
+    do: Enum.sort(entries, fn left, right -> compare_datetime_desc(left.flag.inserted_at, right.flag.inserted_at, left, right) end)
 
   defp sort_entries(entries, :updated_at),
-    do: Enum.sort_by(entries, & &1.flag.updated_at, {:desc, DateTime})
+    do: Enum.sort(entries, fn left, right -> compare_datetime_desc(left.flag.updated_at, right.flag.updated_at, left, right) end)
 
-  defp sort_entries(entries, _sort), do: Enum.sort_by(entries, & &1.flag.key)
+  defp sort_entries(entries, _sort), do: Enum.sort_by(entries, fn entry -> {entry.flag.key, entry.environment.key} end)
 
   defp entry_to_payload(entry) do
     %{
@@ -863,7 +1009,8 @@ defmodule Rulestead.Fake do
           entry.flag,
           entry.environment.key,
           entry.flag_environment.active_ruleset_version
-        )
+        ),
+      draft_rulesets: draft_ruleset_payloads(entry.flag, entry.environment.key)
     }
   end
 
@@ -974,6 +1121,292 @@ defmodule Rulestead.Fake do
       percentage: rollout.percentage,
       salt: rollout.salt
     }
+  end
+
+  defp decorate_payload(payload, state, flag, environment, flag_environment) do
+    environment_cards = environment_cards(state, flag)
+
+    payload
+    |> Map.put(:lifecycle, lifecycle(flag, flag_environment))
+    |> Map.put(:has_draft_ruleset?, payload.draft_rulesets != [])
+    |> Map.put(:recent_owners, recent_owners(state, flag.owner))
+    |> Map.put(:environments, Enum.map(environment_cards, & &1.environment))
+    |> Map.put(:environment_cards, environment_cards)
+    |> Map.put(:environment_status, flag_environment.status)
+    |> Map.put(:environment_key, environment.key)
+  end
+
+  defp build_list_entry(state, entry) do
+    entry
+    |> entry_to_payload()
+    |> decorate_payload(state, entry.flag, entry.environment, entry.flag_environment)
+  end
+
+  defp environment_cards(state, flag) do
+    flag.environments
+    |> Enum.sort_by(fn {environment_key, _flag_environment} -> environment_key end)
+    |> Enum.map(fn {environment_key, flag_environment} ->
+      drafts = draft_ruleset_payloads(flag, environment_key)
+
+      %{
+        environment: state.environments[environment_key],
+        flag_environment: flag_environment_summary(flag_environment),
+        active_ruleset: active_ruleset_payload(flag, environment_key, flag_environment.active_ruleset_version),
+        draft_rulesets: drafts,
+        has_draft_ruleset?: drafts != [],
+        lifecycle: lifecycle(flag, flag_environment)
+      }
+    end)
+  end
+
+  defp lifecycle(flag, flag_environment) do
+    Lifecycle.classify(flag_summary(flag), flag_environment_summary(flag_environment), lifecycle_opts())
+  end
+
+  defp lifecycle_opts do
+    Application.get_env(:rulestead, :admin_lifecycle, [])
+  end
+
+  defp recent_owners(state, current_owner) do
+    owners =
+      state.flags
+      |> Map.values()
+      |> Enum.sort_by(& &1.updated_at, {:desc, DateTime})
+      |> Enum.flat_map(fn flag -> [flag.owner | Map.get(flag, :previous_owners, [])] end)
+      |> Enum.map(&normalize_owner/1)
+
+    [normalize_owner(current_owner) | owners]
+    |> Enum.reject(&is_nil/1)
+    |> Enum.uniq()
+    |> Enum.take(5)
+  end
+
+  defp preferred_environment(state, flag) do
+    flag.environments
+    |> Map.keys()
+    |> Enum.sort_by(fn environment_key -> {environment_key != "test", environment_key} end)
+    |> List.first()
+    |> then(fn environment_key -> {state.environments[environment_key], flag.environments[environment_key]} end)
+  end
+
+  defp maybe_filter_owner(entries, nil), do: entries
+  defp maybe_filter_owner(entries, ""), do: entries
+
+  defp maybe_filter_owner(entries, owner) do
+    normalized = normalize_owner(owner)
+    Enum.filter(entries, fn entry -> normalize_owner(entry.flag.owner) == normalized end)
+  end
+
+  defp maybe_filter_tags(entries, []), do: entries
+
+  defp maybe_filter_tags(entries, tags) do
+    normalized_tags = tags |> Enum.map(&normalize_tag/1) |> Enum.reject(&is_nil/1)
+
+    Enum.filter(entries, fn entry ->
+      entry_tags = entry.flag.tags |> Enum.map(&normalize_tag/1) |> Enum.reject(&is_nil/1)
+      Enum.all?(normalized_tags, &(&1 in entry_tags))
+    end)
+  end
+
+  defp maybe_filter_lifecycle(entries, nil), do: entries
+  defp maybe_filter_lifecycle(entries, lifecycle_state), do: Enum.filter(entries, &(&1.lifecycle.state == lifecycle_state))
+
+  defp maybe_filter_stale(entries, nil), do: entries
+
+  defp maybe_filter_stale(entries, stale_state) do
+    Enum.filter(entries, fn entry ->
+      case entry.lifecycle.state do
+        :active -> stale_state == :fresh
+        :potentially_stale -> stale_state == :potentially_stale
+        :stale -> stale_state == :stale
+        :archived -> false
+      end
+    end)
+  end
+
+  defp paginate_entries(entries, command) do
+    filtered_entries =
+      entries
+      |> apply_cursor(command.after, :after, command.sort)
+      |> apply_cursor(command.before, :before, command.sort)
+
+    page_entries = Enum.take(filtered_entries, command.limit)
+    first_entry = List.first(page_entries)
+    last_entry = List.last(page_entries)
+
+    %Command.Page{
+      entries: page_entries,
+      limit: command.limit,
+      next_cursor: if(length(filtered_entries) > command.limit and last_entry, do: encode_cursor(last_entry, command.sort)),
+      prev_cursor: if((command.after || command.before) && first_entry, do: encode_cursor(first_entry, command.sort)),
+      has_next_page?: length(filtered_entries) > command.limit,
+      has_previous_page?: not is_nil(command.after) or not is_nil(command.before)
+    }
+  end
+
+  defp apply_cursor(entries, nil, _direction, _sort), do: entries
+
+  defp apply_cursor(entries, cursor, direction, sort) do
+    with {:ok, decoded} <- decode_cursor(cursor) do
+      Enum.filter(entries, fn entry -> compare_cursor(entry, decoded, sort, direction) end)
+    else
+      _ -> entries
+    end
+  end
+
+  defp compare_cursor(entry, decoded, :inserted_at, :after),
+    do: {entry.flag.inserted_at, entry.flag.key, entry.environment.key} < {decoded.sort_value, decoded.flag_key, decoded.environment_key}
+
+  defp compare_cursor(entry, decoded, :inserted_at, :before),
+    do: {entry.flag.inserted_at, entry.flag.key, entry.environment.key} > {decoded.sort_value, decoded.flag_key, decoded.environment_key}
+
+  defp compare_cursor(entry, decoded, :updated_at, :after),
+    do: {entry.flag.updated_at, entry.flag.key, entry.environment.key} < {decoded.sort_value, decoded.flag_key, decoded.environment_key}
+
+  defp compare_cursor(entry, decoded, :updated_at, :before),
+    do: {entry.flag.updated_at, entry.flag.key, entry.environment.key} > {decoded.sort_value, decoded.flag_key, decoded.environment_key}
+
+  defp compare_cursor(entry, decoded, _sort, :after),
+    do: {entry.flag.key, entry.environment.key} > {decoded.flag_key, decoded.environment_key}
+
+  defp compare_cursor(entry, decoded, _sort, :before),
+    do: {entry.flag.key, entry.environment.key} < {decoded.flag_key, decoded.environment_key}
+
+  defp encode_cursor(entry, sort) do
+    %{
+      sort: sort,
+      sort_value:
+        case sort do
+          :inserted_at -> entry.flag.inserted_at
+          :updated_at -> entry.flag.updated_at
+          _ -> entry.flag.key
+        end,
+      flag_key: entry.flag.key,
+      environment_key: entry.environment.key
+    }
+    |> :erlang.term_to_binary()
+    |> Base.url_encode64(padding: false)
+  end
+
+  defp decode_cursor(cursor) do
+    try do
+      with {:ok, binary} <- Base.url_decode64(cursor, padding: false) do
+        {:ok, :erlang.binary_to_term(binary)}
+      end
+    rescue
+      _ -> :error
+    end
+  end
+
+  defp matches_environment_query?(_environment, nil), do: true
+  defp matches_environment_query?(_environment, ""), do: true
+
+  defp matches_environment_query?(environment, query) do
+    normalized_query = query |> to_string() |> String.trim() |> String.downcase()
+
+    normalized_query == "" or
+      String.contains?(String.downcase(environment.key), normalized_query) or
+      String.contains?(String.downcase(environment.name || ""), normalized_query) or
+      String.contains?(String.downcase(environment.description || ""), normalized_query)
+  end
+
+  defp apply_flag_update(flag, command, now) do
+    attrs =
+      %{}
+      |> maybe_put_update_field(:description, command.description)
+      |> maybe_put_update_field(:owner, command.owner)
+      |> maybe_put_update_field(:tags, command.tags)
+      |> maybe_put_lifecycle_update(command)
+
+    changeset =
+      flag
+      |> Map.take([
+        :key,
+        :description,
+        :flag_type,
+        :value_type,
+        :default_value,
+        :owner,
+        :expected_expiration,
+        :permanent,
+        :tags,
+        :archived_at
+      ])
+      |> then(&Flag.changeset(struct(Flag, &1), attrs))
+
+    case Changeset.apply_action(changeset, :update) do
+      {:ok, updated_flag} ->
+        {:ok,
+         flag
+         |> Map.put(:description, updated_flag.description)
+         |> Map.put(:owner, updated_flag.owner)
+          |> Map.put(:expected_expiration, updated_flag.expected_expiration)
+         |> Map.put(:permanent, updated_flag.permanent)
+         |> Map.put(:tags, updated_flag.tags)
+         |> Map.put(:previous_owners, [flag.owner | Map.get(flag, :previous_owners, [])] |> Enum.uniq())
+         |> Map.put(:updated_at, now)}
+
+      {:error, changeset_error} ->
+        {:error,
+         StoreError.invalid_command(
+           "store command is invalid",
+           metadata: %{flag_key: to_string(command.flag_key), environment_key: "all"},
+           details: collect_changeset_details(changeset_error),
+           cause: changeset_error
+         )}
+    end
+  end
+
+  defp rebuild_flag_snapshots(state, flag) do
+    flag.environments
+    |> Map.keys()
+    |> Enum.reduce(state, fn environment_key, acc ->
+      put_runtime_snapshot(acc, environment_key)
+    end)
+  end
+
+  defp normalize_owner(owner) when is_binary(owner) do
+    case String.trim(owner) do
+      "" -> nil
+      normalized -> normalized
+    end
+  end
+
+  defp normalize_owner(_owner), do: nil
+
+  defp normalize_tag(tag) when is_binary(tag) do
+    case String.trim(tag) do
+      "" -> nil
+      normalized -> normalized
+    end
+  end
+
+  defp normalize_tag(_tag), do: nil
+
+  defp maybe_put_update_field(attrs, _key, nil), do: attrs
+  defp maybe_put_update_field(attrs, key, value), do: Map.put(attrs, key, value)
+
+  defp maybe_put_lifecycle_update(attrs, command) do
+    attrs =
+      if not is_nil(command.permanent) do
+        Map.put(attrs, :permanent, command.permanent)
+      else
+        attrs
+      end
+
+    if Map.has_key?(attrs, :permanent) or not is_nil(command.expected_expiration) do
+      Map.put(attrs, :expected_expiration, command.expected_expiration)
+    else
+      attrs
+    end
+  end
+
+  defp compare_datetime_desc(left_datetime, right_datetime, left, right) do
+    case DateTime.compare(left_datetime, right_datetime) do
+      :gt -> true
+      :lt -> false
+      :eq -> {left.flag.key, left.environment.key} <= {right.flag.key, right.environment.key}
+    end
   end
 
   defp normalize_environment_keys(attrs) do
