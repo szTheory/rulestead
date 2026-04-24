@@ -34,4 +34,12 @@ defmodule Rulestead.Store do
   @callback execute_change_request(Command.ExecuteChangeRequest.t()) :: result(map())
   @callback fetch_change_request(Command.FetchChangeRequest.t()) :: result(map())
   @callback list_change_requests(Command.ListChangeRequests.t()) :: result(Command.Page.t(map()))
+  @callback schedule_change_request(Command.ScheduleChangeRequest.t()) :: result(map())
+  @callback schedule_governed_action(Command.ScheduleGovernedAction.t()) :: result(map())
+  @callback cancel_scheduled_execution(Command.CancelScheduledExecution.t()) :: result(map())
+  @callback requeue_scheduled_execution(Command.RequeueScheduledExecution.t()) :: result(map())
+  @callback execute_scheduled_execution(Command.ExecuteScheduledExecution.t()) :: result(map())
+  @callback fetch_scheduled_execution(Command.FetchScheduledExecution.t()) :: result(map())
+  @callback list_scheduled_executions(Command.ListScheduledExecutions.t()) ::
+              result(Command.Page.t(map()))
 end

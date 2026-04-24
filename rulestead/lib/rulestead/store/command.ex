@@ -7,6 +7,7 @@ defmodule Rulestead.Store.Command do
   """
 
   alias Rulestead.Governance.ApprovalRequirement
+  alias Rulestead.Governance.ScheduledExecution
 
   defmodule GovernanceSupport do
     @moduledoc false
@@ -791,6 +792,264 @@ defmodule Rulestead.Store.Command do
         resource_type: Keyword.get(opts, :resource_type) |> GovernanceSupport.normalize_string(),
         resource_key: Keyword.get(opts, :resource_key) |> GovernanceSupport.normalize_string(),
         submitted_by_id: Keyword.get(opts, :submitted_by_id) |> GovernanceSupport.normalize_string(),
+        limit: Keyword.get(opts, :limit, 50),
+        after: Keyword.get(opts, :after),
+        before: Keyword.get(opts, :before)
+      }
+    end
+  end
+
+  defmodule ScheduleChangeRequest do
+    @moduledoc false
+
+    alias Rulestead.Store.Command.GovernanceSupport
+
+    @enforce_keys [:change_request_id, :scheduled_for]
+    defstruct [:change_request_id, :scheduled_for, actor: nil, reason: nil, metadata: %{}]
+
+    @type t :: %__MODULE__{
+            change_request_id: String.t() | nil,
+            scheduled_for: DateTime.t() | nil,
+            actor: nil | map(),
+            reason: nil | String.t(),
+            metadata: map()
+          }
+
+    @spec new(map() | keyword(), keyword()) :: t()
+    def new(attrs, opts \\ []) when is_map(attrs) or is_list(attrs) do
+      attrs = Map.new(attrs)
+
+      %__MODULE__{
+        change_request_id:
+          attrs |> GovernanceSupport.fetch_required!(:change_request_id) |> GovernanceSupport.normalize_string(),
+        scheduled_for: GovernanceSupport.fetch_required!(attrs, :scheduled_for),
+        actor:
+          opts
+          |> Keyword.get(:actor, GovernanceSupport.fetch(attrs, :actor))
+          |> GovernanceSupport.normalize_actor(),
+        reason:
+          opts
+          |> Keyword.get(:reason, GovernanceSupport.fetch(attrs, :reason))
+          |> GovernanceSupport.normalize_string(),
+        metadata:
+          opts
+          |> Keyword.get(:metadata, GovernanceSupport.fetch(attrs, :metadata))
+          |> GovernanceSupport.normalize_metadata()
+      }
+    end
+  end
+
+  defmodule ScheduleGovernedAction do
+    @moduledoc false
+
+    alias Rulestead.Store.Command.GovernanceSupport
+
+    @enforce_keys [:action, :environment_key, :resource_type, :resource_key, :command, :scheduled_for, :execution_mode]
+    defstruct [
+      :action,
+      :environment_key,
+      :resource_type,
+      :resource_key,
+      :command,
+      :scheduled_for,
+      :execution_mode,
+      actor: nil,
+      reason: nil,
+      approval_requirement: %{},
+      metadata: %{}
+    ]
+
+    @type t :: %__MODULE__{
+            action: ScheduledExecution.action(),
+            environment_key: String.t() | nil,
+            resource_type: String.t() | nil,
+            resource_key: String.t() | nil,
+            command: map(),
+            scheduled_for: DateTime.t() | nil,
+            execution_mode: ScheduledExecution.execution_mode(),
+            actor: nil | map(),
+            reason: nil | String.t(),
+            approval_requirement: map(),
+            metadata: map()
+          }
+
+    @spec new(map() | keyword(), keyword()) :: t()
+    def new(attrs, opts \\ []) when is_map(attrs) or is_list(attrs) do
+      attrs = Map.new(attrs)
+
+      %__MODULE__{
+        action: GovernanceSupport.fetch_required!(attrs, :action),
+        environment_key:
+          attrs |> GovernanceSupport.fetch_required!(:environment_key) |> GovernanceSupport.normalize_string(),
+        resource_type:
+          attrs |> GovernanceSupport.fetch_required!(:resource_type) |> GovernanceSupport.normalize_string(),
+        resource_key:
+          attrs |> GovernanceSupport.fetch_required!(:resource_key) |> GovernanceSupport.normalize_string(),
+        command:
+          attrs |> GovernanceSupport.fetch_required!(:command) |> GovernanceSupport.normalize_command(),
+        scheduled_for: GovernanceSupport.fetch_required!(attrs, :scheduled_for),
+        execution_mode:
+          attrs |> GovernanceSupport.fetch_required!(:execution_mode) |> normalize_execution_mode(),
+        actor:
+          opts
+          |> Keyword.get(:actor, GovernanceSupport.fetch(attrs, :actor))
+          |> GovernanceSupport.normalize_actor(),
+        reason:
+          opts
+          |> Keyword.get(:reason, GovernanceSupport.fetch(attrs, :reason))
+          |> GovernanceSupport.normalize_string(),
+        approval_requirement:
+          opts
+          |> Keyword.get(:approval_requirement, GovernanceSupport.fetch(attrs, :approval_requirement))
+          |> GovernanceSupport.normalize_approval_requirement(),
+        metadata:
+          opts
+          |> Keyword.get(:metadata, GovernanceSupport.fetch(attrs, :metadata))
+          |> GovernanceSupport.normalize_metadata()
+      }
+    end
+
+    defp normalize_execution_mode(mode) when mode in [:change_request, :policy_bypass, :emergency_bypass],
+      do: mode
+
+    defp normalize_execution_mode(_mode), do: :change_request
+  end
+
+  defmodule CancelScheduledExecution do
+    @moduledoc false
+
+    alias Rulestead.Store.Command.GovernanceSupport
+
+    @enforce_keys [:scheduled_execution_id]
+    defstruct [:scheduled_execution_id, actor: nil, reason: nil, metadata: %{}]
+
+    @type t :: %__MODULE__{
+            scheduled_execution_id: String.t() | nil,
+            actor: nil | map(),
+            reason: nil | String.t(),
+            metadata: map()
+          }
+
+    @spec new(String.t(), keyword()) :: t()
+    def new(scheduled_execution_id, opts \\ []) do
+      %__MODULE__{
+        scheduled_execution_id: GovernanceSupport.normalize_string(scheduled_execution_id),
+        actor: Keyword.get(opts, :actor) |> GovernanceSupport.normalize_actor(),
+        reason: Keyword.get(opts, :reason) |> GovernanceSupport.normalize_string(),
+        metadata: Keyword.get(opts, :metadata, %{}) |> GovernanceSupport.normalize_metadata()
+      }
+    end
+  end
+
+  defmodule RequeueScheduledExecution do
+    @moduledoc false
+
+    alias Rulestead.Store.Command.GovernanceSupport
+
+    @enforce_keys [:scheduled_execution_id]
+    defstruct [:scheduled_execution_id, actor: nil, reason: nil, metadata: %{}]
+
+    @type t :: %__MODULE__{
+            scheduled_execution_id: String.t() | nil,
+            actor: nil | map(),
+            reason: nil | String.t(),
+            metadata: map()
+          }
+
+    @spec new(String.t(), keyword()) :: t()
+    def new(scheduled_execution_id, opts \\ []) do
+      %__MODULE__{
+        scheduled_execution_id: GovernanceSupport.normalize_string(scheduled_execution_id),
+        actor: Keyword.get(opts, :actor) |> GovernanceSupport.normalize_actor(),
+        reason: Keyword.get(opts, :reason) |> GovernanceSupport.normalize_string(),
+        metadata: Keyword.get(opts, :metadata, %{}) |> GovernanceSupport.normalize_metadata()
+      }
+    end
+  end
+
+  defmodule ExecuteScheduledExecution do
+    @moduledoc false
+
+    alias Rulestead.Store.Command.GovernanceSupport
+
+    @enforce_keys [:scheduled_execution_id]
+    defstruct [:scheduled_execution_id, actor: nil, reason: nil, metadata: %{}]
+
+    @type t :: %__MODULE__{
+            scheduled_execution_id: String.t() | nil,
+            actor: nil | map(),
+            reason: nil | String.t(),
+            metadata: map()
+          }
+
+    @spec new(String.t(), keyword()) :: t()
+    def new(scheduled_execution_id, opts \\ []) do
+      %__MODULE__{
+        scheduled_execution_id: GovernanceSupport.normalize_string(scheduled_execution_id),
+        actor: Keyword.get(opts, :actor) |> GovernanceSupport.normalize_actor(),
+        reason: Keyword.get(opts, :reason) |> GovernanceSupport.normalize_string(),
+        metadata: Keyword.get(opts, :metadata, %{}) |> GovernanceSupport.normalize_metadata()
+      }
+    end
+  end
+
+  defmodule FetchScheduledExecution do
+    @moduledoc false
+
+    alias Rulestead.Store.Command.GovernanceSupport
+
+    @enforce_keys [:scheduled_execution_id]
+    defstruct [:scheduled_execution_id]
+
+    @type t :: %__MODULE__{
+            scheduled_execution_id: String.t() | nil
+          }
+
+    @spec new(String.t()) :: t()
+    def new(scheduled_execution_id) do
+      %__MODULE__{scheduled_execution_id: GovernanceSupport.normalize_string(scheduled_execution_id)}
+    end
+  end
+
+  defmodule ListScheduledExecutions do
+    @moduledoc false
+
+    alias Rulestead.Store.Command.GovernanceSupport
+
+    defstruct environment_key: nil,
+              state: nil,
+              action: nil,
+              resource_type: nil,
+              resource_key: nil,
+              scheduled_by_id: nil,
+              change_request_id: nil,
+              limit: 50,
+              after: nil,
+              before: nil
+
+    @type t :: %__MODULE__{
+            environment_key: nil | String.t(),
+            state: nil | atom() | String.t(),
+            action: nil | atom() | String.t(),
+            resource_type: nil | String.t(),
+            resource_key: nil | String.t(),
+            scheduled_by_id: nil | String.t(),
+            change_request_id: nil | String.t(),
+            limit: pos_integer(),
+            after: nil | String.t(),
+            before: nil | String.t()
+          }
+
+    @spec new(keyword()) :: t()
+    def new(opts \\ []) do
+      %__MODULE__{
+        environment_key: Keyword.get(opts, :environment_key) |> GovernanceSupport.normalize_string(),
+        state: Keyword.get(opts, :state),
+        action: Keyword.get(opts, :action),
+        resource_type: Keyword.get(opts, :resource_type) |> GovernanceSupport.normalize_string(),
+        resource_key: Keyword.get(opts, :resource_key) |> GovernanceSupport.normalize_string(),
+        scheduled_by_id: Keyword.get(opts, :scheduled_by_id) |> GovernanceSupport.normalize_string(),
+        change_request_id: Keyword.get(opts, :change_request_id) |> GovernanceSupport.normalize_string(),
         limit: Keyword.get(opts, :limit, 50),
         after: Keyword.get(opts, :after),
         before: Keyword.get(opts, :before)
