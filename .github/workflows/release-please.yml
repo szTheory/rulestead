@@ -16,6 +16,7 @@ permissions:
   contents: write
   pull-requests: write
   issues: write
+  actions: write
 
 jobs:
   release-please:
@@ -24,6 +25,9 @@ jobs:
     outputs:
       rulestead_release_created: ${{ steps.release.outputs.rulestead--release_created }}
       rulestead_admin_release_created: ${{ steps.lockstep.outputs.rulestead_admin_release_created }}
+      release_version: ${{ steps.lockstep.outputs.release_version }}
+      rulestead_tag_name: ${{ steps.lockstep.outputs.rulestead_tag_name }}
+      rulestead_admin_tag_name: ${{ steps.lockstep.outputs.rulestead_admin_tag_name }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -44,6 +48,9 @@ jobs:
           set -euo pipefail
 
           admin_release_created="${RULESTEAD_ADMIN_RELEASE_CREATED:-false}"
+          rulestead_tag_name="${RULESTEAD_TAG_NAME:-}"
+          rulestead_admin_tag_name="${RULESTEAD_ADMIN_TAG_NAME:-}"
+          release_version=""
 
           if [[ "${RULESTEAD_RELEASE_CREATED:-false}" == "true" && "${admin_release_created}" != "true" ]]; then
             core_version="$(jq -r '.rulestead' .release-please-manifest.json)"
@@ -54,12 +61,68 @@ jobs:
             fi
           fi
 
+          if [[ -n "${rulestead_tag_name}" ]]; then
+            release_version="${rulestead_tag_name#rulestead-v}"
+          fi
+
+          if [[ -z "${rulestead_tag_name}" && -n "${release_version}" ]]; then
+            rulestead_tag_name="rulestead-v${release_version}"
+          fi
+
+          if [[ -z "${rulestead_admin_tag_name}" && -n "${release_version}" ]]; then
+            rulestead_admin_tag_name="rulestead_admin-v${release_version}"
+          fi
+
           {
             echo "rulestead_admin_release_created=${admin_release_created}"
-            echo "rulestead_tag_name=${RULESTEAD_TAG_NAME:-}"
-            echo "rulestead_admin_tag_name=${RULESTEAD_ADMIN_TAG_NAME:-}"
+            echo "release_version=${release_version}"
+            echo "rulestead_tag_name=${rulestead_tag_name}"
+            echo "rulestead_admin_tag_name=${rulestead_admin_tag_name}"
           } >> "${GITHUB_OUTPUT}"
       - name: Phase 1 bootstrap reminder
         run: |
           echo "Bootstrap the first linked-versions release PR with a commit footer:"
           echo "Release-As: 0.1.0"
+
+  dispatch-publish:
+    name: dispatch-publish
+    needs: release-please
+    if: needs.release-please.outputs.rulestead_release_created == 'true' && needs.release-please.outputs.rulestead_admin_release_created == 'true'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Queue gated Hex publish
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_API_URL: ${{ github.api_url }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          RELEASE_VERSION: ${{ needs.release-please.outputs.release_version }}
+          RULESTEAD_TAG_NAME: ${{ needs.release-please.outputs.rulestead_tag_name }}
+          RULESTEAD_ADMIN_TAG_NAME: ${{ needs.release-please.outputs.rulestead_admin_tag_name }}
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${RELEASE_VERSION}" || -z "${RULESTEAD_TAG_NAME}" || -z "${RULESTEAD_ADMIN_TAG_NAME}" ]]; then
+            echo "release-please did not expose the linked tag metadata needed for publish dispatch" >&2
+            exit 1
+          fi
+
+          jq -n \
+            --arg ref "main" \
+            --arg core_tag "${RULESTEAD_TAG_NAME}" \
+            --arg admin_tag "${RULESTEAD_ADMIN_TAG_NAME}" \
+            --arg release_version "${RELEASE_VERSION}" \
+            '{
+              ref: $ref,
+              inputs: {
+                core_tag: $core_tag,
+                admin_tag: $admin_tag,
+                release_version: $release_version
+              }
+            }' \
+            | curl --fail --silent --show-error \
+                -X POST \
+                -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+                -H "Accept: application/vnd.github+json" \
+                -H "Content-Type: application/json" \
+                "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/actions/workflows/publish-hex.yml/dispatches" \
+                -d @-
