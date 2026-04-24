@@ -7,7 +7,16 @@ defmodule Rulestead.Telemetry do
 
   @handler_table :rulestead_telemetry_handlers
   @shared_keys ~w(flag_key flag_type environment snapshot_version cache_age_ms reason has_targeting_key? matched_rule_count)a
-  @optional_keys ~w(operation source refresh_status audit_action error_kind change_request_id correlation_id audit_event_id resource_key)a
+  @optional_keys ~w(operation source refresh_status audit_action error_kind change_request_id correlation_id audit_event_id resource_key governance_action environment_key attempt_count execution_mode executed_by)a
+  @scheduled_execution_events %{
+    scheduled: [:rulestead, :admin, :scheduled_execution, :scheduled],
+    started: [:rulestead, :admin, :scheduled_execution, :started],
+    succeeded: [:rulestead, :admin, :scheduled_execution, :succeeded],
+    failed: [:rulestead, :admin, :scheduled_execution, :failed],
+    quarantined: [:rulestead, :admin, :scheduled_execution, :quarantined],
+    cancelled: [:rulestead, :admin, :scheduled_execution, :cancelled],
+    requeued: [:rulestead, :admin, :scheduled_execution, :requeued]
+  }
 
   @type event_prefix :: [atom()]
   @type event_name :: [atom()]
@@ -133,6 +142,42 @@ defmodule Rulestead.Telemetry do
     |> Map.put_new(:reason, Map.get(attrs, :event))
   end
 
+  @spec scheduled_execution_event(atom() | binary()) :: event_name()
+  def scheduled_execution_event(name) when is_atom(name) do
+    Map.fetch!(@scheduled_execution_events, name)
+  end
+
+  def scheduled_execution_event(name) when is_binary(name) do
+    name
+    |> String.trim()
+    |> String.replace_prefix("scheduled_execution.", "")
+    |> String.to_existing_atom()
+    |> scheduled_execution_event()
+  rescue
+    ArgumentError -> raise KeyError, key: name, term: @scheduled_execution_events
+  end
+
+  @spec scheduled_execution_metadata(map(), map()) :: map()
+  def scheduled_execution_metadata(scheduled_execution, attrs \\ %{})
+      when is_map(scheduled_execution) and is_map(attrs) do
+    attrs = Map.new(attrs)
+
+    %{}
+    |> Map.put_new(:operation, "scheduled_execution")
+    |> Map.put_new(:change_request_id, Map.get(attrs, :change_request_id) || scheduled_execution[:change_request_id] || scheduled_execution["change_request_id"])
+    |> Map.put_new(:correlation_id, Map.get(attrs, :correlation_id) || scheduled_execution[:correlation_id] || scheduled_execution["correlation_id"])
+    |> Map.put_new(:audit_event_id, Map.get(attrs, :audit_event_id))
+    |> Map.put_new(:resource_key, Map.get(attrs, :resource_key) || scheduled_execution[:resource_key] || scheduled_execution["resource_key"])
+    |> Map.put_new(:audit_action, Map.get(attrs, :action) || scheduled_execution[:action] || scheduled_execution["action"])
+    |> Map.put_new(:governance_action, Map.get(attrs, :action) || scheduled_execution[:action] || scheduled_execution["action"])
+    |> Map.put_new(:environment, Map.get(attrs, :environment_key) || scheduled_execution[:environment_key] || scheduled_execution["environment_key"])
+    |> Map.put_new(:environment_key, Map.get(attrs, :environment_key) || scheduled_execution[:environment_key] || scheduled_execution["environment_key"])
+    |> Map.put_new(:attempt_count, Map.get(attrs, :attempt_count))
+    |> Map.put_new(:execution_mode, Map.get(attrs, :execution_mode) || scheduled_execution[:execution_mode] || scheduled_execution["execution_mode"])
+    |> Map.put_new(:executed_by, Map.get(attrs, :executed_by))
+    |> Map.put_new(:reason, Map.get(attrs, :event))
+  end
+
   @spec dispatch(event_name(), map(), metadata(), event_name()) :: :ok
   def dispatch(event, measurements, metadata, registered_event) do
     ensure_handler_table()
@@ -200,10 +245,11 @@ defmodule Rulestead.Telemetry do
 
   defp sanitize_value(:cache_age_ms, value) when is_integer(value) and value >= 0, do: value
   defp sanitize_value(:snapshot_version, value) when is_integer(value) and value > 0, do: value
+  defp sanitize_value(:attempt_count, value) when is_integer(value) and value >= 0, do: value
   defp sanitize_value(key, value) when key in [:has_targeting_key?] and is_boolean(value), do: value
   defp sanitize_value(key, value) when key in [:matched_rule_count] and is_integer(value) and value >= 0, do: value
   defp sanitize_value(key, value)
-       when key in [:flag_key, :environment, :operation, :audit_action, :change_request_id, :correlation_id, :audit_event_id, :resource_key],
+       when key in [:flag_key, :environment, :environment_key, :operation, :audit_action, :change_request_id, :correlation_id, :audit_event_id, :resource_key, :governance_action, :execution_mode, :executed_by],
        do: stringify(value)
   defp sanitize_value(key, value) when key in [:flag_type, :reason, :source, :refresh_status, :error_kind], do: normalize_atom(value)
   defp sanitize_value(_key, _value), do: nil

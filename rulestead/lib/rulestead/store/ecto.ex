@@ -844,25 +844,44 @@ defmodule Rulestead.Store.Ecto do
   def cancel_scheduled_execution(%Command.CancelScheduledExecution{} = command) do
     with {:ok, scheduled_execution} <- fetch_scheduled_execution_row(command.scheduled_execution_id),
          :ok <- ensure_scheduled_transition(scheduled_execution.state, ["scheduled", "running"]) do
-      updates = [
-        state: "cancelled",
-        failure_reason: command.reason,
-        executed_at: scheduled_execution.executed_at,
-        execution_metadata:
-          scheduled_transition_metadata(
-            scheduled_execution.execution_metadata,
-            "cancelled",
-            command
-          ),
-        updated_at: now()
-      ]
+      Multi.new()
+      |> Multi.run(:scheduled_execution, fn repo, _changes ->
+        repo.update_all(
+          from(se in "scheduled_executions", where: field(se, :id) == ^uuid_param(scheduled_execution.id)),
+          set: [
+            state: "cancelled",
+            failure_reason: command.reason,
+            executed_at: scheduled_execution.executed_at,
+            execution_metadata:
+              scheduled_transition_metadata(
+                scheduled_execution.execution_metadata,
+                "cancelled",
+                command
+              ),
+            updated_at: now()
+          ]
+        )
 
-      case update_scheduled_execution_row(scheduled_execution.id, updates) do
-        {:ok, updated} ->
+        fetch_scheduled_execution_row(scheduled_execution.id)
+      end)
+      |> Multi.run(:audit_event, fn repo, %{scheduled_execution: updated} ->
+        insert_scheduled_execution_audit_event(
+          repo,
+          updated,
+          command,
+          "scheduled_execution.cancelled",
+          :ok
+        )
+      end)
+      |> Repo.transact()
+      |> case do
+        {:ok, %{scheduled_execution: updated, audit_event: audit_event}} ->
+          emit_scheduled_execution_telemetry(:cancelled, command, updated, audit_event)
+
           {:ok, %{scheduled_execution: serialize_scheduled_execution_row(updated), attempts: []}}
 
-        {:error, error} ->
-          {:error, error}
+        {:error, _operation, error, _changes} ->
+          {:error, normalize_governance_failure(error)}
       end
     end
   end
@@ -901,9 +920,20 @@ defmodule Rulestead.Store.Ecto do
 
         fetch_scheduled_execution_row(updated.id)
       end)
+      |> Multi.run(:audit_event, fn repo, %{persist_job_id: updated} ->
+        insert_scheduled_execution_audit_event(
+          repo,
+          updated,
+          command,
+          "scheduled_execution.requeued",
+          :ok
+        )
+      end)
       |> Repo.transact()
       |> case do
-        {:ok, %{persist_job_id: updated}} ->
+        {:ok, %{persist_job_id: updated, audit_event: audit_event}} ->
+          emit_scheduled_execution_telemetry(:requeued, command, updated, audit_event)
+
           {:ok,
            %{
              scheduled_execution: serialize_scheduled_execution_row(updated),
@@ -934,6 +964,12 @@ defmodule Rulestead.Store.Ecto do
           {:error, StoreError.invalid_command("scheduled execution requires explicit requeue")}
 
         _other ->
+          if lifecycle_telemetry_enabled?(command) do
+            emit_scheduled_execution_telemetry(:started, command, scheduled_execution, nil,
+              attempt_count: scheduled_execution.attempt_count + 1
+            )
+          end
+
           run_scheduled_execution(command, scheduled_execution)
       end
     end
@@ -1943,9 +1979,20 @@ defmodule Rulestead.Store.Ecto do
 
       fetch_scheduled_execution_row(scheduled_execution.id)
     end)
+    |> Multi.run(:audit_event, fn repo, %{persist_job_id: scheduled_execution} ->
+      insert_scheduled_execution_audit_event(
+        repo,
+        scheduled_execution,
+        command,
+        "scheduled_execution.scheduled",
+        :ok
+      )
+    end)
     |> Repo.transact()
     |> case do
-      {:ok, %{persist_job_id: scheduled_execution}} ->
+      {:ok, %{persist_job_id: scheduled_execution, audit_event: audit_event}} ->
+        emit_scheduled_execution_telemetry(:scheduled, command, scheduled_execution, audit_event)
+
         {:ok, %{scheduled_execution: serialize_scheduled_execution_row(scheduled_execution), attempts: []}}
 
       {:error, _operation, reason, _changes} ->
@@ -2262,14 +2309,27 @@ defmodule Rulestead.Store.Ecto do
 
       fetch_scheduled_execution_row(scheduled_execution.id)
     end)
+    |> Multi.run(:audit_event, fn repo, %{scheduled_execution: updated} ->
+      insert_scheduled_execution_audit_event(
+        repo,
+        updated,
+        command,
+        "scheduled_execution.succeeded",
+        :ok
+      )
+    end)
     |> Repo.transact()
     |> case do
-      {:ok, %{scheduled_execution: updated}} ->
+      {:ok, %{scheduled_execution: updated, audit_event: audit_event}} ->
+        if lifecycle_telemetry_enabled?(command) do
+          emit_scheduled_execution_telemetry(:succeeded, command, updated, audit_event)
+        end
+
         {:ok,
          %{
            scheduled_execution: serialize_scheduled_execution_row(updated),
-           execution_result: execution_result,
-           attempts: list_execution_attempt_rows(updated.id) |> Enum.map(&serialize_execution_attempt_row/1)
+            execution_result: execution_result,
+            attempts: list_execution_attempt_rows(updated.id) |> Enum.map(&serialize_execution_attempt_row/1)
          }}
 
       {:error, _operation, reason, _changes} ->
@@ -2287,6 +2347,8 @@ defmodule Rulestead.Store.Ecto do
     next_attempt_count = scheduled_execution.attempt_count + 1
     next_state = if next_attempt_count >= @scheduled_execution_retry_limit, do: "quarantined", else: "scheduled"
     attempt_state = if next_state == "quarantined", do: "quarantined", else: "failed"
+    event_type = if next_state == "quarantined", do: "scheduled_execution.quarantined", else: "scheduled_execution.failed"
+    telemetry_event = if next_state == "quarantined", do: :quarantined, else: :failed
 
     Multi.new()
     |> Multi.run(:attempt, fn repo, _changes ->
@@ -2311,9 +2373,16 @@ defmodule Rulestead.Store.Ecto do
 
       fetch_scheduled_execution_row(scheduled_execution.id)
     end)
+    |> Multi.run(:audit_event, fn repo, %{scheduled_execution: updated} ->
+      insert_scheduled_execution_audit_event(repo, updated, command, event_type, :error)
+    end)
     |> Repo.transact()
     |> case do
-      {:ok, _changes} ->
+      {:ok, %{scheduled_execution: updated, audit_event: audit_event}} ->
+        if lifecycle_telemetry_enabled?(command) do
+          emit_scheduled_execution_telemetry(telemetry_event, command, updated, audit_event)
+        end
+
         {:error, StoreError.invalid_command(failure_reason)}
 
       {:error, _operation, txn_reason, _changes} ->
@@ -2366,15 +2435,6 @@ defmodule Rulestead.Store.Ecto do
     end
   end
 
-  defp update_scheduled_execution_row(scheduled_execution_id, updates) do
-    Repo.update_all(
-      from(se in "scheduled_executions", where: field(se, :id) == ^uuid_param(scheduled_execution_id)),
-      set: updates
-    )
-
-    fetch_scheduled_execution_row(scheduled_execution_id)
-  end
-
   defp list_execution_attempt_rows(scheduled_execution_id) do
     from(attempt in "execution_attempts",
       where: field(attempt, :scheduled_execution_id) == ^uuid_param(scheduled_execution_id),
@@ -2421,6 +2481,107 @@ defmodule Rulestead.Store.Ecto do
         })
       )
     )
+  end
+
+  defp insert_scheduled_execution_audit_event(repo, scheduled_execution, command, event_type, result) do
+    %AuditEvent{}
+    |> scheduled_execution_audit_changeset(scheduled_execution, command, event_type, result)
+    |> repo.insert()
+  end
+
+  defp scheduled_execution_audit_changeset(audit_event, scheduled_execution, command, event_type, result) do
+    AuditEvent.changeset(audit_event, %{
+      event_type: event_type,
+      resource_type: scheduled_execution.resource_type || "flag",
+      resource_key: scheduled_execution.resource_key,
+      environment_key: scheduled_execution.environment_key,
+      actor_id: actor_value(command.actor, "id"),
+      actor_type: to_string(actor_value(command.actor, "type") || "system"),
+      actor_display: actor_value(command.actor, "display"),
+      reason: command.reason,
+      result: result,
+      metadata:
+        AuditEvent.metadata(%{
+          context: scheduled_execution_audit_context(scheduled_execution, command),
+          request_id: scheduled_execution.correlation_id,
+          source: scheduled_execution_source(scheduled_execution, command),
+          change_request_id: scheduled_execution.change_request_id,
+          governance_action: scheduled_execution.governed_action,
+          execution_stage: scheduled_execution_stage(event_type),
+          scheduled_execution_id: scheduled_execution.id,
+          attempt_count: scheduled_execution.attempt_count,
+          scheduled_for: scheduled_execution.scheduled_for,
+          executed_at: scheduled_execution.executed_at,
+          failure_reason: scheduled_execution.failure_reason,
+          execution_mode: scheduled_execution.execution_mode,
+          executed_by: executed_by_value(command.actor),
+          scheduled_by: scheduled_by_payload(scheduled_execution),
+          approved_by: normalize_array_map(scheduled_execution.approved_by_snapshot)
+        }),
+      correlation_id: scheduled_execution.correlation_id,
+      occurred_at: now()
+    })
+  end
+
+  defp scheduled_execution_audit_context(scheduled_execution, command) do
+    scheduled_execution.metadata
+    |> Map.new()
+    |> Map.merge(Map.get(command, :metadata, %{}) |> Map.new())
+    |> Map.put("scheduled_execution_id", scheduled_execution.id)
+    |> Map.put("environment_key", scheduled_execution.environment_key)
+    |> Map.put("governed_action", scheduled_execution.governed_action)
+    |> Map.put("execution_mode", scheduled_execution.execution_mode)
+  end
+
+  defp scheduled_execution_stage("scheduled_execution.scheduled"), do: "scheduled"
+  defp scheduled_execution_stage("scheduled_execution.cancelled"), do: "cancelled"
+  defp scheduled_execution_stage("scheduled_execution.requeued"), do: "requeued"
+  defp scheduled_execution_stage(_event_type), do: "execute"
+
+  defp scheduled_execution_source(scheduled_execution, command) do
+    command.metadata[:source] || command.metadata["source"] || scheduled_execution.metadata["source"]
+  end
+
+  defp scheduled_by_payload(scheduled_execution) do
+    %{
+      "id" => scheduled_execution.scheduled_by_id,
+      "type" => scheduled_execution.scheduled_by_type,
+      "display" => scheduled_execution.scheduled_by_display
+    }
+  end
+
+  defp executed_by_value(actor) when is_map(actor) do
+    case actor_value(actor, "id") do
+      "system:scheduler" -> "scheduler"
+      "scheduler" -> "scheduler"
+      _other -> "scheduler"
+    end
+  end
+
+  defp executed_by_value(_actor), do: "scheduler"
+
+  defp emit_scheduled_execution_telemetry(event, command, scheduled_execution, audit_event, extra \\ []) do
+    Telemetry.execute(
+      Telemetry.scheduled_execution_event(event),
+      %{count: 1},
+      Telemetry.metadata(
+        Telemetry.scheduled_execution_metadata(
+          serialize_scheduled_execution_row(scheduled_execution),
+          %{
+            action: governance_action(scheduled_execution.governed_action),
+            environment_key: scheduled_execution.environment_key,
+            attempt_count: Keyword.get(extra, :attempt_count, scheduled_execution.attempt_count),
+            audit_event_id: audit_event && audit_event.id,
+            executed_by: executed_by_value(command.actor),
+            event: event
+          }
+        )
+      )
+    )
+  end
+
+  defp lifecycle_telemetry_enabled?(command) do
+    Map.get(command.metadata, :emit_lifecycle_telemetry, Map.get(command.metadata, "emit_lifecycle_telemetry", true)) != false
   end
 
   defp normalize_governance_failure(%Rulestead.Error{} = error), do: error

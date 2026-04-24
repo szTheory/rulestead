@@ -87,19 +87,19 @@ defmodule Rulestead.ScheduledExecutionAuditContractTest do
 
     assert scheduled_event.metadata.change_request_id == approved.id
     assert scheduled_event.metadata.correlation_id == approved.correlation_id
-    assert scheduled_event.metadata.audit_action == :publish_ruleset
+    assert scheduled_event.metadata.audit_action == "publish_ruleset"
     assert scheduled_event.metadata.environment == "test"
     assert scheduled_event.metadata.attempt_count == 0
 
     assert started_event.metadata.change_request_id == approved.id
     assert started_event.metadata.correlation_id == approved.correlation_id
-    assert started_event.metadata.audit_action == :publish_ruleset
+    assert started_event.metadata.audit_action == "publish_ruleset"
     assert started_event.metadata.environment == "test"
     assert started_event.metadata.attempt_count == 1
 
     assert succeeded_event.metadata.change_request_id == approved.id
     assert succeeded_event.metadata.correlation_id == approved.correlation_id
-    assert succeeded_event.metadata.audit_action == :publish_ruleset
+    assert succeeded_event.metadata.audit_action == "publish_ruleset"
     assert succeeded_event.metadata.environment == "test"
     assert succeeded_event.metadata.attempt_count == 1
     assert is_binary(succeeded_event.metadata.audit_event_id)
@@ -115,8 +115,10 @@ defmodule Rulestead.ScheduledExecutionAuditContractTest do
     assert scheduled_audit.correlation_id == approved.correlation_id
     assert scheduled_audit.metadata["scheduled_execution_id"] == scheduled_execution.id
     assert scheduled_audit.metadata["attempt_count"] == 1
-    assert scheduled_audit.metadata["scheduled_for"] == DateTime.to_iso8601(scheduled_for)
-    assert scheduled_audit.metadata["executed_at"] == DateTime.to_iso8601(completed.executed_at)
+    assert DateTime.compare(parse_iso8601!(scheduled_audit.metadata["scheduled_for"]), scheduled_for) == :eq
+
+    assert DateTime.compare(parse_iso8601!(scheduled_audit.metadata["executed_at"]), completed.executed_at) ==
+             :eq
     assert scheduled_audit.metadata["execution_mode"] == "change_request"
     assert scheduled_audit.metadata["failure_reason"] == nil
     assert scheduled_audit.metadata["executed_by"] == "scheduler"
@@ -191,7 +193,7 @@ defmodule Rulestead.ScheduledExecutionAuditContractTest do
     quarantined_event = receive_event!(:quarantined)
     assert quarantined_event.metadata.change_request_id == approved.id
     assert quarantined_event.metadata.correlation_id == approved.correlation_id
-    assert quarantined_event.metadata.audit_action == :publish_ruleset
+    assert quarantined_event.metadata.audit_action == "publish_ruleset"
     assert quarantined_event.metadata.environment == "test"
     assert quarantined_event.metadata.attempt_count == 3
     assert is_binary(quarantined_event.metadata.audit_event_id)
@@ -257,6 +259,13 @@ defmodule Rulestead.ScheduledExecutionAuditContractTest do
       {:telemetry_event, ^event, measurements, metadata} -> %{measurements: measurements, metadata: metadata}
     after
       1_000 -> flunk("expected telemetry event #{inspect(event)}")
+    end
+  end
+
+  defp parse_iso8601!(value) when is_binary(value) do
+    case DateTime.from_iso8601(value) do
+      {:ok, datetime, 0} -> datetime
+      _other -> flunk("expected ISO8601 datetime, got: #{inspect(value)}")
     end
   end
 

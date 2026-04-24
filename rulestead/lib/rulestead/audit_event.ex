@@ -49,6 +49,15 @@ defmodule Rulestead.AuditEvent do
     |> maybe_put("approval_id", governance_value(attrs, context, :approval_id))
     |> maybe_put("governance_action", governance_value(attrs, context, :governance_action))
     |> maybe_put("execution_stage", governance_value(attrs, context, :execution_stage))
+    |> maybe_put("scheduled_execution_id", scheduled_value(attrs, context, :scheduled_execution_id))
+    |> maybe_put("attempt_count", scheduled_value(attrs, context, :attempt_count))
+    |> maybe_put("scheduled_for", scheduled_value(attrs, context, :scheduled_for))
+    |> maybe_put("executed_at", scheduled_value(attrs, context, :executed_at))
+    |> maybe_put("failure_reason", scheduled_value(attrs, context, :failure_reason))
+    |> maybe_put("execution_mode", scheduled_value(attrs, context, :execution_mode))
+    |> maybe_put("executed_by", scheduled_value(attrs, context, :executed_by))
+    |> maybe_put("scheduled_by", scheduled_value(attrs, context, :scheduled_by))
+    |> maybe_put("approved_by", scheduled_value(attrs, context, :approved_by))
   end
 
   @spec serialize(t()) :: map()
@@ -158,6 +167,14 @@ defmodule Rulestead.AuditEvent do
     |> normalize_governance_value()
   end
 
+  defp scheduled_value(attrs, context, key) do
+    attrs
+    |> Map.get(key)
+    |> Kernel.||(Map.get(attrs, Atom.to_string(key)))
+    |> Kernel.||(Map.get(context, Atom.to_string(key)))
+    |> normalize_scheduled_value()
+  end
+
   defp drop_sensitive_context_keys(map) do
     map
     |> Map.drop(["session", "session_data", "session_id", "session_token", "socket_session"])
@@ -175,4 +192,10 @@ defmodule Rulestead.AuditEvent do
     do: Atom.to_string(value)
 
   defp normalize_governance_value(value), do: value
+
+  defp normalize_scheduled_value(%DateTime{} = value), do: DateTime.to_iso8601(value)
+  defp normalize_scheduled_value(value) when is_atom(value) and not is_nil(value), do: Atom.to_string(value)
+  defp normalize_scheduled_value(value) when is_map(value), do: normalize_map(value)
+  defp normalize_scheduled_value(value) when is_list(value), do: Enum.map(value, &normalize_scheduled_value/1)
+  defp normalize_scheduled_value(value), do: value
 end

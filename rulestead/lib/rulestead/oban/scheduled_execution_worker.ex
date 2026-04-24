@@ -3,7 +3,7 @@ defmodule Rulestead.Oban.ScheduledExecutionWorker do
 
   use Rulestead.Oban.Worker
 
-  alias Rulestead.Context
+  alias Rulestead.{Context, Telemetry}
   alias Rulestead.Store.Command
 
   @spec perform(map()) :: {:ok, map()} | {:error, term()}
@@ -15,6 +15,8 @@ defmodule Rulestead.Oban.ScheduledExecutionWorker do
     governed_action = fetch_arg(args, "governed_action")
     environment_key = fetch_arg(args, "environment_key")
 
+    scheduled_execution = fetch_scheduled_execution(scheduled_execution_id)
+
     command =
       Command.ExecuteScheduledExecution.new(scheduled_execution_id,
         actor: execution_actor(context),
@@ -23,11 +25,29 @@ defmodule Rulestead.Oban.ScheduledExecutionWorker do
           request_id: correlation_id,
           source: "scheduled_execution_worker",
           environment_key: environment_key,
-          governed_action: governed_action
+          governed_action: governed_action,
+          emit_lifecycle_telemetry: false
         }
       )
 
-    configured_store().execute_scheduled_execution(command)
+    maybe_emit(:started, scheduled_execution, command, nil)
+
+    case configured_store().execute_scheduled_execution(command) do
+      {:ok, %{scheduled_execution: completed} = result} ->
+        maybe_emit(:succeeded, completed, command, nil)
+        {:ok, result}
+
+      {:error, _reason} = error ->
+        case fetch_scheduled_execution(scheduled_execution_id) do
+          %{state: state} = latest when state in [:quarantined, :failed, :scheduled] ->
+            event = if state == :quarantined, do: :quarantined, else: :failed
+            maybe_emit(event, latest, command, nil)
+            error
+
+          _other ->
+            error
+        end
+    end
   end
 
   defp configured_store do
@@ -43,4 +63,45 @@ defmodule Rulestead.Oban.ScheduledExecutionWorker do
   defp execution_actor(_context), do: %{"id" => "system:scheduler", "type" => "system", "display" => "Scheduler"}
 
   defp fetch_arg(args, key), do: Map.get(args, key) || Map.get(args, String.to_atom(key))
+
+  defp fetch_scheduled_execution(scheduled_execution_id) do
+    case configured_store().fetch_scheduled_execution(
+           Command.FetchScheduledExecution.new(scheduled_execution_id)
+         ) do
+      {:ok, %{scheduled_execution: scheduled_execution}} -> scheduled_execution
+      _other -> nil
+    end
+  end
+
+  defp maybe_emit(_event, nil, _command, _audit_event_id), do: :ok
+
+  defp maybe_emit(event, scheduled_execution, command, audit_event_id) do
+    Telemetry.execute(
+      Telemetry.scheduled_execution_event(event),
+      %{count: 1},
+      Telemetry.metadata(
+        Telemetry.scheduled_execution_metadata(scheduled_execution, %{
+          action: scheduled_execution.action,
+          environment_key: scheduled_execution.environment_key,
+          attempt_count: attempt_count_for(event, scheduled_execution),
+          audit_event_id: audit_event_id,
+          executed_by: executed_by(command.actor),
+          event: event
+        })
+      )
+    )
+  end
+
+  defp attempt_count_for(:started, scheduled_execution), do: scheduled_execution.attempt_count + 1
+  defp attempt_count_for(_event, scheduled_execution), do: scheduled_execution.attempt_count
+
+  defp executed_by(actor) when is_map(actor) do
+    case Map.get(actor, "id") || Map.get(actor, :id) do
+      "system:scheduler" -> "scheduler"
+      "scheduler" -> "scheduler"
+      _other -> "scheduler"
+    end
+  end
+
+  defp executed_by(_actor), do: "scheduler"
 end
