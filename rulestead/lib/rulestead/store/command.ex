@@ -356,4 +356,115 @@ defmodule Rulestead.Store.Command do
       }
     end
   end
+
+  defmodule EngageKillSwitch do
+    @moduledoc false
+
+    @enforce_keys [:flag_key, :environment_key]
+    defstruct [:flag_key, :environment_key, actor: nil, reason: nil, metadata: %{}]
+
+    @type t :: %__MODULE__{
+            flag_key: String.t() | atom(),
+            environment_key: String.t() | atom(),
+            actor: nil | map(),
+            reason: nil | String.t(),
+            metadata: map()
+          }
+
+    @spec new(String.t() | atom(), String.t() | atom(), keyword()) :: t()
+    def new(flag_key, environment_key, opts \\ []) do
+      %__MODULE__{
+        flag_key: flag_key,
+        environment_key: environment_key,
+        actor: Keyword.get(opts, :actor),
+        reason: Keyword.get(opts, :reason),
+        metadata: Keyword.get(opts, :metadata, %{})
+      }
+    end
+  end
+
+  defmodule ReleaseKillSwitch do
+    @moduledoc false
+
+    @enforce_keys [:flag_key, :environment_key]
+    defstruct [:flag_key, :environment_key, actor: nil, reason: nil, metadata: %{}]
+
+    @type t :: %__MODULE__{
+            flag_key: String.t() | atom(),
+            environment_key: String.t() | atom(),
+            actor: nil | map(),
+            reason: nil | String.t(),
+            metadata: map()
+          }
+
+    @spec new(String.t() | atom(), String.t() | atom(), keyword()) :: t()
+    def new(flag_key, environment_key, opts \\ []) do
+      %__MODULE__{
+        flag_key: flag_key,
+        environment_key: environment_key,
+        actor: Keyword.get(opts, :actor),
+        reason: Keyword.get(opts, :reason),
+        metadata: Keyword.get(opts, :metadata, %{})
+      }
+    end
+  end
+
+  defmodule ListAuditEvents do
+    @moduledoc false
+
+    defstruct flag_key: nil,
+              environment_key: nil,
+              actor: nil,
+              limit: 50,
+              before: nil,
+              after: nil,
+              metadata: %{}
+
+    @type t :: %__MODULE__{
+            flag_key: nil | String.t() | atom(),
+            environment_key: nil | String.t() | atom(),
+            actor: nil | map(),
+            limit: pos_integer(),
+            before: nil | String.t(),
+            after: nil | String.t(),
+            metadata: map()
+          }
+
+    @spec new(keyword()) :: t()
+    def new(opts \\ []) do
+      %__MODULE__{
+        flag_key: Keyword.get(opts, :flag_key),
+        environment_key: Keyword.get(opts, :environment_key),
+        actor: Keyword.get(opts, :actor),
+        limit: Keyword.get(opts, :limit, 50),
+        before: Keyword.get(opts, :before),
+        after: Keyword.get(opts, :after),
+        metadata: Keyword.get(opts, :metadata, %{})
+      }
+    end
+  end
+
+  defmodule RollbackAuditEvent do
+    @moduledoc false
+
+    @enforce_keys [:audit_event_id]
+    defstruct [:audit_event_id, actor: nil, reason: nil, metadata: %{}]
+
+    @type t :: %__MODULE__{
+            audit_event_id: String.t(),
+            actor: nil | map(),
+            reason: nil | String.t(),
+            metadata: map()
+          }
+
+    @spec new(String.t(), keyword()) :: t()
+    def new(audit_event_id, opts \\ []) when is_binary(audit_event_id) do
+      %__MODULE__{
+        audit_event_id: audit_event_id,
+        actor: Keyword.get(opts, :actor),
+        reason: Keyword.get(opts, :reason),
+        metadata: Keyword.get(opts, :metadata, %{})
+      }
+    end
+  end
 end

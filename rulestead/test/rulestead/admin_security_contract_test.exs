@@ -29,12 +29,13 @@ defmodule Rulestead.AdminSecurityContractTest do
   end
 
   test "root facade exposes typed phase 7 verbs and command structs" do
+    assert Code.ensure_loaded?(Rulestead)
     assert function_exported?(Rulestead, :engage_kill_switch, 1)
     assert function_exported?(Rulestead, :engage_kill_switch, 4)
     assert function_exported?(Rulestead, :release_kill_switch, 1)
     assert function_exported?(Rulestead, :release_kill_switch, 4)
+    assert function_exported?(Rulestead, :list_audit_events, 0)
     assert function_exported?(Rulestead, :list_audit_events, 1)
-    assert function_exported?(Rulestead, :list_audit_events, 2)
     assert function_exported?(Rulestead, :rollback_audit_event, 1)
     assert function_exported?(Rulestead, :rollback_audit_event, 2)
     assert function_exported?(Rulestead, :simulate_flag, 3)
@@ -99,24 +100,22 @@ defmodule Rulestead.AdminSecurityContractTest do
       nested: %{region: "us-east-1", secret_token: "shh"}
     }
 
-    assert %{
-             audit: %{
-               traits: %{
-                 "targeting_key" => "acct-123",
-                 "plan" => "enterprise",
-                 "nested" => %{"region" => "us-east-1"},
-                 "email" => "[REDACTED]",
-                 "ip" => "[REDACTED]"
-               }
-             },
-             telemetry: %{
-               traits: %{
-                 "targeting_key" => "acct-123",
-                 "plan" => "enterprise",
-                 "nested" => %{"region" => "us-east-1"}
-               }
-             }
-           } = Redaction.redact_metadata(%{traits: context}, allow: ["targeting_key", "plan", "nested.region"])
+    assert %{audit: audit, telemetry: telemetry} =
+             Redaction.redact_metadata(%{traits: context}, allow: ["targeting_key", "plan", "nested.region"])
+
+    assert audit.traits.targeting_key == "acct-123"
+    assert audit.traits.plan == "enterprise"
+    assert audit.traits.email == "[REDACTED]"
+    assert audit.traits.ip == "[REDACTED]"
+    assert audit.traits.nested.region == "us-east-1"
+    assert audit.traits.nested.secret_token == "[REDACTED]"
+
+    assert telemetry.traits.targeting_key == "acct-123"
+    assert telemetry.traits.plan == "enterprise"
+    assert telemetry.traits.nested.region == "us-east-1"
+    refute Map.has_key?(telemetry.traits, :email)
+    refute Map.has_key?(telemetry.traits, :ip)
+    refute Map.has_key?(telemetry.traits.nested, :secret_token)
   end
 
   defmodule DenyAllPolicy do

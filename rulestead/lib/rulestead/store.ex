@@ -23,4 +23,8 @@ defmodule Rulestead.Store do
   @callback list_environments(Command.ListEnvironments.t()) :: result([map()])
   @callback list_audiences(Command.ListAudiences.t()) :: result([map()])
   @callback record_evaluation(Command.RecordEvaluation.t()) :: result(map())
+  @callback engage_kill_switch(Command.EngageKillSwitch.t()) :: result(map())
+  @callback release_kill_switch(Command.ReleaseKillSwitch.t()) :: result(map())
+  @callback list_audit_events(Command.ListAuditEvents.t()) :: result(Command.Page.t(map()))
+  @callback rollback_audit_event(Command.RollbackAuditEvent.t()) :: result(map())
 end
