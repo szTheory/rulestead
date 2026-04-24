@@ -169,10 +169,11 @@ defmodule Rulestead.AdminSecurityContractTest do
                )
              )
 
+    Application.delete_env(:rulestead, :admin_policy)
+
     assert {:ok, page} =
              Rulestead.list_audit_events(
                flag_key: "checkout-redesign",
-               environment_key: "test",
                actor: %{id: "aud-1", roles: [:auditor]},
                limit: 10
              )
