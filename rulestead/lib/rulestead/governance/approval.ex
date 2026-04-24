@@ -40,6 +40,19 @@ defmodule Rulestead.Governance.Approval do
   @spec decisions() :: [decision()]
   def decisions, do: [:approved, :rejected]
 
+  @spec serialize(t() | map() | keyword()) :: map()
+  def serialize(approval) do
+    approval = new(approval)
+
+    %{
+      change_request_id: approval.change_request_id,
+      decision: approval.decision,
+      reviewed_by: approval.reviewed_by,
+      reason: approval.reason,
+      correlation_id: approval.correlation_id
+    }
+  end
+
   defp normalize_decision(decision) when decision in [:approved, :rejected], do: decision
   defp normalize_decision(_decision), do: :rejected
 
