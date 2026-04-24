@@ -7,7 +7,6 @@ defmodule Rulestead.TestHelpersTest do
 
   setup do
     previous_store = Application.get_env(:rulestead, :store)
-    Application.put_env(:rulestead, :store, Rulestead.Fake)
     Control.reset!()
 
     on_exit(fn ->
@@ -53,5 +52,26 @@ defmodule Rulestead.TestHelpersTest do
     assert {:ok, payload} = Rulestead.fetch_flag("checkout-color", "test")
     assert {:ok, "blue"} = Rulestead.get_variant(payload, %{targeting_key: "user-123"})
     assert {:ok, nil} = Rulestead.get_variant(payload, %{targeting_key: "someone-else"})
+  end
+
+  test "assert_flag_evaluated/2 observes the eval telemetry stop event through the stable contract" do
+    assert %{flag: %{key: "telemetry-flag"}} = put_flag("telemetry-flag", true)
+
+    result =
+      assert_flag_evaluated "telemetry-flag" do
+        assert {:ok, payload} = Rulestead.fetch_flag("telemetry-flag", "test")
+        Rulestead.enabled?(payload, %{targeting_key: "actor-3", attributes: %{plan: "pro"}})
+      end
+
+    assert {:ok, true} = result
+  end
+end
+
+defmodule Rulestead.TestHelperHarnessTest do
+  use ExUnit.Case, async: false
+
+  test "test helper harness starts the fake store and uses it as the default adapter" do
+    assert Process.whereis(Rulestead.Fake)
+    assert Application.get_env(:rulestead, :store) == Rulestead.Fake
   end
 end
