@@ -535,11 +535,15 @@ defmodule Rulestead do
   end
 
   defp result_like_metadata(value) when is_map(value) do
-    %{}
-    |> Map.put(:flag_key, get_in(value, [:flag, :key]))
-    |> Map.put(:flag_type, get_in(value, [:flag, :flag_type]))
-    |> Map.put(:environment, get_in(value, [:environment, :key]) || value[:environment_key])
-    |> Map.put(:snapshot_version, value[:version] || get_in(value, [:flag_environment, :active_ruleset_version]))
+    if Map.get(value, :__struct__) == Command.Page do
+      %{}
+    else
+      %{}
+      |> Map.put(:flag_key, get_in(value, [:flag, :key]))
+      |> Map.put(:flag_type, get_in(value, [:flag, :flag_type]))
+      |> Map.put(:environment, get_in(value, [:environment, :key]) || Map.get(value, :environment_key))
+      |> Map.put(:snapshot_version, Map.get(value, :version) || get_in(value, [:flag_environment, :active_ruleset_version]))
+    end
   end
 
   defp result_like_metadata(_value), do: %{}

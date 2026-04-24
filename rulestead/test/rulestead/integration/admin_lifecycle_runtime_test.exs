@@ -3,9 +3,15 @@ defmodule Rulestead.Integration.AdminLifecycleRuntimeTest do
 
   alias Rulestead.{Context, Runtime}
   alias Rulestead.StoreFixtures
+  alias Rulestead.Runtime.{Cache, Snapshot}
 
   setup do
     Application.put_env(:rulestead, :store, Rulestead.Fake)
+    Application.put_env(:rulestead, :admin_lifecycle,
+      warning_after_seconds: 1_800,
+      stale_after_seconds: 3_600,
+      now: ~U[2026-04-23 16:00:00Z]
+    )
     Rulestead.Fake.Control.reset!()
     :ok
   end
@@ -50,6 +56,7 @@ defmodule Rulestead.Integration.AdminLifecycleRuntimeTest do
 
     assert {:ok, _} = Rulestead.save_draft_ruleset(StoreFixtures.save_draft_command("checkout-redesign", "test", ruleset))
     assert {:ok, _} = Rulestead.publish_ruleset(StoreFixtures.publish_ruleset_command("checkout-redesign", "test"))
+    apply_latest_snapshot!("test")
 
     stale_detail = Rulestead.fetch_flag!("checkout-redesign", "test")
     assert stale_detail.lifecycle.state == :potentially_stale
@@ -64,6 +71,7 @@ defmodule Rulestead.Integration.AdminLifecycleRuntimeTest do
 
     assert {:ok, archived} = Rulestead.archive_flag(StoreFixtures.archive_flag_command("checkout-redesign"))
     assert archived.archived?
+    apply_latest_snapshot!("test")
 
     assert {:error, %Rulestead.Error{type: :flag_not_found}} =
              Runtime.enabled?("test", "checkout-redesign", Context.new(actor: %{key: "user-1"}))
@@ -81,4 +89,11 @@ defmodule Rulestead.Integration.AdminLifecycleRuntimeTest do
   end
 
   defp assert_eventually(_fun, 0), do: flunk("condition did not become true")
+
+  defp apply_latest_snapshot!(environment_key) do
+    snapshot = Rulestead.Fake.Control.latest_snapshot!(environment_key)
+    :ok = Cache.reset(environment_key)
+    {:ok, compiled} = Snapshot.compile(snapshot)
+    {:ok, _applied} = Cache.apply(compiled)
+  end
 end
