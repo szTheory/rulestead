@@ -5,6 +5,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
 
   alias Rulestead.Admin.Redaction
   alias RulesteadAdmin.Components.{AuditComponents, FlagComponents, Shell}
+  alias RulesteadAdmin.Live.Session
 
   @impl true
   def mount(_params, _session, socket) do
@@ -15,19 +16,20 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
      |> assign(:error_message, nil)
      |> assign(:notice, nil)
      |> assign(:flag_key, nil)
-     |> assign(:current_path, "/admin/flags")
+     |> assign(:current_path, nil)
      |> assign(:env_links, %{})}
   end
 
   @impl true
   def handle_params(%{"key" => key}, uri, socket) do
     env = query_params(uri)["env"] || socket.assigns.current_environment.key
+    base_path = build_base_path(socket, key)
 
     socket =
       socket
       |> assign(:flag_key, key)
-      |> assign(:current_path, build_path("/admin/flags/#{key}/timeline", env))
-      |> assign(:env_links, detail_env_links(key, socket.assigns.available_environments))
+      |> assign(:current_path, Session.current_path(socket, base_path))
+      |> assign(:env_links, Session.env_links(socket, base_path))
       |> load_page(key, env)
 
     {:noreply, socket}
@@ -45,8 +47,10 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
       env_links={@env_links}
     >
       <:header_actions>
-        <a :if={@flag_key} href={"/admin/flags/#{@flag_key}?env=#{@current_environment.key}"}>Back to detail</a>
-        <a href={"/admin/flags/audit?env_filter=#{@current_environment.key}"}>Open global audit</a>
+        <a :if={@flag_key} href={path_for(assigns, "/#{@flag_key}")}>Back to detail</a>
+        <a href={Session.current_path(assigns, admin_base_path(assigns, "/audit"), %{"env_filter" => @current_environment.key})}>
+          Open global audit
+        </a>
       </:header_actions>
 
       <p :if={@error_message} role="alert">{@error_message}</p>
@@ -122,17 +126,19 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
     before_state = metadata["before"] || %{}
     after_state = metadata["after"] || %{}
     rollback_of_event_id = metadata["rollback_of_event_id"]
+    diff_state = metadata["diff"] || %{}
 
     %{
       id: event.id,
       title: title_for(event),
       meta: meta_for(event),
-      summary: summary_for(event, before_state, after_state),
+      summary: summary_for(event, before_state, after_state, diff_state),
       reason: event.reason,
       raw: %{event: Map.take(event, [:event_type, :result, :resource_key, :environment_key, :actor_display, :occurred_at]), metadata: metadata},
       result: event.result,
       before_summary: state_summary(before_state),
       after_summary: state_summary(after_state),
+      diff_lines: diff_lines(event.event_type, diff_state),
       rollback_of_event_id: rollback_of_event_id,
       rollback_allowed?: rollback_allowed?(event),
       show_diff?: map_size(before_state) > 0 or map_size(after_state) > 0
@@ -145,8 +151,11 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
       allow: [
         "before.status",
         "before.kill_switch_variant_key",
+        "before.rules",
         "after.status",
         "after.kill_switch_variant_key",
+        "after.rules",
+        "diff.rules",
         "rollback_of_event_id",
         "links.inverse_event_type"
       ]
@@ -167,11 +176,15 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
     "#{actor} • #{event.environment_key} • #{result} • #{time}"
   end
 
-  defp summary_for(%{event_type: "audit.rollback"} = event, _before_state, after_state) do
+  defp summary_for(%{event_type: "audit.rollback"} = event, _before_state, after_state, _diff_state) do
     "Inverse write restored #{state_summary(after_state)} and linked this row back to #{event.metadata["rollback_of_event_id"] || "the original event"}."
   end
 
-  defp summary_for(event, before_state, after_state) do
+  defp summary_for(%{event_type: "ruleset.publish"}, _before_state, _after_state, diff_state) do
+    "Ruleset publish updated ordered rule positions: #{Enum.join(diff_lines("ruleset.publish", diff_state), "; ")}."
+  end
+
+  defp summary_for(event, before_state, after_state, _diff_state) do
     case event.result do
       :denied ->
         "Denied action remains visible in the audit ledger. Requested change: #{state_summary(after_state)}."
@@ -184,9 +197,17 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
   defp state_summary(state) when map_size(state) == 0, do: "no recorded state"
 
   defp state_summary(state) do
-    status = state["status"] || state[:status] || "unknown"
-    variant = state["kill_switch_variant_key"] || state[:kill_switch_variant_key] || "none"
-    "status #{status}, kill variant #{variant}"
+    rules = Map.get(state, "rules") || Map.get(state, :rules)
+
+    if is_list(rules) and rules != [] do
+      rules
+      |> Enum.map(fn rule -> "#{rule["key"] || rule[:key]} @ #{rule["position"] || rule[:position]}" end)
+      |> Enum.join(", ")
+    else
+      status = state["status"] || state[:status] || "unknown"
+      variant = state["kill_switch_variant_key"] || state[:kill_switch_variant_key] || "none"
+      "status #{status}, kill variant #{variant}"
+    end
   end
 
   defp rollback_allowed?(%{event_type: event_type, result: :ok}),
@@ -201,14 +222,6 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
     |> String.capitalize()
   end
 
-  defp detail_env_links(key, environments) do
-    Enum.into(environments, %{}, fn environment ->
-      {environment.key, build_path("/admin/flags/#{key}/timeline", environment.key)}
-    end)
-  end
-
-  defp build_path(base, env), do: "#{base}?env=#{env}"
-
   defp query_params(uri) do
     uri
     |> URI.parse()
@@ -218,4 +231,24 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
       query -> URI.decode_query(query)
     end
   end
+
+  defp diff_lines("ruleset.publish", %{"rules" => rules}) when is_list(rules) do
+    Enum.map(rules, fn rule ->
+      "#{rule["key"]} from #{inspect(rule["from"])} to #{inspect(rule["to"])}"
+    end)
+  end
+
+  defp diff_lines(_event_type, _diff_state), do: []
+
+  defp build_base_path(socket, key), do: admin_base_path(socket, "/#{key}/timeline")
+
+  defp path_for(socket, suffix), do: Session.current_path(socket, admin_base_path(socket, suffix))
+
+  defp admin_base_path(socket_or_assigns, suffix),
+    do: "#{fetch_mount_path(socket_or_assigns)}#{suffix}"
+
+  defp fetch_mount_path(%Phoenix.LiveView.Socket{} = socket),
+    do: socket.assigns.rulestead_admin_mount_path
+
+  defp fetch_mount_path(%{rulestead_admin_mount_path: mount_path}), do: mount_path
 end

@@ -5,6 +5,7 @@ defmodule RulesteadAdmin.Live.AuditLive.Index do
 
   alias Rulestead.Admin.Redaction
   alias RulesteadAdmin.Components.{AuditComponents, FlagComponents, Shell}
+  alias RulesteadAdmin.Live.Session
 
   @impl true
   def mount(_params, _session, socket) do
@@ -14,7 +15,7 @@ defmodule RulesteadAdmin.Live.AuditLive.Index do
      |> assign(:filters, default_filters())
      |> assign(:error_message, nil)
      |> assign(:notice, nil)
-     |> assign(:current_path, "/admin/flags/audit")
+     |> assign(:current_path, nil)
      |> assign(:env_links, %{})}
   end
 
@@ -33,8 +34,8 @@ defmodule RulesteadAdmin.Live.AuditLive.Index do
     socket =
       socket
       |> assign(:filters, filters)
-      |> assign(:current_path, build_path(filters))
-      |> assign(:env_links, detail_env_links(socket.assigns.available_environments, filters))
+      |> assign(:current_path, build_path(socket, filters))
+      |> assign(:env_links, detail_env_links(socket, filters))
       |> load_entries(filters)
 
     {:noreply, socket}
@@ -77,6 +78,7 @@ defmodule RulesteadAdmin.Live.AuditLive.Index do
               <option value="" selected={@filters["mutation"] == ""}>All mutations</option>
               <option value="kill_switch.engage" selected={@filters["mutation"] == "kill_switch.engage"}>Kill switch engage</option>
               <option value="kill_switch.release" selected={@filters["mutation"] == "kill_switch.release"}>Kill switch release</option>
+              <option value="ruleset.publish" selected={@filters["mutation"] == "ruleset.publish"}>Ruleset publish</option>
               <option value="audit.rollback" selected={@filters["mutation"] == "audit.rollback"}>Rollback</option>
             </select>
           </label>
@@ -112,7 +114,7 @@ defmodule RulesteadAdmin.Live.AuditLive.Index do
   @impl true
   def handle_event("filter", %{"filters" => filters}, socket) do
     merged = Map.merge(socket.assigns.filters, filters)
-    {:noreply, push_patch(socket, to: build_path(merged))}
+    {:noreply, push_patch(socket, to: build_path(socket, merged))}
   end
 
   defp load_entries(socket, filters) do
@@ -141,16 +143,18 @@ defmodule RulesteadAdmin.Live.AuditLive.Index do
     metadata = redacted_metadata(event.metadata)
     before_state = metadata["before"] || %{}
     after_state = metadata["after"] || %{}
+    diff_state = metadata["diff"] || %{}
 
     %{
       id: event.id,
       title: title_for(event),
       meta: meta_for(event),
-      summary: summary_for(event, before_state, after_state),
+      summary: summary_for(event, before_state, after_state, diff_state),
       reason: event.reason,
       raw: %{event: Map.take(event, [:event_type, :result, :resource_key, :environment_key, :actor_display, :occurred_at]), metadata: metadata},
       before_summary: state_summary(before_state),
       after_summary: state_summary(after_state),
+      diff_lines: diff_lines(event.event_type, diff_state),
       rollback_of_event_id: metadata["rollback_of_event_id"],
       show_diff?: map_size(before_state) > 0 or map_size(after_state) > 0,
       result: event.result,
@@ -208,8 +212,11 @@ defmodule RulesteadAdmin.Live.AuditLive.Index do
       allow: [
         "before.status",
         "before.kill_switch_variant_key",
+        "before.rules",
         "after.status",
         "after.kill_switch_variant_key",
+        "after.rules",
+        "diff.rules",
         "rollback_of_event_id",
         "links.inverse_event_type"
       ]
@@ -230,7 +237,11 @@ defmodule RulesteadAdmin.Live.AuditLive.Index do
     "#{actor} • #{event.environment_key} • #{result} • #{time}"
   end
 
-  defp summary_for(event, before_state, after_state) do
+  defp summary_for(%{event_type: "ruleset.publish"}, _before_state, _after_state, diff_state) do
+    "Ruleset publish updated ordered rule positions: #{Enum.join(diff_lines("ruleset.publish", diff_state), "; ")}."
+  end
+
+  defp summary_for(event, before_state, after_state, _diff_state) do
     case event.result do
       :denied ->
         "Denied action remains visible in the audit ledger. Requested change: #{state_summary(after_state)}."
@@ -243,9 +254,17 @@ defmodule RulesteadAdmin.Live.AuditLive.Index do
   defp state_summary(state) when map_size(state) == 0, do: "no recorded state"
 
   defp state_summary(state) do
-    status = state["status"] || state[:status] || "unknown"
-    variant = state["kill_switch_variant_key"] || state[:kill_switch_variant_key] || "none"
-    "status #{status}, kill variant #{variant}"
+    rules = Map.get(state, "rules") || Map.get(state, :rules)
+
+    if is_list(rules) and rules != [] do
+      rules
+      |> Enum.map(fn rule -> "#{rule["key"] || rule[:key]} @ #{rule["position"] || rule[:position]}" end)
+      |> Enum.join(", ")
+    else
+      status = state["status"] || state[:status] || "unknown"
+      variant = state["kill_switch_variant_key"] || state[:kill_switch_variant_key] || "none"
+      "status #{status}, kill variant #{variant}"
+    end
   end
 
   defp humanize_event(event_type) do
@@ -259,19 +278,34 @@ defmodule RulesteadAdmin.Live.AuditLive.Index do
     %{"actor" => "", "mutation" => "", "from" => "", "to" => "", "env_filter" => "prod"}
   end
 
-  defp build_path(filters) do
+  defp build_path(socket, filters) do
     params =
       filters
       |> Enum.reject(fn {_key, value} -> is_nil(value) or value == "" end)
       |> Map.new()
 
-    query = URI.encode_query(params)
-    if query == "", do: "/admin/flags/audit", else: "/admin/flags/audit?" <> query
+    Session.current_path(socket, admin_base_path(socket, "/audit"), params)
   end
 
-  defp detail_env_links(environments, filters) do
-    Enum.into(environments, %{}, fn environment ->
-      {environment.key, build_path(Map.put(filters, "env_filter", environment.key))}
+  defp detail_env_links(socket, filters) do
+    Enum.into(socket.assigns.available_environments, %{}, fn environment ->
+      {environment.key, build_path(socket, Map.put(filters, "env_filter", environment.key))}
     end)
   end
+
+  defp diff_lines("ruleset.publish", %{"rules" => rules}) when is_list(rules) do
+    Enum.map(rules, fn rule ->
+      "#{rule["key"]} from #{inspect(rule["from"])} to #{inspect(rule["to"])}"
+    end)
+  end
+
+  defp diff_lines(_event_type, _diff_state), do: []
+
+  defp admin_base_path(socket_or_assigns, suffix),
+    do: "#{fetch_mount_path(socket_or_assigns)}#{suffix}"
+
+  defp fetch_mount_path(%Phoenix.LiveView.Socket{} = socket),
+    do: socket.assigns.rulestead_admin_mount_path
+
+  defp fetch_mount_path(%{rulestead_admin_mount_path: mount_path}), do: mount_path
 end

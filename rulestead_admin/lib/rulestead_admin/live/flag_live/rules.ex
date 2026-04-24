@@ -5,13 +5,14 @@ defmodule RulesteadAdmin.Live.FlagLive.Rules do
 
   alias Rulestead.Store.Command
   alias RulesteadAdmin.Components.{RuleEditorComponents, Shell}
+  alias RulesteadAdmin.Live.Session
 
   @impl true
   def mount(_params, _session, socket) do
     {:ok,
      socket
      |> assign(:flag_key, nil)
-     |> assign(:current_path, "/admin/flags")
+     |> assign(:current_path, nil)
      |> assign(:detail, nil)
      |> assign(:audiences, [])
      |> assign(:rules, [])
@@ -24,12 +25,12 @@ defmodule RulesteadAdmin.Live.FlagLive.Rules do
   @impl true
   def handle_params(%{"key" => flag_key}, uri, socket) do
     env = query_params(uri)["env"] || socket.assigns.current_environment.key
-    current_path = build_path(flag_key, env)
+    base_path = build_base_path(socket, flag_key)
     socket =
       socket
       |> assign(:flag_key, flag_key)
-      |> assign(:current_path, current_path)
-      |> assign(:env_links, detail_env_links(flag_key, socket.assigns.available_environments))
+      |> assign(:current_path, Session.current_path(socket, base_path))
+      |> assign(:env_links, Session.env_links(socket, base_path))
       |> load_workspace(flag_key, env)
 
     {:noreply, socket}
@@ -72,7 +73,13 @@ defmodule RulesteadAdmin.Live.FlagLive.Rules do
   end
 
   def handle_event("archive_flag", _params, socket) do
-    case Rulestead.archive_flag(Command.ArchiveFlag.new(socket.assigns.flag_key)) do
+    case Rulestead.archive_flag(
+           Command.ArchiveFlag.new(socket.assigns.flag_key,
+             actor: socket.assigns.current_actor,
+             reason: "Archived from rules workspace",
+             metadata: command_metadata(socket, "rules.archive", "Archived flag from rules workspace")
+           )
+         ) do
       {:ok, _payload} ->
         env = socket.assigns.detail.environment.key
 
@@ -106,7 +113,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Rules do
             </p>
           </div>
           <div class="rs-rules-workspace__links">
-            <a href={"/admin/flags/#{@detail.flag.key}?env=#{@detail.environment.key}"}>Back to detail</a>
+            <a href={path_for(assigns, "/#{@detail.flag.key}")}>Back to detail</a>
           </div>
         </div>
 
@@ -175,8 +182,14 @@ defmodule RulesteadAdmin.Live.FlagLive.Rules do
         rules: Enum.map(rules, &rule_to_payload/1)
       }
 
-      with {:ok, _draft} <- Rulestead.save_draft_ruleset(Command.SaveDraftRuleset.new(detail.flag.key, detail.environment.key, ruleset)),
-           {:ok, _published} <- maybe_publish(mode, detail.flag.key, detail.environment.key) do
+      with {:ok, _draft} <-
+             Rulestead.save_draft_ruleset(
+               Command.SaveDraftRuleset.new(detail.flag.key, detail.environment.key, ruleset,
+                 actor: socket.assigns.current_actor,
+                 metadata: command_metadata(socket, "rules.save_draft", rules_reason(detail, mode))
+               )
+             ),
+           {:ok, _published} <- maybe_publish(mode, detail.flag.key, detail.environment.key, socket) do
         message =
           case mode do
             :draft -> "Draft saved for #{detail.environment.name}"
@@ -194,10 +207,15 @@ defmodule RulesteadAdmin.Live.FlagLive.Rules do
     end
   end
 
-  defp maybe_publish(:draft, _flag_key, _environment_key), do: {:ok, :draft_only}
+  defp maybe_publish(:draft, _flag_key, _environment_key, _socket), do: {:ok, :draft_only}
 
-  defp maybe_publish(:publish, flag_key, environment_key) do
-    Rulestead.publish_ruleset(Command.PublishRuleset.new(flag_key, environment_key))
+  defp maybe_publish(:publish, flag_key, environment_key, socket) do
+    Rulestead.publish_ruleset(
+      Command.PublishRuleset.new(flag_key, environment_key,
+        actor: socket.assigns.current_actor,
+        metadata: command_metadata(socket, "rules.publish", "Published ruleset from rules workspace")
+      )
+    )
   end
 
   defp assign_workspace(socket, detail, rules, opts) do
@@ -445,14 +463,6 @@ defmodule RulesteadAdmin.Live.FlagLive.Rules do
 
   defp normalize_store_errors(error), do: [error.message]
 
-  defp build_path(flag_key, env), do: "/admin/flags/#{flag_key}/rules?env=#{env}"
-
-  defp detail_env_links(flag_key, environments) do
-    Enum.into(environments, %{}, fn environment ->
-      {environment.key, build_path(flag_key, environment.key)}
-    end)
-  end
-
   defp query_params(uri) do
     uri
     |> URI.parse()
@@ -466,6 +476,31 @@ defmodule RulesteadAdmin.Live.FlagLive.Rules do
   defp build_salt(flag_key, environment_key) do
     "#{flag_key}:#{environment_key}:draft:#{System.unique_integer([:positive])}"
   end
+
+  defp build_base_path(socket, flag_key), do: admin_base_path(socket, "/#{flag_key}/rules")
+
+  defp path_for(socket, suffix), do: Session.current_path(socket, admin_base_path(socket, suffix))
+
+  defp admin_base_path(socket_or_assigns, suffix),
+    do: "#{fetch_mount_path(socket_or_assigns)}#{suffix}"
+
+  defp fetch_mount_path(%Phoenix.LiveView.Socket{} = socket),
+    do: socket.assigns.rulestead_admin_mount_path
+
+  defp fetch_mount_path(%{rulestead_admin_mount_path: mount_path}), do: mount_path
+
+  defp command_metadata(socket, source, reason) do
+    %{
+      request_id: socket.id,
+      source: source,
+      reason: reason,
+      plan: "07-09",
+      environment_key: socket.assigns.current_environment.key
+    }
+  end
+
+  defp rules_reason(detail, :draft), do: "Saved draft ruleset for #{detail.environment.key}"
+  defp rules_reason(detail, :publish), do: "Published ruleset for #{detail.environment.key}"
 
   defp normalize_strategy(strategy) when is_atom(strategy), do: Atom.to_string(strategy)
   defp normalize_strategy(strategy) when is_binary(strategy), do: strategy
