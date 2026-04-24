@@ -10,7 +10,7 @@ defmodule Rulestead.Fake do
   use GenServer
 
   alias Ecto.Changeset
-  alias Rulestead.{Admin.Lifecycle, Environment, Flag, Ruleset, RulesetError, Store, StoreError, Telemetry}
+  alias Rulestead.{Admin.Lifecycle, AuditEvent, Environment, Flag, Ruleset, RulesetError, Store, StoreError, Telemetry}
   alias Rulestead.Store.Command
 
   @behaviour Store
@@ -23,6 +23,7 @@ defmodule Rulestead.Fake do
           environments: %{required(String.t()) => map()},
           audiences: %{required(String.t()) => map()},
           flags: %{required(String.t()) => map()},
+          audit_events: [map()],
           snapshots: %{required(String.t()) => %{required(pos_integer()) => map()}},
           snapshot_reads_connected?: boolean()
         }
@@ -96,6 +97,26 @@ defmodule Rulestead.Fake do
   @impl Store
   def record_evaluation(%Command.RecordEvaluation{} = command) do
     call({:record_evaluation, command})
+  end
+
+  @impl Store
+  def engage_kill_switch(%Command.EngageKillSwitch{} = command) do
+    call({:engage_kill_switch, command})
+  end
+
+  @impl Store
+  def release_kill_switch(%Command.ReleaseKillSwitch{} = command) do
+    call({:release_kill_switch, command})
+  end
+
+  @impl Store
+  def list_audit_events(%Command.ListAuditEvents{} = command) do
+    call({:list_audit_events, command})
+  end
+
+  @impl Store
+  def rollback_audit_event(%Command.RollbackAuditEvent{} = command) do
+    call({:rollback_audit_event, command})
   end
 
   @doc false
@@ -455,6 +476,152 @@ defmodule Rulestead.Fake do
     end
   end
 
+  def handle_call({:engage_kill_switch, command}, _from, state) do
+    case audit_only_result(command) do
+      {:ok, result} ->
+        {audit_event, next_state} = append_audit_event(state, command, "kill_switch.engage", :denied)
+        {:reply, result, %{next_state | audit_events: [audit_event | next_state.audit_events]}}
+
+      :continue ->
+        case with_mutable_context(state, command.flag_key, command.environment_key, fn _flag,
+                                                                                       environment,
+                                                                                       flag_environment ->
+               updated_flag_environment =
+                 flag_environment
+                 |> Map.put(:status, :killswitched)
+                 |> Map.put(:kill_switch_variant_key, "default")
+                 |> Map.put(:updated_at, state.now)
+
+               next_state =
+                 put_in(
+                   state.flags[to_string(command.flag_key)].environments[environment.key],
+                   updated_flag_environment
+                 )
+
+               {audit_event, next_state} =
+                 append_audit_event(next_state, command, "kill_switch.engage", :ok,
+                   before: audit_state(flag_environment),
+                   after: audit_state(updated_flag_environment)
+                 )
+
+               payload =
+                 build_flag_detail_payload(
+                   next_state,
+                   next_state.flags[to_string(command.flag_key)],
+                   environment,
+                   updated_flag_environment,
+                   true
+                 )
+
+               {:ok, payload, %{next_state | audit_events: [audit_event | next_state.audit_events]}}
+             end) do
+          {:ok, payload, next_state} -> {:reply, {:ok, payload}, next_state}
+          {:error, error} -> {:reply, {:error, error}, state}
+        end
+    end
+  end
+
+  def handle_call({:release_kill_switch, command}, _from, state) do
+    case audit_only_result(command) do
+      {:ok, result} ->
+        {audit_event, next_state} = append_audit_event(state, command, "kill_switch.release", :denied)
+        {:reply, result, %{next_state | audit_events: [audit_event | next_state.audit_events]}}
+
+      :continue ->
+        case with_mutable_context(state, command.flag_key, command.environment_key, fn _flag,
+                                                                                       environment,
+                                                                                       flag_environment ->
+               updated_flag_environment =
+                 flag_environment
+                 |> Map.put(:status, if(flag_environment.status == :killswitched, do: :active, else: flag_environment.status || :active))
+                 |> Map.put(:kill_switch_variant_key, nil)
+                 |> Map.put(:updated_at, state.now)
+
+               next_state =
+                 put_in(
+                   state.flags[to_string(command.flag_key)].environments[environment.key],
+                   updated_flag_environment
+                 )
+
+               {audit_event, next_state} =
+                 append_audit_event(next_state, command, "kill_switch.release", :ok,
+                   before: audit_state(flag_environment),
+                   after: audit_state(updated_flag_environment)
+                 )
+
+               payload =
+                 build_flag_detail_payload(
+                   next_state,
+                   next_state.flags[to_string(command.flag_key)],
+                   environment,
+                   updated_flag_environment,
+                   true
+                 )
+
+               {:ok, payload, %{next_state | audit_events: [audit_event | next_state.audit_events]}}
+             end) do
+          {:ok, payload, next_state} -> {:reply, {:ok, payload}, next_state}
+          {:error, error} -> {:reply, {:error, error}, state}
+        end
+    end
+  end
+
+  def handle_call({:list_audit_events, command}, _from, state) do
+    entries =
+      state.audit_events
+      |> Enum.filter(fn entry ->
+        matches_audit_filter?(entry, command.flag_key, command.environment_key)
+      end)
+      |> Enum.sort_by(& &1.occurred_at, {:desc, DateTime})
+      |> Enum.take(command.limit)
+
+    page = %Command.Page{
+      entries: entries,
+      limit: command.limit,
+      has_next_page?: false,
+      has_previous_page?: false
+    }
+
+    {:reply, {:ok, page}, state}
+  end
+
+  def handle_call({:rollback_audit_event, command}, _from, state) do
+    case Enum.find(state.audit_events, &(&1.id == command.audit_event_id)) do
+      nil ->
+        {:reply, {:error, StoreError.invalid_command("audit event was not found")}, state}
+
+      audit_event ->
+        inverse_command =
+          case audit_event.event_type do
+            "kill_switch.engage" ->
+              Command.ReleaseKillSwitch.new(audit_event.resource_key, audit_event.environment_key,
+                actor: command.actor,
+                reason: command.reason,
+                metadata: Map.put(command.metadata, :rollback_of_event_id, audit_event.id)
+              )
+
+            "kill_switch.release" ->
+              Command.EngageKillSwitch.new(audit_event.resource_key, audit_event.environment_key,
+                actor: command.actor,
+                reason: command.reason,
+                metadata: Map.put(command.metadata, :rollback_of_event_id, audit_event.id)
+              )
+
+            _other ->
+              nil
+          end
+
+        if is_nil(inverse_command) do
+          {:reply, {:error, StoreError.invalid_command("audit event cannot be rolled back")}, state}
+        else
+          case do_rollback(state, inverse_command, command, audit_event) do
+            {:ok, payload, next_state} -> {:reply, {:ok, payload}, next_state}
+            {:error, error} -> {:reply, {:error, error}, state}
+          end
+        end
+    end
+  end
+
   defp call(message) do
     case Process.whereis(__MODULE__) do
       nil -> {:error, StoreError.unavailable(details: [%{message: "fake store is not started"}])}
@@ -467,6 +634,7 @@ defmodule Rulestead.Fake do
       now: now,
       environments: %{},
       audiences: %{},
+      audit_events: [],
       flags: %{},
       snapshots: %{},
       snapshot_reads_connected?: true
@@ -664,6 +832,163 @@ defmodule Rulestead.Fake do
   end
 
   defp archived?(flag), do: not is_nil(flag.archived_at)
+
+  defp do_rollback(state, inverse_command, rollback_command, original_audit_event) do
+    with {:ok, payload, next_state, before_state, after_state} <-
+           apply_kill_switch_rollback(state, inverse_command) do
+      rollback_event =
+        build_audit_event(next_state, rollback_command, "audit.rollback", :ok,
+          environment_key: original_audit_event.environment_key,
+          resource_key: original_audit_event.resource_key,
+          before: before_state,
+          after: after_state,
+          rollback_of_event_id: original_audit_event.id,
+          links: %{"inverse_event_type" => original_audit_event.event_type}
+        )
+
+      audit_event = AuditEvent.serialize(rollback_event)
+      final_state = %{next_state | audit_events: [audit_event | next_state.audit_events]}
+      {:ok, %{payload: payload, audit_event: audit_event}, final_state}
+    else
+      {:error, error} -> {:error, error}
+    end
+  end
+
+  defp apply_kill_switch_rollback(state, %Command.EngageKillSwitch{} = command) do
+    with_mutable_context(state, command.flag_key, command.environment_key, fn _flag,
+                                                                             environment,
+                                                                             flag_environment ->
+      before_state = audit_state(flag_environment)
+
+      updated_flag_environment =
+        flag_environment
+        |> Map.put(:status, :killswitched)
+        |> Map.put(:kill_switch_variant_key, "default")
+        |> Map.put(:updated_at, state.now)
+
+      next_state =
+        put_in(
+          state.flags[to_string(command.flag_key)].environments[environment.key],
+          updated_flag_environment
+        )
+
+      payload =
+        build_flag_detail_payload(
+          next_state,
+          next_state.flags[to_string(command.flag_key)],
+          environment,
+          updated_flag_environment,
+          true
+        )
+
+      {:ok, payload, next_state, before_state, audit_state(updated_flag_environment)}
+    end)
+  end
+
+  defp apply_kill_switch_rollback(state, %Command.ReleaseKillSwitch{} = command) do
+    with_mutable_context(state, command.flag_key, command.environment_key, fn _flag,
+                                                                             environment,
+                                                                             flag_environment ->
+      before_state = audit_state(flag_environment)
+
+      updated_flag_environment =
+        flag_environment
+        |> Map.put(:status, if(flag_environment.status == :killswitched, do: :active, else: flag_environment.status || :active))
+        |> Map.put(:kill_switch_variant_key, nil)
+        |> Map.put(:updated_at, state.now)
+
+      next_state =
+        put_in(
+          state.flags[to_string(command.flag_key)].environments[environment.key],
+          updated_flag_environment
+        )
+
+      payload =
+        build_flag_detail_payload(
+          next_state,
+          next_state.flags[to_string(command.flag_key)],
+          environment,
+          updated_flag_environment,
+          true
+        )
+
+      {:ok, payload, next_state, before_state, audit_state(updated_flag_environment)}
+    end)
+  end
+
+  defp append_audit_event(state, command, event_type, result, opts \\ []) do
+    audit_event = build_audit_event(state, command, event_type, result, opts)
+    {AuditEvent.serialize(audit_event), state}
+  end
+
+  defp build_audit_event(state, command, event_type, result, opts) do
+    metadata =
+      AuditEvent.metadata(%{
+        before: Keyword.get(opts, :before, %{}),
+        after: Keyword.get(opts, :after, %{}),
+        diff: diff_map(Keyword.get(opts, :before, %{}), Keyword.get(opts, :after, %{})),
+        links:
+          Keyword.get(opts, :links, %{})
+          |> Map.new()
+          |> maybe_put("rollback_of_event_id", Keyword.get(opts, :rollback_of_event_id)),
+        context: Map.get(command, :metadata, %{}),
+        request_id: get_in(command.metadata, [:request_id]) || get_in(command.metadata, ["request_id"]),
+        source: get_in(command.metadata, [:source]) || get_in(command.metadata, ["source"]),
+        rollback_of_event_id: Keyword.get(opts, :rollback_of_event_id)
+      })
+
+    %AuditEvent{
+      id: Ecto.UUID.generate(),
+      event_type: event_type,
+      resource_type: "flag",
+      resource_key: to_string(Keyword.get(opts, :resource_key, Map.get(command, :flag_key))),
+      environment_key: to_string(Keyword.get(opts, :environment_key, Map.get(command, :environment_key))),
+      actor_id: get_in(command.actor || %{}, [:id]),
+      actor_type: to_string(get_in(command.actor || %{}, [:type]) || "operator"),
+      actor_display: get_in(command.actor || %{}, [:display]),
+      reason: Map.get(command, :reason),
+      result: result,
+      metadata: metadata,
+      correlation_id: get_in(command.metadata, [:request_id]) || get_in(command.metadata, ["request_id"]),
+      occurred_at: state.now,
+      inserted_at: state.now
+    }
+  end
+
+  defp audit_only_result(command) do
+    case audit_result(command) do
+      :denied -> {:ok, {:error, Rulestead.AuthError.unauthorized()}}
+      _other -> :continue
+    end
+  end
+
+  defp audit_result(command) do
+    command.metadata[:audit_result] || command.metadata["audit_result"]
+  end
+
+  defp audit_state(flag_environment) do
+    %{
+      "status" => flag_environment.status,
+      "kill_switch_variant_key" => flag_environment.kill_switch_variant_key
+    }
+  end
+
+  defp diff_map(before_state, after_state) do
+    Map.new(after_state, fn {key, value} ->
+      {to_string(key), %{"from" => Map.get(before_state, to_string(key)) || Map.get(before_state, key), "to" => value}}
+    end)
+  end
+
+  defp matches_audit_filter?(_entry, nil, nil), do: true
+  defp matches_audit_filter?(entry, flag_key, nil), do: entry.resource_key == to_string(flag_key)
+  defp matches_audit_filter?(entry, nil, environment_key), do: entry.environment_key == to_string(environment_key)
+
+  defp matches_audit_filter?(entry, flag_key, environment_key) do
+    entry.resource_key == to_string(flag_key) and entry.environment_key == to_string(environment_key)
+  end
+
+  defp maybe_put(map, _key, nil), do: map
+  defp maybe_put(map, key, value), do: Map.put(map, key, value)
 
   defp next_ruleset_version(flag, environment_key) do
     flag.rulesets

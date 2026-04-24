@@ -182,7 +182,8 @@ defmodule Rulestead.AdminAuditKillSwitchEctoTest do
     assert {:ok, audit_page} =
              Rulestead.list_audit_events(flag_key: "checkout-redesign", environment_key: "test", actor: %{id: "aud-1", roles: [:auditor]})
 
-    [event] = audit_page.entries
+    event = Enum.find(audit_page.entries, &(&1.event_type == "kill_switch.engage"))
+    assert event
 
     assert {:ok, rollback} =
              Rulestead.rollback_audit_event(event.id, actor: %{id: "op-1", roles: [:operator]}, reason: "revert")
@@ -191,9 +192,15 @@ defmodule Rulestead.AdminAuditKillSwitchEctoTest do
   end
 
   defp seed_environment!(key) do
-    attrs = StoreFixtures.valid_environment_attrs(%{key: key, name: String.upcase(key)})
-    changeset = Rulestead.Environment.changeset(%Rulestead.Environment{}, attrs)
-    assert {:ok, _env} = Rulestead.Repo.insert(changeset)
+    case Rulestead.Repo.get_by(Rulestead.Environment, key: key) do
+      nil ->
+        attrs = StoreFixtures.valid_environment_attrs(%{key: key, name: String.upcase(key)})
+        changeset = Rulestead.Environment.changeset(%Rulestead.Environment{}, attrs)
+        assert {:ok, _env} = Rulestead.Repo.insert(changeset)
+
+      _env ->
+        :ok
+    end
   end
 
   defp ensure_phase7_schema! do

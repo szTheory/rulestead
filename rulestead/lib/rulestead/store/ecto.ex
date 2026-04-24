@@ -343,6 +343,114 @@ defmodule Rulestead.Store.Ecto do
     end
   end
 
+  @impl Store
+  def engage_kill_switch(%Command.EngageKillSwitch{} = command) do
+    case audit_result(command) do
+      :denied ->
+        with {:ok, audit_event} <- insert_audit_only_event(command, "kill_switch.engage", :denied) do
+          {:ok, %{audit_event: AuditEvent.serialize(audit_event)}}
+        end
+
+      _other ->
+        with {:ok, environment} <- fetch_environment(command.environment_key),
+             {:ok, flag, flag_environment} <-
+               fetch_flag_environment(command.flag_key, environment.key),
+             :ok <- ensure_not_archived(command.flag_key, flag) do
+          before_state = audit_state(flag_environment)
+
+          Multi.new()
+          |> Multi.update(
+            :flag_environment,
+            FlagEnvironment.changeset(flag_environment, %{
+              status: :killswitched,
+              kill_switch_variant_key: "default"
+            })
+          )
+          |> Multi.insert(
+            :audit_event,
+            audit_event_changeset(%AuditEvent{}, command, "kill_switch.engage", :ok, %{
+              before: before_state,
+              after: %{"status" => :killswitched, "kill_switch_variant_key" => "default"}
+            })
+          )
+          |> Repo.transact()
+          |> case do
+            {:ok, _changes} -> fetch_flag(Command.FetchFlag.new(command.flag_key, command.environment_key))
+            {:error, :flag_environment, %Changeset{} = changeset, _changes} ->
+              {:error, store_changeset_error(changeset, command.flag_key, command.environment_key)}
+            {:error, _operation, reason, _changes} -> {:error, StoreError.unavailable(cause: reason)}
+          end
+        end
+    end
+  end
+
+  @impl Store
+  def release_kill_switch(%Command.ReleaseKillSwitch{} = command) do
+    case audit_result(command) do
+      :denied ->
+        with {:ok, audit_event} <- insert_audit_only_event(command, "kill_switch.release", :denied) do
+          {:ok, %{audit_event: AuditEvent.serialize(audit_event)}}
+        end
+
+      _other ->
+        with {:ok, environment} <- fetch_environment(command.environment_key),
+             {:ok, flag, flag_environment} <-
+               fetch_flag_environment(command.flag_key, environment.key),
+             :ok <- ensure_not_archived(command.flag_key, flag) do
+          before_state = audit_state(flag_environment)
+          next_status = if(flag_environment.status == :killswitched, do: :active, else: flag_environment.status || :active)
+
+          Multi.new()
+          |> Multi.update(
+            :flag_environment,
+            FlagEnvironment.changeset(flag_environment, %{
+              status: next_status,
+              kill_switch_variant_key: nil
+            })
+          )
+          |> Multi.insert(
+            :audit_event,
+            audit_event_changeset(%AuditEvent{}, command, "kill_switch.release", :ok, %{
+              before: before_state,
+              after: %{"status" => next_status, "kill_switch_variant_key" => nil}
+            })
+          )
+          |> Repo.transact()
+          |> case do
+            {:ok, _changes} -> fetch_flag(Command.FetchFlag.new(command.flag_key, command.environment_key))
+            {:error, :flag_environment, %Changeset{} = changeset, _changes} ->
+              {:error, store_changeset_error(changeset, command.flag_key, command.environment_key)}
+            {:error, _operation, reason, _changes} -> {:error, StoreError.unavailable(cause: reason)}
+          end
+        end
+    end
+  end
+
+  @impl Store
+  def list_audit_events(%Command.ListAuditEvents{} = command) do
+    entries =
+      AuditEvent
+      |> maybe_filter_audit_flag(command.flag_key)
+      |> maybe_filter_audit_environment(command.environment_key)
+      |> order_by([event], desc: event.occurred_at, desc: event.inserted_at)
+      |> limit(^command.limit)
+      |> Repo.all()
+      |> Enum.map(&AuditEvent.serialize/1)
+
+    {:ok, %Command.Page{entries: entries, limit: command.limit, has_next_page?: false, has_previous_page?: false}}
+  end
+
+  @impl Store
+  def rollback_audit_event(%Command.RollbackAuditEvent{} = command) do
+    case Repo.get(AuditEvent, command.audit_event_id) do
+      nil ->
+        {:error, StoreError.invalid_command("audit event was not found")}
+
+      audit_event ->
+        rollback_audit_event(command, audit_event)
+    end
+  end
+
   defp fetch_environment(environment_key) do
     case Repo.get_by(Environment, key: to_string(environment_key)) do
       nil -> {:error, StoreError.environment_not_found(environment_key)}
@@ -797,6 +905,56 @@ defmodule Rulestead.Store.Ecto do
   defp path_field(nil, field), do: to_string(field)
   defp path_field(path, field), do: "#{path}.#{field}"
 
+  defp rollback_audit_event(command, %AuditEvent{event_type: event_type} = audit_event)
+       when event_type in ["kill_switch.engage", "kill_switch.release"] do
+    inverse_operation =
+      if event_type == "kill_switch.engage",
+        do: :release_kill_switch,
+        else: :engage_kill_switch
+
+    inverse_status =
+      if event_type == "kill_switch.engage",
+        do: %{status: :active, kill_switch_variant_key: nil},
+        else: %{status: :killswitched, kill_switch_variant_key: "default"}
+
+    with {:ok, environment} <- fetch_environment(audit_event.environment_key),
+         {:ok, flag, flag_environment} <- fetch_flag_environment(audit_event.resource_key, environment.key),
+         :ok <- ensure_not_archived(audit_event.resource_key, flag) do
+      before_state = audit_state(flag_environment)
+
+      Multi.new()
+      |> Multi.update(:flag_environment, FlagEnvironment.changeset(flag_environment, inverse_status))
+      |> Multi.insert(
+        :audit_event,
+        audit_event_changeset(%AuditEvent{}, command, "audit.rollback", :ok, %{
+          environment_key: audit_event.environment_key,
+          resource_key: audit_event.resource_key,
+          before: before_state,
+          after: %{
+            "status" => inverse_status.status,
+            "kill_switch_variant_key" => inverse_status.kill_switch_variant_key
+          },
+          rollback_of_event_id: audit_event.id,
+          links: %{"inverse_event_type" => inverse_operation}
+        })
+      )
+      |> Repo.transact()
+      |> case do
+        {:ok, %{audit_event: rollback_event}} ->
+          {:ok, %{audit_event: AuditEvent.serialize(rollback_event)}}
+
+        {:error, :flag_environment, %Changeset{} = changeset, _changes} ->
+          {:error, store_changeset_error(changeset, audit_event.resource_key, audit_event.environment_key)}
+
+        {:error, _operation, reason, _changes} ->
+          {:error, StoreError.unavailable(cause: reason)}
+      end
+    end
+  end
+
+  defp rollback_audit_event(_command, _audit_event),
+    do: {:error, StoreError.invalid_command("audit event cannot be rolled back")}
+
   defp audit_multi(multi, key, command, ruleset, environment) do
     Multi.insert(
       multi,
@@ -836,6 +994,64 @@ defmodule Rulestead.Store.Ecto do
   defp correlation_id(command) do
     command.metadata[:request_id] || command.metadata["request_id"]
   end
+
+  defp audit_state(flag_environment) do
+    %{
+      "status" => flag_environment.status,
+      "kill_switch_variant_key" => flag_environment.kill_switch_variant_key
+    }
+  end
+
+  defp audit_result(command) do
+    command.metadata[:audit_result] || command.metadata["audit_result"]
+  end
+
+  defp insert_audit_only_event(command, event_type, result) do
+    %AuditEvent{}
+    |> audit_event_changeset(command, event_type, result, %{})
+    |> Repo.insert()
+  end
+
+  defp audit_event_changeset(audit_event, command, event_type, result, opts) do
+    AuditEvent.changeset(audit_event, %{
+      event_type: event_type,
+      resource_type: "flag",
+      resource_key: to_string(Map.get(opts, :resource_key, Map.get(command, :flag_key))),
+      environment_key: to_string(Map.get(opts, :environment_key, Map.get(command, :environment_key))),
+      actor_id: get_in(command.actor || %{}, [:id]),
+      actor_type: to_string(get_in(command.actor || %{}, [:type]) || "operator"),
+      actor_display: get_in(command.actor || %{}, [:display]),
+      reason: Map.get(command, :reason),
+      result: result,
+      metadata:
+        AuditEvent.metadata(%{
+          before: Map.get(opts, :before, %{}),
+          after: Map.get(opts, :after, %{}),
+          diff: diff_map(Map.get(opts, :before, %{}), Map.get(opts, :after, %{})),
+          links: Map.get(opts, :links, %{}),
+          context: Map.get(command, :metadata, %{}),
+          request_id: correlation_id(command),
+          source: command.metadata[:source] || command.metadata["source"],
+          rollback_of_event_id: Map.get(opts, :rollback_of_event_id)
+        }),
+      correlation_id: correlation_id(command),
+      occurred_at: now()
+    })
+  end
+
+  defp diff_map(before_state, after_state) do
+    Map.new(after_state, fn {key, value} ->
+      before_value = Map.get(before_state, key) || Map.get(before_state, to_string(key))
+      {to_string(key), %{"from" => before_value, "to" => value}}
+    end)
+  end
+
+  defp maybe_filter_audit_flag(query, nil), do: query
+  defp maybe_filter_audit_flag(query, flag_key), do: where(query, [event], event.resource_key == ^to_string(flag_key))
+
+  defp maybe_filter_audit_environment(query, nil), do: query
+  defp maybe_filter_audit_environment(query, environment_key),
+    do: where(query, [event], event.environment_key == ^to_string(environment_key))
 
   defp now, do: DateTime.utc_now() |> DateTime.truncate(:microsecond)
 
