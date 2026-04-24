@@ -232,6 +232,26 @@ defmodule Rulestead do
   end
 
   @doc """
+  Lists reusable audiences through the configured store adapter.
+  """
+  @spec list_audiences() :: Store.result([map()])
+  def list_audiences do
+    list_audiences(Command.ListAudiences.new())
+  end
+
+  @spec list_audiences(keyword()) :: Store.result([map()])
+  def list_audiences(opts) when is_list(opts) do
+    opts
+    |> Command.ListAudiences.new()
+    |> list_audiences()
+  end
+
+  @spec list_audiences(Command.ListAudiences.t()) :: Store.result([map()])
+  def list_audiences(%Command.ListAudiences{} = command) do
+    run_store(:list_audiences, [command], command)
+  end
+
+  @doc """
   Records bounded evaluation freshness for one flag/environment pair.
   """
   @spec record_evaluation(Command.RecordEvaluation.t()) :: Store.result(map())

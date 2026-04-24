@@ -21,5 +21,6 @@ defmodule Rulestead.Store do
   @callback archive_flag(Command.ArchiveFlag.t()) :: result(map())
   @callback list_flags(Command.ListFlags.t()) :: result(Command.Page.t(map()))
   @callback list_environments(Command.ListEnvironments.t()) :: result([map()])
+  @callback list_audiences(Command.ListAudiences.t()) :: result([map()])
   @callback record_evaluation(Command.RecordEvaluation.t()) :: result(map())
 end
