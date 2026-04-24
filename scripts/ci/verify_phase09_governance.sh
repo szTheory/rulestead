@@ -7,6 +7,14 @@ log_step() {
   printf "\n[verify_phase09_governance] %s\n" "$1"
 }
 
+log_step "checking governance migration is discoverable by Ecto"
+(
+  cd "${RULESTEAD_REPO}/rulestead"
+  migrations_output="$(MIX_ENV=test mix ecto.migrations)"
+  printf "%s\n" "$migrations_output"
+  printf "%s\n" "$migrations_output" | grep -q "20260424000100"
+)
+
 log_step "running Phase 09 governance safety contract suites in rulestead"
 (
   cd "${RULESTEAD_REPO}/rulestead"
