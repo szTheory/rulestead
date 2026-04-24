@@ -2,7 +2,7 @@
 
 ## Current Milestone: v0.2.0 Governance and Operator Confidence
 
-**Status:** Phase 10 execution in progress (2 of 4 plans complete)
+**Status:** Phase 10 complete (4 of 4 plans complete)
 **Phases:** 9-13
 **Requirements:** [.planning/REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/REQUIREMENTS.md)
 
@@ -51,8 +51,8 @@ Plans:
 
 - [x] 10-01-PLAN.md — Scheduled-change schema, command contracts, and lifecycle state model
 - [x] 10-02-PLAN.md — Oban-backed executor for due changes with idempotent retry and recovery semantics
-- [ ] 10-03-PLAN.md — Rollout-stage and kill-switch scheduling integration through the governed command path
-- [ ] 10-04-PLAN.md — Audit, telemetry, and focused failure-handling verification for scheduled execution
+- [x] 10-03-PLAN.md — Rollout-stage and kill-switch scheduling integration through the governed command path
+- [x] 10-04-PLAN.md — Audit, telemetry, and focused failure-handling verification for scheduled execution
 
 **Details:**
 
