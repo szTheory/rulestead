@@ -32,6 +32,36 @@ if ! rg -n 'Release-As: 0.1.0' "${RULESTEAD_REPO}/.github/workflows/release-plea
   exit 1
 fi
 
+if ! rg -n 'publish-hex\.yml' "${RULESTEAD_REPO}/.github/workflows/release-please.yml" >/dev/null; then
+  echo "release-please workflow must hand off to publish-hex automation" >&2
+  exit 1
+fi
+
+if ! rg -n 'workflow_run|workflow_dispatch' "${RULESTEAD_REPO}/.github/workflows/publish-hex.yml" >/dev/null; then
+  echo "publish workflow must support automated handoff from release-please" >&2
+  exit 1
+fi
+
+if ! rg -n 'environment:' "${RULESTEAD_REPO}/.github/workflows/publish-hex.yml" >/dev/null; then
+  echo "publish workflow must require an explicit approval environment before publish" >&2
+  exit 1
+fi
+
+if ! rg -n 'needs:\s*\n\s*-\s*preflight\s*\n\s*-\s*publish-core' "${RULESTEAD_REPO}/.github/workflows/publish-hex.yml" >/dev/null; then
+  echo "publish workflow must keep admin publish behind preflight and core publish" >&2
+  exit 1
+fi
+
+if ! rg -n 'simulate_test\.exs|07-11|Phase 7' "${RULESTEAD_REPO}/scripts/ci/release_gate.sh" >/dev/null; then
+  echo "release gate must re-run the Phase 7 sibling-package admin slice" >&2
+  exit 1
+fi
+
+if ! rg -n 'manual recovery|post-publish verification|hex-publish|rulestead_admin' "${RULESTEAD_REPO}/MAINTAINING.md" >/dev/null; then
+  echo "MAINTAINING.md must document approval, recovery, and post-publish handoff" >&2
+  exit 1
+fi
+
 if [[ -z "${REMOTE_URL}" ]]; then
   echo "set RULESTEAD_RELEASE_PLEASE_REPO_URL or configure git remote.origin.url before running release-please dry-run" >&2
   exit 1
