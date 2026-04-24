@@ -1,0 +1,100 @@
+defmodule Rulestead.AdminContractTest do
+  use ExUnit.Case, async: true
+
+  alias Rulestead.Store
+  alias Rulestead.Store.Command
+
+  test "admin policy exposes a single can?/4 host authorization callback" do
+    assert [can?: 4] == Rulestead.Admin.Policy.behaviour_info(:callbacks)
+  end
+
+  test "the root facade exposes the phase 6 admin verbs" do
+    exports = Rulestead.module_info(:exports)
+
+    assert {:list_flags, 0} in exports
+    assert function_exported?(Rulestead, :list_flags, 1)
+    assert function_exported?(Rulestead, :fetch_flag, 1)
+    assert function_exported?(Rulestead, :fetch_flag, 3)
+    assert function_exported?(Rulestead, :create_flag, 1)
+    assert function_exported?(Rulestead, :create_flag, 2)
+    assert function_exported?(Rulestead, :update_flag, 1)
+    assert function_exported?(Rulestead, :update_flag, 3)
+    assert function_exported?(Rulestead, :list_environments, 0)
+    assert function_exported?(Rulestead, :list_environments, 1)
+    assert function_exported?(Rulestead, :record_evaluation, 1)
+    assert function_exported?(Rulestead, :record_evaluation, 3)
+  end
+
+  test "the store and typed commands carry phase 6 pagination and lifecycle contracts" do
+    assert [archive_flag: 1, create_flag: 1, fetch_flag: 1, fetch_snapshot: 1,
+            list_environments: 1, list_flags: 1, publish_ruleset: 1, record_evaluation: 1,
+            save_draft_ruleset: 1, update_flag: 1] = Enum.sort(Store.behaviour_info(:callbacks))
+
+    page = %Command.Page{
+      entries: [%{flag: %{key: "checkout-redesign"}}],
+      limit: 25,
+      next_cursor: "cursor:next",
+      prev_cursor: nil,
+      has_next_page?: true,
+      has_previous_page?: false
+    }
+
+    assert %Command.ListFlags{
+             environment_key: "production",
+             owner: "growth",
+             tags: ["checkout"],
+             lifecycle: :active,
+             stale: :stale,
+             limit: 25,
+             after: "cursor:next",
+             before: nil,
+             page: ^page
+           } =
+             Command.ListFlags.new(
+               environment_key: "production",
+               owner: "growth",
+               tags: ["checkout"],
+               lifecycle: :active,
+               stale: :stale,
+               limit: 25,
+               after: "cursor:next",
+               page: page
+             )
+
+    assert %Command.CreateFlag{
+             key: "checkout-redesign",
+             owner: "growth",
+             expected_expiration: ~D[2026-05-01],
+             permanent: false,
+             environment_keys: ["test", "production"]
+           } =
+             Command.CreateFlag.new(%{
+               key: "checkout-redesign",
+               flag_type: :release,
+               value_type: :boolean,
+               default_value: %{value: false},
+               owner: "growth",
+               expected_expiration: ~D[2026-05-01],
+               permanent: false,
+               environment_keys: ["test", "production"]
+             })
+
+    assert %Command.UpdateFlag{
+             flag_key: "checkout-redesign",
+             owner: "growth",
+             permanent: true
+           } =
+             Command.UpdateFlag.new("checkout-redesign", %{owner: "growth", permanent: true})
+
+    assert %Command.ListEnvironments{query: "prod", limit: 10} =
+             Command.ListEnvironments.new(query: "prod", limit: 10)
+
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+    assert %Command.RecordEvaluation{
+             flag_key: "checkout-redesign",
+             environment_key: "production",
+             last_evaluated_at: ^now
+           } = Command.RecordEvaluation.new("checkout-redesign", "production", now)
+  end
+end
