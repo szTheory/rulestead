@@ -10,12 +10,22 @@ defmodule RulesteadAdmin.Integration.AdminMountTest do
   end
 
   setup %{conn: conn} do
+    previous_admin_policy = Application.get_env(:rulestead, :admin_policy)
     Application.put_env(:rulestead, :store, Rulestead.Fake)
+    Application.put_env(:rulestead, :admin_policy, RulesteadAdmin.TestPolicy)
     Application.put_env(:rulestead, :admin_lifecycle,
       warning_after_seconds: 1_800,
       stale_after_seconds: 3_600,
       now: ~U[2026-04-23 16:00:00Z]
     )
+
+    on_exit(fn ->
+      if is_nil(previous_admin_policy) do
+        Application.delete_env(:rulestead, :admin_policy)
+      else
+        Application.put_env(:rulestead, :admin_policy, previous_admin_policy)
+      end
+    end)
 
     now = ~U[2026-04-23 16:00:00Z]
     Control.reset!(now: now)
@@ -81,23 +91,43 @@ defmodule RulesteadAdmin.Integration.AdminMountTest do
     {:ok, conn: conn}
   end
 
-  test "host-style mount reaches list, detail, and rules screens through the router macro", %{conn: conn} do
-    {:ok, _list_view, list_html} = live(conn, "/admin/flags?env=prod")
+  test "host-style mount honors the public env and route conventions without leaking internals", %{conn: conn} do
+    assert {:error, {:live_redirect, %{to: "/admin/flags?env=prod", flash: %{}}}} =
+             live(conn, "/admin/flags")
+
+    redirected_conn = Phoenix.ConnTest.recycle(conn)
+    {:ok, _list_view, list_html} = live(redirected_conn, "/admin/flags?env=prod")
     assert list_html =~ "Flag inventory"
     assert list_html =~ "Environment"
+    assert list_html =~ "Production"
+    assert list_html =~ ~s(href="/admin/flags?env=dev")
+    assert list_html =~ ~s(href="/admin/flags?env=prod")
+    assert list_html =~ ~s(href="/admin/flags/checkout-redesign?env=prod")
 
     detail_conn = Phoenix.ConnTest.recycle(conn)
     {:ok, _detail_view, detail_html} = live(detail_conn, "/admin/flags/checkout-redesign?env=prod")
     assert detail_html =~ "Open rules workspace"
     assert detail_html =~ "Production"
+    assert detail_html =~ ~s(href="/admin/flags/checkout-redesign/rules?env=prod")
+    assert detail_html =~ ~s(href="/admin/flags/checkout-redesign/kill?env=prod")
+    assert detail_html =~ ~s(href="/admin/flags/checkout-redesign/timeline?env=prod")
 
     rules_conn = Phoenix.ConnTest.recycle(conn)
     {:ok, _rules_view, rules_html} = live(rules_conn, "/admin/flags/checkout-redesign/rules?env=prod")
     assert rules_html =~ "Rules workspace"
     assert rules_html =~ "Reusable audience"
     assert rules_html =~ "Save draft"
-    refute rules_html =~ "simulate"
-    refute rules_html =~ "kill switch"
+    assert rules_html =~ "Production"
+
+    simulate_conn = Phoenix.ConnTest.recycle(conn)
+    {:ok, _simulate_view, simulate_html} = live(simulate_conn, "/admin/flags/checkout-redesign/simulate?env=prod")
+    assert simulate_html =~ "Run simulation"
+    assert simulate_html =~ "Production"
+
+    rollouts_conn = Phoenix.ConnTest.recycle(conn)
+    {:ok, _rollouts_view, rollouts_html} = live(rollouts_conn, "/admin/flags/checkout-redesign/rollouts?env=prod")
+    assert rollouts_html =~ "Rollout controls"
+    assert rollouts_html =~ "Production"
   end
 
   defp ensure_environment!(key, name) do

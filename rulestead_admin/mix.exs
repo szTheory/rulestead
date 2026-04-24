@@ -67,7 +67,7 @@ defmodule RulesteadAdmin.MixProject do
       source_ref: "v#{@version}",
       source_url: @source_url,
       homepage_url: @homepage_url,
-      extras: ["README.md"]
+      extras: ["README.md", "CHANGELOG.md"]
     ]
   end
 end
