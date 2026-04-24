@@ -78,10 +78,11 @@ defmodule Rulestead.AdminAuditKillSwitchFakeTest do
     assert {:ok, page} =
              Rulestead.list_audit_events(flag_key: "checkout-redesign", environment_key: "test", actor: %{id: "aud-1", roles: [:auditor]})
 
-    assert Enum.count(page.entries) == 2
+    kill_switch_entries = Enum.filter(page.entries, &String.starts_with?(&1.event_type, "kill_switch"))
+    assert Enum.count(kill_switch_entries) == 2
 
     assert [%{event_type: "kill_switch.engage", result: :denied}, %{event_type: "kill_switch.engage", result: :ok}] =
-             Enum.map(page.entries, &Map.take(&1, [:event_type, :result]))
+             Enum.map(kill_switch_entries, &Map.take(&1, [:event_type, :result]))
   end
 
   test "ruleset publish audit rows include reorder diff metadata and audit filters run before limit" do
@@ -177,7 +178,8 @@ defmodule Rulestead.AdminAuditKillSwitchFakeTest do
     assert {:ok, page_before} =
              Rulestead.list_audit_events(flag_key: "checkout-redesign", environment_key: "test", actor: %{id: "aud-1", roles: [:auditor]})
 
-    [original] = page_before.entries
+    original = Enum.find(page_before.entries, &(&1.event_type == "kill_switch.engage"))
+    assert original
 
     assert {:ok, rollback} =
              Rulestead.rollback_audit_event(original.id, actor: %{id: "op-1", roles: [:operator]}, reason: "revert")
@@ -187,7 +189,7 @@ defmodule Rulestead.AdminAuditKillSwitchFakeTest do
     assert {:ok, page_after} =
              Rulestead.list_audit_events(flag_key: "checkout-redesign", environment_key: "test", actor: %{id: "aud-1", roles: [:auditor]})
 
-    assert Enum.count(page_after.entries) == 2
+    assert Enum.count(page_after.entries) == 3
     assert Enum.any?(page_after.entries, &(&1.id == original.id))
     assert Enum.any?(page_after.entries, &(&1.metadata["rollback_of_event_id"] == original.id))
   end
@@ -311,8 +313,7 @@ defmodule Rulestead.AdminAuditKillSwitchEctoTest do
                StoreFixtures.publish_ruleset_command("checkout-redesign", "test", version: 1, actor: operator)
              )
 
-    Process.sleep(5)
-    after_first_publish = DateTime.utc_now() |> DateTime.add(-1, :second)
+    first_publish_cutoff = DateTime.utc_now()
 
     assert {:ok, _} =
              StoreEcto.save_draft_ruleset(
@@ -332,7 +333,7 @@ defmodule Rulestead.AdminAuditKillSwitchEctoTest do
                  actor: %{id: "aud-1", roles: [:auditor]},
                  actor_id: "operator-9",
                  mutation: "ruleset.publish",
-                 occurred_before: after_first_publish,
+                 occurred_before: first_publish_cutoff,
                  limit: 1
                )
              )

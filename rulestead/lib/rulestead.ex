@@ -304,7 +304,7 @@ defmodule Rulestead do
   """
   @spec record_evaluation(Command.RecordEvaluation.t()) :: Store.result(map())
   def record_evaluation(%Command.RecordEvaluation{} = command) do
-    admin_write(:record_evaluation, command)
+    run_store(:record_evaluation, [command], command)
   end
 
   @doc """
@@ -621,7 +621,7 @@ defmodule Rulestead do
       ),
       fn ->
         result =
-          case Authorizer.authorize(redacted_command.actor, action, resource, Map.get(redacted_command, :environment_key)) do
+          case Authorizer.authorize(Map.get(redacted_command, :actor), action, resource, Map.get(redacted_command, :environment_key)) do
             :ok ->
               run_store(operation, [redacted_command], redacted_command)
 

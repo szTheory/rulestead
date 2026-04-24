@@ -415,18 +415,26 @@ defmodule Rulestead.Store.Command do
     defstruct flag_key: nil,
               environment_key: nil,
               actor: nil,
+              actor_id: nil,
+              mutation: nil,
               limit: 50,
               before: nil,
               after: nil,
+              occurred_after: nil,
+              occurred_before: nil,
               metadata: %{}
 
     @type t :: %__MODULE__{
             flag_key: nil | String.t() | atom(),
             environment_key: nil | String.t() | atom(),
             actor: nil | map(),
+            actor_id: nil | String.t(),
+            mutation: nil | String.t(),
             limit: pos_integer(),
             before: nil | String.t(),
             after: nil | String.t(),
+            occurred_after: nil | DateTime.t(),
+            occurred_before: nil | DateTime.t(),
             metadata: map()
           }
 
@@ -436,9 +444,13 @@ defmodule Rulestead.Store.Command do
         flag_key: Keyword.get(opts, :flag_key),
         environment_key: Keyword.get(opts, :environment_key),
         actor: Keyword.get(opts, :actor),
+        actor_id: Keyword.get(opts, :actor_id),
+        mutation: Keyword.get(opts, :mutation),
         limit: Keyword.get(opts, :limit, 50),
         before: Keyword.get(opts, :before),
         after: Keyword.get(opts, :after),
+        occurred_after: Keyword.get(opts, :occurred_after),
+        occurred_before: Keyword.get(opts, :occurred_before),
         metadata: Keyword.get(opts, :metadata, %{})
       }
     end
