@@ -339,6 +339,9 @@ defmodule Rulestead.Fake do
                                                                                        flag_environment ->
                case resolve_publishable_ruleset(flag, environment.key, command.version) do
                  {:ok, ruleset_record} ->
+                   before_ruleset =
+                     active_ruleset_payload(flag, environment.key, flag_environment.active_ruleset_version)
+
                    {:ok, next_state} =
                      publish_ruleset_record(
                        state,
@@ -354,7 +357,15 @@ defmodule Rulestead.Fake do
                    payload =
                      build_flag_detail_payload(next_state, refreshed_flag, environment, refreshed_flag_environment, true)
 
-                   {:ok, payload, next_state}
+                   {audit_event, next_state} =
+                     append_audit_event(next_state, command, "ruleset.publish", :ok,
+                       before: ruleset_audit_state(before_ruleset),
+                       after: ruleset_audit_state(ruleset_record),
+                       diff: ruleset_position_diff(before_ruleset, ruleset_record),
+                       metadata: %{version: ruleset_record.version}
+                     )
+
+                   {:ok, payload, %{next_state | audit_events: [audit_event | next_state.audit_events]}}
 
                  {:error, error} ->
                    {:error, error}
@@ -514,6 +525,7 @@ defmodule Rulestead.Fake do
                    state.flags[to_string(command.flag_key)].environments[environment.key],
                    updated_flag_environment
                  )
+                 |> put_runtime_snapshot(environment.key)
 
                {audit_event, next_state} =
                  append_audit_event(next_state, command, "kill_switch.engage", :ok,
@@ -558,6 +570,7 @@ defmodule Rulestead.Fake do
                    state.flags[to_string(command.flag_key)].environments[environment.key],
                    updated_flag_environment
                  )
+                 |> put_runtime_snapshot(environment.key)
 
                {audit_event, next_state} =
                  append_audit_event(next_state, command, "kill_switch.release", :ok,
@@ -585,9 +598,7 @@ defmodule Rulestead.Fake do
   def handle_call({:list_audit_events, command}, _from, state) do
     entries =
       state.audit_events
-      |> Enum.filter(fn entry ->
-        matches_audit_filter?(entry, command.flag_key, command.environment_key)
-      end)
+      |> Enum.filter(&matches_audit_filter?(&1, command))
       |> Enum.sort_by(& &1.occurred_at, {:desc, DateTime})
       |> Enum.take(command.limit)
 
@@ -942,7 +953,7 @@ defmodule Rulestead.Fake do
       AuditEvent.metadata(%{
         before: Keyword.get(opts, :before, %{}),
         after: Keyword.get(opts, :after, %{}),
-        diff: diff_map(Keyword.get(opts, :before, %{}), Keyword.get(opts, :after, %{})),
+        diff: Keyword.get(opts, :diff, diff_map(Keyword.get(opts, :before, %{}), Keyword.get(opts, :after, %{}))),
         links:
           Keyword.get(opts, :links, %{})
           |> Map.new()
@@ -952,6 +963,7 @@ defmodule Rulestead.Fake do
         source: get_in(command.metadata, [:source]) || get_in(command.metadata, ["source"]),
         rollback_of_event_id: Keyword.get(opts, :rollback_of_event_id)
       })
+      |> Map.merge(Map.new(Keyword.get(opts, :metadata, %{})))
 
     %AuditEvent{
       id: Ecto.UUID.generate(),
@@ -998,16 +1010,61 @@ defmodule Rulestead.Fake do
     end)
   end
 
-  defp matches_audit_filter?(_entry, nil, nil), do: true
-  defp matches_audit_filter?(entry, flag_key, nil), do: entry.resource_key == to_string(flag_key)
-  defp matches_audit_filter?(entry, nil, environment_key), do: entry.environment_key == to_string(environment_key)
+  defp matches_audit_filter?(entry, command) do
+    matches_flag = is_nil(command.flag_key) or entry.resource_key == to_string(command.flag_key)
+    matches_environment = is_nil(command.environment_key) or entry.environment_key == to_string(command.environment_key)
+    matches_actor = is_nil(command.actor_id) or entry.actor_id == command.actor_id
+    matches_mutation = is_nil(command.mutation) or entry.event_type == command.mutation
 
-  defp matches_audit_filter?(entry, flag_key, environment_key) do
-    entry.resource_key == to_string(flag_key) and entry.environment_key == to_string(environment_key)
+    matches_after =
+      case command.occurred_after do
+        %DateTime{} = boundary -> DateTime.compare(entry.occurred_at, boundary) != :lt
+        _other -> true
+      end
+
+    matches_before =
+      case command.occurred_before do
+        %DateTime{} = boundary -> DateTime.compare(entry.occurred_at, boundary) != :gt
+        _other -> true
+      end
+
+    matches_flag and matches_environment and matches_actor and matches_mutation and matches_after and matches_before
   end
 
   defp maybe_put(map, _key, nil), do: map
   defp maybe_put(map, key, value), do: Map.put(map, key, value)
+
+  defp ruleset_audit_state(nil), do: %{"rules" => []}
+
+  defp ruleset_audit_state(ruleset) do
+    %{
+      "rules" =>
+        ruleset
+        |> Map.get(:rules, [])
+        |> Enum.with_index()
+        |> Enum.map(fn {rule, position} ->
+          %{"key" => rule[:key] || rule["key"], "position" => position}
+        end)
+    }
+  end
+
+  defp ruleset_position_diff(before_ruleset, after_ruleset) do
+    before_positions =
+      before_ruleset
+      |> ruleset_audit_state()
+      |> Map.get("rules", [])
+      |> Map.new(fn %{"key" => key, "position" => position} -> {key, position} end)
+
+    %{
+      "rules" =>
+        after_ruleset
+        |> ruleset_audit_state()
+        |> Map.get("rules", [])
+        |> Enum.map(fn %{"key" => key, "position" => position} ->
+          %{"key" => key, "from" => Map.get(before_positions, key), "to" => position}
+        end)
+    }
+  end
 
   defp next_ruleset_version(flag, environment_key) do
     flag.rulesets
@@ -1161,7 +1218,8 @@ defmodule Rulestead.Fake do
       |> Enum.reject(&archived?/1)
       |> Enum.filter(fn flag ->
         match?(
-          %{status: :active, active_ruleset_version: version} when not is_nil(version),
+          %{status: status, active_ruleset_version: version}
+          when status in [:active, :killswitched] and not is_nil(version),
           flag.environments[environment_key]
         )
       end)
@@ -1226,7 +1284,10 @@ defmodule Rulestead.Fake do
       active_ruleset:
         if(include_ruleset?,
           do:
-            active_ruleset_payload(flag, environment.key, flag_environment.active_ruleset_version)
+            runtime_ruleset_payload(
+              active_ruleset_payload(flag, environment.key, flag_environment.active_ruleset_version),
+              flag_environment
+            )
         ),
       draft_rulesets:
         if(include_ruleset?,
@@ -1307,6 +1368,14 @@ defmodule Rulestead.Fake do
     |> Map.get(environment_key, %{})
     |> Map.get(version)
   end
+
+  defp runtime_ruleset_payload(nil, _flag_environment), do: nil
+
+  defp runtime_ruleset_payload(ruleset, %{status: :killswitched}) do
+    %{ruleset | rules: []}
+  end
+
+  defp runtime_ruleset_payload(ruleset, _flag_environment), do: ruleset
 
   defp draft_ruleset_payloads(flag, environment_key) do
     flag.rulesets

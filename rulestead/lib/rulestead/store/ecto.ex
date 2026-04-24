@@ -134,31 +134,39 @@ defmodule Rulestead.Store.Ecto do
 
   @impl Store
   def save_draft_ruleset(%Command.SaveDraftRuleset{} = command) do
-    with {:ok, environment} <- fetch_environment(command.environment_key),
-         {:ok, flag, flag_environment} <-
-           fetch_flag_environment(command.flag_key, environment.key),
-         :ok <- ensure_not_archived(command.flag_key, flag) do
-      attrs = %{
-        flag_environment_id: flag_environment.id,
-        version: next_ruleset_version(flag_environment.id),
-        status: :draft,
-        salt: Map.get(command.ruleset, :salt) || Map.get(command.ruleset, "salt"),
-        published_at: nil,
-        metadata:
-          Map.get(command.ruleset, :metadata) || Map.get(command.ruleset, "metadata") || %{},
-        rules: Map.get(command.ruleset, :rules) || Map.get(command.ruleset, "rules") || []
-      }
+    case audit_result(command) do
+      :denied ->
+        with {:ok, audit_event} <- insert_audit_only_event(command, audit_event_type(command), :denied) do
+          {:ok, %{audit_event: AuditEvent.serialize(audit_event)}}
+        end
 
-      %Ruleset{}
-      |> Ruleset.changeset(attrs)
-      |> Repo.insert()
-      |> case do
-        {:ok, ruleset} ->
-          {:ok, %{version: ruleset.version, ruleset: serialize_ruleset(ruleset)}}
+      _other ->
+        with {:ok, environment} <- fetch_environment(command.environment_key),
+             {:ok, flag, flag_environment} <-
+               fetch_flag_environment(command.flag_key, environment.key),
+             :ok <- ensure_not_archived(command.flag_key, flag) do
+          attrs = %{
+            flag_environment_id: flag_environment.id,
+            version: next_ruleset_version(flag_environment.id),
+            status: :draft,
+            salt: Map.get(command.ruleset, :salt) || Map.get(command.ruleset, "salt"),
+            published_at: nil,
+            metadata:
+              Map.get(command.ruleset, :metadata) || Map.get(command.ruleset, "metadata") || %{},
+            rules: Map.get(command.ruleset, :rules) || Map.get(command.ruleset, "rules") || []
+          }
 
-        {:error, %Changeset{} = changeset} ->
-          {:error, ruleset_error(changeset, command.flag_key, command.environment_key)}
-      end
+          %Ruleset{}
+          |> Ruleset.changeset(attrs)
+          |> Repo.insert()
+          |> case do
+            {:ok, ruleset} ->
+              {:ok, %{version: ruleset.version, ruleset: serialize_ruleset(ruleset)}}
+
+            {:error, %Changeset{} = changeset} ->
+              {:error, ruleset_error(changeset, command.flag_key, command.environment_key)}
+          end
+        end
     end
   rescue
     error in [ConstraintError] ->
@@ -167,46 +175,55 @@ defmodule Rulestead.Store.Ecto do
 
   @impl Store
   def publish_ruleset(%Command.PublishRuleset{} = command) do
-    with {:ok, environment} <- fetch_environment(command.environment_key),
-         {:ok, flag, flag_environment} <-
-           fetch_flag_environment(command.flag_key, environment.key),
-         :ok <- ensure_not_archived(command.flag_key, flag),
-         {:ok, ruleset} <-
-           resolve_publishable_ruleset(flag_environment, environment.key, command.version) do
-      published_at = now()
+    case audit_result(command) do
+      :denied ->
+        with {:ok, audit_event} <- insert_audit_only_event(command, audit_event_type(command), :denied) do
+          {:ok, %{audit_event: AuditEvent.serialize(audit_event)}}
+        end
 
-      Multi.new()
-      |> Multi.update(
-        :ruleset,
-        Ruleset.changeset(ruleset, %{status: :published, published_at: published_at})
-      )
-      |> Multi.update(
-        :flag_environment,
-        FlagEnvironment.changeset(flag_environment, %{
-          active_ruleset_id: ruleset.id,
-          status: :active,
-          last_published_at: published_at
-        })
-      )
-      |> Multi.update(:flag, Changeset.change(flag, updated_at: published_at))
-      |> Multi.run(:runtime_snapshot, fn repo, _changes ->
-        insert_runtime_snapshot(repo, environment, published_at)
-      end)
-      |> audit_multi(:audit_event, command, ruleset, environment)
-      |> Repo.transact()
-      |> case do
-        {:ok, _changes} ->
-          fetch_flag(Command.FetchFlag.new(command.flag_key, command.environment_key))
+      _other ->
+        with {:ok, environment} <- fetch_environment(command.environment_key),
+             {:ok, flag, flag_environment} <-
+               fetch_flag_environment(command.flag_key, environment.key),
+             :ok <- ensure_not_archived(command.flag_key, flag),
+             {:ok, ruleset} <-
+               resolve_publishable_ruleset(flag_environment, environment.key, command.version) do
+          published_at = now()
+          previous_ruleset = active_ruleset(flag_environment)
 
-        {:error, :ruleset, %Changeset{} = changeset, _changes} ->
-          {:error, ruleset_error(changeset, command.flag_key, command.environment_key)}
+          Multi.new()
+          |> Multi.update(
+            :ruleset,
+            Ruleset.changeset(ruleset, %{status: :published, published_at: published_at})
+          )
+          |> Multi.update(
+            :flag_environment,
+            FlagEnvironment.changeset(flag_environment, %{
+              active_ruleset_id: ruleset.id,
+              status: :active,
+              last_published_at: published_at
+            })
+          )
+          |> Multi.update(:flag, Changeset.change(flag, updated_at: published_at))
+          |> Multi.run(:runtime_snapshot, fn repo, _changes ->
+            insert_runtime_snapshot(repo, environment, published_at)
+          end)
+          |> audit_multi(:audit_event, command, ruleset, environment, previous_ruleset)
+          |> Repo.transact()
+          |> case do
+            {:ok, _changes} ->
+              fetch_flag(Command.FetchFlag.new(command.flag_key, command.environment_key))
 
-        {:error, :flag_environment, %Changeset{} = changeset, _changes} ->
-          {:error, store_changeset_error(changeset, command.flag_key, command.environment_key)}
+            {:error, :ruleset, %Changeset{} = changeset, _changes} ->
+              {:error, ruleset_error(changeset, command.flag_key, command.environment_key)}
 
-        {:error, _operation, reason, _changes} ->
-          {:error, StoreError.unavailable(cause: reason)}
-      end
+            {:error, :flag_environment, %Changeset{} = changeset, _changes} ->
+              {:error, store_changeset_error(changeset, command.flag_key, command.environment_key)}
+
+            {:error, _operation, reason, _changes} ->
+              {:error, StoreError.unavailable(cause: reason)}
+          end
+        end
     end
   rescue
     error in [ConstraintError] ->
@@ -215,33 +232,41 @@ defmodule Rulestead.Store.Ecto do
 
   @impl Store
   def archive_flag(%Command.ArchiveFlag{} = command) do
-    case flag_by_key_query(command.flag_key) |> Repo.one() do
-      nil ->
-        {:error, StoreError.flag_not_found(command.flag_key, :all)}
+    case audit_result(command) do
+      :denied ->
+        with {:ok, audit_event} <- insert_audit_only_event(command, audit_event_type(command), :denied) do
+          {:ok, %{audit_event: AuditEvent.serialize(audit_event)}}
+        end
 
-      flag ->
-        archived_at = flag.archived_at || now()
+      _other ->
+        case flag_by_key_query(command.flag_key) |> Repo.one() do
+          nil ->
+            {:error, StoreError.flag_not_found(command.flag_key, :all)}
 
-        Multi.new()
-        |> Multi.update(:flag, Flag.changeset(flag, %{archived_at: archived_at}))
-        |> Multi.update_all(
-          :flag_environments,
-          from(fe in FlagEnvironment, where: fe.flag_id == ^flag.id),
-          set: [status: :archived, updated_at: archived_at]
-        )
-        |> audit_multi(:audit_event, command, nil, nil)
-        |> Repo.transact()
-        |> case do
-          {:ok, _changes} ->
-            archived_flag = flag_by_key_query(command.flag_key) |> Repo.one()
-            Enum.each(archived_flag.flag_environments, &insert_runtime_snapshot(Repo, &1.environment, archived_at))
-            {:ok, build_archive_payload(archived_flag)}
+          flag ->
+            archived_at = flag.archived_at || now()
 
-          {:error, :flag, %Changeset{} = changeset, _changes} ->
-            {:error, store_changeset_error(changeset, command.flag_key, :all)}
+            Multi.new()
+            |> Multi.update(:flag, Flag.changeset(flag, %{archived_at: archived_at}))
+            |> Multi.update_all(
+              :flag_environments,
+              from(fe in FlagEnvironment, where: fe.flag_id == ^flag.id),
+              set: [status: :archived, updated_at: archived_at]
+            )
+            |> audit_multi(:audit_event, command, nil, nil, nil)
+            |> Repo.transact()
+            |> case do
+              {:ok, _changes} ->
+                archived_flag = flag_by_key_query(command.flag_key) |> Repo.one()
+                Enum.each(archived_flag.flag_environments, &insert_runtime_snapshot(Repo, &1.environment, archived_at))
+                {:ok, build_archive_payload(archived_flag)}
 
-          {:error, _operation, reason, _changes} ->
-            {:error, StoreError.unavailable(cause: reason)}
+              {:error, :flag, %Changeset{} = changeset, _changes} ->
+                {:error, store_changeset_error(changeset, command.flag_key, :all)}
+
+              {:error, _operation, reason, _changes} ->
+                {:error, StoreError.unavailable(cause: reason)}
+            end
         end
     end
   end
@@ -366,6 +391,9 @@ defmodule Rulestead.Store.Ecto do
               kill_switch_variant_key: "default"
             })
           )
+          |> Multi.run(:runtime_snapshot, fn repo, _changes ->
+            insert_runtime_snapshot(repo, environment, now())
+          end)
           |> Multi.insert(
             :audit_event,
             audit_event_changeset(%AuditEvent{}, command, "kill_switch.engage", :ok, %{
@@ -408,6 +436,9 @@ defmodule Rulestead.Store.Ecto do
               kill_switch_variant_key: nil
             })
           )
+          |> Multi.run(:runtime_snapshot, fn repo, _changes ->
+            insert_runtime_snapshot(repo, environment, now())
+          end)
           |> Multi.insert(
             :audit_event,
             audit_event_changeset(%AuditEvent{}, command, "kill_switch.release", :ok, %{
@@ -432,6 +463,10 @@ defmodule Rulestead.Store.Ecto do
       AuditEvent
       |> maybe_filter_audit_flag(command.flag_key)
       |> maybe_filter_audit_environment(command.environment_key)
+      |> maybe_filter_audit_actor_id(command.actor_id)
+      |> maybe_filter_audit_mutation(command.mutation)
+      |> maybe_filter_audit_occurred_after(command.occurred_after)
+      |> maybe_filter_audit_occurred_before(command.occurred_before)
       |> order_by([event], desc: event.occurred_at, desc: event.inserted_at)
       |> limit(^command.limit)
       |> Repo.all()
@@ -618,7 +653,10 @@ defmodule Rulestead.Store.Ecto do
       environment: environment_summary(environment),
       flag_environment: flag_environment_summary(flag_environment),
       active_ruleset:
-        if(include_ruleset?, do: active_ruleset_payload(flag_environment), else: nil),
+        if(include_ruleset?,
+          do: runtime_ruleset_payload(active_ruleset_payload(flag_environment), flag_environment),
+          else: nil
+        ),
       draft_rulesets:
         if(include_ruleset?,
           do: draft_ruleset_payloads(flag_environment),
@@ -955,7 +993,7 @@ defmodule Rulestead.Store.Ecto do
   defp rollback_audit_event(_command, _audit_event),
     do: {:error, StoreError.invalid_command("audit event cannot be rolled back")}
 
-  defp audit_multi(multi, key, command, ruleset, environment) do
+  defp audit_multi(multi, key, command, ruleset, environment, previous_ruleset) do
     Multi.insert(
       multi,
       key,
@@ -969,26 +1007,36 @@ defmodule Rulestead.Store.Ecto do
         actor_display: get_in(command.actor || %{}, [:display]),
         reason: Map.get(command, :reason),
         result: :ok,
-        metadata: audit_metadata(command, ruleset),
+        metadata: audit_metadata(command, ruleset, previous_ruleset),
         correlation_id: correlation_id(command),
         occurred_at: now()
       })
     )
   end
 
+  defp audit_event_type(%Command.SaveDraftRuleset{}), do: "ruleset.save_draft"
   defp audit_event_type(%Command.PublishRuleset{}), do: "ruleset.publish"
   defp audit_event_type(%Command.ArchiveFlag{}), do: "flag.archive"
 
   defp audit_flag_key(command), do: to_string(Map.get(command, :flag_key))
 
-  defp audit_metadata(command, ruleset) do
+  defp audit_metadata(command, ruleset, previous_ruleset) do
     metadata =
       command
       |> Map.get(:metadata, %{})
       |> Map.new()
       |> Map.take([:source, "source", :request_id, "request_id"])
 
-    if ruleset, do: Map.put(metadata, :version, ruleset.version), else: metadata
+    metadata =
+      if ruleset do
+        metadata
+        |> Map.put(:version, ruleset.version)
+        |> Map.merge(ruleset_audit_metadata(previous_ruleset, ruleset))
+      else
+        metadata
+      end
+
+    metadata
   end
 
   defp correlation_id(command) do
@@ -1052,6 +1100,68 @@ defmodule Rulestead.Store.Ecto do
   defp maybe_filter_audit_environment(query, nil), do: query
   defp maybe_filter_audit_environment(query, environment_key),
     do: where(query, [event], event.environment_key == ^to_string(environment_key))
+
+  defp maybe_filter_audit_actor_id(query, nil), do: query
+  defp maybe_filter_audit_actor_id(query, actor_id), do: where(query, [event], event.actor_id == ^actor_id)
+
+  defp maybe_filter_audit_mutation(query, nil), do: query
+  defp maybe_filter_audit_mutation(query, mutation), do: where(query, [event], event.event_type == ^mutation)
+
+  defp maybe_filter_audit_occurred_after(query, %DateTime{} = occurred_after),
+    do: where(query, [event], event.occurred_at >= ^occurred_after)
+
+  defp maybe_filter_audit_occurred_after(query, _occurred_after), do: query
+
+  defp maybe_filter_audit_occurred_before(query, %DateTime{} = occurred_before),
+    do: where(query, [event], event.occurred_at <= ^occurred_before)
+
+  defp maybe_filter_audit_occurred_before(query, _occurred_before), do: query
+
+  defp active_ruleset(%{active_ruleset_id: nil}), do: nil
+
+  defp active_ruleset(%{active_ruleset_id: active_ruleset_id}) do
+    Repo.get(Ruleset, active_ruleset_id)
+  end
+
+  defp ruleset_audit_metadata(previous_ruleset, ruleset) do
+    before = ruleset_audit_state(previous_ruleset)
+    after_state = ruleset_audit_state(ruleset)
+
+    %{
+      before: before,
+      after: after_state,
+      diff: ruleset_position_diff(before, after_state)
+    }
+  end
+
+  defp ruleset_audit_state(nil), do: %{rules: []}
+
+  defp ruleset_audit_state(ruleset) do
+    %{
+      rules:
+        ruleset.rules
+        |> Enum.with_index()
+        |> Enum.map(fn {rule, position} ->
+          %{key: rule.key, position: position}
+        end)
+    }
+  end
+
+  defp ruleset_position_diff(before_state, after_state) do
+    before_positions =
+      before_state
+      |> Map.get(:rules, [])
+      |> Map.new(fn %{key: key, position: position} -> {key, position} end)
+
+    %{
+      rules:
+        after_state
+        |> Map.get(:rules, [])
+        |> Enum.map(fn %{key: key, position: position} ->
+          %{key: key, from: Map.get(before_positions, key), to: position}
+        end)
+    }
+  end
 
   defp now, do: DateTime.utc_now() |> DateTime.truncate(:microsecond)
 
@@ -1384,7 +1494,7 @@ defmodule Rulestead.Store.Ecto do
     from(flag in Flag,
       where: is_nil(flag.archived_at),
       join: fe in assoc(flag, :flag_environments),
-      on: fe.flag_id == flag.id and fe.status == :active and not is_nil(fe.active_ruleset_id),
+      on: fe.flag_id == flag.id and fe.status in [:active, :killswitched] and not is_nil(fe.active_ruleset_id),
       join: env in assoc(fe, :environment),
       on: env.id == fe.environment_id and env.key == ^to_string(environment_key),
       order_by: [asc: flag.key],
@@ -1412,4 +1522,12 @@ defmodule Rulestead.Store.Ecto do
   defp snapshot_lookup_metadata(environment_key, version) do
     %{environment_key: environment_key, version: version}
   end
+
+  defp runtime_ruleset_payload(nil, _flag_environment), do: nil
+
+  defp runtime_ruleset_payload(ruleset, %{status: :killswitched}) do
+    %{ruleset | rules: []}
+  end
+
+  defp runtime_ruleset_payload(ruleset, _flag_environment), do: ruleset
 end
