@@ -1,7 +1,7 @@
 defmodule Rulestead.Governance.ChangeRequestContractTest do
   use ExUnit.Case, async: true
 
-  alias Rulestead.Governance.{ApprovalRequirement, ChangeRequest}
+  alias Rulestead.Governance.{Approval, ApprovalRequirement, ChangeRequest}
 
   describe "canonical governance vocabulary" do
     test "states and governed actions stay fixed" do
@@ -65,6 +65,50 @@ defmodule Rulestead.Governance.ChangeRequestContractTest do
                  self_approval_allowed?: false
                },
                correlation_id: "req_123"
+             }
+    end
+  end
+
+  describe "approval correlation contract" do
+    test "approval shares correlation id and explicit reviewer identity fields" do
+      approval =
+        Approval.new(
+          change_request_id: "cr_123",
+          decision: :approved,
+          reviewed_by: %{id: "user_456", type: "user", display: "Bob Reviewer"},
+          reason: "Peer review complete",
+          correlation_id: "req_123"
+        )
+
+      assert Approval.decisions() == [:approved, :rejected]
+
+      assert Approval.serialize(approval) == %{
+               change_request_id: "cr_123",
+               decision: :approved,
+               reviewed_by: %{
+                 id: "user_456",
+                 type: "user",
+                 display: "Bob Reviewer"
+               },
+               reason: "Peer review complete",
+               correlation_id: "req_123"
+             }
+    end
+
+    test "approval requirement keeps self-approval posture explicit" do
+      approval_requirement =
+        ApprovalRequirement.new(
+          action: :manage_settings,
+          environment_key: :prod,
+          required_approvals: 1,
+          self_approval_allowed?: true
+        )
+
+      assert ApprovalRequirement.serialize(approval_requirement) == %{
+               action: :manage_settings,
+               environment_key: "prod",
+               required_approvals: 1,
+               self_approval_allowed?: true
              }
     end
   end
