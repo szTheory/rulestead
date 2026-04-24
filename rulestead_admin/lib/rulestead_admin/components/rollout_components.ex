@@ -81,4 +81,31 @@ defmodule RulesteadAdmin.Components.RolloutComponents do
     </section>
     """
   end
+
+  attr(:current, :integer, required: true)
+  attr(:target, :integer, required: true)
+  attr(:reason, :string, default: "")
+
+  def confirm_panel(assigns) do
+    ~H"""
+    <section class="rs-card" aria-label="Risky jump confirmation">
+      <h2>Risky jump requires confirmation</h2>
+      <p>Publish risky jump from <strong><%= @current %>%</strong> to <strong><%= @target %>%</strong> only after reviewing the preview and recording why the ladder recommendation is being skipped.</p>
+
+      <form aria-label="Risky jump confirmation form" phx-change="validate_confirmation">
+        <label for="rollout-confirm-reason">Reason for risky jump</label>
+        <textarea
+          id="rollout-confirm-reason"
+          name="confirmation[reason]"
+          rows="4"
+        ><%= @reason %></textarea>
+      </form>
+
+      <div class="rs-rollout-confirm__actions">
+        <button type="button" phx-click="confirm_publish">Publish risky jump</button>
+        <button type="button" phx-click="cancel_confirmation">Cancel</button>
+      </div>
+    </section>
+    """
+  end
 end

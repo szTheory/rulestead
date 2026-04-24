@@ -147,7 +147,9 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
 
     assert published_html =~ "Published to Production"
     refute published_html =~ "Risky jump requires confirmation"
-    assert Enum.at(Rulestead.fetch_flag!("checkout-redesign", "prod").active_ruleset.rules, 1).rollout.percentage == 50
+
+    assert Enum.at(Rulestead.fetch_flag!("checkout-redesign", "prod").active_ruleset.rules, 1).rollout.percentage ==
+             50
   end
 
   test "risky jumps block publish until the operator confirms with a reason", %{conn: conn} do
@@ -166,7 +168,9 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
     assert risky_html =~ "Risky jump requires confirmation"
     assert risky_html =~ "Reason for risky jump"
     refute risky_html =~ "Published to Production"
-    assert Enum.at(Rulestead.fetch_flag!("checkout-redesign", "prod").active_ruleset.rules, 1).rollout.percentage == 25
+
+    assert Enum.at(Rulestead.fetch_flag!("checkout-redesign", "prod").active_ruleset.rules, 1).rollout.percentage ==
+             25
   end
 
   defp seed_flag!(attrs) do

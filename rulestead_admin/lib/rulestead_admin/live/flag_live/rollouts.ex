@@ -20,11 +20,14 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
      |> assign(:sample_size, @sample_size)
      |> assign(:ladder_steps, @ladder_steps)
      |> assign(:detail, nil)
+     |> assign(:published_percentage, 0)
      |> assign(:rollout_rule_key, nil)
      |> assign(:rollout_rule_index, nil)
      |> assign(:source_ruleset, nil)
      |> assign(:percentage, nil)
      |> assign(:preview, nil)
+     |> assign(:confirm_reason, "")
+     |> assign(:confirmation_required?, false)
      |> assign(:editable?, false)
      |> assign(:status_message, nil)
      |> assign(:error_message, nil)
@@ -53,6 +56,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
      socket
      |> assign(:percentage, percentage)
      |> assign(:preview, nil)
+     |> assign(:confirm_reason, "")
+     |> assign(:confirmation_required?, false)
      |> assign(:status_message, nil)}
   end
 
@@ -80,7 +85,39 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
   end
 
   def handle_event("publish", _params, socket) do
-    persist_rollout(socket, :publish)
+    if risky_jump?(socket.assigns.published_percentage, socket.assigns.percentage) do
+      {:noreply,
+       socket
+       |> assign(:confirmation_required?, true)
+       |> assign(:status_message, "Risky jump requires confirmation")
+       |> assign(:error_message, nil)}
+    else
+      persist_rollout(socket, :publish)
+    end
+  end
+
+  def handle_event("validate_confirmation", %{"confirmation" => %{"reason" => reason}}, socket) do
+    {:noreply, assign(socket, :confirm_reason, reason)}
+  end
+
+  def handle_event("confirm_publish", _params, socket) do
+    if String.trim(socket.assigns.confirm_reason) == "" do
+      {:noreply,
+       socket
+       |> assign(:status_message, "Risky jump requires confirmation")
+       |> assign(:error_message, "Reason required for risky jump confirmation")}
+    else
+      persist_rollout(socket, :publish)
+    end
+  end
+
+  def handle_event("cancel_confirmation", _params, socket) do
+    {:noreply,
+     socket
+     |> assign(:confirmation_required?, false)
+     |> assign(:confirm_reason, "")
+     |> assign(:status_message, nil)
+     |> assign(:error_message, nil)}
   end
 
   @impl true
@@ -124,7 +161,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
             %{title: "Owner", value: @detail.lifecycle.owner, tone: "neutral"},
             %{title: "Environment", value: @detail.environment.name, tone: "neutral"},
             %{title: "Lifecycle", value: humanize(@detail.lifecycle.state), tone: "neutral"},
-            %{title: "Current exposure", value: "#{current_percentage(@current_rule)}%", tone: "accent"}
+            %{title: "Current live exposure", value: "#{@published_percentage}%", tone: "accent"}
           ]}
         />
 
@@ -162,6 +199,13 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
                 <button :if={@editable?} type="button" phx-click="publish">Publish</button>
               </div>
             </FlagComponents.section_card>
+
+            <RolloutComponents.confirm_panel
+              :if={@confirmation_required?}
+              current={@published_percentage}
+              target={@percentage}
+              reason={@confirm_reason}
+            />
 
             <RolloutComponents.preview_panel preview={@preview} percentage={@percentage} sample_size={@sample_size} />
           </section>
@@ -206,6 +250,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
 
       {:noreply,
        socket
+       |> assign(:confirmation_required?, false)
+       |> assign(:confirm_reason, "")
        |> assign(:status_message, message)
        |> assign(:preview, nil)
        |> load_page(detail.flag.key, detail.environment.key)}
@@ -228,11 +274,14 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
 
         socket
         |> assign(:detail, detail)
+        |> assign(:published_percentage, active_rollout_percentage(detail))
         |> assign(:source_ruleset, ruleset)
         |> assign(:rollout_rule_key, field(rollout_rule, :key))
         |> assign(:rollout_rule_index, rollout_rule_index)
         |> assign(:percentage, current_percentage(rollout_rule))
         |> assign(:preview, nil)
+        |> assign(:confirm_reason, "")
+        |> assign(:confirmation_required?, false)
         |> assign(:editable?, is_nil(detail.flag.archived_at) and not is_nil(rollout_rule))
         |> assign(
           :error_message,
@@ -245,11 +294,14 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
       {:error, error} ->
         socket
         |> assign(:detail, nil)
+        |> assign(:published_percentage, 0)
         |> assign(:source_ruleset, nil)
         |> assign(:rollout_rule_key, nil)
         |> assign(:rollout_rule_index, nil)
         |> assign(:percentage, nil)
         |> assign(:preview, nil)
+        |> assign(:confirm_reason, "")
+        |> assign(:confirmation_required?, false)
         |> assign(:editable?, false)
         |> assign(:error_message, error.message)
     end
@@ -368,6 +420,13 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
   defp current_percentage(nil), do: 0
   defp current_percentage(rule), do: rule |> field(:rollout, %{}) |> field(:percentage, 0)
 
+  defp active_rollout_percentage(detail) do
+    case find_rollout_rule(detail.active_ruleset || %{rules: []}) do
+      {nil, _index} -> 0
+      {rule, _index} -> current_percentage(rule)
+    end
+  end
+
   defp order_entries(source_ruleset, current_rule_key) do
     source_ruleset
     |> source_rules()
@@ -462,6 +521,22 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
     case Integer.parse(to_string(value)) do
       {parsed, _rest} -> min(max(parsed, 0), 100)
       :error -> current || 0
+    end
+  end
+
+  defp risky_jump?(current, target) when target <= current, do: false
+
+  defp risky_jump?(current, target) do
+    case {Enum.find_index(@ladder_steps, &(&1 == current)),
+          Enum.find_index(@ladder_steps, &(&1 == target))} do
+      {current_index, target_index} when is_integer(current_index) and is_integer(target_index) ->
+        target_index - current_index > 1
+
+      {current_index, nil} when is_integer(current_index) ->
+        target > Enum.at(@ladder_steps, current_index + 1, 100)
+
+      _other ->
+        target - current > 25
     end
   end
 
