@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v0.2.0
 milestone_name: Governance and Operator Confidence
-status: ready_to_plan
-last_updated: "2026-04-24T15:17:33.134Z"
+status: executing
+last_updated: "2026-04-24T16:17:14.198Z"
 last_activity: 2026-04-24
 progress:
   total_phases: 5
-  completed_phases: 3
-  total_plans: 5
-  completed_plans: 5
-  percent: 60
+  completed_phases: 1
+  total_plans: 9
+  completed_plans: 6
+  percent: 67
 ---
 
 # State: Rulestead
@@ -20,7 +20,7 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-24)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
-**Current focus:** Phase 09 — governance core contracts, change requests, and approval policy
+**Current focus:** Phase 10 — scheduled changes and durable execution
 **Milestone:** `v0.2.0` started on 2026-04-24
 
 ## Roadmap Reference
@@ -31,10 +31,10 @@ See: `.planning/ROADMAP.md`
 
 ## Current Position
 
-Phase: 10
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-04-24
+Phase: 10 — EXECUTING
+Plan: 2 of 4
+Status: Ready to execute
+Last activity: 2026-04-24 -- Completed 10-01 durable scheduling contracts
 
 ## Active Requirement Focus
 
@@ -76,9 +76,10 @@ These remain the primary source of truth and should be loaded selectively per ph
 - 2026-04-24 — Completed `09-01`, locking governance change-request, approval, and approval-requirement contracts in `rulestead`.
 - 2026-04-24 — Completed `09-02`, adding governance persistence tables, audit correlation metadata, and store command contracts in `rulestead`.
 - 2026-04-24 — Completed `09-03`, adding host-owned governance policy hooks, approval snapshots, and default production self-approval denial in the authorizer.
+- 2026-04-24 — Completed `10-01`, adding durable scheduled execution schema, contract structs, and schedule-first store commands in `rulestead`.
 
 ## Next Action
 
-Continue with `09-04-PLAN.md`.
+Continue with `10-02-PLAN.md`.
 
-**Planned Phase:** 9 (Governance Core Contracts, Change Requests, and Approval Policy) — 5 plans — 2026-04-24T14:32:26.327Z
+**Planned Phase:** 10 (Scheduled Changes and Durable Execution) — 4 plans — 2026-04-24T16:16:24Z
