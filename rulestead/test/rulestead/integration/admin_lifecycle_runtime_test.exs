@@ -71,6 +71,12 @@ defmodule Rulestead.Integration.AdminLifecycleRuntimeTest do
 
     assert {:ok, archived} = Rulestead.archive_flag(StoreFixtures.archive_flag_command("checkout-redesign"))
     assert archived.archived?
+
+    archived_detail = Rulestead.fetch_flag!("checkout-redesign", "test")
+    assert archived_detail.flag.archived_at
+    assert archived_detail.flag_environment.status == :archived
+    assert archived_detail.lifecycle.state == :archived
+
     apply_latest_snapshot!("test")
 
     assert {:error, %Rulestead.Error{type: :flag_not_found}} =

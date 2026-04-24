@@ -35,6 +35,7 @@ defmodule RulesteadAdmin.Live.FlagLive.AccessibilityTest do
 
     publish_flag!("checkout-redesign", "prod")
     save_draft!("checkout-redesign", "prod", 2, false)
+    put_audience!("vip-customers", "VIP customers")
 
     conn =
       conn
@@ -104,6 +105,14 @@ defmodule RulesteadAdmin.Live.FlagLive.AccessibilityTest do
 
     {:ok, _edit_view, edit_html} = live(edit_conn, "/admin/flags/checkout-redesign/edit?env=prod")
     assert_accessible(edit_html)
+  end
+
+  test "rules workspace passes the package accessibility audit", %{conn: conn} do
+    {:ok, _view, html} = live(conn, "/admin/flags/checkout-redesign/rules?env=prod")
+    assert_accessible(html)
+    assert html =~ "Rules workspace"
+    assert html =~ "Reusable audience"
+    assert html =~ "Draft and publish"
   end
 
   defp assert_accessible(html) do
@@ -197,5 +206,22 @@ defmodule RulesteadAdmin.Live.FlagLive.AccessibilityTest do
     else
       assert %{key: ^key, name: ^name} = Control.put_environment!(%{key: key, name: name})
     end
+  end
+
+  defp put_audience!(key, description) do
+    snapshot = Control.snapshot!()
+
+    audience = %{
+      id: "aud-" <> key,
+      key: key,
+      description: description,
+      definition: %{},
+      archived_at: nil,
+      inserted_at: ~U[2026-04-23 16:00:00Z],
+      updated_at: ~U[2026-04-23 16:00:00Z]
+    }
+
+    next_state = Map.put(snapshot, :audiences, Map.put(Map.get(snapshot, :audiences, %{}), key, audience))
+    assert :ok = Control.restore!(next_state)
   end
 end
