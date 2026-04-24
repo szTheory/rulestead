@@ -648,8 +648,14 @@ defmodule Rulestead do
       ),
       fn ->
         result =
-          with :ok <- authorize_admin_write(redacted_command, action, resource),
-               do: run_store(operation, [redacted_command], redacted_command)
+          case Authorizer.authorize(redacted_command.actor, action, resource, Map.get(redacted_command, :environment_key)) do
+            :ok ->
+              run_store(operation, [redacted_command], redacted_command)
+
+            {:error, error, denied_audit} ->
+              maybe_persist_denied_mutation(operation, redacted_command, denied_audit)
+              {:error, error}
+          end
 
         {result, admin_stop_metadata(result, redacted_command)}
       end
@@ -661,13 +667,6 @@ defmodule Rulestead do
 
     with :ok <- authorize_admin_read(command.actor, action, command_resource(command), Map.get(command, :environment_key)) do
       run_store(operation, [command], command)
-    end
-  end
-
-  defp authorize_admin_write(command, action, resource) do
-    case Authorizer.authorize(command.actor, action, resource, Map.get(command, :environment_key)) do
-      :ok -> :ok
-      {:error, error, _denied_audit} -> {:error, error}
     end
   end
 
@@ -697,6 +696,26 @@ defmodule Rulestead do
   defp command_action(:rollback_audit_event), do: :rollback_audit_event
   defp command_action(:list_audit_events), do: :list_audit_events
   defp command_action(operation), do: operation
+
+  defp maybe_persist_denied_mutation(operation, command, denied_audit)
+       when operation in [:engage_kill_switch, :release_kill_switch] do
+    denied_command =
+      command
+      |> Map.put(:reason, command.reason || "unauthorized")
+      |> Map.put(
+        :metadata,
+        Map.merge(command.metadata, %{
+          audit_result: :denied,
+          denied_action: denied_audit.action,
+          denied_actor_id: get_in(denied_audit, [:actor, :id])
+        })
+      )
+
+    _ = run_store(operation, [denied_command], denied_command)
+    :ok
+  end
+
+  defp maybe_persist_denied_mutation(_operation, _command, _denied_audit), do: :ok
 
   defp store_stop_metadata({:ok, value}, operation) do
     value
