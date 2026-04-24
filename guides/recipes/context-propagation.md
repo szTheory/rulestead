@@ -23,7 +23,9 @@ plug Rulestead.Plug,
 
 The plug writes only `conn.assigns[:rulestead_context]`.
 
-If you need the context directly, call `Rulestead.Phoenix.context_from_conn/2` with the same explicit sources.
+If you need the context directly, call `Rulestead.Phoenix.context_from_conn/2`
+with the same explicit sources. The contract is "project a bounded context from
+request data", not "make the conn itself globally available."
 
 ## Phoenix to LiveView
 
@@ -50,6 +52,10 @@ end
 layer only. It does not read the store, runtime cache internals, or the pure
 payload-first evaluator directly.
 
+If you only need to carry context without assigning flags yet, use
+`Rulestead.LiveView.context_from_socket/2` and pass the resulting
+`%Rulestead.Context{}` onward explicitly.
+
 ## LiveView or Request to Oban
 
 Serialize the current context explicitly when enqueueing a job:
@@ -70,7 +76,24 @@ end
 context = MyApp.SyncWorker.rulestead_context(job)
 ```
 
-The Oban seam serializes only bounded context fields and restores them with `Rulestead.Oban.context_from_job/1`.
+The Oban seam serializes only bounded context fields and restores them with
+`Rulestead.Oban.context_from_job/1`.
+
+## What "bounded" means
+
+The supported propagation payload is limited to context fields such as:
+
+- `actor`
+- `targeting_key`
+- `tenant_key`
+- `environment`
+- `attributes`
+- `request_id`
+- `session_id`
+- `strict?`
+
+That keeps propagation auditable and keeps framework structs, socket state, and
+arbitrary request baggage out of telemetry and job payloads.
 
 ## Supported Chain
 
@@ -81,9 +104,12 @@ The supported propagation path is:
 3. Serialize that context into jobs with `Rulestead.Oban.Middleware.attach/2`.
 4. Restore it in workers with `use Rulestead.Oban.Worker`.
 
+Every step is visible in application code. That is the point.
+
 ## Explicitly Unsupported
 
 - Hidden process-dictionary propagation
 - Reading context from unrelated process state
 - Serializing raw `Plug.Conn`, `Phoenix.LiveView.Socket`, or `Oban.Job` structs into telemetry or job payloads
 - Bypassing the keyed runtime layer from LiveView helpers
+- Reconstructing context from private runtime cache or store internals
