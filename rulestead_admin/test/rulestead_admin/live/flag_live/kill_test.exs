@@ -4,14 +4,37 @@ defmodule RulesteadAdmin.Live.FlagLive.KillTest do
   alias Rulestead.Fake.Control
   alias Rulestead.Store.Command
 
+  defmodule AllowPolicy do
+    @behaviour Rulestead.Admin.Policy
+
+    def can?(_actor, _action, _resource, _environment_key), do: true
+  end
+
+  defmodule AuditRestrictedPolicy do
+    @behaviour Rulestead.Admin.Policy
+
+    def can?(_actor, :list_audit_events, _resource, _environment_key), do: false
+    def can?(_actor, :access_admin, _resource, _environment_key), do: true
+    def can?(_actor, _action, _resource, _environment_key), do: true
+  end
+
   setup_all do
     start_supervised!(RulesteadAdmin.TestEndpoint)
     :ok
   end
 
   setup %{conn: conn} do
+    previous_policy = Application.get_env(:rulestead, :admin_policy)
     Application.put_env(:rulestead, :store, Rulestead.Fake)
+    Application.put_env(:rulestead, :admin_policy, AllowPolicy)
     now = ~U[2026-04-23 16:00:00Z]
+
+    on_exit(fn ->
+      case previous_policy do
+        nil -> Application.delete_env(:rulestead, :admin_policy)
+        value -> Application.put_env(:rulestead, :admin_policy, value)
+      end
+    end)
 
     Control.reset!(now: now)
     Control.set_now!(now)
@@ -148,6 +171,33 @@ defmodule RulesteadAdmin.Live.FlagLive.KillTest do
     assert second_release.flag_environment.status == :active
     assert is_nil(second_release.flag_environment.kill_switch_variant_key)
     assert second_release.active_ruleset.version == 1
+  end
+
+  test "kill page uses the current actor for audit reads and hides restricted reasons", %{conn: conn} do
+    assert {:ok, _payload} =
+             Rulestead.engage_kill_switch("checkout-redesign", "prod", %{id: "op-1", display: "Priya", roles: [:admin]},
+               reason: "customer checkout incident"
+             )
+
+    Application.put_env(:rulestead, :admin_policy, AuditRestrictedPolicy)
+
+    restricted_conn =
+      conn
+      |> Phoenix.ConnTest.recycle()
+      |> Phoenix.ConnTest.init_test_session(%{
+        "current_actor" => %{id: 9, email: "viewer@example.com", roles: ["viewer"]},
+        "rulestead_admin_last_env" => "prod",
+        "rulestead_admin_environments" => [
+          %{"key" => "dev", "name" => "Development"},
+          %{"key" => "staging", "name" => "Staging"},
+          %{"key" => "prod", "name" => "Production"}
+        ]
+      })
+
+    {:ok, _view, html} = live(restricted_conn, "/admin/flags/checkout-redesign/kill?env=prod")
+
+    assert html =~ "Kill switch active"
+    refute html =~ "customer checkout incident"
   end
 
   defp seed_flag!(attrs) do

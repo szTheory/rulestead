@@ -4,18 +4,41 @@ defmodule RulesteadAdmin.Live.FlagLive.RulesTest do
   alias Rulestead.Fake.Control
   alias Rulestead.Store.Command
 
+  defmodule AllowPolicy do
+    @behaviour Rulestead.Admin.Policy
+
+    def can?(_actor, _action, _resource, _environment_key), do: true
+  end
+
+  defmodule DenyWritesPolicy do
+    @behaviour Rulestead.Admin.Policy
+
+    def can?(_actor, :list_audit_events, _resource, _environment_key), do: true
+    def can?(_actor, :access_admin, _resource, _environment_key), do: true
+    def can?(_actor, _action, _resource, _environment_key), do: false
+  end
+
   setup_all do
     start_supervised!(RulesteadAdmin.TestEndpoint)
     :ok
   end
 
   setup %{conn: conn} do
+    previous_policy = Application.get_env(:rulestead, :admin_policy)
     Application.put_env(:rulestead, :store, Rulestead.Fake)
+    Application.put_env(:rulestead, :admin_policy, AllowPolicy)
     Application.put_env(:rulestead, :admin_lifecycle,
       warning_after_seconds: 1_800,
       stale_after_seconds: 3_600,
       now: ~U[2026-04-23 16:00:00Z]
     )
+
+    on_exit(fn ->
+      case previous_policy do
+        nil -> Application.delete_env(:rulestead, :admin_policy)
+        value -> Application.put_env(:rulestead, :admin_policy, value)
+      end
+    end)
 
     now = ~U[2026-04-23 16:00:00Z]
     Control.reset!(now: now)
@@ -226,6 +249,74 @@ defmodule RulesteadAdmin.Live.FlagLive.RulesTest do
     refute has_element?(archived_view, "button[phx-click='save_draft']")
     refute has_element?(archived_view, "button[phx-click='publish']")
     refute has_element?(archived_view, "button[phx-click='archive_flag']")
+  end
+
+  test "denied draft and publish writes fail closed and leave denied audit rows visible", %{conn: conn} do
+    Application.put_env(:rulestead, :admin_policy, DenyWritesPolicy)
+
+    denied_conn =
+      conn
+      |> Phoenix.ConnTest.recycle()
+      |> Phoenix.ConnTest.init_test_session(%{
+        "current_actor" => %{id: "viewer-1", email: "viewer@example.com", display: "Viewer", roles: ["viewer"]},
+        "rulestead_admin_last_env" => "prod",
+        "rulestead_admin_environments" => [
+          %{"key" => "dev", "name" => "Development"},
+          %{"key" => "staging", "name" => "Staging"},
+          %{"key" => "prod", "name" => "Production"}
+        ]
+      })
+
+    {:ok, view, _html} = live(denied_conn, "/admin/flags/checkout-redesign/rules?env=prod")
+
+    denied_save_html =
+      view
+      |> form("form[aria-label='Rules workspace form']", %{
+        "ruleset" => %{
+          "rules" => %{
+            "0" => %{
+              "key" => "allow-vip",
+              "name" => "VIP audience",
+              "strategy" => "forced_value",
+              "audience_key" => "",
+              "value" => "true",
+              "conditions" => %{},
+              "variants" => %{}
+            },
+            "1" => %{
+              "key" => "fallthrough-rollout",
+              "name" => "Fallback split",
+              "strategy" => "variant_split",
+              "audience_key" => "",
+              "value" => "false",
+              "conditions" => %{},
+              "variants" => %{
+                "0" => %{"key" => "control", "value" => "false", "weight" => "50"},
+                "1" => %{"key" => "treatment", "value" => "true", "weight" => "50"}
+              }
+            }
+          }
+        }
+      })
+      |> render_submit()
+
+    assert denied_save_html =~ "caller is not authorized to perform this action"
+
+    denied_publish_html =
+      view
+      |> element("button[phx-click='publish']")
+      |> render_click()
+
+    assert denied_publish_html =~ "caller is not authorized to perform this action"
+
+    Application.put_env(:rulestead, :admin_policy, AllowPolicy)
+
+    {:ok, timeline_view, timeline_html} = live(conn, "/admin/flags/checkout-redesign/timeline?env=prod")
+
+    assert timeline_html =~ "Ruleset save draft denied"
+    assert timeline_html =~ "Viewer"
+    refute timeline_html =~ "Ruleset publish denied"
+    assert has_element?(timeline_view, "details")
   end
 
   defp rendered_rule_keys(html) do

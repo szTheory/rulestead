@@ -102,6 +102,71 @@ defmodule RulesteadAdmin.Live.AuditLive.IndexTest do
     refute filtered_html =~ "search-ranking"
   end
 
+  test "global audit renders ruleset reorder diff metadata from publish events", %{conn: conn} do
+    operator = %{id: "operator-9", display: "On-call operator", roles: [:admin]}
+
+    first_ruleset = %{
+      salt: "checkout-redesign:prod:v2",
+      rules: [
+        %{key: "force-enabled", strategy: :forced_value, value: %{value: true}, conditions: []},
+        %{key: "target-segment", strategy: :forced_value, value: %{value: true}, conditions: []},
+        %{key: "variant-split", strategy: :forced_value, value: %{value: false}, conditions: []}
+      ]
+    }
+
+    second_ruleset = %{
+      salt: "checkout-redesign:prod:v3",
+      rules: [
+        %{key: "variant-split", strategy: :forced_value, value: %{value: false}, conditions: []},
+        %{key: "force-enabled", strategy: :forced_value, value: %{value: true}, conditions: []},
+        %{key: "target-segment", strategy: :forced_value, value: %{value: true}, conditions: []}
+      ]
+    }
+
+    assert {:ok, _draft} =
+             Rulestead.save_draft_ruleset(
+               Command.SaveDraftRuleset.new("checkout-redesign", "prod", first_ruleset,
+                 actor: operator,
+                 metadata: %{request_id: "req-1", source: "rules-test"}
+               )
+             )
+
+    assert {:ok, _publish} =
+             Rulestead.publish_ruleset(
+               Command.PublishRuleset.new("checkout-redesign", "prod",
+                 actor: operator,
+                 version: 2,
+                 metadata: %{request_id: "req-1", source: "rules-test"}
+               )
+             )
+
+    assert {:ok, _draft} =
+             Rulestead.save_draft_ruleset(
+               Command.SaveDraftRuleset.new("checkout-redesign", "prod", second_ruleset,
+                 actor: operator,
+                 metadata: %{request_id: "req-2", source: "rules-test"}
+               )
+             )
+
+    assert {:ok, _publish} =
+             Rulestead.publish_ruleset(
+               Command.PublishRuleset.new("checkout-redesign", "prod",
+                 actor: operator,
+                 version: 3,
+                 metadata: %{request_id: "req-2", source: "rules-test"}
+               )
+             )
+
+    {:ok, _view, html} = live(conn, "/admin/flags/audit?env_filter=prod&mutation=ruleset.publish")
+
+    assert html =~ "Ruleset publish"
+    assert html =~ "variant-split"
+    assert html =~ "force-enabled"
+    assert html =~ "target-segment"
+    assert html =~ "from 2"
+    assert html =~ "to 0"
+  end
+
   defp seed_flag!(attrs) do
     assert %{flag: %{key: _key}} = Control.put_flag!(attrs)
   end
