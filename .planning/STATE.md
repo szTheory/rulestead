@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.1.0
-milestone_name: First Polished Hex Release
-status: Milestone archived; awaiting next milestone definition
-last_updated: "2026-04-24T13:30:00Z"
+milestone: v0.2.0
+milestone_name: Governance and Operator Confidence
+status: Milestone defined; ready for phase planning
+last_updated: "2026-04-24T18:00:00Z"
 progress:
-  total_phases: 8
-  completed_phases: 8
-  total_plans: 50
-  completed_plans: 50
-  percent: 100
+  total_phases: 5
+  completed_phases: 0
+  total_plans: 21
+  completed_plans: 0
+  percent: 0
 ---
 
 # State: Rulestead
@@ -19,30 +19,44 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-24)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
-**Current focus:** Milestone archived; define the next milestone before resuming roadmap execution
-**Milestone:** `v0.1.0` archived on 2026-04-24
+**Current focus:** Define and execute the `v0.2.0` governance milestone
+**Milestone:** `v0.2.0` started on 2026-04-24
 
 ## Roadmap Reference
 
-See: `.planning/ROADMAP.md` and `.planning/milestones/v0.1.0-ROADMAP.md`
+See: `.planning/ROADMAP.md`
 
-`v0.1.0` closed with all 8 phases archived. The roadmap has been collapsed to milestone history; define the next milestone before adding new phases.
+`v0.2.0` is defined as a 5-phase milestone covering governance contracts, scheduled changes, mounted admin governance UI, webhook surfaces, and explicit operational carryover closure.
 
-## Deferred Items
+## Current Position
 
-Items acknowledged and deferred at milestone close on 2026-04-24:
+Phase: Not started (ready to plan Phase 9)
+Plan: —
+Status: Defining and sequencing the first governance phase
+Last activity: 2026-04-24 — Milestone `v0.2.0` started and planning docs reset
+
+## Active Requirement Focus
+
+- `GOV-01..05` — change requests, approvals, and governed review flows
+- `SCH-01..04` — scheduled mutation execution and operator visibility
+- `HOOK-01..04` — inbound/outbound webhook surfaces
+- `OPS-01..03` — bounded closure of `v0.1.0` carryover items
+
+## Carryover Items
+
+Items intentionally carried forward from the archived `v0.1.0` milestone:
 
 | Category | Item | Status |
 |---|---|---|
-| verification_gap | Phase 07 / 07-VERIFICATION.md | gaps_found |
-| release_evidence | Published-release verification for 0.1.0 | pending |
+| verification_gap | Phase 07 / `07-VERIFICATION.md` sibling-package helper alignment | pending |
+| release_evidence | Published-release verification for `0.1.0` | blocked on Hex visibility |
 
 ## Anchor Docs (prompts/)
 
-These are the primary source of truth — loaded selectively per phase:
+These remain the primary source of truth and should be loaded selectively per phase:
 
-- `prompts/elixir_feature_flags_research_brief.md` — product vision (1720 lines)
-- `prompts/rulestead-engineering-dna-from-prior-libs.md` — validated patterns from 7 prior libs
+- `prompts/elixir_feature_flags_research_brief.md` — product vision and phased market thesis
+- `prompts/rulestead-engineering-dna-from-prior-libs.md` — validated patterns from prior shipped libs
 - `prompts/rulestead-brand-book.md` — naming, voice, visual identity
 - `prompts/rulestead-domain-language-field-guide.md` — canonical vocabulary
 - `prompts/rulestead-release-engineering-and-ci.md` — release engineering reference
@@ -55,10 +69,10 @@ These are the primary source of truth — loaded selectively per phase:
 
 ## Latest Activity
 
-- 2026-04-23 — Project initialized via `/gsd-new-project` with milestone-scoped planning docs, imported prompt anchors, and the initial `v0.1.0` roadmap.
-- 2026-04-23 to 2026-04-24 — Phases 1 through 8 executed across 50 plans covering runtime, store, cache, telemetry, host seams, admin UI, docs, API stability, and release automation.
-- 2026-04-24 — Milestone `v0.1.0` archived. Created milestone roadmap and requirements archives, collapsed ROADMAP.md, reset PROJECT.md for post-release state, and recorded two deferred items accepted at close: the remaining Phase 7 verification gap and live `0.1.0` Hex publish evidence capture.
+- 2026-04-23 to 2026-04-24 — `v0.1.0` executed and archived across 8 phases, delivering the first polished Hex release line.
+- 2026-04-24 — `v0.1.0` archived with two explicit carryover items: one Phase 7 verification gap and one live publish-evidence gap.
+- 2026-04-24 — Milestone `v0.2.0` defined with governance, scheduling, webhook, and operational follow-through scope. `PROJECT.md`, `REQUIREMENTS.md`, `ROADMAP.md`, and `STATE.md` were updated for the new cycle.
 
 ## Next Action
 
-Start the next milestone with `$gsd-new-milestone` once the deferred close items are either resolved or accepted as historical debt.
+Start execution with `$gsd-plan-phase 9`.
