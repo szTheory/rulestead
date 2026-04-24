@@ -13,6 +13,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
      |> assign(:flag_key, nil)
      |> assign(:current_path, nil)
      |> assign(:detail, nil)
+     |> assign(:change_request_preview, [])
+     |> assign(:scheduled_execution_preview, [])
      |> assign(:error_message, nil)
      |> assign(:env_links, %{})}
   end
@@ -127,6 +129,38 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
           </div>
         </FlagComponents.section_card>
 
+        <FlagComponents.section_card title="Open change requests">
+          <p :if={@change_request_preview == []}>
+            No open change requests for this flag in <%= @current_environment.name %>.
+          </p>
+
+          <ul :if={@change_request_preview != []}>
+            <li :for={entry <- @change_request_preview}>
+              <a href={entry.path}><%= humanize(entry.state) %> · <%= entry.title %></a>
+            </li>
+          </ul>
+
+          <p>
+            <a href={path_for(assigns, "/change-requests")}>Open change requests</a>
+          </p>
+        </FlagComponents.section_card>
+
+        <FlagComponents.section_card title="Scheduled changes">
+          <p :if={@scheduled_execution_preview == []}>
+            No scheduled changes for this flag in <%= @current_environment.name %>.
+          </p>
+
+          <ul :if={@scheduled_execution_preview != []}>
+            <li :for={entry <- @scheduled_execution_preview}>
+              <a href={entry.path}><%= humanize(entry.state) %> · <%= entry.title %></a>
+            </li>
+          </ul>
+
+          <p>
+            <a href={path_for(assigns, "/schedule")}>Scheduled changes</a>
+          </p>
+        </FlagComponents.section_card>
+
         <FlagComponents.section_card title="Audit">
           <p>This screen stays focused on current state. Use the dedicated timeline for append-only history and rollback context.</p>
         </FlagComponents.section_card>
@@ -158,12 +192,53 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
     case Rulestead.fetch_flag(key, env) do
       {:ok, detail} ->
         assign(socket, :detail, detail)
+        |> assign(:change_request_preview, load_change_request_preview(key, env))
+        |> assign(:scheduled_execution_preview, load_scheduled_execution_preview(key, env))
         |> assign(:error_message, nil)
 
       {:error, error} ->
         socket
         |> assign(:detail, nil)
+        |> assign(:change_request_preview, [])
+        |> assign(:scheduled_execution_preview, [])
         |> assign(:error_message, error.message)
+    end
+  end
+
+  defp load_change_request_preview(flag_key, env) do
+    case Rulestead.list_change_requests(environment_key: env, resource_key: flag_key) do
+      {:ok, page} ->
+        page.entries
+        |> Enum.filter(&(&1.state in [:submitted, :approved]))
+        |> Enum.take(3)
+        |> Enum.map(fn entry ->
+          %{
+            state: entry.state,
+            title: get_in(entry.command, ["diff", "title"]) || humanize(entry.action),
+            path: "/admin/flags/change-requests/#{entry.id}?env=#{env}"
+          }
+        end)
+
+      _ ->
+        []
+    end
+  end
+
+  defp load_scheduled_execution_preview(flag_key, env) do
+    case Rulestead.list_scheduled_executions(environment_key: env, resource_key: flag_key) do
+      {:ok, page} ->
+        page.entries
+        |> Enum.take(3)
+        |> Enum.map(fn entry ->
+          %{
+            state: entry.state,
+            title: "#{humanize(entry.action)} at #{format_schedule(entry.scheduled_for)}",
+            path: "/admin/flags/schedule/#{entry.id}?env=#{env}"
+          }
+        end)
+
+      _ ->
+        []
     end
   end
 
@@ -178,7 +253,10 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
   end
 
   defp humanize(value) when is_atom(value), do: humanize(to_string(value))
-  defp humanize(value) when is_binary(value), do: value |> String.replace("_", " ") |> String.capitalize()
+
+  defp humanize(value) when is_binary(value),
+    do: value |> String.replace("_", " ") |> String.capitalize()
+
   defp humanize(value), do: to_string(value)
 
   defp page_title(%{flag_key: flag_key}) when is_binary(flag_key), do: flag_key
@@ -194,7 +272,10 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
              actor: actor
            ),
          event when is_map(event) <-
-           Enum.find(page.entries, &(&1.event_type in ["kill_switch.engage", "kill_switch.release"])) do
+           Enum.find(
+             page.entries,
+             &(&1.event_type in ["kill_switch.engage", "kill_switch.release"])
+           ) do
       event.reason
     else
       _ -> nil
@@ -212,4 +293,9 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
     do: socket.assigns.rulestead_admin_mount_path
 
   defp fetch_mount_path(%{rulestead_admin_mount_path: mount_path}), do: mount_path
+
+  defp format_schedule(%DateTime{} = datetime),
+    do: Calendar.strftime(datetime, "%Y-%m-%d %H:%M UTC")
+
+  defp format_schedule(_datetime), do: "pending"
 end

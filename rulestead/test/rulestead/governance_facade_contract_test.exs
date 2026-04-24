@@ -34,6 +34,8 @@ defmodule Rulestead.GovernanceFacadeContractTest do
     assert function_exported?(Rulestead, :reject_change_request, 1)
     assert function_exported?(Rulestead, :cancel_change_request, 1)
     assert function_exported?(Rulestead, :execute_change_request, 1)
+    assert function_exported?(Rulestead, :fetch_change_request, 1)
+    assert function_exported?(Rulestead, :list_change_requests, 1)
 
     approval_requirement =
       ApprovalRequirement.new(
@@ -75,6 +77,64 @@ defmodule Rulestead.GovernanceFacadeContractTest do
 
     assert %Command.ExecuteChangeRequest{change_request_id: "cr-123"} =
              Command.ExecuteChangeRequest.new("cr-123")
+
+    assert %Command.FetchChangeRequest{change_request_id: "cr-123"} =
+             Command.FetchChangeRequest.new("cr-123")
+
+    assert %Command.ListChangeRequests{
+             environment_key: "production",
+             status: :submitted,
+             resource_key: "checkout-redesign"
+           } =
+             Command.ListChangeRequests.new(
+               environment_key: "production",
+               status: :submitted,
+               resource_key: "checkout-redesign"
+             )
+  end
+
+  test "facade exposes change-request fetch and list reads through the public seam" do
+    approval_requirement =
+      ApprovalRequirement.new(
+        action: :publish_ruleset,
+        environment_key: "production",
+        required_approvals: 1,
+        change_request_required?: true,
+        self_approval_allowed?: false
+      )
+
+    assert {:ok, %{change_request: submitted}} =
+             Rulestead.Fake.submit_change_request(
+               Command.SubmitChangeRequest.new(
+                 %{
+                   action: :publish_ruleset,
+                   environment_key: "production",
+                   resource_type: "flag",
+                   resource_key: "checkout-redesign",
+                   command: %{"version" => 2, "diff" => %{"title" => "Publish v2"}},
+                   approval_requirement: approval_requirement
+                 },
+                 actor: %{id: "operator-1", display: "Priya"}
+               )
+             )
+
+    assert {:ok, %{change_request: fetched, approvals: [], audit_events: audit_events}} =
+             Rulestead.fetch_change_request(Command.FetchChangeRequest.new(submitted.id))
+
+    assert fetched.id == submitted.id
+    assert fetched.resource_key == "checkout-redesign"
+    assert is_list(audit_events)
+
+    assert {:ok, page} =
+             Rulestead.list_change_requests(
+               Command.ListChangeRequests.new(
+                 environment_key: "production",
+                 status: :submitted,
+                 resource_key: "checkout-redesign"
+               )
+             )
+
+    assert Enum.map(page.entries, & &1.id) == [submitted.id]
   end
 
   test "facade exposes governance authorization entrypoints with typed errors" do

@@ -280,6 +280,31 @@ defmodule Rulestead do
   end
 
   @doc """
+  Fetches one change request through the configured store adapter.
+  """
+  @spec fetch_change_request(Command.FetchChangeRequest.t()) :: Store.result(map())
+  def fetch_change_request(%Command.FetchChangeRequest{} = command) do
+    run_store(:fetch_change_request, [command], command)
+  end
+
+  @doc """
+  Lists change requests through the configured store adapter.
+  """
+  @spec list_change_requests(Command.ListChangeRequests.t() | keyword()) ::
+          Store.result(Command.Page.t(map()))
+  def list_change_requests(command_or_opts \\ Command.ListChangeRequests.new())
+
+  def list_change_requests(%Command.ListChangeRequests{} = command) do
+    run_store(:list_change_requests, [command], command)
+  end
+
+  def list_change_requests(opts) when is_list(opts) do
+    opts
+    |> Command.ListChangeRequests.new()
+    |> list_change_requests()
+  end
+
+  @doc """
   Schedules a narrowly allowed direct governed action through the configured store adapter.
   """
   @spec schedule_governed_action(Command.ScheduleGovernedAction.t()) :: Store.result(map())

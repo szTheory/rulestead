@@ -3,12 +3,22 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Show do
 
   use Phoenix.LiveView
 
+  alias Rulestead.Store.Command
   alias RulesteadAdmin.Components.Shell
   alias RulesteadAdmin.Live.Session
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, socket |> assign(:page, nil) |> assign(:change_request_id, nil)}
+    {:ok,
+     socket
+     |> assign(:page, nil)
+     |> assign(:change_request_id, nil)
+     |> assign(:change_request, nil)
+     |> assign(:approvals, [])
+     |> assign(:audit_events, [])
+     |> assign(:pending_action, nil)
+     |> assign(:action_notice, nil)
+     |> assign(:action_error, nil)}
   end
 
   @impl true
@@ -20,27 +30,50 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Show do
     if params["env"] != socket.assigns.current_environment.key do
       {:noreply, push_patch(socket, to: Session.current_path(socket, base_path))}
     else
+      {change_request, approvals, audit_events, error_message} = load_change_request(id)
+
       page =
-        socket.assigns
-        |> Session.placeholder_assigns(
-          current_path: base_path,
-          page_title: "Change request review",
-          page_kicker: "Governance",
-          page_summary:
-            "Dedicated review route for proposed changes, approval state, and explicit next-step execution decisions."
-        )
-        |> Map.merge(%{
-          navigation_links: navigation_links(socket, :change_requests),
-          queue_path: Session.current_path(socket, index_path()),
-          schedule_path: Session.current_path(socket, schedule_path()),
-          audit_path: Session.current_path(socket, audit_path()),
-          request_id: id
-        })
+        socket
+        |> build_page(change_request, id)
+        |> Map.put(:error_message, error_message)
 
       {:noreply,
        socket
        |> assign(:change_request_id, id)
+       |> assign(:change_request, change_request)
+       |> assign(:approvals, approvals)
+       |> assign(:audit_events, audit_events)
+       |> assign(:pending_action, nil)
+       |> assign(:action_notice, nil)
+       |> assign(:action_error, nil)
        |> assign(:page, page)}
+    end
+  end
+
+  @impl true
+  def handle_event("start_action", %{"action" => action}, socket) do
+    {:noreply, socket |> assign(:pending_action, action) |> assign(:action_error, nil)}
+  end
+
+  @impl true
+  def handle_event("cancel_action", _params, socket) do
+    {:noreply, socket |> assign(:pending_action, nil) |> assign(:action_error, nil)}
+  end
+
+  @impl true
+  def handle_event("submit_action", %{"action" => params}, socket) do
+    reason = normalize_reason(Map.get(params, "reason"))
+
+    cond do
+      is_nil(socket.assigns.pending_action) ->
+        {:noreply,
+         assign(socket, :action_error, "Choose an action before submitting confirmation")}
+
+      is_nil(reason) ->
+        {:noreply, assign(socket, :action_error, "Enter a reason before continuing")}
+
+      true ->
+        submit_action(socket, socket.assigns.pending_action, params, reason)
     end
   end
 
@@ -58,9 +91,85 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Show do
       env_links={@page.env_links}
       navigation_links={@page.navigation_links}
     >
-      <section>
-        <h2>Request <code><%= @page.request_id %></code></h2>
-        <p>Review stays on its own route so approvals, rejection, execution, and scheduling remain explicit.</p>
+      <p :if={@page.error_message} role="alert"><%= @page.error_message %></p>
+
+      <section :if={@change_request}>
+        <h2>Proposed change</h2>
+        <p><strong><%= diff_title(@change_request) %></strong></p>
+        <p><%= diff_summary(@change_request) %></p>
+      </section>
+
+      <section :if={@change_request}>
+        <h2>Review context</h2>
+        <p>Status: <%= humanize(@change_request.state) %></p>
+        <p>Action: <%= humanize(@change_request.action) %></p>
+        <p>Resource: <code><%= @change_request.resource_key %></code></p>
+        <p>Environment: <%= @change_request.environment_key %></p>
+        <p>requested by <%= actor_name(@change_request.submitted_by) %></p>
+        <p>Required approvals: <%= @change_request.approval_requirement.required_approvals %></p>
+        <p :if={@approvals != []}>approved by <%= joined_reviewers(@approvals) %></p>
+      </section>
+
+      <section :if={@change_request}>
+        <h2>Simulation and audit context</h2>
+        <p>Simulation context stays secondary on this review route; the diff and operator state stay above the fold.</p>
+        <p :if={@audit_events != []}>Audit state: <%= latest_audit_state(@audit_events) %></p>
+      </section>
+
+      <section :if={@change_request}>
+        <h2>Review actions</h2>
+        <p>preview -&gt; confirm -&gt; audit</p>
+        <p :if={@action_notice} role="status"><%= @action_notice %></p>
+        <p :if={@action_error} role="alert"><%= @action_error %></p>
+
+        <div :if={is_nil(@pending_action)} class="rs-detail__actions">
+          <button
+            :if={@change_request.state == :submitted}
+            type="button"
+            phx-click="start_action"
+            phx-value-action="approve"
+          >
+            Approve
+          </button>
+          <button
+            :if={@change_request.state == :submitted}
+            type="button"
+            phx-click="start_action"
+            phx-value-action="reject"
+          >
+            Reject
+          </button>
+          <button
+            :if={@change_request.state == :approved}
+            type="button"
+            phx-click="start_action"
+            phx-value-action="execute"
+          >
+            Execute now
+          </button>
+          <button
+            :if={@change_request.state == :approved}
+            type="button"
+            phx-click="start_action"
+            phx-value-action="schedule"
+          >
+            Schedule
+          </button>
+        </div>
+
+        <form :if={@pending_action} id="change-request-action-form" phx-submit="submit_action">
+          <p>Confirm <%= humanize(@pending_action) %> before mutation.</p>
+          <label>
+            <span>Reason</span>
+            <input type="text" name="action[reason]" value="" />
+          </label>
+          <label :if={@pending_action == "schedule"}>
+            <span>Scheduled for</span>
+            <input type="datetime-local" name="action[scheduled_for]" value="2026-04-25T16:00" />
+          </label>
+          <button type="submit">Confirm <%= humanize(@pending_action) %></button>
+          <button type="button" phx-click="cancel_action">Back to preview</button>
+        </form>
       </section>
 
       <section>
@@ -69,6 +178,8 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Show do
           <li><a href={@page.queue_path}>Back to change requests</a></li>
           <li><a href={@page.schedule_path}>Open schedule</a></li>
           <li><a href={@page.audit_path}>Open audit timeline</a></li>
+          <li :if={@page.flag_path}><a href={@page.flag_path}>Open flag</a></li>
+          <li :if={@page.scheduled_execution_path}><a href={@page.scheduled_execution_path}>Open scheduled execution</a></li>
         </ul>
       </section>
     </Shell.page>
@@ -93,8 +204,199 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Show do
   end
 
   defp nav_link(label, path, current?), do: %{label: label, path: path, current?: current?}
-
   defp mount_path(socket), do: socket.assigns.rulestead_admin_mount_path
+
+  defp build_page(socket, change_request, id, scheduled_execution_id \\ nil) do
+    base_path = "#{index_path()}/#{id}"
+
+    socket.assigns
+    |> Session.placeholder_assigns(
+      current_path: base_path,
+      page_title: "Change request review",
+      page_kicker: "Governance",
+      page_summary:
+        "Dedicated review route for proposed changes, approval state, and explicit next-step execution decisions."
+    )
+    |> Map.merge(%{
+      navigation_links: navigation_links(socket, :change_requests),
+      queue_path: Session.current_path(socket, index_path()),
+      schedule_path: Session.current_path(socket, schedule_path()),
+      audit_path: Session.current_path(socket, audit_path()),
+      request_id: id,
+      error_message: nil,
+      flag_path:
+        if(change_request && change_request.resource_key,
+          do: Session.current_path(socket, "#{mount_path(socket)}/#{change_request.resource_key}")
+        ),
+      scheduled_execution_path:
+        if(scheduled_execution_id,
+          do: Session.current_path(socket, "#{schedule_path()}/#{scheduled_execution_id}")
+        )
+    })
+  end
+
+  defp load_change_request(id) do
+    case Rulestead.fetch_change_request(Command.FetchChangeRequest.new(id)) do
+      {:ok, %{change_request: change_request, approvals: approvals, audit_events: audit_events}} ->
+        {change_request, approvals, audit_events, nil}
+
+      {:error, error} ->
+        {nil, [], [], error.message}
+    end
+  end
+
+  defp submit_action(socket, "approve", _params, reason) do
+    command =
+      Command.ApproveChangeRequest.new(socket.assigns.change_request_id,
+        actor: socket.assigns.current_actor,
+        reason: reason,
+        metadata: %{source: :admin_ui}
+      )
+
+    mutate_change_request(
+      socket,
+      &Rulestead.approve_change_request/1,
+      command,
+      "Change request approved."
+    )
+  end
+
+  defp submit_action(socket, "reject", _params, reason) do
+    command =
+      Command.RejectChangeRequest.new(socket.assigns.change_request_id,
+        actor: socket.assigns.current_actor,
+        reason: reason,
+        metadata: %{source: :admin_ui}
+      )
+
+    mutate_change_request(
+      socket,
+      &Rulestead.reject_change_request/1,
+      command,
+      "Change request rejected."
+    )
+  end
+
+  defp submit_action(socket, "execute", _params, reason) do
+    command =
+      Command.ExecuteChangeRequest.new(socket.assigns.change_request_id,
+        actor: socket.assigns.current_actor,
+        reason: reason,
+        metadata: %{source: :admin_ui}
+      )
+
+    mutate_change_request(
+      socket,
+      &Rulestead.execute_change_request/1,
+      command,
+      "Change request executed."
+    )
+  end
+
+  defp submit_action(socket, "schedule", params, reason) do
+    with {:ok, scheduled_for} <- parse_scheduled_for(Map.get(params, "scheduled_for")) do
+      command =
+        Command.ScheduleChangeRequest.new(%{
+          change_request_id: socket.assigns.change_request_id,
+          scheduled_for: scheduled_for,
+          actor: socket.assigns.current_actor,
+          reason: reason,
+          metadata: %{source: :admin_ui}
+        })
+
+      case Rulestead.schedule_change_request(command) do
+        {:ok, %{scheduled_execution: scheduled_execution}} ->
+          {change_request, approvals, audit_events, _error} =
+            load_change_request(socket.assigns.change_request_id)
+
+          {:noreply,
+           socket
+           |> assign(:change_request, change_request)
+           |> assign(:approvals, approvals)
+           |> assign(:audit_events, audit_events)
+           |> assign(:pending_action, nil)
+           |> assign(:action_error, nil)
+           |> assign(
+             :action_notice,
+             "Change request scheduled. Audit state: #{latest_audit_state(audit_events)}"
+           )
+           |> assign(
+             :page,
+             build_page(socket, change_request, change_request.id, scheduled_execution.id)
+           )}
+
+        {:error, error} ->
+          {:noreply, assign(socket, :action_error, error.message)}
+      end
+    else
+      {:error, message} -> {:noreply, assign(socket, :action_error, message)}
+    end
+  end
+
+  defp submit_action(socket, _action, _params, _reason) do
+    {:noreply, assign(socket, :action_error, "Unsupported review action")}
+  end
+
+  defp mutate_change_request(socket, operation, command, notice) do
+    case operation.(command) do
+      {:ok, %{change_request: change_request}} ->
+        {_reloaded_change_request, approvals, audit_events, _error} =
+          load_change_request(change_request.id)
+
+        {:noreply,
+         socket
+         |> assign(:change_request, change_request)
+         |> assign(:approvals, approvals)
+         |> assign(:audit_events, audit_events)
+         |> assign(:pending_action, nil)
+         |> assign(:action_error, nil)
+         |> assign(:action_notice, "#{notice} Audit state: #{latest_audit_state(audit_events)}")
+         |> assign(:page, build_page(socket, change_request, change_request.id))}
+
+      {:error, error} ->
+        {:noreply, assign(socket, :action_error, error.message)}
+    end
+  end
+
+  defp diff_title(change_request) do
+    get_in(change_request.command, ["diff", "title"]) || "Governed mutation preview"
+  end
+
+  defp diff_summary(change_request) do
+    get_in(change_request.command, ["diff", "summary"]) || "No diff summary was recorded."
+  end
+
+  defp actor_name(actor) when is_map(actor),
+    do: actor[:display] || actor["display"] || actor[:id] || actor["id"] || "Unknown operator"
+
+  defp actor_name(_actor), do: "Unknown operator"
+
+  defp joined_reviewers(approvals),
+    do: approvals |> Enum.map(&actor_name(&1.reviewed_by)) |> Enum.join(", ")
+
+  defp latest_audit_state([event | _]), do: event.event_type
+  defp latest_audit_state([]), do: "pending"
+
+  defp parse_scheduled_for(nil), do: {:error, "Choose when the change should run"}
+  defp parse_scheduled_for(""), do: {:error, "Choose when the change should run"}
+
+  defp parse_scheduled_for(value) do
+    case NaiveDateTime.from_iso8601(value <> ":00") do
+      {:ok, naive} -> {:ok, DateTime.from_naive!(naive, "Etc/UTC")}
+      _ -> {:error, "Choose a valid schedule time"}
+    end
+  end
+
+  defp normalize_reason(nil), do: nil
+  defp normalize_reason(""), do: nil
+  defp normalize_reason(reason), do: String.trim(reason)
+
+  defp humanize(value) when is_atom(value), do: humanize(Atom.to_string(value))
+
+  defp humanize(value) when is_binary(value),
+    do: value |> String.replace("_", " ") |> String.capitalize()
+
+  defp humanize(value), do: to_string(value)
 
   defp apply_resolved(socket, params) do
     resolved =
