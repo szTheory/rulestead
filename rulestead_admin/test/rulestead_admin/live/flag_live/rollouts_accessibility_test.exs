@@ -11,6 +11,7 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsAccessibilityTest do
 
   setup %{conn: conn} do
     Application.put_env(:rulestead, :store, Rulestead.Fake)
+
     Application.put_env(:rulestead, :admin_lifecycle,
       warning_after_seconds: 1_800,
       stale_after_seconds: 3_600,
@@ -49,7 +50,8 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsAccessibilityTest do
     {:ok, conn: conn}
   end
 
-  test "rollout page stays accessible before preview, after preview, and when risky confirmation is present", %{conn: conn} do
+  test "rollout page stays accessible before preview, after preview, and when risky confirmation is present",
+       %{conn: conn} do
     {:ok, view, html} = live(conn, "/admin/flags/checkout-redesign/rollouts?env=prod")
     assert_accessible(html)
 
@@ -164,8 +166,13 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsAccessibilityTest do
       ]
     }
 
-    assert {:ok, _draft} = Rulestead.save_draft_ruleset(Command.SaveDraftRuleset.new(flag_key, environment_key, ruleset))
-    assert {:ok, _published} = Rulestead.publish_ruleset(Command.PublishRuleset.new(flag_key, environment_key))
+    assert {:ok, _draft} =
+             Rulestead.save_draft_ruleset(
+               Command.SaveDraftRuleset.new(flag_key, environment_key, ruleset)
+             )
+
+    assert {:ok, _published} =
+             Rulestead.publish_ruleset(Command.PublishRuleset.new(flag_key, environment_key))
   end
 
   defp ensure_environment!(key, name) do
