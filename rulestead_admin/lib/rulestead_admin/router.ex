@@ -22,6 +22,10 @@ defmodule RulesteadAdmin.Router do
           live "/", RulesteadAdmin.Live.FlagLive.Index, :index
           live "/new", RulesteadAdmin.Live.FlagLive.Form, :new
           live "/audit", RulesteadAdmin.Live.AuditLive.Index, :index
+          live "/change-requests", RulesteadAdmin.Live.ChangeRequestLive.Index, :index
+          live "/change-requests/:id", RulesteadAdmin.Live.ChangeRequestLive.Show, :show
+          live "/schedule", RulesteadAdmin.Live.ScheduleLive.Index, :index
+          live "/schedule/:scheduled_execution_id", RulesteadAdmin.Live.ScheduleLive.Show, :show
           live "/:key", RulesteadAdmin.Live.FlagLive.Show, :show
           live "/:key/edit", RulesteadAdmin.Live.FlagLive.Form, :edit
           live "/:key/rules", RulesteadAdmin.Live.FlagLive.Rules, :index

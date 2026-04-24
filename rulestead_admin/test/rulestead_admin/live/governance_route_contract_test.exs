@@ -23,28 +23,40 @@ defmodule RulesteadAdmin.Live.GovernanceRouteContractTest do
   end
 
   test "mounted governance routes keep env canonical and render route-backed placeholders", %{conn: conn} do
-    {:ok, _view, queue_html} = live(conn, "/admin/flags/change-requests")
+    assert {:error, {:live_redirect, %{to: "/admin/flags/change-requests?env=staging"}}} =
+             live(conn, "/admin/flags/change-requests")
+
+    {:ok, _view, queue_html} = live(conn, "/admin/flags/change-requests?env=staging")
 
     assert queue_html =~ "Change requests"
     assert queue_html =~ "/admin/flags/change-requests?env=staging"
     assert queue_html =~ "/admin/flags/change-requests/req-123?env=staging"
     assert queue_html =~ "This queue stays route-backed so review and execution work can grow without crowding flag detail."
 
-    {:ok, _view, queue_show_html} = live(conn, "/admin/flags/change-requests/req-123")
+    assert {:error, {:live_redirect, %{to: "/admin/flags/change-requests/req-123?env=staging"}}} =
+             live(conn, "/admin/flags/change-requests/req-123")
+
+    {:ok, _view, queue_show_html} = live(conn, "/admin/flags/change-requests/req-123?env=staging")
 
     assert queue_show_html =~ "Change request review"
     assert queue_show_html =~ "/admin/flags/change-requests/req-123?env=staging"
     assert queue_show_html =~ "/admin/flags/change-requests?env=staging"
     assert queue_show_html =~ "Review stays on its own route so approvals, rejection, execution, and scheduling remain explicit."
 
-    {:ok, _view, schedule_html} = live(conn, "/admin/flags/schedule")
+    assert {:error, {:live_redirect, %{to: "/admin/flags/schedule?env=staging"}}} =
+             live(conn, "/admin/flags/schedule")
+
+    {:ok, _view, schedule_html} = live(conn, "/admin/flags/schedule?env=staging")
 
     assert schedule_html =~ "Schedule"
     assert schedule_html =~ "/admin/flags/schedule?env=staging"
     assert schedule_html =~ "/admin/flags/schedule/sched-456?env=staging"
     assert schedule_html =~ "Scheduled execution visibility stays list-first so operators can scan state without a calendar workbench."
 
-    {:ok, _view, schedule_show_html} = live(conn, "/admin/flags/schedule/sched-456")
+    assert {:error, {:live_redirect, %{to: "/admin/flags/schedule/sched-456?env=staging"}}} =
+             live(conn, "/admin/flags/schedule/sched-456")
+
+    {:ok, _view, schedule_show_html} = live(conn, "/admin/flags/schedule/sched-456?env=staging")
 
     assert schedule_show_html =~ "Scheduled execution"
     assert schedule_show_html =~ "/admin/flags/schedule/sched-456?env=staging"
