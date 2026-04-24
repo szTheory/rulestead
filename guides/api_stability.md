@@ -41,11 +41,14 @@ The root facade is a closed catalog in v0.1.0:
 
 - `version/0`
 - `fetch_flag/1`
+- `fetch_flag/2`
 - `fetch_flag/3`
 - `fetch_flag!/3`
+- `fetch_flag!/2`
 - `create_flag/1`
 - `create_flag/2`
 - `update_flag/1`
+- `update_flag/2`
 - `update_flag/3`
 - `save_draft_ruleset/1`
 - `save_draft_ruleset!/1`
@@ -54,8 +57,10 @@ The root facade is a closed catalog in v0.1.0:
 - `archive_flag/1`
 - `archive_flag!/1`
 - `engage_kill_switch/1`
+- `engage_kill_switch/3`
 - `engage_kill_switch/4`
 - `release_kill_switch/1`
+- `release_kill_switch/3`
 - `release_kill_switch/4`
 - `list_audit_events/0`
 - `list_audit_events/1`
@@ -71,28 +76,41 @@ The root facade is a closed catalog in v0.1.0:
 - `list_audiences/1`
 - `record_evaluation/1`
 - `record_evaluation/3`
+- `evaluate/2`
 - `evaluate/3`
+- `evaluate!/2`
 - `evaluate!/3`
 - `enabled?/2`
 - `get_value/3`
 - `get_variant/2`
 - `explain/2`
+- `simulate_flag/3`
 - `simulate_flag/4`
+- `explain_flag/3`
 - `explain_flag/4`
 - `diagnostics/0`
 
 Public helpers outside the root facade:
 
+- `Rulestead.Telemetry.span/3`
+- `Rulestead.Telemetry.execute/3`
 - `Rulestead.Telemetry.attach_many/4`
 - `Rulestead.Telemetry.detach/1`
+- `Rulestead.Telemetry.base_metadata/2`
 - `Rulestead.Telemetry.metadata/1`
 - `Rulestead.Telemetry.base_metadata/3`
+- `Rulestead.Telemetry.result_metadata/2`
 - `Rulestead.Telemetry.result_metadata/3`
+- `Rulestead.Telemetry.runtime_metadata/1`
 - `Rulestead.Telemetry.runtime_metadata/2`
+- `Rulestead.Telemetry.command_metadata/1`
 - `Rulestead.Telemetry.command_metadata/2`
+- `Rulestead.Config.load/0`
 - `Rulestead.Config.schema/0`
 - `Rulestead.Config.defaults/0`
+- `Rulestead.Config.validate/0`
 - `Rulestead.Config.validate/1`
+- `Rulestead.Config.validate!/0`
 - `Rulestead.Config.validate!/1`
 - `Rulestead.Config.load/1`
 
@@ -141,6 +159,7 @@ Closed `:reason` atoms:
 
 ### `%Rulestead.Error{}`
 
+- `:__exception__`
 - `:domain`
 - `:type`
 - `:message`
@@ -155,6 +174,9 @@ Public helpers:
 - `Rulestead.Error.normalize/1`
 - `Rulestead.Error.domains/0`
 - `Rulestead.Error.leaf_types/0`
+
+The standard Elixir exception hooks generated for `%Rulestead.Error{}` remain
+available when the error is raised or normalized.
 
 Closed `:domain` atoms:
 
@@ -364,3 +386,8 @@ ship as documented, tested, supported code:
 
 If a future guide mentions planned seams for roadmap context, that mention does
 not make them public API.
+
+The following exported helpers are visible for runtime mechanics but are not a
+supported public seam in `v0.1.0`:
+
+- `Rulestead.Telemetry.dispatch/4`
