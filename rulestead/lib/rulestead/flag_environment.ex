@@ -14,6 +14,7 @@ defmodule Rulestead.FlagEnvironment do
     field(:status, Ecto.Enum, values: @statuses, default: :draft)
     field(:kill_switch_variant_key, :string)
     field(:last_published_at, :utc_datetime_usec)
+    field(:last_evaluated_at, :utc_datetime_usec)
 
     belongs_to(:flag, Rulestead.Flag)
     belongs_to(:environment, Rulestead.Environment)
@@ -35,7 +36,8 @@ defmodule Rulestead.FlagEnvironment do
       :active_ruleset_id,
       :status,
       :kill_switch_variant_key,
-      :last_published_at
+      :last_published_at,
+      :last_evaluated_at
     ])
     |> update_change(:kill_switch_variant_key, &normalize_string/1)
     |> validate_required([:flag_id, :environment_id, :status])

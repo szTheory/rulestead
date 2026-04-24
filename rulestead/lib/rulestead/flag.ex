@@ -27,6 +27,7 @@ defmodule Rulestead.Flag do
     field(:default_value, :map, default: %{})
     field(:owner, :string)
     field(:expected_expiration, :date)
+    field(:permanent, :boolean, default: false)
     field(:tags, {:array, :string}, default: [])
     field(:archived_at, :utc_datetime_usec)
 
@@ -48,6 +49,7 @@ defmodule Rulestead.Flag do
       :default_value,
       :owner,
       :expected_expiration,
+      :permanent,
       :tags,
       :archived_at
     ])
@@ -58,6 +60,7 @@ defmodule Rulestead.Flag do
     |> validate_length(:key, min: 2, max: 128)
     |> validate_length(:owner, min: 1, max: 255)
     |> validate_format(:key, ~r/^[a-z0-9][a-z0-9:_-]*$/)
+    |> validate_lifecycle_mode()
     |> unique_constraint(:key)
   end
 
@@ -72,6 +75,29 @@ defmodule Rulestead.Flag do
 
   defp normalize_string(value) when is_binary(value), do: String.trim(value)
   defp normalize_string(value), do: value
+
+  defp validate_lifecycle_mode(changeset) do
+    permanent = get_field(changeset, :permanent, false)
+    expected_expiration = get_field(changeset, :expected_expiration)
+
+    cond do
+      permanent and is_nil(expected_expiration) ->
+        changeset
+
+      not permanent and not is_nil(expected_expiration) ->
+        changeset
+
+      permanent and not is_nil(expected_expiration) ->
+        changeset
+        |> add_error(:permanent, "must be false when expected expiration is set")
+        |> add_error(:expected_expiration, "must be blank when permanent is true")
+
+      true ->
+        changeset
+        |> add_error(:permanent, "must be true when expected expiration is blank")
+        |> add_error(:expected_expiration, "must be set when permanent is false")
+    end
+  end
 
   defp normalize_tags(tags) when is_list(tags) do
     tags
