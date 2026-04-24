@@ -225,5 +225,43 @@ defmodule Rulestead.GovernanceAdapterContractTest do
   defp ensure_phase9_schema! do
     Rulestead.Repo.query!("ALTER TABLE flags ADD COLUMN IF NOT EXISTS permanent boolean DEFAULT false")
     Rulestead.Repo.query!("ALTER TABLE flag_environments ADD COLUMN IF NOT EXISTS last_evaluated_at timestamp(6) with time zone")
+    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS change_requests (
+      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+      status text NOT NULL DEFAULT 'submitted',
+      governed_action text NOT NULL,
+      environment_key text NOT NULL,
+      resource_type text NOT NULL,
+      resource_key text NOT NULL,
+      submitter_id text NOT NULL,
+      submitter_type text NOT NULL,
+      submitter_display text,
+      reason text,
+      approval_requirement_snapshot jsonb NOT NULL DEFAULT '{}'::jsonb,
+      command_snapshot jsonb NOT NULL DEFAULT '{}'::jsonb,
+      metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
+      correlation_id text NOT NULL,
+      submitted_at timestamp(6) with time zone NOT NULL,
+      resolved_at timestamp(6) with time zone,
+      executed_at timestamp(6) with time zone,
+      inserted_at timestamp(6) with time zone NOT NULL,
+      updated_at timestamp(6) with time zone NOT NULL
+    )")
+    Rulestead.Repo.query!("CREATE UNIQUE INDEX IF NOT EXISTS change_requests_correlation_id_index ON change_requests (correlation_id)")
+    Rulestead.Repo.query!("CREATE INDEX IF NOT EXISTS change_requests_environment_status_index ON change_requests (environment_key, status)")
+    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS approvals (
+      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+      change_request_id uuid NOT NULL REFERENCES change_requests(id) ON DELETE CASCADE,
+      decision text NOT NULL,
+      reviewer_id text NOT NULL,
+      reviewer_type text NOT NULL,
+      reviewer_display text,
+      reason text,
+      metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
+      correlation_id text NOT NULL,
+      reviewed_at timestamp(6) with time zone NOT NULL,
+      inserted_at timestamp(6) with time zone NOT NULL
+    )")
+    Rulestead.Repo.query!("CREATE UNIQUE INDEX IF NOT EXISTS approvals_change_request_reviewer_index ON approvals (change_request_id, reviewer_id)")
+    Rulestead.Repo.query!("CREATE INDEX IF NOT EXISTS approvals_change_request_reviewed_at_index ON approvals (change_request_id, reviewed_at)")
   end
 end

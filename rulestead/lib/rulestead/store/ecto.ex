@@ -10,6 +10,8 @@ defmodule Rulestead.Store.Ecto do
   alias Rulestead.{
     Admin.Lifecycle,
     Audience,
+    Governance.Approval,
+    Governance.ChangeRequest,
     AuditEvent,
     Environment,
     Flag,
@@ -486,6 +488,182 @@ defmodule Rulestead.Store.Ecto do
     end
   end
 
+  @impl Store
+  def submit_change_request(%Command.SubmitChangeRequest{} = command) do
+    correlation_id = governance_correlation_id(command)
+    submitted_at = now()
+
+    Multi.new()
+    |> Multi.run(:change_request, fn repo, _changes ->
+      insert_change_request(repo, command, correlation_id, submitted_at)
+    end)
+    |> Multi.run(:audit_event, fn repo, %{change_request: change_request} ->
+      audit_command = governance_audit_command(command, change_request, "submitted")
+      repo.insert(audit_event_changeset(%AuditEvent{}, audit_command, "change_request.submitted", :ok, %{
+        resource_key: change_request.resource_key,
+        environment_key: change_request.environment_key
+      }))
+    end)
+    |> Repo.transact()
+    |> case do
+      {:ok, %{change_request: change_request, audit_event: audit_event}} ->
+        emit_governance_telemetry(:submitted, command, change_request, audit_event)
+        {:ok, %{change_request: serialize_change_request_row(change_request)}}
+
+      {:error, _operation, reason, _changes} ->
+        {:error, normalize_governance_failure(reason)}
+    end
+  end
+
+  @impl Store
+  def approve_change_request(%Command.ApproveChangeRequest{} = command) do
+    with {:ok, change_request} <- fetch_change_request_row(command.change_request_id),
+         :ok <- ensure_governance_transition(change_request, ["submitted"]),
+         :ok <- ensure_unique_reviewer(change_request.id, command) do
+      reviewed_at = now()
+
+      Multi.new()
+      |> Multi.run(:approval, fn repo, _changes ->
+        insert_approval(repo, change_request, command, "approved", reviewed_at)
+      end)
+      |> Multi.run(:change_request, fn repo, _changes ->
+        approved_count = approved_count(repo, change_request.id) + 1
+        next_status = if(approved_count >= required_approvals(change_request.approval_requirement_snapshot), do: "approved", else: "submitted")
+        update_change_request(repo, change_request, %{status: next_status, resolved_at: if(next_status == "approved", do: reviewed_at, else: nil), updated_at: reviewed_at})
+      end)
+      |> Multi.run(:audit_event, fn repo, %{approval: approval, change_request: updated_change_request} ->
+        audit_command =
+          governance_audit_command(command, updated_change_request, "approved")
+          |> Map.update!(:metadata, &Map.put(&1, "approval_id", approval.id))
+
+        repo.insert(audit_event_changeset(%AuditEvent{}, audit_command, "change_request.approved", :ok, %{
+          resource_key: updated_change_request.resource_key,
+          environment_key: updated_change_request.environment_key
+        }))
+      end)
+      |> Repo.transact()
+      |> case do
+        {:ok, %{approval: approval, change_request: updated_change_request, audit_event: audit_event}} ->
+          emit_governance_telemetry(:approved, command, updated_change_request, audit_event)
+
+          {:ok,
+           %{
+             change_request: serialize_change_request_row(updated_change_request),
+             approval: serialize_approval_row(approval)
+           }}
+
+        {:error, _operation, reason, _changes} ->
+          {:error, normalize_governance_failure(reason)}
+      end
+    end
+  end
+
+  @impl Store
+  def reject_change_request(%Command.RejectChangeRequest{} = command) do
+    with {:ok, change_request} <- fetch_change_request_row(command.change_request_id),
+         :ok <- ensure_governance_transition(change_request, ["submitted"]) do
+      reviewed_at = now()
+
+      Multi.new()
+      |> Multi.run(:approval, fn repo, _changes ->
+        insert_approval(repo, change_request, command, "rejected", reviewed_at)
+      end)
+      |> Multi.run(:change_request, fn repo, _changes ->
+        update_change_request(repo, change_request, %{status: "rejected", resolved_at: reviewed_at, updated_at: reviewed_at})
+      end)
+      |> Multi.run(:audit_event, fn repo, %{approval: approval, change_request: updated_change_request} ->
+        audit_command =
+          governance_audit_command(command, updated_change_request, "rejected")
+          |> Map.update!(:metadata, &Map.put(&1, "approval_id", approval.id))
+
+        repo.insert(audit_event_changeset(%AuditEvent{}, audit_command, "change_request.rejected", :ok, %{
+          resource_key: updated_change_request.resource_key,
+          environment_key: updated_change_request.environment_key
+        }))
+      end)
+      |> Repo.transact()
+      |> case do
+        {:ok, %{change_request: updated_change_request, audit_event: audit_event}} ->
+          emit_governance_telemetry(:rejected, command, updated_change_request, audit_event)
+          {:ok, %{change_request: serialize_change_request_row(updated_change_request)}}
+
+        {:error, _operation, reason, _changes} ->
+          {:error, normalize_governance_failure(reason)}
+      end
+    end
+  end
+
+  @impl Store
+  def cancel_change_request(%Command.CancelChangeRequest{} = command) do
+    with {:ok, change_request} <- fetch_change_request_row(command.change_request_id),
+         :ok <- ensure_governance_transition(change_request, ["submitted", "approved"]) do
+      cancelled_at = now()
+
+      Multi.new()
+      |> Multi.run(:change_request, fn repo, _changes ->
+        update_change_request(repo, change_request, %{status: "cancelled", resolved_at: cancelled_at, updated_at: cancelled_at})
+      end)
+      |> Multi.run(:audit_event, fn repo, %{change_request: updated_change_request} ->
+        audit_command = governance_audit_command(command, updated_change_request, "cancelled")
+        repo.insert(audit_event_changeset(%AuditEvent{}, audit_command, "change_request.cancelled", :ok, %{
+          resource_key: updated_change_request.resource_key,
+          environment_key: updated_change_request.environment_key
+        }))
+      end)
+      |> Repo.transact()
+      |> case do
+        {:ok, %{change_request: updated_change_request}} ->
+          {:ok, %{change_request: serialize_change_request_row(updated_change_request)}}
+
+        {:error, _operation, reason, _changes} ->
+          {:error, normalize_governance_failure(reason)}
+      end
+    end
+  end
+
+  @impl Store
+  def execute_change_request(%Command.ExecuteChangeRequest{} = command) do
+    with {:ok, change_request} <- fetch_change_request_row(command.change_request_id),
+         :ok <- ensure_governance_transition(change_request, ["approved"]),
+         {:ok, execution_result, updated_change_request, audit_event} <- execute_governed_change(change_request, command) do
+      emit_governance_telemetry(:merged, command, updated_change_request, audit_event)
+      {:ok, %{change_request: serialize_change_request_row(updated_change_request), execution_result: execution_result}}
+    end
+  end
+
+  @impl Store
+  def fetch_change_request(%Command.FetchChangeRequest{} = command) do
+    with {:ok, change_request} <- fetch_change_request_row(command.change_request_id) do
+      {:ok,
+       %{
+         change_request: serialize_change_request_row(change_request),
+         approvals: list_approval_rows(change_request.id) |> Enum.map(&serialize_approval_row/1),
+         audit_events: list_change_request_audit_events(change_request)
+       }}
+    end
+  end
+
+  @impl Store
+  def list_change_requests(%Command.ListChangeRequests{} = command) do
+    entries =
+      from(cr in "change_requests",
+        order_by: [desc: field(cr, :inserted_at)],
+        limit: ^command.limit,
+        select: map(cr, [:id, :status, :governed_action, :environment_key, :resource_type, :resource_key, :submitter_id, :submitter_type, :submitter_display, :reason, :approval_requirement_snapshot, :command_snapshot, :metadata, :correlation_id, :submitted_at, :resolved_at, :executed_at, :inserted_at, :updated_at])
+      )
+      |> maybe_filter_change_request(:environment_key, command.environment_key)
+      |> maybe_filter_change_request(:resource_type, command.resource_type)
+      |> maybe_filter_change_request(:resource_key, command.resource_key)
+      |> maybe_filter_change_request(:submitter_id, command.submitted_by_id)
+      |> maybe_filter_change_request(:governed_action, command.action && Atom.to_string(command.action))
+      |> maybe_filter_change_request(:status, command.status && Atom.to_string(command.status))
+      |> Repo.all()
+      |> Enum.map(&normalize_governance_row/1)
+      |> Enum.map(&serialize_change_request_row/1)
+
+    {:ok, %Command.Page{entries: entries, limit: command.limit, has_next_page?: false, has_previous_page?: false}}
+  end
+
   defp fetch_environment(environment_key) do
     case Repo.get_by(Environment, key: to_string(environment_key)) do
       nil -> {:error, StoreError.environment_not_found(environment_key)}
@@ -881,8 +1059,14 @@ defmodule Rulestead.Store.Ecto do
       query,
       [flag, _, _],
       ilike(flag.key, ^normalized) or
-        ilike(fragment("coalesce(?, '')", flag.description), ^normalized)
+      ilike(fragment("coalesce(?, '')", flag.description), ^normalized)
     )
+  end
+
+  defp maybe_filter_change_request(query, _field, nil), do: query
+
+  defp maybe_filter_change_request(query, field_name, value) do
+    where(query, [cr], field(cr, ^field_name) == ^value)
   end
 
   defp ruleset_error(changeset, flag_key, environment_key) do
@@ -1002,9 +1186,9 @@ defmodule Rulestead.Store.Ecto do
         resource_type: "flag",
         resource_key: audit_flag_key(command),
         environment_key: environment && environment.key,
-        actor_id: get_in(command.actor || %{}, [:id]),
-        actor_type: get_in(command.actor || %{}, [:type]),
-        actor_display: get_in(command.actor || %{}, [:display]),
+        actor_id: actor_value(command.actor, "id"),
+        actor_type: actor_value(command.actor, "type"),
+        actor_display: actor_value(command.actor, "display"),
         reason: Map.get(command, :reason),
         result: :ok,
         metadata: audit_metadata(command, ruleset, previous_ruleset),
@@ -1066,9 +1250,9 @@ defmodule Rulestead.Store.Ecto do
       resource_type: "flag",
       resource_key: to_string(Map.get(opts, :resource_key, Map.get(command, :flag_key))),
       environment_key: to_string(Map.get(opts, :environment_key, Map.get(command, :environment_key))),
-      actor_id: get_in(command.actor || %{}, [:id]),
-      actor_type: to_string(get_in(command.actor || %{}, [:type]) || "operator"),
-      actor_display: get_in(command.actor || %{}, [:display]),
+      actor_id: actor_value(command.actor, "id"),
+      actor_type: to_string(actor_value(command.actor, "type") || "operator"),
+      actor_display: actor_value(command.actor, "display"),
       reason: Map.get(command, :reason),
       result: result,
       metadata:
@@ -1085,6 +1269,344 @@ defmodule Rulestead.Store.Ecto do
       correlation_id: correlation_id(command),
       occurred_at: now()
     })
+  end
+
+  defp insert_change_request(repo, command, correlation_id, submitted_at) do
+    attrs = %{
+      status: "submitted",
+      governed_action: Atom.to_string(command.action),
+      environment_key: command.environment_key,
+      resource_type: command.resource_type,
+      resource_key: command.resource_key,
+      submitter_id: actor_value(command.actor, "id"),
+      submitter_type: actor_value(command.actor, "type") || "operator",
+      submitter_display: actor_value(command.actor, "display"),
+      reason: command.reason,
+      approval_requirement_snapshot: command.approval_requirement,
+      command_snapshot: command.command,
+      metadata: command.metadata,
+      correlation_id: correlation_id,
+      submitted_at: submitted_at,
+      resolved_at: nil,
+      executed_at: nil,
+      inserted_at: submitted_at,
+      updated_at: submitted_at
+    }
+
+    case repo.insert_all("change_requests", [attrs],
+           returning: [:id, :status, :governed_action, :environment_key, :resource_type, :resource_key, :submitter_id, :submitter_type, :submitter_display, :reason, :approval_requirement_snapshot, :command_snapshot, :metadata, :correlation_id, :submitted_at, :resolved_at, :executed_at, :inserted_at, :updated_at]
+         ) do
+      {1, [row]} -> {:ok, normalize_governance_row(row)}
+      _ -> {:error, StoreError.unavailable()}
+    end
+  end
+
+  defp insert_approval(repo, change_request, command, decision, reviewed_at) do
+    attrs = %{
+      change_request_id: uuid_param(change_request.id),
+      decision: decision,
+      reviewer_id: actor_value(command.actor, "id"),
+      reviewer_type: actor_value(command.actor, "type") || "operator",
+      reviewer_display: actor_value(command.actor, "display"),
+      reason: command.reason,
+      metadata: command.metadata,
+      correlation_id: change_request.correlation_id,
+      reviewed_at: reviewed_at,
+      inserted_at: reviewed_at
+    }
+
+    case repo.insert_all("approvals", [attrs],
+           returning: [:id, :change_request_id, :decision, :reviewer_id, :reviewer_type, :reviewer_display, :reason, :metadata, :correlation_id, :reviewed_at, :inserted_at]
+         ) do
+      {1, [row]} -> {:ok, normalize_governance_row(row)}
+      _ -> {:error, StoreError.unavailable()}
+    end
+  rescue
+    error in [ConstraintError] ->
+      {:error, StoreError.invalid_command("reviewer has already recorded a decision", cause: error)}
+  end
+
+  defp update_change_request(repo, change_request, attrs) do
+    updates =
+      attrs
+      |> Enum.reject(fn {_key, value} -> is_nil(value) end)
+      |> Map.new()
+
+    query = from(cr in "change_requests", where: field(cr, :id) == ^uuid_param(change_request.id))
+
+    case repo.update_all(query, set: Enum.to_list(updates)) do
+      {1, _rows} -> fetch_change_request_row(change_request.id)
+      _ -> {:error, StoreError.invalid_command("change request was not found")}
+    end
+  end
+
+  defp fetch_change_request_row(change_request_id) do
+    case from(cr in "change_requests",
+           where: field(cr, :id) == ^uuid_param(change_request_id),
+           select: map(cr, [:id, :status, :governed_action, :environment_key, :resource_type, :resource_key, :submitter_id, :submitter_type, :submitter_display, :reason, :approval_requirement_snapshot, :command_snapshot, :metadata, :correlation_id, :submitted_at, :resolved_at, :executed_at, :inserted_at, :updated_at])
+         )
+         |> Repo.one() do
+      nil -> {:error, StoreError.invalid_command("change request was not found")}
+      row -> {:ok, normalize_governance_row(row)}
+    end
+  end
+
+  defp list_approval_rows(change_request_id) do
+    from(a in "approvals",
+      where: field(a, :change_request_id) == ^uuid_param(change_request_id),
+      order_by: [asc: field(a, :reviewed_at)],
+      select: map(a, [:id, :change_request_id, :decision, :reviewer_id, :reviewer_type, :reviewer_display, :reason, :metadata, :correlation_id, :reviewed_at, :inserted_at])
+    )
+    |> Repo.all()
+    |> Enum.map(&normalize_governance_row/1)
+  end
+
+  defp list_change_request_audit_events(change_request) do
+    AuditEvent
+    |> where([event], event.correlation_id == ^change_request.correlation_id)
+    |> order_by([event], asc: event.occurred_at, asc: event.inserted_at)
+    |> Repo.all()
+    |> Enum.map(&AuditEvent.serialize/1)
+  end
+
+  defp approved_count(repo, change_request_id) do
+    from(a in "approvals",
+      where: field(a, :change_request_id) == ^uuid_param(change_request_id) and field(a, :decision) == "approved",
+      select: count("*")
+    )
+    |> repo.one()
+  end
+
+  defp ensure_governance_transition(change_request, allowed_statuses) do
+    if change_request.status in allowed_statuses do
+      :ok
+    else
+      {:error, StoreError.invalid_command("change request is not in a valid state for this operation")}
+    end
+  end
+
+  defp ensure_unique_reviewer(change_request_id, command) do
+    reviewer_id = actor_value(command.actor, "id")
+
+    exists? =
+      from(a in "approvals",
+        where: field(a, :change_request_id) == ^uuid_param(change_request_id) and field(a, :reviewer_id) == ^reviewer_id,
+        select: count("*")
+      )
+      |> Repo.one()
+
+    if exists? > 0 do
+      {:error, StoreError.invalid_command("reviewer has already recorded a decision")}
+    else
+      :ok
+    end
+  end
+
+  defp required_approvals(snapshot) do
+    snapshot["required_approvals"] || snapshot[:required_approvals] || 0
+  end
+
+  defp serialize_change_request_row(change_request) do
+    %{
+      id: change_request.id,
+      state: governance_state(change_request.status),
+      action: governance_action(change_request.governed_action),
+      environment_key: change_request.environment_key,
+      resource_type: change_request.resource_type,
+      resource_key: change_request.resource_key,
+      submitted_by: %{
+        id: change_request.submitter_id,
+        type: change_request.submitter_type,
+        display: change_request.submitter_display
+      },
+      command: change_request.command_snapshot,
+      approval_requirement: normalize_approval_requirement_snapshot(change_request.approval_requirement_snapshot),
+      correlation_id: change_request.correlation_id
+    }
+    |> ChangeRequest.new()
+    |> ChangeRequest.serialize()
+    |> Map.put(:id, change_request.id)
+  end
+
+  defp serialize_approval_row(approval) do
+    %{
+      change_request_id: approval.change_request_id,
+      decision: governance_decision(approval.decision),
+      reviewed_by: %{
+        id: approval.reviewer_id,
+        type: approval.reviewer_type,
+        display: approval.reviewer_display
+      },
+      reason: approval.reason,
+      correlation_id: approval.correlation_id
+    }
+    |> Approval.new()
+    |> Approval.serialize()
+    |> Map.put(:id, approval.id)
+  end
+
+  defp governance_state("submitted"), do: :submitted
+  defp governance_state("approved"), do: :approved
+  defp governance_state("rejected"), do: :rejected
+  defp governance_state("cancelled"), do: :cancelled
+  defp governance_state("executed"), do: :executed
+
+  defp governance_decision("approved"), do: :approved
+  defp governance_decision(_decision), do: :rejected
+
+  defp governance_action(action) when is_binary(action) do
+    action
+    |> String.trim()
+    |> String.to_existing_atom()
+  rescue
+    ArgumentError -> :manage_settings
+  end
+
+  defp governance_correlation_id(command) do
+    command.metadata[:request_id] || command.metadata["request_id"] || Ecto.UUID.generate()
+  end
+
+  defp governance_audit_command(command, change_request, stage) do
+    metadata =
+      command.metadata
+      |> Map.merge(%{
+        "request_id" => change_request.correlation_id,
+        "change_request_id" => change_request.id,
+        "governance_action" => change_request.governed_action,
+        "execution_stage" => stage,
+        "resource_key" => change_request.resource_key
+      })
+
+    Map.merge(command, %{metadata: metadata, actor: command.actor, reason: command.reason})
+  end
+
+  defp execute_governed_change(%{governed_action: "publish_ruleset"} = change_request, command) do
+    with {:ok, environment} <- fetch_environment(change_request.environment_key),
+         {:ok, flag, flag_environment} <- fetch_flag_environment(change_request.resource_key, environment.key),
+         {:ok, ruleset} <- resolve_publishable_ruleset(flag_environment, environment.key, change_request.command_snapshot["version"]) do
+      published_at = now()
+      previous_ruleset = active_ruleset(flag_environment)
+
+      Multi.new()
+      |> Multi.update(:ruleset, Ruleset.changeset(ruleset, %{status: :published, published_at: published_at}))
+      |> Multi.update(
+        :flag_environment,
+        FlagEnvironment.changeset(flag_environment, %{
+          active_ruleset_id: ruleset.id,
+          status: :active,
+          last_published_at: published_at
+        })
+      )
+      |> Multi.update(:flag, Changeset.change(flag, updated_at: published_at))
+      |> Multi.run(:runtime_snapshot, fn repo, _changes -> insert_runtime_snapshot(repo, environment, published_at) end)
+      |> Multi.run(:ruleset_audit_event, fn repo, _changes ->
+        publish_command =
+          Command.PublishRuleset.new(change_request.resource_key, environment.key,
+            version: change_request.command_snapshot["version"],
+            actor: command.actor,
+            reason: command.reason,
+            metadata: %{
+              request_id: change_request.correlation_id,
+              source: change_request.metadata["source"],
+              change_request_id: change_request.id,
+              governance_action: change_request.governed_action,
+              execution_stage: "execute"
+            }
+          )
+
+        repo.insert(audit_event_changeset(%AuditEvent{}, publish_command, "ruleset.publish", :ok, %{
+          before: ruleset_audit_state(previous_ruleset),
+          after: ruleset_audit_state(ruleset),
+          diff: ruleset_position_diff(previous_ruleset, ruleset),
+          resource_key: change_request.resource_key,
+          environment_key: environment.key
+        }))
+      end)
+      |> Multi.run(:change_request, fn repo, _changes ->
+        update_change_request(repo, change_request, %{status: "executed", resolved_at: published_at, executed_at: published_at, updated_at: published_at})
+      end)
+      |> Multi.run(:audit_event, fn repo, %{change_request: updated_change_request} ->
+        audit_command = governance_audit_command(command, updated_change_request, "merged")
+        repo.insert(audit_event_changeset(%AuditEvent{}, audit_command, "change_request.merged", :ok, %{
+          resource_key: updated_change_request.resource_key,
+          environment_key: updated_change_request.environment_key
+        }))
+      end)
+      |> Repo.transact()
+      |> case do
+        {:ok, %{change_request: updated_change_request, audit_event: audit_event}} ->
+          {:ok, execution_result} = fetch_flag(Command.FetchFlag.new(change_request.resource_key, change_request.environment_key))
+          {:ok, execution_result, updated_change_request, audit_event}
+
+        {:error, _operation, reason, _changes} ->
+          {:error, normalize_governance_failure(reason)}
+      end
+    end
+  end
+
+  defp execute_governed_change(_change_request, _command) do
+    {:error, StoreError.invalid_command("governed action is not implemented")}
+  end
+
+  defp emit_governance_telemetry(event, command, change_request, audit_event) do
+    Telemetry.execute(
+      [:rulestead, :admin, :change_request, event],
+      %{count: 1},
+      Telemetry.metadata(
+        Telemetry.governance_metadata(command, %{
+          event: event,
+          action: governance_action(change_request.governed_action),
+          environment_key: change_request.environment_key,
+          resource_key: change_request.resource_key,
+          change_request_id: change_request.id,
+          correlation_id: change_request.correlation_id,
+          audit_event_id: audit_event.id
+        })
+      )
+    )
+  end
+
+  defp normalize_governance_failure(%Rulestead.Error{} = error), do: error
+  defp normalize_governance_failure(%Changeset{} = changeset), do: StoreError.unavailable(cause: changeset)
+  defp normalize_governance_failure(other), do: StoreError.unavailable(cause: other)
+
+  defp actor_value(nil, _key), do: nil
+  defp actor_value(actor, key), do: Map.get(actor, key) || Map.get(actor, String.to_atom(key))
+
+  defp normalize_approval_requirement_snapshot(snapshot) do
+    %{
+      action: governance_action(snapshot["action"] || snapshot[:action] || "manage_settings"),
+      environment_key: snapshot["environment_key"] || snapshot[:environment_key],
+      required_approvals: snapshot["required_approvals"] || snapshot[:required_approvals] || 0,
+      change_request_required?: snapshot["change_request_required?"] || snapshot[:change_request_required?] || false,
+      self_approval_allowed?: snapshot["self_approval_allowed?"] || snapshot[:self_approval_allowed?] || false
+    }
+  end
+
+  defp normalize_governance_row(row) when is_map(row) do
+    row
+    |> maybe_normalize_uuid(:id)
+    |> maybe_normalize_uuid(:change_request_id)
+  end
+
+  defp maybe_normalize_uuid(row, key) do
+    case Map.get(row, key) do
+      value when is_binary(value) and byte_size(value) == 16 ->
+        case Ecto.UUID.load(value) do
+          {:ok, uuid} -> Map.put(row, key, uuid)
+          :error -> row
+        end
+
+      _ ->
+        row
+    end
+  end
+
+  defp uuid_param(value) do
+    case Ecto.UUID.dump(value) do
+      {:ok, dumped} -> dumped
+      :error -> value
+    end
   end
 
   defp diff_map(before_state, after_state) do
@@ -1150,17 +1672,38 @@ defmodule Rulestead.Store.Ecto do
   defp ruleset_position_diff(before_state, after_state) do
     before_positions =
       before_state
+      |> normalize_ruleset_position_state()
       |> Map.get(:rules, [])
       |> Map.new(fn %{key: key, position: position} -> {key, position} end)
 
     %{
       rules:
         after_state
+        |> normalize_ruleset_position_state()
         |> Map.get(:rules, [])
         |> Enum.map(fn %{key: key, position: position} ->
           %{key: key, from: Map.get(before_positions, key), to: position}
         end)
     }
+  end
+
+  defp normalize_ruleset_position_state(nil), do: %{rules: []}
+
+  defp normalize_ruleset_position_state(%{rules: rules}) when is_list(rules) do
+    case rules do
+      [%{key: _key, position: _position} | _rest] ->
+        %{rules: rules}
+
+      _other ->
+        %{
+          rules:
+            rules
+            |> Enum.with_index()
+            |> Enum.map(fn {rule, position} ->
+              %{key: Map.get(rule, :key) || Map.get(rule, "key"), position: position}
+            end)
+        }
+    end
   end
 
   defp now, do: DateTime.utc_now() |> DateTime.truncate(:microsecond)

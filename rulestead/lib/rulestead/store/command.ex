@@ -29,6 +29,7 @@ defmodule Rulestead.Store.Command do
       end
     end
 
+    def normalize_string(nil), do: nil
     def normalize_string(value) when is_atom(value), do: value |> Atom.to_string() |> normalize_string()
     def normalize_string(value) when is_integer(value), do: Integer.to_string(value)
     def normalize_string(value), do: value

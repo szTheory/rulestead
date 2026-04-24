@@ -10,7 +10,19 @@ defmodule Rulestead.Fake do
   use GenServer
 
   alias Ecto.Changeset
-  alias Rulestead.{Admin.Lifecycle, AuditEvent, Environment, Flag, Ruleset, RulesetError, Store, StoreError, Telemetry}
+  alias Rulestead.{
+    Admin.Lifecycle,
+    AuditEvent,
+    Environment,
+    Flag,
+    Governance.Approval,
+    Governance.ChangeRequest,
+    Ruleset,
+    RulesetError,
+    Store,
+    StoreError,
+    Telemetry
+  }
   alias Rulestead.Store.Command
 
   @behaviour Store
@@ -23,6 +35,8 @@ defmodule Rulestead.Fake do
           environments: %{required(String.t()) => map()},
           audiences: %{required(String.t()) => map()},
           flags: %{required(String.t()) => map()},
+          change_requests: %{required(String.t()) => map()},
+          approvals: %{required(String.t()) => [map()]},
           audit_events: [map()],
           snapshots: %{required(String.t()) => %{required(pos_integer()) => map()}},
           snapshot_reads_connected?: boolean()
@@ -117,6 +131,41 @@ defmodule Rulestead.Fake do
   @impl Store
   def rollback_audit_event(%Command.RollbackAuditEvent{} = command) do
     call({:rollback_audit_event, command})
+  end
+
+  @impl Store
+  def submit_change_request(%Command.SubmitChangeRequest{} = command) do
+    call({:submit_change_request, command})
+  end
+
+  @impl Store
+  def approve_change_request(%Command.ApproveChangeRequest{} = command) do
+    call({:approve_change_request, command})
+  end
+
+  @impl Store
+  def reject_change_request(%Command.RejectChangeRequest{} = command) do
+    call({:reject_change_request, command})
+  end
+
+  @impl Store
+  def cancel_change_request(%Command.CancelChangeRequest{} = command) do
+    call({:cancel_change_request, command})
+  end
+
+  @impl Store
+  def execute_change_request(%Command.ExecuteChangeRequest{} = command) do
+    call({:execute_change_request, command})
+  end
+
+  @impl Store
+  def fetch_change_request(%Command.FetchChangeRequest{} = command) do
+    call({:fetch_change_request, command})
+  end
+
+  @impl Store
+  def list_change_requests(%Command.ListChangeRequests{} = command) do
+    call({:list_change_requests, command})
   end
 
   @doc false
@@ -649,6 +698,235 @@ defmodule Rulestead.Fake do
     end
   end
 
+  def handle_call({:submit_change_request, command}, _from, state) do
+    correlation_id = governance_correlation_id(command)
+
+    change_request =
+      %{
+        id: Ecto.UUID.generate(),
+        status: "submitted",
+        governed_action: Atom.to_string(command.action),
+        environment_key: command.environment_key,
+        resource_type: command.resource_type,
+        resource_key: command.resource_key,
+        submitter_id: get_in(command.actor || %{}, ["id"]),
+        submitter_type: get_in(command.actor || %{}, ["type"]) || "operator",
+        submitter_display: get_in(command.actor || %{}, ["display"]),
+        reason: command.reason,
+        approval_requirement_snapshot: command.approval_requirement,
+        command_snapshot: command.command,
+        metadata: command.metadata,
+        correlation_id: correlation_id,
+        submitted_at: state.now,
+        resolved_at: nil,
+        executed_at: nil,
+        inserted_at: state.now,
+        updated_at: state.now
+      }
+
+    audit_command = governance_audit_command(command, change_request, "submitted")
+    {audit_event, next_state} = append_audit_event(state, audit_command, "change_request.submitted", :ok)
+
+    final_state =
+      next_state
+      |> put_in([:change_requests, change_request.id], change_request)
+      |> update_in([:audit_events], fn events -> [audit_event | events] end)
+
+    emit_governance_telemetry(:submitted, audit_command, change_request, audit_event)
+
+    {:reply, {:ok, %{change_request: serialize_change_request(change_request)}}, final_state}
+  end
+
+  def handle_call({:approve_change_request, command}, _from, state) do
+    with {:ok, change_request} <- fetch_change_request_record(state, command.change_request_id),
+         :ok <- ensure_governance_transition(change_request, ["submitted"]),
+         :ok <- ensure_unique_reviewer(state, change_request.id, command) do
+      approval =
+        %{
+          id: Ecto.UUID.generate(),
+          change_request_id: change_request.id,
+          decision: "approved",
+          reviewer_id: get_in(command.actor || %{}, ["id"]),
+          reviewer_type: get_in(command.actor || %{}, ["type"]) || "operator",
+          reviewer_display: get_in(command.actor || %{}, ["display"]),
+          reason: command.reason,
+          metadata: command.metadata,
+          correlation_id: change_request.correlation_id,
+          reviewed_at: state.now,
+          inserted_at: state.now
+        }
+
+      approvals = Map.get(state.approvals, change_request.id, []) ++ [approval]
+      approved_count = Enum.count(approvals, &(&1.decision == "approved"))
+
+      next_status =
+        if approved_count >= required_approvals(change_request.approval_requirement_snapshot) do
+          "approved"
+        else
+          "submitted"
+        end
+
+      updated_change_request =
+        change_request
+        |> Map.put(:status, next_status)
+        |> Map.put(:resolved_at, if(next_status == "approved", do: state.now, else: nil))
+        |> Map.put(:updated_at, state.now)
+
+      audit_command =
+        governance_audit_command(command, updated_change_request, "approved")
+        |> Map.update!(:metadata, &Map.put(&1, "approval_id", approval.id))
+
+      {audit_event, next_state} = append_audit_event(state, audit_command, "change_request.approved", :ok)
+
+      final_state =
+        next_state
+        |> put_in([:change_requests, change_request.id], updated_change_request)
+        |> put_in([:approvals, change_request.id], approvals)
+        |> update_in([:audit_events], fn events -> [audit_event | events] end)
+
+      emit_governance_telemetry(:approved, audit_command, updated_change_request, audit_event)
+
+      {:reply,
+       {:ok,
+        %{
+          change_request: serialize_change_request(updated_change_request),
+          approval: serialize_approval(approval)
+        }}, final_state}
+    else
+      {:error, error} -> {:reply, {:error, error}, state}
+    end
+  end
+
+  def handle_call({:reject_change_request, command}, _from, state) do
+    with {:ok, change_request} <- fetch_change_request_record(state, command.change_request_id),
+         :ok <- ensure_governance_transition(change_request, ["submitted"]) do
+      approval =
+        %{
+          id: Ecto.UUID.generate(),
+          change_request_id: change_request.id,
+          decision: "rejected",
+          reviewer_id: get_in(command.actor || %{}, ["id"]),
+          reviewer_type: get_in(command.actor || %{}, ["type"]) || "operator",
+          reviewer_display: get_in(command.actor || %{}, ["display"]),
+          reason: command.reason,
+          metadata: command.metadata,
+          correlation_id: change_request.correlation_id,
+          reviewed_at: state.now,
+          inserted_at: state.now
+        }
+
+      updated_change_request =
+        change_request
+        |> Map.put(:status, "rejected")
+        |> Map.put(:resolved_at, state.now)
+        |> Map.put(:updated_at, state.now)
+
+      audit_command =
+        governance_audit_command(command, updated_change_request, "rejected")
+        |> Map.update!(:metadata, &Map.put(&1, "approval_id", approval.id))
+
+      {audit_event, next_state} = append_audit_event(state, audit_command, "change_request.rejected", :ok)
+
+      final_state =
+        next_state
+        |> put_in([:change_requests, change_request.id], updated_change_request)
+        |> update_in([:approvals, change_request.id], fn approvals -> (approvals || []) ++ [approval] end)
+        |> update_in([:audit_events], fn events -> [audit_event | events] end)
+
+      emit_governance_telemetry(:rejected, audit_command, updated_change_request, audit_event)
+
+      {:reply, {:ok, %{change_request: serialize_change_request(updated_change_request)}}, final_state}
+    else
+      {:error, error} -> {:reply, {:error, error}, state}
+    end
+  end
+
+  def handle_call({:cancel_change_request, command}, _from, state) do
+    with {:ok, change_request} <- fetch_change_request_record(state, command.change_request_id),
+         :ok <- ensure_governance_transition(change_request, ["submitted", "approved"]) do
+      updated_change_request =
+        change_request
+        |> Map.put(:status, "cancelled")
+        |> Map.put(:resolved_at, state.now)
+        |> Map.put(:updated_at, state.now)
+
+      audit_command = governance_audit_command(command, updated_change_request, "cancelled")
+      {audit_event, next_state} = append_audit_event(state, audit_command, "change_request.cancelled", :ok)
+
+      final_state =
+        next_state
+        |> put_in([:change_requests, change_request.id], updated_change_request)
+        |> update_in([:audit_events], fn events -> [audit_event | events] end)
+
+      {:reply, {:ok, %{change_request: serialize_change_request(updated_change_request)}}, final_state}
+    else
+      {:error, error} -> {:reply, {:error, error}, state}
+    end
+  end
+
+  def handle_call({:execute_change_request, command}, _from, state) do
+    with {:ok, change_request} <- fetch_change_request_record(state, command.change_request_id),
+         :ok <- ensure_governance_transition(change_request, ["approved"]),
+         {:ok, execution_result, next_state} <- execute_governed_change(state, change_request, command) do
+      updated_change_request =
+        change_request
+        |> Map.put(:status, "executed")
+        |> Map.put(:resolved_at, state.now)
+        |> Map.put(:executed_at, state.now)
+        |> Map.put(:updated_at, state.now)
+
+      audit_command = governance_audit_command(command, updated_change_request, "merged")
+      {audit_event, post_audit_state} = append_audit_event(next_state, audit_command, "change_request.merged", :ok)
+
+      final_state =
+        post_audit_state
+        |> put_in([:change_requests, change_request.id], updated_change_request)
+        |> update_in([:audit_events], fn events -> [audit_event | events] end)
+
+      emit_governance_telemetry(:merged, audit_command, updated_change_request, audit_event)
+
+      {:reply,
+       {:ok,
+        %{
+          change_request: serialize_change_request(updated_change_request),
+          execution_result: execution_result
+        }}, final_state}
+    else
+      {:error, error} -> {:reply, {:error, error}, state}
+    end
+  end
+
+  def handle_call({:fetch_change_request, command}, _from, state) do
+    reply =
+      with {:ok, change_request} <- fetch_change_request_record(state, command.change_request_id) do
+        {:ok,
+         %{
+           change_request: serialize_change_request(change_request),
+           approvals:
+             state.approvals
+             |> Map.get(change_request.id, [])
+             |> Enum.map(&serialize_approval/1),
+           audit_events: related_audit_events(state, change_request)
+         }}
+      end
+
+    {:reply, reply, state}
+  end
+
+  def handle_call({:list_change_requests, command}, _from, state) do
+    entries =
+      state.change_requests
+      |> Map.values()
+      |> Enum.filter(&matches_change_request_filter?(&1, command))
+      |> Enum.sort_by(& &1.inserted_at, {:desc, DateTime})
+      |> Enum.take(command.limit)
+      |> Enum.map(&serialize_change_request/1)
+
+    {:reply,
+     {:ok, %Command.Page{entries: entries, limit: command.limit, has_next_page?: false, has_previous_page?: false}},
+     state}
+  end
+
   defp call(message) do
     case Process.whereis(__MODULE__) do
       nil -> {:error, StoreError.unavailable(details: [%{message: "fake store is not started"}])}
@@ -661,6 +939,8 @@ defmodule Rulestead.Fake do
       now: now,
       environments: %{},
       audiences: %{},
+      change_requests: %{},
+      approvals: %{},
       audit_events: [],
       flags: %{},
       snapshots: %{},
@@ -971,9 +1251,9 @@ defmodule Rulestead.Fake do
       resource_type: "flag",
       resource_key: to_string(Keyword.get(opts, :resource_key, Map.get(command, :flag_key))),
       environment_key: to_string(Keyword.get(opts, :environment_key, Map.get(command, :environment_key))),
-      actor_id: get_in(command.actor || %{}, [:id]),
-      actor_type: to_string(get_in(command.actor || %{}, [:type]) || "operator"),
-      actor_display: get_in(command.actor || %{}, [:display]),
+      actor_id: actor_value(command.actor, "id"),
+      actor_type: to_string(actor_value(command.actor, "type") || "operator"),
+      actor_display: actor_value(command.actor, "display"),
       reason: Map.get(command, :reason),
       result: result,
       metadata: metadata,
@@ -1033,6 +1313,217 @@ defmodule Rulestead.Fake do
 
   defp maybe_put(map, _key, nil), do: map
   defp maybe_put(map, key, value), do: Map.put(map, key, value)
+
+  defp fetch_change_request_record(state, change_request_id) do
+    case Map.fetch(state.change_requests, to_string(change_request_id)) do
+      {:ok, change_request} -> {:ok, change_request}
+      :error -> {:error, StoreError.invalid_command("change request was not found")}
+    end
+  end
+
+  defp ensure_governance_transition(change_request, allowed_statuses) do
+    if change_request.status in allowed_statuses do
+      :ok
+    else
+      {:error, StoreError.invalid_command("change request is not in a valid state for this operation")}
+    end
+  end
+
+  defp ensure_unique_reviewer(state, change_request_id, command) do
+    reviewer_id = get_in(command.actor || %{}, ["id"])
+
+    if Enum.any?(Map.get(state.approvals, change_request_id, []), &(&1.reviewer_id == reviewer_id)) do
+      {:error, StoreError.invalid_command("reviewer has already recorded a decision")}
+    else
+      :ok
+    end
+  end
+
+  defp required_approvals(snapshot) do
+    snapshot["required_approvals"] || snapshot[:required_approvals] || 0
+  end
+
+  defp serialize_change_request(change_request) do
+    %{
+      id: change_request.id,
+      state: governance_state(change_request.status),
+      action: governance_action(change_request.governed_action),
+      environment_key: change_request.environment_key,
+      resource_type: change_request.resource_type,
+      resource_key: change_request.resource_key,
+      submitted_by: %{
+        id: change_request.submitter_id,
+        type: change_request.submitter_type,
+        display: change_request.submitter_display
+      },
+      command: change_request.command_snapshot,
+      approval_requirement: normalize_approval_requirement_snapshot(change_request.approval_requirement_snapshot),
+      correlation_id: change_request.correlation_id
+    }
+    |> ChangeRequest.new()
+    |> ChangeRequest.serialize()
+    |> Map.put(:id, change_request.id)
+  end
+
+  defp serialize_approval(approval) do
+    %{
+      change_request_id: approval.change_request_id,
+      decision: governance_decision(approval.decision),
+      reviewed_by: %{
+        id: approval.reviewer_id,
+        type: approval.reviewer_type,
+        display: approval.reviewer_display
+      },
+      reason: approval.reason,
+      correlation_id: approval.correlation_id
+    }
+    |> Approval.new()
+    |> Approval.serialize()
+    |> Map.put(:id, approval.id)
+  end
+
+  defp governance_state("submitted"), do: :submitted
+  defp governance_state("approved"), do: :approved
+  defp governance_state("rejected"), do: :rejected
+  defp governance_state("cancelled"), do: :cancelled
+  defp governance_state("executed"), do: :executed
+
+  defp governance_decision("approved"), do: :approved
+  defp governance_decision(_decision), do: :rejected
+
+  defp governance_action(action) when is_binary(action) do
+    action
+    |> String.trim()
+    |> String.to_existing_atom()
+  rescue
+    ArgumentError -> :manage_settings
+  end
+
+  defp governance_audit_command(command, change_request, stage) do
+    metadata =
+      command.metadata
+      |> Map.merge(%{
+        "request_id" => change_request.correlation_id,
+        "change_request_id" => change_request.id,
+        "governance_action" => change_request.governed_action,
+        "execution_stage" => stage,
+        "resource_key" => change_request.resource_key
+      })
+
+    Map.merge(command, %{
+      metadata: metadata,
+      reason: command.reason,
+      actor: command.actor
+    })
+  end
+
+  defp governance_correlation_id(command) do
+    get_in(command.metadata, ["request_id"]) || Ecto.UUID.generate()
+  end
+
+  defp execute_governed_change(state, %{governed_action: "publish_ruleset"} = change_request, command) do
+    version = change_request.command_snapshot["version"]
+
+    with {:ok, environment} <- fetch_environment(state, change_request.environment_key),
+         {:ok, flag, flag_environment} <-
+           fetch_flag_environment(state, change_request.resource_key, environment.key),
+         {:ok, ruleset_record} <- resolve_publishable_ruleset(flag, environment.key, version),
+         {:ok, next_state} <-
+           publish_ruleset_record(state, change_request.resource_key, environment.key, flag_environment, ruleset_record) do
+      publish_command =
+        Command.PublishRuleset.new(change_request.resource_key, environment.key,
+          version: version,
+          actor: command.actor,
+          reason: command.reason,
+          metadata: %{
+            request_id: change_request.correlation_id,
+            source: change_request.metadata["source"],
+            change_request_id: change_request.id,
+            governance_action: change_request.governed_action,
+            execution_stage: "execute"
+          }
+        )
+
+      before_ruleset = active_ruleset_payload(flag, environment.key, flag_environment.active_ruleset_version)
+      updated_flag = next_state.flags[to_string(change_request.resource_key)]
+      updated_flag_environment = updated_flag.environments[environment.key]
+      execution_result = build_flag_detail_payload(next_state, updated_flag, environment, updated_flag_environment, true)
+
+      {audit_event, post_audit_state} =
+        append_audit_event(next_state, publish_command, "ruleset.publish", :ok,
+          before: ruleset_audit_state(before_ruleset),
+          after: ruleset_audit_state(ruleset_record),
+          diff: ruleset_position_diff(before_ruleset, ruleset_record),
+          metadata: %{"version" => ruleset_record.version}
+        )
+
+      {:ok, execution_result, %{post_audit_state | audit_events: [audit_event | post_audit_state.audit_events]}}
+    end
+  end
+
+  defp execute_governed_change(_state, _change_request, _command) do
+    {:error, StoreError.invalid_command("governed action is not implemented")}
+  end
+
+  defp emit_governance_telemetry(event, command, change_request, audit_event) do
+    Telemetry.execute(
+      [:rulestead, :admin, :change_request, event],
+      %{count: 1},
+      Telemetry.metadata(
+        Telemetry.governance_metadata(command, %{
+          event: event,
+          action: governance_action(change_request.governed_action),
+          environment_key: change_request.environment_key,
+          resource_key: change_request.resource_key,
+          change_request_id: change_request.id,
+          correlation_id: change_request.correlation_id,
+          audit_event_id: audit_event.id
+        })
+      )
+    )
+  end
+
+  defp related_audit_events(state, change_request) do
+    state.audit_events
+    |> Enum.filter(&(&1.correlation_id == change_request.correlation_id))
+    |> Enum.sort_by(& &1.occurred_at, DateTime)
+  end
+
+  defp matches_change_request_filter?(change_request, command) do
+    matches_environment =
+      is_nil(command.environment_key) or change_request.environment_key == command.environment_key
+
+    matches_action =
+      is_nil(command.action) or change_request.governed_action == Atom.to_string(command.action)
+
+    matches_status =
+      is_nil(command.status) or change_request.status == Atom.to_string(command.status)
+
+    matches_resource_type =
+      is_nil(command.resource_type) or change_request.resource_type == command.resource_type
+
+    matches_resource_key =
+      is_nil(command.resource_key) or change_request.resource_key == command.resource_key
+
+    matches_submitter =
+      is_nil(command.submitted_by_id) or change_request.submitter_id == command.submitted_by_id
+
+    matches_environment and matches_action and matches_status and matches_resource_type and
+      matches_resource_key and matches_submitter
+  end
+
+  defp actor_value(nil, _key), do: nil
+  defp actor_value(actor, key), do: Map.get(actor, key) || Map.get(actor, String.to_atom(key))
+
+  defp normalize_approval_requirement_snapshot(snapshot) do
+    %{
+      action: governance_action(snapshot["action"] || snapshot[:action] || "manage_settings"),
+      environment_key: snapshot["environment_key"] || snapshot[:environment_key],
+      required_approvals: snapshot["required_approvals"] || snapshot[:required_approvals] || 0,
+      change_request_required?: snapshot["change_request_required?"] || snapshot[:change_request_required?] || false,
+      self_approval_allowed?: snapshot["self_approval_allowed?"] || snapshot[:self_approval_allowed?] || false
+    }
+  end
 
   defp ruleset_audit_state(nil), do: %{"rules" => []}
 
