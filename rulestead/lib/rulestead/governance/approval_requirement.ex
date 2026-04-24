@@ -3,8 +3,14 @@ defmodule Rulestead.Governance.ApprovalRequirement do
   Snapshot of the approval policy applied to a governed change request.
   """
 
-  @enforce_keys [:action, :environment_key, :required_approvals, :self_approval_allowed?]
-  defstruct [:action, :environment_key, :required_approvals, :self_approval_allowed?]
+  @enforce_keys [
+    :action,
+    :environment_key,
+    :required_approvals,
+    :change_request_required?,
+    :self_approval_allowed?
+  ]
+  defstruct [:action, :environment_key, :required_approvals, :change_request_required?, :self_approval_allowed?]
 
   @type action :: :publish_ruleset | :advance_rollout | :engage_kill_switch | :manage_settings
 
@@ -12,6 +18,7 @@ defmodule Rulestead.Governance.ApprovalRequirement do
           action: action(),
           environment_key: String.t() | nil,
           required_approvals: non_neg_integer(),
+          change_request_required?: boolean(),
           self_approval_allowed?: boolean()
         }
 
@@ -25,6 +32,7 @@ defmodule Rulestead.Governance.ApprovalRequirement do
       action: normalize_action(Map.get(attrs, :action)),
       environment_key: normalize_string(Map.get(attrs, :environment_key)),
       required_approvals: normalize_required_approvals(Map.get(attrs, :required_approvals)),
+      change_request_required?: normalize_boolean(Map.get(attrs, :change_request_required?)),
       self_approval_allowed?: normalize_boolean(Map.get(attrs, :self_approval_allowed?))
     }
   end
@@ -37,6 +45,7 @@ defmodule Rulestead.Governance.ApprovalRequirement do
       action: approval_requirement.action,
       environment_key: approval_requirement.environment_key,
       required_approvals: approval_requirement.required_approvals,
+      change_request_required?: approval_requirement.change_request_required?,
       self_approval_allowed?: approval_requirement.self_approval_allowed?
     }
   end

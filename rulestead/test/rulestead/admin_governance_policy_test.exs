@@ -7,28 +7,28 @@ defmodule Rulestead.AdminGovernancePolicyTest do
     assert {:change_request_required?, 4} in Rulestead.Admin.Policy.behaviour_info(:optional_callbacks)
     assert {:allow_self_approval?, 4} in Rulestead.Admin.Policy.behaviour_info(:optional_callbacks)
 
-    assert SelectiveGovernancePolicy.change_request_required?(
+    assert __MODULE__.SelectiveGovernancePolicy.change_request_required?(
              %{id: "operator-1"},
              :publish_ruleset,
              %{resource_type: :flag, resource_key: "checkout-redesign"},
              "production"
            )
 
-    refute SelectiveGovernancePolicy.change_request_required?(
+    refute __MODULE__.SelectiveGovernancePolicy.change_request_required?(
              %{id: "operator-1"},
              :publish_ruleset,
              %{resource_type: :flag, resource_key: "checkout-redesign"},
              "staging"
            )
 
-    refute SelectiveGovernancePolicy.allow_self_approval?(
+    refute __MODULE__.SelectiveGovernancePolicy.allow_self_approval?(
              %{id: "operator-1"},
              :publish_ruleset,
              %{resource_type: :flag, resource_key: "checkout-redesign"},
              "production"
            )
 
-    assert SelectiveGovernancePolicy.allow_self_approval?(
+    assert __MODULE__.SelectiveGovernancePolicy.allow_self_approval?(
              %{id: "operator-1"},
              :publish_ruleset,
              %{resource_type: :flag, resource_key: "checkout-redesign"},
