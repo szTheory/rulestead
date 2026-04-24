@@ -95,6 +95,31 @@ defmodule RulesteadAdmin.Components.FlagComponents do
     """
   end
 
+  attr :title, :string, required: true
+  attr :value, :any, required: true
+  attr :tone, :string, default: "neutral"
+
+  def stat(assigns) do
+    ~H"""
+    <article class="rs-stat" data-tone={@tone}>
+      <p class="rs-stat__title"><%= @title %></p>
+      <p class="rs-stat__value"><%= @value %></p>
+    </article>
+    """
+  end
+
+  attr :title, :string, required: true
+  slot :inner_block, required: true
+
+  def section_card(assigns) do
+    ~H"""
+    <section class="rs-card">
+      <h2><%= @title %></h2>
+      <div><%= render_slot(@inner_block) %></div>
+    </section>
+    """
+  end
+
   defp pagination_path(base_path, params, :next, %{next_cursor: cursor}) when is_binary(cursor) do
     build_path(base_path, Map.merge(params, %{"after" => cursor, "before" => nil}))
   end
