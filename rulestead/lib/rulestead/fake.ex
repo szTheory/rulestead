@@ -288,103 +288,121 @@ defmodule Rulestead.Fake do
   end
 
   def handle_call({:save_draft_ruleset, command}, _from, state) do
-    case with_mutable_context(state, command.flag_key, command.environment_key, fn flag,
-                                                                                   environment,
-                                                                                   flag_environment ->
-           version = next_ruleset_version(flag, environment.key)
+    case audit_only_result(state, command, "ruleset.save_draft") do
+      {:ok, result, next_state} ->
+        {:reply, result, next_state}
 
-           attrs = %{
-             flag_environment_id: flag_environment.id,
-             version: version,
-             status: :draft,
-             salt: Map.get(command.ruleset, :salt) || Map.get(command.ruleset, "salt"),
-             published_at: nil,
-             metadata:
-               Map.get(command.ruleset, :metadata) || Map.get(command.ruleset, "metadata") || %{},
-             rules: Map.get(command.ruleset, :rules) || Map.get(command.ruleset, "rules") || []
-           }
+      :continue ->
+        case with_mutable_context(state, command.flag_key, command.environment_key, fn flag,
+                                                                                       environment,
+                                                                                       flag_environment ->
+               version = next_ruleset_version(flag, environment.key)
 
-           changeset = Ruleset.changeset(%Ruleset{}, attrs)
+               attrs = %{
+                 flag_environment_id: flag_environment.id,
+                 version: version,
+                 status: :draft,
+                 salt: Map.get(command.ruleset, :salt) || Map.get(command.ruleset, "salt"),
+                 published_at: nil,
+                 metadata:
+                   Map.get(command.ruleset, :metadata) || Map.get(command.ruleset, "metadata") || %{},
+                 rules: Map.get(command.ruleset, :rules) || Map.get(command.ruleset, "rules") || []
+               }
 
-           case Changeset.apply_action(changeset, :insert) do
-             {:ok, ruleset} ->
-               ruleset_record = serialize_ruleset(ruleset, state.now)
-               next_state = put_ruleset(state, command.flag_key, environment.key, ruleset_record)
-               {:ok, %{version: ruleset_record.version, ruleset: ruleset_record}, next_state}
+               changeset = Ruleset.changeset(%Ruleset{}, attrs)
 
-             {:error, invalid_changeset} ->
-               {:error,
-                ruleset_error(invalid_changeset, command.flag_key, command.environment_key)}
-           end
-         end) do
-      {:ok, result, next_state} -> {:reply, {:ok, result}, next_state}
-      {:error, error} -> {:reply, {:error, error}, state}
+               case Changeset.apply_action(changeset, :insert) do
+                 {:ok, ruleset} ->
+                   ruleset_record = serialize_ruleset(ruleset, state.now)
+                   next_state = put_ruleset(state, command.flag_key, environment.key, ruleset_record)
+                   {:ok, %{version: ruleset_record.version, ruleset: ruleset_record}, next_state}
+
+                 {:error, invalid_changeset} ->
+                   {:error,
+                    ruleset_error(invalid_changeset, command.flag_key, command.environment_key)}
+               end
+             end) do
+          {:ok, result, next_state} -> {:reply, {:ok, result}, next_state}
+          {:error, error} -> {:reply, {:error, error}, state}
+        end
     end
   end
 
   def handle_call({:publish_ruleset, command}, _from, state) do
-    case with_mutable_context(state, command.flag_key, command.environment_key, fn flag,
-                                                                                   environment,
-                                                                                   flag_environment ->
-           case resolve_publishable_ruleset(flag, environment.key, command.version) do
-             {:ok, ruleset_record} ->
-               {:ok, next_state} =
-                 publish_ruleset_record(
-                   state,
-                   command.flag_key,
-                   environment.key,
-                   flag_environment,
-                   ruleset_record
-                 )
+    case audit_only_result(state, command, "ruleset.publish") do
+      {:ok, result, next_state} ->
+        {:reply, result, next_state}
 
-               refreshed_flag = next_state.flags[to_string(command.flag_key)]
-               refreshed_flag_environment = refreshed_flag.environments[environment.key]
+      :continue ->
+        case with_mutable_context(state, command.flag_key, command.environment_key, fn flag,
+                                                                                       environment,
+                                                                                       flag_environment ->
+               case resolve_publishable_ruleset(flag, environment.key, command.version) do
+                 {:ok, ruleset_record} ->
+                   {:ok, next_state} =
+                     publish_ruleset_record(
+                       state,
+                       command.flag_key,
+                       environment.key,
+                       flag_environment,
+                       ruleset_record
+                     )
 
-               payload =
-                 build_flag_detail_payload(next_state, refreshed_flag, environment, refreshed_flag_environment, true)
+                   refreshed_flag = next_state.flags[to_string(command.flag_key)]
+                   refreshed_flag_environment = refreshed_flag.environments[environment.key]
 
-               {:ok, payload, next_state}
+                   payload =
+                     build_flag_detail_payload(next_state, refreshed_flag, environment, refreshed_flag_environment, true)
 
-             {:error, error} ->
-               {:error, error}
-           end
-         end) do
-      {:ok, result, next_state} -> {:reply, {:ok, result}, next_state}
-      {:error, error} -> {:reply, {:error, error}, state}
+                   {:ok, payload, next_state}
+
+                 {:error, error} ->
+                   {:error, error}
+               end
+             end) do
+          {:ok, result, next_state} -> {:reply, {:ok, result}, next_state}
+          {:error, error} -> {:reply, {:error, error}, state}
+        end
     end
   end
 
   def handle_call({:archive_flag, command}, _from, state) do
     flag_key = to_string(command.flag_key)
 
-    case Map.fetch(state.flags, flag_key) do
-      :error ->
-        {:reply, {:error, StoreError.flag_not_found(command.flag_key, :all)}, state}
+    case audit_only_result(state, command, "flag.archive") do
+      {:ok, result, next_state} ->
+        {:reply, result, next_state}
 
-      {:ok, flag} ->
-        archived_at = flag.archived_at || state.now
+      :continue ->
+        case Map.fetch(state.flags, flag_key) do
+          :error ->
+            {:reply, {:error, StoreError.flag_not_found(command.flag_key, :all)}, state}
 
-        archived_flag =
-          flag
-          |> Map.put(:archived_at, archived_at)
-          |> Map.put(:updated_at, state.now)
-          |> Map.update!(:environments, fn environments ->
-            Map.new(environments, fn {environment_key, flag_environment} ->
-              {
-                environment_key,
-                flag_environment
-                |> Map.put(:status, :archived)
-                |> Map.put(:updated_at, state.now)
-              }
-            end)
-          end)
+          {:ok, flag} ->
+            archived_at = flag.archived_at || state.now
 
-        next_state =
-          put_in(state.flags[flag_key], archived_flag)
-          |> rebuild_flag_snapshots(archived_flag)
+            archived_flag =
+              flag
+              |> Map.put(:archived_at, archived_at)
+              |> Map.put(:updated_at, state.now)
+              |> Map.update!(:environments, fn environments ->
+                Map.new(environments, fn {environment_key, flag_environment} ->
+                  {
+                    environment_key,
+                    flag_environment
+                    |> Map.put(:status, :archived)
+                    |> Map.put(:updated_at, state.now)
+                  }
+                end)
+              end)
 
-        payload = build_archive_payload(archived_flag)
-        {:reply, {:ok, payload}, next_state}
+            next_state =
+              put_in(state.flags[flag_key], archived_flag)
+              |> rebuild_flag_snapshots(archived_flag)
+
+            payload = build_archive_payload(archived_flag)
+            {:reply, {:ok, payload}, next_state}
+        end
     end
   end
 
@@ -477,10 +495,9 @@ defmodule Rulestead.Fake do
   end
 
   def handle_call({:engage_kill_switch, command}, _from, state) do
-    case audit_only_result(command) do
-      {:ok, result} ->
-        {audit_event, next_state} = append_audit_event(state, command, "kill_switch.engage", :denied)
-        {:reply, result, %{next_state | audit_events: [audit_event | next_state.audit_events]}}
+    case audit_only_result(state, command, "kill_switch.engage") do
+      {:ok, result, next_state} ->
+        {:reply, result, next_state}
 
       :continue ->
         case with_mutable_context(state, command.flag_key, command.environment_key, fn _flag,
@@ -522,10 +539,9 @@ defmodule Rulestead.Fake do
   end
 
   def handle_call({:release_kill_switch, command}, _from, state) do
-    case audit_only_result(command) do
-      {:ok, result} ->
-        {audit_event, next_state} = append_audit_event(state, command, "kill_switch.release", :denied)
-        {:reply, result, %{next_state | audit_events: [audit_event | next_state.audit_events]}}
+    case audit_only_result(state, command, "kill_switch.release") do
+      {:ok, result, next_state} ->
+        {:reply, result, next_state}
 
       :continue ->
         case with_mutable_context(state, command.flag_key, command.environment_key, fn _flag,
@@ -955,9 +971,12 @@ defmodule Rulestead.Fake do
     }
   end
 
-  defp audit_only_result(command) do
+  defp audit_only_result(state, command, event_type) do
     case audit_result(command) do
-      :denied -> {:ok, {:error, Rulestead.AuthError.unauthorized()}}
+      :denied ->
+        {audit_event, next_state} = append_audit_event(state, command, event_type, :denied)
+        {:ok, {:ok, %{audit_event: audit_event}}, %{next_state | audit_events: [audit_event | next_state.audit_events]}}
+
       _other -> :continue
     end
   end

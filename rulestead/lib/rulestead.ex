@@ -104,16 +104,7 @@ defmodule Rulestead do
   """
   @spec save_draft_ruleset(Command.SaveDraftRuleset.t()) :: Store.result(map())
   def save_draft_ruleset(%Command.SaveDraftRuleset{} = command) do
-    Telemetry.span(
-      [:rulestead, :admin, :mutation],
-      Telemetry.metadata(
-        Telemetry.command_metadata(command, %{operation: "save_draft_ruleset", audit_action: "save_draft_ruleset"})
-      ),
-      fn ->
-        result = run_store(:save_draft_ruleset, [command], command)
-        {result, admin_stop_metadata(result, command)}
-      end
-    )
+    admin_write(:save_draft_ruleset, command)
   end
 
   @doc """
@@ -131,16 +122,7 @@ defmodule Rulestead do
   """
   @spec publish_ruleset(Command.PublishRuleset.t()) :: Store.result(map())
   def publish_ruleset(%Command.PublishRuleset{} = command) do
-    Telemetry.span(
-      [:rulestead, :admin, :mutation],
-      Telemetry.metadata(
-        Telemetry.command_metadata(command, %{operation: "publish_ruleset", audit_action: "publish_ruleset"})
-      ),
-      fn ->
-        result = run_store(:publish_ruleset, [command], command)
-        {result, admin_stop_metadata(result, command)}
-      end
-    )
+    admin_write(:publish_ruleset, command)
   end
 
   @doc """
@@ -158,16 +140,7 @@ defmodule Rulestead do
   """
   @spec archive_flag(Command.ArchiveFlag.t()) :: Store.result(map())
   def archive_flag(%Command.ArchiveFlag{} = command) do
-    Telemetry.span(
-      [:rulestead, :admin, :mutation],
-      Telemetry.metadata(
-        Telemetry.command_metadata(command, %{operation: "archive_flag", audit_action: "archive_flag"})
-      ),
-      fn ->
-        result = run_store(:archive_flag, [command], command)
-        {result, admin_stop_metadata(result, command)}
-      end
-    )
+    admin_write(:archive_flag, command)
   end
 
   @doc """
@@ -698,10 +671,17 @@ defmodule Rulestead do
   defp command_action(operation), do: operation
 
   defp maybe_persist_denied_mutation(operation, command, denied_audit)
-       when operation in [:engage_kill_switch, :release_kill_switch] do
+       when operation in [
+              :save_draft_ruleset,
+              :publish_ruleset,
+              :archive_flag,
+              :engage_kill_switch,
+              :release_kill_switch,
+              :rollback_audit_event
+            ] do
     denied_command =
       command
-      |> Map.put(:reason, command.reason || "unauthorized")
+      |> Map.put(:reason, Map.get(command, :reason) || "unauthorized")
       |> Map.put(
         :metadata,
         Map.merge(command.metadata, %{

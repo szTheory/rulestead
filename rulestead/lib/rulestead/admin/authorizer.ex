@@ -49,7 +49,7 @@ defmodule Rulestead.Admin.Authorizer do
   defp allowed?(actor, action, resource, environment_key) do
     case policy_module() do
       nil -> fallback_allow?(actor, action, environment_key)
-      policy -> policy.can?(actor, action, resource, environment_key) || fallback_allow?(actor, action, environment_key)
+      policy -> policy.can?(actor, action, resource, environment_key)
     end
   rescue
     _error -> false
