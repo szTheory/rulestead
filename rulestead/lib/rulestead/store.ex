@@ -42,4 +42,19 @@ defmodule Rulestead.Store do
   @callback fetch_scheduled_execution(Command.FetchScheduledExecution.t()) :: result(map())
   @callback list_scheduled_executions(Command.ListScheduledExecutions.t()) ::
               result(Command.Page.t(map()))
+
+  @callback receive_inbound_webhook(Command.ReceiveInboundWebhook.t()) :: result(map())
+  @callback fetch_webhook_record(Command.FetchWebhookRecord.t()) :: result(map())
+  @callback list_webhook_records(Command.ListWebhookRecords.t()) :: result(Command.Page.t(map()))
+
+  @callback create_webhook_destination(Command.CreateWebhookDestination.t()) :: result(map())
+  @callback update_webhook_destination(Command.UpdateWebhookDestination.t()) :: result(map())
+  @callback fetch_webhook_destination(Command.FetchWebhookDestination.t()) :: result(map())
+  @callback list_webhook_destinations(Command.ListWebhookDestinations.t()) ::
+              result(Command.Page.t(map()))
+
+  @callback list_webhook_deliveries(Command.ListWebhookDeliveries.t()) ::
+              result(Command.Page.t(map()))
+
+  @callback retry_webhook_delivery(Command.RetryWebhookDelivery.t()) :: result(map())
 end
