@@ -25,7 +25,7 @@ This milestone also closes the two bounded carryover items from `v0.1.0`:
 
 **Goal:** Establish the storage, domain contracts, policy hooks, and audit correlation model for governed mutations.
 **Depends on:** 8
-**Plans:** 5 planned slices
+**Plans:** 6 planned slices
 
 Plans:
 
@@ -84,14 +84,16 @@ Plans:
 **Goal:** Normalize webhook-driven governance events into the same trusted mutation path and expose delivery visibility for operators.
 **Depends on:** 9
 **Parallel with:** 11 after governance contracts settle
-**Plans:** 4 planned slices
+**Plans:** 6 planned slices
 
 Plans:
 
 - [ ] 12-01: Signed inbound webhook verifier, replay protection, and normalized change-event boundary
 - [ ] 12-02: Governed inbound execution path with audit metadata and failure handling
-- [ ] 12-03: Outbound webhook destinations, retry-safe delivery worker, and event selection surface
-- [ ] 12-04: Mounted admin visibility for webhook status, rejections, and delivery history
+- [ ] 12-03: Outbound webhook destinations, event contracts, and command surface
+- [ ] 12-04: Retry-safe outbound delivery worker, signing, telemetry, and exhausted-state handling
+- [ ] 12-05: Mounted admin visibility and accessibility for webhook status, rejections, and delivery history
+- [ ] 12-06: Mounted verifier script and route docs for shipped webhook visibility
 
 **Details:**
 
@@ -142,5 +144,16 @@ Plans:
 - Scheduled execution must remain idempotent and observable or it will create operator distrust.
 - Webhook ingress and outbound delivery have a high blast radius; they must stay on the same authorization and audit rails as direct admin actions.
 
+## Backlog
+
+### Phase 999.1: rulestead_sigra optional Sigra integration sibling package (BACKLOG)
+
+**Goal:** [Captured for future planning] Optional Sigra integration via a third sibling hex package (`rulestead_sigra`). Bridge plug + LiveView `on_mount` + AdminPolicy adapter (shape-bridge only — host supplies roles callback, no default). Reads Sigra `current_scope`/`admin_scope`, writes Rulestead's `current_actor` + `correlation_id` into the Phoenix session. Audit tables stay separate, joined via `correlation_id`. Impersonation: `actor.id` is the impersonator with impersonated user recorded in `metadata.context`. Defer org→environment mapping. Lean on `Sigra.Plug.RequireSudo` for step-up. Ship after v0.2.0, not mid-milestone. Architecture and risks captured at `/Users/jon/.claude/plans/so-i-m-considering-shimmering-kitten.md`.
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready)
+
 ---
-*Last updated: 2026-04-24 after completing 11-04*
+*Last updated: 2026-04-25 after capturing rulestead_sigra backlog item*
