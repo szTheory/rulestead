@@ -354,6 +354,195 @@ defmodule Rulestead do
   end
 
   @doc """
+  Records an inbound webhook receipt through the configured store adapter.
+  """
+  @spec receive_inbound_webhook(Command.ReceiveInboundWebhook.t()) :: Store.result(map())
+  def receive_inbound_webhook(%Command.ReceiveInboundWebhook{} = command) do
+    result = run_store(:receive_inbound_webhook, [command], command)
+
+    case result do
+      {:ok, receipt} ->
+        event = if receipt.verified_state == :accepted, do: :received, else: :rejected
+        Telemetry.execute([:rulestead, :ops, :webhook, event], %{count: 1}, Telemetry.webhook_metadata(receipt, %{reason: event}))
+
+      {:error, _error} ->
+        :ok
+    end
+
+    result
+  end
+
+  @doc """
+  Fetches one webhook receipt through the configured store adapter.
+  """
+  @spec fetch_webhook_record(String.t() | Command.FetchWebhookRecord.t(), keyword()) ::
+          Store.result(map())
+  def fetch_webhook_record(id_or_command, opts \\ [])
+
+  def fetch_webhook_record(%Command.FetchWebhookRecord{} = command, _opts) do
+    admin_read(:fetch_webhook_record, command)
+  end
+
+  def fetch_webhook_record(receipt_id, opts) when is_binary(receipt_id) do
+    receipt_id
+    |> Command.FetchWebhookRecord.new(opts)
+    |> fetch_webhook_record([])
+  end
+
+  @doc """
+  Lists webhook receipts through the configured store adapter.
+  """
+  @spec list_webhook_records(Command.ListWebhookRecords.t() | keyword()) ::
+          Store.result(Command.Page.t(map()))
+  def list_webhook_records(command_or_opts \\ [])
+
+  def list_webhook_records(%Command.ListWebhookRecords{} = command) do
+    admin_read(:list_webhook_records, command)
+  end
+
+  def list_webhook_records(opts) when is_list(opts) do
+    opts
+    |> Command.ListWebhookRecords.new()
+    |> list_webhook_records()
+  end
+
+  @doc """
+  Normalizes a verified inbound webhook event into the local governance path.
+  """
+  @spec execute_inbound_event(Rulestead.Webhooks.InboundEvent.t(), map()) :: Store.result(map())
+  def execute_inbound_event(%Rulestead.Webhooks.InboundEvent{} = event, receipt) do
+    actor = %{
+      id: "system:webhook:#{event.endpoint_key || event.provider}",
+      roles: [:operator, :prod_operator],
+      display: "Webhook Ingress (#{event.provider})"
+    }
+
+    metadata =
+      (event.metadata || %{})
+      |> Map.put("webhook_provider", event.provider)
+      |> Map.put("webhook_delivery_id", event.delivery_id)
+      |> Map.put("webhook_receipt_id", receipt.id)
+      |> Map.put("correlation_id", event.correlation_id)
+      |> Map.put("environment_key", event.payload["environment_key"])
+
+    # Convert inbound payload into a governance command
+    case inbound_to_command(event, actor, metadata) do
+      {:ok, command} ->
+        dispatch_governance_command(command)
+
+      {:error, error} ->
+        {:error, error}
+    end
+  end
+
+  defp inbound_to_command(event, actor, metadata) do
+    action = event.payload["action"]
+    resource_type = event.payload["resource_type"] || "flag"
+    resource_key = event.payload["resource_key"] || event.payload["flag_key"]
+    environment_key = event.payload["environment_key"]
+
+    case action do
+      "publish" ->
+        {:ok,
+         Command.PublishRuleset.new(resource_key, environment_key,
+           actor: actor,
+           version: event.payload["version"],
+           metadata: metadata
+         )}
+
+      "submit_change_request" ->
+        {:ok,
+         Command.SubmitChangeRequest.new(
+           %{
+             resource_type: stringify_resource(resource_type),
+             resource_key: resource_key,
+             environment_key: environment_key,
+             action: String.to_existing_atom(event.payload["command_operation"]),
+             command: event.payload["command_attrs"] || %{},
+             approval_requirement: %{
+               # Placeholder, will be resolved by Authorizer
+               action: String.to_existing_atom(event.payload["command_operation"]),
+               environment_key: environment_key,
+               required_approvals: 0,
+               change_request_required?: true,
+               self_approval_allowed?: false
+             }
+           },
+           actor: actor,
+           reason: event.payload["reason"],
+           metadata: metadata
+         )}
+
+      "engage_kill_switch" ->
+        {:ok,
+         Command.EngageKillSwitch.new(resource_key, environment_key,
+           actor: actor,
+           reason: event.payload["reason"],
+           metadata: metadata
+         )}
+
+      "release_kill_switch" ->
+        {:ok,
+         Command.ReleaseKillSwitch.new(resource_key, environment_key,
+           actor: actor,
+           reason: event.payload["reason"],
+           metadata: metadata
+         )}
+
+      "schedule_governed_action" ->
+        scheduled_for =
+          event.payload["scheduled_for"] ||
+            event.payload["received_at"] ||
+            event.received_at
+
+        execution_mode =
+          case event.payload["execution_mode"] do
+            nil -> :policy_bypass
+            mode when is_atom(mode) -> mode
+            mode when is_binary(mode) -> String.to_existing_atom(mode)
+          end
+
+        {:ok,
+         Command.ScheduleGovernedAction.new(
+           %{
+             action: String.to_existing_atom(event.payload["command_operation"]),
+             environment_key: environment_key,
+             resource_type: stringify_resource(resource_type),
+             resource_key: resource_key,
+             command: event.payload["command_attrs"] || %{},
+             scheduled_for: scheduled_for,
+             execution_mode: execution_mode
+           },
+           actor: actor,
+           reason: event.payload["reason"],
+           metadata: metadata
+         )}
+
+      # We can expand this list as needed
+      _ ->
+        {:error, StoreError.invalid_command("unsupported inbound webhook action: #{action}")}
+    end
+  end
+
+  defp dispatch_governance_command(%Command.PublishRuleset{} = command),
+    do: publish_ruleset(command)
+
+  defp dispatch_governance_command(%Command.SubmitChangeRequest{} = command),
+    do: submit_change_request(command)
+
+  defp dispatch_governance_command(%Command.EngageKillSwitch{} = command),
+    do: engage_kill_switch(command)
+
+  defp dispatch_governance_command(%Command.ReleaseKillSwitch{} = command),
+    do: release_kill_switch(command)
+
+  defp dispatch_governance_command(%Command.ScheduleGovernedAction{} = command),
+    do: schedule_governed_action(command)
+
+  defp dispatch_governance_command(_),
+    do: {:error, StoreError.invalid_command("unsupported governance command from webhook")}
+
+  @doc """
   Resolves whether a governed action must go through a change request.
   """
   @spec authorize_governed_action(term(), atom(), term(), String.t() | atom() | nil) ::
@@ -946,7 +1135,20 @@ defmodule Rulestead do
   end
 
   defp redact_command(command) do
-    allow = ["request_id", "source", "reason", "emergency_reason", "targeting_key", "plan", "nested.region"]
+    allow = [
+      "request_id",
+      "source",
+      "reason",
+      "emergency_reason",
+      "targeting_key",
+      "plan",
+      "nested.region",
+      "webhook_provider",
+      "webhook_delivery_id",
+      "webhook_receipt_id",
+      "correlation_id",
+      "environment_key"
+    ]
     redacted_metadata = Redaction.redact_metadata(Map.get(command, :metadata, %{}), allow: allow)
     Map.put(command, :metadata, redacted_metadata.audit)
   end

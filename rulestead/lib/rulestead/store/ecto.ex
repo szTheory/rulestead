@@ -26,7 +26,9 @@ defmodule Rulestead.Store.Ecto do
     RulesetError,
     Store,
     StoreError,
-    Telemetry
+    Telemetry,
+    Webhooks.Destination,
+    Webhooks.Delivery
   }
 
   alias Rulestead.Store.Command
@@ -1041,6 +1043,231 @@ defmodule Rulestead.Store.Ecto do
      }}
   end
 
+  @impl Store
+  def receive_inbound_webhook(%Command.ReceiveInboundWebhook{} = command) do
+    correlation_id = command.correlation_id || Ecto.UUID.generate()
+    inserted_at = now()
+
+    attrs = %{
+      provider: command.provider,
+      endpoint_key: command.endpoint_key,
+      delivery_id: command.delivery_id,
+      attempt_id: command.attempt_id,
+      topic: command.topic,
+      occurred_at: command.occurred_at,
+      received_at: command.received_at,
+      raw_body_sha256: command.raw_body_sha256,
+      verification_metadata: command.verification_metadata,
+      normalized_payload: command.normalized_payload,
+      dedupe_key: command.dedupe_key,
+      verified_state: Atom.to_string(command.verified_state),
+      rejection_reason: command.rejection_reason,
+      correlation_id: correlation_id,
+      inserted_at: inserted_at,
+      updated_at: inserted_at
+    }
+
+    Multi.new()
+    |> Multi.run(:receipt, fn repo, _changes ->
+      case repo.insert_all("webhook_receipts", [attrs], returning: webhook_receipt_fields()) do
+        {1, [row]} -> {:ok, normalize_webhook_receipt_row(row)}
+        _ -> {:error, StoreError.unavailable()}
+      end
+    end)
+    |> Multi.run(:replay_claim, fn repo, %{receipt: receipt} ->
+      if command.verified_state == :accepted and not is_nil(command.delivery_id) do
+        case repo.insert_all("webhook_replay_claims", [
+               %{
+                 provider: command.provider,
+                 delivery_id: command.delivery_id,
+                 receipt_id: uuid_param(receipt.id),
+                 inserted_at: inserted_at
+               }
+             ]) do
+          {1, _} -> {:ok, :recorded}
+          _ -> {:error, :duplicate}
+        end
+      else
+        {:ok, :skipped}
+      end
+    end)
+    |> Repo.transact()
+    |> case do
+      {:ok, %{receipt: receipt}} ->
+        {:ok, serialize_webhook_receipt_row(receipt)}
+
+      {:error, :replay_claim, :duplicate, _changes} ->
+        {:error, StoreError.invalid_command("duplicate webhook delivery")}
+
+      {:error, _operation, reason, _changes} ->
+        {:error, normalize_governance_failure(reason)}
+    end
+  rescue
+    error in [ConstraintError, Postgrex.Error] ->
+      {:error, StoreError.invalid_command("duplicate webhook delivery", cause: error)}
+  end
+
+  @impl Store
+  def fetch_webhook_record(%Command.FetchWebhookRecord{} = command) do
+    case from(wr in "webhook_receipts",
+           where: field(wr, :id) == ^uuid_param(command.receipt_id),
+           select: map(wr, ^webhook_receipt_fields())
+         )
+         |> Repo.one() do
+      nil -> {:error, StoreError.invalid_command("webhook record was not found")}
+      row -> {:ok, serialize_webhook_receipt_row(normalize_webhook_receipt_row(row))}
+    end
+  end
+
+  @impl Store
+  def list_webhook_records(%Command.ListWebhookRecords{} = command) do
+    entries =
+      from(wr in "webhook_receipts",
+        order_by: [desc: field(wr, :received_at), desc: field(wr, :inserted_at)],
+        limit: ^command.limit,
+        select: map(wr, ^webhook_receipt_fields())
+      )
+      |> maybe_filter_webhook_record(:provider, command.provider)
+      |> maybe_filter_webhook_record(:endpoint_key, command.endpoint_key)
+      |> maybe_filter_webhook_record(
+        :verified_state,
+        normalize_webhook_state_filter(command.verified_state)
+      )
+      |> maybe_filter_webhook_record(:topic, command.topic)
+      |> Repo.all()
+      |> Enum.map(&normalize_webhook_receipt_row/1)
+      |> Enum.map(&serialize_webhook_receipt_row/1)
+
+    {:ok,
+     %Command.Page{
+       entries: entries,
+       limit: command.limit,
+       has_next_page?: false,
+       has_previous_page?: false
+     }}
+  end
+
+  @impl Store
+  def create_webhook_destination(%Command.CreateWebhookDestination{} = command) do
+    attrs = %{
+      name: command.name,
+      description: command.description,
+      url: command.url,
+      secret_id: command.secret_id,
+      environment_key: command.environment_key,
+      subscriptions: command.subscriptions,
+      enabled: command.enabled,
+      metadata: command.metadata
+    }
+
+    %Destination{}
+    |> Destination.changeset(attrs)
+    |> Repo.insert()
+    |> case do
+      {:ok, destination} -> {:ok, serialize_webhook_destination(destination)}
+      {:error, changeset} -> {:error, StoreError.invalid_command("failed to create destination", cause: changeset)}
+    end
+  end
+
+  @impl Store
+  def update_webhook_destination(%Command.UpdateWebhookDestination{} = command) do
+    with {:ok, destination} <- fetch_destination_by_id(command.id) do
+      attrs =
+        %{
+          name: command.name,
+          description: command.description,
+          url: command.url,
+          secret_id: command.secret_id,
+          subscriptions: command.subscriptions,
+          enabled: command.enabled,
+          metadata: command.metadata
+        }
+        |> Enum.reject(fn {_k, v} -> is_nil(v) end)
+        |> Map.new()
+
+      destination
+      |> Destination.changeset(attrs)
+      |> Repo.update()
+      |> case do
+        {:ok, updated} -> {:ok, serialize_webhook_destination(updated)}
+        {:error, changeset} -> {:error, StoreError.invalid_command("failed to update destination", cause: changeset)}
+      end
+    end
+  end
+
+  @impl Store
+  def fetch_webhook_destination(%Command.FetchWebhookDestination{} = command) do
+    case fetch_destination_by_id(command.id) do
+      {:ok, destination} -> {:ok, serialize_webhook_destination(destination)}
+      error -> error
+    end
+  end
+
+  @impl Store
+  def list_webhook_destinations(%Command.ListWebhookDestinations{} = command) do
+    entries =
+      from(d in Destination,
+        order_by: [asc: d.name, asc: d.inserted_at],
+        limit: ^command.limit
+      )
+      |> maybe_filter_destination(:environment_key, command.environment_key)
+      |> Repo.all()
+      |> Enum.map(&serialize_webhook_destination/1)
+
+    {:ok,
+     %Command.Page{
+       entries: entries,
+       limit: command.limit,
+       has_next_page?: false,
+       has_previous_page?: false
+     }}
+  end
+
+  @impl Store
+  def list_webhook_deliveries(%Command.ListWebhookDeliveries{} = command) do
+    entries =
+      from(d in Delivery,
+        order_by: [desc: d.inserted_at],
+        limit: ^command.limit,
+        preload: [:webhook_outbound_event, :webhook_destination]
+      )
+      |> maybe_filter_delivery(:webhook_destination_id, command.destination_id)
+      |> maybe_filter_delivery(:webhook_outbound_event_id, command.event_id)
+      |> maybe_filter_delivery(:state, command.state)
+      |> Repo.all()
+      |> Enum.map(&serialize_webhook_delivery/1)
+
+    {:ok,
+     %Command.Page{
+       entries: entries,
+       limit: command.limit,
+       has_next_page?: false,
+       has_previous_page?: false
+     }}
+  end
+
+  @impl Store
+  def retry_webhook_delivery(%Command.RetryWebhookDelivery{} = command) do
+    case Repo.get(Delivery, command.delivery_id) do
+      nil ->
+        {:error, StoreError.invalid_command("delivery was not found")}
+
+      delivery ->
+        # Just reset state to pending, next worker run will pick it up
+        delivery
+        |> Delivery.changeset(%{
+          state: :pending,
+          attempt_count: 0,
+          terminal_failure_reason: nil
+        })
+        |> Repo.update()
+        |> case do
+          {:ok, updated} -> {:ok, serialize_webhook_delivery(updated)}
+          {:error, changeset} -> {:error, StoreError.invalid_command("failed to retry delivery", cause: changeset)}
+        end
+    end
+  end
+
   defp fetch_environment(environment_key) do
     case Repo.get_by(Environment, key: to_string(environment_key)) do
       nil -> {:error, StoreError.environment_not_found(environment_key)}
@@ -1892,7 +2119,8 @@ defmodule Rulestead.Store.Ecto do
       command: change_request.command_snapshot,
       approval_requirement:
         normalize_approval_requirement_snapshot(change_request.approval_requirement_snapshot),
-      correlation_id: change_request.correlation_id
+      correlation_id: change_request.correlation_id,
+      metadata: change_request.metadata
     }
     |> ChangeRequest.new()
     |> ChangeRequest.serialize()
@@ -3299,4 +3527,151 @@ defmodule Rulestead.Store.Ecto do
   end
 
   defp runtime_ruleset_payload(ruleset, _flag_environment), do: ruleset
+
+  defp webhook_receipt_fields do
+    [
+      :id,
+      :provider,
+      :endpoint_key,
+      :delivery_id,
+      :attempt_id,
+      :topic,
+      :occurred_at,
+      :received_at,
+      :raw_body_sha256,
+      :verification_metadata,
+      :normalized_payload,
+      :dedupe_key,
+      :verified_state,
+      :rejection_reason,
+      :correlation_id,
+      :change_request_id,
+      :scheduled_execution_id,
+      :inserted_at,
+      :updated_at
+    ]
+  end
+
+  defp normalize_webhook_receipt_row(row) when is_map(row) do
+    row
+    |> maybe_normalize_uuid(:id)
+    |> maybe_normalize_uuid(:change_request_id)
+    |> maybe_normalize_uuid(:scheduled_execution_id)
+  end
+
+  defp serialize_webhook_receipt_row(row) do
+    %{
+      id: row.id,
+      provider: row.provider,
+      endpoint_key: row.endpoint_key,
+      delivery_id: row.delivery_id,
+      attempt_id: row.attempt_id,
+      topic: row.topic,
+      occurred_at: row.occurred_at,
+      received_at: row.received_at,
+      raw_body_sha256: row.raw_body_sha256,
+      verification_metadata: row.verification_metadata || %{},
+      normalized_payload: row.normalized_payload || %{},
+      dedupe_key: row.dedupe_key,
+      verified_state: String.to_existing_atom(row.verified_state),
+      rejection_reason: row.rejection_reason,
+      correlation_id: row.correlation_id,
+      change_request_id: row.change_request_id,
+      scheduled_execution_id: row.scheduled_execution_id,
+      inserted_at: row.inserted_at,
+      updated_at: row.updated_at
+    }
+  end
+
+  defp maybe_filter_webhook_record(query, _field, nil), do: query
+
+  defp maybe_filter_webhook_record(query, field_name, value) do
+    where(query, [wr], field(wr, ^field_name) == ^to_string(value))
+  end
+
+  defp normalize_webhook_state_filter(nil), do: nil
+  defp normalize_webhook_state_filter(value) when is_atom(value), do: Atom.to_string(value)
+  defp normalize_webhook_state_filter(value) when is_binary(value), do: String.trim(value)
+
+  defp fetch_destination_by_id(id) do
+    case Repo.get(Destination, id) do
+      nil -> {:error, StoreError.invalid_command("webhook destination was not found")}
+      destination -> {:ok, destination}
+    end
+  end
+
+  defp serialize_webhook_destination(destination) do
+    %{
+      id: destination.id,
+      name: destination.name,
+      description: destination.description,
+      url: destination.url,
+      secret_id: destination.secret_id,
+      environment_key: destination.environment_key,
+      subscriptions: destination.subscriptions || [],
+      enabled: destination.enabled,
+      metadata: destination.metadata || %{},
+      inserted_at: destination.inserted_at,
+      updated_at: destination.updated_at
+    }
+  end
+
+  defp serialize_webhook_delivery(delivery) do
+    %{
+      id: delivery.id,
+      destination_id: delivery.webhook_destination_id,
+      event_id: delivery.webhook_outbound_event_id,
+      state: delivery.state,
+      attempt_count: delivery.attempt_count,
+      last_attempt_at: delivery.last_attempt_at,
+      next_attempt_at: delivery.next_attempt_at,
+      terminal_failure_reason: delivery.terminal_failure_reason,
+      last_response_code: delivery.last_response_code,
+      last_response_body: delivery.last_response_body,
+      inserted_at: delivery.inserted_at,
+      updated_at: delivery.updated_at,
+      # Preloaded associations
+      event: maybe_serialize_outbound_event(delivery.webhook_outbound_event),
+      destination: maybe_serialize_destination_summary(delivery.webhook_destination)
+    }
+  end
+
+  defp maybe_serialize_outbound_event(%Ecto.Association.NotLoaded{}), do: nil
+  defp maybe_serialize_outbound_event(nil), do: nil
+
+  defp maybe_serialize_outbound_event(event) do
+    %{
+      id: event.id,
+      event_type: event.event_type,
+      payload: event.payload,
+      resource_type: event.resource_type,
+      resource_key: event.resource_key,
+      environment_key: event.environment_key,
+      correlation_id: event.correlation_id,
+      inserted_at: event.inserted_at
+    }
+  end
+
+  defp maybe_serialize_destination_summary(%Ecto.Association.NotLoaded{}), do: nil
+  defp maybe_serialize_destination_summary(nil), do: nil
+
+  defp maybe_serialize_destination_summary(destination) do
+    %{
+      id: destination.id,
+      name: destination.name,
+      url: destination.url
+    }
+  end
+
+  defp maybe_filter_destination(query, _field, nil), do: query
+
+  defp maybe_filter_destination(query, field_name, value) do
+    where(query, [d], field(d, ^field_name) == ^to_string(value))
+  end
+
+  defp maybe_filter_delivery(query, _field, nil), do: query
+
+  defp maybe_filter_delivery(query, field_name, value) do
+    where(query, [d], field(d, ^field_name) == ^value)
+  end
 end

@@ -45,6 +45,11 @@ defmodule Rulestead.Fake do
           execution_attempts: %{required(String.t()) => [map()]},
           audit_events: [map()],
           snapshots: %{required(String.t()) => %{required(pos_integer()) => map()}},
+          webhook_receipts: %{required(String.t()) => map()},
+          webhook_replay_claims: %{required(String.t()) => %{required(String.t()) => String.t()}},
+          webhook_destinations: %{required(String.t()) => map()},
+          webhook_outbound_events: %{required(String.t()) => map()},
+          webhook_deliveries: %{required(String.t()) => map()},
           snapshot_reads_connected?: boolean()
         }
 
@@ -207,6 +212,51 @@ defmodule Rulestead.Fake do
   @impl Store
   def list_scheduled_executions(%Command.ListScheduledExecutions{} = command) do
     call({:list_scheduled_executions, command})
+  end
+
+  @impl Store
+  def receive_inbound_webhook(%Command.ReceiveInboundWebhook{} = command) do
+    call({:receive_inbound_webhook, command})
+  end
+
+  @impl Store
+  def fetch_webhook_record(%Command.FetchWebhookRecord{} = command) do
+    call({:fetch_webhook_record, command})
+  end
+
+  @impl Store
+  def list_webhook_records(%Command.ListWebhookRecords{} = command) do
+    call({:list_webhook_records, command})
+  end
+
+  @impl Store
+  def create_webhook_destination(%Command.CreateWebhookDestination{} = command) do
+    call({:create_webhook_destination, command})
+  end
+
+  @impl Store
+  def update_webhook_destination(%Command.UpdateWebhookDestination{} = command) do
+    call({:update_webhook_destination, command})
+  end
+
+  @impl Store
+  def fetch_webhook_destination(%Command.FetchWebhookDestination{} = command) do
+    call({:fetch_webhook_destination, command})
+  end
+
+  @impl Store
+  def list_webhook_destinations(%Command.ListWebhookDestinations{} = command) do
+    call({:list_webhook_destinations, command})
+  end
+
+  @impl Store
+  def list_webhook_deliveries(%Command.ListWebhookDeliveries{} = command) do
+    call({:list_webhook_deliveries, command})
+  end
+
+  @impl Store
+  def retry_webhook_delivery(%Command.RetryWebhookDelivery{} = command) do
+    call({:retry_webhook_delivery, command})
   end
 
   @doc false
@@ -1192,6 +1242,187 @@ defmodule Rulestead.Fake do
       }}, state}
   end
 
+  def handle_call({:receive_inbound_webhook, command}, _from, state) do
+    if command.verified_state == :accepted and
+         get_in(state.webhook_replay_claims, [command.provider, command.delivery_id]) do
+      {:reply, {:error, StoreError.invalid_command("duplicate webhook delivery")}, state}
+    else
+      id = Ecto.UUID.generate()
+      correlation_id = command.correlation_id || Ecto.UUID.generate()
+
+      receipt = %{
+        id: id,
+        provider: command.provider,
+        endpoint_key: command.endpoint_key,
+        delivery_id: command.delivery_id,
+        attempt_id: command.attempt_id,
+        topic: command.topic,
+        occurred_at: command.occurred_at,
+        received_at: command.received_at,
+        raw_body_sha256: command.raw_body_sha256,
+        verification_metadata: command.verification_metadata,
+        normalized_payload: command.normalized_payload,
+        dedupe_key: command.dedupe_key,
+        verified_state: command.verified_state,
+        rejection_reason: command.rejection_reason,
+        correlation_id: correlation_id,
+        inserted_at: state.now,
+        updated_at: state.now
+      }
+
+      next_state =
+        state
+        |> put_in([:webhook_receipts, id], receipt)
+        |> maybe_record_replay_claim(command, id)
+
+      {:reply, {:ok, receipt}, next_state}
+    end
+  end
+
+  def handle_call({:fetch_webhook_record, command}, _from, state) do
+    reply =
+      case Map.fetch(state.webhook_receipts, command.receipt_id) do
+        {:ok, receipt} -> {:ok, receipt}
+        :error -> {:error, StoreError.invalid_command("webhook record was not found")}
+      end
+
+    {:reply, reply, state}
+  end
+
+  def handle_call({:list_webhook_records, command}, _from, state) do
+    entries =
+      state.webhook_receipts
+      |> Map.values()
+      |> Enum.filter(&matches_webhook_filter?(&1, command))
+      |> Enum.sort_by(& &1.received_at, {:desc, DateTime})
+      |> Enum.take(command.limit)
+
+    {:reply,
+     {:ok,
+      %Command.Page{
+        entries: entries,
+        limit: command.limit,
+        has_next_page?: false,
+        has_previous_page?: false
+      }}, state}
+  end
+
+  def handle_call({:create_webhook_destination, command}, _from, state) do
+    id = Ecto.UUID.generate()
+
+    destination = %{
+      id: id,
+      name: command.name,
+      description: command.description,
+      url: command.url,
+      secret_id: command.secret_id,
+      environment_key: command.environment_key,
+      subscriptions: command.subscriptions,
+      enabled: command.enabled,
+      metadata: command.metadata,
+      inserted_at: state.now,
+      updated_at: state.now
+    }
+
+    next_state = put_in(state.webhook_destinations[id], destination)
+    {:reply, {:ok, destination}, next_state}
+  end
+
+  def handle_call({:update_webhook_destination, command}, _from, state) do
+    case Map.fetch(state.webhook_destinations, command.id) do
+      {:ok, destination} ->
+        attrs =
+          %{
+            name: command.name,
+            description: command.description,
+            url: command.url,
+            secret_id: command.secret_id,
+            subscriptions: command.subscriptions,
+            enabled: command.enabled,
+            metadata: command.metadata
+          }
+          |> Enum.reject(fn {_k, v} -> is_nil(v) end)
+          |> Map.new()
+
+        updated =
+          destination
+          |> Map.merge(attrs)
+          |> Map.put(:updated_at, state.now)
+
+        next_state = put_in(state.webhook_destinations[command.id], updated)
+        {:reply, {:ok, updated}, next_state}
+
+      :error ->
+        {:reply, {:error, StoreError.invalid_command("webhook destination was not found")}, state}
+    end
+  end
+
+  def handle_call({:fetch_webhook_destination, command}, _from, state) do
+    reply =
+      case Map.fetch(state.webhook_destinations, command.id) do
+        {:ok, destination} -> {:ok, destination}
+        :error -> {:error, StoreError.invalid_command("webhook destination was not found")}
+      end
+
+    {:reply, reply, state}
+  end
+
+  def handle_call({:list_webhook_destinations, command}, _from, state) do
+    entries =
+      state.webhook_destinations
+      |> Map.values()
+      |> Enum.filter(&matches_destination_filter?(&1, command))
+      |> Enum.sort_by(& &1.name)
+      |> Enum.take(command.limit)
+
+    {:reply,
+     {:ok,
+      %Command.Page{
+        entries: entries,
+        limit: command.limit,
+        has_next_page?: false,
+        has_previous_page?: false
+      }}, state}
+  end
+
+  def handle_call({:list_webhook_deliveries, command}, _from, state) do
+    entries =
+      state.webhook_deliveries
+      |> Map.values()
+      |> Enum.filter(&matches_delivery_filter?(&1, command))
+      |> Enum.sort_by(& &1.inserted_at, {:desc, DateTime})
+      |> Enum.take(command.limit)
+      |> Enum.map(&enrich_delivery(&1, state))
+
+    {:reply,
+     {:ok,
+      %Command.Page{
+        entries: entries,
+        limit: command.limit,
+        has_next_page?: false,
+        has_previous_page?: false
+      }}, state}
+  end
+
+  def handle_call({:retry_webhook_delivery, command}, _from, state) do
+    case Map.fetch(state.webhook_deliveries, command.delivery_id) do
+      {:ok, delivery} ->
+        updated = %{
+          delivery
+          | state: :pending,
+            attempt_count: 0,
+            terminal_failure_reason: nil,
+            updated_at: state.now
+        }
+
+        next_state = put_in(state.webhook_deliveries[command.delivery_id], updated)
+        {:reply, {:ok, enrich_delivery(updated, state)}, next_state}
+
+      :error ->
+        {:reply, {:error, StoreError.invalid_command("delivery was not found")}, state}
+    end
+  end
+
   defp call(message) do
     case Process.whereis(__MODULE__) do
       nil -> {:error, StoreError.unavailable(details: [%{message: "fake store is not started"}])}
@@ -1211,6 +1442,11 @@ defmodule Rulestead.Fake do
       audit_events: [],
       flags: %{},
       snapshots: %{},
+      webhook_receipts: %{},
+      webhook_replay_claims: %{},
+      webhook_destinations: %{},
+      webhook_outbound_events: %{},
+      webhook_deliveries: %{},
       snapshot_reads_connected?: true
     }
     |> seed_default_environment("development", "Development")
@@ -1664,7 +1900,8 @@ defmodule Rulestead.Fake do
       command: change_request.command_snapshot,
       approval_requirement:
         normalize_approval_requirement_snapshot(change_request.approval_requirement_snapshot),
-      correlation_id: change_request.correlation_id
+      correlation_id: change_request.correlation_id,
+      metadata: change_request.metadata
     }
     |> ChangeRequest.new()
     |> ChangeRequest.serialize()
@@ -2796,6 +3033,50 @@ defmodule Rulestead.Fake do
   end
 
   defp runtime_ruleset_payload(ruleset, _flag_environment), do: ruleset
+
+  defp maybe_record_replay_claim(
+         state,
+         %{verified_state: :accepted, delivery_id: delivery_id} = command,
+         receipt_id
+       )
+       when not is_nil(delivery_id) do
+    update_in(state.webhook_replay_claims, fn claims ->
+      provider_claims = Map.get(claims, command.provider, %{})
+      Map.put(claims, command.provider, Map.put(provider_claims, delivery_id, receipt_id))
+    end)
+  end
+
+  defp maybe_record_replay_claim(state, _command, _receipt_id), do: state
+
+  defp matches_webhook_filter?(receipt, command) do
+    matches_provider = is_nil(command.provider) or receipt.provider == to_string(command.provider)
+
+    matches_endpoint =
+      is_nil(command.endpoint_key) or receipt.endpoint_key == to_string(command.endpoint_key)
+
+    matches_state = is_nil(command.verified_state) or receipt.verified_state == command.verified_state
+    matches_topic = is_nil(command.topic) or receipt.topic == to_string(command.topic)
+
+    matches_provider and matches_endpoint and matches_state and matches_topic
+  end
+
+  defp matches_destination_filter?(destination, command) do
+    is_nil(command.environment_key) or destination.environment_key == to_string(command.environment_key)
+  end
+
+  defp matches_delivery_filter?(delivery, command) do
+    matches_dest = is_nil(command.destination_id) or delivery.webhook_destination_id == command.destination_id
+    matches_event = is_nil(command.event_id) or delivery.webhook_outbound_event_id == command.event_id
+    matches_state = is_nil(command.state) or delivery.state == command.state
+
+    matches_dest and matches_event and matches_state
+  end
+
+  defp enrich_delivery(delivery, state) do
+    delivery
+    |> Map.put(:event, Map.get(state.webhook_outbound_events, delivery.webhook_outbound_event_id))
+    |> Map.put(:destination, Map.get(state.webhook_destinations, delivery.webhook_destination_id))
+  end
 
   defp draft_ruleset_payloads(flag, environment_key) do
     flag.rulesets
