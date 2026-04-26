@@ -7,7 +7,7 @@ defmodule Rulestead.Telemetry do
 
   @handler_table :rulestead_telemetry_handlers
   @shared_keys ~w(flag_key flag_type environment snapshot_version cache_age_ms reason has_targeting_key? matched_rule_count)a
-  @optional_keys ~w(operation source refresh_status audit_action error_kind change_request_id correlation_id audit_event_id resource_key governance_action environment_key attempt_count execution_mode executed_by)a
+  @optional_keys ~w(operation source refresh_status audit_action error_kind change_request_id correlation_id audit_event_id resource_key governance_action environment_key attempt_count execution_mode executed_by webhook_provider webhook_delivery_id webhook_receipt_id rejection_reason)a
   @scheduled_execution_events %{
     scheduled: [:rulestead, :admin, :scheduled_execution, :scheduled],
     started: [:rulestead, :admin, :scheduled_execution, :started],
@@ -178,6 +178,21 @@ defmodule Rulestead.Telemetry do
     |> Map.put_new(:reason, Map.get(attrs, :event))
   end
 
+  @spec webhook_metadata(map(), map()) :: map()
+  def webhook_metadata(receipt, attrs \\ %{}) when is_map(receipt) and is_map(attrs) do
+    attrs = Map.new(attrs)
+
+    %{}
+    |> Map.put_new(:operation, "webhook_ingress")
+    |> Map.put_new(:webhook_provider, receipt[:provider] || receipt["provider"])
+    |> Map.put_new(:webhook_delivery_id, receipt[:delivery_id] || receipt["delivery_id"])
+    |> Map.put_new(:webhook_receipt_id, receipt[:id] || receipt["id"])
+    |> Map.put_new(:correlation_id, receipt[:correlation_id] || receipt["correlation_id"])
+    |> Map.put_new(:environment, receipt[:environment_key] || receipt["environment_key"])
+    |> Map.put_new(:rejection_reason, receipt[:rejection_reason] || receipt["rejection_reason"])
+    |> Map.put_new(:reason, Map.get(attrs, :reason))
+  end
+
   @spec dispatch(event_name(), map(), metadata(), event_name()) :: :ok
   def dispatch(event, measurements, metadata, registered_event) do
     ensure_handler_table()
@@ -249,7 +264,7 @@ defmodule Rulestead.Telemetry do
   defp sanitize_value(key, value) when key in [:has_targeting_key?] and is_boolean(value), do: value
   defp sanitize_value(key, value) when key in [:matched_rule_count] and is_integer(value) and value >= 0, do: value
   defp sanitize_value(key, value)
-       when key in [:flag_key, :environment, :environment_key, :operation, :audit_action, :change_request_id, :correlation_id, :audit_event_id, :resource_key, :governance_action, :execution_mode, :executed_by],
+       when key in [:flag_key, :environment, :environment_key, :operation, :audit_action, :change_request_id, :correlation_id, :audit_event_id, :resource_key, :governance_action, :execution_mode, :executed_by, :webhook_provider, :webhook_delivery_id, :webhook_receipt_id, :rejection_reason],
        do: stringify(value)
   defp sanitize_value(key, value) when key in [:flag_type, :reason, :source, :refresh_status, :error_kind], do: normalize_atom(value)
   defp sanitize_value(_key, _value), do: nil

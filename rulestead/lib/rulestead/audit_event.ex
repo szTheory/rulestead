@@ -58,6 +58,10 @@ defmodule Rulestead.AuditEvent do
     |> maybe_put("executed_by", scheduled_value(attrs, context, :executed_by))
     |> maybe_put("scheduled_by", scheduled_value(attrs, context, :scheduled_by))
     |> maybe_put("approved_by", scheduled_value(attrs, context, :approved_by))
+    |> maybe_put("webhook_provider", webhook_value(attrs, context, :webhook_provider))
+    |> maybe_put("webhook_delivery_id", webhook_value(attrs, context, :webhook_delivery_id))
+    |> maybe_put("webhook_receipt_id", webhook_value(attrs, context, :webhook_receipt_id))
+    |> maybe_put("rejection_reason", webhook_value(attrs, context, :rejection_reason))
   end
 
   @spec serialize(t()) :: map()
@@ -173,6 +177,14 @@ defmodule Rulestead.AuditEvent do
     |> Kernel.||(Map.get(attrs, Atom.to_string(key)))
     |> Kernel.||(Map.get(context, Atom.to_string(key)))
     |> normalize_scheduled_value()
+  end
+
+  defp webhook_value(attrs, context, key) do
+    attrs
+    |> Map.get(key)
+    |> Kernel.||(Map.get(attrs, Atom.to_string(key)))
+    |> Kernel.||(Map.get(context, Atom.to_string(key)))
+    |> normalize_governance_value()
   end
 
   defp drop_sensitive_context_keys(map) do
