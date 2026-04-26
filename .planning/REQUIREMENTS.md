@@ -24,7 +24,7 @@
 ### Webhooks & Integrations (HOOK)
 
 - [ ] **HOOK-01**: Rulestead can verify and reject malformed, unsigned, or replayed inbound webhook mutations before any state change occurs.
-- [ ] **HOOK-02**: Accepted inbound webhook events normalize into the same governed mutation path used by the admin UI and preserve audit metadata.
+- [x] **HOOK-02**: Accepted inbound webhook events normalize into the same governed mutation path used by the admin UI and preserve audit metadata.
 - [ ] **HOOK-03**: Host can configure outbound webhook destinations for high-impact governance events with retry-safe delivery semantics.
 - [ ] **HOOK-04**: Operators can inspect webhook delivery status or rejection reason without leaving the mounted admin surface.
 
@@ -71,7 +71,7 @@
 | SCH-03 | Phase 11 | Pending |
 | SCH-04 | Phase 10 | Completed in 10-02 |
 | HOOK-01 | Phase 12 | Pending |
-| HOOK-02 | Phase 12 | Pending |
+| HOOK-02 | Phase 12 | Completed in 12-02 |
 | HOOK-03 | Phase 12 | Pending |
 | HOOK-04 | Phase 12 | Pending |
 | OPS-01 | Phase 13 | Pending |
