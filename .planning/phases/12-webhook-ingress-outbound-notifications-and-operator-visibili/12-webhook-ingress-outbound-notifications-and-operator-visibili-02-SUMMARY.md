@@ -47,7 +47,7 @@ completed: 2026-04-26
 - **Duration:** 12m
 - **Started:** 2026-04-26T11:22:00Z
 - **Completed:** 2026-04-26T11:34:30Z
-- **Tasks:** 1
+- **Tasks:** 2
 - **Files modified:** 11
 
 ## Accomplishments
@@ -57,7 +57,8 @@ completed: 2026-04-26
 
 ## Task Commits
 
-1. **Task 1: Add public inbound normalization verbs that reuse governance policy and execution rails** - `9e9b47a` / `abfa425` (feat)
+1. **Task 1: Add public inbound normalization verbs that reuse governance policy and execution rails** - `9e9b47a` (feat)
+2. **Task 2: Persist correlated audit and telemetry evidence for accepted and failed inbound intent** - `abfa425` (feat)
 
 ## Files Created/Modified
 - `rulestead/lib/rulestead.ex` - inbound normalization entrypoint and governance dispatch.
