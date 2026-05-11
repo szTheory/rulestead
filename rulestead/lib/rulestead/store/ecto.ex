@@ -28,8 +28,7 @@ defmodule Rulestead.Store.Ecto do
     StoreError,
     Telemetry,
     Webhooks.Destination,
-    Webhooks.Delivery,
-    Webhooks.OutboundEvent
+    Webhooks.Delivery
   }
 
   alias Rulestead.Store.Command

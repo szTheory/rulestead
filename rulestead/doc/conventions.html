@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="ExDoc v0.40.1">
+    <meta name="project" content="rulestead v0.1.0">
+
+
+    <title>Conventions — rulestead v0.1.0</title>
+
+    <link rel="stylesheet" href="dist/html-elixir-YJO4MOOW.css" />
+
+    <script defer src="dist/sidebar_items-B3B45405.js"></script>
+    <script defer src="docs_config.js"></script>
+    <script defer src="dist/html-YU4BZFVS.js"></script>
+
+  </head>
+  <body>
+    <script>(()=>{var t="ex_doc:settings",e="dark";var o="dark",s="light";var E="sidebar_state",n="closed";var r="sidebar_width";var a="sidebar-open";var i=new URLSearchParams(window.location.search),S=i.get("theme")||JSON.parse(localStorage.getItem(t)||"{}").theme;(S===o||S!==s&&window.matchMedia("(prefers-color-scheme: dark)").matches)&&document.body.classList.add(e);var d=sessionStorage.getItem(E),A=d!==n&&!window.matchMedia(`screen and (max-width: ${768}px)`).matches;document.body.classList.toggle(a,A);var c=sessionStorage.getItem(r);c&&document.body.style.setProperty("--sidebarWidth",`${c}px`);var p=/(Macintosh|iPhone|iPad|iPod)/.test(window.navigator.userAgent);document.documentElement.classList.toggle("apple-os",p);})();
+</script>
+
+<div class="body-wrapper">
+
+<button id="sidebar-menu" class="sidebar-button sidebar-toggle" aria-label="toggle sidebar" aria-controls="sidebar">
+  <i class="ri-menu-line ri-lg" title="Collapse/expand sidebar"></i>
+</button>
+
+<nav id="sidebar" class="sidebar">
+
+  <div class="sidebar-header">
+    <div class="sidebar-projectInfo">
+
+      <div>
+        <a href="https://hexdocs.pm/rulestead" class="sidebar-projectName" translate="no">
+rulestead
+        </a>
+        <div class="sidebar-projectVersion" translate="no">
+          v0.1.0
+        </div>
+      </div>
+    </div>
+    <ul id="sidebar-list-nav" class="sidebar-list-nav" role="tablist" data-extras="Pages"></ul>
+  </div>
+</nav>
+
+<output role="status" id="toast"></output>
+
+<main class="content page-extra" id="main" data-type="extras">
+  <div id="content" class="content-inner">
+    <div class="top-search">
+      <div class="search-settings">
+        <form class="search-bar" action="search.html">
+          <label class="search-label">
+            <span class="sr-only">Search documentation of rulestead</span>
+            <div class="search-input-wrapper">
+              <input name="q" type="text" class="search-input" placeholder="Press / to search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+              <button type="button" tabindex="-1" class="search-close-button" aria-hidden="true">
+                <i class="ri-close-line ri-lg" title="Cancel search"></i>
+              </button>
+            </div>
+          </label>
+        </form>
+        <div class="autocomplete">
+        </div>
+        <div class="engine-selector" data-multiple="false">
+          <button type="button" class="engine-button" aria-label="Select search engine" aria-haspopup="true" aria-expanded="false">
+            <i class="ri-search-2-line" aria-hidden="true"></i>
+            <span class="engine-name">Default</span>
+            <i class="ri-arrow-down-s-line" aria-hidden="true"></i>
+          </button>
+          <div class="engine-dropdown" hidden role="menu">
+
+              <button type="button"
+                      class="engine-option"
+                      data-engine-url="search.html?q="
+                      role="menuitemradio"
+                      aria-checked="true">
+                <span class="name">Default</span>
+                <span class="help">In-browser search</span>
+              </button>
+
+          </div>
+        </div>
+        <button class="icon-settings display-settings">
+          <i class="ri-settings-3-line"></i>
+          <span class="sr-only">Settings</span>
+        </button>
+      </div>
+    </div>
+
+<div id="top-content">
+  <div class="heading-with-actions top-heading">
+    <h1>Conventions</h1>
+
+<a href="conventions.md" title="Copy Markdown (hold Ctrl/Cmd and click it to open as Markdown)" class="copy-markdown icon-action" rel="help">
+  <i class="ri-markdown-line" aria-hidden="true"></i>
+  <span class="sr-only">Copy Markdown</span>
+</a>
+
+
+      <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/../CONVENTIONS.md#L1" title="View Source" class="icon-action" rel="help">
+        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        <span class="sr-only">View Source</span>
+      </a>
+
+  </div>
+
+
+<p>This document states the discipline layer for the public <code class="inline">v0.1.0</code> release.
+These rules exist so the docs, tests, runtime behavior, and mounted admin seam
+stay aligned.</p><h2 id="principles" class="section-heading"><a href="#principles" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Principles</span></h2><ul><li>Runtime decisions must be deterministic for the same inputs</li><li>Rules are evaluated in order, and first match wins</li><li>Tenant and environment scope must be explicit, not ambient</li><li>Merge-blocking tests should prefer fake-backed workflows over live infra</li><li>Telemetry and audit paths must not carry raw PII by default</li></ul><h2 id="determinism" class="section-heading"><a href="#determinism" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Determinism</span></h2><p>Evaluation should produce the same result for the same flag definition,
+context, and snapshot. Sticky bucketing depends on stable inputs, so callers
+should provide explicit targeting identity instead of relying on hidden process
+state or request-global magic.</p><h2 id="precedence" class="section-heading"><a href="#precedence" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Precedence</span></h2><p>Rulesets are ordered documents. The first rule that matches controls the
+decision; the default value applies only when no rule matches. Documentation,
+tests, and operator workflows should describe precedence in that order rather
+than implying score-based or merge-based behavior.</p><h2 id="tenancy-and-environment-scope" class="section-heading"><a href="#tenancy-and-environment-scope" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Tenancy and environment scope</span></h2><p>Scope is always carried through explicit inputs such as
+<code class="inline">tenant_key</code>, <code class="inline">environment</code>, and host-provided session/query values. Do not
+assume cross-tenant defaults or implicit environment switching. If a host app
+mounts <code class="inline">rulestead_admin</code>, preserve the documented <code class="inline">?env=</code> query convention and
+provide the session values the package expects.</p><h2 id="testing-posture" class="section-heading"><a href="#testing-posture" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Testing posture</span></h2><p>The default test posture is fake first. Use <a href="Rulestead.Fake.html"><code class="inline">Rulestead.Fake</code></a> and the published
+test helpers for merge-blocking coverage, then layer integration tests on top
+when a seam specifically needs real framework proof. This keeps runtime tests
+fast, reproducible, and independent of live database setup on the hot path.</p><h2 id="privacy-and-redaction" class="section-heading"><a href="#privacy-and-redaction" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Privacy and redaction</span></h2><p>Telemetry and audit output should describe what happened without leaking raw
+traits, actor payloads, or secrets. The public telemetry contract is documented
+in <a href="telemetry.html">guides/flows/telemetry.md</a>; treat its bounded
+metadata spine and redaction rules as the default for adjacent instrumentation
+and operational docs.</p><h2 id="mechanical-guardrails" class="section-heading"><a href="#mechanical-guardrails" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Mechanical guardrails</span></h2><p>These conventions are backed by existing enforcement, not just prose:</p><ul><li>custom Credo checks already block raw trait keys in telemetry metadata</li><li>custom Credo checks already block raw trait keys in logger metadata</li><li>custom Credo checks already push evaluation entrypoints through the intended
+context boundary</li></ul><p>When you change a public-facing seam, update the docs and tests in the same
+change so the contract remains auditable.</p>
+
+</div>
+
+<div class="bottom-actions" id="bottom-actions">
+  <div class="bottom-actions-item">
+
+      <a href="readme.html" class="bottom-actions-button" rel="prev">
+        <span class="subheader">
+          ← Previous Page
+        </span>
+        <span class="title">
+rulestead
+        </span>
+      </a>
+
+  </div>
+  <div class="bottom-actions-item">
+
+      <a href="installation.html" class="bottom-actions-button" rel="next">
+        <span class="subheader">
+          Next Page →
+        </span>
+        <span class="title">
+Installation
+        </span>
+      </a>
+
+  </div>
+</div>
+    <footer class="footer">
+
+        <p>
+
+            <span class="line">
+              <a href="https://hex.pm/packages/rulestead/0.1.0">Hex Package</a>
+
+              <a href="https://preview.hex.pm/preview/rulestead/0.1.0">Hex Preview</a>
+
+                (<a href="https://preview.hex.pm/preview/rulestead/0.1.0/show/../CONVENTIONS.md">current file</a>)
+
+            </span>
+
+          <span class="line">
+            <button class="a-main footer-button display-quick-switch" title="Go to package docs">
+              Go to package docs
+            </button>
+
+              <a href="llms.txt" target="_blank">
+                View llms.txt
+              </a>
+
+
+              <a href="rulestead.epub">
+                Download ePub version
+              </a>
+
+          </span>
+        </p>
+
+        <p class="built-using">
+          Built using
+          <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.40.1) for the
+
+            <a href="https://elixir-lang.org" title="Elixir" target="_blank" translate="no">Elixir programming language</a>
+
+        </p>
+
+
+    </footer>
+  </div>
+</main>
+</div>
+
+  </body>
+</html>

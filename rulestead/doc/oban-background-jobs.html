@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="ExDoc v0.40.1">
+    <meta name="project" content="rulestead v0.1.0">
+
+
+    <title>Oban Background Jobs — rulestead v0.1.0</title>
+
+    <link rel="stylesheet" href="dist/html-elixir-YJO4MOOW.css" />
+
+    <script defer src="dist/sidebar_items-B3B45405.js"></script>
+    <script defer src="docs_config.js"></script>
+    <script defer src="dist/html-YU4BZFVS.js"></script>
+
+  </head>
+  <body>
+    <script>(()=>{var t="ex_doc:settings",e="dark";var o="dark",s="light";var E="sidebar_state",n="closed";var r="sidebar_width";var a="sidebar-open";var i=new URLSearchParams(window.location.search),S=i.get("theme")||JSON.parse(localStorage.getItem(t)||"{}").theme;(S===o||S!==s&&window.matchMedia("(prefers-color-scheme: dark)").matches)&&document.body.classList.add(e);var d=sessionStorage.getItem(E),A=d!==n&&!window.matchMedia(`screen and (max-width: ${768}px)`).matches;document.body.classList.toggle(a,A);var c=sessionStorage.getItem(r);c&&document.body.style.setProperty("--sidebarWidth",`${c}px`);var p=/(Macintosh|iPhone|iPad|iPod)/.test(window.navigator.userAgent);document.documentElement.classList.toggle("apple-os",p);})();
+</script>
+
+<div class="body-wrapper">
+
+<button id="sidebar-menu" class="sidebar-button sidebar-toggle" aria-label="toggle sidebar" aria-controls="sidebar">
+  <i class="ri-menu-line ri-lg" title="Collapse/expand sidebar"></i>
+</button>
+
+<nav id="sidebar" class="sidebar">
+
+  <div class="sidebar-header">
+    <div class="sidebar-projectInfo">
+
+      <div>
+        <a href="https://hexdocs.pm/rulestead" class="sidebar-projectName" translate="no">
+rulestead
+        </a>
+        <div class="sidebar-projectVersion" translate="no">
+          v0.1.0
+        </div>
+      </div>
+    </div>
+    <ul id="sidebar-list-nav" class="sidebar-list-nav" role="tablist" data-extras="Pages"></ul>
+  </div>
+</nav>
+
+<output role="status" id="toast"></output>
+
+<main class="content page-extra" id="main" data-type="extras">
+  <div id="content" class="content-inner">
+    <div class="top-search">
+      <div class="search-settings">
+        <form class="search-bar" action="search.html">
+          <label class="search-label">
+            <span class="sr-only">Search documentation of rulestead</span>
+            <div class="search-input-wrapper">
+              <input name="q" type="text" class="search-input" placeholder="Press / to search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+              <button type="button" tabindex="-1" class="search-close-button" aria-hidden="true">
+                <i class="ri-close-line ri-lg" title="Cancel search"></i>
+              </button>
+            </div>
+          </label>
+        </form>
+        <div class="autocomplete">
+        </div>
+        <div class="engine-selector" data-multiple="false">
+          <button type="button" class="engine-button" aria-label="Select search engine" aria-haspopup="true" aria-expanded="false">
+            <i class="ri-search-2-line" aria-hidden="true"></i>
+            <span class="engine-name">Default</span>
+            <i class="ri-arrow-down-s-line" aria-hidden="true"></i>
+          </button>
+          <div class="engine-dropdown" hidden role="menu">
+
+              <button type="button"
+                      class="engine-option"
+                      data-engine-url="search.html?q="
+                      role="menuitemradio"
+                      aria-checked="true">
+                <span class="name">Default</span>
+                <span class="help">In-browser search</span>
+              </button>
+
+          </div>
+        </div>
+        <button class="icon-settings display-settings">
+          <i class="ri-settings-3-line"></i>
+          <span class="sr-only">Settings</span>
+        </button>
+      </div>
+    </div>
+
+<div id="top-content">
+  <div class="heading-with-actions top-heading">
+    <h1>Oban Background Jobs</h1>
+
+<a href="oban-background-jobs.md" title="Copy Markdown (hold Ctrl/Cmd and click it to open as Markdown)" class="copy-markdown icon-action" rel="help">
+  <i class="ri-markdown-line" aria-hidden="true"></i>
+  <span class="sr-only">Copy Markdown</span>
+</a>
+
+
+      <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/../guides/recipes/oban-background-jobs.md#L1" title="View Source" class="icon-action" rel="help">
+        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        <span class="sr-only">View Source</span>
+      </a>
+
+  </div>
+
+
+<p>Rulestead's Oban seam is explicit and bounded. In <code class="inline">v0.1.0</code>, the supported job
+story is:</p><ul><li>attach a serialized <code class="inline">%Rulestead.Context{}</code> when enqueueing</li><li>restore that context inside the worker</li><li>evaluate through the normal runtime APIs</li></ul><p>There is no hidden process-dictionary propagation and no raw job payload magic.</p><h2 id="configure-the-middleware-seam" class="section-heading"><a href="#configure-the-middleware-seam" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Configure the middleware seam</span></h2><p>The generated host config wires Oban middleware like this:</p><pre><code class="makeup elixir" translate="no"><span class="n">config</span><span class="w"> </span><span class="ss">:rulestead</span><span class="p">,</span><span class="w"> </span><span class="ss">:host</span><span class="p">,</span><span class="w">
+  </span><span class="ss">oban</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="8915212713-1">[</span><span class="w">
+    </span><span class="ss">enabled</span><span class="p">:</span><span class="w"> </span><span class="no">true</span><span class="p">,</span><span class="w">
+    </span><span class="ss">context_key</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;rulestead_context&quot;</span><span class="p">,</span><span class="w">
+    </span><span class="ss">middlewares</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="8915212713-2">[</span><span class="p" data-group-id="8915212713-3">{</span><span class="nc">Rulestead.Oban.Middleware</span><span class="p">,</span><span class="w"> </span><span class="p" data-group-id="8915212713-4">[</span><span class="p" data-group-id="8915212713-4">]</span><span class="p" data-group-id="8915212713-3">}</span><span class="p" data-group-id="8915212713-2">]</span><span class="w">
+  </span><span class="p" data-group-id="8915212713-1">]</span></code></pre><p>That keeps the context key and middleware list explicit in host configuration.</p><h2 id="attach-context-when-enqueueing" class="section-heading"><a href="#attach-context-when-enqueueing" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Attach context when enqueueing</span></h2><p>When a request or LiveView action enqueues work, pass the current context
+deliberately:</p><pre><code class="makeup elixir" translate="no"><span class="n">job</span><span class="w"> </span><span class="o">=</span><span class="w">
+  </span><span class="p" data-group-id="5689406209-1">%</span><span class="nc" data-group-id="5689406209-1">Oban.Job</span><span class="p" data-group-id="5689406209-1">{</span><span class="ss">args</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="5689406209-2">%{</span><span class="s">&quot;task&quot;</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="s">&quot;sync&quot;</span><span class="p" data-group-id="5689406209-2">}</span><span class="p" data-group-id="5689406209-1">}</span><span class="w">
+  </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Rulestead.Oban.Middleware</span><span class="o">.</span><span class="n">attach</span><span class="p" data-group-id="5689406209-3">(</span><span class="w">
+    </span><span class="ss">context</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="5689406209-4">%{</span><span class="w">
+      </span><span class="ss">targeting_key</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;user-123&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="ss">environment</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;prod&quot;</span><span class="p">,</span><span class="w">
+      </span><span class="ss">request_id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;req_123&quot;</span><span class="w">
+    </span><span class="p" data-group-id="5689406209-4">}</span><span class="w">
+  </span><span class="p" data-group-id="5689406209-3">)</span></code></pre><p><a href="Rulestead.Oban.Middleware.html#attach/2"><code class="inline">Rulestead.Oban.Middleware.attach/2</code></a> requires <code class="inline">:context</code> and serializes only
+the bounded fields that the Oban seam supports.</p><h2 id="restore-context-in-the-worker" class="section-heading"><a href="#restore-context-in-the-worker" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Restore context in the worker</span></h2><p>Use the worker helper to rebuild context from the serialized payload:</p><pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">MyApp.SyncWorker</span><span class="w"> </span><span class="k" data-group-id="8442941473-1">do</span><span class="w">
+  </span><span class="kn">use</span><span class="w"> </span><span class="nc">Rulestead.Oban.Worker</span><span class="w">
+
+  </span><span class="kd">def</span><span class="w"> </span><span class="nf">perform</span><span class="p" data-group-id="8442941473-2">(</span><span class="p" data-group-id="8442941473-3">%</span><span class="nc" data-group-id="8442941473-3">Oban.Job</span><span class="p" data-group-id="8442941473-3">{</span><span class="p" data-group-id="8442941473-3">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">job</span><span class="p" data-group-id="8442941473-2">)</span><span class="w"> </span><span class="k" data-group-id="8442941473-4">do</span><span class="w">
+    </span><span class="n">context</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">rulestead_context</span><span class="p" data-group-id="8442941473-5">(</span><span class="n">job</span><span class="p" data-group-id="8442941473-5">)</span><span class="w">
+
+    </span><span class="nc">Rulestead.Runtime</span><span class="o">.</span><span class="n">enabled?</span><span class="p" data-group-id="8442941473-6">(</span><span class="s">&quot;prod&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;sync-enabled&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">context</span><span class="p" data-group-id="8442941473-6">)</span><span class="w">
+  </span><span class="k" data-group-id="8442941473-4">end</span><span class="w">
+</span><span class="k" data-group-id="8442941473-1">end</span></code></pre><p>If you prefer, call <a href="Rulestead.Oban.html#context_from_job/1"><code class="inline">Rulestead.Oban.context_from_job/1</code></a> directly. The contract
+is the same: restore only the bounded serialized payload, not arbitrary process
+state.</p><h2 id="what-gets-serialized" class="section-heading"><a href="#what-gets-serialized" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">What gets serialized</span></h2><p>The Oban seam keeps only bounded context fields such as:</p><ul><li><code class="inline">actor</code></li><li><code class="inline">targeting_key</code></li><li><code class="inline">tenant_key</code></li><li><code class="inline">environment</code></li><li><code class="inline">attributes</code></li><li><code class="inline">request_id</code></li><li><code class="inline">session_id</code></li><li><code class="inline">strict?</code></li></ul><p>Rulestead does not serialize raw <code class="inline">Plug.Conn</code>, LiveView socket, or arbitrary
+application structs into job payloads.</p><h2 id="keep-evaluation-in-the-worker-explicit" class="section-heading"><a href="#keep-evaluation-in-the-worker-explicit" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Keep evaluation in the worker explicit</span></h2><p>Inside the worker, evaluate flags the same way application code does elsewhere:</p><pre><code class="makeup elixir" translate="no"><span class="n">context</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">rulestead_context</span><span class="p" data-group-id="1415916436-1">(</span><span class="n">job</span><span class="p" data-group-id="1415916436-1">)</span><span class="w">
+</span><span class="p" data-group-id="1415916436-2">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="n">enabled?</span><span class="p" data-group-id="1415916436-2">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nc">Rulestead.Runtime</span><span class="o">.</span><span class="n">enabled?</span><span class="p" data-group-id="1415916436-3">(</span><span class="n">context</span><span class="o">.</span><span class="n">environment</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;sync-enabled&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">context</span><span class="p" data-group-id="1415916436-3">)</span></code></pre><p>That preserves one runtime contract across HTTP, LiveView, and Oban.</p><h2 id="use-jobs-for-work-not-for-control-plane-invention" class="section-heading"><a href="#use-jobs-for-work-not-for-control-plane-invention" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Use jobs for work, not for control-plane invention</span></h2><p>This seam is for propagating evaluation context into background work. It is not
+a promise of hosted rollout orchestration, governance queues, or hidden admin
+mutation pipelines.</p><p>If your app wants those workflows, build them in your own layer and keep
+Rulestead as the runtime decision engine plus bounded context carrier.</p>
+
+</div>
+
+<div class="bottom-actions" id="bottom-actions">
+  <div class="bottom-actions-item">
+
+      <a href="ecto-conventions.html" class="bottom-actions-button" rel="prev">
+        <span class="subheader">
+          ← Previous Page
+        </span>
+        <span class="title">
+Ecto Conventions
+        </span>
+      </a>
+
+  </div>
+  <div class="bottom-actions-item">
+
+      <a href="deployment.html" class="bottom-actions-button" rel="next">
+        <span class="subheader">
+          Next Page →
+        </span>
+        <span class="title">
+Deployment
+        </span>
+      </a>
+
+  </div>
+</div>
+    <footer class="footer">
+
+        <p>
+
+            <span class="line">
+              <a href="https://hex.pm/packages/rulestead/0.1.0">Hex Package</a>
+
+              <a href="https://preview.hex.pm/preview/rulestead/0.1.0">Hex Preview</a>
+
+                (<a href="https://preview.hex.pm/preview/rulestead/0.1.0/show/../guides/recipes/oban-background-jobs.md">current file</a>)
+
+            </span>
+
+          <span class="line">
+            <button class="a-main footer-button display-quick-switch" title="Go to package docs">
+              Go to package docs
+            </button>
+
+              <a href="llms.txt" target="_blank">
+                View llms.txt
+              </a>
+
+
+              <a href="rulestead.epub">
+                Download ePub version
+              </a>
+
+          </span>
+        </p>
+
+        <p class="built-using">
+          Built using
+          <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.40.1) for the
+
+            <a href="https://elixir-lang.org" title="Elixir" target="_blank" translate="no">Elixir programming language</a>
+
+        </p>
+
+
+    </footer>
+  </div>
+</main>
+</div>
+
+  </body>
+</html>

@@ -1,0 +1,1738 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="ExDoc v0.40.1">
+    <meta name="project" content="rulestead v0.1.0">
+
+
+    <title>Rulestead — rulestead v0.1.0</title>
+
+    <link rel="stylesheet" href="dist/html-elixir-YJO4MOOW.css" />
+
+    <script defer src="dist/sidebar_items-B3B45405.js"></script>
+    <script defer src="docs_config.js"></script>
+    <script defer src="dist/html-YU4BZFVS.js"></script>
+
+  </head>
+  <body>
+    <script>(()=>{var t="ex_doc:settings",e="dark";var o="dark",s="light";var E="sidebar_state",n="closed";var r="sidebar_width";var a="sidebar-open";var i=new URLSearchParams(window.location.search),S=i.get("theme")||JSON.parse(localStorage.getItem(t)||"{}").theme;(S===o||S!==s&&window.matchMedia("(prefers-color-scheme: dark)").matches)&&document.body.classList.add(e);var d=sessionStorage.getItem(E),A=d!==n&&!window.matchMedia(`screen and (max-width: ${768}px)`).matches;document.body.classList.toggle(a,A);var c=sessionStorage.getItem(r);c&&document.body.style.setProperty("--sidebarWidth",`${c}px`);var p=/(Macintosh|iPhone|iPad|iPod)/.test(window.navigator.userAgent);document.documentElement.classList.toggle("apple-os",p);})();
+</script>
+
+<div class="body-wrapper">
+
+<button id="sidebar-menu" class="sidebar-button sidebar-toggle" aria-label="toggle sidebar" aria-controls="sidebar">
+  <i class="ri-menu-line ri-lg" title="Collapse/expand sidebar"></i>
+</button>
+
+<nav id="sidebar" class="sidebar">
+
+  <div class="sidebar-header">
+    <div class="sidebar-projectInfo">
+
+      <div>
+        <a href="https://hexdocs.pm/rulestead" class="sidebar-projectName" translate="no">
+rulestead
+        </a>
+        <div class="sidebar-projectVersion" translate="no">
+          v0.1.0
+        </div>
+      </div>
+    </div>
+    <ul id="sidebar-list-nav" class="sidebar-list-nav" role="tablist" data-extras="Pages"></ul>
+  </div>
+</nav>
+
+<output role="status" id="toast"></output>
+
+<main class="content page-module" id="main" data-type="modules">
+  <div id="content" class="content-inner">
+    <div class="top-search">
+      <div class="search-settings">
+        <form class="search-bar" action="search.html">
+          <label class="search-label">
+            <span class="sr-only">Search documentation of rulestead</span>
+            <div class="search-input-wrapper">
+              <input name="q" type="text" class="search-input" placeholder="Press / to search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+              <button type="button" tabindex="-1" class="search-close-button" aria-hidden="true">
+                <i class="ri-close-line ri-lg" title="Cancel search"></i>
+              </button>
+            </div>
+          </label>
+        </form>
+        <div class="autocomplete">
+        </div>
+        <div class="engine-selector" data-multiple="false">
+          <button type="button" class="engine-button" aria-label="Select search engine" aria-haspopup="true" aria-expanded="false">
+            <i class="ri-search-2-line" aria-hidden="true"></i>
+            <span class="engine-name">Default</span>
+            <i class="ri-arrow-down-s-line" aria-hidden="true"></i>
+          </button>
+          <div class="engine-dropdown" hidden role="menu">
+
+              <button type="button"
+                      class="engine-option"
+                      data-engine-url="search.html?q="
+                      role="menuitemradio"
+                      aria-checked="true">
+                <span class="name">Default</span>
+                <span class="help">In-browser search</span>
+              </button>
+
+          </div>
+        </div>
+        <button class="icon-settings display-settings">
+          <i class="ri-settings-3-line"></i>
+          <span class="sr-only">Settings</span>
+        </button>
+      </div>
+    </div>
+
+<div id="top-content">
+  <div class="heading-with-actions top-heading">
+    <h1>
+      <span translate="no">Rulestead</span> 
+      <small class="app-vsn" translate="no">(rulestead v0.1.0)</small>
+
+    </h1>
+
+<a href="Rulestead.md" title="Copy Markdown (hold Ctrl/Cmd and click it to open as Markdown)" class="copy-markdown icon-action" rel="help">
+  <i class="ri-markdown-line" aria-hidden="true"></i>
+  <span class="sr-only">Copy Markdown</span>
+</a>
+
+
+
+      <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L1" title="View Source" class="icon-action" rel="help">
+        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        <span class="sr-only">View Source</span>
+      </a>
+
+  </div>
+
+
+    <section id="moduledoc">
+<p>Root public module for the <code class="inline">rulestead</code> package.</p><p>Phase 3 keeps the store-facing APIs from Phase 2 and adds the pure evaluator
+over an explicit in-memory authored flag payload:</p><ul><li><p>store-facing calls return <code class="inline">{:ok, value} | {:error, %Rulestead.Error{}}</code></p></li><li>bang variants raise the same <code class="inline">%Rulestead.Error{}</code></li><li>evaluation helpers consume an authored flag payload first and explicit
+context second</li></ul>
+    </section>
+
+</div>
+
+  <section id="summary" class="details-list">
+    <h2 class="section-heading">
+      <a class="hover-link" href="#summary">
+        <i class="ri-link-m" aria-hidden="true"></i>
+      </a>
+      <span class="text">Summary</span>
+    </h2>
+<div class="summary-functions summary">
+  <h3>
+    <a href="#functions">Functions</a>
+  </h3>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#archive_flag/1" data-no-tooltip="" translate="no">archive_flag(command)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Archives a flag through the configured store adapter.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#archive_flag!/1" data-no-tooltip="" translate="no">archive_flag!(command)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Bang variant of <a href="#archive_flag/1"><code class="inline">archive_flag/1</code></a>.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#create_flag/1" data-no-tooltip="" translate="no">create_flag(command)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Creates a flag through the configured store adapter.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#create_flag/2" data-no-tooltip="" translate="no">create_flag(attrs, opts \\ [])</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Creates a flag from root-level attributes.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#diagnostics/0" data-no-tooltip="" translate="no">diagnostics()</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Returns bounded runtime diagnostics for the local node.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#enabled?/2" data-no-tooltip="" translate="no">enabled?(flag_payload, context)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Returns the boolean enabled projection for an authored flag payload.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#engage_kill_switch/1" data-no-tooltip="" translate="no">engage_kill_switch(command)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Engages a per-flag per-environment kill switch.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#engage_kill_switch/4" data-no-tooltip="" translate="no">engage_kill_switch(flag_key, environment_key, actor, opts \\ [])</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#evaluate/3" data-no-tooltip="" translate="no">evaluate(flag_payload, context, opts \\ [])</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Evaluates an authored in-memory flag payload against an explicit context.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#evaluate!/3" data-no-tooltip="" translate="no">evaluate!(flag_payload, context, opts \\ [])</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Bang variant of <a href="#evaluate/3"><code class="inline">evaluate/3</code></a>.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#explain/2" data-no-tooltip="" translate="no">explain(flag_payload, context)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Returns a human-readable explanation derived from the evaluation trace.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#explain_flag/4" data-no-tooltip="" translate="no">explain_flag(flag_key, environment_key, context, opts \\ [])</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Admin-safe explain seam for one flag and environment.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#fetch_flag/1" data-no-tooltip="" translate="no">fetch_flag(command)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Fetches the authored flag state for a pre-built store command.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#fetch_flag/3" data-no-tooltip="" translate="no">fetch_flag(flag_key, environment_key, opts \\ [])</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Fetches the authored flag state for a <code class="inline">flag_key</code> and <code class="inline">environment_key</code>.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#fetch_flag!/3" data-no-tooltip="" translate="no">fetch_flag!(flag_key, environment_key, opts \\ [])</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Bang variant of <a href="#fetch_flag/3"><code class="inline">fetch_flag/3</code></a>.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#get_value/3" data-no-tooltip="" translate="no">get_value(flag_payload, context, default)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Returns the projected value for an authored flag payload.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#get_variant/2" data-no-tooltip="" translate="no">get_variant(flag_payload, context)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Returns the assigned variant key for an authored flag payload.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#list_audiences/0" data-no-tooltip="" translate="no">list_audiences()</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Lists reusable audiences through the configured store adapter.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#list_audiences/1" data-no-tooltip="" translate="no">list_audiences(opts)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#list_audit_events/1" data-no-tooltip="" translate="no">list_audit_events(command_or_opts \\ Command.ListAuditEvents.new())</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Lists redacted audit events for one flag or all flags.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#list_environments/0" data-no-tooltip="" translate="no">list_environments()</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Lists environments through the configured store adapter.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#list_environments/1" data-no-tooltip="" translate="no">list_environments(opts)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#list_flags/0" data-no-tooltip="" translate="no">list_flags()</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Lists flags through the configured store adapter.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#list_flags/1" data-no-tooltip="" translate="no">list_flags(opts)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#list_flags!/1" data-no-tooltip="" translate="no">list_flags!(command \\ Command.ListFlags.new())</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Bang variant of <a href="#list_flags/0"><code class="inline">list_flags/0</code></a> and <a href="#list_flags/1"><code class="inline">list_flags/1</code></a>.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#publish_ruleset/1" data-no-tooltip="" translate="no">publish_ruleset(command)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Publishes a ruleset version through the configured store adapter.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#publish_ruleset!/1" data-no-tooltip="" translate="no">publish_ruleset!(command)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Bang variant of <a href="#publish_ruleset/1"><code class="inline">publish_ruleset/1</code></a>.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#record_evaluation/1" data-no-tooltip="" translate="no">record_evaluation(command)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Records bounded evaluation freshness for one flag/environment pair.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#record_evaluation/3" data-no-tooltip="" translate="no">record_evaluation(flag_key, environment_key, last_evaluated_at)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Records bounded evaluation freshness using root-level arguments.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#release_kill_switch/1" data-no-tooltip="" translate="no">release_kill_switch(command)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Releases a per-flag per-environment kill switch.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#release_kill_switch/4" data-no-tooltip="" translate="no">release_kill_switch(flag_key, environment_key, actor, opts \\ [])</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#rollback_audit_event/1" data-no-tooltip="" translate="no">rollback_audit_event(command)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Writes a linked inverse action for a prior audit event.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#rollback_audit_event/2" data-no-tooltip="" translate="no">rollback_audit_event(audit_event_id, opts \\ [])</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#save_draft_ruleset/1" data-no-tooltip="" translate="no">save_draft_ruleset(command)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Saves a draft ruleset through the configured store adapter.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#save_draft_ruleset!/1" data-no-tooltip="" translate="no">save_draft_ruleset!(command)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Bang variant of <a href="#save_draft_ruleset/1"><code class="inline">save_draft_ruleset/1</code></a>.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#simulate_flag/4" data-no-tooltip="" translate="no">simulate_flag(flag_key, environment_key, context, opts \\ [])</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Admin-safe runtime simulation for one flag and environment.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#update_flag/1" data-no-tooltip="" translate="no">update_flag(command)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Updates flag metadata through the configured store adapter.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#update_flag/3" data-no-tooltip="" translate="no">update_flag(flag_key, attrs, opts \\ [])</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Updates a flag from root-level attributes.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#version/0" data-no-tooltip="" translate="no">version()</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Returns the package version.</p></div>
+
+    </div>
+
+</div>
+
+  </section>
+
+
+  <section id="functions" class="details-list">
+    <h2 class="section-heading">
+      <a class="hover-link" href="#functions">
+        <i class="ri-link-m" aria-hidden="true"></i>
+      </a>
+      <span class="text">Functions</span>
+    </h2>
+
+    <div class="functions-list">
+<section class="detail" id="archive_flag/1">
+
+  <div class="detail-header">
+    <a href="#archive_flag/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">archive_flag(command)</h1>
+
+
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L142" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> archive_flag(Rulestead.Store.Command.ArchiveFlag.t()) ::
+  <a href="Rulestead.Store.html#t:result/1">Rulestead.Store.result</a>(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>())</pre>
+
+      </div>
+
+<p>Archives a flag through the configured store adapter.</p>
+  </section>
+</section>
+<section class="detail" id="archive_flag!/1">
+
+  <div class="detail-header">
+    <a href="#archive_flag!/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">archive_flag!(command)</h1>
+
+
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L150" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> archive_flag!(Rulestead.Store.Command.ArchiveFlag.t()) :: <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()</pre>
+
+      </div>
+
+<p>Bang variant of <a href="#archive_flag/1"><code class="inline">archive_flag/1</code></a>.</p>
+  </section>
+</section>
+<section class="detail" id="create_flag/1">
+
+  <div class="detail-header">
+    <a href="#create_flag/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">create_flag(command)</h1>
+
+
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L60" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> create_flag(Rulestead.Store.Command.CreateFlag.t()) ::
+  <a href="Rulestead.Store.html#t:result/1">Rulestead.Store.result</a>(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>())</pre>
+
+      </div>
+
+<p>Creates a flag through the configured store adapter.</p>
+  </section>
+</section>
+<section class="detail" id="create_flag/2">
+
+  <div class="detail-header">
+    <a href="#create_flag/2" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">create_flag(attrs, opts \\ [])</h1>
+
+
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L68" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> create_flag(
+  <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>() | <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">keyword</a>(),
+  <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">keyword</a>()
+) :: <a href="Rulestead.Store.html#t:result/1">Rulestead.Store.result</a>(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>())</pre>
+
+      </div>
+
+<p>Creates a flag from root-level attributes.</p>
+  </section>
+</section>
+<section class="detail" id="diagnostics/0">
+
+  <div class="detail-header">
+    <a href="#diagnostics/0" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">diagnostics()</h1>
+
+
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L436" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> diagnostics() :: <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()</pre>
+
+      </div>
+
+<p>Returns bounded runtime diagnostics for the local node.</p>
+  </section>
+</section>
+<section class="detail" id="enabled?/2">
+
+  <div class="detail-header">
+    <a href="#enabled?/2" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">enabled?(flag_payload, context)</h1>
+
+
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L359" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> enabled?(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>(), <a href="Rulestead.Context.html#t:t/0">Rulestead.Context.t</a>() | <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">keyword</a>() | <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()) ::
+  {:ok, <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">boolean</a>()} | {:error, <a href="Rulestead.Error.html#t:t/0">Rulestead.Error.t</a>()}</pre>
+
+      </div>
+
+<p>Returns the boolean enabled projection for an authored flag payload.</p>
+  </section>
+</section>
+<section class="detail" id="engage_kill_switch/1">
+
+  <div class="detail-header">
+    <a href="#engage_kill_switch/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">engage_kill_switch(command)</h1>
+
+
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L160" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> engage_kill_switch(Rulestead.Store.Command.EngageKillSwitch.t()) ::
+  <a href="Rulestead.Store.html#t:result/1">Rulestead.Store.result</a>(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>())</pre>
+
+      </div>
+
+<p>Engages a per-flag per-environment kill switch.</p>
+  </section>
+</section>
+<section class="detail" id="engage_kill_switch/4">
+
+    <span id="engage_kill_switch/3"></span>
+
+  <div class="detail-header">
+    <a href="#engage_kill_switch/4" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">engage_kill_switch(flag_key, environment_key, actor, opts \\ [])</h1>
+
+
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L165" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> engage_kill_switch(<a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>() | <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>(), <a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>() | <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">keyword</a>()) ::
+  <a href="Rulestead.Store.html#t:result/1">Rulestead.Store.result</a>(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>())</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="evaluate/3">
+
+    <span id="evaluate/2"></span>
+
+  <div class="detail-header">
+    <a href="#evaluate/3" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">evaluate(flag_payload, context, opts \\ [])</h1>
+
+
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L324" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> evaluate(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>(), <a href="Rulestead.Context.html#t:t/0">Rulestead.Context.t</a>() | <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">keyword</a>() | <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">keyword</a>()) ::
+  {:ok, <a href="Rulestead.Result.html#t:t/0">Rulestead.Result.t</a>()} | {:error, <a href="Rulestead.Error.html#t:t/0">Rulestead.Error.t</a>()}</pre>
+
+      </div>
+
+<p>Evaluates an authored in-memory flag payload against an explicit context.</p>
+  </section>
+</section>
+<section class="detail" id="evaluate!/3">
+
+    <span id="evaluate!/2"></span>
+
+  <div class="detail-header">
+    <a href="#evaluate!/3" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">evaluate!(flag_payload, context, opts \\ [])</h1>
+
+
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L349" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> evaluate!(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>(), <a href="Rulestead.Context.html#t:t/0">Rulestead.Context.t</a>() | <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">keyword</a>() | <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">keyword</a>()) ::
+  <a href="Rulestead.Result.html#t:t/0">Rulestead.Result.t</a>()</pre>
+
+      </div>
+
+<p>Bang variant of <a href="#evaluate/3"><code class="inline">evaluate/3</code></a>.</p>
+  </section>
+</section>
+<section class="detail" id="explain/2">
+
+  <div class="detail-header">
+    <a href="#explain/2" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">explain(flag_payload, context)</h1>
+
+
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L396" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> explain(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>(), <a href="Rulestead.Context.html#t:t/0">Rulestead.Context.t</a>() | <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">keyword</a>() | <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()) ::
+  {:ok, <a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>()} | {:error, <a href="Rulestead.Error.html#t:t/0">Rulestead.Error.t</a>()}</pre>
+
+      </div>
+
+<p>Returns a human-readable explanation derived from the evaluation trace.</p>
+  </section>
+</section>
+<section class="detail" id="explain_flag/4">
+
+    <span id="explain_flag/3"></span>
+
+  <div class="detail-header">
+    <a href="#explain_flag/4" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">explain_flag(flag_key, environment_key, context, opts \\ [])</h1>
+
+
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L422" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> explain_flag(
+  <a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>() | <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>(),
+  <a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>() | <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>(),
+  <a href="Rulestead.Context.html#t:t/0">Rulestead.Context.t</a>() | <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">keyword</a>() | <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>(),
+  <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">keyword</a>()
+) :: {:ok, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()} | {:error, <a href="Rulestead.Error.html#t:t/0">Rulestead.Error.t</a>()}</pre>
+
+      </div>
+
+<p>Admin-safe explain seam for one flag and environment.</p>
+  </section>
+</section>
+<section class="detail" id="fetch_flag/1">
+
+  <div class="detail-header">
+    <a href="#fetch_flag/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">fetch_flag(command)</h1>
+
+
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L52" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> fetch_flag(Rulestead.Store.Command.FetchFlag.t()) ::
+  <a href="Rulestead.Store.html#t:result/1">Rulestead.Store.result</a>(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>())</pre>
+
+      </div>
+
+<p>Fetches the authored flag state for a pre-built store command.</p>
+  </section>
+</section>
+<section class="detail" id="fetch_flag/3">
+
+    <span id="fetch_flag/2"></span>
+
+  <div class="detail-header">
+    <a href="#fetch_flag/3" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">fetch_flag(flag_key, environment_key, opts \\ [])</h1>
+
+
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L42" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> fetch_flag(<a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>() | <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>(), <a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>() | <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">keyword</a>()) ::
+  <a href="Rulestead.Store.html#t:result/1">Rulestead.Store.result</a>(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>())</pre>
+
+      </div>
+
+<p>Fetches the authored flag state for a <code class="inline">flag_key</code> and <code class="inline">environment_key</code>.</p>
+  </section>
+</section>
+<section class="detail" id="fetch_flag!/3">
+
+    <span id="fetch_flag!/2"></span>
+
+  <div class="detail-header">
+    <a href="#fetch_flag!/3" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">fetch_flag!(flag_key, environment_key, opts \\ [])</h1>
+
+
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L96" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> fetch_flag!(<a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>() | <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>(), <a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>() | <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">keyword</a>()) :: <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()</pre>
+
+      </div>
+
+<p>Bang variant of <a href="#fetch_flag/3"><code class="inline">fetch_flag/3</code></a>.</p>
+  </section>
+</section>
+<section class="detail" id="get_value/3">
+
+  <div class="detail-header">
+    <a href="#get_value/3" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">get_value(flag_payload, context, default)</h1>
+
+
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L369" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> get_value(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>(), <a href="Rulestead.Context.html#t:t/0">Rulestead.Context.t</a>() | <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">keyword</a>() | <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">term</a>()) ::
+  {:ok, <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">term</a>()} | {:error, <a href="Rulestead.Error.html#t:t/0">Rulestead.Error.t</a>()}</pre>
+
+      </div>
+
+<p>Returns the projected value for an authored flag payload.</p>
+  </section>
+</section>
+<section class="detail" id="get_variant/2">
+
+  <div class="detail-header">
+    <a href="#get_variant/2" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">get_variant(flag_payload, context)</h1>
+
+
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L386" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> get_variant(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>(), <a href="Rulestead.Context.html#t:t/0">Rulestead.Context.t</a>() | <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">keyword</a>() | <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()) ::
+  {:ok, <a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>() | nil} | {:error, <a href="Rulestead.Error.html#t:t/0">Rulestead.Error.t</a>()}</pre>
+
+      </div>
+
+<p>Returns the assigned variant key for an authored flag payload.</p>
+  </section>
+</section>
+<section class="detail" id="list_audiences/0">
+
+  <div class="detail-header">
+    <a href="#list_audiences/0" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">list_audiences()</h1>
+
+
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L286" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> list_audiences() :: <a href="Rulestead.Store.html#t:result/1">Rulestead.Store.result</a>([<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()])</pre>
+
+      </div>
+
+<p>Lists reusable audiences through the configured store adapter.</p>
+  </section>
+</section>
+<section class="detail" id="list_audiences/1">
+
+  <div class="detail-header">
+    <a href="#list_audiences/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">list_audiences(opts)</h1>
+
+
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L291" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> list_audiences(<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">keyword</a>()) :: <a href="Rulestead.Store.html#t:result/1">Rulestead.Store.result</a>([<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()])</pre>
+
+          <pre translate="no"><span class="attribute">@spec</span> list_audiences(Rulestead.Store.Command.ListAudiences.t()) ::
+  <a href="Rulestead.Store.html#t:result/1">Rulestead.Store.result</a>([<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()])</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="list_audit_events/1">
+
+    <span id="list_audit_events/0"></span>
+
+  <div class="detail-header">
+    <a href="#list_audit_events/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">list_audit_events(command_or_opts \\ Command.ListAuditEvents.new())</h1>
+
+
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L198" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> list_audit_events(Rulestead.Store.Command.ListAuditEvents.t() | <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">keyword</a>()) ::
+  <a href="Rulestead.Store.html#t:result/1">Rulestead.Store.result</a>(Rulestead.Store.Command.Page.t(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()))</pre>
+
+      </div>
+
+<p>Lists redacted audit events for one flag or all flags.</p>
+  </section>
+</section>
+<section class="detail" id="list_environments/0">
+
+  <div class="detail-header">
+    <a href="#list_environments/0" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">list_environments()</h1>
+
+
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L266" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> list_environments() :: <a href="Rulestead.Store.html#t:result/1">Rulestead.Store.result</a>([<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()])</pre>
+
+      </div>
+
+<p>Lists environments through the configured store adapter.</p>
+  </section>
+</section>
+<section class="detail" id="list_environments/1">
+
+  <div class="detail-header">
+    <a href="#list_environments/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">list_environments(opts)</h1>
+
+
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L271" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> list_environments(<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">keyword</a>()) :: <a href="Rulestead.Store.html#t:result/1">Rulestead.Store.result</a>([<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()])</pre>
+
+          <pre translate="no"><span class="attribute">@spec</span> list_environments(Rulestead.Store.Command.ListEnvironments.t()) ::
+  <a href="Rulestead.Store.html#t:result/1">Rulestead.Store.result</a>([<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()])</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="list_flags/0">
+
+  <div class="detail-header">
+    <a href="#list_flags/0" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">list_flags()</h1>
+
+
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L235" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> list_flags() :: <a href="Rulestead.Store.html#t:result/1">Rulestead.Store.result</a>(Rulestead.Store.Command.Page.t(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()))</pre>
+
+      </div>
+
+<p>Lists flags through the configured store adapter.</p><p>Phase 2 keeps this as the shared list/search surface for store adapters.</p>
+  </section>
+</section>
+<section class="detail" id="list_flags/1">
+
+  <div class="detail-header">
+    <a href="#list_flags/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">list_flags(opts)</h1>
+
+
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L240" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> list_flags(<a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">keyword</a>()) ::
+  <a href="Rulestead.Store.html#t:result/1">Rulestead.Store.result</a>(Rulestead.Store.Command.Page.t(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()))</pre>
+
+          <pre translate="no"><span class="attribute">@spec</span> list_flags(Rulestead.Store.Command.ListFlags.t()) ::
+  <a href="Rulestead.Store.html#t:result/1">Rulestead.Store.result</a>(Rulestead.Store.Command.Page.t(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()))</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="list_flags!/1">
+
+    <span id="list_flags!/0"></span>
+
+  <div class="detail-header">
+    <a href="#list_flags!/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">list_flags!(command \\ Command.ListFlags.new())</h1>
+
+
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L256" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> list_flags!(Rulestead.Store.Command.ListFlags.t() | <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">keyword</a>()) ::
+  Rulestead.Store.Command.Page.t(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>())</pre>
+
+      </div>
+
+<p>Bang variant of <a href="#list_flags/0"><code class="inline">list_flags/0</code></a> and <a href="#list_flags/1"><code class="inline">list_flags/1</code></a>.</p>
+  </section>
+</section>
+<section class="detail" id="publish_ruleset/1">
+
+  <div class="detail-header">
+    <a href="#publish_ruleset/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">publish_ruleset(command)</h1>
+
+
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L124" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> publish_ruleset(Rulestead.Store.Command.PublishRuleset.t()) ::
+  <a href="Rulestead.Store.html#t:result/1">Rulestead.Store.result</a>(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>())</pre>
+
+      </div>
+
+<p>Publishes a ruleset version through the configured store adapter.</p>
+  </section>
+</section>
+<section class="detail" id="publish_ruleset!/1">
+
+  <div class="detail-header">
+    <a href="#publish_ruleset!/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">publish_ruleset!(command)</h1>
+
+
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L132" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> publish_ruleset!(Rulestead.Store.Command.PublishRuleset.t()) :: <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()</pre>
+
+      </div>
+
+<p>Bang variant of <a href="#publish_ruleset/1"><code class="inline">publish_ruleset/1</code></a>.</p>
+  </section>
+</section>
+<section class="detail" id="record_evaluation/1">
+
+  <div class="detail-header">
+    <a href="#record_evaluation/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">record_evaluation(command)</h1>
+
+
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L306" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> record_evaluation(Rulestead.Store.Command.RecordEvaluation.t()) ::
+  <a href="Rulestead.Store.html#t:result/1">Rulestead.Store.result</a>(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>())</pre>
+
+      </div>
+
+<p>Records bounded evaluation freshness for one flag/environment pair.</p>
+  </section>
+</section>
+<section class="detail" id="record_evaluation/3">
+
+  <div class="detail-header">
+    <a href="#record_evaluation/3" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">record_evaluation(flag_key, environment_key, last_evaluated_at)</h1>
+
+
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L314" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> record_evaluation(<a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>() | <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>(), <a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>() | <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>(), <a href="https://hexdocs.pm/elixir/DateTime.html#t:t/0">DateTime.t</a>()) ::
+  <a href="Rulestead.Store.html#t:result/1">Rulestead.Store.result</a>(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>())</pre>
+
+      </div>
+
+<p>Records bounded evaluation freshness using root-level arguments.</p>
+  </section>
+</section>
+<section class="detail" id="release_kill_switch/1">
+
+  <div class="detail-header">
+    <a href="#release_kill_switch/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">release_kill_switch(command)</h1>
+
+
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L179" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> release_kill_switch(Rulestead.Store.Command.ReleaseKillSwitch.t()) ::
+  <a href="Rulestead.Store.html#t:result/1">Rulestead.Store.result</a>(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>())</pre>
+
+      </div>
+
+<p>Releases a per-flag per-environment kill switch.</p>
+  </section>
+</section>
+<section class="detail" id="release_kill_switch/4">
+
+    <span id="release_kill_switch/3"></span>
+
+  <div class="detail-header">
+    <a href="#release_kill_switch/4" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">release_kill_switch(flag_key, environment_key, actor, opts \\ [])</h1>
+
+
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L184" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> release_kill_switch(<a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>() | <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>(), <a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>() | <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">keyword</a>()) ::
+  <a href="Rulestead.Store.html#t:result/1">Rulestead.Store.result</a>(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>())</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="rollback_audit_event/1">
+
+  <div class="detail-header">
+    <a href="#rollback_audit_event/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">rollback_audit_event(command)</h1>
+
+
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L214" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> rollback_audit_event(Rulestead.Store.Command.RollbackAuditEvent.t()) ::
+  <a href="Rulestead.Store.html#t:result/1">Rulestead.Store.result</a>(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>())</pre>
+
+      </div>
+
+<p>Writes a linked inverse action for a prior audit event.</p>
+  </section>
+</section>
+<section class="detail" id="rollback_audit_event/2">
+
+  <div class="detail-header">
+    <a href="#rollback_audit_event/2" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">rollback_audit_event(audit_event_id, opts \\ [])</h1>
+
+
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L219" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> rollback_audit_event(
+  <a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>(),
+  <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">keyword</a>()
+) :: <a href="Rulestead.Store.html#t:result/1">Rulestead.Store.result</a>(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>())</pre>
+
+      </div>
+
+
+  </section>
+</section>
+<section class="detail" id="save_draft_ruleset/1">
+
+  <div class="detail-header">
+    <a href="#save_draft_ruleset/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">save_draft_ruleset(command)</h1>
+
+
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L106" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> save_draft_ruleset(Rulestead.Store.Command.SaveDraftRuleset.t()) ::
+  <a href="Rulestead.Store.html#t:result/1">Rulestead.Store.result</a>(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>())</pre>
+
+      </div>
+
+<p>Saves a draft ruleset through the configured store adapter.</p>
+  </section>
+</section>
+<section class="detail" id="save_draft_ruleset!/1">
+
+  <div class="detail-header">
+    <a href="#save_draft_ruleset!/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">save_draft_ruleset!(command)</h1>
+
+
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L114" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> save_draft_ruleset!(Rulestead.Store.Command.SaveDraftRuleset.t()) :: <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()</pre>
+
+      </div>
+
+<p>Bang variant of <a href="#save_draft_ruleset/1"><code class="inline">save_draft_ruleset/1</code></a>.</p>
+  </section>
+</section>
+<section class="detail" id="simulate_flag/4">
+
+    <span id="simulate_flag/3"></span>
+
+  <div class="detail-header">
+    <a href="#simulate_flag/4" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">simulate_flag(flag_key, environment_key, context, opts \\ [])</h1>
+
+
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L407" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> simulate_flag(
+  <a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>() | <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>(),
+  <a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>() | <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>(),
+  <a href="Rulestead.Context.html#t:t/0">Rulestead.Context.t</a>() | <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">keyword</a>() | <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>(),
+  <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">keyword</a>()
+) :: {:ok, <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()} | {:error, <a href="Rulestead.Error.html#t:t/0">Rulestead.Error.t</a>()}</pre>
+
+      </div>
+
+<p>Admin-safe runtime simulation for one flag and environment.</p>
+  </section>
+</section>
+<section class="detail" id="update_flag/1">
+
+  <div class="detail-header">
+    <a href="#update_flag/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">update_flag(command)</h1>
+
+
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L78" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> update_flag(Rulestead.Store.Command.UpdateFlag.t()) ::
+  <a href="Rulestead.Store.html#t:result/1">Rulestead.Store.result</a>(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>())</pre>
+
+      </div>
+
+<p>Updates flag metadata through the configured store adapter.</p>
+  </section>
+</section>
+<section class="detail" id="update_flag/3">
+
+    <span id="update_flag/2"></span>
+
+  <div class="detail-header">
+    <a href="#update_flag/3" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">update_flag(flag_key, attrs, opts \\ [])</h1>
+
+
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L86" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> update_flag(<a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>() | <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">atom</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>() | <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">keyword</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">keyword</a>()) ::
+  <a href="Rulestead.Store.html#t:result/1">Rulestead.Store.result</a>(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>())</pre>
+
+      </div>
+
+<p>Updates a flag from root-level attributes.</p>
+  </section>
+</section>
+<section class="detail" id="version/0">
+
+  <div class="detail-header">
+    <a href="#version/0" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">version()</h1>
+
+
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L36" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> version() :: <a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>()</pre>
+
+      </div>
+
+<p>Returns the package version.</p>
+  </section>
+</section>
+
+    </div>
+  </section>
+
+    <footer class="footer">
+
+        <p>
+
+            <span class="line">
+              <a href="https://hex.pm/packages/rulestead/0.1.0">Hex Package</a>
+
+              <a href="https://preview.hex.pm/preview/rulestead/0.1.0">Hex Preview</a>
+
+            </span>
+
+          <span class="line">
+            <button class="a-main footer-button display-quick-switch" title="Go to package docs">
+              Go to package docs
+            </button>
+
+              <a href="llms.txt" target="_blank">
+                View llms.txt
+              </a>
+
+
+              <a href="rulestead.epub">
+                Download ePub version
+              </a>
+
+          </span>
+        </p>
+
+        <p class="built-using">
+          Built using
+          <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.40.1) for the
+
+            <a href="https://elixir-lang.org" title="Elixir" target="_blank" translate="no">Elixir programming language</a>
+
+        </p>
+
+
+    </footer>
+  </div>
+</main>
+</div>
+
+  </body>
+</html>

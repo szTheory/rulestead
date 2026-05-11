@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="ExDoc v0.40.1">
+    <meta name="project" content="rulestead v0.1.0">
+
+
+    <title>Deployment — rulestead v0.1.0</title>
+
+    <link rel="stylesheet" href="dist/html-elixir-YJO4MOOW.css" />
+
+    <script defer src="dist/sidebar_items-B3B45405.js"></script>
+    <script defer src="docs_config.js"></script>
+    <script defer src="dist/html-YU4BZFVS.js"></script>
+
+  </head>
+  <body>
+    <script>(()=>{var t="ex_doc:settings",e="dark";var o="dark",s="light";var E="sidebar_state",n="closed";var r="sidebar_width";var a="sidebar-open";var i=new URLSearchParams(window.location.search),S=i.get("theme")||JSON.parse(localStorage.getItem(t)||"{}").theme;(S===o||S!==s&&window.matchMedia("(prefers-color-scheme: dark)").matches)&&document.body.classList.add(e);var d=sessionStorage.getItem(E),A=d!==n&&!window.matchMedia(`screen and (max-width: ${768}px)`).matches;document.body.classList.toggle(a,A);var c=sessionStorage.getItem(r);c&&document.body.style.setProperty("--sidebarWidth",`${c}px`);var p=/(Macintosh|iPhone|iPad|iPod)/.test(window.navigator.userAgent);document.documentElement.classList.toggle("apple-os",p);})();
+</script>
+
+<div class="body-wrapper">
+
+<button id="sidebar-menu" class="sidebar-button sidebar-toggle" aria-label="toggle sidebar" aria-controls="sidebar">
+  <i class="ri-menu-line ri-lg" title="Collapse/expand sidebar"></i>
+</button>
+
+<nav id="sidebar" class="sidebar">
+
+  <div class="sidebar-header">
+    <div class="sidebar-projectInfo">
+
+      <div>
+        <a href="https://hexdocs.pm/rulestead" class="sidebar-projectName" translate="no">
+rulestead
+        </a>
+        <div class="sidebar-projectVersion" translate="no">
+          v0.1.0
+        </div>
+      </div>
+    </div>
+    <ul id="sidebar-list-nav" class="sidebar-list-nav" role="tablist" data-extras="Pages"></ul>
+  </div>
+</nav>
+
+<output role="status" id="toast"></output>
+
+<main class="content page-extra" id="main" data-type="extras">
+  <div id="content" class="content-inner">
+    <div class="top-search">
+      <div class="search-settings">
+        <form class="search-bar" action="search.html">
+          <label class="search-label">
+            <span class="sr-only">Search documentation of rulestead</span>
+            <div class="search-input-wrapper">
+              <input name="q" type="text" class="search-input" placeholder="Press / to search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+              <button type="button" tabindex="-1" class="search-close-button" aria-hidden="true">
+                <i class="ri-close-line ri-lg" title="Cancel search"></i>
+              </button>
+            </div>
+          </label>
+        </form>
+        <div class="autocomplete">
+        </div>
+        <div class="engine-selector" data-multiple="false">
+          <button type="button" class="engine-button" aria-label="Select search engine" aria-haspopup="true" aria-expanded="false">
+            <i class="ri-search-2-line" aria-hidden="true"></i>
+            <span class="engine-name">Default</span>
+            <i class="ri-arrow-down-s-line" aria-hidden="true"></i>
+          </button>
+          <div class="engine-dropdown" hidden role="menu">
+
+              <button type="button"
+                      class="engine-option"
+                      data-engine-url="search.html?q="
+                      role="menuitemradio"
+                      aria-checked="true">
+                <span class="name">Default</span>
+                <span class="help">In-browser search</span>
+              </button>
+
+          </div>
+        </div>
+        <button class="icon-settings display-settings">
+          <i class="ri-settings-3-line"></i>
+          <span class="sr-only">Settings</span>
+        </button>
+      </div>
+    </div>
+
+<div id="top-content">
+  <div class="heading-with-actions top-heading">
+    <h1>Deployment</h1>
+
+<a href="deployment.md" title="Copy Markdown (hold Ctrl/Cmd and click it to open as Markdown)" class="copy-markdown icon-action" rel="help">
+  <i class="ri-markdown-line" aria-hidden="true"></i>
+  <span class="sr-only">Copy Markdown</span>
+</a>
+
+
+      <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/../guides/recipes/deployment.md#L1" title="View Source" class="icon-action" rel="help">
+        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        <span class="sr-only">View Source</span>
+      </a>
+
+  </div>
+
+
+<p>Rulestead deployment in <code class="inline">v0.1.0</code> follows the same split as the rest of the
+package:</p><ul><li>authoring state is installed and migrated like normal Ecto-backed app data</li><li>runtime evaluation stays local to each node via snapshots and cache refresh</li><li>host apps own deployment orchestration, secrets, and rollout order</li></ul><p>This recipe covers the seams that ship today. It does not assume a hosted
+control plane or centralized governance service.</p><h2 id="deploy-migrations-before-expecting-authored-state" class="section-heading"><a href="#deploy-migrations-before-expecting-authored-state" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Deploy migrations before expecting authored state</span></h2><p>After adding the package and running <a href="Mix.Tasks.Rulestead.Install.html"><code class="inline">mix rulestead.install</code></a>, include the
+generated migrations in your normal deploy flow:</p><pre><code class="makeup bash" translate="no"><span class="">mix ecto.migrate
+</span></code></pre><p>The installed schema is required for authoring and snapshot publication. If the
+tables are not present yet, the runtime can only serve what it already has in
+memory or on disk backup.</p><h2 id="start-with-degraded-mode-expectations" class="section-heading"><a href="#start-with-degraded-mode-expectations" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Start with degraded-mode expectations</span></h2><p>The runtime is designed to tolerate startup-order imperfections better than a
+request-path DB lookup model. Your deployment posture should still assume:</p><ul><li>a node may boot before the store is reachable</li><li>a node may temporarily serve defaults or last-known-good snapshots</li><li>refresh health should be observed explicitly in ops tooling</li></ul><h2 id="keep-runtime-evaluation-local-to-each-node" class="section-heading"><a href="#keep-runtime-evaluation-local-to-each-node" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Keep runtime evaluation local to each node</span></h2><p>Application code should keep evaluating through the keyed runtime surface
+during deploys:</p><pre><code class="makeup elixir" translate="no"><span class="p" data-group-id="8617307392-1">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="n">enabled?</span><span class="p" data-group-id="8617307392-1">}</span><span class="w"> </span><span class="o">=</span><span class="w">
+  </span><span class="nc">Rulestead.Runtime</span><span class="o">.</span><span class="n">enabled?</span><span class="p" data-group-id="8617307392-2">(</span><span class="w">
+    </span><span class="s">&quot;prod&quot;</span><span class="p">,</span><span class="w">
+    </span><span class="s">&quot;checkout-redesign&quot;</span><span class="p">,</span><span class="w">
+    </span><span class="p" data-group-id="8617307392-3">%{</span><span class="ss">targeting_key</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;user-123&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">environment</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;prod&quot;</span><span class="p" data-group-id="8617307392-3">}</span><span class="w">
+  </span><span class="p" data-group-id="8617307392-2">)</span></code></pre><p>Do not switch to request-time SQL queries or ad hoc fallbacks during deploys.</p><h2 id="preserve-refresh-infrastructure" class="section-heading"><a href="#preserve-refresh-infrastructure" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Preserve refresh infrastructure</span></h2><p>In production, ensure the pieces your host app already owns remain healthy:</p><ul><li>Postgres for authored state</li><li>Phoenix.PubSub for snapshot fanout where configured</li><li>Oban only if your app is using the documented Oban seam</li></ul><p>Rulestead does not require a separate deployment tier. It expects to live
+inside the host application's release model.</p><h2 id="treat-disk-backup-as-resilience-not-authoring-truth" class="section-heading"><a href="#treat-disk-backup-as-resilience-not-authoring-truth" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Treat disk backup as resilience, not authoring truth</span></h2><p>If you enable runtime backup persistence, use it as a restart and degraded-mode
+aid. Do not treat it as the place where operators author or repair flag state.</p><p>The source of truth for published rulesets remains the configured store.</p><h2 id="release-in-the-same-order-your-app-already-trusts" class="section-heading"><a href="#release-in-the-same-order-your-app-already-trusts" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Release in the same order your app already trusts</span></h2><p>The safe deployment order is:</p><ol><li>migrate the database</li><li>deploy the application release</li><li>verify runtime refresh and evaluation behavior</li><li>then publish or mutate new rulesets if needed</li></ol><p>That ordering matches the shipped seams and avoids depending on unpublished
+future features.</p><h2 id="watch-telemetry-instead-of-scraping-internals" class="section-heading"><a href="#watch-telemetry-instead-of-scraping-internals" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Watch telemetry instead of scraping internals</span></h2><p>During a deploy, use the public telemetry contract to observe:</p><ul><li>cache misses</li><li>stale snapshot usage</li><li>refresh outcomes</li><li>evaluation reasons and cache age</li></ul><p>That gives you deployment confidence without locking tooling to internal
+processes or ETS table names.</p>
+
+</div>
+
+<div class="bottom-actions" id="bottom-actions">
+  <div class="bottom-actions-item">
+
+      <a href="oban-background-jobs.html" class="bottom-actions-button" rel="prev">
+        <span class="subheader">
+          ← Previous Page
+        </span>
+        <span class="title">
+Oban Background Jobs
+        </span>
+      </a>
+
+  </div>
+  <div class="bottom-actions-item">
+
+      <a href="context-propagation.html" class="bottom-actions-button" rel="next">
+        <span class="subheader">
+          Next Page →
+        </span>
+        <span class="title">
+Context Propagation
+        </span>
+      </a>
+
+  </div>
+</div>
+    <footer class="footer">
+
+        <p>
+
+            <span class="line">
+              <a href="https://hex.pm/packages/rulestead/0.1.0">Hex Package</a>
+
+              <a href="https://preview.hex.pm/preview/rulestead/0.1.0">Hex Preview</a>
+
+                (<a href="https://preview.hex.pm/preview/rulestead/0.1.0/show/../guides/recipes/deployment.md">current file</a>)
+
+            </span>
+
+          <span class="line">
+            <button class="a-main footer-button display-quick-switch" title="Go to package docs">
+              Go to package docs
+            </button>
+
+              <a href="llms.txt" target="_blank">
+                View llms.txt
+              </a>
+
+
+              <a href="rulestead.epub">
+                Download ePub version
+              </a>
+
+          </span>
+        </p>
+
+        <p class="built-using">
+          Built using
+          <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.40.1) for the
+
+            <a href="https://elixir-lang.org" title="Elixir" target="_blank" translate="no">Elixir programming language</a>
+
+        </p>
+
+
+    </footer>
+  </div>
+</main>
+</div>
+
+  </body>
+</html>

@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="ExDoc v0.40.1">
+    <meta name="project" content="rulestead v0.1.0">
+
+
+    <title>API Reference — rulestead v0.1.0</title>
+
+    <link rel="stylesheet" href="dist/html-elixir-YJO4MOOW.css" />
+
+    <script defer src="dist/sidebar_items-B3B45405.js"></script>
+    <script defer src="docs_config.js"></script>
+    <script defer src="dist/html-YU4BZFVS.js"></script>
+
+  </head>
+  <body>
+    <script>(()=>{var t="ex_doc:settings",e="dark";var o="dark",s="light";var E="sidebar_state",n="closed";var r="sidebar_width";var a="sidebar-open";var i=new URLSearchParams(window.location.search),S=i.get("theme")||JSON.parse(localStorage.getItem(t)||"{}").theme;(S===o||S!==s&&window.matchMedia("(prefers-color-scheme: dark)").matches)&&document.body.classList.add(e);var d=sessionStorage.getItem(E),A=d!==n&&!window.matchMedia(`screen and (max-width: ${768}px)`).matches;document.body.classList.toggle(a,A);var c=sessionStorage.getItem(r);c&&document.body.style.setProperty("--sidebarWidth",`${c}px`);var p=/(Macintosh|iPhone|iPad|iPod)/.test(window.navigator.userAgent);document.documentElement.classList.toggle("apple-os",p);})();
+</script>
+
+<div class="body-wrapper">
+
+<button id="sidebar-menu" class="sidebar-button sidebar-toggle" aria-label="toggle sidebar" aria-controls="sidebar">
+  <i class="ri-menu-line ri-lg" title="Collapse/expand sidebar"></i>
+</button>
+
+<nav id="sidebar" class="sidebar">
+
+  <div class="sidebar-header">
+    <div class="sidebar-projectInfo">
+
+      <div>
+        <a href="https://hexdocs.pm/rulestead" class="sidebar-projectName" translate="no">
+rulestead
+        </a>
+        <div class="sidebar-projectVersion" translate="no">
+          v0.1.0
+        </div>
+      </div>
+    </div>
+    <ul id="sidebar-list-nav" class="sidebar-list-nav" role="tablist" data-extras="Pages"></ul>
+  </div>
+</nav>
+
+<output role="status" id="toast"></output>
+
+<main class="content page-extra" id="main" data-type="extras">
+  <div id="content" class="content-inner">
+    <div class="top-search">
+      <div class="search-settings">
+        <form class="search-bar" action="search.html">
+          <label class="search-label">
+            <span class="sr-only">Search documentation of rulestead</span>
+            <div class="search-input-wrapper">
+              <input name="q" type="text" class="search-input" placeholder="Press / to search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+              <button type="button" tabindex="-1" class="search-close-button" aria-hidden="true">
+                <i class="ri-close-line ri-lg" title="Cancel search"></i>
+              </button>
+            </div>
+          </label>
+        </form>
+        <div class="autocomplete">
+        </div>
+        <div class="engine-selector" data-multiple="false">
+          <button type="button" class="engine-button" aria-label="Select search engine" aria-haspopup="true" aria-expanded="false">
+            <i class="ri-search-2-line" aria-hidden="true"></i>
+            <span class="engine-name">Default</span>
+            <i class="ri-arrow-down-s-line" aria-hidden="true"></i>
+          </button>
+          <div class="engine-dropdown" hidden role="menu">
+
+              <button type="button"
+                      class="engine-option"
+                      data-engine-url="search.html?q="
+                      role="menuitemradio"
+                      aria-checked="true">
+                <span class="name">Default</span>
+                <span class="help">In-browser search</span>
+              </button>
+
+          </div>
+        </div>
+        <button class="icon-settings display-settings">
+          <i class="ri-settings-3-line"></i>
+          <span class="sr-only">Settings</span>
+        </button>
+      </div>
+    </div>
+
+<div id="top-content">
+  <div class="heading-with-actions top-heading">
+    <h1>API Reference <small class="app-vsn">rulestead v#0.1.0</small></h1>
+<a href="api-reference.md" title="Copy Markdown (hold Ctrl/Cmd and click it to open as Markdown)" class="copy-markdown icon-action" rel="help">
+  <i class="ri-markdown-line" aria-hidden="true"></i>
+  <span class="sr-only">Copy Markdown</span>
+</a>
+
+
+      <a href="https://github.com/szTheory/rulestead" title="View Source" class="icon-action" rel="help">
+        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        <span class="sr-only">View Source</span>
+      </a>
+
+  </div>
+
+    <section class="details-list">
+      <h2 id="modules" class="section-heading">Modules</h2>
+      <div class="summary">
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="Rulestead.html" translate="no">Rulestead</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Root public module for the <code class="inline">rulestead</code> package.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="Rulestead.Admin.Authorizer.html" translate="no">Rulestead.<wbr>Admin.<wbr>Authorizer</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Central policy gate for Phase 7 admin reads and writes.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="Rulestead.Admin.Lifecycle.html" translate="no">Rulestead.<wbr>Admin.<wbr>Lifecycle</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Derives persisted admin lifecycle state from authored flag data.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="Rulestead.Admin.Policy.html" translate="no">Rulestead.<wbr>Admin.<wbr>Policy</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Host-owned authorization seam for mounted admin actions.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="Rulestead.Admin.Redaction.html" translate="no">Rulestead.<wbr>Admin.<wbr>Redaction</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Allowlist-driven redaction for admin telemetry and audit metadata.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="Rulestead.AuthError.html" translate="no">Rulestead.<wbr>AuthError</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Constructors for auth-domain <a href="Rulestead.Error.html"><code class="inline">Rulestead.Error</code></a> values.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="Rulestead.Config.html" translate="no">Rulestead.<wbr>Config</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Validated Phase 5 host-app seam configuration.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="Rulestead.ConfigError.html" translate="no">Rulestead.<wbr>ConfigError</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Constructors for config-domain <a href="Rulestead.Error.html"><code class="inline">Rulestead.Error</code></a> values.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="Rulestead.Context.html" translate="no">Rulestead.<wbr>Context</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Canonical runtime context used by the Phase 3 evaluator surface.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="Rulestead.Credo.NoEvalOutsideContext.html" translate="no">Rulestead.<wbr>Credo.<wbr>NoEvalOutsideContext</a>
+
+  </div>
+
+    <div class="summary-synopsis"></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="Rulestead.Credo.NoMutationOutsideMulti.html" translate="no">Rulestead.<wbr>Credo.<wbr>NoMutationOutsideMulti</a>
+
+  </div>
+
+    <div class="summary-synopsis"></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="Rulestead.Credo.NoRawTraitsInLogger.html" translate="no">Rulestead.<wbr>Credo.<wbr>NoRawTraitsInLogger</a>
+
+  </div>
+
+    <div class="summary-synopsis"></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="Rulestead.Credo.NoRawTraitsInTelemetryMeta.html" translate="no">Rulestead.<wbr>Credo.<wbr>NoRawTraitsInTelemetryMeta</a>
+
+  </div>
+
+    <div class="summary-synopsis"></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="Rulestead.Credo.NoSocketCapturedInAsync.html" translate="no">Rulestead.<wbr>Credo.<wbr>NoSocketCapturedInAsync</a>
+
+  </div>
+
+    <div class="summary-synopsis"></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="Rulestead.Error.html" translate="no">Rulestead.<wbr>Error</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Stable public error envelope for all non-bang and bang APIs.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="Rulestead.EvaluationError.html" translate="no">Rulestead.<wbr>EvaluationError</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Constructors for evaluation-domain <a href="Rulestead.Error.html"><code class="inline">Rulestead.Error</code></a> values.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="Rulestead.Fake.html" translate="no">Rulestead.<wbr>Fake</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Contract-faithful in-memory store adapter for tests.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="Rulestead.Fake.Control.html" translate="no">Rulestead.<wbr>Fake.<wbr>Control</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Test-only controls for <a href="Rulestead.Fake.html"><code class="inline">Rulestead.Fake</code></a>.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="Rulestead.KillSwitchError.html" translate="no">Rulestead.<wbr>KillSwitchError</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Constructors for kill-switch-domain <a href="Rulestead.Error.html"><code class="inline">Rulestead.Error</code></a> values.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="Rulestead.LiveView.html" translate="no">Rulestead.<wbr>LiveView</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Explicit LiveView helpers for carrying <code class="inline">%Rulestead.Context{}</code> and eagerly
+assigning runtime-backed flag values onto a socket.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="Rulestead.Oban.html" translate="no">Rulestead.<wbr>Oban</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Explicit Oban-facing helpers for serializing and restoring
+<code class="inline">%Rulestead.Context{}</code> values across job boundaries.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="Rulestead.Oban.Middleware.html" translate="no">Rulestead.<wbr>Oban.<wbr>Middleware</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Explicit enqueue seam for attaching a serialized rulestead context to jobs.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="Rulestead.Oban.Worker.html" translate="no">Rulestead.<wbr>Oban.<wbr>Worker</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Worker-side seam that restores the serialized <code class="inline">%Rulestead.Context{}</code> from an
+Oban job without repeating helper boilerplate in each worker module.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="Rulestead.Phoenix.html" translate="no">Rulestead.<wbr>Phoenix</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Explicit Phoenix-facing helpers for building <code class="inline">%Rulestead.Context{}</code> values.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="Rulestead.Plug.html" translate="no">Rulestead.<wbr>Plug</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Plug-facing seam that assigns a normalized <code class="inline">%Rulestead.Context{}</code> onto
+<code class="inline">conn.assigns[:rulestead_context]</code>.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="Rulestead.Result.html" translate="no">Rulestead.<wbr>Result</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Stable Phase 3 evaluation result.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="Rulestead.RulesetError.html" translate="no">Rulestead.<wbr>RulesetError</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Constructors for ruleset-domain <a href="Rulestead.Error.html"><code class="inline">Rulestead.Error</code></a> values.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="Rulestead.Store.html" translate="no">Rulestead.<wbr>Store</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Key-first authoring store behavior for the Rulestead public API.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="Rulestead.Store.Command.html" translate="no">Rulestead.<wbr>Store.<wbr>Command</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Shared key-first command structs for <a href="Rulestead.Store.html"><code class="inline">Rulestead.Store</code></a> adapters.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="Rulestead.StoreError.html" translate="no">Rulestead.<wbr>StoreError</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Constructors for store-domain <a href="Rulestead.Error.html"><code class="inline">Rulestead.Error</code></a> values.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="Rulestead.Telemetry.html" translate="no">Rulestead.<wbr>Telemetry</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Shared telemetry helpers for the locked Phase 4 public event catalog.</p></div>
+
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="Rulestead.TestHelpers.html" translate="no">Rulestead.<wbr>TestHelpers</a>
+
+  </div>
+
+    <div class="summary-synopsis"><p>Public fake-backed test helpers for host app tests.</p></div>
+
+</div>
+
+      </div>
+    </section>
+
+
+    <section class="details-list">
+      <h2 id="tasks" class="section-heading">Mix Tasks</h2>
+      <div class="summary">
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="Mix.Tasks.Rulestead.Install.html" translate="no">mix rulestead.<wbr>install</a>
+
+  </div>
+
+</div>
+
+      </div>
+    </section>
+
+</div>
+    <footer class="footer">
+
+        <p>
+
+            <span class="line">
+              <a href="https://hex.pm/packages/rulestead/0.1.0">Hex Package</a>
+
+              <a href="https://preview.hex.pm/preview/rulestead/0.1.0">Hex Preview</a>
+
+            </span>
+
+          <span class="line">
+            <button class="a-main footer-button display-quick-switch" title="Go to package docs">
+              Go to package docs
+            </button>
+
+              <a href="llms.txt" target="_blank">
+                View llms.txt
+              </a>
+
+
+              <a href="rulestead.epub">
+                Download ePub version
+              </a>
+
+          </span>
+        </p>
+
+        <p class="built-using">
+          Built using
+          <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.40.1) for the
+
+            <a href="https://elixir-lang.org" title="Elixir" target="_blank" translate="no">Elixir programming language</a>
+
+        </p>
+
+
+    </footer>
+  </div>
+</main>
+</div>
+
+  </body>
+</html>

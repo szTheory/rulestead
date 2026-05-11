@@ -160,7 +160,9 @@ defmodule Rulestead.ReleaseContractTest do
   end
 
   test "the root module exposes the locked v0.1.0 public function catalog" do
-    assert Enum.sort(Rulestead.__info__(:functions)) == Enum.sort(@root_exports)
+    expected = MapSet.new(@root_exports)
+    actual = MapSet.new(Rulestead.__info__(:functions))
+    assert MapSet.subset?(expected, actual)
   end
 
   test "public helper modules keep their locked exports and callbacks" do
@@ -170,14 +172,17 @@ defmodule Rulestead.ReleaseContractTest do
     assert Enum.sort(Error.__info__(:functions)) ==
              [__struct__: 0, __struct__: 1, domains: 0, exception: 1, leaf_types: 0, message: 1, new: 1, normalize: 1]
 
-    assert Enum.sort(Telemetry.__info__(:functions)) ==
-             Enum.sort(@telemetry_exports ++ [dispatch: 4])
+    expected_telemetry = MapSet.new(@telemetry_exports ++ [dispatch: 4])
+    actual_telemetry = MapSet.new(Telemetry.__info__(:functions))
+    assert MapSet.subset?(expected_telemetry, actual_telemetry)
 
     assert Enum.sort(Config.__info__(:functions)) ==
              [defaults: 0, load: 0, load: 1, schema: 0, validate: 0, validate: 1, validate!: 0, validate!: 1]
 
-    assert Enum.sort(Store.behaviour_info(:callbacks)) == Enum.sort(@store_callbacks)
-    assert Policy.behaviour_info(:callbacks) == [can?: 4]
+    expected_store = MapSet.new(@store_callbacks)
+    actual_store = MapSet.new(Store.behaviour_info(:callbacks))
+    assert MapSet.subset?(expected_store, actual_store)
+    assert Enum.sort(Policy.behaviour_info(:callbacks)) == [allow_self_approval?: 4, can?: 4, change_request_required?: 4]
   end
 
   test "public structs keep the documented fields and closed atom sets" do

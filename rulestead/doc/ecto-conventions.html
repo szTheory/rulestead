@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="ExDoc v0.40.1">
+    <meta name="project" content="rulestead v0.1.0">
+
+
+    <title>Ecto Conventions — rulestead v0.1.0</title>
+
+    <link rel="stylesheet" href="dist/html-elixir-YJO4MOOW.css" />
+
+    <script defer src="dist/sidebar_items-B3B45405.js"></script>
+    <script defer src="docs_config.js"></script>
+    <script defer src="dist/html-YU4BZFVS.js"></script>
+
+  </head>
+  <body>
+    <script>(()=>{var t="ex_doc:settings",e="dark";var o="dark",s="light";var E="sidebar_state",n="closed";var r="sidebar_width";var a="sidebar-open";var i=new URLSearchParams(window.location.search),S=i.get("theme")||JSON.parse(localStorage.getItem(t)||"{}").theme;(S===o||S!==s&&window.matchMedia("(prefers-color-scheme: dark)").matches)&&document.body.classList.add(e);var d=sessionStorage.getItem(E),A=d!==n&&!window.matchMedia(`screen and (max-width: ${768}px)`).matches;document.body.classList.toggle(a,A);var c=sessionStorage.getItem(r);c&&document.body.style.setProperty("--sidebarWidth",`${c}px`);var p=/(Macintosh|iPhone|iPad|iPod)/.test(window.navigator.userAgent);document.documentElement.classList.toggle("apple-os",p);})();
+</script>
+
+<div class="body-wrapper">
+
+<button id="sidebar-menu" class="sidebar-button sidebar-toggle" aria-label="toggle sidebar" aria-controls="sidebar">
+  <i class="ri-menu-line ri-lg" title="Collapse/expand sidebar"></i>
+</button>
+
+<nav id="sidebar" class="sidebar">
+
+  <div class="sidebar-header">
+    <div class="sidebar-projectInfo">
+
+      <div>
+        <a href="https://hexdocs.pm/rulestead" class="sidebar-projectName" translate="no">
+rulestead
+        </a>
+        <div class="sidebar-projectVersion" translate="no">
+          v0.1.0
+        </div>
+      </div>
+    </div>
+    <ul id="sidebar-list-nav" class="sidebar-list-nav" role="tablist" data-extras="Pages"></ul>
+  </div>
+</nav>
+
+<output role="status" id="toast"></output>
+
+<main class="content page-extra" id="main" data-type="extras">
+  <div id="content" class="content-inner">
+    <div class="top-search">
+      <div class="search-settings">
+        <form class="search-bar" action="search.html">
+          <label class="search-label">
+            <span class="sr-only">Search documentation of rulestead</span>
+            <div class="search-input-wrapper">
+              <input name="q" type="text" class="search-input" placeholder="Press / to search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+              <button type="button" tabindex="-1" class="search-close-button" aria-hidden="true">
+                <i class="ri-close-line ri-lg" title="Cancel search"></i>
+              </button>
+            </div>
+          </label>
+        </form>
+        <div class="autocomplete">
+        </div>
+        <div class="engine-selector" data-multiple="false">
+          <button type="button" class="engine-button" aria-label="Select search engine" aria-haspopup="true" aria-expanded="false">
+            <i class="ri-search-2-line" aria-hidden="true"></i>
+            <span class="engine-name">Default</span>
+            <i class="ri-arrow-down-s-line" aria-hidden="true"></i>
+          </button>
+          <div class="engine-dropdown" hidden role="menu">
+
+              <button type="button"
+                      class="engine-option"
+                      data-engine-url="search.html?q="
+                      role="menuitemradio"
+                      aria-checked="true">
+                <span class="name">Default</span>
+                <span class="help">In-browser search</span>
+              </button>
+
+          </div>
+        </div>
+        <button class="icon-settings display-settings">
+          <i class="ri-settings-3-line"></i>
+          <span class="sr-only">Settings</span>
+        </button>
+      </div>
+    </div>
+
+<div id="top-content">
+  <div class="heading-with-actions top-heading">
+    <h1>Ecto Conventions</h1>
+
+<a href="ecto-conventions.md" title="Copy Markdown (hold Ctrl/Cmd and click it to open as Markdown)" class="copy-markdown icon-action" rel="help">
+  <i class="ri-markdown-line" aria-hidden="true"></i>
+  <span class="sr-only">Copy Markdown</span>
+</a>
+
+
+      <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/../guides/recipes/ecto-conventions.md#L1" title="View Source" class="icon-action" rel="help">
+        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        <span class="sr-only">View Source</span>
+      </a>
+
+  </div>
+
+
+<p>Rulestead's Ecto integration in <code class="inline">v0.1.0</code> is about authoring and publishing
+rulesets, not about evaluating flags from the database on the hot path.</p><p>The core convention is:</p><ul><li>Ecto owns persisted authoring state.</li><li>published snapshots feed the runtime.</li><li>application code evaluates through the keyed runtime surface, not through
+<code class="inline">Repo</code> queries over Rulestead tables.</li></ul><h2 id="keep-evaluation-out-of-request-path-queries" class="section-heading"><a href="#keep-evaluation-out-of-request-path-queries" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Keep evaluation out of request-path queries</span></h2><p>Do not join <code class="inline">rulestead_*</code> tables into request-path queries just to decide a
+flag. The supported runtime path is:</p><ol><li>author through the store</li><li>publish a snapshot</li><li>evaluate from the runtime cache</li></ol><p>That preserves the explicit no-DB-on-the-hot-path contract.</p><h2 id="use-mix-rulestead-install-for-schema-setup" class="section-heading"><a href="#use-mix-rulestead-install-for-schema-setup" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Use <a href="Mix.Tasks.Rulestead.Install.html"><code class="inline">mix rulestead.install</code></a> for schema setup</span></h2><p>The published install path is the supported way to lay down the base store
+schema and host-app wiring:</p><pre><code class="makeup bash" translate="no"><span class="">cd your_phoenix_app
+</span><span class="">mix deps.get
+</span><span class="">mix rulestead.install
+</span><span class="">mix ecto.migrate
+</span></code></pre><p>The install smoke proof for <code class="inline">v0.1.0</code> verifies that this path creates the
+expected tables and host wiring in a fresh Phoenix app.</p><h2 id="treat-rulestead-store-as-the-extension-seam" class="section-heading"><a href="#treat-rulestead-store-as-the-extension-seam" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Treat <a href="Rulestead.Store.html"><code class="inline">Rulestead.Store</code></a> as the extension seam</span></h2><p>If you need a different persistence strategy, extend at the
+<a href="/Users/jon/projects/rulestead/rulestead/lib/rulestead/store.ex:1"><code class="inline">Rulestead.Store</code></a>
+behavior boundary.</p><p>For ordinary app usage, prefer the public facade:</p><pre><code class="makeup elixir" translate="no"><span class="p" data-group-id="7458571619-1">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="n">page</span><span class="p" data-group-id="7458571619-1">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nc">Rulestead</span><span class="o">.</span><span class="n">list_flags</span><span class="p" data-group-id="7458571619-2">(</span><span class="ss">environment_key</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;prod&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">owner</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;growth&quot;</span><span class="p" data-group-id="7458571619-2">)</span><span class="w">
+</span><span class="p" data-group-id="7458571619-3">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="n">detail</span><span class="p" data-group-id="7458571619-3">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nc">Rulestead</span><span class="o">.</span><span class="n">fetch_flag</span><span class="p" data-group-id="7458571619-4">(</span><span class="s">&quot;checkout-redesign&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;prod&quot;</span><span class="p" data-group-id="7458571619-4">)</span></code></pre><p>Those calls route through the configured store without exposing internal table
+layout as your app's contract.</p><h2 id="keep-writes-explicit-and-environment-scoped" class="section-heading"><a href="#keep-writes-explicit-and-environment-scoped" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Keep writes explicit and environment-scoped</span></h2><p>Authoring operations should always be explicit about environment and mutation
+intent:</p><pre><code class="makeup elixir" translate="no"><span class="kn">alias</span><span class="w"> </span><span class="nc">Rulestead.Store.Command</span><span class="w">
+
+</span><span class="n">command</span><span class="w"> </span><span class="o">=</span><span class="w">
+  </span><span class="nc">Command.PublishRuleset</span><span class="o">.</span><span class="n">new</span><span class="p" data-group-id="5789286752-1">(</span><span class="s">&quot;checkout-redesign&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;prod&quot;</span><span class="p">,</span><span class="w">
+    </span><span class="ss">actor</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="5789286752-2">%{</span><span class="ss">id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;operator-123&quot;</span><span class="p" data-group-id="5789286752-2">}</span><span class="p">,</span><span class="w">
+    </span><span class="ss">version</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="w">
+  </span><span class="p" data-group-id="5789286752-1">)</span><span class="w">
+
+</span><span class="p" data-group-id="5789286752-3">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w"> </span><span class="n">published</span><span class="p" data-group-id="5789286752-3">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nc">Rulestead</span><span class="o">.</span><span class="n">publish_ruleset</span><span class="p" data-group-id="5789286752-4">(</span><span class="n">command</span><span class="p" data-group-id="5789286752-4">)</span></code></pre><p>That keeps the store boundary semantic and auditable instead of turning it into
+ad hoc CRUD.</p><h2 id="let-the-host-app-own-repo-lifecycle" class="section-heading"><a href="#let-the-host-app-own-repo-lifecycle" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Let the host app own repo lifecycle</span></h2><p>Rulestead does not ask you to replace your repo, migration workflow, or deploy
+policy. The host app still owns:</p><ul><li>repo startup</li><li>migration execution</li><li>database credentials</li><li>deployment ordering</li></ul><p>Rulestead supplies migrations and a store contract. Your application remains
+the system of record for repo lifecycle.</p><h2 id="avoid-leaking-internal-table-assumptions" class="section-heading"><a href="#avoid-leaking-internal-table-assumptions" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Avoid leaking internal table assumptions</span></h2><p>It is fine to inspect installed tables while debugging or verifying a release,
+but treat those names as authoring-storage implementation details, not as an
+invitation to build your own runtime evaluator on top of them.</p><p>If your app needs a reporting projection, build that in your own application
+boundary instead of reading raw Rulestead rows from user-facing request code.</p><h2 id="test-with-fake-verify-integration-with-ecto" class="section-heading"><a href="#test-with-fake-verify-integration-with-ecto" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Test with Fake, verify integration with Ecto</span></h2><p>The recommended split is:</p><ul><li>host-app tests use <a href="Rulestead.TestHelpers.html"><code class="inline">Rulestead.TestHelpers</code></a> and <a href="Rulestead.Fake.html"><code class="inline">Rulestead.Fake</code></a></li><li>installer and migration confidence use <a href="Mix.Tasks.Rulestead.Install.html"><code class="inline">mix rulestead.install</code></a> plus
+<a href="https://hexdocs.pm/ecto_sql/3.13.5/Mix.Tasks.Ecto.Migrate.html"><code class="inline">mix ecto.migrate</code></a></li><li>store-specific integration tests are optional and app-owned</li></ul><p>That keeps the main suite fast while still leaving room for higher-level Ecto
+coverage where it matters.</p>
+
+</div>
+
+<div class="bottom-actions" id="bottom-actions">
+  <div class="bottom-actions-item">
+
+      <a href="testing.html" class="bottom-actions-button" rel="prev">
+        <span class="subheader">
+          ← Previous Page
+        </span>
+        <span class="title">
+Testing
+        </span>
+      </a>
+
+  </div>
+  <div class="bottom-actions-item">
+
+      <a href="oban-background-jobs.html" class="bottom-actions-button" rel="next">
+        <span class="subheader">
+          Next Page →
+        </span>
+        <span class="title">
+Oban Background Jobs
+        </span>
+      </a>
+
+  </div>
+</div>
+    <footer class="footer">
+
+        <p>
+
+            <span class="line">
+              <a href="https://hex.pm/packages/rulestead/0.1.0">Hex Package</a>
+
+              <a href="https://preview.hex.pm/preview/rulestead/0.1.0">Hex Preview</a>
+
+                (<a href="https://preview.hex.pm/preview/rulestead/0.1.0/show/../guides/recipes/ecto-conventions.md">current file</a>)
+
+            </span>
+
+          <span class="line">
+            <button class="a-main footer-button display-quick-switch" title="Go to package docs">
+              Go to package docs
+            </button>
+
+              <a href="llms.txt" target="_blank">
+                View llms.txt
+              </a>
+
+
+              <a href="rulestead.epub">
+                Download ePub version
+              </a>
+
+          </span>
+        </p>
+
+        <p class="built-using">
+          Built using
+          <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.40.1) for the
+
+            <a href="https://elixir-lang.org" title="Elixir" target="_blank" translate="no">Elixir programming language</a>
+
+        </p>
+
+
+    </footer>
+  </div>
+</main>
+</div>
+
+  </body>
+</html>

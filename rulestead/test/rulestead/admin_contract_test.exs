@@ -4,8 +4,8 @@ defmodule Rulestead.AdminContractTest do
   alias Rulestead.Store
   alias Rulestead.Store.Command
 
-  test "admin policy exposes a single can?/4 host authorization callback" do
-    assert [can?: 4] == Rulestead.Admin.Policy.behaviour_info(:callbacks)
+  test "admin policy exposes authorization and governance callbacks" do
+    assert Enum.sort(Rulestead.Admin.Policy.behaviour_info(:callbacks)) == [allow_self_approval?: 4, can?: 4, change_request_required?: 4]
   end
 
   test "the root facade exposes the phase 6 admin verbs" do
@@ -26,9 +26,23 @@ defmodule Rulestead.AdminContractTest do
   end
 
   test "the store and typed commands carry phase 6 pagination and lifecycle contracts" do
-    assert [archive_flag: 1, create_flag: 1, fetch_flag: 1, fetch_snapshot: 1,
-            list_environments: 1, list_flags: 1, publish_ruleset: 1, record_evaluation: 1,
-            save_draft_ruleset: 1, update_flag: 1] = Enum.sort(Store.behaviour_info(:callbacks))
+    callbacks = Store.behaviour_info(:callbacks)
+
+    for cb <- [
+          :archive_flag,
+          :create_flag,
+          :fetch_flag,
+          :fetch_snapshot,
+          :list_environments,
+          :list_flags,
+          :publish_ruleset,
+          :record_evaluation,
+          :save_draft_ruleset,
+          :update_flag
+        ] do
+      assert Keyword.has_key?(callbacks, cb)
+      assert callbacks[cb] == 1
+    end
 
     page = %Command.Page{
       entries: [%{flag: %{key: "checkout-redesign"}}],

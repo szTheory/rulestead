@@ -154,7 +154,8 @@ defmodule Rulestead.Telemetry do
     |> String.to_existing_atom()
     |> scheduled_execution_event()
   rescue
-    ArgumentError -> raise KeyError, key: name, term: @scheduled_execution_events
+    ArgumentError ->
+      reraise KeyError, [key: name, term: @scheduled_execution_events], __STACKTRACE__
   end
 
   @spec scheduled_execution_metadata(map(), map()) :: map()

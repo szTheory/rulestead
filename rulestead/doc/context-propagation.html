@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="ExDoc v0.40.1">
+    <meta name="project" content="rulestead v0.1.0">
+
+
+    <title>Context Propagation — rulestead v0.1.0</title>
+
+    <link rel="stylesheet" href="dist/html-elixir-YJO4MOOW.css" />
+
+    <script defer src="dist/sidebar_items-B3B45405.js"></script>
+    <script defer src="docs_config.js"></script>
+    <script defer src="dist/html-YU4BZFVS.js"></script>
+
+  </head>
+  <body>
+    <script>(()=>{var t="ex_doc:settings",e="dark";var o="dark",s="light";var E="sidebar_state",n="closed";var r="sidebar_width";var a="sidebar-open";var i=new URLSearchParams(window.location.search),S=i.get("theme")||JSON.parse(localStorage.getItem(t)||"{}").theme;(S===o||S!==s&&window.matchMedia("(prefers-color-scheme: dark)").matches)&&document.body.classList.add(e);var d=sessionStorage.getItem(E),A=d!==n&&!window.matchMedia(`screen and (max-width: ${768}px)`).matches;document.body.classList.toggle(a,A);var c=sessionStorage.getItem(r);c&&document.body.style.setProperty("--sidebarWidth",`${c}px`);var p=/(Macintosh|iPhone|iPad|iPod)/.test(window.navigator.userAgent);document.documentElement.classList.toggle("apple-os",p);})();
+</script>
+
+<div class="body-wrapper">
+
+<button id="sidebar-menu" class="sidebar-button sidebar-toggle" aria-label="toggle sidebar" aria-controls="sidebar">
+  <i class="ri-menu-line ri-lg" title="Collapse/expand sidebar"></i>
+</button>
+
+<nav id="sidebar" class="sidebar">
+
+  <div class="sidebar-header">
+    <div class="sidebar-projectInfo">
+
+      <div>
+        <a href="https://hexdocs.pm/rulestead" class="sidebar-projectName" translate="no">
+rulestead
+        </a>
+        <div class="sidebar-projectVersion" translate="no">
+          v0.1.0
+        </div>
+      </div>
+    </div>
+    <ul id="sidebar-list-nav" class="sidebar-list-nav" role="tablist" data-extras="Pages"></ul>
+  </div>
+</nav>
+
+<output role="status" id="toast"></output>
+
+<main class="content page-extra" id="main" data-type="extras">
+  <div id="content" class="content-inner">
+    <div class="top-search">
+      <div class="search-settings">
+        <form class="search-bar" action="search.html">
+          <label class="search-label">
+            <span class="sr-only">Search documentation of rulestead</span>
+            <div class="search-input-wrapper">
+              <input name="q" type="text" class="search-input" placeholder="Press / to search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+              <button type="button" tabindex="-1" class="search-close-button" aria-hidden="true">
+                <i class="ri-close-line ri-lg" title="Cancel search"></i>
+              </button>
+            </div>
+          </label>
+        </form>
+        <div class="autocomplete">
+        </div>
+        <div class="engine-selector" data-multiple="false">
+          <button type="button" class="engine-button" aria-label="Select search engine" aria-haspopup="true" aria-expanded="false">
+            <i class="ri-search-2-line" aria-hidden="true"></i>
+            <span class="engine-name">Default</span>
+            <i class="ri-arrow-down-s-line" aria-hidden="true"></i>
+          </button>
+          <div class="engine-dropdown" hidden role="menu">
+
+              <button type="button"
+                      class="engine-option"
+                      data-engine-url="search.html?q="
+                      role="menuitemradio"
+                      aria-checked="true">
+                <span class="name">Default</span>
+                <span class="help">In-browser search</span>
+              </button>
+
+          </div>
+        </div>
+        <button class="icon-settings display-settings">
+          <i class="ri-settings-3-line"></i>
+          <span class="sr-only">Settings</span>
+        </button>
+      </div>
+    </div>
+
+<div id="top-content">
+  <div class="heading-with-actions top-heading">
+    <h1>Context Propagation</h1>
+
+<a href="context-propagation.md" title="Copy Markdown (hold Ctrl/Cmd and click it to open as Markdown)" class="copy-markdown icon-action" rel="help">
+  <i class="ri-markdown-line" aria-hidden="true"></i>
+  <span class="sr-only">Copy Markdown</span>
+</a>
+
+
+      <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/../guides/recipes/context-propagation.md#L1" title="View Source" class="icon-action" rel="help">
+        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        <span class="sr-only">View Source</span>
+      </a>
+
+  </div>
+
+
+<p>Rulestead keeps context propagation explicit.</p><p><code class="inline">%Rulestead.Context{}</code> is built at the host boundary, passed forward intentionally, and restored only from bounded serialized fields. There is no ambient process-dictionary lookup, no hidden cross-process mutation, and no raw Phoenix or Oban structs in telemetry or job payloads.</p><h2 id="plug-to-phoenix" class="section-heading"><a href="#plug-to-phoenix" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Plug to Phoenix</span></h2><p>Use <a href="Rulestead.Plug.html"><code class="inline">Rulestead.Plug</code></a> in the request pipeline to assign a normalized context onto the conn:</p><pre><code class="makeup elixir" translate="no"><span class="n">plug</span><span class="w"> </span><span class="nc">Rulestead.Plug</span><span class="p">,</span><span class="w">
+  </span><span class="ss">actor</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="3383586730-1">{</span><span class="ss">:assign</span><span class="p">,</span><span class="w"> </span><span class="ss">:current_user</span><span class="p" data-group-id="3383586730-1">}</span><span class="p">,</span><span class="w">
+  </span><span class="ss">environment</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;prod&quot;</span><span class="p">,</span><span class="w">
+  </span><span class="ss">request_id</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="3383586730-2">{</span><span class="ss">:header</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;x-request-id&quot;</span><span class="p" data-group-id="3383586730-2">}</span><span class="p">,</span><span class="w">
+  </span><span class="ss">session_id</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="3383586730-3">{</span><span class="ss">:session</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;session_id&quot;</span><span class="p" data-group-id="3383586730-3">}</span><span class="p">,</span><span class="w">
+  </span><span class="ss">targeting_key_sources</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="3383586730-4">[</span><span class="w">
+    </span><span class="p" data-group-id="3383586730-5">{</span><span class="ss">:session</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;targeting_key&quot;</span><span class="p" data-group-id="3383586730-5">}</span><span class="p">,</span><span class="w">
+    </span><span class="p" data-group-id="3383586730-6">{</span><span class="ss">:cookie</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;rulestead_targeting_key&quot;</span><span class="p" data-group-id="3383586730-6">}</span><span class="p">,</span><span class="w">
+    </span><span class="p" data-group-id="3383586730-7">{</span><span class="ss">:header</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;x-rulestead-targeting-key&quot;</span><span class="p" data-group-id="3383586730-7">}</span><span class="w">
+  </span><span class="p" data-group-id="3383586730-4">]</span></code></pre><p>The plug writes only <code class="inline">conn.assigns[:rulestead_context]</code>.</p><p>If you need the context directly, call <a href="Rulestead.Phoenix.html#context_from_conn/2"><code class="inline">Rulestead.Phoenix.context_from_conn/2</code></a>
+with the same explicit sources. The contract is &quot;project a bounded context from
+request data&quot;, not &quot;make the conn itself globally available.&quot;</p><h2 id="phoenix-to-liveview" class="section-heading"><a href="#phoenix-to-liveview" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Phoenix to LiveView</span></h2><p>Pass the bounded values you need during mount, then rebuild the context from socket assigns and explicit session data:</p><pre><code class="makeup elixir" translate="no"><span class="kd">def</span><span class="w"> </span><span class="nf">mount</span><span class="p" data-group-id="1312471034-1">(</span><span class="c">_params</span><span class="p">,</span><span class="w"> </span><span class="n">session</span><span class="p">,</span><span class="w"> </span><span class="n">socket</span><span class="p" data-group-id="1312471034-1">)</span><span class="w"> </span><span class="k" data-group-id="1312471034-2">do</span><span class="w">
+  </span><span class="n">socket</span><span class="w"> </span><span class="o">=</span><span class="w">
+    </span><span class="n">assign</span><span class="p" data-group-id="1312471034-3">(</span><span class="n">socket</span><span class="p">,</span><span class="w">
+      </span><span class="ss">rulestead_context</span><span class="p">:</span><span class="w"> </span><span class="n">socket</span><span class="o">.</span><span class="n">assigns</span><span class="p" data-group-id="1312471034-4">[</span><span class="ss">:rulestead_context</span><span class="p" data-group-id="1312471034-4">]</span><span class="p">,</span><span class="w">
+      </span><span class="ss">current_user</span><span class="p">:</span><span class="w"> </span><span class="n">socket</span><span class="o">.</span><span class="n">assigns</span><span class="p" data-group-id="1312471034-5">[</span><span class="ss">:current_user</span><span class="p" data-group-id="1312471034-5">]</span><span class="w">
+    </span><span class="p" data-group-id="1312471034-3">)</span><span class="w">
+
+  </span><span class="p" data-group-id="1312471034-6">{</span><span class="ss">:ok</span><span class="p">,</span><span class="w">
+   </span><span class="nc">Rulestead.LiveView</span><span class="o">.</span><span class="n">assign_flags</span><span class="p" data-group-id="1312471034-7">(</span><span class="w">
+     </span><span class="n">socket</span><span class="p">,</span><span class="w">
+     </span><span class="p" data-group-id="1312471034-8">%{</span><span class="ss">checkout_enabled</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;checkout-redesign&quot;</span><span class="p" data-group-id="1312471034-8">}</span><span class="p">,</span><span class="w">
+     </span><span class="ss">session</span><span class="p">:</span><span class="w"> </span><span class="n">session</span><span class="w">
+   </span><span class="p" data-group-id="1312471034-7">)</span><span class="p" data-group-id="1312471034-6">}</span><span class="w">
+</span><span class="k" data-group-id="1312471034-2">end</span></code></pre><p><a href="Rulestead.LiveView.html#assign_flags/3"><code class="inline">Rulestead.LiveView.assign_flags/3</code></a> resolves flags through the keyed runtime
+layer only. It does not read the store, runtime cache internals, or the pure
+payload-first evaluator directly.</p><p>If you only need to carry context without assigning flags yet, use
+<a href="Rulestead.LiveView.html#context_from_socket/2"><code class="inline">Rulestead.LiveView.context_from_socket/2</code></a> and pass the resulting
+<code class="inline">%Rulestead.Context{}</code> onward explicitly.</p><h2 id="liveview-or-request-to-oban" class="section-heading"><a href="#liveview-or-request-to-oban" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">LiveView or Request to Oban</span></h2><p>Serialize the current context explicitly when enqueueing a job:</p><pre><code class="makeup elixir" translate="no"><span class="n">job</span><span class="w"> </span><span class="o">=</span><span class="w">
+  </span><span class="p" data-group-id="5352354167-1">%</span><span class="nc" data-group-id="5352354167-1">Oban.Job</span><span class="p" data-group-id="5352354167-1">{</span><span class="ss">args</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="5352354167-2">%{</span><span class="s">&quot;task&quot;</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="s">&quot;sync&quot;</span><span class="p" data-group-id="5352354167-2">}</span><span class="p" data-group-id="5352354167-1">}</span><span class="w">
+  </span><span class="o">|&gt;</span><span class="w"> </span><span class="nc">Rulestead.Oban.Middleware</span><span class="o">.</span><span class="n">attach</span><span class="p" data-group-id="5352354167-3">(</span><span class="ss">context</span><span class="p">:</span><span class="w"> </span><span class="n">socket</span><span class="o">.</span><span class="n">assigns</span><span class="o">.</span><span class="n">rulestead_context</span><span class="p" data-group-id="5352354167-3">)</span></code></pre><p>Inside a worker:</p><pre><code class="makeup elixir" translate="no"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">MyApp.SyncWorker</span><span class="w"> </span><span class="k" data-group-id="7386802153-1">do</span><span class="w">
+  </span><span class="kn">use</span><span class="w"> </span><span class="nc">Rulestead.Oban.Worker</span><span class="w">
+</span><span class="k" data-group-id="7386802153-1">end</span><span class="w">
+
+</span><span class="n">context</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nc">MyApp.SyncWorker</span><span class="o">.</span><span class="n">rulestead_context</span><span class="p" data-group-id="7386802153-2">(</span><span class="n">job</span><span class="p" data-group-id="7386802153-2">)</span></code></pre><p>The Oban seam serializes only bounded context fields and restores them with
+<a href="Rulestead.Oban.html#context_from_job/1"><code class="inline">Rulestead.Oban.context_from_job/1</code></a>.</p><h2 id="what-bounded-means" class="section-heading"><a href="#what-bounded-means" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">What &quot;bounded&quot; means</span></h2><p>The supported propagation payload is limited to context fields such as:</p><ul><li><code class="inline">actor</code></li><li><code class="inline">targeting_key</code></li><li><code class="inline">tenant_key</code></li><li><code class="inline">environment</code></li><li><code class="inline">attributes</code></li><li><code class="inline">request_id</code></li><li><code class="inline">session_id</code></li><li><code class="inline">strict?</code></li></ul><p>That keeps propagation auditable and keeps framework structs, socket state, and
+arbitrary request baggage out of telemetry and job payloads.</p><h2 id="supported-chain" class="section-heading"><a href="#supported-chain" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Supported Chain</span></h2><p>The supported propagation path is:</p><ol><li>Build or assign <code class="inline">%Rulestead.Context{}</code> from request input with <a href="Rulestead.Plug.html"><code class="inline">Rulestead.Plug</code></a> or <a href="Rulestead.Phoenix.html#context_from_conn/2"><code class="inline">Rulestead.Phoenix.context_from_conn/2</code></a>.</li><li>Rebuild or reuse that context in LiveView with <a href="Rulestead.LiveView.html#context_from_socket/2"><code class="inline">Rulestead.LiveView.context_from_socket/2</code></a>.</li><li>Serialize that context into jobs with <a href="Rulestead.Oban.Middleware.html#attach/2"><code class="inline">Rulestead.Oban.Middleware.attach/2</code></a>.</li><li>Restore it in workers with <code class="inline">use Rulestead.Oban.Worker</code>.</li></ol><p>Every step is visible in application code. That is the point.</p><h2 id="explicitly-unsupported" class="section-heading"><a href="#explicitly-unsupported" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Explicitly Unsupported</span></h2><ul><li>Hidden process-dictionary propagation</li><li>Reading context from unrelated process state</li><li>Serializing raw <code class="inline">Plug.Conn</code>, <code class="inline">Phoenix.LiveView.Socket</code>, or <code class="inline">Oban.Job</code> structs into telemetry or job payloads</li><li>Bypassing the keyed runtime layer from LiveView helpers</li><li>Reconstructing context from private runtime cache or store internals</li></ul>
+
+</div>
+
+<div class="bottom-actions" id="bottom-actions">
+  <div class="bottom-actions-item">
+
+      <a href="deployment.html" class="bottom-actions-button" rel="prev">
+        <span class="subheader">
+          ← Previous Page
+        </span>
+        <span class="title">
+Deployment
+        </span>
+      </a>
+
+  </div>
+  <div class="bottom-actions-item">
+
+  </div>
+</div>
+    <footer class="footer">
+
+        <p>
+
+            <span class="line">
+              <a href="https://hex.pm/packages/rulestead/0.1.0">Hex Package</a>
+
+              <a href="https://preview.hex.pm/preview/rulestead/0.1.0">Hex Preview</a>
+
+                (<a href="https://preview.hex.pm/preview/rulestead/0.1.0/show/../guides/recipes/context-propagation.md">current file</a>)
+
+            </span>
+
+          <span class="line">
+            <button class="a-main footer-button display-quick-switch" title="Go to package docs">
+              Go to package docs
+            </button>
+
+              <a href="llms.txt" target="_blank">
+                View llms.txt
+              </a>
+
+
+              <a href="rulestead.epub">
+                Download ePub version
+              </a>
+
+          </span>
+        </p>
+
+        <p class="built-using">
+          Built using
+          <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.40.1) for the
+
+            <a href="https://elixir-lang.org" title="Elixir" target="_blank" translate="no">Elixir programming language</a>
+
+        </p>
+
+
+    </footer>
+  </div>
+</main>
+</div>
+
+  </body>
+</html>

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="ExDoc v0.40.1">
+    <meta name="project" content="rulestead v0.1.0">
+
+
+    <title>Rulesets — rulestead v0.1.0</title>
+
+    <link rel="stylesheet" href="dist/html-elixir-YJO4MOOW.css" />
+
+    <script defer src="dist/sidebar_items-B3B45405.js"></script>
+    <script defer src="docs_config.js"></script>
+    <script defer src="dist/html-YU4BZFVS.js"></script>
+
+  </head>
+  <body>
+    <script>(()=>{var t="ex_doc:settings",e="dark";var o="dark",s="light";var E="sidebar_state",n="closed";var r="sidebar_width";var a="sidebar-open";var i=new URLSearchParams(window.location.search),S=i.get("theme")||JSON.parse(localStorage.getItem(t)||"{}").theme;(S===o||S!==s&&window.matchMedia("(prefers-color-scheme: dark)").matches)&&document.body.classList.add(e);var d=sessionStorage.getItem(E),A=d!==n&&!window.matchMedia(`screen and (max-width: ${768}px)`).matches;document.body.classList.toggle(a,A);var c=sessionStorage.getItem(r);c&&document.body.style.setProperty("--sidebarWidth",`${c}px`);var p=/(Macintosh|iPhone|iPad|iPod)/.test(window.navigator.userAgent);document.documentElement.classList.toggle("apple-os",p);})();
+</script>
+
+<div class="body-wrapper">
+
+<button id="sidebar-menu" class="sidebar-button sidebar-toggle" aria-label="toggle sidebar" aria-controls="sidebar">
+  <i class="ri-menu-line ri-lg" title="Collapse/expand sidebar"></i>
+</button>
+
+<nav id="sidebar" class="sidebar">
+
+  <div class="sidebar-header">
+    <div class="sidebar-projectInfo">
+
+      <div>
+        <a href="https://hexdocs.pm/rulestead" class="sidebar-projectName" translate="no">
+rulestead
+        </a>
+        <div class="sidebar-projectVersion" translate="no">
+          v0.1.0
+        </div>
+      </div>
+    </div>
+    <ul id="sidebar-list-nav" class="sidebar-list-nav" role="tablist" data-extras="Pages"></ul>
+  </div>
+</nav>
+
+<output role="status" id="toast"></output>
+
+<main class="content page-extra" id="main" data-type="extras">
+  <div id="content" class="content-inner">
+    <div class="top-search">
+      <div class="search-settings">
+        <form class="search-bar" action="search.html">
+          <label class="search-label">
+            <span class="sr-only">Search documentation of rulestead</span>
+            <div class="search-input-wrapper">
+              <input name="q" type="text" class="search-input" placeholder="Press / to search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+              <button type="button" tabindex="-1" class="search-close-button" aria-hidden="true">
+                <i class="ri-close-line ri-lg" title="Cancel search"></i>
+              </button>
+            </div>
+          </label>
+        </form>
+        <div class="autocomplete">
+        </div>
+        <div class="engine-selector" data-multiple="false">
+          <button type="button" class="engine-button" aria-label="Select search engine" aria-haspopup="true" aria-expanded="false">
+            <i class="ri-search-2-line" aria-hidden="true"></i>
+            <span class="engine-name">Default</span>
+            <i class="ri-arrow-down-s-line" aria-hidden="true"></i>
+          </button>
+          <div class="engine-dropdown" hidden role="menu">
+
+              <button type="button"
+                      class="engine-option"
+                      data-engine-url="search.html?q="
+                      role="menuitemradio"
+                      aria-checked="true">
+                <span class="name">Default</span>
+                <span class="help">In-browser search</span>
+              </button>
+
+          </div>
+        </div>
+        <button class="icon-settings display-settings">
+          <i class="ri-settings-3-line"></i>
+          <span class="sr-only">Settings</span>
+        </button>
+      </div>
+    </div>
+
+<div id="top-content">
+  <div class="heading-with-actions top-heading">
+    <h1>Rulesets</h1>
+
+<a href="rulesets.md" title="Copy Markdown (hold Ctrl/Cmd and click it to open as Markdown)" class="copy-markdown icon-action" rel="help">
+  <i class="ri-markdown-line" aria-hidden="true"></i>
+  <span class="sr-only">Copy Markdown</span>
+</a>
+
+
+      <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/../guides/flows/rulesets.md#L1" title="View Source" class="icon-action" rel="help">
+        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        <span class="sr-only">View Source</span>
+      </a>
+
+  </div>
+
+
+<p>Rulestead rulesets are designed to stay readable under change. A flag has one
+default outcome and an ordered list of rules. Evaluation is simple:
+first matching rule wins; otherwise the default applies.</p><h2 id="ruleset-shape" class="section-heading"><a href="#ruleset-shape" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Ruleset Shape</span></h2><p>At the public API boundary, app code and operators should reason about four
+things:</p><ul><li>the flag identity and default value</li><li>the ordered rule list</li><li>reusable audiences referenced by rules</li><li>optional variants and rollout weights on rules that need stickiness</li></ul><p>That is the model to preserve when authoring or reviewing a flag. You do not
+need to learn internal evaluator modules or admin LiveView assigns to operate
+it safely.</p><h2 id="author-in-the-same-order-you-expect-to-debug" class="section-heading"><a href="#author-in-the-same-order-you-expect-to-debug" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Author In The Same Order You Expect To Debug</span></h2><p>Put rules in the order you want them explained later:</p><ol><li>most specific allow or treatment rules first</li><li>broader cohort rules after that</li><li>the default value last, outside the rule list</li></ol><p>Because evaluation is first-match-wins, rule order is not presentation-only. If
+you reorder rules, you may change live behavior.</p><h2 id="keep-rules-focused" class="section-heading"><a href="#keep-rules-focused" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Keep Rules Focused</span></h2><p>Good rulesets are narrow and intention-revealing:</p><ul><li>one rollout step per rule</li><li>one audience idea per reusable audience</li><li>one reason an operator can explain in plain language</li></ul><p>If a rule starts carrying several unrelated conditions, split it. If several
+flags repeat the same targeting logic, move that logic into a reusable
+audience.</p><h2 id="supported-condition-families" class="section-heading"><a href="#supported-condition-families" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Supported Condition Families</span></h2><p>Phase <code class="inline">v0.1.0</code> supports bounded attribute predicates inside rules:</p><ul><li>equals</li><li>in</li><li>not_in</li><li>gt</li><li>lt</li><li>gte</li><li>lte</li><li>regex</li><li>exists</li></ul><p>Rules can also reference reusable audiences so you do not copy large condition
+sets into every flag.</p><h2 id="variants-and-weights" class="section-heading"><a href="#variants-and-weights" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Variants And Weights</span></h2><p>Multivariate flags keep stable variant keys and authored rollout weights.
+Weights must add up to <code class="inline">100</code>, and deterministic bucketing keeps the same
+targeting key in the same bucket for the same rule.</p><p>That gives operators a predictable question to ask during rollout work:</p><ul><li>Which rule matched?</li><li>Which bucket did this targeting key land in?</li><li>Which variant weight owned that bucket range?</li></ul><p>Those answers show up again in explainability and rollout workflows.</p><h2 id="draft-then-publish" class="section-heading"><a href="#draft-then-publish" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Draft Then Publish</span></h2><p>When you author rules through the admin package, treat draft and publish as
+separate moments:</p><ul><li>save draft while editing rule order, conditions, or variant weights</li><li>publish when the ruleset is ready to become runtime truth for that
+environment</li></ul><p>This is especially important when multiple operators review the same flag. The
+mounted admin UI preserves that distinction at the package boundary without
+making internal LiveView state part of the contract.</p><h2 id="review-checklist" class="section-heading"><a href="#review-checklist" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Review Checklist</span></h2><p>Before you publish or merge a ruleset change, confirm:</p><ul><li>the default value is safe if every rule misses</li><li>the rule list reads top-to-bottom in business priority order</li><li>sticky rules have a clear targeting-key strategy</li><li>reused audiences are named for business meaning, not implementation trivia</li><li>an on-call engineer could explain the outcome from the ruleset alone</li></ul><h2 id="where-to-go-next" class="section-heading"><a href="#where-to-go-next" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Where To Go Next</span></h2><ul><li>Use <a href="evaluation.html">Evaluation</a> for payload-first runtime calls.</li><li>Use <a href="rollout.html">Rollout</a> when a ruleset change is part of a staged release.</li><li>Use <a href="explainability.html">Explainability</a> when you need to read a decision back
+to a support or incident audience.</li></ul>
+
+</div>
+
+<div class="bottom-actions" id="bottom-actions">
+  <div class="bottom-actions-item">
+
+      <a href="evaluation.html" class="bottom-actions-button" rel="prev">
+        <span class="subheader">
+          ← Previous Page
+        </span>
+        <span class="title">
+Evaluation
+        </span>
+      </a>
+
+  </div>
+  <div class="bottom-actions-item">
+
+      <a href="rollout.html" class="bottom-actions-button" rel="next">
+        <span class="subheader">
+          Next Page →
+        </span>
+        <span class="title">
+Rollout
+        </span>
+      </a>
+
+  </div>
+</div>
+    <footer class="footer">
+
+        <p>
+
+            <span class="line">
+              <a href="https://hex.pm/packages/rulestead/0.1.0">Hex Package</a>
+
+              <a href="https://preview.hex.pm/preview/rulestead/0.1.0">Hex Preview</a>
+
+                (<a href="https://preview.hex.pm/preview/rulestead/0.1.0/show/../guides/flows/rulesets.md">current file</a>)
+
+            </span>
+
+          <span class="line">
+            <button class="a-main footer-button display-quick-switch" title="Go to package docs">
+              Go to package docs
+            </button>
+
+              <a href="llms.txt" target="_blank">
+                View llms.txt
+              </a>
+
+
+              <a href="rulestead.epub">
+                Download ePub version
+              </a>
+
+          </span>
+        </p>
+
+        <p class="built-using">
+          Built using
+          <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.40.1) for the
+
+            <a href="https://elixir-lang.org" title="Elixir" target="_blank" translate="no">Elixir programming language</a>
+
+        </p>
+
+
+    </footer>
+  </div>
+</main>
+</div>
+
+  </body>
+</html>
