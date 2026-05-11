@@ -155,6 +155,7 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Show do
           <li><a href={@page.schedule_path}>Back to schedule</a></li>
           <li><a href={@page.change_requests_path}>Open change requests</a></li>
           <li><a href={@page.audit_path}>Open audit timeline</a></li>
+          <li :if={@page.webhooks_path}><a href={@page.webhooks_path}>Open webhooks</a></li>
         </ul>
       </section>
     </Shell.page>
@@ -174,6 +175,7 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Show do
         current == :change_requests
       ),
       nav_link("Schedule", Session.current_path(socket, index_path()), current == :schedule),
+      nav_link("Webhooks", Session.current_path(socket, "/admin/flags/webhooks"), current == :webhooks),
       nav_link("Audit", Session.current_path(socket, audit_path()), current == :audit)
     ]
   end
@@ -215,7 +217,8 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Show do
               socket,
               "#{mount_path(socket)}/#{scheduled_execution.resource_key}"
             )
-        )
+        ),
+      webhooks_path: Session.current_path(socket, "/admin/flags/webhooks")
     })
   end
 

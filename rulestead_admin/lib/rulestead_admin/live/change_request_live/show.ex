@@ -180,6 +180,7 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Show do
           <li><a href={@page.audit_path}>Open audit timeline</a></li>
           <li :if={@page.flag_path}><a href={@page.flag_path}>Open flag</a></li>
           <li :if={@page.scheduled_execution_path}><a href={@page.scheduled_execution_path}>Open scheduled execution</a></li>
+          <li :if={@page.webhooks_path}><a href={@page.webhooks_path}>Open webhooks</a></li>
         </ul>
       </section>
     </Shell.page>
@@ -199,6 +200,7 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Show do
         current == :change_requests
       ),
       nav_link("Schedule", Session.current_path(socket, schedule_path()), current == :schedule),
+      nav_link("Webhooks", Session.current_path(socket, "/admin/flags/webhooks"), current == :webhooks),
       nav_link("Audit", Session.current_path(socket, audit_path()), current == :audit)
     ]
   end
@@ -231,7 +233,8 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Show do
       scheduled_execution_path:
         if(scheduled_execution_id,
           do: Session.current_path(socket, "#{schedule_path()}/#{scheduled_execution_id}")
-        )
+        ),
+      webhooks_path: Session.current_path(socket, "/admin/flags/webhooks")
     })
   end
 
