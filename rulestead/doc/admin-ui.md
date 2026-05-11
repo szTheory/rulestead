@@ -74,6 +74,7 @@ The shipped package supports these bounded workflows:
 - engage or release a kill switch
 - review change requests in a dedicated queue and approve, reject, execute, or schedule from the mounted review route
 - inspect scheduled changes from the mounted schedule list and detail routes
+- review inbound webhook rejections, accepted events, and outbound deliveries from the mounted integration visibility routes
 - review redacted audit timeline entries and roll back supported changes
 
 These are package-level workflows. They do not freeze the internal LiveView
