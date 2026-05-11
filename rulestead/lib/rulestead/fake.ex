@@ -863,6 +863,25 @@ defmodule Rulestead.Fake do
       next_state
       |> put_in([:change_requests, change_request.id], change_request)
       |> update_in([:audit_events], fn events -> [audit_event | events] end)
+      |> enqueue_webhook_deliveries(
+        "change_request.submitted",
+        fn ->
+          %{
+            "change_request_id" => change_request.id,
+            "status" => change_request.status,
+            "governed_action" => change_request.governed_action,
+            "reason" => change_request.reason,
+            "submitter" => %{
+              "id" => change_request.submitter_id,
+              "type" => change_request.submitter_type,
+              "display" => change_request.submitter_display
+            }
+          }
+        end,
+        environment_key: command.environment_key,
+        resource_type: "flag",
+        resource_key: command.resource_key
+      )
 
     emit_governance_telemetry(:submitted, audit_command, change_request, audit_event)
 
@@ -3578,6 +3597,55 @@ defmodule Rulestead.Fake do
       Map.put(attrs, :expected_expiration, command.expected_expiration)
     else
       attrs
+    end
+  end
+
+  defp enqueue_webhook_deliveries(state, event_type, payload_fn, opts) do
+    env_key = Keyword.get(opts, :environment_key)
+    resource_type = Keyword.get(opts, :resource_type)
+    resource_key = Keyword.get(opts, :resource_key)
+
+    destinations =
+      state.webhook_destinations
+      |> Map.values()
+      |> Enum.filter(fn d ->
+        d.enabled == true and
+          event_type in d.subscriptions and
+          (is_nil(d.environment_key) or d.environment_key == env_key)
+      end)
+
+    if Enum.empty?(destinations) do
+      state
+    else
+      correlation_id = Ecto.UUID.generate()
+      payload = payload_fn.()
+
+      event = %{
+        id: Ecto.UUID.generate(),
+        event_type: event_type,
+        payload: payload,
+        resource_type: resource_type,
+        resource_key: resource_key,
+        environment_key: env_key,
+        correlation_id: correlation_id,
+        inserted_at: state.now
+      }
+
+      state = put_in(state, [:webhook_outbound_events, event.id], event)
+
+      Enum.reduce(destinations, state, fn dest, current_state ->
+        delivery = %{
+          id: Ecto.UUID.generate(),
+          webhook_destination_id: dest.id,
+          webhook_outbound_event_id: event.id,
+          state: :pending,
+          attempt_count: 0,
+          inserted_at: current_state.now,
+          updated_at: current_state.now
+        }
+
+        put_in(current_state, [:webhook_deliveries, delivery.id], delivery)
+      end)
     end
   end
 

@@ -1,10 +1,9 @@
 defmodule Rulestead.Install.ConfigWriter do
   @moduledoc false
 
-  @template_path Application.app_dir(
-                   :rulestead,
-                   "priv/templates/rulestead.install/config/rulestead.exs"
-                 )
+  alias Rulestead.Config, as: RulesteadConfig
+  alias Rulestead.Install.FileInjector
+
   @import_line ~s(import_config "rulestead.exs")
 
   @spec write(module(), keyword()) :: {:ok, [String.t()]} | {:error, Rulestead.Error.t()}
@@ -17,55 +16,54 @@ defmodule Rulestead.Install.ConfigWriter do
 
     rendered = render_template(repo)
 
-    messages =
-      []
-      |> maybe_write_rulestead_config(rulestead_path, rendered)
-      |> maybe_inject_import(config_path)
-
-    {:ok, Enum.reverse(messages)}
+    with {:ok, config_message} <- maybe_write_rulestead_config(rulestead_path, rendered),
+         {:ok, import_message} <- maybe_inject_import(config_path) do
+      {:ok, [config_message, import_message]}
+    end
   end
 
   defp render_template(repo) do
-    @template_path
-    |> File.read!()
-    |> String.replace("__REPO_MODULE__", inspect(repo))
+    """
+    import Config
+
+    config :rulestead, :store, Rulestead.Store.Ecto
+
+    config :rulestead, Rulestead.Repo,
+      repo: #{inspect(repo)}
+
+    config :rulestead, :host,
+    #{render_keyword_block(RulesteadConfig.defaults(), 2)}
+    """
   end
 
-  defp maybe_write_rulestead_config(messages, path, rendered) do
+  defp maybe_write_rulestead_config(path, rendered) do
     case File.read(path) do
       {:ok, ^rendered} ->
-        ["skip #{Path.relative_to_cwd(path)} already present" | messages]
+        {:ok, "skip #{Path.relative_to_cwd(path)} already present"}
 
       {:ok, _existing} ->
         File.write!(path, rendered)
-        ["write #{Path.relative_to_cwd(path)}" | messages]
+        {:ok, "write #{Path.relative_to_cwd(path)}"}
 
       {:error, :enoent} ->
         File.write!(path, rendered)
-        ["write #{Path.relative_to_cwd(path)}" | messages]
+        {:ok, "write #{Path.relative_to_cwd(path)}"}
     end
   end
 
-  defp maybe_inject_import(messages, config_path) do
-    contents =
-      case File.read(config_path) do
-        {:ok, existing} -> existing
-        {:error, :enoent} -> "import Config\n"
-      end
-
-    cond do
-      String.contains?(contents, @import_line) ->
-        ["skip #{Path.relative_to_cwd(config_path)} import already present" | messages]
-
-      true ->
-        updated = inject_import(contents)
-        File.write!(config_path, updated)
-        ["write #{Path.relative_to_cwd(config_path)} import" | messages]
-    end
+  defp maybe_inject_import(config_path) do
+    FileInjector.inject_after(
+      config_path,
+      "import Config\n",
+      "\n" <> @import_line <> "\n",
+      "import"
+    )
   end
 
-  defp inject_import(contents) do
-    trimmed = String.trim_trailing(contents)
-    trimmed <> "\n\n" <> @import_line <> "\n"
+  defp render_keyword_block(keyword, indent) do
+    keyword
+    |> inspect(pretty: true, limit: :infinity)
+    |> String.split("\n")
+    |> Enum.map_join("\n", fn line -> String.duplicate(" ", indent) <> line end)
   end
 end

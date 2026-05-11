@@ -155,7 +155,13 @@ defmodule Rulestead.Admin.Authorizer do
     roles = actor.roles
 
     cond do
-      action in [:list_audit_events, :simulate_flag, :explain_flag] ->
+      action in [
+        :list_audit_events,
+        :simulate_flag,
+        :explain_flag,
+        :list_webhook_records,
+        :fetch_webhook_record
+      ] ->
         Enum.any?(roles, &(&1 in @viewer_roles))
 
       production_environment?(environment_key) ->

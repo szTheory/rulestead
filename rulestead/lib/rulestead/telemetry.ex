@@ -193,6 +193,28 @@ defmodule Rulestead.Telemetry do
     |> Map.put_new(:reason, Map.get(attrs, :reason))
   end
 
+  @spec webhook_delivery_event(atom(), map(), map()) :: :ok
+  def webhook_delivery_event(status, delivery, attrs \\ %{}) do
+    metadata = webhook_outbound_metadata(delivery, attrs)
+    execute([:rulestead, :admin, :webhook_outbound, status], %{system_time: System.system_time()}, metadata)
+  end
+
+  @spec webhook_outbound_metadata(map(), map()) :: map()
+  def webhook_outbound_metadata(delivery, attrs \\ %{}) when is_map(delivery) and is_map(attrs) do
+    attrs = Map.new(attrs)
+    
+    delivery_map = if is_struct(delivery), do: Map.from_struct(delivery), else: delivery
+    event = delivery_map[:webhook_outbound_event] || delivery_map["webhook_outbound_event"] || %{}
+    event_map = if is_struct(event), do: Map.from_struct(event), else: event
+
+    %{}
+    |> Map.put_new(:operation, "webhook_outbound_delivery")
+    |> Map.put_new(:webhook_delivery_id, delivery_map[:id] || delivery_map["id"])
+    |> Map.put_new(:attempt_count, delivery_map[:attempt_count] || delivery_map["attempt_count"])
+    |> Map.put_new(:correlation_id, event_map[:correlation_id] || event_map["correlation_id"])
+    |> Map.put_new(:reason, Map.get(attrs, :reason))
+  end
+
   @spec dispatch(event_name(), map(), metadata(), event_name()) :: :ok
   def dispatch(event, measurements, metadata, registered_event) do
     ensure_handler_table()

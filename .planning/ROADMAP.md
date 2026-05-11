@@ -88,12 +88,12 @@ Plans:
 
 Plans:
 
-- [ ] 12-01: Signed inbound webhook verifier, replay protection, and normalized change-event boundary
+- [x] 12-01: Signed inbound webhook verifier, replay protection, and normalized change-event boundary
 - [x] 12-02: Governed inbound execution path with audit metadata and failure handling
-- [ ] 12-03: Outbound webhook destinations, event contracts, and command surface
-- [ ] 12-04: Retry-safe outbound delivery worker, signing, telemetry, and exhausted-state handling
-- [ ] 12-05: Mounted admin visibility and accessibility for webhook status, rejections, and delivery history
-- [ ] 12-06: Mounted verifier script and route docs for shipped webhook visibility
+- [x] 12-03: Outbound webhook destinations, event contracts, and command surface
+- [x] 12-04: Retry-safe outbound delivery worker, signing, telemetry, and exhausted-state handling
+- [x] 12-05: Mounted admin visibility and accessibility for webhook status, rejections, and delivery history
+- [x] 12-06: Mounted verifier script and route docs for shipped webhook visibility
 
 **Details:**
 

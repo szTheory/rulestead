@@ -1,10 +1,11 @@
 ---
 phase: 07
 slug: admin-ui-simulation-rollouts-kill-switch-audit-security-redaction
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-04-23
+reviewed_at: 2026-04-23T00:00:00-04:00
 ---
 
 # Phase 07 — UI Design Contract
@@ -45,6 +46,9 @@ Declared values (must be multiples of 4):
 | 3xl | 64px | Page top/bottom breathing room inside mounted host chrome |
 
 Exceptions: 44px minimum hit area for icon-only controls and compact row actions; 1px hairlines for timeline dividers and diff boundaries.
+
+Accessibility note:
+- Any icon-only control must include an `aria-label` that names the action and expose a tooltip or visible text fallback on narrow/mobile layouts.
 
 ---
 
@@ -146,7 +150,7 @@ Additional wording rules:
 ### Feedback and async behavior
 
 - Use inline status regions for draft-save and simulation completion.
-- Long-running simulation preview loads should stream or chunk results and expose `Cancel` for sample-based runs.
+- Long-running simulation preview loads should stream or chunk results and expose `Stop Sample Run` for sample-based runs.
 - Never capture sockets inside async work; all async results must re-enter via message/assign patterns compatible with LiveView safety rules already locked for Phase 7.
 
 ### Mobile behavior
@@ -191,11 +195,11 @@ No third-party registries are allowed in this phase by default. The admin packag
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** approved 2026-04-23

@@ -32,9 +32,9 @@ See: `.planning/ROADMAP.md`
 ## Current Position
 
 Phase: 12 — READY
-Plan: 2 of 6
+Plan: 6 of 6
 Status: Ready to execute
-Last activity: 2026-04-26
+Last activity: 2026-05-11
 
 ## Active Requirement Focus
 
@@ -84,9 +84,13 @@ These remain the primary source of truth and should be loaded selectively per ph
 - 2026-04-24 — Completed `12-01`, locking durable webhook ingress contracts, signature verification boundary, and library-owned ingress Plug.
 - 2026-04-24 — Completed `12-02`, implementing the governed inbound execution path with correlated audit and telemetry.
 - 2026-04-24 — Completed `12-03`, locking durable outbound webhook destination, event, and delivery contracts.
+- 2026-05-11 — Completed `12-04`, implementing transactional outbound enqueue, Oban webhook delivery worker, retry semantics, and outbound telemetry.
+- 2026-05-11 — Completed `12-05`, building the mounted webhook operator hub, list/detail surfaces, compact adjacent governance links, and accessibility tests.
+- 2026-05-11 — Completed `12-06`, adding mounted phase 12 webhook integration test and verification script.
 
 ## Next Action
 
-Start `12-04-PLAN.md`.
+Start `13-01-PLAN.md`.
 
-**Planned Phase:** 12 (Webhook Ingress, Outbound Notifications, and Operator Visibility) — 6 plans — 2026-04-24T20:56:40Z
+**Planned Phase:** 13 (Operational Follow-through) — 3 plans — 2026-05-11T20:56:40Z
+

@@ -19,6 +19,33 @@ defmodule Rulestead.EvaluationError do
     )
   end
 
+  @spec missing_targeting_key(keyword()) :: Error.t()
+  def missing_targeting_key(opts \\ []) do
+    build(
+      :missing_targeting_key,
+      "targeting_key is required for sticky evaluation",
+      opts
+    )
+  end
+
+  @spec invalid_value_projection(keyword()) :: Error.t()
+  def invalid_value_projection(opts \\ []) do
+    build(
+      :invalid_value_projection,
+      "evaluation result could not be projected into the requested value shape",
+      opts
+    )
+  end
+
+  @spec malformed_runtime_data(keyword()) :: Error.t()
+  def malformed_runtime_data(opts \\ []) do
+    build(
+      :malformed_runtime_data,
+      "authored runtime data is malformed",
+      opts
+    )
+  end
+
   defp build(type, message, opts) do
     Error.new(
       Keyword.merge(

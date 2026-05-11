@@ -28,7 +28,8 @@ defmodule Rulestead.Store.Ecto do
     StoreError,
     Telemetry,
     Webhooks.Destination,
-    Webhooks.Delivery
+    Webhooks.Delivery,
+    Webhooks.OutboundEvent
   }
 
   alias Rulestead.Store.Command
@@ -547,6 +548,20 @@ defmodule Rulestead.Store.Ecto do
         })
       )
     end)
+    |> enqueue_webhook_deliveries(
+      "change_request.submitted",
+      fn %{change_request: cr} ->
+        %{
+          "change_request_id" => cr.id,
+          "status" => to_string(cr[:status] || cr[:state]),
+          "governed_action" => to_string(cr[:governed_action] || cr[:action]),
+          "reason" => cr.reason,
+          "submitter" => Map.take(cr, [:submitter_id, :submitter_type, :submitter_display])
+        }
+      end,      environment_key: command.environment_key,
+      resource_type: "flag",
+      resource_key: command.resource_key
+    )
     |> Repo.transact()
     |> case do
       {:ok, %{change_request: change_request, audit_event: audit_event}} ->
@@ -597,6 +612,21 @@ defmodule Rulestead.Store.Ecto do
           })
         )
       end)
+      |> enqueue_webhook_deliveries(
+        "change_request.approved",
+        fn %{change_request: cr} ->
+          %{
+            "change_request_id" => cr.id,
+            "status" => to_string(cr[:status] || cr[:state]),
+            "governed_action" => to_string(cr[:governed_action] || cr[:action]),
+            "reason" => cr.reason,
+            "submitter" => Map.take(cr, [:submitter_id, :submitter_type, :submitter_display])
+          }
+        end,
+        environment_key: change_request.environment_key,
+        resource_type: change_request.resource_type,
+        resource_key: change_request.resource_key
+      )
       |> Repo.transact()
       |> case do
         {:ok,
@@ -645,6 +675,21 @@ defmodule Rulestead.Store.Ecto do
           })
         )
       end)
+      |> enqueue_webhook_deliveries(
+        "change_request.rejected",
+        fn %{change_request: cr} ->
+          %{
+            "change_request_id" => cr.id,
+            "status" => to_string(cr[:status] || cr[:state]),
+            "governed_action" => to_string(cr[:governed_action] || cr[:action]),
+            "reason" => cr.reason,
+            "submitter" => Map.take(cr, [:submitter_id, :submitter_type, :submitter_display])
+          }
+        end,
+        environment_key: change_request.environment_key,
+        resource_type: change_request.resource_type,
+        resource_key: change_request.resource_key
+      )
       |> Repo.transact()
       |> case do
         {:ok, %{change_request: updated_change_request, audit_event: audit_event}} ->
@@ -681,6 +726,21 @@ defmodule Rulestead.Store.Ecto do
           })
         )
       end)
+      |> enqueue_webhook_deliveries(
+        "change_request.cancelled",
+        fn %{change_request: cr} ->
+          %{
+            "change_request_id" => cr.id,
+            "status" => to_string(cr[:status] || cr[:state]),
+            "governed_action" => to_string(cr[:governed_action] || cr[:action]),
+            "reason" => cr.reason,
+            "submitter" => Map.take(cr, [:submitter_id, :submitter_type, :submitter_display])
+          }
+        end,
+        environment_key: change_request.environment_key,
+        resource_type: change_request.resource_type,
+        resource_key: change_request.resource_key
+      )
       |> Repo.transact()
       |> case do
         {:ok, %{change_request: updated_change_request}} ->
@@ -844,12 +904,15 @@ defmodule Rulestead.Store.Ecto do
 
   @impl Store
   def cancel_scheduled_execution(%Command.CancelScheduledExecution{} = command) do
-    with {:ok, scheduled_execution} <- fetch_scheduled_execution_row(command.scheduled_execution_id),
+    with {:ok, scheduled_execution} <-
+           fetch_scheduled_execution_row(command.scheduled_execution_id),
          :ok <- ensure_scheduled_transition(scheduled_execution.state, ["scheduled", "running"]) do
       Multi.new()
       |> Multi.run(:scheduled_execution, fn repo, _changes ->
         repo.update_all(
-          from(se in "scheduled_executions", where: field(se, :id) == ^uuid_param(scheduled_execution.id)),
+          from(se in "scheduled_executions",
+            where: field(se, :id) == ^uuid_param(scheduled_execution.id)
+          ),
           set: [
             state: "cancelled",
             failure_reason: command.reason,
@@ -890,12 +953,15 @@ defmodule Rulestead.Store.Ecto do
 
   @impl Store
   def requeue_scheduled_execution(%Command.RequeueScheduledExecution{} = command) do
-    with {:ok, scheduled_execution} <- fetch_scheduled_execution_row(command.scheduled_execution_id),
+    with {:ok, scheduled_execution} <-
+           fetch_scheduled_execution_row(command.scheduled_execution_id),
          :ok <- ensure_scheduled_transition(scheduled_execution.state, ["quarantined"]) do
       Multi.new()
       |> Multi.run(:scheduled_execution, fn repo, _changes ->
         repo.update_all(
-          from(se in "scheduled_executions", where: field(se, :id) == ^uuid_param(scheduled_execution.id)),
+          from(se in "scheduled_executions",
+            where: field(se, :id) == ^uuid_param(scheduled_execution.id)
+          ),
           set: [
             state: "scheduled",
             failure_reason: nil,
@@ -914,7 +980,8 @@ defmodule Rulestead.Store.Ecto do
       |> Multi.run(:oban_job, fn repo, %{scheduled_execution: updated} ->
         enqueue_scheduled_execution_job(repo, updated, command.actor, now())
       end)
-      |> Multi.run(:persist_job_id, fn repo, %{scheduled_execution: updated, oban_job: oban_job} ->
+      |> Multi.run(:persist_job_id, fn repo,
+                                       %{scheduled_execution: updated, oban_job: oban_job} ->
         repo.update_all(
           from(se in "scheduled_executions", where: field(se, :id) == ^uuid_param(updated.id)),
           set: [last_oban_job_id: oban_job.id, updated_at: now()]
@@ -939,7 +1006,9 @@ defmodule Rulestead.Store.Ecto do
           {:ok,
            %{
              scheduled_execution: serialize_scheduled_execution_row(updated),
-             attempts: list_execution_attempt_rows(updated.id) |> Enum.map(&serialize_execution_attempt_row/1)
+             attempts:
+               list_execution_attempt_rows(updated.id)
+               |> Enum.map(&serialize_execution_attempt_row/1)
            }}
 
         {:error, _operation, reason, _changes} ->
@@ -950,13 +1019,16 @@ defmodule Rulestead.Store.Ecto do
 
   @impl Store
   def execute_scheduled_execution(%Command.ExecuteScheduledExecution{} = command) do
-    with {:ok, scheduled_execution} <- fetch_scheduled_execution_row(command.scheduled_execution_id) do
+    with {:ok, scheduled_execution} <-
+           fetch_scheduled_execution_row(command.scheduled_execution_id) do
       case scheduled_execution.state do
         "completed" ->
           {:ok,
            %{
              scheduled_execution: serialize_scheduled_execution_row(scheduled_execution),
-             attempts: list_execution_attempt_rows(scheduled_execution.id) |> Enum.map(&serialize_execution_attempt_row/1)
+             attempts:
+               list_execution_attempt_rows(scheduled_execution.id)
+               |> Enum.map(&serialize_execution_attempt_row/1)
            }}
 
         "cancelled" ->
@@ -979,11 +1051,14 @@ defmodule Rulestead.Store.Ecto do
 
   @impl Store
   def fetch_scheduled_execution(%Command.FetchScheduledExecution{} = command) do
-    with {:ok, scheduled_execution} <- fetch_scheduled_execution_row(command.scheduled_execution_id) do
+    with {:ok, scheduled_execution} <-
+           fetch_scheduled_execution_row(command.scheduled_execution_id) do
       {:ok,
        %{
          scheduled_execution: serialize_scheduled_execution_row(scheduled_execution),
-         attempts: list_execution_attempt_rows(scheduled_execution.id) |> Enum.map(&serialize_execution_attempt_row/1)
+         attempts:
+           list_execution_attempt_rows(scheduled_execution.id)
+           |> Enum.map(&serialize_execution_attempt_row/1)
        }}
     end
   end
@@ -1164,8 +1239,11 @@ defmodule Rulestead.Store.Ecto do
     |> Destination.changeset(attrs)
     |> Repo.insert()
     |> case do
-      {:ok, destination} -> {:ok, serialize_webhook_destination(destination)}
-      {:error, changeset} -> {:error, StoreError.invalid_command("failed to create destination", cause: changeset)}
+      {:ok, destination} ->
+        {:ok, serialize_webhook_destination(destination)}
+
+      {:error, changeset} ->
+        {:error, StoreError.invalid_command("failed to create destination", cause: changeset)}
     end
   end
 
@@ -1189,8 +1267,11 @@ defmodule Rulestead.Store.Ecto do
       |> Destination.changeset(attrs)
       |> Repo.update()
       |> case do
-        {:ok, updated} -> {:ok, serialize_webhook_destination(updated)}
-        {:error, changeset} -> {:error, StoreError.invalid_command("failed to update destination", cause: changeset)}
+        {:ok, updated} ->
+          {:ok, serialize_webhook_destination(updated)}
+
+        {:error, changeset} ->
+          {:error, StoreError.invalid_command("failed to update destination", cause: changeset)}
       end
     end
   end
@@ -1262,8 +1343,11 @@ defmodule Rulestead.Store.Ecto do
         })
         |> Repo.update()
         |> case do
-          {:ok, updated} -> {:ok, serialize_webhook_delivery(updated)}
-          {:error, changeset} -> {:error, StoreError.invalid_command("failed to retry delivery", cause: changeset)}
+          {:ok, updated} ->
+            {:ok, serialize_webhook_delivery(updated)}
+
+          {:error, changeset} ->
+            {:error, StoreError.invalid_command("failed to retry delivery", cause: changeset)}
         end
     end
   end
@@ -2180,7 +2264,12 @@ defmodule Rulestead.Store.Ecto do
   end
 
   defp execute_governed_change(%{governed_action: governed_action} = change_request, command)
-       when governed_action in ["publish_ruleset", "advance_rollout", "engage_kill_switch", "release_kill_switch"] do
+       when governed_action in [
+              "publish_ruleset",
+              "advance_rollout",
+              "engage_kill_switch",
+              "release_kill_switch"
+            ] do
     execute_bounded_governed_action(governed_action, change_request, command)
   end
 
@@ -2191,17 +2280,30 @@ defmodule Rulestead.Store.Ecto do
   defp insert_scheduled_execution(attrs, command) do
     Multi.new()
     |> Multi.run(:scheduled_execution, fn repo, _changes ->
-      case repo.insert_all("scheduled_executions", [attrs], returning: scheduled_execution_fields()) do
+      case repo.insert_all("scheduled_executions", [attrs],
+             returning: scheduled_execution_fields()
+           ) do
         {1, [row]} -> {:ok, normalize_scheduled_execution_row(row)}
         _ -> {:error, StoreError.unavailable()}
       end
     end)
     |> Multi.run(:oban_job, fn repo, %{scheduled_execution: scheduled_execution} ->
-      enqueue_scheduled_execution_job(repo, scheduled_execution, command.actor, scheduled_execution.scheduled_for)
+      enqueue_scheduled_execution_job(
+        repo,
+        scheduled_execution,
+        command.actor,
+        scheduled_execution.scheduled_for
+      )
     end)
-    |> Multi.run(:persist_job_id, fn repo, %{scheduled_execution: scheduled_execution, oban_job: oban_job} ->
+    |> Multi.run(:persist_job_id, fn repo,
+                                     %{
+                                       scheduled_execution: scheduled_execution,
+                                       oban_job: oban_job
+                                     } ->
       repo.update_all(
-        from(se in "scheduled_executions", where: field(se, :id) == ^uuid_param(scheduled_execution.id)),
+        from(se in "scheduled_executions",
+          where: field(se, :id) == ^uuid_param(scheduled_execution.id)
+        ),
         set: [last_oban_job_id: oban_job.id, updated_at: now()]
       )
 
@@ -2221,7 +2323,11 @@ defmodule Rulestead.Store.Ecto do
       {:ok, %{persist_job_id: scheduled_execution, audit_event: audit_event}} ->
         emit_scheduled_execution_telemetry(:scheduled, command, scheduled_execution, audit_event)
 
-        {:ok, %{scheduled_execution: serialize_scheduled_execution_row(scheduled_execution), attempts: []}}
+        {:ok,
+         %{
+           scheduled_execution: serialize_scheduled_execution_row(scheduled_execution),
+           attempts: []
+         }}
 
       {:error, _operation, reason, _changes} ->
         {:error, normalize_governance_failure(reason)}
@@ -2254,7 +2360,9 @@ defmodule Rulestead.Store.Ecto do
             )
           )
 
-        case repo.insert_all("oban_jobs", [job], returning: [:id, :worker, :args, :scheduled_at, :state]) do
+        case repo.insert_all("oban_jobs", [job],
+               returning: [:id, :worker, :args, :scheduled_at, :state]
+             ) do
           {1, [row]} -> {:ok, Map.new(row)}
           _ -> {:error, StoreError.unavailable()}
         end
@@ -2268,10 +2376,23 @@ defmodule Rulestead.Store.Ecto do
     attempt_number = scheduled_execution.attempt_count + 1
     started_at = now()
 
-    with {:ok, attempt} <- insert_execution_attempt_row(scheduled_execution.id, attempt_number, "running", started_at, nil, command.metadata) do
+    with {:ok, attempt} <-
+           insert_execution_attempt_row(
+             scheduled_execution.id,
+             attempt_number,
+             "running",
+             started_at,
+             nil,
+             command.metadata
+           ) do
       case perform_scheduled_execution(scheduled_execution, command) do
         {:ok, execution_result} ->
-          finalize_scheduled_execution_success(scheduled_execution, attempt, command, execution_result)
+          finalize_scheduled_execution_success(
+            scheduled_execution,
+            attempt,
+            command,
+            execution_result
+          )
 
         {:error, reason} ->
           finalize_scheduled_execution_failure(scheduled_execution, attempt, command, reason)
@@ -2279,7 +2400,10 @@ defmodule Rulestead.Store.Ecto do
     end
   end
 
-  defp perform_scheduled_execution(%{change_request_id: change_request_id} = _scheduled_execution, command)
+  defp perform_scheduled_execution(
+         %{change_request_id: change_request_id} = _scheduled_execution,
+         command
+       )
        when is_binary(change_request_id) do
     with {:ok, change_request} <- fetch_change_request_row(change_request_id),
          {:ok, execution_result, _updated_change_request, _audit_event} <-
@@ -2288,8 +2412,16 @@ defmodule Rulestead.Store.Ecto do
     end
   end
 
-  defp perform_scheduled_execution(%{governed_action: governed_action} = scheduled_execution, command)
-       when governed_action in ["publish_ruleset", "advance_rollout", "engage_kill_switch", "release_kill_switch"] do
+  defp perform_scheduled_execution(
+         %{governed_action: governed_action} = scheduled_execution,
+         command
+       )
+       when governed_action in [
+              "publish_ruleset",
+              "advance_rollout",
+              "engage_kill_switch",
+              "release_kill_switch"
+            ] do
     execute_direct_scheduled_action(governed_action, scheduled_execution, command)
   end
 
@@ -2299,7 +2431,10 @@ defmodule Rulestead.Store.Ecto do
 
   defp execute_bounded_governed_action("publish_ruleset", change_request, command) do
     with {:ok, _environment, _flag, flag_environment} <-
-           fetch_schedulable_flag_context(change_request.resource_key, change_request.environment_key),
+           fetch_schedulable_flag_context(
+             change_request.resource_key,
+             change_request.environment_key
+           ),
          {:ok, _ruleset} <-
            ensure_publishable_ruleset(
              flag_environment,
@@ -2308,7 +2443,9 @@ defmodule Rulestead.Store.Ecto do
            ),
          {:ok, execution_result} <-
            publish_ruleset(
-             Command.PublishRuleset.new(change_request.resource_key, change_request.environment_key,
+             Command.PublishRuleset.new(
+               change_request.resource_key,
+               change_request.environment_key,
                version: change_request.command_snapshot["version"],
                actor: command.actor,
                reason: command.reason,
@@ -2333,11 +2470,16 @@ defmodule Rulestead.Store.Ecto do
 
   defp execute_bounded_governed_action("engage_kill_switch", change_request, command) do
     with {:ok, _environment, _flag, flag_environment} <-
-           fetch_schedulable_flag_context(change_request.resource_key, change_request.environment_key),
+           fetch_schedulable_flag_context(
+             change_request.resource_key,
+             change_request.environment_key
+           ),
          :ok <- ensure_kill_switch_transition(flag_environment, :engage),
          {:ok, execution_result} <-
            engage_kill_switch(
-             Command.EngageKillSwitch.new(change_request.resource_key, change_request.environment_key,
+             Command.EngageKillSwitch.new(
+               change_request.resource_key,
+               change_request.environment_key,
                actor: command.actor,
                reason: command.reason,
                metadata: %{
@@ -2355,11 +2497,16 @@ defmodule Rulestead.Store.Ecto do
 
   defp execute_bounded_governed_action("release_kill_switch", change_request, command) do
     with {:ok, _environment, _flag, flag_environment} <-
-           fetch_schedulable_flag_context(change_request.resource_key, change_request.environment_key),
+           fetch_schedulable_flag_context(
+             change_request.resource_key,
+             change_request.environment_key
+           ),
          :ok <- ensure_kill_switch_transition(flag_environment, :release),
          {:ok, execution_result} <-
            release_kill_switch(
-             Command.ReleaseKillSwitch.new(change_request.resource_key, change_request.environment_key,
+             Command.ReleaseKillSwitch.new(
+               change_request.resource_key,
+               change_request.environment_key,
                actor: command.actor,
                reason: command.reason,
                metadata: %{
@@ -2377,7 +2524,10 @@ defmodule Rulestead.Store.Ecto do
 
   defp execute_bounded_governed_action("advance_rollout", change_request, _command) do
     with {:ok, _environment, _flag, flag_environment} <-
-           fetch_schedulable_flag_context(change_request.resource_key, change_request.environment_key),
+           fetch_schedulable_flag_context(
+             change_request.resource_key,
+             change_request.environment_key
+           ),
          :ok <- ensure_rollout_stage_available(flag_environment, change_request.command_snapshot) do
       {:error, StoreError.invalid_command("rollout_stage_conflict")}
     end
@@ -2467,7 +2617,8 @@ defmodule Rulestead.Store.Ecto do
              scheduled_execution.resource_key,
              scheduled_execution.environment_key
            ),
-         :ok <- ensure_rollout_stage_available(flag_environment, scheduled_execution.command_snapshot) do
+         :ok <-
+           ensure_rollout_stage_available(flag_environment, scheduled_execution.command_snapshot) do
       {:error, StoreError.invalid_command("rollout_stage_conflict")}
     end
   end
@@ -2481,7 +2632,9 @@ defmodule Rulestead.Store.Ecto do
   end
 
   defp ensure_schedulable_flag_not_archived(%{archived_at: nil}), do: :ok
-  defp ensure_schedulable_flag_not_archived(_flag), do: {:error, StoreError.invalid_command("archived_resource")}
+
+  defp ensure_schedulable_flag_not_archived(_flag),
+    do: {:error, StoreError.invalid_command("archived_resource")}
 
   defp ensure_publishable_ruleset(flag_environment, environment_key, version) do
     case resolve_publishable_ruleset(flag_environment, environment_key, version) do
@@ -2491,7 +2644,8 @@ defmodule Rulestead.Store.Ecto do
   end
 
   defp ensure_kill_switch_transition(flag_environment, :engage) do
-    if flag_environment.status == :killswitched or not is_nil(flag_environment.kill_switch_variant_key) do
+    if flag_environment.status == :killswitched or
+         not is_nil(flag_environment.kill_switch_variant_key) do
       {:error, StoreError.invalid_command("kill_switch_already_engaged")}
     else
       :ok
@@ -2499,7 +2653,8 @@ defmodule Rulestead.Store.Ecto do
   end
 
   defp ensure_kill_switch_transition(flag_environment, :release) do
-    if flag_environment.status == :killswitched or not is_nil(flag_environment.kill_switch_variant_key) do
+    if flag_environment.status == :killswitched or
+         not is_nil(flag_environment.kill_switch_variant_key) do
       :ok
     else
       {:error, StoreError.invalid_command("kill_switch_already_released")}
@@ -2510,16 +2665,30 @@ defmodule Rulestead.Store.Ecto do
     {:error, StoreError.invalid_command("rollout_stage_conflict")}
   end
 
-  defp finalize_scheduled_execution_success(scheduled_execution, attempt, command, execution_result) do
+  defp finalize_scheduled_execution_success(
+         scheduled_execution,
+         attempt,
+         command,
+         execution_result
+       ) do
     finished_at = now()
 
     Multi.new()
     |> Multi.run(:attempt, fn repo, _changes ->
-      update_execution_attempt_row(repo, attempt.id, "completed", finished_at, nil, command.metadata)
+      update_execution_attempt_row(
+        repo,
+        attempt.id,
+        "completed",
+        finished_at,
+        nil,
+        command.metadata
+      )
     end)
     |> Multi.run(:scheduled_execution, fn repo, _changes ->
       repo.update_all(
-        from(se in "scheduled_executions", where: field(se, :id) == ^uuid_param(scheduled_execution.id)),
+        from(se in "scheduled_executions",
+          where: field(se, :id) == ^uuid_param(scheduled_execution.id)
+        ),
         set: [
           state: "completed",
           attempt_count: scheduled_execution.attempt_count + 1,
@@ -2556,8 +2725,10 @@ defmodule Rulestead.Store.Ecto do
         {:ok,
          %{
            scheduled_execution: serialize_scheduled_execution_row(updated),
-            execution_result: execution_result,
-            attempts: list_execution_attempt_rows(updated.id) |> Enum.map(&serialize_execution_attempt_row/1)
+           execution_result: execution_result,
+           attempts:
+             list_execution_attempt_rows(updated.id)
+             |> Enum.map(&serialize_execution_attempt_row/1)
          }}
 
       {:error, _operation, reason, _changes} ->
@@ -2565,7 +2736,12 @@ defmodule Rulestead.Store.Ecto do
     end
   end
 
-  defp finalize_scheduled_execution_failure(scheduled_execution, attempt, command, %Rulestead.Error{} = error) do
+  defp finalize_scheduled_execution_failure(
+         scheduled_execution,
+         attempt,
+         command,
+         %Rulestead.Error{} = error
+       ) do
     finalize_scheduled_execution_failure(scheduled_execution, attempt, command, error.message)
   end
 
@@ -2573,18 +2749,37 @@ defmodule Rulestead.Store.Ecto do
     finished_at = now()
     failure_reason = normalize_failure_reason(reason)
     next_attempt_count = scheduled_execution.attempt_count + 1
-    next_state = if next_attempt_count >= @scheduled_execution_retry_limit, do: "quarantined", else: "scheduled"
+
+    next_state =
+      if next_attempt_count >= @scheduled_execution_retry_limit,
+        do: "quarantined",
+        else: "scheduled"
+
     attempt_state = if next_state == "quarantined", do: "quarantined", else: "failed"
-    event_type = if next_state == "quarantined", do: "scheduled_execution.quarantined", else: "scheduled_execution.failed"
+
+    event_type =
+      if next_state == "quarantined",
+        do: "scheduled_execution.quarantined",
+        else: "scheduled_execution.failed"
+
     telemetry_event = if next_state == "quarantined", do: :quarantined, else: :failed
 
     Multi.new()
     |> Multi.run(:attempt, fn repo, _changes ->
-      update_execution_attempt_row(repo, attempt.id, attempt_state, finished_at, failure_reason, command.metadata)
+      update_execution_attempt_row(
+        repo,
+        attempt.id,
+        attempt_state,
+        finished_at,
+        failure_reason,
+        command.metadata
+      )
     end)
     |> Multi.run(:scheduled_execution, fn repo, _changes ->
       repo.update_all(
-        from(se in "scheduled_executions", where: field(se, :id) == ^uuid_param(scheduled_execution.id)),
+        from(se in "scheduled_executions",
+          where: field(se, :id) == ^uuid_param(scheduled_execution.id)
+        ),
         set: [
           state: next_state,
           attempt_count: next_attempt_count,
@@ -2618,7 +2813,14 @@ defmodule Rulestead.Store.Ecto do
     end
   end
 
-  defp insert_execution_attempt_row(scheduled_execution_id, attempt_number, state, started_at, failure_reason, metadata) do
+  defp insert_execution_attempt_row(
+         scheduled_execution_id,
+         attempt_number,
+         state,
+         started_at,
+         failure_reason,
+         metadata
+       ) do
     attrs = %{
       scheduled_execution_id: uuid_param(scheduled_execution_id),
       attempt_number: attempt_number,
@@ -2636,10 +2838,24 @@ defmodule Rulestead.Store.Ecto do
     end
   end
 
-  defp update_execution_attempt_row(repo, attempt_id, state, finished_at, failure_reason, metadata) do
+  defp update_execution_attempt_row(
+         repo,
+         attempt_id,
+         state,
+         finished_at,
+         failure_reason,
+         metadata
+       ) do
     repo.update_all(
-      from(attempt in "execution_attempts", where: field(attempt, :id) == ^uuid_param(attempt_id)),
-      set: [state: state, finished_at: finished_at, failure_reason: failure_reason, metadata: metadata]
+      from(attempt in "execution_attempts",
+        where: field(attempt, :id) == ^uuid_param(attempt_id)
+      ),
+      set: [
+        state: state,
+        finished_at: finished_at,
+        failure_reason: failure_reason,
+        metadata: metadata
+      ]
     )
 
     case from(attempt in "execution_attempts",
@@ -2680,8 +2896,7 @@ defmodule Rulestead.Store.Ecto do
          field(a, :change_request_id) == ^uuid_param(change_request_id) and
            field(a, :decision) == "approved",
        order_by: [asc: field(a, :reviewed_at)],
-       select:
-         map(a, [:reviewer_id, :reviewer_type, :reviewer_display])
+       select: map(a, [:reviewer_id, :reviewer_type, :reviewer_display])
      )
      |> Repo.all()
      |> Enum.map(fn approval ->
@@ -2711,13 +2926,25 @@ defmodule Rulestead.Store.Ecto do
     )
   end
 
-  defp insert_scheduled_execution_audit_event(repo, scheduled_execution, command, event_type, result) do
+  defp insert_scheduled_execution_audit_event(
+         repo,
+         scheduled_execution,
+         command,
+         event_type,
+         result
+       ) do
     %AuditEvent{}
     |> scheduled_execution_audit_changeset(scheduled_execution, command, event_type, result)
     |> repo.insert()
   end
 
-  defp scheduled_execution_audit_changeset(audit_event, scheduled_execution, command, event_type, result) do
+  defp scheduled_execution_audit_changeset(
+         audit_event,
+         scheduled_execution,
+         command,
+         event_type,
+         result
+       ) do
     AuditEvent.changeset(audit_event, %{
       event_type: event_type,
       resource_type: scheduled_execution.resource_type || "flag",
@@ -2767,7 +2994,8 @@ defmodule Rulestead.Store.Ecto do
   defp scheduled_execution_stage(_event_type), do: "execute"
 
   defp scheduled_execution_source(scheduled_execution, command) do
-    command.metadata[:source] || command.metadata["source"] || scheduled_execution.metadata["source"]
+    command.metadata[:source] || command.metadata["source"] ||
+      scheduled_execution.metadata["source"]
   end
 
   defp scheduled_by_payload(scheduled_execution) do
@@ -2788,7 +3016,13 @@ defmodule Rulestead.Store.Ecto do
 
   defp executed_by_value(_actor), do: "scheduler"
 
-  defp emit_scheduled_execution_telemetry(event, command, scheduled_execution, audit_event, extra \\ []) do
+  defp emit_scheduled_execution_telemetry(
+         event,
+         command,
+         scheduled_execution,
+         audit_event,
+         extra \\ []
+       ) do
     Telemetry.execute(
       Telemetry.scheduled_execution_event(event),
       %{count: 1},
@@ -2809,7 +3043,11 @@ defmodule Rulestead.Store.Ecto do
   end
 
   defp lifecycle_telemetry_enabled?(command) do
-    Map.get(command.metadata, :emit_lifecycle_telemetry, Map.get(command.metadata, "emit_lifecycle_telemetry", true)) != false
+    Map.get(
+      command.metadata,
+      :emit_lifecycle_telemetry,
+      Map.get(command.metadata, "emit_lifecycle_telemetry", true)
+    ) != false
   end
 
   defp normalize_governance_failure(%Rulestead.Error{} = error), do: error
@@ -2967,26 +3205,42 @@ defmodule Rulestead.Store.Ecto do
     if state in allowed_states do
       :ok
     else
-      {:error, StoreError.invalid_command("scheduled execution is not in a valid state for this operation")}
+      {:error,
+       StoreError.invalid_command(
+         "scheduled execution is not in a valid state for this operation"
+       )}
     end
   end
 
   defp maybe_filter_scheduled_execution(query, _field, nil), do: query
 
   defp maybe_filter_scheduled_execution(query, field_name, value) do
-    where(query, [scheduled_execution], field(scheduled_execution, ^field_name) == ^to_string(value))
+    where(
+      query,
+      [scheduled_execution],
+      field(scheduled_execution, ^field_name) == ^to_string(value)
+    )
   end
 
   defp maybe_filter_scheduled_state(query, nil), do: query
-  defp maybe_filter_scheduled_state(query, value), do: where(query, [se], field(se, :state) == ^normalize_change_request_filter(value))
+
+  defp maybe_filter_scheduled_state(query, value),
+    do: where(query, [se], field(se, :state) == ^normalize_change_request_filter(value))
 
   defp maybe_filter_scheduled_action(query, nil), do: query
-  defp maybe_filter_scheduled_action(query, value), do: where(query, [se], field(se, :governed_action) == ^normalize_change_request_filter(value))
+
+  defp maybe_filter_scheduled_action(query, value),
+    do: where(query, [se], field(se, :governed_action) == ^normalize_change_request_filter(value))
 
   defp maybe_filter_scheduled_window(query, :after, nil), do: query
-  defp maybe_filter_scheduled_window(query, :after, %DateTime{} = value), do: where(query, [se], field(se, :scheduled_for) >= ^value)
+
+  defp maybe_filter_scheduled_window(query, :after, %DateTime{} = value),
+    do: where(query, [se], field(se, :scheduled_for) >= ^value)
+
   defp maybe_filter_scheduled_window(query, :before, nil), do: query
-  defp maybe_filter_scheduled_window(query, :before, %DateTime{} = value), do: where(query, [se], field(se, :scheduled_for) <= ^value)
+
+  defp maybe_filter_scheduled_window(query, :before, %DateTime{} = value),
+    do: where(query, [se], field(se, :scheduled_for) <= ^value)
 
   defp scheduled_transition_metadata(existing, state, command) do
     Map.merge(existing || %{}, %{
@@ -2998,7 +3252,8 @@ defmodule Rulestead.Store.Ecto do
     })
   end
 
-  defp normalize_failure_reason(%Rulestead.Error{message: message}), do: normalize_failure_reason(message)
+  defp normalize_failure_reason(%Rulestead.Error{message: message}),
+    do: normalize_failure_reason(message)
 
   defp normalize_failure_reason(reason) when is_binary(reason) do
     case String.trim(reason) do
@@ -3674,4 +3929,69 @@ defmodule Rulestead.Store.Ecto do
   defp maybe_filter_delivery(query, field_name, value) do
     where(query, [d], field(d, ^field_name) == ^value)
   end
+
+  defp enqueue_webhook_deliveries(multi, event_type, payload_fn, opts) do
+    env_key = Keyword.get(opts, :environment_key)
+    resource_type = Keyword.get(opts, :resource_type)
+    resource_key = Keyword.get(opts, :resource_key)
+
+    Multi.run(multi, :"outbound_webhooks_#{event_type}", fn repo, changes ->
+      destinations =
+        repo.all(
+          from(d in Rulestead.Webhooks.Destination,
+            where:
+              d.enabled == true and ^event_type in d.subscriptions and
+                (is_nil(d.environment_key) or d.environment_key == ^env_key)
+          )
+        )
+
+      if Enum.empty?(destinations) do
+        {:ok, []}
+      else
+        correlation_id = get_correlation_id(changes) || Ecto.UUID.generate()
+        payload = payload_fn.(changes)
+
+        {:ok, event} =
+          Rulestead.Webhooks.OutboundEvent.changeset(%Rulestead.Webhooks.OutboundEvent{}, %{
+            event_type: event_type,
+            payload: payload,
+            resource_type: resource_type,
+            resource_key: resource_key,
+            environment_key: env_key,
+            correlation_id: correlation_id
+          })
+          |> repo.insert()
+
+        deliveries =
+          Enum.map(destinations, fn dest ->
+            {:ok, delivery} =
+              Rulestead.Webhooks.Delivery.changeset(%Rulestead.Webhooks.Delivery{}, %{
+                webhook_destination_id: dest.id,
+                webhook_outbound_event_id: event.id,
+                state: :pending,
+                attempt_count: 0
+              })
+              |> repo.insert()
+
+            job = Rulestead.Oban.webhook_delivery_job(delivery.id)
+            repo.insert_all("oban_jobs", [job], returning: [:id])
+
+            delivery
+          end)
+
+        {:ok, deliveries}
+      end
+    end)
+  end
+
+  @doc false
+  def requeue_webhook_delivery(delivery, schedule_in \\ 0) do
+    job = Rulestead.Oban.webhook_delivery_job(delivery.id, schedule_in: schedule_in)
+    Repo.insert_all("oban_jobs", [job], returning: [:id])
+    :ok
+  end
+
+  defp get_correlation_id(%{audit_event: audit_event}), do: audit_event.correlation_id
+  defp get_correlation_id(%{change_request: cr}), do: cr.correlation_id
+  defp get_correlation_id(_), do: nil
 end

@@ -23,10 +23,10 @@
 
 ### Webhooks & Integrations (HOOK)
 
-- [ ] **HOOK-01**: Rulestead can verify and reject malformed, unsigned, or replayed inbound webhook mutations before any state change occurs.
+- [x] **HOOK-01**: Rulestead can verify and reject malformed, unsigned, or replayed inbound webhook mutations before any state change occurs.
 - [x] **HOOK-02**: Accepted inbound webhook events normalize into the same governed mutation path used by the admin UI and preserve audit metadata.
-- [ ] **HOOK-03**: Host can configure outbound webhook destinations for high-impact governance events with retry-safe delivery semantics.
-- [ ] **HOOK-04**: Operators can inspect webhook delivery status or rejection reason without leaving the mounted admin surface.
+- [x] **HOOK-03**: Host can configure outbound webhook destinations for high-impact governance events with retry-safe delivery semantics.
+- [x] **HOOK-04**: Operators can inspect webhook delivery status or rejection reason without leaving the mounted admin surface.
 
 ### Operational Follow-through (OPS)
 
@@ -41,6 +41,9 @@
 - **EXP-01**: Impression and conversion hooks expand into experiment analytics and guardrail metrics.
 - **ECO-01**: OpenFeature provider bridge and broader external ecosystem adapters land as a separate milestone.
 - **ECO-02**: Redis or other non-Postgres store adapters expand runtime/store topology.
+- **ECO-03**: Emit deliberate telemetry events for all state mutations (publish, kill-switch, rollouts) to serve as deploy markers for SRE tools like Parapet.
+- **ECO-04**: Ensure Rulestead evaluation context can seamlessly ingest cross-library metadata (e.g., Scoria trace IDs, Cairnloop ticket states) for deterministic bucketing.
+- **ECO-05**: Design Rulestead's admin APIs such that they can be easily wrapped as MCP (Model Context Protocol) Tools for AI agents (e.g., Scoria).
 
 ### Platform Expansion
 
@@ -70,10 +73,10 @@
 | SCH-02 | Phase 10 | Completed in 10-02 |
 | SCH-03 | Phase 11 | Pending |
 | SCH-04 | Phase 10 | Completed in 10-02 |
-| HOOK-01 | Phase 12 | Pending |
+| HOOK-01 | Phase 12 | Implemented |
 | HOOK-02 | Phase 12 | Completed in 12-02 |
-| HOOK-03 | Phase 12 | Pending |
-| HOOK-04 | Phase 12 | Pending |
+| HOOK-03 | Phase 12 | Implemented |
+| HOOK-04 | Phase 12 | Implemented |
 | OPS-01 | Phase 13 | Pending |
 | OPS-02 | Phase 13 | Blocked |
 | OPS-03 | Phase 13 | Pending |

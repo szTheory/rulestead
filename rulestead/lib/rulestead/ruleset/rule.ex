@@ -85,13 +85,20 @@ defmodule Rulestead.Ruleset.Rule do
   defp validate_rollout_requirements(changeset) do
     strategy = get_field(changeset, :strategy)
     rollout = get_field(changeset, :rollout)
+    variants = get_field(changeset, :variants, [])
 
     cond do
       strategy == :percentage_rollout and is_nil(rollout) ->
         add_error(changeset, :rollout, "must be present for percentage_rollout rules")
 
-      strategy != :percentage_rollout and not is_nil(rollout) ->
-        add_error(changeset, :rollout, "is only supported for percentage_rollout rules")
+      strategy == :variant_split and is_nil(rollout) ->
+        add_error(changeset, :rollout, "must be present for variant_split rules")
+
+      strategy == :variant_split and variants == [] ->
+        add_error(changeset, :variants, "must include at least one variant")
+
+      strategy not in [:percentage_rollout, :variant_split] and not is_nil(rollout) ->
+        add_error(changeset, :rollout, "is only supported for percentage_rollout and variant_split rules")
 
       true ->
         changeset

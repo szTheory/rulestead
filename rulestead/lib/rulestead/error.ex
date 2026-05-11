@@ -23,6 +23,7 @@ defmodule Rulestead.Error do
           :flag_not_found
           | :environment_not_found
           | :ruleset_not_found
+          | :missing_targeting_key
           | :repo_not_configured
           | :repo_ambiguous
           | :store_not_configured
@@ -31,6 +32,8 @@ defmodule Rulestead.Error do
           | :invalid_command
           | :invalid_ruleset
           | :variant_weights_invalid
+          | :invalid_value_projection
+          | :malformed_runtime_data
           | :flag_archived
           | :unauthorized
           | :kill_switch_active
@@ -59,6 +62,7 @@ defmodule Rulestead.Error do
     :flag_not_found,
     :environment_not_found,
     :ruleset_not_found,
+    :missing_targeting_key,
     :repo_not_configured,
     :repo_ambiguous,
     :store_not_configured,
@@ -67,6 +71,8 @@ defmodule Rulestead.Error do
     :invalid_command,
     :invalid_ruleset,
     :variant_weights_invalid,
+    :invalid_value_projection,
+    :malformed_runtime_data,
     :flag_archived,
     :unauthorized,
     :kill_switch_active,

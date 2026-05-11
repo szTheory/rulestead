@@ -240,6 +240,7 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Index do
         current == :change_requests
       ),
       nav_link("Schedule", Session.current_path(socket, base_path()), current == :schedule),
+      nav_link("Webhooks", Session.current_path(socket, "/admin/flags/webhooks"), current == :webhooks),
       nav_link("Audit", Session.current_path(socket, audit_path()), current == :audit)
     ]
   end

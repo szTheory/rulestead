@@ -1,0 +1,10 @@
+copy priv/repo/migrations/.keep
+copy priv/repo/migrations/TIMESTAMP_create_rulestead_authoring_tables.exs
+copy priv/repo/migrations/TIMESTAMP_seed_default_environments.exs
+copy priv/repo/migrations/TIMESTAMP_create_rulestead_runtime_snapshots.exs
+write config/rulestead.exs
+write config/config.exs import
+write lib/host_app_web/endpoint.ex plug
+write lib/host_app_web/router.ex admin helper
+write lib/host_app_web/router.ex admin mount
+skip config/config.exs Oban middlewares not configured

@@ -18,7 +18,8 @@ defmodule Rulestead.Governance.ChangeRequest do
     :submitted_by,
     :command,
     :approval_requirement,
-    :correlation_id
+    :correlation_id,
+    :metadata
   ]
   defstruct [
     :id,
@@ -30,7 +31,8 @@ defmodule Rulestead.Governance.ChangeRequest do
     :submitted_by,
     :command,
     :approval_requirement,
-    :correlation_id
+    :correlation_id,
+    :metadata
   ]
 
   @type state :: :submitted | :approved | :rejected | :cancelled | :executed
@@ -52,7 +54,8 @@ defmodule Rulestead.Governance.ChangeRequest do
           submitted_by: actor_summary(),
           command: map(),
           approval_requirement: ApprovalRequirement.t(),
-          correlation_id: String.t() | nil
+          correlation_id: String.t() | nil,
+          metadata: map()
         }
 
   @spec new(t() | map() | keyword()) :: t()
@@ -71,7 +74,8 @@ defmodule Rulestead.Governance.ChangeRequest do
       submitted_by: normalize_actor_summary(Map.get(attrs, :submitted_by)),
       command: normalize_command(Map.get(attrs, :command)),
       approval_requirement: ApprovalRequirement.new(Map.get(attrs, :approval_requirement, %{})),
-      correlation_id: normalize_string(Map.get(attrs, :correlation_id))
+      correlation_id: normalize_string(Map.get(attrs, :correlation_id)),
+      metadata: normalize_map(Map.get(attrs, :metadata, %{}))
     }
   end
 
@@ -97,7 +101,8 @@ defmodule Rulestead.Governance.ChangeRequest do
       submitted_by: change_request.submitted_by,
       command: change_request.command,
       approval_requirement: ApprovalRequirement.serialize(change_request.approval_requirement),
-      correlation_id: change_request.correlation_id
+      correlation_id: change_request.correlation_id,
+      metadata: change_request.metadata
     }
   end
 
