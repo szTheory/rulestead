@@ -26,6 +26,8 @@ defmodule RulesteadAdmin.Router do
           live "/change-requests/:id", RulesteadAdmin.Live.ChangeRequestLive.Show, :show
           live "/schedule", RulesteadAdmin.Live.ScheduleLive.Index, :index
           live "/schedule/:scheduled_execution_id", RulesteadAdmin.Live.ScheduleLive.Show, :show
+          live "/webhooks", RulesteadAdmin.Live.WebhookLive.Index, :index
+          live "/webhooks/:id", RulesteadAdmin.Live.WebhookLive.Show, :show
           live "/:key", RulesteadAdmin.Live.FlagLive.Show, :show
           live "/:key/edit", RulesteadAdmin.Live.FlagLive.Form, :edit
           live "/:key/rules", RulesteadAdmin.Live.FlagLive.Rules, :index

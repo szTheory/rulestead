@@ -39,6 +39,8 @@ defmodule RulesteadAdmin.RouterTest do
     assert rendered =~ "RulesteadAdmin.Live.ChangeRequestLive.Show"
     assert rendered =~ "RulesteadAdmin.Live.ScheduleLive.Index"
     assert rendered =~ "RulesteadAdmin.Live.ScheduleLive.Show"
+    assert rendered =~ "RulesteadAdmin.Live.WebhookLive.Index"
+    assert rendered =~ "RulesteadAdmin.Live.WebhookLive.Show"
     assert rendered =~ "/:key/simulate"
     assert rendered =~ "/:key/rollouts"
     assert rendered =~ "/:key/kill"
@@ -47,9 +49,12 @@ defmodule RulesteadAdmin.RouterTest do
     assert rendered =~ "/change-requests/:id"
     assert rendered =~ "/schedule"
     assert rendered =~ "/schedule/:scheduled_execution_id"
+    assert rendered =~ "/webhooks"
+    assert rendered =~ "/webhooks/:id"
     assert rendered =~ "/audit"
     assert :binary.match(rendered, "\"/audit\"") < :binary.match(rendered, "\"/:key\"")
     assert :binary.match(rendered, "\"/change-requests\"") < :binary.match(rendered, "\"/:key\"")
     assert :binary.match(rendered, "\"/schedule\"") < :binary.match(rendered, "\"/:key\"")
+    assert :binary.match(rendered, "\"/webhooks\"") < :binary.match(rendered, "\"/:key\"")
   end
 end
