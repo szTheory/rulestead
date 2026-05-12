@@ -8,6 +8,7 @@ defmodule RulesteadAdmin.Live.FlagLive.KillTest do
     @behaviour Rulestead.Admin.Policy
 
     def can?(_actor, _action, _resource, _environment_key), do: true
+    def change_request_required?(_, _, _, _), do: false
   end
 
   defmodule AuditRestrictedPolicy do
@@ -16,6 +17,7 @@ defmodule RulesteadAdmin.Live.FlagLive.KillTest do
     def can?(_actor, :list_audit_events, _resource, _environment_key), do: false
     def can?(_actor, :access_admin, _resource, _environment_key), do: true
     def can?(_actor, _action, _resource, _environment_key), do: true
+    def change_request_required?(_, _, _, _), do: false
   end
 
   setup_all do

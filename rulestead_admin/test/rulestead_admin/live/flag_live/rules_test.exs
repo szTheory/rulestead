@@ -8,6 +8,7 @@ defmodule RulesteadAdmin.Live.FlagLive.RulesTest do
     @behaviour Rulestead.Admin.Policy
 
     def can?(_actor, _action, _resource, _environment_key), do: true
+    def change_request_required?(_, _, _, _), do: false
   end
 
   defmodule DenyWritesPolicy do

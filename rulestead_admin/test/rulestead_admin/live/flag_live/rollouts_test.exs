@@ -8,6 +8,7 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
     @behaviour Rulestead.Admin.Policy
 
     def can?(_actor, _action, _resource, _environment_key), do: true
+    def change_request_required?(_, _, _, _), do: false
   end
 
   defmodule DenyWritesPolicy do
@@ -287,13 +288,8 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
       ]
     }
 
-    assert {:ok, _draft} =
-             Rulestead.save_draft_ruleset(
-               Command.SaveDraftRuleset.new(flag_key, environment_key, ruleset)
-             )
-
-    assert {:ok, _published} =
-             Rulestead.publish_ruleset(Command.PublishRuleset.new(flag_key, environment_key))
+    assert {:ok, _draft} = Rulestead.save_draft_ruleset(Command.SaveDraftRuleset.new(flag_key, environment_key, ruleset))
+    assert {:ok, _published} = Rulestead.publish_ruleset(Command.PublishRuleset.new(flag_key, environment_key))
   end
 
   defp ensure_environment!(key, name) do
