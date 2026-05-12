@@ -40,6 +40,7 @@ if [[ "${RUN_PHASE7_PREFLIGHT}" == "1" ]]; then
   echo "re-running Phase 7 sibling-package admin slice from 07-11 before publish"
   (
     cd "${RULESTEAD_REPO}/rulestead_admin"
+    mix deps.get
     mix test "${PHASE7_SLICE[@]}"
   )
 fi
