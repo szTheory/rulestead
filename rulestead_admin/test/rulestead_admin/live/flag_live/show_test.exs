@@ -5,6 +5,8 @@ defmodule RulesteadAdmin.Live.FlagLive.ShowTest do
   alias Rulestead.Governance.ApprovalRequirement
   alias Rulestead.Store.Command
 
+  @admin_actor %{id: 7, email: "priya@example.com", roles: [:admin]}
+
   defmodule AllowPolicy do
     @behaviour Rulestead.Admin.Policy
 
@@ -192,11 +194,15 @@ defmodule RulesteadAdmin.Live.FlagLive.ShowTest do
 
     assert {:ok, _draft} =
              Rulestead.save_draft_ruleset(
-               Command.SaveDraftRuleset.new(flag_key, environment_key, ruleset)
+               Command.SaveDraftRuleset.new(flag_key, environment_key, ruleset,
+                 actor: @admin_actor
+               )
              )
 
     assert {:ok, _published} =
-             Rulestead.publish_ruleset(Command.PublishRuleset.new(flag_key, environment_key))
+             Rulestead.publish_ruleset(
+               Command.PublishRuleset.new(flag_key, environment_key, actor: @admin_actor)
+             )
   end
 
   defp save_draft!(flag_key, environment_key, version, value) do
@@ -214,7 +220,9 @@ defmodule RulesteadAdmin.Live.FlagLive.ShowTest do
 
     assert {:ok, _draft} =
              Rulestead.save_draft_ruleset(
-               Command.SaveDraftRuleset.new(flag_key, environment_key, ruleset)
+               Command.SaveDraftRuleset.new(flag_key, environment_key, ruleset,
+                 actor: @admin_actor
+               )
              )
   end
 
