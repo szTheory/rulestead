@@ -31,7 +31,7 @@
 ### Operational Follow-through (OPS)
 
 - [ ] **OPS-01**: The remaining `v0.1.0` Phase 7 sibling-package verification gap is closed from the real `rulestead_admin` entrypoint.
-- [ ] **OPS-02**: The published-release verification script captures live evidence for `0.1.0` as soon as both packages are visible on Hex.
+- [x] **OPS-02**: The published-release verification script captures live evidence for `0.1.0` as soon as both packages are visible on Hex.
 - [ ] **OPS-03**: Release follow-through for the carryover items does not weaken the linked-version, two-package release workflow.
 
 ## vNext Requirements
@@ -78,7 +78,7 @@
 | HOOK-03 | Phase 12 | Implemented |
 | HOOK-04 | Phase 12 | Implemented |
 | OPS-01 | Phase 13 | Pending |
-| OPS-02 | Phase 13 | Blocked |
+| OPS-02 | Phase 13 | Completed in 13-02 |
 | OPS-03 | Phase 13 | Pending |
 
 **Coverage:**

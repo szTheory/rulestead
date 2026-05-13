@@ -9,8 +9,8 @@ progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 19
-  completed_plans: 16
-  percent: 84
+  completed_plans: 17
+  percent: 89
 ---
 
 # State: Rulestead
@@ -20,7 +20,7 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-24)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
-**Current focus:** Phase 12 — Webhook Ingress, Outbound Notifications, and Operator Visibility
+**Current focus:** Phase 13 — Operational Follow-through
 **Milestone:** `v0.2.0` started on 2026-04-24
 
 ## Roadmap Reference
@@ -31,9 +31,9 @@ See: `.planning/ROADMAP.md`
 
 ## Current Position
 
-Phase: 12 — READY
-Plan: 6 of 6
-Status: Ready to execute
+Phase: 13 — EXECUTING
+Plan: 2 of 3
+Status: Executing
 Last activity: 2026-05-11
 
 ## Active Requirement Focus
@@ -87,10 +87,11 @@ These remain the primary source of truth and should be loaded selectively per ph
 - 2026-05-11 — Completed `12-04`, implementing transactional outbound enqueue, Oban webhook delivery worker, retry semantics, and outbound telemetry.
 - 2026-05-11 — Completed `12-05`, building the mounted webhook operator hub, list/detail surfaces, compact adjacent governance links, and accessibility tests.
 - 2026-05-11 — Completed `12-06`, adding mounted phase 12 webhook integration test and verification script.
+- 2026-05-11 — Completed `13-02`, captured live evidence of Hex publish verification to formally close `v0.1.0` carryover items.
 
 ## Next Action
 
-Start `13-01-PLAN.md`.
+Start `13-03-PLAN.md`.
 
 **Planned Phase:** 13 (Operational Follow-through) — 3 plans — 2026-05-11T20:56:40Z
 
