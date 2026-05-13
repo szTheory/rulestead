@@ -109,10 +109,10 @@ Plans:
 
 Plans:
 
-- [ ] 13-01: Close the remaining Phase 7 simulation helper verification gap from `rulestead_admin`
+- [x] 13-01: Close the remaining Phase 7 simulation helper verification gap from `rulestead_admin`
 - [x] 13-02: Execute or stage the live `0.1.0` published-release evidence capture, depending on Hex visibility
 - [x] 13-03: Governance-flow verification and release/readiness docs limited to shipped `v0.2.0` behavior
-- [ ] 13-04: Milestone audit, traceability closure, and archive prep
+- [x] 13-04: Milestone audit, traceability closure, and archive prep
 
 **Details:**
 
