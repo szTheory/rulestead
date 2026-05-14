@@ -1,56 +1,49 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.2.0
-milestone_name: Governance and Operator Confidence
+milestone: v0.3.0
+milestone_name: Ecosystem Integration & Lifecycle Hygiene
 status: executing
-last_updated: "2026-04-26T11:38:22.405Z"
-last_activity: 2026-04-26
+last_updated: "2026-05-14T12:15:00.000Z"
+last_activity: 2026-05-14
 progress:
-  total_phases: 6
-  completed_phases: 3
-  total_plans: 19
-  completed_plans: 18
-  percent: 94
+  total_phases: 2
+  completed_phases: 0
+  total_plans: 2
+  completed_plans: 1
+  percent: 25
 ---
 
 # State: Rulestead
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-04-24)
+See: `.planning/PROJECT.md` (updated 2026-05-14)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
-**Current focus:** Phase 13 — Operational Follow-through
-**Milestone:** `v0.2.0` started on 2026-04-24
+**Current focus:** Ecosystem Integration & Lifecycle Hygiene
+**Milestone:** `v0.3.0`
 
 ## Roadmap Reference
 
-See: `.planning/ROADMAP.md`
+See: `.planning/milestones/v0.3.0-ROADMAP.md`
 
-`v0.2.0` is defined as a 5-phase milestone covering governance contracts, scheduled changes, mounted admin governance UI, webhook surfaces, and explicit operational carryover closure.
+`v0.3.0` is the active roadmap.
 
 ## Current Position
 
-Phase: 13 — EXECUTING
-Plan: 3 of 3
+Phase: 14 — IN PROGRESS
+Plan: 1 of 2
 Status: Executing
-Last activity: 2026-05-13
+Last activity: 2026-05-14
 
 ## Active Requirement Focus
 
-- `GOV-01..05` — change requests, approvals, and governed review flows
-- `SCH-01..04` — scheduled mutation execution and operator visibility
-- `HOOK-01..04` — inbound/outbound webhook surfaces
-- `OPS-01..03` — bounded closure of `v0.1.0` carryover items
+- `ECO-01..03` — OpenFeature Provider and API mapping
+- `LCH-01..03` — Stale flag detection, code references, and hygiene UI
 
 ## Carryover Items
 
-Items intentionally carried forward from the archived `v0.1.0` milestone:
-
-| Category | Item | Status |
-|---|---|---|
-| verification_gap | Phase 07 / `07-VERIFICATION.md` sibling-package helper alignment | pending |
-| release_evidence | Published-release verification for `0.1.0` | blocked on Hex visibility |
+None. All v0.1.0 and v0.2.0 carryover items are closed.
 
 ## Anchor Docs (prompts/)
 
@@ -68,31 +61,24 @@ These remain the primary source of truth and should be loaded selectively per ph
 - `prompts/rulestead-personas-jtbd-and-onboarding.md` — persona and onboarding reference
 - `prompts/rulestead-host-app-integration-seam.md` — host-app integration seam reference
 
+## Decisions
+- **14-01**: Scaffolded `open_feature_rulestead` as a sibling package to core `rulestead` to avoid vendor lock-in.
+- **14-01**: Implemented `ContextMapper` to map loosely typed OpenFeature attributes into strongly typed Rulestead Contexts.
+
+## Execution Metrics
+| Phase | Plan | Duration | Tasks | Files |
+|-------|------|----------|-------|-------|
+| 14 | 01 | 15min | 2 | 6 |
+
 ## Latest Activity
 
-- 2026-04-23 to 2026-04-24 — `v0.1.0` executed and archived across 8 phases, delivering the first polished Hex release line.
-- 2026-04-24 — `v0.1.0` archived with two explicit carryover items: one Phase 7 verification gap and one live publish-evidence gap.
-- 2026-04-24 — Milestone `v0.2.0` defined with governance, scheduling, webhook, and operational follow-through scope. `PROJECT.md`, `REQUIREMENTS.md`, `ROADMAP.md`, and `STATE.md` were updated for the new cycle.
-- 2026-04-24 — Completed `09-01`, locking governance change-request, approval, and approval-requirement contracts in `rulestead`.
-- 2026-04-24 — Completed `09-02`, adding governance persistence tables, audit correlation metadata, and store command contracts in `rulestead`.
-- 2026-04-24 — Completed `09-03`, adding host-owned governance policy hooks, approval snapshots, and default production self-approval denial in the authorizer.
-- 2026-04-24 — Completed `10-01`, adding durable scheduled execution schema, contract structs, and schedule-first store commands in `rulestead`.
-- 2026-04-24 — Completed `10-02`, adding transactional Oban scheduling, a durable execution worker, and Ecto/Fake parity for retry, quarantine, requeue, cancel, fetch, and list semantics.
-- 2026-04-24 — Completed `10-03`, enforcing bounded scheduled execution conflicts and governed command-path rollout safety.
-- 2026-04-24 — Completed `10-04`, adding correlated scheduled execution audit/telemetry evidence, replay-safety tests, and the Phase 10 scheduling verifier.
-- 2026-04-24 — Completed Phase 11, adding mounted governance review routes, scheduled execution operator views, accessibility coverage, sibling-package verification, and public admin route docs.
-- 2026-04-24 — Completed `12-01`, locking durable webhook ingress contracts, signature verification boundary, and library-owned ingress Plug.
-- 2026-04-24 — Completed `12-02`, implementing the governed inbound execution path with correlated audit and telemetry.
-- 2026-04-24 — Completed `12-03`, locking durable outbound webhook destination, event, and delivery contracts.
-- 2026-05-11 — Completed `12-04`, implementing transactional outbound enqueue, Oban webhook delivery worker, retry semantics, and outbound telemetry.
-- 2026-05-11 — Completed `12-05`, building the mounted webhook operator hub, list/detail surfaces, compact adjacent governance links, and accessibility tests.
-- 2026-05-11 — Completed `12-06`, adding mounted phase 12 webhook integration test and verification script.
-- 2026-05-11 — Completed `13-02`, captured live evidence of Hex publish verification to formally close `v0.1.0` carryover items.
-- 2026-05-13 — Completed `13-03`, executing operational verification and governance tests.
+- 2026-05-14 — Completed 14-01-PLAN.md.
+- 2026-05-14 — Planned milestone `v0.3.0` for Ecosystem Integration and Lifecycle Hygiene, identifying Phase 14 (OpenFeature) and Phase 15 (Code References).
+- 2026-05-14 — Completed `13-04`, wrapping up milestone `v0.2.0` by archiving requirements, roadmap, and state, fulfilling the gsd-complete-milestone command.
+- 2026-04-24 — Milestone `v0.2.0` defined with governance, scheduling, webhook, and operational follow-through scope.
 
 ## Next Action
 
-Start `13-04-PLAN.md`.
+Next: `/gsd-execute-phase 14 02`
 
-**Planned Phase:** 13 (Operational Follow-through) — 3 plans — 2026-05-13T23:06:00Z
-
+**Planned Phase:** 14 — 2 plans — 2026-05-14T12:00:00Z
