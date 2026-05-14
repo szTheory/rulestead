@@ -1,6 +1,6 @@
 defmodule Rulestead.Webhooks.InboundHttpTest do
   use Plug.Test
-  use Rulestead.RepoCase, async: true
+  use Rulestead.RepoCase, async: false
 
   alias Rulestead.Webhooks.IngressPlug
 

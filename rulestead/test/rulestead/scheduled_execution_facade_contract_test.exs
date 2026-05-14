@@ -87,7 +87,7 @@ defmodule Rulestead.ScheduledExecutionFacadeContractTest do
              )
 
     assert fetched.id == scheduled_execution.id
-    assert fetched.scheduled_for == scheduled_for
+    assert DateTime.compare(fetched.scheduled_for, scheduled_for) == :eq
 
     assert {:ok, %Command.Page{entries: entries}} =
              Rulestead.list_scheduled_executions(

@@ -6,6 +6,10 @@ defmodule Rulestead.Integration.AdminLifecycleRuntimeTest do
   alias Rulestead.Runtime.{Cache, Snapshot}
 
   setup do
+    previous_store = Application.get_env(:rulestead, :store)
+    previous_policy = Application.get_env(:rulestead, :admin_policy)
+    previous_lifecycle = Application.get_env(:rulestead, :admin_lifecycle)
+
     Application.put_env(:rulestead, :store, Rulestead.Fake)
     Application.delete_env(:rulestead, :admin_policy)
     Application.put_env(:rulestead, :admin_lifecycle,
@@ -14,6 +18,13 @@ defmodule Rulestead.Integration.AdminLifecycleRuntimeTest do
       now: ~U[2026-04-23 16:00:00Z]
     )
     Rulestead.Fake.Control.reset!()
+
+    on_exit(fn ->
+      if previous_store, do: Application.put_env(:rulestead, :store, previous_store), else: Application.delete_env(:rulestead, :store)
+      if previous_policy, do: Application.put_env(:rulestead, :admin_policy, previous_policy), else: Application.delete_env(:rulestead, :admin_policy)
+      if previous_lifecycle, do: Application.put_env(:rulestead, :admin_lifecycle, previous_lifecycle), else: Application.delete_env(:rulestead, :admin_lifecycle)
+    end)
+
     :ok
   end
 

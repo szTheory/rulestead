@@ -2492,18 +2492,21 @@ defmodule Rulestead.Fake do
   end
 
   defp emit_governance_telemetry(event, command, change_request, audit_event) do
+    change_request_map = if is_map(change_request), do: change_request, else: %{}
+    audit_event_map = if is_map(audit_event), do: audit_event, else: %{}
+
     Telemetry.execute(
       [:rulestead, :admin, :change_request, event],
       %{count: 1},
       Telemetry.metadata(
         Telemetry.governance_metadata(command, %{
           event: event,
-          action: governance_action(change_request.governed_action),
-          environment_key: change_request.environment_key,
-          resource_key: change_request.resource_key,
-          change_request_id: change_request.id,
-          correlation_id: change_request.correlation_id,
-          audit_event_id: audit_event.id
+          action: governance_action(Map.get(change_request_map, :governed_action)),
+          environment_key: Map.get(change_request_map, :environment_key),
+          resource_key: Map.get(change_request_map, :resource_key),
+          change_request_id: Map.get(change_request_map, :id),
+          correlation_id: Map.get(change_request_map, :correlation_id),
+          audit_event_id: Map.get(audit_event_map, :id)
         })
       )
     )

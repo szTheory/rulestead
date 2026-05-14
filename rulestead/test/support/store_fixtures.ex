@@ -12,6 +12,8 @@ defmodule Rulestead.StoreFixtures do
       value_type: :boolean,
       default_value: %{value: false},
       owner: "growth",
+      permanent: true,
+      expected_expiration: nil,
       tags: ["checkout", "release"],
       environment_keys: ["test"]
     }

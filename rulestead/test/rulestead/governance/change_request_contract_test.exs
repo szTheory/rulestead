@@ -54,10 +54,8 @@ defmodule Rulestead.Governance.ChangeRequestContractTest do
                  type: "user",
                  display: "Alice Operator"
                },
-               command: %{
-                 "reason" => "Publish reviewed rollout",
-                 "changes" => %{"version" => 7}
-               },
+               command: %{"reason" => "Publish reviewed rollout", "changes" => %{"version" => 7}},
+               metadata: %{},
                approval_requirement: %{
                  action: :publish_ruleset,
                  environment_key: "prod",

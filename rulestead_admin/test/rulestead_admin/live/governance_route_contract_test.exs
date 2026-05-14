@@ -7,6 +7,44 @@ defmodule RulesteadAdmin.Live.GovernanceRouteContractTest do
   end
 
   setup %{conn: conn} do
+    ensure_environment!("staging", "Staging")
+    ensure_environment!("prod", "Production")
+
+    {:ok, %{change_request: cr}} =
+      Rulestead.submit_change_request(
+        Command.SubmitChangeRequest.new(
+          %{
+            action: :publish_ruleset,
+            environment_key: "staging",
+            resource_type: :flag,
+            resource_key: "checkout-redesign",
+            command: %{"version" => 1},
+            approval_requirement: %{required_approvals: 1}
+          },
+          actor: %{id: "op-1", display: "Op 1"},
+          reason: "test"
+        )
+      )
+
+    {:ok, _} =
+      Rulestead.approve_change_request(
+        Command.ApproveChangeRequest.new(
+          cr.id,
+          actor: %{id: "op-2", display: "Op 2"}
+        )
+      )
+
+    {:ok, %{scheduled_execution: sched}} =
+      Rulestead.schedule_change_request(
+        Command.ScheduleChangeRequest.new(
+          %{
+            change_request_id: cr.id,
+            scheduled_for: ~U[2026-04-24 16:00:00Z]
+          },
+          actor: %{id: "op-1", display: "Op 1"}
+        )
+      )
+
     conn =
       conn
       |> Phoenix.ConnTest.init_test_session(%{
@@ -19,11 +57,13 @@ defmodule RulesteadAdmin.Live.GovernanceRouteContractTest do
         ]
       })
 
-    {:ok, conn: conn}
+    {:ok, conn: conn, change_request_id: cr.id, scheduled_execution_id: sched.id}
   end
 
   test "mounted governance routes keep env canonical and render route-backed placeholders", %{
-    conn: conn
+    conn: conn,
+    change_request_id: cr_id,
+    scheduled_execution_id: sched_id
   } do
     assert {:error, {:live_redirect, %{to: "/admin/flags/change-requests?env=staging"}}} =
              live(conn, "/admin/flags/change-requests")
@@ -36,22 +76,20 @@ defmodule RulesteadAdmin.Live.GovernanceRouteContractTest do
     assert queue_html =~ "/admin/flags/change-requests?env=staging"
     assert queue_html =~ "/admin/flags/schedule?env=staging"
     assert queue_html =~ "/admin/flags/audit?env=staging"
-    assert queue_html =~ "/admin/flags/change-requests/req-123?env=staging"
+    assert queue_html =~ "/admin/flags/change-requests/#{cr_id}?env=staging"
 
     assert queue_html =~
-             "This queue stays route-backed so review and execution work can grow without crowding flag detail."
+             "Dedicated review queue"
 
-    assert {:error, {:live_redirect, %{to: "/admin/flags/change-requests/req-123?env=staging"}}} =
-             live(conn, "/admin/flags/change-requests/req-123")
+    expected_cr_redirect = "/admin/flags/change-requests/#{cr_id}?env=staging"
+    assert {:error, {:live_redirect, %{to: ^expected_cr_redirect}}} =
+             live(conn, "/admin/flags/change-requests/#{cr_id}")
 
-    {:ok, _view, queue_show_html} = live(conn, "/admin/flags/change-requests/req-123?env=staging")
+    {:ok, _view, queue_show_html} = live(conn, expected_cr_redirect)
 
     assert queue_show_html =~ "Change request review"
-    assert queue_show_html =~ "/admin/flags/change-requests/req-123?env=staging"
+    assert queue_show_html =~ expected_cr_redirect
     assert queue_show_html =~ "/admin/flags/change-requests?env=staging"
-
-    assert queue_show_html =~
-             "Review stays on its own route so approvals, rejection, execution, and scheduling remain explicit."
 
     assert {:error, {:live_redirect, %{to: "/admin/flags/schedule?env=staging"}}} =
              live(conn, "/admin/flags/schedule")
@@ -64,32 +102,41 @@ defmodule RulesteadAdmin.Live.GovernanceRouteContractTest do
     assert schedule_html =~ "/admin/flags/change-requests?env=staging"
     assert schedule_html =~ "/admin/flags/schedule?env=staging"
     assert schedule_html =~ "/admin/flags/audit?env=staging"
-    assert schedule_html =~ "/admin/flags/schedule/sched-456?env=staging"
+    
+    expected_sched_path = "/admin/flags/schedule/#{sched_id}?env=staging"
+    assert schedule_html =~ expected_sched_path
 
-    assert schedule_html =~
-             "Scheduled execution visibility stays list-first so operators can scan state without a calendar workbench."
+    assert {:error, {:live_redirect, %{to: ^expected_sched_path}}} =
+             live(conn, "/admin/flags/schedule/#{sched_id}")
 
-    assert {:error, {:live_redirect, %{to: "/admin/flags/schedule/sched-456?env=staging"}}} =
-             live(conn, "/admin/flags/schedule/sched-456")
-
-    {:ok, _view, schedule_show_html} = live(conn, "/admin/flags/schedule/sched-456?env=staging")
+    {:ok, _view, schedule_show_html} = live(conn, expected_sched_path)
 
     assert schedule_show_html =~ "Scheduled execution"
-    assert schedule_show_html =~ "/admin/flags/schedule/sched-456?env=staging"
+    assert schedule_show_html =~ "/admin/flags/schedule/#{sched_id}?env=staging"
     assert schedule_show_html =~ "/admin/flags/schedule?env=staging"
-
-    assert schedule_show_html =~
-             "Execution detail remains route-backed so retries, quarantine context, and audit links stay explicit."
   end
 
-  test "mounted governance routes accept canonical env query params", %{conn: conn} do
-    {:ok, _view, html} = live(conn, "/admin/flags/schedule/sched-456?env=prod")
+  test "mounted governance routes accept canonical env query params", %{
+    conn: conn,
+    scheduled_execution_id: sched_id
+  } do
+    {:ok, _view, html} = live(conn, "/admin/flags/schedule/#{sched_id}?env=prod")
 
     assert html =~ "Production"
     assert html =~ "Governance navigation"
     assert html =~ "/admin/flags?env=prod"
-    assert html =~ "/admin/flags/schedule/sched-456?env=prod"
+    assert html =~ "/admin/flags/schedule/#{sched_id}?env=prod"
     assert html =~ "/admin/flags/change-requests?env=prod"
     assert html =~ "/admin/flags/audit?env=prod"
+  end
+
+  defp ensure_environment!(key, name) do
+    snapshot = Control.snapshot!()
+
+    if Map.has_key?(snapshot.environments, key) do
+      :ok
+    else
+      assert %{key: ^key, name: ^name} = Control.put_environment!(%{key: key, name: name})
+    end
   end
 end

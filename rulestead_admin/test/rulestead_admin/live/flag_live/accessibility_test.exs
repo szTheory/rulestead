@@ -63,7 +63,7 @@ defmodule RulesteadAdmin.Live.FlagLive.AccessibilityTest do
     {:ok, _view, html} = live(conn, "/admin/flags/checkout-redesign?env=prod")
     assert_accessible(html)
     assert html =~ "Open rules workspace"
-    assert html =~ "Audit timeline arrives in Phase 7"
+    assert html =~ "Open audit timeline"
   end
 
   test "metadata forms pass the package accessibility audit in invalid and valid render states", %{conn: conn} do

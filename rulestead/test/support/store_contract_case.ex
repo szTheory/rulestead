@@ -195,9 +195,9 @@ defmodule Rulestead.StoreContractCase do
         assert {:error, %Error{domain: :store, type: :flag_archived}} =
                  @store_module.save_draft_ruleset(save_draft_command())
 
-        assert {:ok, []} = @store_module.list_flags(list_flags_command())
+        assert {:ok, %Rulestead.Store.Command.Page{entries: []}} = @store_module.list_flags(list_flags_command())
 
-        assert {:ok, [archived_entry]} =
+        assert {:ok, %Rulestead.Store.Command.Page{entries: [archived_entry]}} =
                  @store_module.list_flags(list_flags_command(include_archived?: true))
 
         assert archived_entry.flag.archived_at
@@ -220,7 +220,7 @@ defmodule Rulestead.StoreContractCase do
           valid_flag_attrs(%{key: "pricing-page", environment_keys: ["staging"]})
         )
 
-        assert {:ok, [entry]} =
+        assert {:ok, %Rulestead.Store.Command.Page{entries: [entry]}} =
                  @store_module.list_flags(
                    list_flags_command(environment_key: "staging", query: "pricing")
                  )

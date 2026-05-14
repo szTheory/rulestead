@@ -36,7 +36,7 @@ defmodule Rulestead.Install do
 
       scope "/admin", #{inspect(web_module(repo))} do
         pipe_through :browser
-        rulestead_admin "/flags"
+        rulestead_admin "/flags", policy: #{inspect(app_module(repo))}.AdminPolicy
       end
     """
 

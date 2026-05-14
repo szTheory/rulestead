@@ -82,9 +82,13 @@ defmodule Rulestead.Oban do
       max_attempts: @scheduled_execution_max_attempts,
       priority: 0,
       inserted_at: inserted_at,
-      scheduled_at: scheduled_execution.scheduled_for
+      scheduled_at: ensure_datetime(scheduled_execution.scheduled_for)
     }
   end
+
+  defp ensure_datetime(%DateTime{} = dt), do: dt
+  defp ensure_datetime(%NaiveDateTime{} = ndt), do: DateTime.from_naive!(ndt, "Etc/UTC")
+  defp ensure_datetime(nil), do: nil
 
   @doc """
   Builds the durable Oban payload for a webhook delivery attempt.

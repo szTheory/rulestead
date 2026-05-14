@@ -754,16 +754,63 @@ defmodule Rulestead.Store.Ecto do
   @impl Store
   def execute_change_request(%Command.ExecuteChangeRequest{} = command) do
     with {:ok, change_request} <- fetch_change_request_row(command.change_request_id),
-         :ok <- ensure_governance_transition(change_request, ["approved"]),
-         {:ok, execution_result, updated_change_request, audit_event} <-
-           execute_governed_change(change_request, command) do
-      emit_governance_telemetry(:merged, command, updated_change_request, audit_event)
+         :ok <- ensure_governance_transition(change_request, ["approved"]) do
+      executed_at = now()
 
-      {:ok,
-       %{
-         change_request: serialize_change_request_row(updated_change_request),
-         execution_result: execution_result
-       }}
+      Multi.new()
+      |> Multi.run(:execution, fn _repo, _changes ->
+        case execute_governed_change(change_request, command) do
+          {:ok, res, cr, evt} -> {:ok, {res, cr, evt}}
+          {:error, err} -> {:error, err}
+        end
+      end)
+      |> Multi.run(:change_request, fn repo, _changes ->
+        update_change_request(repo, change_request, %{
+          status: "executed",
+          resolved_at: executed_at,
+          executed_at: executed_at,
+          updated_at: executed_at
+        })
+      end)
+      |> Multi.run(:audit_event, fn repo, %{change_request: updated_change_request} ->
+        audit_command = governance_audit_command(command, updated_change_request, "merged")
+
+        repo.insert(
+          audit_event_changeset(%AuditEvent{}, audit_command, "change_request.merged", :ok, %{
+            resource_key: updated_change_request.resource_key,
+            environment_key: updated_change_request.environment_key
+          })
+        )
+      end)
+      |> enqueue_webhook_deliveries(
+        "change_request.merged",
+        fn %{change_request: cr} ->
+          %{
+            "change_request_id" => cr.id,
+            "status" => to_string(cr[:status] || cr[:state]),
+            "governed_action" => to_string(cr[:governed_action] || cr[:action]),
+            "reason" => cr.reason,
+            "submitter" => Map.take(cr, [:submitter_id, :submitter_type, :submitter_display])
+          }
+        end,
+        environment_key: change_request.environment_key,
+        resource_type: change_request.resource_type,
+        resource_key: change_request.resource_key
+      )
+      |> Repo.transact()
+      |> case do
+        {:ok, %{execution: {execution_result, _, _}, change_request: updated_change_request, audit_event: audit_event}} ->
+          emit_governance_telemetry(:merged, command, updated_change_request, audit_event)
+
+          {:ok,
+           %{
+             change_request: serialize_change_request_row(updated_change_request),
+             execution_result: execution_result
+           }}
+
+        {:error, _operation, reason, _changes} ->
+          {:error, normalize_governance_failure(reason)}
+      end
     end
   end
 
@@ -1916,7 +1963,18 @@ defmodule Rulestead.Store.Ecto do
       command
       |> Map.get(:metadata, %{})
       |> Map.new()
-      |> Map.take([:source, "source", :request_id, "request_id"])
+      |> Map.take([
+        :source,
+        "source",
+        :request_id,
+        "request_id",
+        :change_request_id,
+        "change_request_id",
+        :governance_action,
+        "governance_action",
+        :execution_stage,
+        "execution_stage"
+      ])
 
     metadata =
       if ruleset do
@@ -2908,18 +2966,21 @@ defmodule Rulestead.Store.Ecto do
   end
 
   defp emit_governance_telemetry(event, command, change_request, audit_event) do
+    change_request_map = if is_map(change_request), do: change_request, else: %{}
+    audit_event_map = if is_map(audit_event), do: audit_event, else: %{}
+
     Telemetry.execute(
       [:rulestead, :admin, :change_request, event],
       %{count: 1},
       Telemetry.metadata(
         Telemetry.governance_metadata(command, %{
           event: event,
-          action: governance_action(change_request.governed_action),
-          environment_key: change_request.environment_key,
-          resource_key: change_request.resource_key,
-          change_request_id: change_request.id,
-          correlation_id: change_request.correlation_id,
-          audit_event_id: audit_event.id
+          action: governance_action(Map.get(change_request_map, :governed_action)),
+          environment_key: Map.get(change_request_map, :environment_key),
+          resource_key: Map.get(change_request_map, :resource_key),
+          change_request_id: Map.get(change_request_map, :id),
+          correlation_id: Map.get(change_request_map, :correlation_id),
+          audit_event_id: Map.get(audit_event_map, :id)
         })
       )
     )
@@ -3081,13 +3142,27 @@ defmodule Rulestead.Store.Ecto do
     row
     |> maybe_normalize_uuid(:id)
     |> maybe_normalize_uuid(:change_request_id)
+    |> maybe_normalize_datetime(:scheduled_for)
+    |> maybe_normalize_datetime(:executed_at)
+    |> maybe_normalize_datetime(:inserted_at)
+    |> maybe_normalize_datetime(:updated_at)
     |> Map.update(:approved_by_snapshot, [], &normalize_array_map/1)
+  end
+
+  defp maybe_normalize_datetime(row, key) do
+    case Map.get(row, key) do
+      %NaiveDateTime{} = ndt -> Map.put(row, key, DateTime.from_naive!(ndt, "Etc/UTC"))
+      _ -> row
+    end
   end
 
   defp normalize_execution_attempt_row(row) when is_map(row) do
     row
     |> maybe_normalize_uuid(:id)
     |> maybe_normalize_uuid(:scheduled_execution_id)
+    |> maybe_normalize_datetime(:started_at)
+    |> maybe_normalize_datetime(:finished_at)
+    |> maybe_normalize_datetime(:inserted_at)
   end
 
   defp serialize_scheduled_execution_row(row) do

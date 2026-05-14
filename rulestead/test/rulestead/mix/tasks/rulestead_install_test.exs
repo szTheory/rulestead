@@ -178,8 +178,12 @@ defmodule Rulestead.Mix.Tasks.RulesteadInstallTest do
              "copy priv/repo/migrations/20260423020100_create_rulestead_authoring_tables.exs",
              "copy priv/repo/migrations/20260423020200_seed_default_environments.exs",
              "copy priv/repo/migrations/20260423020300_create_rulestead_runtime_snapshots.exs",
-             "write config/rulestead.exs",
-             "write config/config.exs import",
+             "copy priv/repo/migrations/20260424000100_create_rulestead_change_requests_and_approvals.exs",
+             "copy priv/repo/migrations/20260424194710_create_rulestead_webhook_receipts_and_replay_claims.exs",
+             "copy priv/repo/migrations/20260424204720_create_rulestead_webhook_destinations_events_and_deliveries.exs",
+             "copy priv/repo/migrations/20260424210000_add_phase6_admin_lifecycle_fields.exs",
+             "copy priv/repo/migrations/20260424220000_create_rulestead_scheduled_executions_and_attempts.exs",
+             "write config/rulestead.exs",             "write config/config.exs import",
              "write lib/my_app_web/endpoint.ex plug",
              "write lib/my_app_web/router.ex admin helper",
              "write lib/my_app_web/router.ex admin mount",
@@ -195,7 +199,7 @@ defmodule Rulestead.Mix.Tasks.RulesteadInstallTest do
 
     router = File.read!(Path.join(tmp_dir, "lib/my_app_web/router.ex"))
     assert router =~ "use RulesteadAdmin.Router"
-    assert router =~ ~s(rulestead_admin "/flags")
+    assert router =~ ~s(rulestead_admin "/flags", policy: MyApp.AdminPolicy)
 
     config = File.read!(Path.join(tmp_dir, "config/config.exs"))
     assert config =~ ~s(import_config "rulestead.exs")

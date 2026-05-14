@@ -20,7 +20,10 @@ defmodule Rulestead.TelemetryTest do
     Control.reset!()
 
     store_config = Application.get_env(:rulestead, :store)
+    policy_config = Application.get_env(:rulestead, :admin_policy)
+
     Application.put_env(:rulestead, :store, Rulestead.Fake)
+    Application.put_env(:rulestead, :admin_policy, Rulestead.AllowPolicy)
 
     environment_key = "telemetry-#{System.unique_integer([:positive])}"
     pubsub_name = :"rulestead-telemetry-pubsub-#{System.unique_integer([:positive])}"
@@ -46,6 +49,12 @@ defmodule Rulestead.TelemetryTest do
         Application.delete_env(:rulestead, :store)
       else
         Application.put_env(:rulestead, :store, store_config)
+      end
+
+      if is_nil(policy_config) do
+        Application.delete_env(:rulestead, :admin_policy)
+      else
+        Application.put_env(:rulestead, :admin_policy, policy_config)
       end
     end)
 

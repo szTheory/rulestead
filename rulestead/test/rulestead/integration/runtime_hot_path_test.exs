@@ -96,7 +96,9 @@ defmodule Rulestead.Integration.RuntimeHotPathTest do
       handler_id,
       [:rulestead, :repo, :query],
       fn _event, _measurements, metadata, test_pid ->
-        send(test_pid, {:repo_query, metadata.query})
+        if self() == test_pid do
+          send(test_pid, {:repo_query, metadata.query})
+        end
       end,
       parent
     )

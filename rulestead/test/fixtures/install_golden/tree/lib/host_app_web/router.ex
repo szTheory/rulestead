@@ -28,7 +28,7 @@ defmodule HostAppWeb.Router do
   # end
   scope "/admin", HostAppWeb do
     pipe_through :browser
-    rulestead_admin "/flags"
+    rulestead_admin "/flags", policy: HostApp.AdminPolicy
   end
 
 end
