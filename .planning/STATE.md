@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v0.3.0
 milestone_name: Ecosystem Integration & Lifecycle Hygiene
 status: executing
-last_updated: "2026-05-14T12:15:00.000Z"
-last_activity: 2026-05-14
+last_updated: "2026-05-15T12:00:00.000Z"
+last_activity: 2026-05-15
 progress:
   total_phases: 2
   completed_phases: 0
   total_plans: 2
-  completed_plans: 1
-  percent: 25
+  completed_plans: 2
+  percent: 50
 ---
 
 # State: Rulestead
@@ -32,9 +32,9 @@ See: `.planning/milestones/v0.3.0-ROADMAP.md`
 ## Current Position
 
 Phase: 14 — IN PROGRESS
-Plan: 1 of 2
+Plan: 2 of 2
 Status: Executing
-Last activity: 2026-05-14
+Last activity: 2026-05-15
 
 ## Active Requirement Focus
 
@@ -64,14 +64,18 @@ These remain the primary source of truth and should be loaded selectively per ph
 ## Decisions
 - **14-01**: Scaffolded `open_feature_rulestead` as a sibling package to core `rulestead` to avoid vendor lock-in.
 - **14-01**: Implemented `ContextMapper` to map loosely typed OpenFeature attributes into strongly typed Rulestead Contexts.
+- **14-02**: Adopted OpenFeature.Provider behaviour to map contexts and resolutions.
+- **14-02**: Mitigated Information Disclosure by selectively surfacing scalar metadata (matched_rule, flag_version, cache_age_ms) instead of full Rulestead engine telemetry.
 
 ## Execution Metrics
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
 | 14 | 01 | 15min | 2 | 6 |
+| 14 | 02 | 5min | 1 | 2 |
 
 ## Latest Activity
 
+- 2026-05-15 — Completed 14-02-PLAN.md.
 - 2026-05-14 — Completed 14-01-PLAN.md.
 - 2026-05-14 — Planned milestone `v0.3.0` for Ecosystem Integration and Lifecycle Hygiene, identifying Phase 14 (OpenFeature) and Phase 15 (Code References).
 - 2026-05-14 — Completed `13-04`, wrapping up milestone `v0.2.0` by archiving requirements, roadmap, and state, fulfilling the gsd-complete-milestone command.
@@ -79,6 +83,4 @@ These remain the primary source of truth and should be loaded selectively per ph
 
 ## Next Action
 
-Next: `/gsd-execute-phase 14 02`
-
-**Planned Phase:** 14 — 2 plans — 2026-05-14T12:00:00Z
+Next: `/gsd-complete-phase 14`
