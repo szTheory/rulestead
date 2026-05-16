@@ -15,4 +15,27 @@ defmodule Rulestead.Store.CommandTest do
     assert %Command.FetchSnapshot{environment_key: "production", version: 7} =
              Command.FetchSnapshot.new("production", version: 7)
   end
+
+  describe "StopExperiment" do
+    test "builds a StopExperiment command" do
+      assert %Command.StopExperiment{
+               flag_key: "my_experiment",
+               environment_key: "production",
+               rule_id: "rule_123",
+               winning_variant_id: "v_1"
+             } = Command.StopExperiment.new("my_experiment", "production", "rule_123", "v_1")
+    end
+
+    test "normalizes inputs" do
+      assert %Command.StopExperiment{
+               flag_key: "my_experiment",
+               environment_key: "production",
+               rule_id: "rule_123",
+               winning_variant_id: "v_1",
+               actor: %{"id" => "user_1"},
+               reason: "test reason",
+               metadata: %{"test" => true}
+             } = Command.StopExperiment.new(:my_experiment, :production, "  rule_123  ", "  v_1  ", actor: %{id: "user_1"}, reason: "test reason", metadata: %{test: true})
+    end
+  end
 end

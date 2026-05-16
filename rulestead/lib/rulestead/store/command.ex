@@ -1384,4 +1384,36 @@ defmodule Rulestead.Store.Command do
       }
     end
   end
+
+  defmodule StopExperiment do
+    @moduledoc false
+
+    alias Rulestead.Store.Command.GovernanceSupport
+
+    @enforce_keys [:flag_key, :environment_key, :rule_id, :winning_variant_id]
+    defstruct [:flag_key, :environment_key, :rule_id, :winning_variant_id, actor: nil, reason: nil, metadata: %{}]
+
+    @type t :: %__MODULE__{
+            flag_key: String.t() | atom(),
+            environment_key: String.t() | atom(),
+            rule_id: String.t(),
+            winning_variant_id: String.t() | nil,
+            actor: nil | map(),
+            reason: nil | String.t(),
+            metadata: map()
+          }
+
+    @spec new(String.t() | atom(), String.t() | atom(), String.t(), String.t() | nil, keyword()) :: t()
+    def new(flag_key, environment_key, rule_id, winning_variant_id, opts \\ []) do
+      %__MODULE__{
+        flag_key: GovernanceSupport.normalize_string(flag_key) || flag_key,
+        environment_key: GovernanceSupport.normalize_string(environment_key) || environment_key,
+        rule_id: GovernanceSupport.normalize_string(rule_id),
+        winning_variant_id: GovernanceSupport.normalize_string(winning_variant_id),
+        actor: Keyword.get(opts, :actor) |> GovernanceSupport.normalize_actor(),
+        reason: Keyword.get(opts, :reason) |> GovernanceSupport.normalize_string(),
+        metadata: Keyword.get(opts, :metadata, %{}) |> GovernanceSupport.normalize_metadata()
+      }
+    end
+  end
 end
