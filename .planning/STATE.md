@@ -32,7 +32,7 @@ See: `.planning/milestones/v0.3.0-ROADMAP.md`
 ## Current Position
 
 Phase: 15 — IN PROGRESS
-Plan: 1 of 3
+Plan: 2 of 3
 Status: Executing
 Last activity: 2026-05-16
 
@@ -66,15 +66,19 @@ These remain the primary source of truth and should be loaded selectively per ph
 - **14-01**: Implemented `ContextMapper` to map loosely typed OpenFeature attributes into strongly typed Rulestead Contexts.
 - **14-02**: Adopted OpenFeature.Provider behaviour to map contexts and resolutions.
 - **14-02**: Mitigated Information Disclosure by selectively surfacing scalar metadata (matched_rule, flag_version, cache_age_ms) instead of full Rulestead engine telemetry.
+- **15-02**: Used Elixir's native AST parser instead of regex for precise code reference detection.
+- **15-02**: Created an Ecto schema and migration for persisting ingested code references securely via token auth.
 
 ## Execution Metrics
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
 | 14 | 01 | 15min | 2 | 6 |
 | 14 | 02 | 5min | 1 | 2 |
+| 15 | 02 | 45m | 3 | 5 |
 
 ## Latest Activity
 
+- 2026-05-16 — Completed 15-02-PLAN.md.
 - 2026-05-16 — Completed 15-01-PLAN.md.
 - 2026-05-15 — Completed 14-02-PLAN.md.
 - 2026-05-14 — Completed 14-01-PLAN.md.
