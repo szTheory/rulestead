@@ -6,4 +6,10 @@ Application.put_env(:rulestead_admin, RulesteadAdmin.TestEndpoint,
   pubsub_server: RulesteadAdmin.PubSub
 )
 
+try do
+  Supervisor.terminate_child(Rulestead.Application.Supervisor, Rulestead.Analytics.Batcher)
+catch
+  :exit, _ -> :ok
+end
+
 ExUnit.start()

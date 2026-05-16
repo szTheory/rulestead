@@ -599,6 +599,7 @@ defmodule Rulestead.Fake do
           |> maybe_filter_tags(command.tags)
           |> maybe_filter_lifecycle(command.lifecycle)
           |> maybe_filter_stale(command.stale)
+          |> maybe_filter_flag_type(command.flag_type)
           |> sort_entries(command.sort)
 
         {:ok, paginate_entries(entries, command)}
@@ -3367,6 +3368,11 @@ defmodule Rulestead.Fake do
   defp maybe_filter_owner(entries, owner) do
     normalized = normalize_owner(owner)
     Enum.filter(entries, fn entry -> normalize_owner(entry.flag.owner) == normalized end)
+  end
+
+  defp maybe_filter_flag_type(entries, nil), do: entries
+  defp maybe_filter_flag_type(entries, flag_type) do
+    Enum.filter(entries, &(&1.flag.flag_type == flag_type))
   end
 
   defp maybe_filter_tags(entries, []), do: entries

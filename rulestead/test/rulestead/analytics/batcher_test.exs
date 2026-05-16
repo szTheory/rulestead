@@ -6,6 +6,12 @@ defmodule Rulestead.Analytics.BatcherTest do
   alias Rulestead.Repo
 
   setup do
+    try do
+      Supervisor.terminate_child(Rulestead.Application.Supervisor, Rulestead.Analytics.Batcher)
+    catch
+      :exit, _ -> :ok
+    end
+
     # Clear the table before each test in case it's lingering
     try do
       :ets.delete(:rulestead_analytics_batcher)

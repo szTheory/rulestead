@@ -8,6 +8,8 @@ copy priv/repo/migrations/TIMESTAMP_create_rulestead_webhook_destinations_events
 copy priv/repo/migrations/TIMESTAMP_add_phase6_admin_lifecycle_fields.exs
 copy priv/repo/migrations/TIMESTAMP_create_rulestead_scheduled_executions_and_attempts.exs
 copy priv/repo/migrations/TIMESTAMP_add_telemetry_fields_to_flags.exs
+copy priv/repo/migrations/TIMESTAMP_create_rulestead_code_references.exs
+copy priv/repo/migrations/TIMESTAMP_create_analytics_events.exs
 write config/rulestead.exs
 write config/config.exs import
 write lib/host_app_web/endpoint.ex plug

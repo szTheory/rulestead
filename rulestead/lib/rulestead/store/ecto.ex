@@ -318,10 +318,19 @@ defmodule Rulestead.Store.Ecto do
         |> maybe_filter_tags(command.tags)
         |> maybe_filter_lifecycle(command.lifecycle)
         |> maybe_filter_stale(command.stale)
+        |> maybe_filter_flag_type(command.flag_type)
         |> sort_entries(command.sort)
 
       {:ok, paginate_entries(entries, command)}
     end
+  end
+
+  defp maybe_filter_flag_type(entries, nil), do: entries
+
+  defp maybe_filter_flag_type(entries, flag_type) do
+    Enum.filter(entries, fn entry ->
+      entry.flag.flag_type == flag_type
+    end)
   end
 
   @impl Store

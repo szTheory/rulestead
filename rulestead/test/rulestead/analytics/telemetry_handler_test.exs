@@ -6,6 +6,12 @@ defmodule Rulestead.Analytics.TelemetryHandlerTest do
 
   setup do
     try do
+      Supervisor.terminate_child(Rulestead.Application.Supervisor, Rulestead.Analytics.Batcher)
+    catch
+      :exit, _ -> :ok
+    end
+
+    try do
       :ets.delete(:rulestead_analytics_batcher)
     rescue
       ArgumentError -> :ok

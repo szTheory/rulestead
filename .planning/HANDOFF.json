@@ -1,95 +1,19 @@
 {
   "version": "1.0",
-  "timestamp": "2026-04-24T19:47:05.884Z",
-  "phase": "12",
-  "phase_name": "Webhook Ingress, Outbound Notifications, and Operator Visibility",
-  "phase_dir": ".planning/phases/12-webhook-ingress-outbound-notifications-and-operator-visibili",
-  "plan": 1,
-  "task": 1,
-  "total_tasks": 6,
-  "status": "paused",
-  "completed_tasks": [
-    {
-      "id": 0,
-      "name": "Phase 12 planning and verification loop",
-      "status": "done",
-      "commit": "86b8899"
-    }
-  ],
-  "remaining_tasks": [
-    {
-      "id": 1,
-      "name": "Execute 12-01 inbound ingress boundary",
-      "status": "not_started"
-    },
-    {
-      "id": 2,
-      "name": "Execute 12-02 governed inbound normalization",
-      "status": "not_started"
-    },
-    {
-      "id": 3,
-      "name": "Execute 12-03 outbound destination and command surface",
-      "status": "not_started"
-    },
-    {
-      "id": 4,
-      "name": "Execute 12-04 outbound delivery worker and retry semantics",
-      "status": "not_started"
-    },
-    {
-      "id": 5,
-      "name": "Execute 12-05 mounted webhook UI and accessibility",
-      "status": "not_started"
-    },
-    {
-      "id": 6,
-      "name": "Execute 12-06 phase verifier and route docs",
-      "status": "not_started"
-    }
-  ],
-  "blockers": [
-    {
-      "description": "The worktree is already heavily dirty with many pre-existing modified and untracked files outside Phase 12, including generated docs, build outputs, and historical planning artifacts.",
-      "type": "technical",
-      "workaround": "When resuming, scope work tightly to Phase 12 files and verify targets with git status before staging or reverting anything."
-    },
-    {
-      "description": "Historical placeholder planning artifacts exist in older phase directories.",
-      "type": "technical",
-      "workaround": "Do not treat grep hits for placeholder content in legacy phase docs as Phase 12 blockers unless the work explicitly returns to those phases."
-    }
-  ],
+  "timestamp": "2026-05-16T12:00:00.000Z",
+  "phase": null,
+  "phase_name": null,
+  "phase_dir": null,
+  "plan": null,
+  "task": null,
+  "total_tasks": 0,
+  "status": "idle",
+  "completed_tasks": [],
+  "remaining_tasks": [],
+  "blockers": [],
   "human_actions_pending": [],
-  "decisions": [
-    {
-      "decision": "Expanded Phase 12 from 4 plans to 6 plans.",
-      "rationale": "The checker found missing ingress-edge coverage and an overpacked outbound slice; splitting the phase produced executable, phase-bounded plans.",
-      "phase": "12"
-    },
-    {
-      "decision": "Made 12-01 explicitly own the library-managed Plug/router ingress boundary.",
-      "rationale": "The planning checker flagged that verifier/domain work alone did not satisfy HOOK-01 without raw-body capture, fail-closed 401 behavior, telemetry, and HTTP-level tests.",
-      "phase": "12"
-    },
-    {
-      "decision": "Separated outbound contracts, outbound delivery execution, mounted UI, and verifier/docs into distinct plans.",
-      "rationale": "This reduced plan density and preserved CI-readable, scripts-first verification without speculative scope creep.",
-      "phase": "12"
-    }
-  ],
-  "uncommitted_files": [
-    ".planning/ROADMAP.md",
-    ".planning/STATE.md",
-    ".planning/HANDOFF.json",
-    ".planning/phases/12-webhook-ingress-outbound-notifications-and-operator-visibili/.continue-here.md",
-    ".planning/phases/12-webhook-ingress-outbound-notifications-and-operator-visibili/12-01-PLAN.md",
-    ".planning/phases/12-webhook-ingress-outbound-notifications-and-operator-visibili/12-02-PLAN.md",
-    ".planning/phases/12-webhook-ingress-outbound-notifications-and-operator-visibili/12-03-PLAN.md",
-    ".planning/phases/12-webhook-ingress-outbound-notifications-and-operator-visibili/12-04-PLAN.md",
-    ".planning/phases/12-webhook-ingress-outbound-notifications-and-operator-visibili/12-05-PLAN.md",
-    ".planning/phases/12-webhook-ingress-outbound-notifications-and-operator-visibili/12-06-PLAN.md"
-  ],
-  "next_action": "Start Phase 12 execution with 12-01 by implementing the inbound receipt/replay schema, verifier boundary, ingress Plug, and HTTP-level fail-closed tests.",
-  "context_notes": "Phase 12 planning is complete and checker-reviewed. The substantive planning failures were already corrected: ingress-edge HTTP handling is now explicit, and the original outbound/UI slices were decomposed into six bounded plans. Resume by reading the Phase 12 context and 12-01 plan carefully, then work narrowly because the repo already contains many unrelated dirty files."
+  "decisions": [],
+  "uncommitted_files": [],
+  "next_action": "Run /gsd-new-milestone to begin planning the v0.4.0 milestone for Experimentation & Analytics.",
+  "context_notes": "Milestone v0.3.0 is successfully completed."
 }

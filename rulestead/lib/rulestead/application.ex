@@ -11,10 +11,19 @@ defmodule Rulestead.Application do
   def start(_type, _args) do
     children = [
       StaleTracker,
+      Rulestead.Analytics.Batcher,
       {RuntimeSupervisor, Config.runtime_options()}
     ]
 
     opts = [strategy: :one_for_one, name: __MODULE__.Supervisor]
-    Elixir.Supervisor.start_link(children, opts)
+    
+    case Elixir.Supervisor.start_link(children, opts) do
+      {:ok, pid} ->
+        Rulestead.Analytics.TelemetryHandler.attach()
+        {:ok, pid}
+
+      error ->
+        error
+    end
   end
 end

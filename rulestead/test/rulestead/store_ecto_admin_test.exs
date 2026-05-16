@@ -6,12 +6,23 @@ defmodule Rulestead.StoreEctoAdminTest do
   alias Rulestead.StoreFixtures
 
   setup do
+    previous_store = Application.get_env(:rulestead, :store)
     Application.put_env(:rulestead, :store, StoreEcto)
     Application.put_env(:rulestead, :admin_lifecycle,
       warning_after_seconds: 1_800,
       stale_after_seconds: 3_600,
       now: ~U[2026-04-23 16:00:00Z]
     )
+
+    on_exit(fn ->
+      if previous_store do
+        Application.put_env(:rulestead, :store, previous_store)
+      else
+        Application.delete_env(:rulestead, :store)
+      end
+      Application.delete_env(:rulestead, :admin_lifecycle)
+    end)
+
     ensure_phase6_schema!()
     :ok
   end
