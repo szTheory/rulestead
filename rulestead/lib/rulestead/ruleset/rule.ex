@@ -5,11 +5,11 @@ defmodule Rulestead.Ruleset.Rule do
 
   import Ecto.Changeset
 
-  alias Rulestead.Ruleset.{Condition, Rollout, Variant}
+  alias Rulestead.Ruleset.{Condition, Experiment, Rollout, Variant}
 
   @primary_key false
 
-  @strategies [:forced_value, :percentage_rollout, :variant_split, :segment_match]
+  @strategies [:forced_value, :percentage_rollout, :variant_split, :segment_match, :experiment]
 
   embedded_schema do
     field(:key, :string)
@@ -23,6 +23,7 @@ defmodule Rulestead.Ruleset.Rule do
     embeds_many(:conditions, Condition, on_replace: :delete)
     embeds_many(:variants, Variant, on_replace: :delete)
     embeds_one(:rollout, Rollout, on_replace: :update)
+    embeds_one(:experiment, Experiment, on_replace: :update)
   end
 
   @type t :: %__MODULE__{}
@@ -38,6 +39,7 @@ defmodule Rulestead.Ruleset.Rule do
     |> cast_embed(:conditions, with: &Condition.changeset/2)
     |> cast_embed(:variants, with: &Variant.changeset/2)
     |> cast_embed(:rollout, with: &Rollout.changeset/2)
+    |> cast_embed(:experiment, with: &Experiment.changeset/2)
     |> validate_required([:key, :strategy])
     |> validate_length(:key, min: 1, max: 128)
     |> validate_rule_shape()
@@ -68,7 +70,7 @@ defmodule Rulestead.Ruleset.Rule do
     variants = get_field(changeset, :variants, [])
 
     cond do
-      variants == [] and get_field(changeset, :strategy) == :variant_split ->
+      variants == [] and get_field(changeset, :strategy) in [:variant_split, :experiment] ->
         add_error(changeset, :variants, "must include at least one variant")
 
       variants == [] ->
@@ -85,6 +87,7 @@ defmodule Rulestead.Ruleset.Rule do
   defp validate_rollout_requirements(changeset) do
     strategy = get_field(changeset, :strategy)
     rollout = get_field(changeset, :rollout)
+    experiment = get_field(changeset, :experiment)
     variants = get_field(changeset, :variants, [])
 
     cond do
@@ -94,11 +97,20 @@ defmodule Rulestead.Ruleset.Rule do
       strategy == :variant_split and is_nil(rollout) ->
         add_error(changeset, :rollout, "must be present for variant_split rules")
 
+      strategy == :experiment and is_nil(experiment) ->
+        add_error(changeset, :experiment, "must be present for experiment rules")
+
       strategy == :variant_split and variants == [] ->
+        add_error(changeset, :variants, "must include at least one variant")
+
+      strategy == :experiment and variants == [] ->
         add_error(changeset, :variants, "must include at least one variant")
 
       strategy not in [:percentage_rollout, :variant_split] and not is_nil(rollout) ->
         add_error(changeset, :rollout, "is only supported for percentage_rollout and variant_split rules")
+
+      strategy != :experiment and not is_nil(experiment) ->
+        add_error(changeset, :experiment, "is only supported for experiment rules")
 
       true ->
         changeset
@@ -121,3 +133,4 @@ defmodule Rulestead.Ruleset.Rule do
   defp normalize_string(value) when is_binary(value), do: String.trim(value)
   defp normalize_string(value), do: value
 end
+
