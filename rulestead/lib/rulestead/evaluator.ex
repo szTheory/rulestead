@@ -73,7 +73,7 @@ defmodule Rulestead.Evaluator do
     with {:ok, condition_trace} <- evaluate_conditions(fetch_list(rule, :conditions), context),
          {:ok, rollout_trace} <- evaluate_rollout(rule, flag_payload, active_ruleset, context),
          {:ok, result} <- build_result(rule, flag, active_ruleset, rule_key, condition_trace, rollout_trace) do
-      {:match, result, %{rule_key: rule_key, conditions: condition_trace, rollout: rollout_trace}}
+      {:match, result, %{rule_key: rule_key, conditions: condition_trace, rollout: result.debug_trace.rollout}}
     else
       {:skip, reason, detail} ->
         {:skip,
@@ -124,10 +124,68 @@ defmodule Rulestead.Evaluator do
   defp evaluate_rollout(rule, flag_payload, active_ruleset, context) do
     strategy = rule[:strategy] || rule["strategy"]
     rollout = rule[:rollout] || rule["rollout"]
+    experiment = rule[:experiment] || rule["experiment"]
 
     cond do
       strategy in [:forced_value, :segment_match, "forced_value", "segment_match"] ->
         {:ok, %{matched?: true}}
+
+      strategy in [:experiment, "experiment"] and is_nil(experiment) ->
+        {:skip, :missing_experiment, %{experiment: %{matched?: false}}}
+
+      strategy in [:experiment, "experiment"] ->
+        bucket_by = experiment[:bucket_by] || experiment["bucket_by"]
+
+        case resolve_bucket_identity(context, bucket_by) do
+          {:ok, identity} ->
+            flag_key = stringify(get_in(flag_payload, [:flag, :key]))
+            rule_key = stringify(rule[:key] || rule["key"])
+            iteration_salt = experiment[:iteration_salt] || experiment["iteration_salt"]
+            holdout_percentage = experiment[:holdout_percentage] || experiment["holdout_percentage"] || 0
+
+            {:ok,
+             %{
+               matched?: true,
+               bucket_by: stringify(bucket_by),
+               identity: identity,
+               experiment_bucket:
+                 Bucket.compute(
+                   flag_key,
+                   rule_key,
+                   Bucket.effective_salt(iteration_salt, iteration_salt, bucket_by, :experiment),
+                   identity,
+                   :experiment
+                 ),
+               holdout_percentage: holdout_percentage,
+               iteration_salt: iteration_salt,
+               variant_bucket:
+                 Bucket.compute(
+                   flag_key,
+                   rule_key,
+                   Bucket.effective_salt(iteration_salt, iteration_salt, bucket_by, :variant),
+                   identity,
+                   :variant
+                 )
+             }}
+
+          {:error, :missing_identity} ->
+            if context.strict? do
+              {:error,
+               EvaluationError.missing_targeting_key(
+                 metadata: %{
+                   bucket_by: stringify(bucket_by),
+                   environment: stringify(get_in(flag_payload, [:environment, :key]))
+                 }
+               )}
+            else
+              {:skip,
+               :targeting_key_missing,
+               %{
+                 experiment: %{matched?: false, bucket_by: stringify(bucket_by)},
+                 warnings: [%{type: :missing_targeting_key, bucket_by: stringify(bucket_by), strict?: false}]
+               }}
+            end
+        end
 
       is_nil(rollout) ->
         {:skip, :missing_rollout, %{rollout: %{matched?: false}}}
@@ -217,6 +275,33 @@ defmodule Rulestead.Evaluator do
 
           :error ->
             {:error, EvaluationError.malformed_runtime_data()}
+        end
+
+      strategy when strategy in [:experiment, "experiment"] ->
+        holdout_percentage = rollout_trace[:holdout_percentage] || 0
+        experiment_bucket = rollout_trace[:experiment_bucket] || 0
+
+        if experiment_bucket < holdout_percentage * 100 do
+          variants = fetch_list(rule, :variants)
+          control_variant = List.first(variants)
+          
+          if control_variant do
+            value = extract_value(control_variant[:value] || control_variant["value"])
+            variant_key = stringify(control_variant[:key] || control_variant["key"])
+            {:ok, result(flag, active_ruleset, rule_key, value, variant_key, condition_trace, Map.put(rollout_trace, :experiment_bucket, "holdout"))}
+          else
+            {:error, EvaluationError.malformed_runtime_data()}
+          end
+        else
+          case choose_variant(fetch_list(rule, :variants), rollout_trace[:variant_bucket]) do
+            {:ok, variant} ->
+              value = extract_value(variant[:value] || variant["value"])
+              variant_key = stringify(variant[:key] || variant["key"])
+              {:ok, result(flag, active_ruleset, rule_key, value, variant_key, condition_trace, Map.put(rollout_trace, :variant, variant_key))}
+
+            :error ->
+              {:error, EvaluationError.malformed_runtime_data()}
+          end
         end
 
       _other ->

@@ -7,7 +7,7 @@ defmodule Rulestead.Telemetry do
 
   @handler_table :rulestead_telemetry_handlers
   @shared_keys ~w(flag_key flag_type environment snapshot_version cache_age_ms reason has_targeting_key? matched_rule_count)a
-  @optional_keys ~w(operation source refresh_status audit_action error_kind change_request_id correlation_id audit_event_id resource_key governance_action environment_key attempt_count execution_mode executed_by webhook_provider webhook_delivery_id webhook_receipt_id rejection_reason)a
+  @optional_keys ~w(operation source refresh_status audit_action error_kind change_request_id correlation_id audit_event_id resource_key governance_action environment_key attempt_count execution_mode executed_by webhook_provider webhook_delivery_id webhook_receipt_id rejection_reason experiment_bucket)a
   @scheduled_execution_events %{
     scheduled: [:rulestead, :admin, :scheduled_execution, :scheduled],
     started: [:rulestead, :admin, :scheduled_execution, :started],
@@ -100,7 +100,17 @@ defmodule Rulestead.Telemetry do
     |> Map.put_new(:snapshot_version, result.flag_version)
     |> Map.put_new(:has_targeting_key?, not is_nil(context.targeting_key))
     |> Map.put_new(:matched_rule_count, matched_rule_count(trace, result))
+    |> Map.put_new(:experiment_bucket, extract_experiment_bucket(trace))
   end
+
+  defp extract_experiment_bucket(%{rule_traces: traces}) when is_list(traces) do
+    Enum.find_value(traces, fn
+      %{matched?: true, rollout: %{experiment_bucket: bucket}} when not is_nil(bucket) -> bucket
+      _ -> nil
+    end)
+  end
+
+  defp extract_experiment_bucket(_), do: nil
 
   @spec runtime_metadata(map(), map()) :: map()
   def runtime_metadata(runtime_metadata, attrs \\ %{}) when is_map(runtime_metadata) do
@@ -286,6 +296,7 @@ defmodule Rulestead.Telemetry do
   defp sanitize_value(:attempt_count, value) when is_integer(value) and value >= 0, do: value
   defp sanitize_value(key, value) when key in [:has_targeting_key?] and is_boolean(value), do: value
   defp sanitize_value(key, value) when key in [:matched_rule_count] and is_integer(value) and value >= 0, do: value
+  defp sanitize_value(key, value) when key in [:experiment_bucket] and (is_integer(value) or value == "holdout"), do: value
   defp sanitize_value(key, value)
        when key in [:flag_key, :environment, :environment_key, :operation, :audit_action, :change_request_id, :correlation_id, :audit_event_id, :resource_key, :governance_action, :execution_mode, :executed_by, :webhook_provider, :webhook_delivery_id, :webhook_receipt_id, :rejection_reason],
        do: stringify(value)
