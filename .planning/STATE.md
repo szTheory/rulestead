@@ -1,49 +1,48 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.3.0
-milestone_name: Ecosystem Integration & Lifecycle Hygiene
-status: executing
-last_updated: "2026-05-15T12:00:00.000Z"
-last_activity: 2026-05-15
+milestone: v0.4.0
+milestone_name: Experimentation & Analytics
+status: active
+last_updated: "2026-05-16T12:00:00.000Z"
+last_activity: 2026-05-16
 progress:
-  total_phases: 2
-  completed_phases: 1
-  total_plans: 5
-  completed_plans: 5
-  percent: 100
+  total_phases: 3
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # State: Rulestead
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-05-14)
+See: `.planning/PROJECT.md` (updated 2026-05-16)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
-**Current focus:** Ecosystem Integration & Lifecycle Hygiene
-**Milestone:** `v0.3.0`
+**Current focus:** Experimentation & Analytics
+**Milestone:** `v0.4.0` (Active)
 
 ## Roadmap Reference
 
-See: `.planning/milestones/v0.3.0-ROADMAP.md`
+See: `.planning/milestones/v0.4.0-ROADMAP.md`
 
-`v0.3.0` is the active roadmap.
+`v0.4.0` is currently active.
 
 ## Current Position
 
-Phase: 15 — DONE
-Plan: 3 of 3
-Status: Executing
+Phase: None
+Plan: None
+Status: Idle
 Last activity: 2026-05-16
 
 ## Active Requirement Focus
 
-- `ECO-01..03` — OpenFeature Provider and API mapping
-- `LCH-01..03` — Stale flag detection, code references, and hygiene UI
+- EXP-01, EXP-02, EXP-03, ANA-01, ANA-02, ANA-03
 
 ## Carryover Items
 
-None. All v0.1.0 and v0.2.0 carryover items are closed.
+None. All v0.3.0 carryover items are closed.
 
 ## Anchor Docs (prompts/)
 
@@ -80,6 +79,8 @@ These remain the primary source of truth and should be loaded selectively per ph
 
 ## Latest Activity
 
+- 2026-05-16 — Planned milestone `v0.4.0` for Experimentation & Analytics, identifying Phase 16 (Experimentation Core), Phase 17 (Analytics Ingestion), and Phase 18 (UI).
+- 2026-05-16 — Completed milestone `v0.3.0`.
 - 2026-05-16 — Completed 15-03-PLAN.md.
 - 2026-05-16 — Completed 15-02-PLAN.md.
 - 2026-05-16 — Completed 15-01-PLAN.md.
@@ -91,4 +92,9 @@ These remain the primary source of truth and should be loaded selectively per ph
 
 ## Next Action
 
-Next: `/gsd-complete-phase 15`
+Next: `/gsd-plan-phase 16`
+— Milestone `v0.2.0` defined with governance, scheduling, webhook, and operational follow-through scope.
+
+## Next Action
+
+Next: `/gsd-plan-phase` for Phase 16
