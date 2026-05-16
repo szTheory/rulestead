@@ -1,67 +1,53 @@
 defmodule Rulestead.Telemetry.CacheTest do
-  use ExUnit.Case, async: false
-
+  use ExUnit.Case, async: true
   alias Rulestead.Telemetry.Cache
 
-  describe "initialization" do
+  describe "ETS initialization" do
     test "initializes an ETS table on startup" do
-      # Should be started by the test, or we start it manually if it's a GenServer
       assert {:ok, _pid} = Cache.start_link([])
       assert :ets.info(Cache.table_name()) != :undefined
     end
   end
 
-  describe "record_evaluation/3" do
+  describe "cache operations" do
     setup do
-      {:ok, _pid} = Cache.start_link([])
+      start_supervised!(Cache)
+      Cache.clear()
       :ok
     end
 
     test "bumps evaluation count and updates last_evaluated_at for a given flag_key" do
-      flag_key = "my_flag"
-      variant = "on"
-      timestamp = DateTime.utc_now()
+      flag_key = "some_flag_key"
+      env_key = "test"
+      variant = "variant_a"
+      timestamp = DateTime.utc_now() |> DateTime.to_unix(:millisecond)
 
-      Cache.record_evaluation(flag_key, variant, timestamp)
-      
-      snapshot = Cache.snapshot()
-      assert %{
-        "my_flag" => %{
-          last_evaluated_at: ^timestamp,
-          variants_served: %{"on" => 1}
-        }
-      } = snapshot
-
-      # Bump again with a different variant
-      Cache.record_evaluation(flag_key, "off", timestamp)
-      
-      snapshot_after = Cache.snapshot()
-      assert %{
-        "my_flag" => %{
-          last_evaluated_at: ^timestamp,
-          variants_served: %{"on" => 1, "off" => 1}
-        }
-      } = snapshot_after
-    end
-  end
-
-  describe "snapshot/0 and clear/0" do
-    setup do
-      {:ok, _pid} = Cache.start_link([])
-      :ok
-    end
-
-    test "returns a snapshot of the cache and can clear it for flushing" do
-      timestamp = DateTime.utc_now()
-      Cache.record_evaluation("f1", "on", timestamp)
-      Cache.record_evaluation("f2", "off", timestamp)
+      Cache.record_evaluation(flag_key, env_key, variant, timestamp)
 
       snapshot = Cache.snapshot()
-      assert Map.has_key?(snapshot, "f1")
-      assert Map.has_key?(snapshot, "f2")
+      assert snapshot[{flag_key, env_key}] != nil
+      assert snapshot[{flag_key, env_key}].variants_served[variant] == 1
+      assert snapshot[{flag_key, env_key}].last_evaluated_at == timestamp
 
       Cache.clear()
-      
+      assert Cache.snapshot() == %{}
+    end
+
+    test "can return a snapshot of the cache and clear it for flushing" do
+      ts = DateTime.utc_now() |> DateTime.to_unix(:millisecond)
+      Cache.record_evaluation("flag_1", "test", "on", ts)
+      Cache.record_evaluation("flag_1", "test", "on", ts)
+      Cache.record_evaluation("flag_1", "test", "off", ts)
+      Cache.record_evaluation("flag_2", "test", "active", ts)
+
+      snapshot = Cache.snapshot()
+
+      assert snapshot[{"flag_1", "test"}].variants_served["on"] == 2
+      assert snapshot[{"flag_1", "test"}].variants_served["off"] == 1
+
+      assert snapshot[{"flag_2", "test"}].variants_served["active"] == 1
+
+      Cache.clear()
       assert Cache.snapshot() == %{}
     end
   end

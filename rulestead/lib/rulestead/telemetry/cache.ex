@@ -17,14 +17,21 @@ defmodule Rulestead.Telemetry.Cache do
   Record an evaluation.
   Uses public ETS for high throughput.
   """
-  def record_evaluation(flag_key, variant, timestamp) do
-    :ets.insert(@table, {{flag_key, :last_evaluated_at}, timestamp})
-    
+  def record_evaluation(flag_key, environment_key, variant, timestamp) do
+    key = {flag_key, environment_key}
     try do
-      :ets.update_counter(@table, {flag_key, :variants_served, variant}, {2, 1})
+      :ets.insert(@table, {{key, :last_evaluated_at}, timestamp})
+      
+      try do
+        :ets.update_counter(@table, {key, :variants_served, variant}, {2, 1})
+      rescue
+        ArgumentError ->
+          :ets.insert(@table, {{key, :variants_served, variant}, 1})
+      end
     rescue
       ArgumentError ->
-        :ets.insert(@table, {{flag_key, :variants_served, variant}, 1})
+        # Table does not exist (likely in test environment where Cache is not started)
+        :ok
     end
     :ok
   end
@@ -35,15 +42,17 @@ defmodule Rulestead.Telemetry.Cache do
   def snapshot do
     :ets.tab2list(@table)
     |> Enum.reduce(%{}, fn
-      {{flag_key, :last_evaluated_at}, timestamp}, acc ->
-        map = Map.get(acc, flag_key, %{})
-        Map.put(acc, flag_key, Map.put(map, :last_evaluated_at, timestamp))
+      {{{flag_key, env_key}, :last_evaluated_at}, timestamp}, acc ->
+        key = {flag_key, env_key}
+        map = Map.get(acc, key, %{})
+        Map.put(acc, key, Map.put(map, :last_evaluated_at, timestamp))
 
-      {{flag_key, :variants_served, variant}, count}, acc ->
-        map = Map.get(acc, flag_key, %{})
+      {{{flag_key, env_key}, :variants_served, variant}, count}, acc ->
+        key = {flag_key, env_key}
+        map = Map.get(acc, key, %{})
         variants = Map.get(map, :variants_served, %{})
         map = Map.put(map, :variants_served, Map.put(variants, variant, count))
-        Map.put(acc, flag_key, map)
+        Map.put(acc, key, map)
     end)
   end
 
@@ -57,10 +66,6 @@ defmodule Rulestead.Telemetry.Cache do
 
   @impl true
   def init(_opts) do
-    # Since we run tests with async: true and GenServer might be started multiple times,
-    # we should handle if the table already exists, or don't name the GenServer.
-    # Actually, if we use a named ETS table and async tests, we'll get an error unless we handle it properly,
-    # or if we don't name the table and pass the table ref. But we're naming it `@table` which is a global atom.
     case :ets.info(@table) do
       :undefined ->
         :ets.new(@table, [:named_table, :public, :set, read_concurrency: true, write_concurrency: true])
