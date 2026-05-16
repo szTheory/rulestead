@@ -38,6 +38,12 @@ defmodule Rulestead do
   def version, do: @version
 
   @doc """
+  Tracks a custom analytics event.
+  """
+  @spec track(Context.t() | map() | String.t(), String.t(), map()) :: :ok
+  defdelegate track(context_or_actor_id, event_name, metadata \\ %{}), to: Rulestead.Analytics
+
+  @doc """
   Fetches the authored flag state for a `flag_key` and `environment_key`.
   """
   @spec fetch_flag(String.t() | atom(), String.t() | atom(), keyword()) :: Store.result(map())
