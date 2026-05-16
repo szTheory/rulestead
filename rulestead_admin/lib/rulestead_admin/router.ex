@@ -34,6 +34,7 @@ defmodule RulesteadAdmin.Router do
           live "/:key/simulate", RulesteadAdmin.Live.FlagLive.Simulate, :show
           live "/:key/rollouts", RulesteadAdmin.Live.FlagLive.Rollouts, :show
           live "/:key/kill", RulesteadAdmin.Live.FlagLive.Kill, :show
+          live "/:key/cleanup", RulesteadAdmin.Live.FlagLive.Cleanup, :show
           live "/:key/timeline", RulesteadAdmin.Live.FlagLive.Timeline, :show
         end
       end
