@@ -183,6 +183,7 @@ defmodule Rulestead.Mix.Tasks.RulesteadInstallTest do
              "copy priv/repo/migrations/20260424204720_create_rulestead_webhook_destinations_events_and_deliveries.exs",
              "copy priv/repo/migrations/20260424210000_add_phase6_admin_lifecycle_fields.exs",
              "copy priv/repo/migrations/20260424220000_create_rulestead_scheduled_executions_and_attempts.exs",
+             "copy priv/repo/migrations/20260515224529_add_telemetry_fields_to_flags.exs",
              "write config/rulestead.exs",             "write config/config.exs import",
              "write lib/my_app_web/endpoint.ex plug",
              "write lib/my_app_web/router.ex admin helper",

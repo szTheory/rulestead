@@ -36,6 +36,7 @@ defmodule OpenFeatureRulestead.ContextMapperTest do
     result = ContextMapper.translate(of_context)
 
     assert result.targeting_key == "user-456"
+
     assert result.attributes == %{
              "customProperty" => "value",
              "nested" => %{"key" => "val"}

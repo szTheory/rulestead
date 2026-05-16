@@ -84,7 +84,6 @@ defmodule Rulestead.Repo.Migrations.CreateRulesteadScheduledExecutionsAndAttempt
       timestamps(type: :utc_datetime_usec, updated_at: false)
     end
 
-    create(index(:execution_attempts, [:scheduled_execution_id, :attempt_number]))
     create(unique_index(:execution_attempts, [:scheduled_execution_id, :attempt_number]))
 
     create(

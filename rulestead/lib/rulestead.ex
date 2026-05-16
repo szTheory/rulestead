@@ -681,6 +681,14 @@ defmodule Rulestead do
         result =
           with {:ok, result} <- Evaluator.evaluate(flag_payload, context) do
             emit_warnings(result)
+            
+            # Record telemetry evaluation for hygiene cleanup
+            if result.flag_key do
+              # We spawn to ensure non-blocking, although ETS is fast, write-behind should never block.
+              # Alternatively, since our ETS is public and fast, we just call it directly.
+              Rulestead.Telemetry.Cache.record_evaluation(result.flag_key, context.environment || "default", result.variant || "unknown", DateTime.utc_now())
+            end
+
             {:ok, result}
           end
 

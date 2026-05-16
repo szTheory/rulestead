@@ -15,6 +15,7 @@ defmodule Rulestead.FlagEnvironment do
     field(:kill_switch_variant_key, :string)
     field(:last_published_at, :utc_datetime_usec)
     field(:last_evaluated_at, :utc_datetime_usec)
+    field(:variants_served, :map, default: %{})
 
     belongs_to(:flag, Rulestead.Flag)
     belongs_to(:environment, Rulestead.Environment)
@@ -37,7 +38,8 @@ defmodule Rulestead.FlagEnvironment do
       :status,
       :kill_switch_variant_key,
       :last_published_at,
-      :last_evaluated_at
+      :last_evaluated_at,
+      :variants_served
     ])
     |> update_change(:kill_switch_variant_key, &normalize_string/1)
     |> validate_required([:flag_id, :environment_id, :status])
