@@ -4,14 +4,9 @@
 
 Rulestead is a batteries-included, Elixir-native feature-flag and remote-config platform for Phoenix, Plug, Ecto, LiveView, and Oban apps, shipped as sibling Hex packages: `rulestead` for runtime evaluation and `rulestead_admin` for the mounted operator UI. It gives Phoenix teams deterministic evaluation, explicit context, explainability, lifecycle hygiene, and a self-hosted admin plane that stays aligned with host-app auth and deployment workflows.
 
-## Current Milestone: v0.3.0 (Ecosystem Integration & Lifecycle Hygiene)
+## Current Milestone: v0.4.0 (Experimentation & Analytics)
 
-**Goal:** Rulestead integrates smoothly into standard CNCF workflows via OpenFeature and introduces tooling to combat feature flag technical debt with automated code reference discovery and stale flag management.
-
-**Target features:**
-- OpenFeature Provider package (`open_feature_rulestead`) for vendor-neutral evaluation.
-- GitHub integration for codebase scanning to identify flag usage.
-- Stale flag management and cleanup workflows in the Rulestead Admin UI.
+**Previous Milestone (v0.3.0) Complete:** Rulestead integrates smoothly into standard CNCF workflows via OpenFeature and introduces tooling to combat feature flag technical debt with automated code reference discovery and stale flag management.
 
 ## Core Value
 
@@ -47,43 +42,42 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 - ✓ Schedule future admin mutations with durable execution, idempotent recovery, and clear operator status — `v0.2.0`
 - ✓ Add signed webhook ingress and outbound notification hooks for high-impact governance events — `v0.2.0`
 - ✓ Close the `v0.1.0` verification and publish-evidence carryover items without destabilizing the shipped release line — `v0.2.0`
+- ✓ Integrate standard OpenFeature API provider (`ECO` requirements) — `v0.3.0`
+- ✓ Build lifecycle hygiene tools with code references and stale flag detection (`LCH` requirements) — `v0.3.0`
 
 ### Active
 
-- Integrate standard OpenFeature API provider (`ECO` requirements).
-- Build lifecycle hygiene tools with code references and stale flag detection (`LCH` requirements).
+- Support defining formal A/B test experiments on top of existing flags (EXP-01, EXP-02, EXP-03)
+- Ingest and store flag evaluation impressions and conversion events (ANA-01, ANA-02)
+- Expose experiment results and guardrail metrics in the Admin UI (ANA-03)
 
 ### Out of Scope
 
-- Experiment analytics, impression/conversion statistics, and guardrail metrics — slated for `v0.4.0`.
 - Redis adapter, streaming deltas, and distributed cache expansion — slated for `v0.5.0`.
 - Multi-tenant helpers, import/export expansion — slated for `v0.6.0`.
 - Publishing or broadening the `rulestead_admin` package beyond the mounted sibling-package design — explicitly disallowed by the current release design.
 
 ## Context
 
-- `v0.1.0` and `v0.2.0` have successfully established the core runtime, admin UX, and governance workflows.
-- The `v0.3.0` milestone focuses on Ecosystem Integration and Lifecycle Hygiene, identifying that stale feature flags are the primary technical debt complaint for operators.
-- By providing an OpenFeature implementation, Rulestead aligns with CNCF standards and removes lock-in fears for enterprise adopters.
+- `v0.1.0`, `v0.2.0`, and `v0.3.0` milestones are complete, establishing core runtime, admin UX, governance workflows, ecosystem integration, and lifecycle hygiene.
+- The next focus (v0.4.0) will be on Experimentation & Analytics.
 - The project remains a linked-version, two-package monorepo.
 
 ## Constraints
 
 - **Release design**: Keep the linked-version sibling-package release shape — the runtime and admin packages evolve together.
-- **Phase discipline**: Stay within the `v0.3.0` ecosystem and hygiene milestone; do not pull experimentation or broader scale work forward.
-- **Security**: Maintain default-deny mutation security and strict audit logs when managing stale flag cleanup.
-- **Operator UX**: Code reference tooling and stale flag management must enhance operator confidence and streamline the removal process.
+- **Security**: Maintain default-deny mutation security and strict audit logs.
 
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Make `v0.3.0` focused on Ecosystem Integration & Lifecycle Hygiene | Tackling tech debt via code references and providing OpenFeature APIs are major confidence boosters for large-scale enterprise adoption over experimenting/analytics right now. | — Pending |
+| Make `v0.3.0` focused on Ecosystem Integration & Lifecycle Hygiene | Tackling tech debt via code references and providing OpenFeature APIs are major confidence boosters for large-scale enterprise adoption over experimenting/analytics right now. | Validated |
 
 ## Milestone Archives
 
-- Roadmap archive: [.planning/milestones/v0.1.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.1.0-ROADMAP.md), [.planning/milestones/v0.2.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.2.0-ROADMAP.md)
-- Requirements archive: [.planning/milestones/v0.1.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.1.0-REQUIREMENTS.md), [.planning/milestones/v0.2.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.2.0-REQUIREMENTS.md)
+- Roadmap archive: [.planning/milestones/v0.1.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.1.0-ROADMAP.md), [.planning/milestones/v0.2.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.2.0-ROADMAP.md), [.planning/milestones/v0.3.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.3.0-ROADMAP.md), [.planning/milestones/v0.4.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.4.0-ROADMAP.md)
+- Requirements archive: [.planning/milestones/v0.1.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.1.0-REQUIREMENTS.md), [.planning/milestones/v0.2.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.2.0-REQUIREMENTS.md), [.planning/milestones/v0.3.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.3.0-REQUIREMENTS.md), [.planning/milestones/v0.4.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.4.0-REQUIREMENTS.md)
 
 ## Historical Context
 
