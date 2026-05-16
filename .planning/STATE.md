@@ -79,6 +79,7 @@ These remain the primary source of truth and should be loaded selectively per ph
 
 ## Latest Activity
 
+- 2026-05-16 — Completed 16-01-PLAN.md execution.
 - 2026-05-16 — Planned milestone `v0.4.0` for Experimentation & Analytics, identifying Phase 16 (Experimentation Core), Phase 17 (Analytics Ingestion), and Phase 18 (UI).
 - 2026-05-16 — Completed milestone `v0.3.0`.
 - 2026-05-16 — Completed 15-03-PLAN.md.
@@ -92,9 +93,4 @@ These remain the primary source of truth and should be loaded selectively per ph
 
 ## Next Action
 
-Next: `/gsd-plan-phase 16`
-— Milestone `v0.2.0` defined with governance, scheduling, webhook, and operational follow-through scope.
-
-## Next Action
-
-Next: `/gsd-plan-phase` for Phase 16
+Next: `/gsd-plan-phase 17`
