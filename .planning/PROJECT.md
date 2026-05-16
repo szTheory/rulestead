@@ -4,21 +4,34 @@
 
 Rulestead is a batteries-included, Elixir-native feature-flag and remote-config platform for Phoenix, Plug, Ecto, LiveView, and Oban apps, shipped as sibling Hex packages: `rulestead` for runtime evaluation and `rulestead_admin` for the mounted operator UI. It gives Phoenix teams deterministic evaluation, explicit context, explainability, lifecycle hygiene, and a self-hosted admin plane that stays aligned with host-app auth and deployment workflows.
 
-## Current Milestone: v0.2.0 Governance and Operator Confidence
+## Current Milestone: v0.3.0 (Ecosystem Integration & Lifecycle Hygiene)
 
-**Goal:** Add governed change workflows that make production mutations safer without weakening the deterministic runtime or the sibling-package release shape.
+**Goal:** Rulestead integrates smoothly into standard CNCF workflows via OpenFeature and introduces tooling to combat feature flag technical debt with automated code reference discovery and stale flag management.
 
 **Target features:**
-- Change requests and approvals for high-impact admin mutations, with environment-sensitive policy and immutable audit correlation.
-- Scheduled changes for ruleset publishes, rollout advances, and kill-switch lifecycle actions, backed by durable execution and operator visibility.
-- Webhook surfaces for signed inbound change events and outbound high-impact notifications.
-- Operational closeout of the two `v0.1.0` deferred items: the remaining Phase 7 verification gap and live published-release evidence capture when Hex visibility permits it.
+- OpenFeature Provider package (`open_feature_rulestead`) for vendor-neutral evaluation.
+- GitHub integration for codebase scanning to identify flag usage.
+- Stale flag management and cleanup workflows in the Rulestead Admin UI.
 
 ## Core Value
 
 **Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.**
 
 Everything else can fail; this cannot. If the runtime evaluator is not fast, pure, deterministic, and explainable, nothing else matters.
+
+## Strategic Arc (Future Milestones)
+
+To provide a clear path forward for Rulestead as a "batteries included" feature-management platform, the following long-term strategic arc outlines our planned evolution:
+
+- **v0.4.0: Experimentation & Analytics**
+  - Focus: A/B testing, impression/conversion statistics, and guardrail metrics.
+  - Value: Enable product teams to validate hypotheses and measure impact safely.
+- **v0.5.0: Advanced Delivery & Distributed Scale**
+  - Focus: Redis adapter, streaming deltas, and distributed cache expansion.
+  - Value: Support massive-scale distributed deployments requiring external state and real-time invalidation.
+- **v0.6.0: Multi-tenant & Enterprise Expansion**
+  - Focus: First-class multi-tenant helpers, advanced import/export capabilities, and broader RBAC.
+  - Value: Provide comprehensive tooling for complex SaaS environments and massive organizational rollouts.
 
 ## Requirements
 
@@ -30,48 +43,47 @@ Everything else can fail; this cannot. If the runtime evaluator is not fast, pur
 - ✓ Installer, Plug/LiveView/Oban seams, and fake-backed test helpers — `v0.1.0`
 - ✓ Mounted admin workflows for authoring, simulation, rollouts, kill switch, audit, and redaction/auth seams — `v0.1.0`
 - ✓ Release-grade docs, API stability posture, verification trio, and gated publish workflow — `v0.1.0`
+- ✓ Govern production mutations with change requests, approvals, and self-approval guards — `v0.2.0`
+- ✓ Schedule future admin mutations with durable execution, idempotent recovery, and clear operator status — `v0.2.0`
+- ✓ Add signed webhook ingress and outbound notification hooks for high-impact governance events — `v0.2.0`
+- ✓ Close the `v0.1.0` verification and publish-evidence carryover items without destabilizing the shipped release line — `v0.2.0`
 
 ### Active
 
-- [ ] Govern production mutations with change requests, approvals, and self-approval guards.
-- [ ] Schedule future admin mutations with durable execution, idempotent recovery, and clear operator status.
-- [ ] Add signed webhook ingress and outbound notification hooks for high-impact governance events.
-- [ ] Close the `v0.1.0` verification and publish-evidence carryover items without destabilizing the shipped release line.
+- Integrate standard OpenFeature API provider (`ECO` requirements).
+- Build lifecycle hygiene tools with code references and stale flag detection (`LCH` requirements).
 
 ### Out of Scope
 
-- Experiment analytics, impression/conversion statistics, and guardrail metrics — still a later milestone after governance fundamentals land.
-- Redis adapter, streaming deltas, and distributed cache expansion — not required to make the current governance milestone safe or shippable.
-- Multi-tenant helpers, import/export expansion, and OpenFeature bridge work — acknowledged future scope, but not part of `v0.2.0`.
+- Experiment analytics, impression/conversion statistics, and guardrail metrics — slated for `v0.4.0`.
+- Redis adapter, streaming deltas, and distributed cache expansion — slated for `v0.5.0`.
+- Multi-tenant helpers, import/export expansion — slated for `v0.6.0`.
 - Publishing or broadening the `rulestead_admin` package beyond the mounted sibling-package design — explicitly disallowed by the current release design.
 
 ## Context
 
-- `v0.1.0` is archived as the first polished Hex-release milestone and already ships the runtime, authoring store, mounted admin UI, installer, docs, and release automation foundation.
-- The strongest validated next-step signal in the prompt anchors and archived milestone notes is governance: approvals, scheduled changes, and webhook-connected operator workflows.
-- Two closeout items carry forward from `v0.1.0`: the last Phase 7 sibling-package verification gap and the live published-artifact proof for `0.1.0` once Hex visibility allows it.
-- The project remains a linked-version, two-package monorepo. Governance work must preserve the current package boundary and must not turn `rulestead_admin` into a separately prepared release target.
+- `v0.1.0` and `v0.2.0` have successfully established the core runtime, admin UX, and governance workflows.
+- The `v0.3.0` milestone focuses on Ecosystem Integration and Lifecycle Hygiene, identifying that stale feature flags are the primary technical debt complaint for operators.
+- By providing an OpenFeature implementation, Rulestead aligns with CNCF standards and removes lock-in fears for enterprise adopters.
+- The project remains a linked-version, two-package monorepo.
 
 ## Constraints
 
 - **Release design**: Keep the linked-version sibling-package release shape — the runtime and admin packages evolve together.
-- **Phase discipline**: Stay within the `v0.2.0` governance milestone; do not pull experimentation or broader ecosystem work forward.
-- **Security**: High-impact admin mutations stay default-deny, redact at the boundary, and preserve immutable audit history.
-- **Operator UX**: Every mutation remains preview -> confirm -> audit; governance must clarify operator intent rather than add opaque control flow.
+- **Phase discipline**: Stay within the `v0.3.0` ecosystem and hygiene milestone; do not pull experimentation or broader scale work forward.
+- **Security**: Maintain default-deny mutation security and strict audit logs when managing stale flag cleanup.
+- **Operator UX**: Code reference tooling and stale flag management must enhance operator confidence and streamline the removal process.
 
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Make `v0.2.0` a governance-focused milestone | Archived `v0.1.0` docs, prompt anchors, and deferred scope all point to approvals, scheduling, and webhooks as the next coherent slice | — Pending |
-| Carry the two `v0.1.0` deferred items into `v0.2.0` as bounded operational requirements | They are small, explicit debt items and should close alongside the next roadmap rather than linger outside planning | — Pending |
-| Keep the runtime contract stable while expanding admin governance | Governance should make changes safer without weakening deterministic evaluation or hot-path behavior | — Pending |
-| Preserve the mounted sibling-package admin design | Matches the current shipped architecture and the repo constraints in `AGENTS.md` | ✓ Good |
+| Make `v0.3.0` focused on Ecosystem Integration & Lifecycle Hygiene | Tackling tech debt via code references and providing OpenFeature APIs are major confidence boosters for large-scale enterprise adoption over experimenting/analytics right now. | — Pending |
 
 ## Milestone Archives
 
-- Roadmap archive: [.planning/milestones/v0.1.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.1.0-ROADMAP.md)
-- Requirements archive: [.planning/milestones/v0.1.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.1.0-REQUIREMENTS.md)
+- Roadmap archive: [.planning/milestones/v0.1.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.1.0-ROADMAP.md), [.planning/milestones/v0.2.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.2.0-ROADMAP.md)
+- Requirements archive: [.planning/milestones/v0.1.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.1.0-REQUIREMENTS.md), [.planning/milestones/v0.2.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.2.0-REQUIREMENTS.md)
 
 ## Historical Context
 
@@ -102,4 +114,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-24 after starting milestone v0.2.0*
+*Last updated: 2026-05-14 after planning milestone v0.3.0*
