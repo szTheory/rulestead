@@ -151,7 +151,15 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
               <td><%= entry.flag.owner %></td>
               <td><FlagComponents.lifecycle_badge state={entry.lifecycle} /></td>
               <td><FlagComponents.environment_status status={entry.environment_status || entry.flag_environment.status || :draft} /></td>
-              <td><FlagComponents.stale_badge state={stale_state(entry.lifecycle)} last_evaluated_at={entry.lifecycle.last_evaluated_at} /></td>
+              <td>
+                <%= if stale_state(entry.lifecycle) in [:stale, :potentially_stale] do %>
+                  <a href={cleanup_path(@base_path, entry.flag.key, @current_environment.key)}>
+                    <FlagComponents.stale_badge state={stale_state(entry.lifecycle)} last_evaluated_at={entry.lifecycle.last_evaluated_at} />
+                  </a>
+                <% else %>
+                  <FlagComponents.stale_badge state={stale_state(entry.lifecycle)} last_evaluated_at={entry.lifecycle.last_evaluated_at} />
+                <% end %>
+              </td>
               <td><%= format_last_changed(entry.flag.updated_at || entry.flag.inserted_at) %></td>
             </tr>
             <tr :if={Enum.empty?(@page.entries)}>
@@ -342,6 +350,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
   end
 
   defp flag_path(base_path, key, env), do: "#{base_path}/#{key}?env=#{env}"
+  defp cleanup_path(base_path, key, env), do: "#{base_path}/#{key}/cleanup?env=#{env}"
 
   defp path_with_query(uri) do
     parsed = URI.parse(uri)

@@ -87,6 +87,13 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
         <FlagComponents.section_card title="Lifecycle">
           <p>
             <FlagComponents.lifecycle_badge state={@detail.lifecycle} />
+            <%= if @detail.lifecycle.state in [:stale, :potentially_stale] do %>
+              <a href={path_for(assigns, "/#{@detail.flag.key}/cleanup")}>
+                <FlagComponents.stale_badge state={@detail.lifecycle.state} last_evaluated_at={@detail.lifecycle.last_evaluated_at} />
+              </a>
+            <% else %>
+              <FlagComponents.stale_badge state={@detail.lifecycle.state} last_evaluated_at={@detail.lifecycle.last_evaluated_at} />
+            <% end %>
             <span>Owner: <%= @detail.lifecycle.owner %></span>
           </p>
           <p>
