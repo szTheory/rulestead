@@ -49,5 +49,23 @@ defmodule Rulestead.Runtime.ClusterRefreshTest do
 
     assert local_version == version_two.version
     assert remote_environment.snapshot_version == version_two.version
+
+    Control.publish!(cluster.pubsub_name, environment_key, version_two.version)
+    Control.publish!(cluster.pubsub_name, environment_key, version_two.version - 1)
+
+    assert :ok =
+             ClusterCase.assert_eventually(fn ->
+               %{environments: local_environments} = Rulestead.Runtime.diagnostics()
+               local_environment = Enum.find(local_environments, &(&1.environment_key == environment_key))
+
+               %{environments: remote_environments_after_duplicate} =
+                 ClusterCase.remote_diagnostics(cluster.peer_node)
+
+               remote_environment_after_duplicate =
+                 Enum.find(remote_environments_after_duplicate, &(&1.environment_key == environment_key))
+
+               local_environment.snapshot_version == version_two.version and
+                 remote_environment_after_duplicate.snapshot_version == version_two.version
+             end)
   end
 end

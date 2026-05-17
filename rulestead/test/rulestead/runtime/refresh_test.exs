@@ -5,6 +5,21 @@ defmodule Rulestead.Runtime.RefreshTest do
   alias Rulestead.Fake.Control
   alias Rulestead.Runtime.{Cache, Refresh}
 
+  defmodule TestNotifier do
+    @behaviour Rulestead.Runtime.Notifier
+
+    @impl true
+    def broadcast(notice, opts) do
+      Rulestead.Runtime.Notifier.PhoenixPubSub.broadcast(notice, opts)
+    end
+
+    @impl true
+    def subscribe(opts) do
+      send(Keyword.fetch!(opts, :test_pid), {:notifier_subscribed, opts[:pubsub], opts[:pubsub_topic]})
+      Rulestead.Runtime.Notifier.PhoenixPubSub.subscribe(opts)
+    end
+  end
+
   setup do
     Control.reset!()
     store_config = Application.get_env(:rulestead, :store)
@@ -24,6 +39,8 @@ defmodule Rulestead.Runtime.RefreshTest do
          name: nil,
          environment_key: environment_key,
          store: Rulestead.Fake,
+         notifier: TestNotifier,
+         test_pid: self(),
          pubsub: pubsub_name,
          poll_interval_ms: 5_000,
          refresh_jitter_ms: 0,
@@ -48,6 +65,8 @@ defmodule Rulestead.Runtime.RefreshTest do
     pubsub_name: pubsub_name,
     worker: worker
   } do
+    assert_receive {:notifier_subscribed, ^pubsub_name, _topic}
+
     assert {:ok, true} =
              Runtime.enabled?(environment_key, "checkout-redesign", Context.new(actor: %{key: "user-1"}))
 
@@ -63,6 +82,42 @@ defmodule Rulestead.Runtime.RefreshTest do
     environment = Enum.find(environments, &(&1.environment_key == environment_key))
     assert environment.snapshot_version == version_two.version
     assert environment.refresh_status == :ready
+  end
+
+  test "duplicate and stale invalidation notices are ignored without regressing the applied snapshot", %{
+    environment_key: environment_key,
+    pubsub_name: pubsub_name,
+    worker: worker
+  } do
+    version_two = publish_ruleset_version(environment_key, false)
+
+    Control.publish!(pubsub_name, environment_key, version_two.version)
+    assert :ok = Refresh.sync(worker)
+
+    assert {:ok, false} =
+             Runtime.enabled?(environment_key, "checkout-redesign", Context.new(actor: %{key: "user-1"}))
+
+    assert %{attempt: 0, next_backoff_ms: 0, refresh_status: :ready} = Refresh.status(worker)
+    applied_version = snapshot_version!(environment_key)
+    assert applied_version == version_two.version
+
+    Control.publish!(pubsub_name, environment_key, version_two.version)
+    assert :ok = Refresh.sync(worker)
+
+    assert {:ok, false} =
+             Runtime.enabled?(environment_key, "checkout-redesign", Context.new(actor: %{key: "user-1"}))
+
+    assert %{attempt: 0, next_backoff_ms: 0, refresh_status: :ready} = Refresh.status(worker)
+    assert snapshot_version!(environment_key) == applied_version
+
+    Control.publish!(pubsub_name, environment_key, version_two.version - 1)
+    assert :ok = Refresh.sync(worker)
+
+    assert {:ok, false} =
+             Runtime.enabled?(environment_key, "checkout-redesign", Context.new(actor: %{key: "user-1"}))
+
+    assert %{attempt: 0, next_backoff_ms: 0, refresh_status: :ready} = Refresh.status(worker)
+    assert snapshot_version!(environment_key) == applied_version
   end
 
   test "missed PubSub delivery is corrected by polling reconciliation", %{
@@ -108,6 +163,24 @@ defmodule Rulestead.Runtime.RefreshTest do
              Runtime.enabled?(environment_key, "checkout-redesign", Context.new(actor: %{key: "user-1"}))
   end
 
+  test "failed refresh after invalidation keeps serving the last known good snapshot", %{
+    environment_key: environment_key,
+    pubsub_name: pubsub_name,
+    worker: worker
+  } do
+    _version_two = publish_ruleset_version(environment_key, false)
+    Control.disconnect!()
+
+    Control.publish!(pubsub_name, environment_key, 2)
+    assert :ok = Refresh.sync(worker)
+
+    assert {:ok, true} =
+             Runtime.enabled?(environment_key, "checkout-redesign", Context.new(actor: %{key: "user-1"}))
+
+    assert %{attempt: 1, next_backoff_ms: 1_000, refresh_status: :stale} = Refresh.status(worker)
+    assert snapshot_version!(environment_key) == 1
+  end
+
   defp seed_flag_versions(environment_key) do
     Control.put_flag!(%{
       key: "checkout-redesign",
@@ -142,5 +215,11 @@ defmodule Rulestead.Runtime.RefreshTest do
       Rulestead.publish_ruleset(Rulestead.Store.Command.PublishRuleset.new("checkout-redesign", environment_key))
 
     Control.latest_snapshot!(environment_key)
+  end
+
+  defp snapshot_version!(environment_key) do
+    assert %{environments: environments} = Runtime.diagnostics()
+    environment = Enum.find(environments, &(&1.environment_key == environment_key))
+    environment.snapshot_version
   end
 end
