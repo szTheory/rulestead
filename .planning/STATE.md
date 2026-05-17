@@ -1,48 +1,47 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.4.0
-milestone_name: Experimentation & Analytics
+milestone: v0.5.0
+milestone_name: Advanced Delivery & Distributed Scale
 status: active
-last_updated: "2026-05-16T12:00:00.000Z"
-last_activity: 2026-05-16
+last_updated: "2026-05-17T22:45:00.000Z"
+last_activity: 2026-05-17
 progress:
   total_phases: 3
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  completed_phases: 2
+  total_plans: 7
+  completed_plans: 6
+  percent: 85
 ---
 
 # State: Rulestead
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-05-16)
+See: `.planning/PROJECT.md` (updated 2026-05-17)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
-**Current focus:** Experimentation & Analytics
-**Milestone:** `v0.4.0` (Active)
+**Current focus:** Phase 21 (Infrastructure Observability UI)
+**Milestone:** v0.5.0
 
 ## Roadmap Reference
 
-See: `.planning/milestones/v0.4.0-ROADMAP.md`
-
-`v0.4.0` is currently active.
+See: `.planning/PROJECT.md` for overall roadmap status.
 
 ## Current Position
 
-Phase: 18
+Phase: 21
 Plan: 02
-Status: Active
+Status: Phase 21 plan 21-01 executed and verified
 Last activity: 2026-05-17
 
 ## Active Requirement Focus
 
-- EXP-01, EXP-02, EXP-03, ANA-01, ANA-02, ANA-03
+- **INF-01**: Surface distributed topology and cache freshness status for operators.
+- **INF-02**: Expose connection and invalidation health through the Admin UI.
 
 ## Carryover Items
 
-None. All v0.3.0 carryover items are closed.
+None. All v0.4.0 items are closed.
 
 ## Anchor Docs (prompts/)
 
@@ -68,6 +67,8 @@ These remain the primary source of truth and should be loaded selectively per ph
 - **15-02**: Used Elixir's native AST parser instead of regex for precise code reference detection.
 - **15-02**: Created an Ecto schema and migration for persisting ingested code references securely via token auth.
 - **15-03**: Validated exact flag key typing for production environment archival.
+- **21-01**: Kept infrastructure health node-local by default and exposed peer data only through an explicit host-provided seam.
+- **21-01**: Added `[:rulestead, :sync, :delta_received]` and `[:rulestead, :cache, :invalidation]` as additive aliases on top of the Phase 20 runtime invalidation telemetry family.
 
 ## Execution Metrics
 | Phase | Plan | Duration | Tasks | Files |
@@ -79,9 +80,18 @@ These remain the primary source of truth and should be loaded selectively per ph
 | 17 | 01 | 15m | 2 | 4 |
 | 17 | 02 | 15m | 2 | 4 |
 | 17 | 03 | 10m | 2 | 5 |
+| 19 | 01 | 20m | 2 | 6 |
+| 19 | 02 | 20m | 3 | 5 |
+| 21 | 01 | 35m | 2 | 8 |
 
 ## Latest Activity
 
+- 2026-05-17 — Completed 21-01-PLAN.md: added the bounded runtime infrastructure health projection, public diagnostics facade, and additive invalidation telemetry aliases; verified with the targeted Phase 21 backend tests.
+- 2026-05-17 — Completed Phase 20 execution: added the notifier seam, runtime invalidation handling, invalidation telemetry, and installer PubSub scaffolding; verified with the full Phase 20 targeted test suite.
+- 2026-05-17 — Planned Phase 20 with `20-01`, `20-02`, and `20-03`, covering the notifier seam, runtime invalidation flow, and installer PubSub scaffolding.
+- 2026-05-17 — Completed 19-02-PLAN.md and closed Phase 19 (Redis Storage & Caching Adapter).
+- 2026-05-17 — Completed 19-01-PLAN.md, adding the Redis store adapter and runtime connection wiring.
+- 2026-05-17 — Completed milestone `v0.4.0` for Experimentation & Analytics.
 - 2026-05-16 — Completed 16-01-PLAN.md execution.
 - 2026-05-16 — Planned milestone `v0.4.0` for Experimentation & Analytics, identifying Phase 16 (Experimentation Core), Phase 17 (Analytics Ingestion), and Phase 18 (UI).
 - 2026-05-16 — Completed milestone `v0.3.0`.
@@ -96,17 +106,4 @@ These remain the primary source of truth and should be loaded selectively per ph
 
 ## Next Action
 
-Next: `/gsd-plan-phase 17`
-d operational follow-through scope.
-
-## Next Action
-
-Next: `/gsd-complete-milestone v0.4.0`
- Next Action
-
-Next: `/gsd-plan-phase 17`
-d operational follow-through scope.
-
-## Next Action
-
-Next: execute 18-02
+Next: Execute `21-02-PLAN.md`
