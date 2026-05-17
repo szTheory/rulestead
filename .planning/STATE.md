@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v0.5.0
 milestone_name: Advanced Delivery & Distributed Scale
 status: active
-last_updated: "2026-05-17T22:45:00.000Z"
+last_updated: "2026-05-17T20:54:49Z"
 last_activity: 2026-05-17
 progress:
   total_phases: 3
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 7
-  completed_plans: 6
-  percent: 85
+  completed_plans: 7
+  percent: 100
 ---
 
 # State: Rulestead
@@ -31,7 +31,7 @@ See: `.planning/PROJECT.md` for overall roadmap status.
 
 Phase: 21
 Plan: 02
-Status: Phase 21 plan 21-01 executed and verified
+Status: Phase 21 complete; plan 21-02 executed and verified
 Last activity: 2026-05-17
 
 ## Active Requirement Focus
@@ -69,6 +69,8 @@ These remain the primary source of truth and should be loaded selectively per ph
 - **15-03**: Validated exact flag key typing for production environment archival.
 - **21-01**: Kept infrastructure health node-local by default and exposed peer data only through an explicit host-provided seam.
 - **21-01**: Added `[:rulestead, :sync, :delta_received]` and `[:rulestead, :cache, :invalidation]` as additive aliases on top of the Phase 20 runtime invalidation telemetry family.
+- **21-02**: Mounted diagnostics inside the existing `rulestead_admin` router macro so the screen inherits the current session and policy envelope.
+- **21-02**: Kept the diagnostics page explicitly current-node by default and rendered missing-snapshot states as critical operator copy instead of implying peer health.
 
 ## Execution Metrics
 | Phase | Plan | Duration | Tasks | Files |
@@ -83,9 +85,11 @@ These remain the primary source of truth and should be loaded selectively per ph
 | 19 | 01 | 20m | 2 | 6 |
 | 19 | 02 | 20m | 3 | 5 |
 | 21 | 01 | 35m | 2 | 8 |
+| 21 | 02 | 5min | 2 | 5 |
 
 ## Latest Activity
 
+- 2026-05-17 — Completed 21-02-PLAN.md: added the mounted diagnostics LiveView, explicit current-node health copy, and diagnostics accessibility coverage; verified with the targeted Phase 21 admin tests.
 - 2026-05-17 — Completed 21-01-PLAN.md: added the bounded runtime infrastructure health projection, public diagnostics facade, and additive invalidation telemetry aliases; verified with the targeted Phase 21 backend tests.
 - 2026-05-17 — Completed Phase 20 execution: added the notifier seam, runtime invalidation handling, invalidation telemetry, and installer PubSub scaffolding; verified with the full Phase 20 targeted test suite.
 - 2026-05-17 — Planned Phase 20 with `20-01`, `20-02`, and `20-03`, covering the notifier seam, runtime invalidation flow, and installer PubSub scaffolding.
@@ -106,4 +110,4 @@ These remain the primary source of truth and should be loaded selectively per ph
 
 ## Next Action
 
-Next: Execute `21-02-PLAN.md`
+Next: Close milestone `v0.5.0` and prepare the next roadmap slice
