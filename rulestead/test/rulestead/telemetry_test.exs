@@ -453,6 +453,117 @@ defmodule Rulestead.TelemetryTest do
     detach_test_handler(handler_id)
   end
 
+  test "invalidation telemetry distinguishes received, ignored, triggered, and failed refresh outcomes", %{
+    environment_key: environment_key,
+    pubsub_name: pubsub_name
+  } do
+    version_one = publish_ruleset_version(environment_key, true)
+
+    worker =
+      start_supervised!(
+        {Refresh,
+         name: nil,
+         environment_key: environment_key,
+         store: Rulestead.Fake,
+         notifier: Rulestead.Runtime.Notifier.PhoenixPubSub,
+         pubsub: pubsub_name,
+         poll_interval_ms: 5_000,
+         refresh_jitter_ms: 0,
+         auto_tick?: false}
+      )
+
+    assert :ok = Refresh.sync(worker)
+    flush_telemetry_events()
+
+    handler_id = "telemetry-invalidation-#{System.unique_integer([:positive])}"
+
+    attach_test_handler(handler_id, [
+      [:rulestead, :runtime, :invalidation, :received],
+      [:rulestead, :runtime, :invalidation, :ignored],
+      [:rulestead, :runtime, :invalidation, :refresh_triggered],
+      [:rulestead, :runtime, :invalidation, :refresh_failed]
+    ])
+
+    version_two = publish_ruleset_version(environment_key, false)
+    Control.publish!(pubsub_name, environment_key, version_two.version, notifier: Rulestead.Runtime.Notifier.PhoenixPubSub)
+    assert :ok = Refresh.sync(worker)
+
+    received = assert_receive_event([:rulestead, :runtime, :invalidation, :received])
+    assert received.environment == environment_key
+    assert received.snapshot_version == version_two.version
+    assert received.reason == :invalidation_received
+
+    refresh_triggered = assert_receive_event([:rulestead, :runtime, :invalidation, :refresh_triggered])
+    assert refresh_triggered.environment == environment_key
+    assert refresh_triggered.snapshot_version == version_two.version
+    assert refresh_triggered.reason == :refresh_triggered_from_invalidation
+    assert refresh_triggered.refresh_status == :ready
+
+    Control.publish!(pubsub_name, environment_key, version_two.version, notifier: Rulestead.Runtime.Notifier.PhoenixPubSub)
+    assert :ok = Refresh.sync(worker)
+
+    duplicate_received = assert_receive_event([:rulestead, :runtime, :invalidation, :received])
+    assert duplicate_received.snapshot_version == version_two.version
+
+    duplicate_ignored = assert_receive_event([:rulestead, :runtime, :invalidation, :ignored])
+    assert duplicate_ignored.environment == environment_key
+    assert duplicate_ignored.snapshot_version == version_two.version
+    assert duplicate_ignored.reason == :stale_snapshot_version
+    assert duplicate_ignored.refresh_status == :ready
+
+    Phoenix.PubSub.broadcast(
+      pubsub_name,
+      Rulestead.Runtime.Config.pubsub_topic(),
+      {:rulestead_runtime_refresh, %{environment_key: environment_key}}
+    )
+
+    assert :ok = Refresh.sync(worker)
+
+    missing_version_received = assert_receive_event([:rulestead, :runtime, :invalidation, :received])
+    assert missing_version_received.environment == environment_key
+    refute Map.has_key?(missing_version_received, :snapshot_version)
+
+    missing_version_ignored = assert_receive_event([:rulestead, :runtime, :invalidation, :ignored])
+    assert missing_version_ignored.environment == environment_key
+    assert missing_version_ignored.reason == :missing_snapshot_version
+    assert missing_version_ignored.refresh_status == :ready
+    refute Map.has_key?(missing_version_ignored, :snapshot_version)
+
+    version_three = publish_ruleset_version(environment_key, true)
+    Control.disconnect!()
+    Control.publish!(pubsub_name, environment_key, version_three.version, notifier: Rulestead.Runtime.Notifier.PhoenixPubSub)
+    assert :ok = Refresh.sync(worker)
+
+    failed_received = assert_receive_event([:rulestead, :runtime, :invalidation, :received])
+    assert failed_received.snapshot_version == version_three.version
+
+    failed_triggered = assert_receive_event([:rulestead, :runtime, :invalidation, :refresh_triggered])
+    assert failed_triggered.snapshot_version == version_three.version
+    assert failed_triggered.reason == :refresh_triggered_from_invalidation
+
+    refresh_failed = assert_receive_event([:rulestead, :runtime, :invalidation, :refresh_failed])
+    assert refresh_failed.environment == environment_key
+    assert refresh_failed.snapshot_version == version_three.version
+    assert refresh_failed.reason == :refresh_failed_after_invalidation
+    assert refresh_failed.refresh_status == :stale
+
+    assert {:ok, false} =
+             Runtime.enabled?(environment_key, "checkout-redesign", Context.new(actor: %{key: "user-1"}))
+
+    assert_bounded_metadata_keys(received)
+    assert_bounded_metadata_keys(refresh_triggered)
+    assert_bounded_metadata_keys(duplicate_received)
+    assert_bounded_metadata_keys(duplicate_ignored)
+    assert_bounded_metadata_keys(missing_version_received)
+    assert_bounded_metadata_keys(missing_version_ignored)
+    assert_bounded_metadata_keys(failed_received)
+    assert_bounded_metadata_keys(failed_triggered)
+    assert_bounded_metadata_keys(refresh_failed)
+
+    detach_test_handler(handler_id)
+    assert version_one.version == 1
+  end
+
   defp publish_ruleset_version(environment_key, forced_value) do
     assert {:ok, _draft} =
              Rulestead.save_draft_ruleset(
@@ -461,6 +572,8 @@ defmodule Rulestead.TelemetryTest do
 
     assert {:ok, _published} =
              Rulestead.publish_ruleset(Command.PublishRuleset.new("checkout-redesign", environment_key))
+
+    Control.latest_snapshot!(environment_key)
   end
 
   defp ruleset_attrs(forced_value) do
@@ -496,6 +609,14 @@ defmodule Rulestead.TelemetryTest do
     :telemetry.detach(handler_id)
   end
 
+  defp flush_telemetry_events do
+    receive do
+      {:telemetry_event, _event, _metadata} -> flush_telemetry_events()
+    after
+      0 -> :ok
+    end
+  end
+
   defp assert_receive_event(event_name) do
     receive_matching_event(event_name, 1_000)
   end
@@ -518,5 +639,21 @@ defmodule Rulestead.TelemetryTest do
       remaining ->
         flunk("expected telemetry event #{inspect(event_name)}")
     end
+  end
+
+  defp assert_bounded_metadata_keys(metadata) do
+    extra_keys =
+      metadata
+      |> Map.keys()
+      |> Enum.sort()
+      |> Kernel.--([:environment, :refresh_status, :reason, :snapshot_version])
+
+    assert extra_keys == []
+
+    refute Map.has_key?(metadata, :payload)
+    refute Map.has_key?(metadata, :flags)
+    refute Map.has_key?(metadata, :attributes)
+    refute Map.has_key?(metadata, :value)
+    refute Map.has_key?(metadata, :raw_attribute)
   end
 end

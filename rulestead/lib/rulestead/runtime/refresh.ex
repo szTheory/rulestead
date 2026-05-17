@@ -186,7 +186,7 @@ defmodule Rulestead.Runtime.Refresh do
 
   defp fetch_snapshot(_state), do: {:error, :store_unavailable}
 
-  defp fail_refresh(state, error, opts \\ []) do
+  defp fail_refresh(state, error, opts) do
     Cache.mark_refresh_failed(state.environment_key, error)
     next_backoff_ms = next_backoff(state)
     refresh_status = refresh_status(state.environment_key)
@@ -364,7 +364,7 @@ defmodule Rulestead.Runtime.Refresh do
     end
   end
 
-  defp emit_invalidation(event, environment_key, snapshot_version, attrs \\ []) do
+  defp emit_invalidation(event, environment_key, snapshot_version, attrs) do
     metadata =
       attrs
       |> Map.new()
