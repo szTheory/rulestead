@@ -6,10 +6,11 @@ defmodule RulesteadAdmin.Components.OperatorComponents do
   attr :title, :string, required: true
   attr :body, :string, required: true
   attr :tone, :string, default: "neutral"
+  attr :aria_label, :string, default: nil
 
   def banner(assigns) do
     ~H"""
-    <section class="rs-banner" data-tone={@tone}>
+    <section class="rs-banner" data-tone={@tone} aria-label={@aria_label}>
       <h2><%= @title %></h2>
       <p><%= @body %></p>
     </section>
@@ -17,10 +18,11 @@ defmodule RulesteadAdmin.Components.OperatorComponents do
   end
 
   attr :items, :list, default: []
+  attr :aria_label, :string, default: "Summary"
 
   def summary_grid(assigns) do
     ~H"""
-    <section class="rs-summary-grid" aria-label="Summary">
+    <section class="rs-summary-grid" aria-label={@aria_label}>
       <article :for={item <- @items} class="rs-stat" data-tone={Map.get(item, :tone, "neutral")}>
         <p class="rs-stat__title"><%= item.title %></p>
         <p class="rs-stat__value"><%= item.value %></p>

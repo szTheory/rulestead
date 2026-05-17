@@ -68,6 +68,7 @@ defmodule RulesteadAdmin.Live.DiagnosticsLive.Index do
           title={scope_title(@health_snapshot)}
           body={scope_body(@health_snapshot, @page.current_environment)}
           tone={scope_tone(@health_snapshot)}
+          aria_label="Topology scope"
         />
 
         <OperatorComponents.policy_state policy_state={@page.policy_state} />
@@ -82,17 +83,21 @@ defmodule RulesteadAdmin.Live.DiagnosticsLive.Index do
           </:loading>
 
           <:failed :let={_failure}>
-            <OperatorComponents.banner
-              title="Health snapshot unavailable"
-              body={"We could not load current-node diagnostics for #{@page.current_environment.key}. Use refresh after a sync lands."}
-              tone="critical"
-            />
+          <OperatorComponents.banner
+            title="Health snapshot unavailable"
+            body={"We could not load current-node diagnostics for #{@page.current_environment.key}. Use refresh after a sync lands."}
+            tone="critical"
+            aria_label="Health snapshot unavailable"
+          />
           </:failed>
 
           <%= if health_view.environment do %>
-            <FlagComponents.section_card title="Current health summary">
-              <OperatorComponents.summary_grid items={health_view.summary_items} />
-            </FlagComponents.section_card>
+          <FlagComponents.section_card title="Current health summary">
+            <OperatorComponents.summary_grid
+              items={health_view.summary_items}
+              aria_label="Infrastructure health summary"
+            />
+          </FlagComponents.section_card>
 
             <FlagComponents.section_card title="Freshness details">
               <OperatorComponents.trace_panel
@@ -121,6 +126,7 @@ defmodule RulesteadAdmin.Live.DiagnosticsLive.Index do
               title="Health snapshot unavailable"
               body={"No current-node runtime snapshot is loaded for #{@page.current_environment.key}. Use refresh after a sync lands."}
               tone="critical"
+              aria_label="Health snapshot unavailable"
             />
 
             <FlagComponents.section_card title="Current health summary">
