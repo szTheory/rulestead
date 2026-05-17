@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v0.5.0
 milestone_name: Advanced Delivery & Distributed Scale
-status: active
-last_updated: "2026-05-17T20:54:49Z"
-last_activity: 2026-05-17
+status: shipped
+last_updated: "2026-05-17T22:04:52Z"
+last_activity: 2026-05-18
 progress:
   total_phases: 3
   completed_phases: 3
@@ -17,10 +17,10 @@ progress:
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-05-17)
+See: `.planning/PROJECT.md` (updated 2026-05-18)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
-**Current focus:** Phase 21 (Infrastructure Observability UI)
+**Current focus:** Planning the next milestone (`v0.6.0`: Multi-environment Sync & Tenancy)
 **Milestone:** v0.5.0
 
 ## Roadmap Reference
@@ -29,19 +29,20 @@ See: `.planning/PROJECT.md` for overall roadmap status.
 
 ## Current Position
 
-Phase: 21
-Plan: 02
-Status: Phase 21 complete; plan 21-02 executed and verified
-Last activity: 2026-05-17
+Phase: milestone-close
+Plan: next-milestone-prep
+Status: v0.5.0 shipped; planning handoff to fresh `v0.6.0` requirements and roadmap work
+Last activity: 2026-05-18
 
 ## Active Requirement Focus
 
-- **INF-01**: Surface distributed topology and cache freshness status for operators.
-- **INF-02**: Expose connection and invalidation health through the Admin UI.
+- Define safe environment promotion and diffing workflows for Dev, Staging, and Prod.
+- Scope GitOps-friendly import/export seams that preserve reproducibility and audit clarity.
+- Identify the smallest tenancy helpers that fit the linked-version, two-package release model.
 
 ## Carryover Items
 
-None. All v0.4.0 items are closed.
+None. `v0.5.0` closed without carryover items.
 
 ## Anchor Docs (prompts/)
 
@@ -67,6 +68,9 @@ These remain the primary source of truth and should be loaded selectively per ph
 - **15-02**: Used Elixir's native AST parser instead of regex for precise code reference detection.
 - **15-02**: Created an Ecto schema and migration for persisting ingested code references securely via token auth.
 - **15-03**: Validated exact flag key typing for production environment archival.
+- **19-02**: Published exact versioned snapshots into Redis from the control plane while keeping the write path off the hot request path.
+- **20-01**: Added a notifier seam so runtime invalidation transport stays configurable rather than Phoenix-only.
+- **20-02**: Version-gated invalidation handling to ignore stale or duplicate refresh notices and preserve last-known-good snapshots on refresh failure.
 - **21-01**: Kept infrastructure health node-local by default and exposed peer data only through an explicit host-provided seam.
 - **21-01**: Added `[:rulestead, :sync, :delta_received]` and `[:rulestead, :cache, :invalidation]` as additive aliases on top of the Phase 20 runtime invalidation telemetry family.
 - **21-02**: Mounted diagnostics inside the existing `rulestead_admin` router macro so the screen inherits the current session and policy envelope.
@@ -89,6 +93,7 @@ These remain the primary source of truth and should be loaded selectively per ph
 
 ## Latest Activity
 
+- 2026-05-18 — Marked milestone `v0.5.0` shipped, refreshed project planning state, and queued `v0.6.0` as the next milestone definition target.
 - 2026-05-17 — Completed 21-02-PLAN.md: added the mounted diagnostics LiveView, explicit current-node health copy, and diagnostics accessibility coverage; verified with the targeted Phase 21 admin tests.
 - 2026-05-17 — Completed 21-01-PLAN.md: added the bounded runtime infrastructure health projection, public diagnostics facade, and additive invalidation telemetry aliases; verified with the targeted Phase 21 backend tests.
 - 2026-05-17 — Completed Phase 20 execution: added the notifier seam, runtime invalidation handling, invalidation telemetry, and installer PubSub scaffolding; verified with the full Phase 20 targeted test suite.
@@ -110,4 +115,4 @@ These remain the primary source of truth and should be loaded selectively per ph
 
 ## Next Action
 
-Next: Close milestone `v0.5.0` and prepare the next roadmap slice
+Next: Run `$gsd-new-milestone` to define `v0.6.0` requirements and roadmap slices
