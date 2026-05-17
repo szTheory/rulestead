@@ -61,9 +61,10 @@ defmodule Rulestead.TelemetryTest do
     %{environment_key: environment_key, pubsub_name: pubsub_name}
   end
 
-  test "public eval runtime and store operations emit the phase 4 event families with the shared metadata spine", %{
-    environment_key: environment_key
-  } do
+  test "public eval runtime and store operations emit the phase 4 event families with the shared metadata spine",
+       %{
+         environment_key: environment_key
+       } do
     handler_id = "telemetry-contract-#{System.unique_integer([:positive])}"
 
     attach_test_handler(handler_id, [
@@ -81,11 +82,17 @@ defmodule Rulestead.TelemetryTest do
 
     assert {:ok, _draft} =
              Rulestead.save_draft_ruleset(
-               Command.SaveDraftRuleset.new("checkout-redesign", environment_key, ruleset_attrs(true))
+               Command.SaveDraftRuleset.new(
+                 "checkout-redesign",
+                 environment_key,
+                 ruleset_attrs(true)
+               )
              )
 
     assert {:ok, _published} =
-             Rulestead.publish_ruleset(Command.PublishRuleset.new("checkout-redesign", environment_key))
+             Rulestead.publish_ruleset(
+               Command.PublishRuleset.new("checkout-redesign", environment_key)
+             )
 
     worker =
       start_supervised!(
@@ -102,7 +109,11 @@ defmodule Rulestead.TelemetryTest do
     assert :ok = Refresh.sync(worker)
 
     assert {:ok, true} =
-             Runtime.enabled?(environment_key, "checkout-redesign", Context.new(actor: %{key: "user-1"}))
+             Runtime.enabled?(
+               environment_key,
+               "checkout-redesign",
+               Context.new(actor: %{key: "user-1"})
+             )
 
     store_write_start = assert_receive_event([:rulestead, :store, :write, :start])
     assert store_write_start.flag_key == "checkout-redesign"
@@ -149,16 +160,23 @@ defmodule Rulestead.TelemetryTest do
     detach_test_handler(handler_id)
   end
 
-  test "safe handler attachment isolates handler exceptions and unknown reason atoms from the instrumented operation", %{
-    environment_key: environment_key
-  } do
+  test "safe handler attachment isolates handler exceptions and unknown reason atoms from the instrumented operation",
+       %{
+         environment_key: environment_key
+       } do
     assert {:ok, _draft} =
              Rulestead.save_draft_ruleset(
-               Command.SaveDraftRuleset.new("checkout-redesign", environment_key, ruleset_attrs(true))
+               Command.SaveDraftRuleset.new(
+                 "checkout-redesign",
+                 environment_key,
+                 ruleset_attrs(true)
+               )
              )
 
     assert {:ok, _published} =
-             Rulestead.publish_ruleset(Command.PublishRuleset.new("checkout-redesign", environment_key))
+             Rulestead.publish_ruleset(
+               Command.PublishRuleset.new("checkout-redesign", environment_key)
+             )
 
     worker =
       start_supervised!(
@@ -194,14 +212,22 @@ defmodule Rulestead.TelemetryTest do
     on_exit(fn -> Rulestead.Telemetry.detach(handler_id) end)
 
     assert {:ok, true} =
-             Runtime.enabled?(environment_key, "checkout-redesign", Context.new(actor: %{key: "user-1"}))
+             Runtime.enabled?(
+               environment_key,
+               "checkout-redesign",
+               Context.new(actor: %{key: "user-1"})
+             )
 
     Control.disconnect!()
     publish_ruleset_version(environment_key, false)
     assert :ok = Refresh.refresh_now(worker)
 
     assert {:ok, true} =
-             Runtime.enabled?(environment_key, "checkout-redesign", Context.new(actor: %{key: "user-1"}))
+             Runtime.enabled?(
+               environment_key,
+               "checkout-redesign",
+               Context.new(actor: %{key: "user-1"})
+             )
 
     assert_receive {:safe_event, [:rulestead, :eval, :decide, :stop], :rule_match}, 1_000
     assert_receive {:safe_event, [:rulestead, :runtime, :cache, :stale_used], reason}, 1_000
@@ -220,7 +246,11 @@ defmodule Rulestead.TelemetryTest do
 
     assert {:ok, _draft} =
              Rulestead.save_draft_ruleset(
-               Command.SaveDraftRuleset.new("checkout-redesign", environment_key, ruleset_attrs(true))
+               Command.SaveDraftRuleset.new(
+                 "checkout-redesign",
+                 environment_key,
+                 ruleset_attrs(true)
+               )
              )
 
     save_start = assert_receive_event([:rulestead, :admin, :mutation, :start])
@@ -234,7 +264,9 @@ defmodule Rulestead.TelemetryTest do
     assert save_stop.reason == :ok
 
     assert {:ok, _published} =
-             Rulestead.publish_ruleset(Command.PublishRuleset.new("checkout-redesign", environment_key))
+             Rulestead.publish_ruleset(
+               Command.PublishRuleset.new("checkout-redesign", environment_key)
+             )
 
     publish_start = assert_receive_event([:rulestead, :admin, :mutation, :start])
     assert publish_start.operation == "publish_ruleset"
@@ -253,11 +285,17 @@ defmodule Rulestead.TelemetryTest do
   } do
     assert {:ok, _draft} =
              Rulestead.save_draft_ruleset(
-               Command.SaveDraftRuleset.new("checkout-redesign", environment_key, ruleset_attrs(true))
+               Command.SaveDraftRuleset.new(
+                 "checkout-redesign",
+                 environment_key,
+                 ruleset_attrs(true)
+               )
              )
 
     assert {:ok, _published} =
-             Rulestead.publish_ruleset(Command.PublishRuleset.new("checkout-redesign", environment_key))
+             Rulestead.publish_ruleset(
+               Command.PublishRuleset.new("checkout-redesign", environment_key)
+             )
 
     worker =
       start_supervised!(
@@ -281,7 +319,11 @@ defmodule Rulestead.TelemetryTest do
     ])
 
     assert {:error, %Rulestead.Error{type: :flag_not_found}} =
-             Runtime.enabled?(environment_key, "missing-flag", Context.new(actor: %{key: "user-1"}))
+             Runtime.enabled?(
+               environment_key,
+               "missing-flag",
+               Context.new(actor: %{key: "user-1"})
+             )
 
     cache_miss = assert_receive_event([:rulestead, :runtime, :cache, :miss])
     assert cache_miss.environment == environment_key
@@ -385,7 +427,11 @@ defmodule Rulestead.TelemetryTest do
 
     assert {:error, %Rulestead.Error{type: :store_unavailable}} =
              Rulestead.save_draft_ruleset(
-               Command.SaveDraftRuleset.new("checkout-redesign", environment_key, ruleset_attrs(true))
+               Command.SaveDraftRuleset.new(
+                 "checkout-redesign",
+                 environment_key,
+                 ruleset_attrs(true)
+               )
              )
 
     store_write_exception = assert_receive_event([:rulestead, :store, :write, :exception])
@@ -399,9 +445,10 @@ defmodule Rulestead.TelemetryTest do
     detach_test_handler(store_handler)
   end
 
-  test "stale cache usage and snapshot lifecycle events omit raw payloads and framework structs", %{
-    environment_key: environment_key
-  } do
+  test "stale cache usage and snapshot lifecycle events omit raw payloads and framework structs",
+       %{
+         environment_key: environment_key
+       } do
     handler_id = "telemetry-redaction-#{System.unique_integer([:positive])}"
 
     attach_test_handler(handler_id, [
@@ -412,11 +459,17 @@ defmodule Rulestead.TelemetryTest do
 
     assert {:ok, _draft} =
              Rulestead.save_draft_ruleset(
-               Command.SaveDraftRuleset.new("checkout-redesign", environment_key, ruleset_attrs(true))
+               Command.SaveDraftRuleset.new(
+                 "checkout-redesign",
+                 environment_key,
+                 ruleset_attrs(true)
+               )
              )
 
     assert {:ok, _published} =
-             Rulestead.publish_ruleset(Command.PublishRuleset.new("checkout-redesign", environment_key))
+             Rulestead.publish_ruleset(
+               Command.PublishRuleset.new("checkout-redesign", environment_key)
+             )
 
     worker =
       start_supervised!(
@@ -440,7 +493,11 @@ defmodule Rulestead.TelemetryTest do
     assert :ok = Refresh.refresh_now(worker)
 
     assert {:ok, true} =
-             Runtime.enabled?(environment_key, "checkout-redesign", Context.new(actor: %{key: "user-1"}))
+             Runtime.enabled?(
+               environment_key,
+               "checkout-redesign",
+               Context.new(actor: %{key: "user-1"})
+             )
 
     stale_used = assert_receive_event([:rulestead, :runtime, :cache, :stale_used])
     assert stale_used.reason == :stale_snapshot
@@ -453,10 +510,11 @@ defmodule Rulestead.TelemetryTest do
     detach_test_handler(handler_id)
   end
 
-  test "invalidation telemetry distinguishes received, ignored, triggered, and failed refresh outcomes", %{
-    environment_key: environment_key,
-    pubsub_name: pubsub_name
-  } do
+  test "invalidation telemetry distinguishes received, ignored, triggered, and failed refresh outcomes",
+       %{
+         environment_key: environment_key,
+         pubsub_name: pubsub_name
+       } do
     version_one = publish_ruleset_version(environment_key, true)
 
     worker =
@@ -481,35 +539,55 @@ defmodule Rulestead.TelemetryTest do
       [:rulestead, :runtime, :invalidation, :received],
       [:rulestead, :runtime, :invalidation, :ignored],
       [:rulestead, :runtime, :invalidation, :refresh_triggered],
-      [:rulestead, :runtime, :invalidation, :refresh_failed]
+      [:rulestead, :runtime, :invalidation, :refresh_failed],
+      [:rulestead, :cache, :invalidation],
+      [:rulestead, :sync, :delta_received]
     ])
 
     version_two = publish_ruleset_version(environment_key, false)
-    Control.publish!(pubsub_name, environment_key, version_two.version, notifier: Rulestead.Runtime.Notifier.PhoenixPubSub)
+
+    Control.publish!(pubsub_name, environment_key, version_two.version,
+      notifier: Rulestead.Runtime.Notifier.PhoenixPubSub
+    )
+
     assert :ok = Refresh.sync(worker)
 
     received = assert_receive_event([:rulestead, :runtime, :invalidation, :received])
+    delta_received = assert_receive_event([:rulestead, :sync, :delta_received])
     assert received.environment == environment_key
     assert received.snapshot_version == version_two.version
     assert received.reason == :invalidation_received
+    assert delta_received == received
 
-    refresh_triggered = assert_receive_event([:rulestead, :runtime, :invalidation, :refresh_triggered])
+    refresh_triggered =
+      assert_receive_event([:rulestead, :runtime, :invalidation, :refresh_triggered])
+
+    cache_invalidation = assert_receive_event([:rulestead, :cache, :invalidation])
+
     assert refresh_triggered.environment == environment_key
     assert refresh_triggered.snapshot_version == version_two.version
     assert refresh_triggered.reason == :refresh_triggered_from_invalidation
     assert refresh_triggered.refresh_status == :ready
+    assert cache_invalidation == refresh_triggered
 
-    Control.publish!(pubsub_name, environment_key, version_two.version, notifier: Rulestead.Runtime.Notifier.PhoenixPubSub)
+    Control.publish!(pubsub_name, environment_key, version_two.version,
+      notifier: Rulestead.Runtime.Notifier.PhoenixPubSub
+    )
+
     assert :ok = Refresh.sync(worker)
 
     duplicate_received = assert_receive_event([:rulestead, :runtime, :invalidation, :received])
+    duplicate_delta_received = assert_receive_event([:rulestead, :sync, :delta_received])
     assert duplicate_received.snapshot_version == version_two.version
+    assert duplicate_delta_received == duplicate_received
 
     duplicate_ignored = assert_receive_event([:rulestead, :runtime, :invalidation, :ignored])
+    duplicate_cache_invalidation = assert_receive_event([:rulestead, :cache, :invalidation])
     assert duplicate_ignored.environment == environment_key
     assert duplicate_ignored.snapshot_version == version_two.version
     assert duplicate_ignored.reason == :stale_snapshot_version
     assert duplicate_ignored.refresh_status == :ready
+    assert duplicate_cache_invalidation == duplicate_ignored
 
     Phoenix.PubSub.broadcast(
       pubsub_name,
@@ -519,44 +597,83 @@ defmodule Rulestead.TelemetryTest do
 
     assert :ok = Refresh.sync(worker)
 
-    missing_version_received = assert_receive_event([:rulestead, :runtime, :invalidation, :received])
+    missing_version_received =
+      assert_receive_event([:rulestead, :runtime, :invalidation, :received])
+
+    missing_version_delta_received =
+      assert_receive_event([:rulestead, :sync, :delta_received])
+
     assert missing_version_received.environment == environment_key
     refute Map.has_key?(missing_version_received, :snapshot_version)
+    assert missing_version_delta_received == missing_version_received
 
-    missing_version_ignored = assert_receive_event([:rulestead, :runtime, :invalidation, :ignored])
+    missing_version_ignored =
+      assert_receive_event([:rulestead, :runtime, :invalidation, :ignored])
+
+    missing_version_cache_invalidation =
+      assert_receive_event([:rulestead, :cache, :invalidation])
+
     assert missing_version_ignored.environment == environment_key
     assert missing_version_ignored.reason == :missing_snapshot_version
     assert missing_version_ignored.refresh_status == :ready
     refute Map.has_key?(missing_version_ignored, :snapshot_version)
+    assert missing_version_cache_invalidation == missing_version_ignored
 
     version_three = publish_ruleset_version(environment_key, true)
     Control.disconnect!()
-    Control.publish!(pubsub_name, environment_key, version_three.version, notifier: Rulestead.Runtime.Notifier.PhoenixPubSub)
+
+    Control.publish!(pubsub_name, environment_key, version_three.version,
+      notifier: Rulestead.Runtime.Notifier.PhoenixPubSub
+    )
+
     assert :ok = Refresh.sync(worker)
 
     failed_received = assert_receive_event([:rulestead, :runtime, :invalidation, :received])
+    failed_delta_received = assert_receive_event([:rulestead, :sync, :delta_received])
     assert failed_received.snapshot_version == version_three.version
+    assert failed_delta_received == failed_received
 
-    failed_triggered = assert_receive_event([:rulestead, :runtime, :invalidation, :refresh_triggered])
+    failed_triggered =
+      assert_receive_event([:rulestead, :runtime, :invalidation, :refresh_triggered])
+
+    failed_cache_invalidation =
+      assert_receive_event([:rulestead, :cache, :invalidation])
+
     assert failed_triggered.snapshot_version == version_three.version
     assert failed_triggered.reason == :refresh_triggered_from_invalidation
+    assert failed_cache_invalidation == failed_triggered
 
     refresh_failed = assert_receive_event([:rulestead, :runtime, :invalidation, :refresh_failed])
+    failed_refresh_cache_invalidation = assert_receive_event([:rulestead, :cache, :invalidation])
     assert refresh_failed.environment == environment_key
     assert refresh_failed.snapshot_version == version_three.version
     assert refresh_failed.reason == :refresh_failed_after_invalidation
     assert refresh_failed.refresh_status == :stale
+    assert failed_refresh_cache_invalidation == refresh_failed
 
     assert {:ok, false} =
-             Runtime.enabled?(environment_key, "checkout-redesign", Context.new(actor: %{key: "user-1"}))
+             Runtime.enabled?(
+               environment_key,
+               "checkout-redesign",
+               Context.new(actor: %{key: "user-1"})
+             )
 
     assert_bounded_metadata_keys(received)
+    assert_bounded_metadata_keys(delta_received)
+    assert_bounded_metadata_keys(cache_invalidation)
     assert_bounded_metadata_keys(refresh_triggered)
     assert_bounded_metadata_keys(duplicate_received)
+    assert_bounded_metadata_keys(duplicate_delta_received)
+    assert_bounded_metadata_keys(duplicate_cache_invalidation)
     assert_bounded_metadata_keys(duplicate_ignored)
     assert_bounded_metadata_keys(missing_version_received)
+    assert_bounded_metadata_keys(missing_version_delta_received)
+    assert_bounded_metadata_keys(missing_version_cache_invalidation)
     assert_bounded_metadata_keys(missing_version_ignored)
     assert_bounded_metadata_keys(failed_received)
+    assert_bounded_metadata_keys(failed_delta_received)
+    assert_bounded_metadata_keys(failed_cache_invalidation)
+    assert_bounded_metadata_keys(failed_refresh_cache_invalidation)
     assert_bounded_metadata_keys(failed_triggered)
     assert_bounded_metadata_keys(refresh_failed)
 
@@ -567,11 +684,17 @@ defmodule Rulestead.TelemetryTest do
   defp publish_ruleset_version(environment_key, forced_value) do
     assert {:ok, _draft} =
              Rulestead.save_draft_ruleset(
-               Command.SaveDraftRuleset.new("checkout-redesign", environment_key, ruleset_attrs(forced_value))
+               Command.SaveDraftRuleset.new(
+                 "checkout-redesign",
+                 environment_key,
+                 ruleset_attrs(forced_value)
+               )
              )
 
     assert {:ok, _published} =
-             Rulestead.publish_ruleset(Command.PublishRuleset.new("checkout-redesign", environment_key))
+             Rulestead.publish_ruleset(
+               Command.PublishRuleset.new("checkout-redesign", environment_key)
+             )
 
     Control.latest_snapshot!(environment_key)
   end
