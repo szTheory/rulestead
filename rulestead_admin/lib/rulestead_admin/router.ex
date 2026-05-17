@@ -30,6 +30,7 @@ defmodule RulesteadAdmin.Router do
           live "/webhooks/:id", RulesteadAdmin.Live.WebhookLive.Show, :show
           live "/experiments", RulesteadAdmin.Live.ExperimentLive.Index, :index
           live "/experiments/:key", RulesteadAdmin.Live.ExperimentLive.Show, :show
+          live "/diagnostics", RulesteadAdmin.Live.DiagnosticsLive.Index, :index
           live "/:key", RulesteadAdmin.Live.FlagLive.Show, :show
           live "/:key/edit", RulesteadAdmin.Live.FlagLive.Form, :edit
           live "/:key/rules", RulesteadAdmin.Live.FlagLive.Rules, :index

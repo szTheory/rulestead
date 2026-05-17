@@ -59,6 +59,26 @@ defmodule RulesteadAdmin.Components.OperatorComponents do
     """
   end
 
+  attr :title, :string, required: true
+  attr :entries, :list, default: []
+
+  def status_list(assigns) do
+    ~H"""
+    <section class="rs-status-list" aria-label={@title}>
+      <h2><%= @title %></h2>
+      <dl>
+        <div :for={entry <- @entries} class="rs-status-list__row" data-tone={Map.get(entry, :tone, "neutral")}>
+          <dt><%= entry.label %></dt>
+          <dd>
+            <strong><%= entry.value %></strong>
+            <span :if={Map.get(entry, :summary)}><%= entry.summary %></span>
+          </dd>
+        </div>
+      </dl>
+    </section>
+    """
+  end
+
   attr :steps, :list, default: []
   attr :current, :string, default: nil
 
