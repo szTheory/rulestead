@@ -31,10 +31,14 @@ defmodule Rulestead.Runtime.DiagnosticsTest do
   end
 
   test "runtime diagnostics are bounded and exposed from both facades", %{environment_key: environment_key} do
-    assert %{node: _, environments: environments} = Rulestead.diagnostics()
-    assert %{node: _, environments: runtime_environments} = Runtime.diagnostics()
+    assert %{node: _, environments: environments, infrastructure_health: infrastructure_health} =
+             Rulestead.diagnostics()
+
+    assert %{node: _, environments: runtime_environments, infrastructure_health: runtime_health} =
+             Runtime.diagnostics()
 
     assert environments == runtime_environments
+    assert infrastructure_health == runtime_health
 
     assert environment =
              Enum.find(runtime_environments, &(&1.environment_key == environment_key))
@@ -44,6 +48,35 @@ defmodule Rulestead.Runtime.DiagnosticsTest do
     assert environment.refresh_status == :ready
     assert environment.disk_backup_status == :disabled
     assert is_integer(environment.cache_age_ms)
+
+    assert runtime_health.node == node()
+    assert runtime_health.topology_scope == :current_node
+    assert runtime_health.peer_nodes == []
+
+    assert health_environment =
+             Enum.find(runtime_health.environments, &(&1.environment_key == environment_key))
+
+    assert health_environment.snapshot_version == 9
+    assert health_environment.cache_age_ms >= 0
+    assert health_environment.sync_latency_ms >= 0
+    assert health_environment.refresh_status == :ready
+    assert health_environment.refresh_worker_status == %{
+             refresh_status: :ready,
+             attempt: 0,
+             next_backoff_ms: 0
+           }
+
+    assert health_environment.adapter_health == %{
+             repo: %{configured?: false, status: :not_configured},
+             redis: %{configured?: false, status: :not_configured},
+             pubsub: %{configured?: false, status: :not_configured}
+           }
+
+    refute Map.has_key?(health_environment, :metadata)
+    refute Map.has_key?(health_environment, :generated_at)
+    refute Map.has_key?(health_environment, :published_at)
+    refute Map.has_key?(health_environment, :applied_at)
+    refute Map.has_key?(health_environment, :applied_monotonic_ms)
   end
 
   test "runtime explain output composes evaluation facts with safe runtime metadata and omits raw context", %{
