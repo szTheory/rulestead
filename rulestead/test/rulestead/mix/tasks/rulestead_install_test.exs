@@ -112,6 +112,9 @@ defmodule Rulestead.Mix.Tasks.RulesteadInstallTest do
 
     rulestead_config = File.read!(Path.join(config_path, "rulestead.exs"))
     assert rulestead_config =~ "MyApp.Repo"
+    assert rulestead_config =~ "notifier: Rulestead.Runtime.Notifier.PhoenixPubSub"
+    assert rulestead_config =~ "pubsub: MyApp.PubSub"
+    assert rulestead_config =~ ~s(pubsub_topic: "rulestead:runtime_snapshot")
 
     updated_config = File.read!(Path.join(config_path, "config.exs"))
     assert updated_config =~ ~s(import_config "rulestead.exs")
@@ -134,19 +137,25 @@ defmodule Rulestead.Mix.Tasks.RulesteadInstallTest do
     assert defaults[:live_view][:assign_flags_mode] == :enabled
     assert defaults[:oban][:middlewares] == [{Rulestead.Oban.Middleware, []}]
     assert defaults[:runtime][:api] == Rulestead.Runtime
+    assert defaults[:runtime][:notifier] == Rulestead.Runtime.Notifier.PhoenixPubSub
+    assert defaults[:runtime][:pubsub] == nil
+    assert defaults[:runtime][:pubsub_topic] == "rulestead:runtime_snapshot"
 
     assert {:ok, validated} =
              Config.validate(
                environment_key: "prod",
                plug: [context_assign: :host_context],
                live_view: [assign_flags_mode: :variant],
-               oban: [enabled: false]
+               oban: [enabled: false],
+               runtime: [pubsub: MyApp.PubSub]
              )
 
     assert validated[:environment_key] == "prod"
     assert validated[:plug][:context_assign] == :host_context
     assert validated[:live_view][:assign_flags_mode] == :variant
     assert validated[:oban][:enabled] == false
+    assert validated[:runtime][:pubsub] == MyApp.PubSub
+    assert validated[:runtime][:notifier] == Rulestead.Runtime.Notifier.PhoenixPubSub
 
     assert {:error, error} =
              Config.validate(live_view: [assign_flags_mode: :invalid_mode])
@@ -212,6 +221,9 @@ defmodule Rulestead.Mix.Tasks.RulesteadInstallTest do
     rulestead_config = File.read!(Path.join(tmp_dir, "config/rulestead.exs"))
     assert rulestead_config =~ "environment_key: \"dev\""
     assert rulestead_config =~ "api: Rulestead.Runtime"
+    assert rulestead_config =~ "notifier: Rulestead.Runtime.Notifier.PhoenixPubSub"
+    assert rulestead_config =~ "pubsub: MyApp.PubSub"
+    assert rulestead_config =~ ~s(pubsub_topic: "rulestead:runtime_snapshot")
   end
 
   defp output_lines(output) do
