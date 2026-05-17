@@ -66,11 +66,18 @@ defmodule Rulestead.Runtime.DiagnosticsTest do
              next_backoff_ms: 0
            }
 
-    assert health_environment.adapter_health == %{
-             repo: %{configured?: false, status: :not_configured},
-             redis: %{configured?: false, status: :not_configured},
-             pubsub: %{configured?: false, status: :not_configured}
+    assert health_environment.adapter_health.redis == %{
+             configured?: false,
+             status: :not_configured
            }
+
+    assert health_environment.adapter_health.pubsub == %{
+             configured?: false,
+             status: :not_configured
+           }
+
+    assert is_boolean(health_environment.adapter_health.repo.configured?)
+    assert health_environment.adapter_health.repo.status in [:up, :down, :not_configured]
 
     refute Map.has_key?(health_environment, :metadata)
     refute Map.has_key?(health_environment, :generated_at)

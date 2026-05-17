@@ -831,6 +831,12 @@ defmodule Rulestead do
   @spec diagnostics() :: map()
   def diagnostics, do: Runtime.diagnostics()
 
+  @doc """
+  Returns the bounded infrastructure health snapshot for the local node.
+  """
+  @spec infrastructure_health() :: map()
+  def infrastructure_health, do: Runtime.Diagnostics.current().infrastructure_health
+
   defp run_store(operation, args, command) do
     case configured_store() do
       {:ok, adapter} -> invoke_store(adapter, operation, args, command)

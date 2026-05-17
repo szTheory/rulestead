@@ -11,7 +11,7 @@ defmodule Rulestead.Runtime.HealthTest do
 
     Application.delete_env(:rulestead, :runtime)
     Application.delete_env(:rulestead, :host)
-    Application.delete_env(:rulestead, :redis)
+    Application.put_env(:rulestead, :redis, enabled: false)
     Application.delete_env(:rulestead, Rulestead.Repo)
 
     environment_key = "health-#{System.unique_integer([:positive])}"
@@ -42,7 +42,8 @@ defmodule Rulestead.Runtime.HealthTest do
     assert [%{environment_key: ^environment_key} = environment] = environments
     assert environment.snapshot_version == 9
     assert environment.cache_age_ms >= 0
-    assert environment.sync_latency_ms == 4_500
+    assert environment.sync_latency_ms >= 4_500
+    assert environment.sync_latency_ms < 6_000
     assert environment.refresh_status == :ready
     assert environment.refresh_worker_status == %{attempt: 0, next_backoff_ms: 0, refresh_status: :ready}
     assert environment.adapter_health.repo == %{configured?: false, status: :not_configured}
@@ -87,10 +88,12 @@ defmodule Rulestead.Runtime.HealthTest do
   defp restore_repo_env(value), do: Application.put_env(:rulestead, Rulestead.Repo, value)
 
   defp published_snapshot(environment_key) do
+    now = DateTime.utc_now()
+
     payload = %{
       schema_version: 1,
       environment_key: environment_key,
-      generated_at: ~U[2026-04-24 00:10:00Z],
+      generated_at: DateTime.add(now, -5, :second),
       flags: %{
         "checkout-redesign" => %{
           flag: %{key: "checkout-redesign", default_value: %{value: false}},
@@ -120,7 +123,7 @@ defmodule Rulestead.Runtime.HealthTest do
       payload: :erlang.term_to_binary(payload),
       payload_checksum: "checksum",
       metadata: %{schema_version: 1, flag_count: 1},
-      published_at: ~U[2026-04-24 00:10:30Z]
+      published_at: DateTime.add(now, -4_500, :millisecond)
     }
   end
 end
