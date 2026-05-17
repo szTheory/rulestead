@@ -72,7 +72,7 @@ defmodule Rulestead.Runtime.RefreshTest do
 
     version_two = publish_ruleset_version(environment_key, false)
 
-    Control.publish!(pubsub_name, environment_key, version_two.version)
+    Control.publish!(pubsub_name, environment_key, version_two.version, notifier: TestNotifier)
     assert :ok = Refresh.sync(worker)
 
     assert {:ok, false} =
@@ -91,7 +91,7 @@ defmodule Rulestead.Runtime.RefreshTest do
   } do
     version_two = publish_ruleset_version(environment_key, false)
 
-    Control.publish!(pubsub_name, environment_key, version_two.version)
+    Control.publish!(pubsub_name, environment_key, version_two.version, notifier: TestNotifier)
     assert :ok = Refresh.sync(worker)
 
     assert {:ok, false} =
@@ -101,7 +101,7 @@ defmodule Rulestead.Runtime.RefreshTest do
     applied_version = snapshot_version!(environment_key)
     assert applied_version == version_two.version
 
-    Control.publish!(pubsub_name, environment_key, version_two.version)
+    Control.publish!(pubsub_name, environment_key, version_two.version, notifier: TestNotifier)
     assert :ok = Refresh.sync(worker)
 
     assert {:ok, false} =
@@ -110,7 +110,7 @@ defmodule Rulestead.Runtime.RefreshTest do
     assert %{attempt: 0, next_backoff_ms: 0, refresh_status: :ready} = Refresh.status(worker)
     assert snapshot_version!(environment_key) == applied_version
 
-    Control.publish!(pubsub_name, environment_key, version_two.version - 1)
+    Control.publish!(pubsub_name, environment_key, version_two.version - 1, notifier: TestNotifier)
     assert :ok = Refresh.sync(worker)
 
     assert {:ok, false} =
@@ -171,7 +171,7 @@ defmodule Rulestead.Runtime.RefreshTest do
     _version_two = publish_ruleset_version(environment_key, false)
     Control.disconnect!()
 
-    Control.publish!(pubsub_name, environment_key, 2)
+    Control.publish!(pubsub_name, environment_key, 2, notifier: TestNotifier)
     assert :ok = Refresh.sync(worker)
 
     assert {:ok, true} =

@@ -2,7 +2,7 @@ defmodule Rulestead.Runtime.ClusterCase do
   @moduledoc false
 
   alias Rulestead.Fake.Control
-  alias Rulestead.Runtime.Supervisor
+  alias Rulestead.Runtime.{Notifier.PhoenixPubSub, Supervisor}
 
   @convergence_timeout_ms 500
   @poll_interval_ms 25
@@ -44,11 +44,13 @@ defmodule Rulestead.Runtime.ClusterCase do
     initial_snapshot = publish_ruleset_version(environment_key, true)
     local_refresh_name = :"cluster-refresh-local-#{System.unique_integer([:positive])}"
     remote_refresh_name = :"cluster-refresh-remote-#{System.unique_integer([:positive])}"
+    notifier = PhoenixPubSub
 
     {:ok, local_runtime} =
       Supervisor.start_link(
         name: nil,
         environment_keys: [environment_key],
+        notifier: notifier,
         store: StoreProxy,
         pubsub: pubsub_name,
         auto_tick?: false,
@@ -60,6 +62,7 @@ defmodule Rulestead.Runtime.ClusterCase do
         [
           name: nil,
           environment_keys: [environment_key],
+          notifier: notifier,
           store: StoreProxy,
           pubsub: pubsub_name,
           auto_tick?: false,
@@ -74,6 +77,7 @@ defmodule Rulestead.Runtime.ClusterCase do
     %{
       environment_key: environment_key,
       initial_snapshot: initial_snapshot,
+      notifier: notifier,
       pubsub_name: pubsub_name,
       pubsub_pid: pubsub_pid,
       local_runtime: local_runtime,

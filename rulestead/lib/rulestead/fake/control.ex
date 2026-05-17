@@ -7,6 +7,7 @@ defmodule Rulestead.Fake.Control do
   """
 
   alias Rulestead.Fake
+  alias Rulestead.Runtime.{Config, Notifier}
   alias Rulestead.Store.Command
 
   @spec ensure_started() :: :ok
@@ -220,19 +221,23 @@ defmodule Rulestead.Fake.Control do
     end
   end
 
-  @spec publish!(module() | atom(), String.t() | atom(), pos_integer()) :: :ok
-  def publish!(pubsub, environment_key, snapshot_version) do
-    if Code.ensure_loaded?(Phoenix.PubSub) do
-      Phoenix.PubSub.broadcast(
-        pubsub,
-        Rulestead.Runtime.Config.snapshot()[:pubsub_topic],
-        {:rulestead_runtime_refresh,
-         %{environment_key: to_string(environment_key), snapshot_version: snapshot_version}}
-      )
+  @spec publish!(module() | atom(), String.t() | atom(), pos_integer(), keyword()) :: :ok
+  def publish!(pubsub, environment_key, snapshot_version, opts \\ []) do
+    notifier = Keyword.get(opts, :notifier, Config.notifier())
 
-      :ok
-    else
-      raise "Phoenix.PubSub is not available"
+    case Notifier.broadcast(
+           notifier,
+           %{environment_key: to_string(environment_key), snapshot_version: snapshot_version},
+           Keyword.merge(
+             [
+               pubsub: pubsub,
+               pubsub_topic: Keyword.get(opts, :pubsub_topic, Config.pubsub_topic())
+             ],
+             opts
+           )
+         ) do
+      :ok -> :ok
+      {:error, error} -> raise "failed to publish invalidation: #{inspect(error)}"
     end
   end
 

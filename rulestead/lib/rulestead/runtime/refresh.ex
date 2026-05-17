@@ -4,7 +4,7 @@ defmodule Rulestead.Runtime.Refresh do
   use GenServer
 
   alias Rulestead.{Error, Telemetry}
-  alias Rulestead.Runtime.{Backup, Cache, Config, Snapshot}
+  alias Rulestead.Runtime.{Backup, Cache, Config, Notifier, Snapshot}
   alias Rulestead.Store.Command
 
   @refresh_message :rulestead_runtime_refresh
@@ -12,6 +12,8 @@ defmodule Rulestead.Runtime.Refresh do
   @type state :: %{
           environment_key: String.t(),
           store: module() | nil,
+          notifier: module() | nil,
+          notifier_opts: keyword(),
           pubsub: module() | atom() | nil,
           pubsub_topic: String.t(),
           poll_interval_ms: pos_integer(),
@@ -66,8 +68,10 @@ defmodule Rulestead.Runtime.Refresh do
     state = %{
       environment_key: environment_key,
       store: Keyword.get(opts, :store, Config.store(opts)),
-      pubsub: Keyword.get(opts, :pubsub),
-      pubsub_topic: Keyword.get(opts, :pubsub_topic, snapshot_config[:pubsub_topic]),
+      notifier: Keyword.get(opts, :notifier, Config.notifier(opts)),
+      notifier_opts: opts,
+      pubsub: Keyword.get(opts, :pubsub, Config.pubsub(opts)),
+      pubsub_topic: Keyword.get(opts, :pubsub_topic, Config.pubsub_topic(opts)),
       poll_interval_ms: Keyword.get(opts, :poll_interval_ms, snapshot_config[:refresh_interval_ms]),
       refresh_jitter_ms: Keyword.get(opts, :refresh_jitter_ms, snapshot_config[:refresh_jitter_ms]),
       backoff_ms: Keyword.get(opts, :backoff_ms, snapshot_config[:backoff_ms]),
@@ -133,20 +137,18 @@ defmodule Rulestead.Runtime.Refresh do
 
   def handle_info({@refresh_message, payload}, state) do
     next_state =
-      if matches_environment?(payload, state.environment_key) and newer_version?(payload, state.environment_key) do
-        state |> refresh() |> schedule_next()
-      else
-        state
-      end
+      handle_invalidation(payload, state)
 
     {:noreply, next_state}
   end
 
-  defp refresh(state) do
+  defp refresh(state, opts \\ []) do
+    refresh_reason = Keyword.get(opts, :reason, :refresh)
+
     Telemetry.execute(
       [:rulestead, :runtime, :cache, :refresh],
       %{count: 1},
-      Telemetry.metadata(%{environment: state.environment_key, reason: :refresh})
+      Telemetry.metadata(%{environment: state.environment_key, reason: refresh_reason})
     )
 
     case fetch_snapshot(state) do
@@ -157,11 +159,11 @@ defmodule Rulestead.Runtime.Refresh do
           :ok = Backup.persist(compiled, snapshot: state.snapshot_opts)
           %{state | attempt: 0, next_backoff_ms: 0, next_due_ms: now_ms(state) + poll_delay(state)}
         else
-          {:error, error} -> fail_refresh(state, error)
+          {:error, error} -> fail_refresh(state, error, opts)
         end
 
       {:error, error} ->
-        fail_refresh(state, error)
+        fail_refresh(state, error, opts)
     end
   end
 
@@ -184,9 +186,20 @@ defmodule Rulestead.Runtime.Refresh do
 
   defp fetch_snapshot(_state), do: {:error, :store_unavailable}
 
-  defp fail_refresh(state, error) do
+  defp fail_refresh(state, error, opts \\ []) do
     Cache.mark_refresh_failed(state.environment_key, error)
     next_backoff_ms = next_backoff(state)
+    refresh_status = refresh_status(state.environment_key)
+
+    if Keyword.get(opts, :reason) == :invalidation do
+      emit_invalidation(
+        :refresh_failed,
+        state.environment_key,
+        Keyword.get(opts, :snapshot_version),
+        reason: :refresh_failed_after_invalidation,
+        refresh_status: refresh_status
+      )
+    end
 
     %{
       state
@@ -210,10 +223,9 @@ defmodule Rulestead.Runtime.Refresh do
     state
   end
 
-  defp subscribe(%{pubsub: pubsub, pubsub_topic: topic}) when not is_nil(pubsub) do
-    if Code.ensure_loaded?(Phoenix.PubSub) do
-      Phoenix.PubSub.subscribe(pubsub, topic)
-    end
+  defp subscribe(%{notifier: notifier, pubsub: pubsub, pubsub_topic: topic, notifier_opts: notifier_opts})
+       when not is_nil(notifier) and not is_nil(pubsub) do
+    Notifier.subscribe(notifier, Keyword.merge(notifier_opts, pubsub: pubsub, pubsub_topic: topic))
   end
 
   defp subscribe(_state), do: :ok
@@ -238,17 +250,60 @@ defmodule Rulestead.Runtime.Refresh do
 
   defp matches_environment?(_payload, _environment_key), do: false
 
-  defp newer_version?(payload, environment_key) do
-    incoming_version = Map.get(payload, :snapshot_version) || Map.get(payload, "snapshot_version") || 0
+  defp handle_invalidation(payload, state) do
+    case invalidation_action(payload, state.environment_key) do
+      {:ignore, :environment_mismatch, _snapshot_version} ->
+        state
 
-    current_version =
-      case Cache.runtime_metadata(environment_key) do
-        {:ok, %{snapshot_version: version}} when is_integer(version) -> version
-        _ -> 0
-      end
+      {:ignore, reason, snapshot_version} ->
+        emit_invalidation(:received, state.environment_key, snapshot_version, reason: :invalidation_received)
 
-    incoming_version > current_version
+        emit_invalidation(
+          :ignored,
+          state.environment_key,
+          snapshot_version,
+          reason: reason,
+          refresh_status: refresh_status(state.environment_key)
+        )
+
+        state
+
+      {:refresh, snapshot_version} ->
+        emit_invalidation(:received, state.environment_key, snapshot_version, reason: :invalidation_received)
+
+        emit_invalidation(
+          :refresh_triggered,
+          state.environment_key,
+          snapshot_version,
+          reason: :refresh_triggered_from_invalidation,
+          refresh_status: refresh_status(state.environment_key)
+        )
+
+        state
+        |> refresh(reason: :invalidation, snapshot_version: snapshot_version)
+        |> schedule_next()
+    end
   end
+
+  defp invalidation_action(payload, environment_key) when is_map(payload) do
+    if matches_environment?(payload, environment_key) do
+      case snapshot_version(payload) do
+        version when is_integer(version) ->
+          if version > current_version(environment_key) do
+            {:refresh, version}
+          else
+            {:ignore, :stale_snapshot_version, version}
+          end
+
+        _other ->
+          {:ignore, :missing_snapshot_version, nil}
+      end
+    else
+      {:ignore, :environment_mismatch, nil}
+    end
+  end
+
+  defp invalidation_action(_payload, _environment_key), do: {:ignore, :environment_mismatch, nil}
 
   defp emit_snapshot_applied(compiled, source) do
     Telemetry.execute(
@@ -278,4 +333,55 @@ defmodule Rulestead.Runtime.Refresh do
   defp refresh_store_stop_metadata({:error, error}) when is_atom(error) do
     %{reason: error}
   end
+
+  defp current_version(environment_key) do
+    case Cache.runtime_metadata(environment_key) do
+      {:ok, %{snapshot_version: version}} when is_integer(version) -> version
+      _ -> 0
+    end
+  end
+
+  defp refresh_status(environment_key) do
+    case Cache.runtime_metadata(environment_key) do
+      {:ok, %{refresh_status: refresh_status}} -> refresh_status
+      {:error, _error} -> :degraded
+    end
+  end
+
+  defp snapshot_version(payload) do
+    case Map.get(payload, :snapshot_version) || Map.get(payload, "snapshot_version") do
+      version when is_integer(version) and version > 0 ->
+        version
+
+      version when is_binary(version) ->
+        case Integer.parse(version) do
+          {parsed, ""} when parsed > 0 -> parsed
+          _ -> nil
+        end
+
+      _other ->
+        nil
+    end
+  end
+
+  defp emit_invalidation(event, environment_key, snapshot_version, attrs \\ []) do
+    metadata =
+      attrs
+      |> Map.new()
+      |> Map.put(:environment, environment_key)
+      |> maybe_put_snapshot_version(snapshot_version)
+      |> Telemetry.metadata()
+
+    Telemetry.execute(
+      [:rulestead, :runtime, :invalidation, event],
+      %{count: 1},
+      metadata
+    )
+  end
+
+  defp maybe_put_snapshot_version(metadata, snapshot_version) when is_integer(snapshot_version) do
+    Map.put(metadata, :snapshot_version, snapshot_version)
+  end
+
+  defp maybe_put_snapshot_version(metadata, _snapshot_version), do: metadata
 end

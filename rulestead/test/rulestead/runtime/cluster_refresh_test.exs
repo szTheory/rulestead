@@ -21,7 +21,7 @@ defmodule Rulestead.Runtime.ClusterRefreshTest do
     version_two = ClusterCase.publish_ruleset_version(environment_key, false)
     started_at = System.monotonic_time(:millisecond)
 
-    Control.publish!(cluster.pubsub_name, environment_key, version_two.version)
+    Control.publish!(cluster.pubsub_name, environment_key, version_two.version, notifier: cluster.notifier)
 
     assert :ok =
              ClusterCase.assert_eventually(fn ->
@@ -50,8 +50,8 @@ defmodule Rulestead.Runtime.ClusterRefreshTest do
     assert local_version == version_two.version
     assert remote_environment.snapshot_version == version_two.version
 
-    Control.publish!(cluster.pubsub_name, environment_key, version_two.version)
-    Control.publish!(cluster.pubsub_name, environment_key, version_two.version - 1)
+    Control.publish!(cluster.pubsub_name, environment_key, version_two.version, notifier: cluster.notifier)
+    Control.publish!(cluster.pubsub_name, environment_key, version_two.version - 1, notifier: cluster.notifier)
 
     assert :ok =
              ClusterCase.assert_eventually(fn ->
