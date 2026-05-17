@@ -24,7 +24,7 @@ defmodule Rulestead.Runtime.Refresh do
           next_backoff_ms: non_neg_integer(),
           auto_tick?: boolean(),
           snapshot_opts: keyword(),
-          clock: (() -> DateTime.t())
+          clock: (-> DateTime.t())
         }
 
   @spec child_spec(keyword()) :: Supervisor.child_spec()
@@ -72,15 +72,18 @@ defmodule Rulestead.Runtime.Refresh do
       notifier_opts: opts,
       pubsub: Keyword.get(opts, :pubsub, Config.pubsub(opts)),
       pubsub_topic: Keyword.get(opts, :pubsub_topic, Config.pubsub_topic(opts)),
-      poll_interval_ms: Keyword.get(opts, :poll_interval_ms, snapshot_config[:refresh_interval_ms]),
-      refresh_jitter_ms: Keyword.get(opts, :refresh_jitter_ms, snapshot_config[:refresh_jitter_ms]),
+      poll_interval_ms:
+        Keyword.get(opts, :poll_interval_ms, snapshot_config[:refresh_interval_ms]),
+      refresh_jitter_ms:
+        Keyword.get(opts, :refresh_jitter_ms, snapshot_config[:refresh_jitter_ms]),
       backoff_ms: Keyword.get(opts, :backoff_ms, snapshot_config[:backoff_ms]),
       attempt: 0,
       next_due_ms: 0,
       next_backoff_ms: 0,
       auto_tick?: Keyword.get(opts, :auto_tick?, true),
       snapshot_opts: snapshot_config,
-      clock: Keyword.get(opts, :clock, default_clock(Keyword.get(opts, :store, Config.store(opts))))
+      clock:
+        Keyword.get(opts, :clock, default_clock(Keyword.get(opts, :store, Config.store(opts))))
     }
 
     Cache.register_environment(environment_key)
@@ -118,7 +121,12 @@ defmodule Rulestead.Runtime.Refresh do
         {:error, _error} -> :degraded
       end
 
-    {:reply, %{attempt: state.attempt, next_backoff_ms: state.next_backoff_ms, refresh_status: refresh_status}, state}
+    {:reply,
+     %{
+       attempt: state.attempt,
+       next_backoff_ms: state.next_backoff_ms,
+       refresh_status: refresh_status
+     }, state}
   end
 
   @impl true
@@ -157,7 +165,13 @@ defmodule Rulestead.Runtime.Refresh do
              {:ok, _applied} <- Cache.apply(compiled, source: :ets) do
           emit_snapshot_applied(compiled, :ets)
           :ok = Backup.persist(compiled, snapshot: state.snapshot_opts)
-          %{state | attempt: 0, next_backoff_ms: 0, next_due_ms: now_ms(state) + poll_delay(state)}
+
+          %{
+            state
+            | attempt: 0,
+              next_backoff_ms: 0,
+              next_due_ms: now_ms(state) + poll_delay(state)
+          }
         else
           {:error, error} -> fail_refresh(state, error, opts)
         end
@@ -167,7 +181,8 @@ defmodule Rulestead.Runtime.Refresh do
     end
   end
 
-  defp fetch_snapshot(%{environment_key: environment_key, store: adapter}) when is_atom(adapter) do
+  defp fetch_snapshot(%{environment_key: environment_key, store: adapter})
+       when is_atom(adapter) do
     if Code.ensure_loaded?(adapter) and function_exported?(adapter, :fetch_snapshot, 1) do
       command = Command.FetchSnapshot.new(environment_key)
 
@@ -223,9 +238,17 @@ defmodule Rulestead.Runtime.Refresh do
     state
   end
 
-  defp subscribe(%{notifier: notifier, pubsub: pubsub, pubsub_topic: topic, notifier_opts: notifier_opts})
+  defp subscribe(%{
+         notifier: notifier,
+         pubsub: pubsub,
+         pubsub_topic: topic,
+         notifier_opts: notifier_opts
+       })
        when not is_nil(notifier) and not is_nil(pubsub) do
-    Notifier.subscribe(notifier, Keyword.merge(notifier_opts, pubsub: pubsub, pubsub_topic: topic))
+    Notifier.subscribe(
+      notifier,
+      Keyword.merge(notifier_opts, pubsub: pubsub, pubsub_topic: topic)
+    )
   end
 
   defp subscribe(_state), do: :ok
@@ -256,7 +279,9 @@ defmodule Rulestead.Runtime.Refresh do
         state
 
       {:ignore, reason, snapshot_version} ->
-        emit_invalidation(:received, state.environment_key, snapshot_version, reason: :invalidation_received)
+        emit_invalidation(:received, state.environment_key, snapshot_version,
+          reason: :invalidation_received
+        )
 
         emit_invalidation(
           :ignored,
@@ -269,7 +294,9 @@ defmodule Rulestead.Runtime.Refresh do
         state
 
       {:refresh, snapshot_version} ->
-        emit_invalidation(:received, state.environment_key, snapshot_version, reason: :invalidation_received)
+        emit_invalidation(:received, state.environment_key, snapshot_version,
+          reason: :invalidation_received
+        )
 
         emit_invalidation(
           :refresh_triggered,
@@ -377,7 +404,28 @@ defmodule Rulestead.Runtime.Refresh do
       %{count: 1},
       metadata
     )
+
+    emit_invalidation_alias(event, metadata)
   end
+
+  defp emit_invalidation_alias(:received, metadata) do
+    Telemetry.execute(
+      [:rulestead, :sync, :delta_received],
+      %{count: 1},
+      metadata
+    )
+  end
+
+  defp emit_invalidation_alias(event, metadata)
+       when event in [:ignored, :refresh_triggered, :refresh_failed] do
+    Telemetry.execute(
+      [:rulestead, :cache, :invalidation],
+      %{count: 1},
+      metadata
+    )
+  end
+
+  defp emit_invalidation_alias(_event, _metadata), do: :ok
 
   defp maybe_put_snapshot_version(metadata, snapshot_version) when is_integer(snapshot_version) do
     Map.put(metadata, :snapshot_version, snapshot_version)

@@ -83,12 +83,12 @@ defmodule Rulestead.Runtime.HealthTelemetryTest do
     assert :ok = Refresh.sync(worker)
 
     runtime_received = assert_receive_event([:rulestead, :runtime, :invalidation, :received])
+    delta_received = assert_receive_event([:rulestead, :sync, :delta_received])
 
     runtime_triggered =
       assert_receive_event([:rulestead, :runtime, :invalidation, :refresh_triggered])
 
     cache_invalidation = assert_receive_event([:rulestead, :cache, :invalidation])
-    delta_received = assert_receive_event([:rulestead, :sync, :delta_received])
 
     assert runtime_received.environment == environment_key
     assert runtime_received.snapshot_version == version_two.version
