@@ -131,7 +131,7 @@ None.
 ## Next Phase Readiness
 
 - Phase 23 can consume one stable compare payload for apply previews, stale-preview checks, and operator-facing conflict rendering.
-- The Redis adapter now lacks the new compare callback and emits a compile warning outside this plan’s allowed edit scope; that adjacent adapter work remains deferred.
+- Adapter parity for the canonical compare payload is now established for the two supported authored-state backends in this phase: Fake and Ecto.
 
 ## Self-Check: PASSED
 
