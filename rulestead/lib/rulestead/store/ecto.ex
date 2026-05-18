@@ -20,6 +20,7 @@ defmodule Rulestead.Store.Ecto do
     Flag,
     FlagEnvironment,
     Oban,
+    Promotion.Compare,
     Repo,
     RuntimeSnapshot,
     Ruleset,
@@ -31,6 +32,7 @@ defmodule Rulestead.Store.Ecto do
     Webhooks.Delivery
   }
 
+  alias Rulestead.Runtime.{Config, Notifier}
   alias Rulestead.Store.Command
 
   @snapshot_schema_version 1
@@ -45,6 +47,36 @@ defmodule Rulestead.Store.Ecto do
            fetch_flag_environment(command.flag_key, environment.key) do
       {:ok,
        build_flag_detail_payload(flag, environment, flag_environment, command.include_ruleset?)}
+    end
+  end
+
+  @impl Store
+  def compare_environments(%Command.CompareEnvironments{} = command) do
+    with {:ok, source_environment} <- fetch_environment(command.source_environment_key),
+         {:ok, target_environment} <- fetch_environment(command.target_environment_key) do
+      flags =
+        compare_flags_query(
+          source_environment.key,
+          target_environment.key,
+          command.flag_keys
+        )
+        |> Repo.all()
+
+      audiences =
+        from(audience in Audience)
+        |> Repo.all()
+        |> Map.new(&{&1.key, audience_summary(&1)})
+
+      {:ok,
+       Compare.compare_projected(%{
+         source_environment: environment_summary(source_environment),
+         target_environment: environment_summary(target_environment),
+         requested_flag_keys: command.flag_keys,
+         compare_token: command.compare_token,
+         source_flags: compare_payloads(flags, source_environment),
+         target_flags: compare_payloads(flags, target_environment),
+         audiences: audiences
+       })}
     end
   end
 
@@ -566,7 +598,8 @@ defmodule Rulestead.Store.Ecto do
           "reason" => cr.reason,
           "submitter" => Map.take(cr, [:submitter_id, :submitter_type, :submitter_display])
         }
-      end,      environment_key: command.environment_key,
+      end,
+      environment_key: command.environment_key,
       resource_type: "flag",
       resource_key: command.resource_key
     )
@@ -808,7 +841,12 @@ defmodule Rulestead.Store.Ecto do
       )
       |> Repo.transact()
       |> case do
-        {:ok, %{execution: {execution_result, _, _}, change_request: updated_change_request, audit_event: audit_event}} ->
+        {:ok,
+         %{
+           execution: {execution_result, _, _},
+           change_request: updated_change_request,
+           audit_event: audit_event
+         }} ->
           emit_governance_telemetry(:merged, command, updated_change_request, audit_event)
 
           {:ok,
@@ -1421,6 +1459,46 @@ defmodule Rulestead.Store.Ecto do
     end
   end
 
+  defp compare_flags_query(source_environment_key, target_environment_key, flag_keys) do
+    [source_environment_key, target_environment_key]
+    |> then(fn environment_keys ->
+      from(flag in Flag,
+        join: fe in FlagEnvironment,
+        on: fe.flag_id == flag.id,
+        join: env in Environment,
+        on: env.id == fe.environment_id,
+        where: env.key in ^environment_keys,
+        preload: [flag_environments: {fe, [:environment, :active_ruleset]}],
+        distinct: true
+      )
+    end)
+    |> maybe_filter_compare_flag_keys(flag_keys)
+  end
+
+  defp maybe_filter_compare_flag_keys(query, nil), do: query
+  defp maybe_filter_compare_flag_keys(query, []), do: query
+
+  defp maybe_filter_compare_flag_keys(query, flag_keys) do
+    where(query, [flag], flag.key in ^flag_keys)
+  end
+
+  defp compare_payloads(flags, environment) do
+    flags
+    |> Enum.reduce(%{}, fn flag, payloads ->
+      case Enum.find(flag.flag_environments, &(&1.environment.key == environment.key)) do
+        nil ->
+          payloads
+
+        flag_environment ->
+          Map.put(
+            payloads,
+            flag.key,
+            build_flag_payload(flag, environment, flag_environment, true)
+          )
+      end
+    end)
+  end
+
   defp ensure_not_archived(flag_key, flag) do
     if flag.archived_at do
       {:error, StoreError.archived(flag_key)}
@@ -1527,6 +1605,14 @@ defmodule Rulestead.Store.Ecto do
             reason: :published
           })
         )
+
+        :ok =
+          Notifier.broadcast(
+            Config.notifier(),
+            %{environment_key: environment.key, snapshot_version: snapshot.version},
+            pubsub: Config.pubsub(),
+            pubsub_topic: Config.pubsub_topic()
+          )
 
         {:ok, snapshot}
 

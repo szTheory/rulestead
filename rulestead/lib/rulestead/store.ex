@@ -13,6 +13,7 @@ defmodule Rulestead.Store do
   @type result(value) :: {:ok, value} | {:error, Error.t()}
 
   @callback fetch_flag(Command.FetchFlag.t()) :: result(map())
+  @callback compare_environments(Command.CompareEnvironments.t()) :: result(map())
   @callback fetch_snapshot(Command.FetchSnapshot.t()) :: result(map())
   @callback create_flag(Command.CreateFlag.t()) :: result(map())
   @callback update_flag(Command.UpdateFlag.t()) :: result(map())

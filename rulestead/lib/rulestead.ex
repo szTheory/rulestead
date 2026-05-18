@@ -20,6 +20,7 @@ defmodule Rulestead do
     Evaluator,
     Explainer,
     Governance.ApprovalRequirement,
+    Promotion.Compare,
     Result,
     Runtime,
     Store,
@@ -59,6 +60,25 @@ defmodule Rulestead do
   @spec fetch_flag(Command.FetchFlag.t()) :: Store.result(map())
   def fetch_flag(%Command.FetchFlag{} = command) do
     run_store(:fetch_flag, [command], command)
+  end
+
+  @doc """
+  Compares authored source and target environment state for promotion preview flows.
+  """
+  @spec compare_environments(String.t() | atom(), String.t() | atom(), keyword()) ::
+          Store.result(map())
+  def compare_environments(source_environment_key, target_environment_key, opts \\ []) do
+    source_environment_key
+    |> Command.CompareEnvironments.new(target_environment_key, opts)
+    |> compare_environments()
+  end
+
+  @doc """
+  Compares authored source and target environment state for a pre-built compare command.
+  """
+  @spec compare_environments(Command.CompareEnvironments.t()) :: Store.result(map())
+  def compare_environments(%Command.CompareEnvironments{} = command) do
+    Compare.compare(command)
   end
 
   @doc """
@@ -369,7 +389,12 @@ defmodule Rulestead do
     case result do
       {:ok, receipt} ->
         event = if receipt.verified_state == :accepted, do: :received, else: :rejected
-        Telemetry.execute([:rulestead, :ops, :webhook, event], %{count: 1}, Telemetry.webhook_metadata(receipt, %{reason: event}))
+
+        Telemetry.execute(
+          [:rulestead, :ops, :webhook, event],
+          %{count: 1},
+          Telemetry.webhook_metadata(receipt, %{reason: event})
+        )
 
       {:error, _error} ->
         :ok
@@ -687,12 +712,17 @@ defmodule Rulestead do
         result =
           with {:ok, result} <- Evaluator.evaluate(flag_payload, context) do
             emit_warnings(result)
-            
+
             # Record telemetry evaluation for hygiene cleanup
             if result.flag_key do
               # We spawn to ensure non-blocking, although ETS is fast, write-behind should never block.
               # Alternatively, since our ETS is public and fast, we just call it directly.
-              Rulestead.Telemetry.Cache.record_evaluation(result.flag_key, context.environment || "default", result.variant || "unknown", DateTime.utc_now())
+              Rulestead.Telemetry.Cache.record_evaluation(
+                result.flag_key,
+                context.environment || "default",
+                result.variant || "unknown",
+                DateTime.utc_now()
+              )
             end
 
             {:ok, result}
@@ -1117,10 +1147,18 @@ defmodule Rulestead do
     environment_key = Map.get(command, :environment_key)
 
     with :ok <- ensure_bounded_scheduled_action(command.action),
-         requirement <- Authorizer.approval_requirement(actor, command.action, resource, environment_key),
+         requirement <-
+           Authorizer.approval_requirement(actor, command.action, resource, environment_key),
          {:ok, approval_requirement} <-
-           authorize_direct_scheduled_execution(actor, command, resource, environment_key, requirement) do
-      {:ok, %{command | approval_requirement: ApprovalRequirement.serialize(approval_requirement)}}
+           authorize_direct_scheduled_execution(
+             actor,
+             command,
+             resource,
+             environment_key,
+             requirement
+           ) do
+      {:ok,
+       %{command | approval_requirement: ApprovalRequirement.serialize(approval_requirement)}}
     end
   end
 
@@ -1169,6 +1207,7 @@ defmodule Rulestead do
       "correlation_id",
       "environment_key"
     ]
+
     redacted_metadata = Redaction.redact_metadata(Map.get(command, :metadata, %{}), allow: allow)
     Map.put(command, :metadata, redacted_metadata.audit)
   end
@@ -1216,7 +1255,10 @@ defmodule Rulestead do
   defp command_action(:schedule_change_request, _command), do: :execute_change_request
   defp command_action(:cancel_scheduled_execution, _command), do: :execute_change_request
   defp command_action(:requeue_scheduled_execution, _command), do: :execute_change_request
-  defp command_action(:schedule_governed_action, %Command.ScheduleGovernedAction{action: action}), do: action
+
+  defp command_action(:schedule_governed_action, %Command.ScheduleGovernedAction{action: action}),
+    do: action
+
   defp command_action(:engage_kill_switch, _command), do: :engage_kill_switch
   defp command_action(:release_kill_switch, _command), do: :release_kill_switch
   defp command_action(:rollback_audit_event, _command), do: :rollback_audit_event
@@ -1312,7 +1354,8 @@ defmodule Rulestead do
 
   defp authorize_direct_scheduled_execution(
          actor,
-         %Command.ScheduleGovernedAction{execution_mode: :policy_bypass, action: action} = _command,
+         %Command.ScheduleGovernedAction{execution_mode: :policy_bypass, action: action} =
+           _command,
          resource,
          environment_key,
          _requirement
@@ -1341,8 +1384,17 @@ defmodule Rulestead do
     end
   end
 
-  defp authorize_direct_scheduled_execution(_actor, %Command.ScheduleGovernedAction{}, _resource, _environment_key, _requirement) do
-    {:error, StoreError.invalid_command("direct scheduled actions must use policy_bypass or emergency_bypass")}
+  defp authorize_direct_scheduled_execution(
+         _actor,
+         %Command.ScheduleGovernedAction{},
+         _resource,
+         _environment_key,
+         _requirement
+       ) do
+    {:error,
+     StoreError.invalid_command(
+       "direct scheduled actions must use policy_bypass or emergency_bypass"
+     )}
   end
 
   defp ensure_bounded_scheduled_action(action) do
@@ -1361,13 +1413,12 @@ defmodule Rulestead do
 
     cond do
       is_nil(reason) or String.trim(reason) == "" ->
-        {:error, StoreError.invalid_command("emergency_bypass requires an explicit operator reason")}
+        {:error,
+         StoreError.invalid_command("emergency_bypass requires an explicit operator reason")}
 
       is_nil(emergency_reason) or String.trim(emergency_reason) == "" ->
         {:error,
-         StoreError.invalid_command(
-           "emergency_bypass requires metadata[\"emergency_reason\"]"
-         )}
+         StoreError.invalid_command("emergency_bypass requires metadata[\"emergency_reason\"]")}
 
       true ->
         :ok

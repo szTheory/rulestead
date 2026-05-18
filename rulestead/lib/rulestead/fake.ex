@@ -20,6 +20,7 @@ defmodule Rulestead.Fake do
     Governance.ChangeRequest,
     Governance.ExecutionAttempt,
     Governance.ScheduledExecution,
+    Promotion.Compare,
     Ruleset,
     RulesetError,
     Store,
@@ -27,6 +28,7 @@ defmodule Rulestead.Fake do
     Telemetry
   }
 
+  alias Rulestead.Runtime.{Config, Notifier}
   alias Rulestead.Store.Command
 
   @behaviour Store
@@ -72,6 +74,11 @@ defmodule Rulestead.Fake do
   @impl Store
   def fetch_flag(%Command.FetchFlag{} = command) do
     call({:fetch_flag, command})
+  end
+
+  @impl Store
+  def compare_environments(%Command.CompareEnvironments{} = command) do
+    call({:compare_environments, command})
   end
 
   @impl Store
@@ -379,6 +386,34 @@ defmodule Rulestead.Fake do
       end)
 
     {:reply, reply, state}
+  end
+
+  def handle_call({:compare_environments, command}, _from, state) do
+    with {:ok, source_environment} <-
+           fetch_environment_from_state(state, command.source_environment_key),
+         {:ok, target_environment} <-
+           fetch_environment_from_state(state, command.target_environment_key) do
+      source_flags = compare_payloads_for_environment(state, source_environment.key)
+      target_flags = compare_payloads_for_environment(state, target_environment.key)
+
+      audiences =
+        Map.new(state.audiences, fn {key, audience} -> {key, audience_summary(audience)} end)
+
+      {:reply,
+       {:ok,
+        Compare.compare_projected(%{
+          source_environment: source_environment,
+          target_environment: target_environment,
+          requested_flag_keys: command.flag_keys,
+          compare_token: command.compare_token,
+          source_flags: source_flags,
+          target_flags: target_flags,
+          audiences: audiences
+        })}, state}
+    else
+      {:error, error} ->
+        {:reply, {:error, error}, state}
+    end
   end
 
   def handle_call({:fetch_snapshot, command}, _from, state) do
@@ -1119,8 +1154,12 @@ defmodule Rulestead.Fake do
             idempotency_key: "scheduled_execution:change_request:#{change_request.id}"
           })
 
-        next_state = put_in(state.scheduled_executions[scheduled_execution.id], scheduled_execution)
-        {:ok, %{scheduled_execution: serialize_scheduled_execution(scheduled_execution), attempts: []}, next_state}
+        next_state =
+          put_in(state.scheduled_executions[scheduled_execution.id], scheduled_execution)
+
+        {:ok,
+         %{scheduled_execution: serialize_scheduled_execution(scheduled_execution), attempts: []},
+         next_state}
       end
 
     case reply do
@@ -1153,22 +1192,37 @@ defmodule Rulestead.Fake do
       })
 
     next_state = put_in(state.scheduled_executions[scheduled_execution.id], scheduled_execution)
-    {:reply, {:ok, %{scheduled_execution: serialize_scheduled_execution(scheduled_execution), attempts: []}}, next_state}
+
+    {:reply,
+     {:ok,
+      %{scheduled_execution: serialize_scheduled_execution(scheduled_execution), attempts: []}},
+     next_state}
   end
 
   def handle_call({:cancel_scheduled_execution, command}, _from, state) do
     reply =
-      with {:ok, scheduled_execution} <- fetch_scheduled_execution_record(state, command.scheduled_execution_id),
+      with {:ok, scheduled_execution} <-
+             fetch_scheduled_execution_record(state, command.scheduled_execution_id),
            :ok <- ensure_scheduled_transition(scheduled_execution.state, ["scheduled", "running"]) do
         updated =
           scheduled_execution
           |> Map.put(:state, "cancelled")
           |> Map.put(:failure_reason, command.reason)
-          |> Map.put(:execution_metadata, scheduled_transition_metadata(scheduled_execution.execution_metadata, "cancelled", command, state.now))
+          |> Map.put(
+            :execution_metadata,
+            scheduled_transition_metadata(
+              scheduled_execution.execution_metadata,
+              "cancelled",
+              command,
+              state.now
+            )
+          )
           |> Map.put(:updated_at, state.now)
 
         next_state = put_in(state.scheduled_executions[updated.id], updated)
-        {:ok, %{scheduled_execution: serialize_scheduled_execution(updated), attempts: []}, next_state}
+
+        {:ok, %{scheduled_execution: serialize_scheduled_execution(updated), attempts: []},
+         next_state}
       end
 
     case reply do
@@ -1179,13 +1233,22 @@ defmodule Rulestead.Fake do
 
   def handle_call({:requeue_scheduled_execution, command}, _from, state) do
     reply =
-      with {:ok, scheduled_execution} <- fetch_scheduled_execution_record(state, command.scheduled_execution_id),
+      with {:ok, scheduled_execution} <-
+             fetch_scheduled_execution_record(state, command.scheduled_execution_id),
            :ok <- ensure_scheduled_transition(scheduled_execution.state, ["quarantined"]) do
         updated =
           scheduled_execution
           |> Map.put(:state, "scheduled")
           |> Map.put(:failure_reason, nil)
-          |> Map.put(:execution_metadata, scheduled_transition_metadata(scheduled_execution.execution_metadata, "requeued", command, state.now))
+          |> Map.put(
+            :execution_metadata,
+            scheduled_transition_metadata(
+              scheduled_execution.execution_metadata,
+              "requeued",
+              command,
+              state.now
+            )
+          )
           |> Map.put(:updated_at, state.now)
 
         next_state = put_in(state.scheduled_executions[updated.id], updated)
@@ -1193,7 +1256,9 @@ defmodule Rulestead.Fake do
         {:ok,
          %{
            scheduled_execution: serialize_scheduled_execution(updated),
-           attempts: list_execution_attempts(state, updated.id) |> Enum.map(&serialize_execution_attempt/1)
+           attempts:
+             list_execution_attempts(state, updated.id)
+             |> Enum.map(&serialize_execution_attempt/1)
          }, next_state}
       end
 
@@ -1210,14 +1275,18 @@ defmodule Rulestead.Fake do
          {:ok,
           %{
             scheduled_execution: serialize_scheduled_execution(scheduled_execution),
-            attempts: list_execution_attempts(state, scheduled_execution.id) |> Enum.map(&serialize_execution_attempt/1)
+            attempts:
+              list_execution_attempts(state, scheduled_execution.id)
+              |> Enum.map(&serialize_execution_attempt/1)
           }}, state}
 
       {:ok, %{state: "cancelled"}} ->
         {:reply, {:error, StoreError.invalid_command("scheduled execution is cancelled")}, state}
 
       {:ok, %{state: "quarantined"}} ->
-        {:reply, {:error, StoreError.invalid_command("scheduled execution requires explicit requeue")}, state}
+        {:reply,
+         {:error, StoreError.invalid_command("scheduled execution requires explicit requeue")},
+         state}
 
       {:ok, scheduled_execution} ->
         case run_scheduled_execution(state, scheduled_execution, command) do
@@ -1232,11 +1301,14 @@ defmodule Rulestead.Fake do
 
   def handle_call({:fetch_scheduled_execution, command}, _from, state) do
     reply =
-      with {:ok, scheduled_execution} <- fetch_scheduled_execution_record(state, command.scheduled_execution_id) do
+      with {:ok, scheduled_execution} <-
+             fetch_scheduled_execution_record(state, command.scheduled_execution_id) do
         {:ok,
          %{
            scheduled_execution: serialize_scheduled_execution(scheduled_execution),
-           attempts: list_execution_attempts(state, scheduled_execution.id) |> Enum.map(&serialize_execution_attempt/1)
+           attempts:
+             list_execution_attempts(state, scheduled_execution.id)
+             |> Enum.map(&serialize_execution_attempt/1)
          }}
       end
 
@@ -1554,6 +1626,32 @@ defmodule Rulestead.Fake do
       {:error, %Rulestead.Error{} = error} ->
         {:error, error}
     end
+  end
+
+  defp fetch_environment_from_state(state, environment_key) do
+    case Map.get(state.environments, to_string(environment_key)) do
+      nil -> {:error, StoreError.environment_not_found(environment_key)}
+      environment -> {:ok, environment}
+    end
+  end
+
+  defp compare_payloads_for_environment(state, environment_key) do
+    state.flags
+    |> Enum.reduce(%{}, fn {flag_key, flag}, payloads ->
+      case Map.get(flag.environments, environment_key) do
+        nil ->
+          payloads
+
+        flag_environment ->
+          environment = state.environments[environment_key]
+
+          Map.put(
+            payloads,
+            flag_key,
+            build_flag_payload(flag, environment, flag_environment, true)
+          )
+      end
+    end)
   end
 
   defp ensure_environment_keys(state, environment_keys) do
@@ -1978,7 +2076,10 @@ defmodule Rulestead.Fake do
     if state in allowed_states do
       :ok
     else
-      {:error, StoreError.invalid_command("scheduled execution is not in a valid state for this operation")}
+      {:error,
+       StoreError.invalid_command(
+         "scheduled execution is not in a valid state for this operation"
+       )}
     end
   end
 
@@ -2022,7 +2123,8 @@ defmodule Rulestead.Fake do
     })
   end
 
-  defp normalize_failure_reason(%Rulestead.Error{message: message}), do: normalize_failure_reason(message)
+  defp normalize_failure_reason(%Rulestead.Error{message: message}),
+    do: normalize_failure_reason(message)
 
   defp normalize_failure_reason(reason) when is_binary(reason) do
     case String.trim(reason) do
@@ -2033,8 +2135,17 @@ defmodule Rulestead.Fake do
 
   defp normalize_failure_reason(reason), do: inspect(reason)
 
-  defp execute_governed_change(state, %{governed_action: governed_action} = change_request, command)
-       when governed_action in ["publish_ruleset", "advance_rollout", "engage_kill_switch", "release_kill_switch"] do
+  defp execute_governed_change(
+         state,
+         %{governed_action: governed_action} = change_request,
+         command
+       )
+       when governed_action in [
+              "publish_ruleset",
+              "advance_rollout",
+              "engage_kill_switch",
+              "release_kill_switch"
+            ] do
     execute_bounded_governed_change(state, governed_action, change_request, command)
   end
 
@@ -2087,14 +2198,19 @@ defmodule Rulestead.Fake do
 
         next_state =
           execution_state
-          |> put_in([:execution_attempts, scheduled_execution.id], replace_attempt(execution_state, updated_attempt))
+          |> put_in(
+            [:execution_attempts, scheduled_execution.id],
+            replace_attempt(execution_state, updated_attempt)
+          )
           |> put_in([:scheduled_executions, scheduled_execution.id], updated_scheduled_execution)
 
         {:ok,
          %{
            scheduled_execution: serialize_scheduled_execution(updated_scheduled_execution),
            execution_result: execution_result,
-           attempts: list_execution_attempts(next_state, scheduled_execution.id) |> Enum.map(&serialize_execution_attempt/1)
+           attempts:
+             list_execution_attempts(next_state, scheduled_execution.id)
+             |> Enum.map(&serialize_execution_attempt/1)
          }, next_state}
 
       {:error, error, execution_state} ->
@@ -2126,7 +2242,10 @@ defmodule Rulestead.Fake do
 
         next_state =
           execution_state
-          |> put_in([:execution_attempts, scheduled_execution.id], replace_attempt(execution_state, updated_attempt))
+          |> put_in(
+            [:execution_attempts, scheduled_execution.id],
+            replace_attempt(execution_state, updated_attempt)
+          )
           |> put_in([:scheduled_executions, scheduled_execution.id], updated_scheduled_execution)
 
         {:error, StoreError.invalid_command(failure_reason), next_state}
@@ -2136,7 +2255,8 @@ defmodule Rulestead.Fake do
   defp perform_scheduled_execution(state, %{change_request_id: change_request_id}, command)
        when is_binary(change_request_id) do
     with {:ok, change_request} <- fetch_change_request_record(state, change_request_id),
-         {:ok, execution_result, next_state} <- execute_governed_change(state, change_request, command) do
+         {:ok, execution_result, next_state} <-
+           execute_governed_change(state, change_request, command) do
       updated_change_request =
         change_request
         |> Map.put(:status, "executed")
@@ -2145,7 +2265,9 @@ defmodule Rulestead.Fake do
         |> Map.put(:updated_at, next_state.now)
 
       audit_command = governance_audit_command(command, updated_change_request, "merged")
-      {audit_event, post_audit_state} = append_audit_event(next_state, audit_command, "change_request.merged", :ok)
+
+      {audit_event, post_audit_state} =
+        append_audit_event(next_state, audit_command, "change_request.merged", :ok)
 
       final_state =
         post_audit_state
@@ -2156,8 +2278,17 @@ defmodule Rulestead.Fake do
     end
   end
 
-  defp perform_scheduled_execution(state, %{governed_action: governed_action} = scheduled_execution, command)
-       when governed_action in ["publish_ruleset", "advance_rollout", "engage_kill_switch", "release_kill_switch"] do
+  defp perform_scheduled_execution(
+         state,
+         %{governed_action: governed_action} = scheduled_execution,
+         command
+       )
+       when governed_action in [
+              "publish_ruleset",
+              "advance_rollout",
+              "engage_kill_switch",
+              "release_kill_switch"
+            ] do
     execute_direct_scheduled_action(state, governed_action, scheduled_execution, command)
   end
 
@@ -2169,7 +2300,11 @@ defmodule Rulestead.Fake do
     version = change_request.command_snapshot["version"]
 
     with {:ok, environment, flag, flag_environment} <-
-           fetch_schedulable_flag_context(state, change_request.resource_key, change_request.environment_key),
+           fetch_schedulable_flag_context(
+             state,
+             change_request.resource_key,
+             change_request.environment_key
+           ),
          {:ok, ruleset_record} <- ensure_publishable_ruleset(flag, environment.key, version),
          {:ok, next_state} <-
            publish_ruleset_record(
@@ -2223,7 +2358,11 @@ defmodule Rulestead.Fake do
 
   defp execute_bounded_governed_change(state, "engage_kill_switch", change_request, command) do
     with {:ok, environment, _flag, flag_environment} <-
-           fetch_schedulable_flag_context(state, change_request.resource_key, change_request.environment_key),
+           fetch_schedulable_flag_context(
+             state,
+             change_request.resource_key,
+             change_request.environment_key
+           ),
          :ok <- ensure_kill_switch_transition(flag_environment, :engage) do
       execute_kill_switch_transition(
         state,
@@ -2245,7 +2384,11 @@ defmodule Rulestead.Fake do
 
   defp execute_bounded_governed_change(state, "release_kill_switch", change_request, command) do
     with {:ok, environment, _flag, flag_environment} <-
-           fetch_schedulable_flag_context(state, change_request.resource_key, change_request.environment_key),
+           fetch_schedulable_flag_context(
+             state,
+             change_request.resource_key,
+             change_request.environment_key
+           ),
          :ok <- ensure_kill_switch_transition(flag_environment, :release) do
       execute_kill_switch_transition(
         state,
@@ -2267,7 +2410,11 @@ defmodule Rulestead.Fake do
 
   defp execute_bounded_governed_change(state, "advance_rollout", change_request, _command) do
     with {:ok, _environment, _flag, flag_environment} <-
-           fetch_schedulable_flag_context(state, change_request.resource_key, change_request.environment_key),
+           fetch_schedulable_flag_context(
+             state,
+             change_request.resource_key,
+             change_request.environment_key
+           ),
          :ok <- ensure_rollout_stage_available(flag_environment, change_request.command_snapshot) do
       {:error, "rollout_stage_conflict", state}
     end
@@ -2277,7 +2424,11 @@ defmodule Rulestead.Fake do
     version = scheduled_execution.command_snapshot["version"]
 
     with {:ok, environment, flag, flag_environment} <-
-           fetch_schedulable_flag_context(state, scheduled_execution.resource_key, scheduled_execution.environment_key),
+           fetch_schedulable_flag_context(
+             state,
+             scheduled_execution.resource_key,
+             scheduled_execution.environment_key
+           ),
          {:ok, ruleset_record} <- ensure_publishable_ruleset(flag, environment.key, version),
          {:ok, next_state} <-
            publish_ruleset_record(
@@ -2311,7 +2462,11 @@ defmodule Rulestead.Fake do
           metadata: %{"version" => ruleset_record.version}
         )
 
-      updated_state = %{post_audit_state | audit_events: [audit_event | post_audit_state.audit_events]}
+      updated_state = %{
+        post_audit_state
+        | audit_events: [audit_event | post_audit_state.audit_events]
+      }
+
       updated_flag = updated_state.flags[to_string(scheduled_execution.resource_key)]
       updated_flag_environment = updated_flag.environments[environment.key]
 
@@ -2332,7 +2487,11 @@ defmodule Rulestead.Fake do
 
   defp execute_direct_scheduled_action(state, "engage_kill_switch", scheduled_execution, command) do
     with {:ok, environment, _flag, flag_environment} <-
-           fetch_schedulable_flag_context(state, scheduled_execution.resource_key, scheduled_execution.environment_key),
+           fetch_schedulable_flag_context(
+             state,
+             scheduled_execution.resource_key,
+             scheduled_execution.environment_key
+           ),
          :ok <- ensure_kill_switch_transition(flag_environment, :engage) do
       execute_kill_switch_transition(
         state,
@@ -2355,7 +2514,11 @@ defmodule Rulestead.Fake do
 
   defp execute_direct_scheduled_action(state, "release_kill_switch", scheduled_execution, command) do
     with {:ok, environment, _flag, flag_environment} <-
-           fetch_schedulable_flag_context(state, scheduled_execution.resource_key, scheduled_execution.environment_key),
+           fetch_schedulable_flag_context(
+             state,
+             scheduled_execution.resource_key,
+             scheduled_execution.environment_key
+           ),
          :ok <- ensure_kill_switch_transition(flag_environment, :release) do
       execute_kill_switch_transition(
         state,
@@ -2378,8 +2541,13 @@ defmodule Rulestead.Fake do
 
   defp execute_direct_scheduled_action(state, "advance_rollout", scheduled_execution, _command) do
     with {:ok, _environment, _flag, flag_environment} <-
-           fetch_schedulable_flag_context(state, scheduled_execution.resource_key, scheduled_execution.environment_key),
-         :ok <- ensure_rollout_stage_available(flag_environment, scheduled_execution.command_snapshot) do
+           fetch_schedulable_flag_context(
+             state,
+             scheduled_execution.resource_key,
+             scheduled_execution.environment_key
+           ),
+         :ok <-
+           ensure_rollout_stage_available(flag_environment, scheduled_execution.command_snapshot) do
       {:error, "rollout_stage_conflict", state}
     else
       {:error, error} -> {:error, error, state}
@@ -2410,7 +2578,8 @@ defmodule Rulestead.Fake do
   end
 
   defp ensure_kill_switch_transition(flag_environment, :engage) do
-    if flag_environment.status == :killswitched or not is_nil(flag_environment.kill_switch_variant_key) do
+    if flag_environment.status == :killswitched or
+         not is_nil(flag_environment.kill_switch_variant_key) do
       {:error, "kill_switch_already_engaged"}
     else
       :ok
@@ -2418,7 +2587,8 @@ defmodule Rulestead.Fake do
   end
 
   defp ensure_kill_switch_transition(flag_environment, :release) do
-    if flag_environment.status == :killswitched or not is_nil(flag_environment.kill_switch_variant_key) do
+    if flag_environment.status == :killswitched or
+         not is_nil(flag_environment.kill_switch_variant_key) do
       :ok
     else
       {:error, "kill_switch_already_released"}
@@ -2428,7 +2598,15 @@ defmodule Rulestead.Fake do
   defp ensure_rollout_stage_available(_flag_environment, _command_snapshot),
     do: {:error, "rollout_stage_conflict"}
 
-  defp execute_kill_switch_transition(state, flag_key, environment_key, flag_environment, direction, command, metadata) do
+  defp execute_kill_switch_transition(
+         state,
+         flag_key,
+         environment_key,
+         flag_environment,
+         direction,
+         command,
+         metadata
+       ) do
     updated_flag_environment =
       case direction do
         :engage ->
@@ -2439,7 +2617,13 @@ defmodule Rulestead.Fake do
 
         :release ->
           flag_environment
-          |> Map.put(:status, if(flag_environment.status == :killswitched, do: :active, else: flag_environment.status || :active))
+          |> Map.put(
+            :status,
+            if(flag_environment.status == :killswitched,
+              do: :active,
+              else: flag_environment.status || :active
+            )
+          )
           |> Map.put(:kill_switch_variant_key, nil)
           |> Map.put(:updated_at, state.now)
       end
@@ -2659,13 +2843,16 @@ defmodule Rulestead.Fake do
 
   defp matches_scheduled_execution_filter?(scheduled_execution, command) do
     matches_environment =
-      is_nil(command.environment_key) or scheduled_execution.environment_key == command.environment_key
+      is_nil(command.environment_key) or
+        scheduled_execution.environment_key == command.environment_key
 
     matches_state =
-      is_nil(command.state) or scheduled_execution.state == normalize_change_request_filter(command.state)
+      is_nil(command.state) or
+        scheduled_execution.state == normalize_change_request_filter(command.state)
 
     matches_action =
-      is_nil(command.action) or scheduled_execution.governed_action == normalize_change_request_filter(command.action)
+      is_nil(command.action) or
+        scheduled_execution.governed_action == normalize_change_request_filter(command.action)
 
     matches_resource_type =
       is_nil(command.resource_type) or scheduled_execution.resource_type == command.resource_type
@@ -2674,16 +2861,20 @@ defmodule Rulestead.Fake do
       is_nil(command.resource_key) or scheduled_execution.resource_key == command.resource_key
 
     matches_actor =
-      is_nil(command.scheduled_by_id) or scheduled_execution.scheduled_by_id == command.scheduled_by_id
+      is_nil(command.scheduled_by_id) or
+        scheduled_execution.scheduled_by_id == command.scheduled_by_id
 
     matches_change_request =
-      is_nil(command.change_request_id) or scheduled_execution.change_request_id == command.change_request_id
+      is_nil(command.change_request_id) or
+        scheduled_execution.change_request_id == command.change_request_id
 
     matches_after =
-      is_nil(command.after) or DateTime.compare(scheduled_execution.scheduled_for, command.after) != :lt
+      is_nil(command.after) or
+        DateTime.compare(scheduled_execution.scheduled_for, command.after) != :lt
 
     matches_before =
-      is_nil(command.before) or DateTime.compare(scheduled_execution.scheduled_for, command.before) != :gt
+      is_nil(command.before) or
+        DateTime.compare(scheduled_execution.scheduled_for, command.before) != :gt
 
     matches_environment and matches_state and matches_action and matches_resource_type and
       matches_resource_key and matches_actor and matches_change_request and matches_after and
@@ -2880,6 +3071,14 @@ defmodule Rulestead.Fake do
       })
     )
 
+    :ok =
+      Notifier.broadcast(
+        Config.notifier(),
+        %{environment_key: environment_key, snapshot_version: version},
+        pubsub: Config.pubsub(),
+        pubsub_topic: Config.pubsub_topic()
+      )
+
     update_in(state.snapshots, fn snapshots ->
       Map.update(snapshots, environment_key, %{version => snapshot}, fn environment_snapshots ->
         Map.put(environment_snapshots, version, snapshot)
@@ -3027,6 +3226,18 @@ defmodule Rulestead.Fake do
     ])
   end
 
+  defp audience_summary(audience) do
+    Map.take(audience, [
+      :id,
+      :key,
+      :description,
+      :definition,
+      :archived_at,
+      :inserted_at,
+      :updated_at
+    ])
+  end
+
   defp flag_environment_summary(flag_environment) do
     Map.take(flag_environment, [
       :id,
@@ -3077,19 +3288,26 @@ defmodule Rulestead.Fake do
     matches_endpoint =
       is_nil(command.endpoint_key) or receipt.endpoint_key == to_string(command.endpoint_key)
 
-    matches_state = is_nil(command.verified_state) or receipt.verified_state == command.verified_state
+    matches_state =
+      is_nil(command.verified_state) or receipt.verified_state == command.verified_state
+
     matches_topic = is_nil(command.topic) or receipt.topic == to_string(command.topic)
 
     matches_provider and matches_endpoint and matches_state and matches_topic
   end
 
   defp matches_destination_filter?(destination, command) do
-    is_nil(command.environment_key) or destination.environment_key == to_string(command.environment_key)
+    is_nil(command.environment_key) or
+      destination.environment_key == to_string(command.environment_key)
   end
 
   defp matches_delivery_filter?(delivery, command) do
-    matches_dest = is_nil(command.destination_id) or delivery.webhook_destination_id == command.destination_id
-    matches_event = is_nil(command.event_id) or delivery.webhook_outbound_event_id == command.event_id
+    matches_dest =
+      is_nil(command.destination_id) or delivery.webhook_destination_id == command.destination_id
+
+    matches_event =
+      is_nil(command.event_id) or delivery.webhook_outbound_event_id == command.event_id
+
     matches_state = is_nil(command.state) or delivery.state == command.state
 
     matches_dest and matches_event and matches_state
@@ -3371,6 +3589,7 @@ defmodule Rulestead.Fake do
   end
 
   defp maybe_filter_flag_type(entries, nil), do: entries
+
   defp maybe_filter_flag_type(entries, flag_type) do
     Enum.filter(entries, &(&1.flag.flag_type == flag_type))
   end

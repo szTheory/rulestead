@@ -31,7 +31,10 @@ defmodule Rulestead.Store.Command do
     end
 
     def normalize_string(nil), do: nil
-    def normalize_string(value) when is_atom(value), do: value |> Atom.to_string() |> normalize_string()
+
+    def normalize_string(value) when is_atom(value),
+      do: value |> Atom.to_string() |> normalize_string()
+
     def normalize_string(value) when is_integer(value), do: Integer.to_string(value)
     def normalize_string(value), do: value
 
@@ -55,8 +58,13 @@ defmodule Rulestead.Store.Command do
     def normalize_approval_requirement(%ApprovalRequirement{} = requirement),
       do: requirement |> ApprovalRequirement.serialize() |> normalize_map()
 
-    def normalize_approval_requirement(requirement) when is_list(requirement) or is_map(requirement),
-      do: requirement |> ApprovalRequirement.new() |> ApprovalRequirement.serialize() |> normalize_map()
+    def normalize_approval_requirement(requirement)
+        when is_list(requirement) or is_map(requirement),
+        do:
+          requirement
+          |> ApprovalRequirement.new()
+          |> ApprovalRequirement.serialize()
+          |> normalize_map()
 
     def normalize_approval_requirement(_requirement), do: %{}
 
@@ -85,7 +93,14 @@ defmodule Rulestead.Store.Command do
 
     defp drop_sensitive_keys(map) do
       map
-      |> Map.drop(["admin_session", "session", "session_data", "session_id", "session_token", "socket"])
+      |> Map.drop([
+        "admin_session",
+        "session",
+        "session_data",
+        "session_id",
+        "session_token",
+        "socket"
+      ])
       |> Map.new(fn
         {key, value} when is_map(value) -> {key, drop_sensitive_keys(value)}
         {key, value} when is_list(value) -> {key, Enum.map(value, &drop_sensitive_value/1)}
@@ -156,6 +171,54 @@ defmodule Rulestead.Store.Command do
         environment_key: environment_key,
         include_ruleset?: Keyword.get(opts, :include_ruleset?, true)
       }
+    end
+  end
+
+  defmodule CompareEnvironments do
+    @moduledoc false
+
+    @enforce_keys [:source_environment_key, :target_environment_key]
+    defstruct [
+      :source_environment_key,
+      :target_environment_key,
+      flag_keys: nil,
+      compare_token: nil
+    ]
+
+    @type t :: %__MODULE__{
+            source_environment_key: String.t(),
+            target_environment_key: String.t(),
+            flag_keys: nil | [String.t()],
+            compare_token: nil | String.t()
+          }
+
+    @spec new(String.t() | atom(), String.t() | atom(), keyword()) :: t()
+    def new(source_environment_key, target_environment_key, opts \\ []) do
+      %__MODULE__{
+        source_environment_key: GovernanceSupport.normalize_string(source_environment_key),
+        target_environment_key: GovernanceSupport.normalize_string(target_environment_key),
+        flag_keys: normalize_flag_keys(Keyword.get(opts, :flag_keys)),
+        compare_token: GovernanceSupport.normalize_string(Keyword.get(opts, :compare_token))
+      }
+    end
+
+    defp normalize_flag_keys(nil), do: nil
+    defp normalize_flag_keys([]), do: nil
+
+    defp normalize_flag_keys(flag_keys) when is_list(flag_keys) do
+      flag_keys
+      |> Enum.map(&GovernanceSupport.normalize_string/1)
+      |> Enum.reject(&is_nil/1)
+      |> Enum.uniq()
+      |> Enum.sort()
+      |> case do
+        [] -> nil
+        normalized -> normalized
+      end
+    end
+
+    defp normalize_flag_keys(flag_key) do
+      normalize_flag_keys([flag_key])
     end
   end
 
@@ -579,7 +642,14 @@ defmodule Rulestead.Store.Command do
 
     alias Rulestead.Store.Command.GovernanceSupport
 
-    @enforce_keys [:action, :environment_key, :resource_type, :resource_key, :command, :approval_requirement]
+    @enforce_keys [
+      :action,
+      :environment_key,
+      :resource_type,
+      :resource_key,
+      :command,
+      :approval_requirement
+    ]
     defstruct [
       :action,
       :environment_key,
@@ -611,13 +681,21 @@ defmodule Rulestead.Store.Command do
       %__MODULE__{
         action: GovernanceSupport.fetch_required!(attrs, :action),
         environment_key:
-          attrs |> GovernanceSupport.fetch_required!(:environment_key) |> GovernanceSupport.normalize_string(),
+          attrs
+          |> GovernanceSupport.fetch_required!(:environment_key)
+          |> GovernanceSupport.normalize_string(),
         resource_type:
-          attrs |> GovernanceSupport.fetch_required!(:resource_type) |> GovernanceSupport.normalize_string(),
+          attrs
+          |> GovernanceSupport.fetch_required!(:resource_type)
+          |> GovernanceSupport.normalize_string(),
         resource_key:
-          attrs |> GovernanceSupport.fetch_required!(:resource_key) |> GovernanceSupport.normalize_string(),
+          attrs
+          |> GovernanceSupport.fetch_required!(:resource_key)
+          |> GovernanceSupport.normalize_string(),
         command:
-          attrs |> GovernanceSupport.fetch_required!(:command) |> GovernanceSupport.normalize_command(),
+          attrs
+          |> GovernanceSupport.fetch_required!(:command)
+          |> GovernanceSupport.normalize_command(),
         approval_requirement:
           attrs
           |> GovernanceSupport.fetch_required!(:approval_requirement)
@@ -790,12 +868,14 @@ defmodule Rulestead.Store.Command do
     @spec new(keyword()) :: t()
     def new(opts \\ []) do
       %__MODULE__{
-        environment_key: Keyword.get(opts, :environment_key) |> GovernanceSupport.normalize_string(),
+        environment_key:
+          Keyword.get(opts, :environment_key) |> GovernanceSupport.normalize_string(),
         action: Keyword.get(opts, :action),
         status: Keyword.get(opts, :status),
         resource_type: Keyword.get(opts, :resource_type) |> GovernanceSupport.normalize_string(),
         resource_key: Keyword.get(opts, :resource_key) |> GovernanceSupport.normalize_string(),
-        submitted_by_id: Keyword.get(opts, :submitted_by_id) |> GovernanceSupport.normalize_string(),
+        submitted_by_id:
+          Keyword.get(opts, :submitted_by_id) |> GovernanceSupport.normalize_string(),
         limit: Keyword.get(opts, :limit, 50),
         after: Keyword.get(opts, :after),
         before: Keyword.get(opts, :before)
@@ -825,7 +905,9 @@ defmodule Rulestead.Store.Command do
 
       %__MODULE__{
         change_request_id:
-          attrs |> GovernanceSupport.fetch_required!(:change_request_id) |> GovernanceSupport.normalize_string(),
+          attrs
+          |> GovernanceSupport.fetch_required!(:change_request_id)
+          |> GovernanceSupport.normalize_string(),
         scheduled_for: GovernanceSupport.fetch_required!(attrs, :scheduled_for),
         actor:
           opts
@@ -848,7 +930,15 @@ defmodule Rulestead.Store.Command do
 
     alias Rulestead.Store.Command.GovernanceSupport
 
-    @enforce_keys [:action, :environment_key, :resource_type, :resource_key, :command, :scheduled_for, :execution_mode]
+    @enforce_keys [
+      :action,
+      :environment_key,
+      :resource_type,
+      :resource_key,
+      :command,
+      :scheduled_for,
+      :execution_mode
+    ]
     defstruct [
       :action,
       :environment_key,
@@ -884,16 +974,26 @@ defmodule Rulestead.Store.Command do
       %__MODULE__{
         action: GovernanceSupport.fetch_required!(attrs, :action),
         environment_key:
-          attrs |> GovernanceSupport.fetch_required!(:environment_key) |> GovernanceSupport.normalize_string(),
+          attrs
+          |> GovernanceSupport.fetch_required!(:environment_key)
+          |> GovernanceSupport.normalize_string(),
         resource_type:
-          attrs |> GovernanceSupport.fetch_required!(:resource_type) |> GovernanceSupport.normalize_string(),
+          attrs
+          |> GovernanceSupport.fetch_required!(:resource_type)
+          |> GovernanceSupport.normalize_string(),
         resource_key:
-          attrs |> GovernanceSupport.fetch_required!(:resource_key) |> GovernanceSupport.normalize_string(),
+          attrs
+          |> GovernanceSupport.fetch_required!(:resource_key)
+          |> GovernanceSupport.normalize_string(),
         command:
-          attrs |> GovernanceSupport.fetch_required!(:command) |> GovernanceSupport.normalize_command(),
+          attrs
+          |> GovernanceSupport.fetch_required!(:command)
+          |> GovernanceSupport.normalize_command(),
         scheduled_for: GovernanceSupport.fetch_required!(attrs, :scheduled_for),
         execution_mode:
-          attrs |> GovernanceSupport.fetch_required!(:execution_mode) |> normalize_execution_mode(),
+          attrs
+          |> GovernanceSupport.fetch_required!(:execution_mode)
+          |> normalize_execution_mode(),
         actor:
           opts
           |> Keyword.get(:actor, GovernanceSupport.fetch(attrs, :actor))
@@ -904,7 +1004,10 @@ defmodule Rulestead.Store.Command do
           |> GovernanceSupport.normalize_string(),
         approval_requirement:
           opts
-          |> Keyword.get(:approval_requirement, GovernanceSupport.fetch(attrs, :approval_requirement))
+          |> Keyword.get(
+            :approval_requirement,
+            GovernanceSupport.fetch(attrs, :approval_requirement)
+          )
           |> GovernanceSupport.normalize_approval_requirement(),
         metadata:
           opts
@@ -913,8 +1016,9 @@ defmodule Rulestead.Store.Command do
       }
     end
 
-    defp normalize_execution_mode(mode) when mode in [:change_request, :policy_bypass, :emergency_bypass],
-      do: mode
+    defp normalize_execution_mode(mode)
+         when mode in [:change_request, :policy_bypass, :emergency_bypass],
+         do: mode
 
     defp normalize_execution_mode(_mode), do: :change_request
   end
@@ -1011,7 +1115,9 @@ defmodule Rulestead.Store.Command do
 
     @spec new(String.t()) :: t()
     def new(scheduled_execution_id) do
-      %__MODULE__{scheduled_execution_id: GovernanceSupport.normalize_string(scheduled_execution_id)}
+      %__MODULE__{
+        scheduled_execution_id: GovernanceSupport.normalize_string(scheduled_execution_id)
+      }
     end
   end
 
@@ -1047,13 +1153,16 @@ defmodule Rulestead.Store.Command do
     @spec new(keyword()) :: t()
     def new(opts \\ []) do
       %__MODULE__{
-        environment_key: Keyword.get(opts, :environment_key) |> GovernanceSupport.normalize_string(),
+        environment_key:
+          Keyword.get(opts, :environment_key) |> GovernanceSupport.normalize_string(),
         state: Keyword.get(opts, :state),
         action: Keyword.get(opts, :action),
         resource_type: Keyword.get(opts, :resource_type) |> GovernanceSupport.normalize_string(),
         resource_key: Keyword.get(opts, :resource_key) |> GovernanceSupport.normalize_string(),
-        scheduled_by_id: Keyword.get(opts, :scheduled_by_id) |> GovernanceSupport.normalize_string(),
-        change_request_id: Keyword.get(opts, :change_request_id) |> GovernanceSupport.normalize_string(),
+        scheduled_by_id:
+          Keyword.get(opts, :scheduled_by_id) |> GovernanceSupport.normalize_string(),
+        change_request_id:
+          Keyword.get(opts, :change_request_id) |> GovernanceSupport.normalize_string(),
         limit: Keyword.get(opts, :limit, 50),
         after: Keyword.get(opts, :after),
         before: Keyword.get(opts, :before)
@@ -1116,28 +1225,48 @@ defmodule Rulestead.Store.Command do
       attrs = Map.new(attrs)
 
       %__MODULE__{
-        provider: attrs |> GovernanceSupport.fetch_required!(:provider) |> GovernanceSupport.normalize_string(),
+        provider:
+          attrs
+          |> GovernanceSupport.fetch_required!(:provider)
+          |> GovernanceSupport.normalize_string(),
         endpoint_key:
-          attrs |> GovernanceSupport.fetch_required!(:endpoint_key) |> GovernanceSupport.normalize_string(),
+          attrs
+          |> GovernanceSupport.fetch_required!(:endpoint_key)
+          |> GovernanceSupport.normalize_string(),
         delivery_id:
-          attrs |> GovernanceSupport.fetch_required!(:delivery_id) |> GovernanceSupport.normalize_string(),
-        attempt_id: attrs |> GovernanceSupport.fetch(:attempt_id) |> GovernanceSupport.normalize_string(),
+          attrs
+          |> GovernanceSupport.fetch_required!(:delivery_id)
+          |> GovernanceSupport.normalize_string(),
+        attempt_id:
+          attrs |> GovernanceSupport.fetch(:attempt_id) |> GovernanceSupport.normalize_string(),
         topic: attrs |> GovernanceSupport.fetch(:topic) |> GovernanceSupport.normalize_string(),
         occurred_at: GovernanceSupport.fetch(attrs, :occurred_at),
         received_at: GovernanceSupport.fetch_required!(attrs, :received_at),
         raw_body_sha256:
-          attrs |> GovernanceSupport.fetch_required!(:raw_body_sha256) |> GovernanceSupport.normalize_string(),
+          attrs
+          |> GovernanceSupport.fetch_required!(:raw_body_sha256)
+          |> GovernanceSupport.normalize_string(),
         verification_metadata:
-          attrs |> GovernanceSupport.fetch(:verification_metadata) |> GovernanceSupport.normalize_map(),
+          attrs
+          |> GovernanceSupport.fetch(:verification_metadata)
+          |> GovernanceSupport.normalize_map(),
         normalized_payload:
-          attrs |> GovernanceSupport.fetch(:normalized_payload) |> GovernanceSupport.normalize_map(),
-        dedupe_key: attrs |> GovernanceSupport.fetch(:dedupe_key) |> GovernanceSupport.normalize_string(),
+          attrs
+          |> GovernanceSupport.fetch(:normalized_payload)
+          |> GovernanceSupport.normalize_map(),
+        dedupe_key:
+          attrs |> GovernanceSupport.fetch(:dedupe_key) |> GovernanceSupport.normalize_string(),
         verified_state: attrs |> GovernanceSupport.fetch_required!(:verified_state),
         rejection_reason:
-          attrs |> GovernanceSupport.fetch(:rejection_reason) |> GovernanceSupport.normalize_string(),
+          attrs
+          |> GovernanceSupport.fetch(:rejection_reason)
+          |> GovernanceSupport.normalize_string(),
         correlation_id:
-          attrs |> GovernanceSupport.fetch_required!(:correlation_id) |> GovernanceSupport.normalize_string(),
-        metadata: attrs |> GovernanceSupport.fetch(:metadata) |> GovernanceSupport.normalize_metadata()
+          attrs
+          |> GovernanceSupport.fetch_required!(:correlation_id)
+          |> GovernanceSupport.normalize_string(),
+        metadata:
+          attrs |> GovernanceSupport.fetch(:metadata) |> GovernanceSupport.normalize_metadata()
       }
     end
   end
@@ -1212,7 +1341,17 @@ defmodule Rulestead.Store.Command do
     alias Rulestead.Store.Command.GovernanceSupport
 
     @enforce_keys [:name, :url, :environment_key]
-    defstruct [:name, :description, :url, :secret_id, :environment_key, :subscriptions, :enabled, :metadata, :actor]
+    defstruct [
+      :name,
+      :description,
+      :url,
+      :secret_id,
+      :environment_key,
+      :subscriptions,
+      :enabled,
+      :metadata,
+      :actor
+    ]
 
     @type t :: %__MODULE__{
             name: String.t(),
@@ -1231,12 +1370,20 @@ defmodule Rulestead.Store.Command do
       attrs = Map.new(attrs)
 
       %__MODULE__{
-        name: attrs |> GovernanceSupport.fetch_required!(:name) |> GovernanceSupport.normalize_string(),
-        description: attrs |> GovernanceSupport.fetch(:description) |> GovernanceSupport.normalize_string(),
-        url: attrs |> GovernanceSupport.fetch_required!(:url) |> GovernanceSupport.normalize_string(),
-        secret_id: attrs |> GovernanceSupport.fetch(:secret_id) |> GovernanceSupport.normalize_string(),
+        name:
+          attrs
+          |> GovernanceSupport.fetch_required!(:name)
+          |> GovernanceSupport.normalize_string(),
+        description:
+          attrs |> GovernanceSupport.fetch(:description) |> GovernanceSupport.normalize_string(),
+        url:
+          attrs |> GovernanceSupport.fetch_required!(:url) |> GovernanceSupport.normalize_string(),
+        secret_id:
+          attrs |> GovernanceSupport.fetch(:secret_id) |> GovernanceSupport.normalize_string(),
         environment_key:
-          attrs |> GovernanceSupport.fetch_required!(:environment_key) |> GovernanceSupport.normalize_string(),
+          attrs
+          |> GovernanceSupport.fetch_required!(:environment_key)
+          |> GovernanceSupport.normalize_string(),
         subscriptions: attrs |> Map.get(:subscriptions, []) |> List.wrap(),
         enabled: Map.get(attrs, :enabled, true),
         metadata: attrs |> Map.get(:metadata, %{}) |> GovernanceSupport.normalize_map(),
@@ -1251,7 +1398,17 @@ defmodule Rulestead.Store.Command do
     alias Rulestead.Store.Command.GovernanceSupport
 
     @enforce_keys [:id]
-    defstruct [:id, :name, :description, :url, :secret_id, :subscriptions, :enabled, :metadata, :actor]
+    defstruct [
+      :id,
+      :name,
+      :description,
+      :url,
+      :secret_id,
+      :subscriptions,
+      :enabled,
+      :metadata,
+      :actor
+    ]
 
     @type t :: %__MODULE__{
             id: String.t(),
@@ -1272,9 +1429,11 @@ defmodule Rulestead.Store.Command do
       %__MODULE__{
         id: GovernanceSupport.normalize_string(id),
         name: attrs |> GovernanceSupport.fetch(:name) |> GovernanceSupport.normalize_string(),
-        description: attrs |> GovernanceSupport.fetch(:description) |> GovernanceSupport.normalize_string(),
+        description:
+          attrs |> GovernanceSupport.fetch(:description) |> GovernanceSupport.normalize_string(),
         url: attrs |> GovernanceSupport.fetch(:url) |> GovernanceSupport.normalize_string(),
-        secret_id: attrs |> GovernanceSupport.fetch(:secret_id) |> GovernanceSupport.normalize_string(),
+        secret_id:
+          attrs |> GovernanceSupport.fetch(:secret_id) |> GovernanceSupport.normalize_string(),
         subscriptions: Map.get(attrs, :subscriptions),
         enabled: Map.get(attrs, :enabled),
         metadata: attrs |> Map.get(:metadata) |> maybe_normalize_map(),
@@ -1326,7 +1485,8 @@ defmodule Rulestead.Store.Command do
     @spec new(keyword()) :: t()
     def new(opts \\ []) do
       %__MODULE__{
-        environment_key: Keyword.get(opts, :environment_key) |> GovernanceSupport.normalize_string(),
+        environment_key:
+          Keyword.get(opts, :environment_key) |> GovernanceSupport.normalize_string(),
         limit: Keyword.get(opts, :limit, 50),
         after: Keyword.get(opts, :after),
         before: Keyword.get(opts, :before),
@@ -1355,7 +1515,8 @@ defmodule Rulestead.Store.Command do
     @spec new(keyword()) :: t()
     def new(opts \\ []) do
       %__MODULE__{
-        destination_id: Keyword.get(opts, :destination_id) |> GovernanceSupport.normalize_string(),
+        destination_id:
+          Keyword.get(opts, :destination_id) |> GovernanceSupport.normalize_string(),
         event_id: Keyword.get(opts, :event_id) |> GovernanceSupport.normalize_string(),
         state: Keyword.get(opts, :state),
         limit: Keyword.get(opts, :limit, 50),
@@ -1394,7 +1555,15 @@ defmodule Rulestead.Store.Command do
     alias Rulestead.Store.Command.GovernanceSupport
 
     @enforce_keys [:flag_key, :environment_key, :rule_id, :winning_variant_id]
-    defstruct [:flag_key, :environment_key, :rule_id, :winning_variant_id, actor: nil, reason: nil, metadata: %{}]
+    defstruct [
+      :flag_key,
+      :environment_key,
+      :rule_id,
+      :winning_variant_id,
+      actor: nil,
+      reason: nil,
+      metadata: %{}
+    ]
 
     @type t :: %__MODULE__{
             flag_key: String.t() | atom(),
@@ -1406,7 +1575,8 @@ defmodule Rulestead.Store.Command do
             metadata: map()
           }
 
-    @spec new(String.t() | atom(), String.t() | atom(), String.t(), String.t() | nil, keyword()) :: t()
+    @spec new(String.t() | atom(), String.t() | atom(), String.t(), String.t() | nil, keyword()) ::
+            t()
     def new(flag_key, environment_key, rule_id, winning_variant_id, opts \\ []) do
       %__MODULE__{
         flag_key: GovernanceSupport.normalize_string(flag_key) || flag_key,
