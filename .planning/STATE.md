@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.5.0
-milestone_name: Advanced Delivery & Distributed Scale
-status: shipped
-last_updated: "2026-05-17T22:04:52Z"
+milestone: v0.6.0
+milestone_name: Multi-environment Sync & Tenancy
+status: planning
+last_updated: "2026-05-18T00:00:00Z"
 last_activity: 2026-05-18
 progress:
-  total_phases: 3
-  completed_phases: 3
-  total_plans: 7
-  completed_plans: 7
-  percent: 100
+  total_phases: 4
+  completed_phases: 0
+  total_plans: 9
+  completed_plans: 0
+  percent: 0
 ---
 
 # State: Rulestead
@@ -20,25 +20,25 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-18)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
-**Current focus:** Planning the next milestone (`v0.6.0`: Multi-environment Sync & Tenancy)
-**Milestone:** v0.5.0
+**Current focus:** Defining and planning `v0.6.0` (`Multi-environment Sync & Tenancy`)
+**Milestone:** v0.6.0
 
 ## Roadmap Reference
 
-See: `.planning/PROJECT.md` for overall roadmap status.
+See: `.planning/ROADMAP.md` for the active milestone roadmap.
 
 ## Current Position
 
-Phase: milestone-close
-Plan: next-milestone-prep
-Status: v0.5.0 shipped; planning handoff to fresh `v0.6.0` requirements and roadmap work
+Phase: milestone-definition
+Plan: roadmap-defined
+Status: `v0.6.0` requirements and roadmap defined; ready to start Phase 22 planning
 Last activity: 2026-05-18
 
 ## Active Requirement Focus
 
-- Define safe environment promotion and diffing workflows for Dev, Staging, and Prod.
-- Scope GitOps-friendly import/export seams that preserve reproducibility and audit clarity.
-- Identify the smallest tenancy helpers that fit the linked-version, two-package release model.
+- Build authored-state compare/apply promotion with dependency and conflict checks.
+- Ship deterministic export/validate/diff/import/promote workflows for GitOps-style use.
+- Add explicit tenant-aware scoping, validation, and bucketing helpers without tenant topology sprawl.
 
 ## Carryover Items
 
@@ -93,6 +93,7 @@ These remain the primary source of truth and should be loaded selectively per ph
 
 ## Latest Activity
 
+- 2026-05-18 — Defined milestone `v0.6.0`, created the active `REQUIREMENTS.md` and `ROADMAP.md`, and queued Phase 22 for planning.
 - 2026-05-18 — Marked milestone `v0.5.0` shipped, refreshed project planning state, and queued `v0.6.0` as the next milestone definition target.
 - 2026-05-17 — Completed 21-02-PLAN.md: added the mounted diagnostics LiveView, explicit current-node health copy, and diagnostics accessibility coverage; verified with the targeted Phase 21 admin tests.
 - 2026-05-17 — Completed 21-01-PLAN.md: added the bounded runtime infrastructure health projection, public diagnostics facade, and additive invalidation telemetry aliases; verified with the targeted Phase 21 backend tests.
@@ -115,4 +116,4 @@ These remain the primary source of truth and should be loaded selectively per ph
 
 ## Next Action
 
-Next: Run `$gsd-new-milestone` to define `v0.6.0` requirements and roadmap slices
+Next: Run `$gsd-plan-phase 22` to start the Environment Compare & Conflict Model work

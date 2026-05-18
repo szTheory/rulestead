@@ -31,6 +31,12 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
   - Focus: Role-Based Access Control, API lockdown, security hardening, and complete reference documentation.
   - Value: A reliable, trusted, "done" system without feature creep that fulfills the Elixir-native platform promise.
 
+## Release Posture
+
+- First public Hex release target: after `v0.6.0`, once multi-environment promotion, GitOps-friendly import/export, and minimal tenancy helpers are shipped and verified.
+- Public distribution shape: publish both sibling packages together on Hex, with `rulestead_admin` documented as the mounted admin companion rather than a standalone control-plane product.
+- General Availability target: `v1.0.0`, when RBAC, API lockdown, and hardening make stronger long-term stability promises credible.
+
 ## Requirements
 
 ### Validated
@@ -69,13 +75,13 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 ### Out of Scope
 
 - Role-based access control, API lockdown, and GA hardening — slated for `v1.0.0`.
-- Publishing or broadening the `rulestead_admin` package beyond the mounted sibling-package design — explicitly disallowed by the current release design.
+- Broadening `rulestead_admin` beyond the mounted sibling-package design into a standalone control-plane product — explicitly disallowed by the current release design.
 
 ## Context
 
 - `v0.1.0` through `v0.5.0` are now archived, covering the core runtime, admin UX, governance workflows, ecosystem seams, experimentation analytics, Redis-backed distribution, and infrastructure diagnostics.
 - `v0.5.0` shipped in a single day across 7 completed plans and 24 product/planning files changed in the final milestone execution range.
-- The next focus is defining `v0.6.0` requirements and roadmap slices for multi-environment sync and tenancy.
+- The next focus is defining `v0.6.0` requirements and roadmap slices for multi-environment sync and tenancy, then using that milestone as the first honest public Hex release candidate.
 - The project remains a linked-version, two-package monorepo.
 
 ## Constraints
@@ -91,6 +97,7 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 | Keep infrastructure health node-local by default and accept peer data only through an explicit host seam | Prevents the admin UI from implying undiscovered cluster health while preserving extension points for larger deployments. | Validated |
 | Emit additive sync/invalidation telemetry aliases instead of renaming shipped runtime events | Preserves compatibility for existing telemetry consumers while satisfying the new observability contract. | Validated |
 | Mount diagnostics inside the existing `rulestead_admin` router macro | Keeps diagnostics inside the current session, policy, and linked-version admin envelope. | Validated |
+| Target the first public Hex release for after `v0.6.0`, not at `v0.1.0` and not only at `v1.0.0` | `v0.6.0` is the first milestone that completes the multi-environment/GitOps story serious adopters will expect, while `v1.0.0` remains the right point for GA-level stability promises. | Active |
 
 ## Milestone Archives
 
@@ -126,4 +133,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-18 after shipping milestone v0.5.0*
+*Last updated: 2026-05-18 after defining milestone v0.6.0 and setting first public release posture*

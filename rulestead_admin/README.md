@@ -2,6 +2,10 @@
 
 `rulestead_admin` is the optional mounted admin package for Rulestead.
 
+The first public Hex release for `rulestead_admin` is planned for after
+`v0.6.0`, and the package will stay documented as the mounted admin companion
+rather than a standalone control-plane product.
+
 This README documents the host-facing contract only. Internal LiveView modules,
 socket assigns, CSS/DOM structure, and other implementation details are not
 part of the public package promise.

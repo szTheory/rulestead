@@ -8,6 +8,8 @@ without mounting the admin UI.
 
 ## Install
 
+The first public Hex release for `rulestead` is planned for after `v0.6.0`.
+
 ```elixir
 defp deps do
   [

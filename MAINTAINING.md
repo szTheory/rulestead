@@ -14,6 +14,14 @@ The release machine is intentionally semi-automated:
 - One explicit maintainer approval in the protected `hex-publish`
   environment is required before `HEX_API_KEY` is exposed to a publish job.
 - Publish order is fixed: `rulestead` first, then `rulestead_admin`.
+- The first public Hex release target is **after `v0.6.0`**, with **`v1.0.0`**
+  reserved for GA hardening and stronger stability promises.
+
+The sibling-package publish decision is intentional:
+
+- `rulestead_admin` is published on Hex alongside `rulestead`
+- `rulestead_admin` remains the mounted admin companion, not a standalone
+  control-plane product
 
 ## Branch protection settings
 
@@ -64,7 +72,7 @@ with the minimum write scope needed for the workflow.
 
 ## Gated publish choreography
 
-The expected v0.1.0 release path is:
+The expected first public Hex release path after `v0.6.0` is:
 
 1. Merge the Release Please PR for the intended version.
 2. Let `release-please.yml` create the linked tags and dispatch
@@ -78,10 +86,9 @@ The expected v0.1.0 release path is:
 7. Hand off to the separate post-publish verification wave. Do not claim
    live artifact proof before that follow-on verification completes.
 
-The preflight rerun matters because the 2026-04-24 Phase 7 verification
-work closed the actor-bearing simulation contract in `07-11`; release
-readiness still has to re-run that sibling-package slice instead of trusting
-stale reports.
+The preflight rerun matters because publish readiness must re-run the
+sibling-package release slice instead of trusting stale reports from earlier
+milestones.
 
 ## Manual recovery path
 
@@ -112,7 +119,7 @@ After `publish-hex.yml` completes and both sibling packages are visible on Hex,
 transition immediately into the live post-publish verification wave:
 
 ```bash
-bash scripts/ci/verify_published_release.sh 0.1.0
+bash scripts/ci/verify_published_release.sh <version>
 ```
 
 That wrapper is the canonical REL-03 / REL-04 entrypoint. It first confirms
@@ -136,6 +143,22 @@ Treat any failure here as a release blocker, not informational drift. A failed
 documented install or mount contract yet. A failed `verify.release_parity` run
 means the Hex tarball differs from the tagged source and must be investigated
 before the release can be considered verified.
+
+## Timing expectations
+
+Do not use the existence of the release workflows alone as the signal to ship.
+
+The first public Hex release should happen only after:
+
+1. `v0.6.0` is shipped and verified.
+2. The multi-environment compare/promote and import/export seams are documented
+   well enough for early adopters to use honestly.
+3. The mounted-admin posture is clear in `README.md`, `rulestead/README.md`,
+   and `rulestead_admin/README.md`.
+4. The post-publish verification wave is ready to prove both sibling packages
+   from live Hex artifacts.
+
+`v1.0.0` remains the point for GA framing: RBAC, API lockdown, and hardening.
 
 The recurring drift monitor lives in `.github/workflows/verify-published-release.yml`.
 It reuses the same shell entrypoint on a daily cron and on manual dispatch,

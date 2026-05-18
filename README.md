@@ -17,7 +17,9 @@ engineering application state.
 
 ## 15-minute quickstart
 
-If you want the runtime plus the admin UI, add both packages:
+The first public Hex release is planned for **after `v0.6.0`**. Once those
+packages are live on Hex, if you want the runtime plus the admin UI, add both
+packages:
 
 ```elixir
 defp deps do
@@ -123,7 +125,9 @@ itself or integrating it into a larger release process.
 
 ## Versioning and upgrade posture
 
-Rulestead is shipping its first public `v0.1.0` release. Expect additive docs
-and patch-level fixes inside `v0.1.x`; treat minor bumps before `1.0` as the
-window where package contracts can still tighten. The current guidance lives in
+Rulestead is targeting its first public Hex release **after `v0.6.0`**. Treat
+the first public `0.x` line as an early-adopter train: additive docs and
+patch-level fixes should stay cheap, and minor bumps before `1.0` remain the
+window where package contracts can still tighten. `v1.0.0` is the intended GA
+line. The current guidance lives in
 [Upgrading](guides/introduction/upgrading.md).
