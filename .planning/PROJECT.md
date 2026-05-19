@@ -8,9 +8,9 @@ Rulestead is a batteries-included, Elixir-native feature-flag and remote-config 
 
 - `v0.5.0` shipped on 2026-05-17 across Phases 19-21.
 - Runtime deployments can now use Redis-backed snapshot distribution, PubSub invalidation, and mounted infrastructure diagnostics without breaking the linked-version two-package release model.
-- The next planning target is `v0.6.0` for multi-environment sync, GitOps-friendly promotion flows, and explicit tenancy helpers.
+- `v0.6.0` is now in active execution: authored-state compare and governed promotion apply are complete, with GitOps manifests and tenancy helpers remaining.
 
-## Current Milestone: v0.6.0 (Planning)
+## Current Milestone: v0.6.0 (In Progress)
 
 **Previous Milestone (v0.5.0) Complete:** Rulestead now supports Redis-backed runtime state, notifier-driven cross-node invalidation, and operator-visible infrastructure health for distributed deployments.
 
@@ -59,16 +59,15 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 - ✓ Add Redis-backed runtime storage and degraded-read fallbacks for distributed deployments (`STO-01`, `STO-02`) — `v0.5.0`
 - ✓ Stream invalidation across nodes through the notifier seam with first-class PubSub wiring (`INV-01`, `INV-02`) — `v0.5.0`
 - ✓ Surface infrastructure health and additive sync telemetry for operators (`INF-01`, `INF-02`) — `v0.5.0`
+- ✓ Compare authored environment state and execute governed whole-flag promotion, including immutable history and re-apply (`PROM-01` to `PROM-04`) — `Validated in Phase 22-23`
 
 ### Active
 
-- Promote rulesets safely across Dev, Staging, and Prod with explicit diffing and approval-friendly workflows.
 - Import and export environment state in a GitOps-friendly format that remains reproducible in CI.
 - Add explicit tenancy helpers that preserve the current sibling-package release design without turning `rulestead_admin` into a standalone product.
 
 ## Next Milestone Goals
 
-- Define environment promotion, drift detection, and comparison workflows for `v0.6.0`.
 - Establish import/export seams that fit host-app release engineering and audit expectations.
 - Add tenant-aware primitives only where they strengthen the current linked-version platform model.
 
@@ -81,7 +80,7 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 
 - `v0.1.0` through `v0.5.0` are now archived, covering the core runtime, admin UX, governance workflows, ecosystem seams, experimentation analytics, Redis-backed distribution, and infrastructure diagnostics.
 - `v0.5.0` shipped in a single day across 7 completed plans and 24 product/planning files changed in the final milestone execution range.
-- The next focus is defining `v0.6.0` requirements and roadmap slices for multi-environment sync and tenancy, then using that milestone as the first honest public Hex release candidate.
+- The current focus is finishing `v0.6.0` by adding GitOps manifest workflows and minimal tenancy helpers on top of the now-verified compare and governed promotion foundation.
 - The project remains a linked-version, two-package monorepo.
 
 ## Constraints
@@ -97,6 +96,8 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 | Keep infrastructure health node-local by default and accept peer data only through an explicit host seam | Prevents the admin UI from implying undiscovered cluster health while preserving extension points for larger deployments. | Validated |
 | Emit additive sync/invalidation telemetry aliases instead of renaming shipped runtime events | Preserves compatibility for existing telemetry consumers while satisfying the new observability contract. | Validated |
 | Mount diagnostics inside the existing `rulestead_admin` router macro | Keeps diagnostics inside the current session, policy, and linked-version admin envelope. | Validated |
+| Reuse the existing governed-action envelope for protected-environment promotion | Keeps approvals, scheduling, audit linkage, and operator review on one path instead of splitting promotion into a parallel workflow. | Validated |
+| Model re-apply-version as a fresh forward promotion from immutable history | Preserves authored-truth semantics and avoids hidden rollback shortcuts that drift from compare/apply behavior. | Validated |
 | Target the first public Hex release for after `v0.6.0`, not at `v0.1.0` and not only at `v1.0.0` | `v0.6.0` is the first milestone that completes the multi-environment/GitOps story serious adopters will expect, while `v1.0.0` remains the right point for GA-level stability promises. | Active |
 
 ## Milestone Archives
@@ -133,4 +134,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-18 after defining milestone v0.6.0 and setting first public release posture*
+*Last updated: 2026-05-18 after Phase 23 verification*

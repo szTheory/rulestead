@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v0.6.0
 milestone_name: Multi-environment Sync & Tenancy
-status: planning
-last_updated: "2026-05-18T00:00:00Z"
-last_activity: 2026-05-18
+status: in_progress
+last_updated: "2026-05-19T13:52:42Z"
+last_activity: 2026-05-19
 progress:
   total_phases: 4
-  completed_phases: 0
-  total_plans: 9
-  completed_plans: 0
-  percent: 0
+  completed_phases: 3
+  total_plans: 13
+  completed_plans: 11
+  percent: 85
 ---
 
 # State: Rulestead
@@ -20,7 +20,7 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-18)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
-**Current focus:** Defining and planning `v0.6.0` (`Multi-environment Sync & Tenancy`)
+**Current focus:** Phase 24 is complete; Phase 25 (`Tenancy Helpers & Validation`) planning is the next active slice for `v0.6.0` (`Multi-environment Sync & Tenancy`)
 **Milestone:** v0.6.0
 
 ## Roadmap Reference
@@ -29,16 +29,16 @@ See: `.planning/ROADMAP.md` for the active milestone roadmap.
 
 ## Current Position
 
-Phase: milestone-definition
-Plan: roadmap-defined
-Status: `v0.6.0` requirements and roadmap defined; ready to start Phase 22 planning
-Last activity: 2026-05-18
+Phase: 25-tenancy-helpers-validation
+Plan: pending
+Status: Phase 24 execution and verification are complete; Phase 25 planning is the next milestone slice
+Last activity: 2026-05-19
 
 ## Active Requirement Focus
 
-- Build authored-state compare/apply promotion with dependency and conflict checks.
 - Ship deterministic export/validate/diff/import/promote workflows for GitOps-style use.
 - Add explicit tenant-aware scoping, validation, and bucketing helpers without tenant topology sprawl.
+- Preserve the mounted admin and linked-version sibling-package release posture while Phase 24 and 25 land.
 
 ## Carryover Items
 
@@ -76,6 +76,12 @@ These remain the primary source of truth and should be loaded selectively per ph
 - **21-02**: Mounted diagnostics inside the existing `rulestead_admin` router macro so the screen inherits the current session and policy envelope.
 - **21-02**: Kept the diagnostics page explicitly current-node by default and rendered missing-snapshot states as critical operator copy instead of implying peer health.
 
+- **23-02**: Reused the existing governed-action approval and policy surfaces for protected-environment promotion instead of introducing a parallel promotion workflow.
+- **23-03**: Executed approved and scheduled governed promotion from the stored reviewed bundle snapshot instead of recomputing source intent later.
+- **23-04**: Modeled re-apply-version as a fresh forward promotion from immutable environment-version history rather than a rollback shortcut.
+- **23-05**: Kept compare, change-request, and schedule routes as the mounted operator entrypoints for promotion and re-apply.
+- **24-04**: Reused the existing governed promotion change-request path for protected-target CLI promote apply rather than adding a direct CLI bypass.
+
 ## Execution Metrics
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
@@ -90,9 +96,30 @@ These remain the primary source of truth and should be loaded selectively per ph
 | 19 | 02 | 20m | 3 | 5 |
 | 21 | 01 | 35m | 2 | 8 |
 | 21 | 02 | 5min | 2 | 5 |
+| 23 | 01 | 2h10m | 2 | 12 |
+| 23 | 02 | 35m | 1 | 9 |
+| 23 | 03 | 1h20m | 1 | 4 |
+| 23 | 04 | 15m | 1 | 5 |
+| 23 | 05 | 20m | 2 | 8 |
+| 24 | 01 | 45m | 2 | 10 |
+| 24 | 02 | 35m | 2 | 10 |
+| 24 | 03 | 1h10m | 2 | 8 |
+| 24 | 04 | 40m | 2 | 5 |
 
 ## Latest Activity
 
+- 2026-05-19 — Verified and closed Phase 24: targeted export/validate/diff/import/promote suites passed, `24-VERIFICATION.md` was added, and roadmap/state now mark GitOps Manifests & CLI Surface complete.
+- 2026-05-19 — Completed 24-04-PLAN.md: added saved-plan `mix rulestead.promote`, public promote plan/apply facade helpers, and governed protected-target apply reuse.
+- 2026-05-19 — Revised Phase 24 planning after verification: split the original import/promote CLI slice into `24-03` (saved import plan artifact and adapter parity) and `24-04` (promote CLI apply plus governed automation reuse) to keep adapter seams explicit and reduce execution density.
+- 2026-05-19 — Added `24-VALIDATION.md` and reran plan verification; Phase 24 is now execution-ready with validated four-plan coverage for export, validate/diff, import, and promote.
+- 2026-05-18 — Verified and closed Phase 23: targeted `rulestead` and `rulestead_admin` promotion suites passed, and roadmap/requirements state now mark Governed Promotion Apply complete.
+- 2026-05-18 — Completed 23-05-PLAN.md: verified mounted compare, change-request, and schedule promotion handoff plus explicit re-apply-version deep links.
+- 2026-05-18 — Completed 23-04-PLAN.md: verified promotion audit linkage and backend re-apply-version support against targeted regression coverage.
+- 2026-05-18 — Completed 23-03-PLAN.md: wired stored-snapshot governed promotion execution and schedule-time revalidation.
+- 2026-05-18 — Completed 23-02-PLAN.md: added first-class governed promotion action vocabulary, persistence support, and policy coverage.
+- 2026-05-18 — Completed 23-01-PLAN.md: shipped transactional promotion apply, immutable environment versions, and adapter parity coverage.
+- 2026-05-18 — Synced planning state after Phase 22 completion so Phase 23 can execute against the active roadmap boundary.
+- 2026-05-18 — Completed Phase 22 execution: shipped the authored-state compare contract, mounted compare routes, and Phase 22 summary artifacts.
 - 2026-05-18 — Defined milestone `v0.6.0`, created the active `REQUIREMENTS.md` and `ROADMAP.md`, and queued Phase 22 for planning.
 - 2026-05-18 — Marked milestone `v0.5.0` shipped, refreshed project planning state, and queued `v0.6.0` as the next milestone definition target.
 - 2026-05-17 — Completed 21-02-PLAN.md: added the mounted diagnostics LiveView, explicit current-node health copy, and diagnostics accessibility coverage; verified with the targeted Phase 21 admin tests.
@@ -116,4 +143,4 @@ These remain the primary source of truth and should be loaded selectively per ph
 
 ## Next Action
 
-Next: Run `$gsd-plan-phase 22` to start the Environment Compare & Conflict Model work
+Next: Run `$gsd-plan-phase 25` to plan Tenancy Helpers & Validation

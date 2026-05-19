@@ -7,10 +7,10 @@
 
 ### Promotion & Diffing (PROM)
 
-- [ ] **PROM-01**: Operator can compare authored flag configuration between a source and target environment before making changes.
-- [ ] **PROM-02**: Promotion preview reports dependency gaps, target drift, and conflict conditions before any target mutation occurs.
-- [ ] **PROM-03**: Operator can promote whole-flag environment configuration from a source environment to a target environment while preserving authored intent rather than cloning runtime snapshots.
-- [ ] **PROM-04**: Promotions into protected environments flow through existing governance, audit, and approval surfaces instead of bypassing them.
+- [x] **PROM-01**: Operator can compare authored flag configuration between a source and target environment before making changes.
+- [x] **PROM-02**: Promotion preview reports dependency gaps, target drift, and conflict conditions before any target mutation occurs.
+- [x] **PROM-03**: Operator can promote whole-flag environment configuration from a source environment to a target environment while preserving authored intent rather than cloning runtime snapshots.
+- [x] **PROM-04**: Promotions into protected environments flow through existing governance, audit, and approval surfaces instead of bypassing them.
 
 ### GitOps Manifests (MAN)
 
@@ -49,10 +49,10 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PROM-01 | Phase 22 | Pending |
-| PROM-02 | Phase 22 | Pending |
-| PROM-03 | Phase 23 | Pending |
-| PROM-04 | Phase 23 | Pending |
+| PROM-01 | Phase 22 | Complete |
+| PROM-02 | Phase 22 | Complete |
+| PROM-03 | Phase 23 | Complete |
+| PROM-04 | Phase 23 | Complete |
 | MAN-01 | Phase 24 | Pending |
 | MAN-02 | Phase 24 | Pending |
 | MAN-03 | Phase 24 | Pending |
@@ -68,4 +68,4 @@
 
 ---
 *Requirements defined: 2026-05-18*
-*Last updated: 2026-05-18 after v0.6.0 milestone definition*
+*Last updated: 2026-05-18 after Phase 23 verification*
