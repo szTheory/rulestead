@@ -26,5 +26,12 @@ config :rulestead, :host,
       context_key: "rulestead_context",
       middlewares: [{Rulestead.Oban.Middleware, []}]
     ],
-    runtime: [api: Rulestead.Runtime]
+    runtime: [
+      api: Rulestead.Runtime,
+      notifier: Rulestead.Runtime.Notifier.PhoenixPubSub,
+      health_peer_provider: nil,
+      pubsub: HostApp.PubSub,
+      pubsub_topic: "rulestead:runtime_snapshot"
+    ],
+    tenancy: [module: Rulestead.Tenancy.SingleTenant]
   ]
