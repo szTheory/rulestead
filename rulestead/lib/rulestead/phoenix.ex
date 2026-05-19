@@ -96,7 +96,7 @@ defmodule Rulestead.Phoenix do
       %{}
       |> maybe_put(:actor, host, opts, :actor, resolver)
       |> maybe_put(:targeting_key, resolve_targeting_key(host, opts, resolver))
-      |> maybe_put(:tenant_key, host, opts, :tenant_key, resolver)
+      |> maybe_put(:tenant_key, resolve_tenant_key(host, opts, resolver))
       |> maybe_put(:environment, host, opts, :environment, resolver)
       |> maybe_put(:attributes, host, opts, :attributes, resolver)
       |> maybe_put(:request_id, host, opts, :request_id, resolver)
@@ -109,7 +109,7 @@ defmodule Rulestead.Phoenix do
     %{}
     |> maybe_put(:actor, resolve_opt(conn, opts, :actor, &source_value/3))
     |> maybe_put(:targeting_key, resolve_targeting_key(conn, opts, &source_value/3))
-    |> maybe_put(:tenant_key, resolve_opt(conn, opts, :tenant_key, &source_value/3))
+    |> maybe_put(:tenant_key, resolve_tenant_key(conn, opts, &source_value/3))
     |> maybe_put(:environment, resolve_opt(conn, opts, :environment, &source_value/3))
     |> maybe_put(:attributes, resolve_opt(conn, opts, :attributes, &source_value/3))
     |> maybe_put(:request_id, resolve_opt(conn, opts, :request_id, &source_value/3))
@@ -137,6 +137,15 @@ defmodule Rulestead.Phoenix do
     opts
     |> Keyword.get(:targeting_key_sources, @default_targeting_key_sources)
     |> Enum.find_value(fn source -> resolver.(host, source, opts) end)
+  end
+
+  defp resolve_tenant_key(host, opts, resolver) do
+    explicit = resolve_opt(host, opts, :tenant_key, resolver)
+    if explicit do
+      explicit
+    else
+      Rulestead.Tenancy.resolve_tenant(host)
+    end
   end
 
   defp resolve_opt(host, opts, key, resolver) do

@@ -31,7 +31,14 @@ defmodule Rulestead.Config do
       middlewares: [{Rulestead.Oban.Middleware, []}]
     ],
     runtime: [
-      api: Rulestead.Runtime
+      api: Rulestead.Runtime,
+      notifier: Rulestead.Runtime.Notifier.PhoenixPubSub,
+      health_peer_provider: nil,
+      pubsub: nil,
+      pubsub_topic: "rulestead:runtime_snapshot"
+    ],
+    tenancy: [
+      module: Rulestead.Tenancy.SingleTenant
     ]
   ]
 
@@ -70,7 +77,21 @@ defmodule Rulestead.Config do
       type: :keyword_list,
       required: true,
       keys: [
-        api: [type: :atom, required: true]
+        api: [type: :atom, required: true],
+        notifier: [type: :atom, required: true],
+        health_peer_provider: [
+          type: {:custom, __MODULE__, :validate_optional_module, []},
+          required: false
+        ],
+        pubsub: [type: {:custom, __MODULE__, :validate_pubsub, []}, required: false],
+        pubsub_topic: [type: :string, required: true]
+      ]
+    ],
+    tenancy: [
+      type: :keyword_list,
+      required: true,
+      keys: [
+        module: [type: :atom, required: true]
       ]
     ]
   ]
@@ -120,6 +141,14 @@ defmodule Rulestead.Config do
       end
     end)
   end
+
+  def validate_pubsub(nil), do: {:ok, nil}
+  def validate_pubsub(pubsub) when is_atom(pubsub), do: {:ok, pubsub}
+  def validate_pubsub(_pubsub), do: {:error, "expected nil or a module atom"}
+
+  def validate_optional_module(nil), do: {:ok, nil}
+  def validate_optional_module(module) when is_atom(module), do: {:ok, module}
+  def validate_optional_module(_module), do: {:error, "expected nil or a module atom"}
 
   defp normalize_keyword(value) when is_list(value), do: value
   defp normalize_keyword(_value), do: []

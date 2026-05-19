@@ -60,6 +60,34 @@ defmodule Rulestead.EvaluatorPropertyTest do
     end
   end
 
+  property "tenant-aware bucketing remains deterministic" do
+    check all tenant_key <- string(:ascii, min_length: 1, max_length: 24) do
+      payload = %{
+        flag: %{key: "tenant-flag", default_value: %{value: false}},
+        environment: %{key: "test"},
+        active_ruleset: %{
+          version: 1,
+          salt: "tenant-salt",
+          rules: [
+            %{
+              key: "tenant-rule",
+              strategy: :percentage_rollout,
+              value: %{value: true},
+              rollout: %{bucket_by: :tenant, percentage: 50, salt: "rollout-salt"}
+            }
+          ]
+        }
+      }
+
+      context = %Rulestead.Context{tenant_key: tenant_key}
+      
+      assert {:ok, result1} = Rulestead.Evaluator.evaluate(payload, context)
+      assert {:ok, result2} = Rulestead.Evaluator.evaluate(payload, context)
+      
+      assert result1.value == result2.value
+    end
+  end
+
   defp payload_for([first_value, second_value]) do
     %{
       flag: %{key: "precedence-flag", default_value: %{value: false}},

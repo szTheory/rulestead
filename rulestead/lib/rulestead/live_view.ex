@@ -66,7 +66,7 @@ defmodule Rulestead.LiveView do
     %{}
     |> maybe_put(:actor, resolve_opt(socket, opts, :actor))
     |> maybe_put(:targeting_key, resolve_targeting_key(socket, opts))
-    |> maybe_put(:tenant_key, resolve_opt(socket, opts, :tenant_key))
+    |> maybe_put(:tenant_key, resolve_tenant_key(socket, opts))
     |> maybe_put(:environment, resolve_opt(socket, opts, :environment))
     |> maybe_put(:attributes, resolve_opt(socket, opts, :attributes))
     |> maybe_put(:request_id, resolve_opt(socket, opts, :request_id))
@@ -165,6 +165,15 @@ defmodule Rulestead.LiveView do
       {:assign, :targeting_key}
     ])
     |> Enum.find_value(fn source -> socket_source(socket, source, opts) end)
+  end
+
+  defp resolve_tenant_key(socket, opts) do
+    explicit = resolve_opt(socket, opts, :tenant_key)
+    if explicit do
+      explicit
+    else
+      Rulestead.Tenancy.resolve_tenant(socket)
+    end
   end
 
   defp resolve_opt(socket, opts, key) do

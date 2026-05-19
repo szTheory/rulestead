@@ -348,19 +348,27 @@ defmodule Rulestead.Evaluator do
 
   defp choose_variant(_variants, _bucket), do: :error
 
-  defp resolve_bucket_identity(context, :subject), do: present(context.targeting_key)
-  defp resolve_bucket_identity(context, "subject"), do: present(context.targeting_key)
-  defp resolve_bucket_identity(context, :tenant), do: present(context.tenant_key)
-  defp resolve_bucket_identity(context, "tenant"), do: present(context.tenant_key)
-  defp resolve_bucket_identity(context, :session), do: present(context.session_id)
-  defp resolve_bucket_identity(context, "session"), do: present(context.session_id)
+  defp resolve_bucket_identity(context, bucket_by) do
+    default_identity =
+      case bucket_by do
+        b when b in [:subject, "subject"] -> context.targeting_key
+        b when b in [:tenant, "tenant"] -> context.tenant_key
+        b when b in [:session, "session"] -> context.session_id
+        b when b in [:account, "account"] ->
+          resolve_nested_map(context.attributes, ["account_key"]) ||
+            resolve_nested_map(context.attributes, ["account_id"])
+        _ ->
+          context.targeting_key
+      end
+      |> stringify_identity()
 
-  defp resolve_bucket_identity(context, :account) do
-    present(resolve_nested_map(context.attributes, ["account_key"]) || resolve_nested_map(context.attributes, ["account_id"]))
+    identity = Rulestead.Tenancy.compose_bucket_identity(context, bucket_by, default_identity)
+    present(identity)
   end
 
-  defp resolve_bucket_identity(context, "account"), do: resolve_bucket_identity(context, :account)
-  defp resolve_bucket_identity(context, _bucket_by), do: present(context.targeting_key)
+  defp stringify_identity(nil), do: nil
+  defp stringify_identity(""), do: nil
+  defp stringify_identity(value), do: stringify(value)
 
   defp present(nil), do: {:error, :missing_identity}
   defp present(""), do: {:error, :missing_identity}

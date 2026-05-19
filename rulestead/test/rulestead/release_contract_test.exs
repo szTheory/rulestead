@@ -127,11 +127,12 @@ defmodule Rulestead.ReleaseContractTest do
 
   @optional_metadata_keys [:operation, :source, :refresh_status, :audit_action, :error_kind]
 
-  @config_top_level_keys [:environment_key, :plug, :live_view, :oban, :runtime]
+  @config_top_level_keys [:environment_key, :plug, :live_view, :oban, :runtime, :tenancy]
   @plug_keys [:context_assign, :targeting_key_sources]
   @live_view_keys [:context_assign, :targeting_key_sources, :assign_flags_mode]
   @oban_keys [:enabled, :context_key, :middlewares]
-  @runtime_keys [:api]
+  @runtime_keys [:api, :notifier, :health_peer_provider, :pubsub, :pubsub_topic]
+  @tenancy_keys [:module]
 
   test "api stability guide states the explicit public and private boundary" do
     contract = File.read!(@api_stability_path)
@@ -177,7 +178,18 @@ defmodule Rulestead.ReleaseContractTest do
     assert MapSet.subset?(expected_telemetry, actual_telemetry)
 
     assert Enum.sort(Config.__info__(:functions)) ==
-             [defaults: 0, load: 0, load: 1, schema: 0, validate: 0, validate: 1, validate!: 0, validate!: 1]
+             [
+               defaults: 0,
+               load: 0,
+               load: 1,
+               schema: 0,
+               validate: 0,
+               validate: 1,
+               validate!: 0,
+               validate!: 1,
+               validate_optional_module: 1,
+               validate_pubsub: 1
+             ]
 
     expected_store = MapSet.new(@store_callbacks)
     actual_store = MapSet.new(Store.behaviour_info(:callbacks))
@@ -198,6 +210,7 @@ defmodule Rulestead.ReleaseContractTest do
     assert Error.leaf_types() == [
              :flag_not_found,
              :environment_not_found,
+             :snapshot_not_found,
              :ruleset_not_found,
              :missing_targeting_key,
              :repo_not_configured,
@@ -260,6 +273,7 @@ defmodule Rulestead.ReleaseContractTest do
     assert nested_schema_keys(schema, :live_view) == @live_view_keys
     assert nested_schema_keys(schema, :oban) == @oban_keys
     assert nested_schema_keys(schema, :runtime) == @runtime_keys
+    assert nested_schema_keys(schema, :tenancy) == @tenancy_keys
 
     assert schema
            |> nested_schema(:live_view)
