@@ -34,6 +34,8 @@ defmodule Rulestead.Promotion.Compare do
         normalize_string(attrs[:source_environment_key] || attrs["source_environment_key"]),
       target_environment_key:
         normalize_string(attrs[:target_environment_key] || attrs["target_environment_key"]),
+      tenant_key:
+        normalize_string(attrs[:tenant_key] || attrs["tenant_key"]),
       compared_flag_keys:
         normalize_string_list(attrs[:compared_flag_keys] || attrs["compared_flag_keys"]),
       dependency_closure_keys:
@@ -84,6 +86,7 @@ defmodule Rulestead.Promotion.Compare do
       compare_token: attrs[:compare_token] || attrs["compare_token"],
       compare_schema_version: @schema_version,
       overall_status: overall_status(all_findings, flags),
+      tenant_key: attrs[:tenant_key] || attrs["tenant_key"],
       requested_flag_keys:
         normalize_string_list(attrs[:requested_flag_keys] || attrs["requested_flag_keys"]),
       dependency_closure_keys:
@@ -185,6 +188,7 @@ defmodule Rulestead.Promotion.Compare do
           get_environment_key(attrs[:source_environment] || attrs["source_environment"]),
         target_environment_key:
           get_environment_key(attrs[:target_environment] || attrs["target_environment"]),
+        tenant_key: attrs[:tenant_key] || attrs["tenant_key"],
         compared_flag_keys: scope_keys,
         dependency_closure_keys: dependency_closure_keys,
         source_fingerprint: source_fingerprint,

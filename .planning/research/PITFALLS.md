@@ -1,37 +1,39 @@
-# Domain Pitfalls
+# Domain Pitfalls: v1.0.0 (GA)
 
-**Domain:** Feature Management Platform (SaaS)
-**Researched:** 2026-05-14
+**Domain:** Feature Management Platform
+**Researched:** 2026-05-17
 
 ## Critical Pitfalls
 
-Mistakes that cause rewrites or major issues.
+Mistakes that cause rewrites or major issues upon GA release.
 
-### Pitfall 1: Zombie Flags (Technical Debt)
-**What goes wrong:** Teams use flags for a 2-week rollout but leave the `if/else` logic in the codebase for 3 years. The codebase becomes a combinatorial explosion of dead logic paths.
-**Why it happens:** No operational visibility into which flags are 100% rolled out and no longer needed.
-**Consequences:** Massive cognitive load for developers, brittle tests, and potential outages if an old flag is accidentally flipped.
-**Prevention:** Build Stale Flag Detection and Code References. Make flag retirement a first-class citizen in the Admin UI.
-**Detection:** "Potentially Stale" lifecycle states in the UI; automated GitHub issues.
+### Pitfall 1: Leaking Internal APIs
+**What goes wrong:** Developers in the host application start calling `Rulestead.Engine.evaluate_ast/2` because it's public, even though it wasn't meant to be part of the stable API.
+**Why it happens:** Forgetting to add `@moduledoc false` to internal modules before tagging v1.0.0.
+**Consequences:** In v1.1.0, you rewrite the engine, breaking the host application and violating SemVer expectations.
+**Prevention:** Strict review of `mix docs` output. If a module shouldn't be guaranteed for 10 years, hide it.
+
+### Pitfall 2: Dependency Conflicts in Host Apps
+**What goes wrong:** Rulestead v1.0.0 requires `{:ecto, "~> 3.11.0"}` or `{:permit, "~> 1.0"}`.
+**Why it happens:** Adding heavy, opinionated dependencies for features like RBAC.
+**Consequences:** Users cannot install Rulestead because their app relies on an older/newer version of that dependency.
+**Prevention:** Keep dependencies to the absolute bare minimum (`ecto`, `phoenix`, `jason`). Implement RBAC using standard Elixir pattern matching instead of a framework.
 
 ## Moderate Pitfalls
 
-### Pitfall 2: OpenFeature Context Mismatch
-**What goes wrong:** OpenFeature's generic `EvaluationContext` doesn't perfectly map to Rulestead's explicit context struct (`subject_key`, `tenant_key`).
-**Prevention:** The `RulesteadProvider` must handle missing attributes gracefully or explicitly map OpenFeature's `targetingKey` to Rulestead's `subject_key`. Document this mapping clearly.
-
-### Pitfall 3: Regex-based Code Scanning False Positives
-**What goes wrong:** A naive GitHub Action using `grep` finds commented-out flags or unrelated string matches, cluttering the Code References UI.
-**Prevention:** Provide clear documentation on how to scan accurately, and ideally provide an Elixir-specific AST scanner (via `sourceror`) that strictly identifies `Rulestead.enabled?` calls.
+### Pitfall 3: "Empty Room" Demo Experience
+**What goes wrong:** A user successfully installs Rulestead, opens the dashboard, and stares at a blank screen, unsure how it connects to their frontend.
+**Prevention:** The E2E Demo Environment must come pre-seeded with 3-4 flags, a mock user base, and a functioning frontend (e.g., Next.js) that visibly changes when a flag is toggled in the admin UI.
 
 ## Phase-Specific Warnings
 
 | Phase Topic | Likely Pitfall | Mitigation |
 |-------------|---------------|------------|
-| Code References | Flooding the Rulestead API with massive payloads on every commit. | The GitHub action should diff against the previous commit or only send Delta updates; Rulestead must rate-limit the ingress. |
-| OpenFeature | Losing Rulestead's "Explainability" traces. | Serialize the trace into the `reason` or `metadata` field of the OpenFeature `EvaluationDetails` struct. |
+| API Lockdown | Breaking changes immediately after 1.0 | Aggressive use of `@moduledoc false` for anything not strictly meant for public use. |
+| RBAC | Over-engineering custom roles | Ship with static roles: Admin, Editor, Viewer. |
+| Demo Environments | Flaky Docker builds | Use official, pinned image versions for Postgres/Redis in the `docker-compose.yml`. |
 
 ## Sources
 
-- LaunchDarkly's "Definition of Done" for feature flags.
-- OpenFeature Evaluation API spec.
+- SemVer 2.0.0 Specifications
+- Maintainer experiences from high-profile Elixir libraries (Oban, Absinthe).

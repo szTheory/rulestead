@@ -1,7 +1,7 @@
 defmodule Rulestead.KillSwitchError do
-  @moduledoc """
-  Constructors for kill-switch-domain `Rulestead.Error` values.
-  """
+  @moduledoc false
+  # Constructors for kill-switch-domain `Rulestead.Error` values.
+
 
   alias Rulestead.Error
 

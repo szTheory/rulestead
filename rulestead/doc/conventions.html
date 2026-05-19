@@ -12,7 +12,7 @@
 
     <link rel="stylesheet" href="dist/html-elixir-YJO4MOOW.css" />
 
-    <script defer src="dist/sidebar_items-B3B45405.js"></script>
+    <script defer src="dist/sidebar_items-A552240A.js"></script>
     <script defer src="docs_config.js"></script>
     <script defer src="dist/html-YU4BZFVS.js"></script>
 
@@ -120,7 +120,7 @@ than implying score-based or merge-based behavior.</p><h2 id="tenancy-and-enviro
 <code class="inline">tenant_key</code>, <code class="inline">environment</code>, and host-provided session/query values. Do not
 assume cross-tenant defaults or implicit environment switching. If a host app
 mounts <code class="inline">rulestead_admin</code>, preserve the documented <code class="inline">?env=</code> query convention and
-provide the session values the package expects.</p><h2 id="testing-posture" class="section-heading"><a href="#testing-posture" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Testing posture</span></h2><p>The default test posture is fake first. Use <a href="Rulestead.Fake.html"><code class="inline">Rulestead.Fake</code></a> and the published
+provide the session values the package expects.</p><h2 id="testing-posture" class="section-heading"><a href="#testing-posture" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Testing posture</span></h2><p>The default test posture is fake first. Use <code class="inline">Rulestead.Fake</code> and the published
 test helpers for merge-blocking coverage, then layer integration tests on top
 when a seam specifically needs real framework proof. This keeps runtime tests
 fast, reproducible, and independent of live database setup on the hot path.</p><h2 id="privacy-and-redaction" class="section-heading"><a href="#privacy-and-redaction" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Privacy and redaction</span></h2><p>Telemetry and audit output should describe what happened without leaking raw
@@ -148,12 +148,12 @@ rulestead
   </div>
   <div class="bottom-actions-item">
 
-      <a href="installation.html" class="bottom-actions-button" rel="next">
+      <a href="cheatsheet.html" class="bottom-actions-button" rel="next">
         <span class="subheader">
           Next Page →
         </span>
         <span class="title">
-Installation
+Rulestead Cheatsheet
         </span>
       </a>
 

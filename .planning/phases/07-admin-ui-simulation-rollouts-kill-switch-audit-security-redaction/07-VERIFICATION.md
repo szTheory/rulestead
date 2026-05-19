@@ -1,38 +1,27 @@
 ---
 phase: 07-admin-ui-simulation-rollouts-kill-switch-audit-security-redaction
-verified: 2026-04-24T10:02:55Z
-status: gaps_found
-score: 7/8 must-haves verified
+verified: 2026-05-17T21:57:11Z
+status: passed
+score: 8/8 must-haves verified
 overrides_applied: 0
 re_verification:
   previous_status: gaps_found
-  previous_score: 4/8
+  previous_score: 7/8
   gaps_closed:
     - "Phase 7 admin mutation surfaces enforce policy and environment-sensitive authorization before writes."
     - "Kill-switch activation changes runtime behavior, not just authored store state, and is wired for refresh propagation."
     - "Audit timeline supports before/after diff for rule reorders with exact rule positions and linked actor context."
-  gaps_remaining:
     - "Phase 7 automation runs from the sibling package entrypoints and satisfies the roadmap CI and accessibility contract."
+  gaps_remaining: []
   regressions: []
-gaps:
-  - truth: "Phase 7 automation runs from the sibling package entrypoints and satisfies the roadmap CI and accessibility contract."
-    status: failed
-    reason: "The compile-path and Axe gaps are closed, but the sibling-package Phase 7 test entrypoint still fails because `simulate_test.exs` seeds draft/publish writes without the actor metadata now required by the authorized admin facade."
-    artifacts:
-      - path: "rulestead_admin/test/rulestead_admin/live/flag_live/simulate_test.exs"
-        issue: "The helper at `publish_ruleset!/2` still calls `Command.SaveDraftRuleset.new/3` and `Command.PublishRuleset.new/2` without `actor`, so `mix test test/rulestead_admin/live/flag_live/simulate_test.exs` fails with `Rulestead.Error{type: :unauthorized}`."
-      - path: "rulestead/lib/rulestead.ex"
-        issue: "The public write facade now correctly routes ruleset writes through `admin_write/2`, so stale unauthenticated test helpers no longer reflect the real contract."
-    missing:
-      - "Update the remaining Phase 7 sibling-package tests to seed rulesets through actor-bearing commands that match the Phase 7 auth contract."
-      - "Re-run the full admin-package Phase 7 test slice from `rulestead_admin` and restore a green sibling entrypoint."
+gaps: []
 ---
 
 # Phase 7: Admin UI Part 2 Verification Report
 
 **Phase Goal:** Second half of the admin UI. The high-value operator surfaces that make rulestead stand out: simulation/explain, rollout controls, bookmarkable kill switch, full audit timeline. Plus the security envelope that makes the library safe to deploy: `Rulestead.Admin.Policy` integration, env-sensitive authz, redaction Credo checks, secure traits.
-**Verified:** 2026-04-24T10:02:55Z
-**Status:** gaps_found
+**Verified:** 2026-05-17T21:57:11Z
+**Status:** passed
 **Re-verification:** Yes — after gap closure
 
 ## Goal Achievement
@@ -48,9 +37,9 @@ gaps:
 | 5 | Phase 7 admin mutation surfaces enforce policy and environment-sensitive authorization before writes. | ✓ VERIFIED | [rulestead.ex](/Users/jon/projects/rulestead/rulestead/lib/rulestead.ex:105) routes draft/publish through `admin_write/2`, and [rulestead.ex](/Users/jon/projects/rulestead/rulestead/lib/rulestead.ex:612) authorizes before store writes and persists denied mutations. [admin_security_contract_test.exs](/Users/jon/projects/rulestead/rulestead/test/rulestead/admin_security_contract_test.exs:122) proves denied draft/publish/archive behavior. |
 | 6 | Kill-switch activation changes runtime behavior, not just authored store state, and is wired for refresh propagation. | ✓ VERIFIED | [store/ecto.ex](/Users/jon/projects/rulestead/rulestead/lib/rulestead/store/ecto.ex:394) and [store/ecto.ex](/Users/jon/projects/rulestead/rulestead/lib/rulestead/store/ecto.ex:438) rebuild runtime snapshots on engage/release. [admin_lifecycle_runtime_test.exs](/Users/jon/projects/rulestead/rulestead/test/rulestead/integration/admin_lifecycle_runtime_test.exs:104) proves runtime evaluation flips to the default and back. |
 | 7 | Audit timeline supports before/after diff for rule reorders with exact rule positions and linked actor context. | ✓ VERIFIED | [store/ecto.ex](/Users/jon/projects/rulestead/rulestead/lib/rulestead/store/ecto.ex:1000) records actor fields and [store/ecto.ex](/Users/jon/projects/rulestead/rulestead/lib/rulestead/store/ecto.ex:1126) builds `before/after/diff.rules` metadata. [audit_live/index.ex](/Users/jon/projects/rulestead/rulestead_admin/lib/rulestead_admin/live/audit_live/index.ex:142) renders that diff, and [index_test.exs](/Users/jon/projects/rulestead/rulestead_admin/test/rulestead_admin/live/audit_live/index_test.exs:105) proves reorder projection. |
-| 8 | Phase 7 automation runs from the sibling package entrypoints and satisfies the roadmap CI and accessibility contract. | ✗ FAILED | Accessibility is now Axe-backed ([axe_audit.ex](/Users/jon/projects/rulestead/rulestead_admin/test/support/axe_audit.ex:15)) and the compile-path Credo issue is closed, but `cd rulestead_admin && mix test ...simulate_test.exs...` still fails because [simulate_test.exs](/Users/jon/projects/rulestead/rulestead_admin/test/rulestead_admin/live/flag_live/simulate_test.exs:184) seeds rulesets without an actor. |
+| 8 | Phase 7 automation runs from the sibling package entrypoints and satisfies the roadmap CI and accessibility contract. | ✓ VERIFIED | Accessibility remains Axe-backed ([axe_audit.ex](/Users/jon/projects/rulestead/rulestead_admin/test/support/axe_audit.ex:15)), `simulate_test.exs` seeds rulesets through actor-bearing commands, `cd rulestead_admin && mix test test/rulestead_admin/live/flag_live/simulate_test.exs` now passes (`3 tests, 0 failures`), and the full sibling-package Phase 7 slice is green (`27 tests, 0 failures`). |
 
-**Score:** 7/8 truths verified
+**Score:** 8/8 truths verified
 
 ### Required Artifacts
 
@@ -63,7 +52,7 @@ gaps:
 | `rulestead_admin/lib/rulestead_admin/live/flag_live/rules.ex` | Actor-aware rules draft/publish path | ✓ VERIFIED | Rules workspace uses the same public auth-aware write seam. |
 | `rulestead_admin/lib/rulestead_admin/live/audit_live/index.ex` | Global audit filters and reorder diff projection | ✓ VERIFIED | Uses current actor for reads and projects structured diff metadata into human-readable rows. |
 | `rulestead_admin/test/support/axe_audit.ex` | Axe-backed accessibility proof helper | ✓ VERIFIED | Runs axe-core via Node/jsdom and is used by the Phase 7 accessibility tests. |
-| `rulestead_admin/test/rulestead_admin/live/flag_live/simulate_test.exs` | Green sibling-package simulation verification path | ✗ STUB | The test body is substantive, but the setup helper is stale relative to the new auth contract and fails deterministically. |
+| `rulestead_admin/test/rulestead_admin/live/flag_live/simulate_test.exs` | Green sibling-package simulation verification path | ✓ VERIFIED | The setup helper uses actor-bearing draft/publish commands and the package-local simulation slice now passes from `rulestead_admin`. |
 
 ### Key Link Verification
 
@@ -74,7 +63,7 @@ gaps:
 | `rulestead_admin/lib/rulestead_admin/live/flag_live/rules.ex` | `rulestead/lib/rulestead.ex` | actor-aware rules save/publish commands | ✓ WIRED | [rules.ex](/Users/jon/projects/rulestead/rulestead_admin/lib/rulestead_admin/live/flag_live/rules.ex:185) and [rules.ex](/Users/jon/projects/rulestead/rulestead_admin/lib/rulestead_admin/live/flag_live/rules.ex:212) now use actor-bearing commands. |
 | `rulestead/lib/rulestead/store/ecto.ex` | runtime snapshot refresh path | kill-switch engage/release runtime propagation | ✓ WIRED | Engage/release now call `insert_runtime_snapshot/3` before committing. |
 | `rulestead/lib/rulestead/store/ecto.ex` | audit UI diff cards | structured ruleset reorder metadata | ✓ WIRED | `ruleset_audit_metadata/2` emits `before/after/diff.rules`, and the audit UI renders it. |
-| `rulestead_admin/test/rulestead_admin/live/flag_live/simulate_test.exs` | authorized public write facade | simulation route seed data | ✗ NOT_WIRED | The helper still constructs unauthenticated ruleset commands, so the sibling-package simulation test path is no longer aligned with the implementation contract. |
+| `rulestead_admin/test/rulestead_admin/live/flag_live/simulate_test.exs` | authorized public write facade | simulation route seed data | ✓ WIRED | The helper seeds rulesets through `Command.SaveDraftRuleset.new/4` and `Command.PublishRuleset.new/3` with `actor: @admin_actor`, matching the Phase 7 auth contract. |
 
 ### Data-Flow Trace (Level 4)
 
@@ -83,7 +72,7 @@ gaps:
 | `rollouts.ex` | `@preview` | in-memory updated ruleset -> `Rulestead.evaluate/3` sampling | Yes | ✓ FLOWING |
 | `audit_live/index.ex` | `@entries` | `Rulestead.list_audit_events/1` with actor + filter projection | Yes | ✓ FLOWING |
 | `store/ecto.ex` kill-switch path | runtime snapshot payload | `insert_runtime_snapshot/3` after engage/release | Yes | ✓ FLOWING |
-| `simulate_test.exs` setup | published simulation ruleset | stale unauthenticated helper commands | No | ✗ DISCONNECTED |
+| `simulate_test.exs` setup | published simulation ruleset | actor-bearing helper commands through the public write facade | Yes | ✓ FLOWING |
 
 ### Behavioral Spot-Checks
 
@@ -92,9 +81,9 @@ gaps:
 | Backend Phase 7 closure suite | `cd rulestead && mix test test/rulestead/admin_security_contract_test.exs test/rulestead/admin_audit_kill_switch_test.exs test/rulestead/integration/admin_lifecycle_runtime_test.exs` | `14 tests, 0 failures` | ✓ PASS |
 | Admin regression slice excluding stale simulation helper file | `cd rulestead_admin && mix test test/rulestead_admin/live/audit_live/index_test.exs test/rulestead_admin/live/flag_live/rollouts_test.exs test/rulestead_admin/live/flag_live/kill_test.exs test/rulestead_admin/live/flag_live/timeline_test.exs test/rulestead_admin/router_test.exs test/rulestead_admin/live/session_test.exs` | `20 tests, 0 failures` | ✓ PASS |
 | Axe-backed route accessibility slice | `cd rulestead_admin && mix test test/rulestead_admin/live/flag_live/simulate_accessibility_test.exs test/rulestead_admin/live/flag_live/rollouts_accessibility_test.exs test/rulestead_admin/live/flag_live/phase7_accessibility_test.exs` | `4 tests, 0 failures` | ✓ PASS |
-| Sibling-package simulation test slice | `cd rulestead_admin && mix test test/rulestead_admin/live/flag_live/simulate_test.exs` | `3 tests, 3 failures` with `Rulestead.Error{type: :unauthorized}` in setup | ✗ FAIL |
+| Sibling-package simulation test slice | `cd rulestead_admin && mix test test/rulestead_admin/live/flag_live/simulate_test.exs` | `3 tests, 0 failures` | ✓ PASS |
 | Phase 7 custom Credo checks reject seeded violations | `cd rulestead && mix credo --strict test/support/credo_fixtures/raw_traits_in_telemetry.ex test/support/credo_fixtures/raw_traits_in_logger.ex test/support/credo_fixtures/mutation_outside_multi.ex test/support/credo_fixtures/socket_captured_in_async.ex test/support/credo_fixtures/eval_outside_context.ex` | Exit `20`; custom Phase 7 warnings emitted for telemetry/logger/raw-mutation/socket/eval checks | ✓ PASS |
-| Full admin-package Phase 7 slice from sibling entrypoint | `cd rulestead_admin && mix test test/rulestead_admin/router_test.exs test/rulestead_admin/live/session_test.exs test/rulestead_admin/live/flag_live/simulate_test.exs test/rulestead_admin/live/flag_live/rollouts_test.exs test/rulestead_admin/live/flag_live/kill_test.exs test/rulestead_admin/live/flag_live/timeline_test.exs test/rulestead_admin/live/audit_live/index_test.exs test/rulestead_admin/live/flag_live/simulate_accessibility_test.exs test/rulestead_admin/live/flag_live/rollouts_accessibility_test.exs test/rulestead_admin/live/flag_live/phase7_accessibility_test.exs` | `27 tests, 4 failures`; three are deterministic `simulate_test.exs` auth failures | ✗ FAIL |
+| Full admin-package Phase 7 slice from sibling entrypoint | `cd rulestead_admin && mix test test/rulestead_admin/router_test.exs test/rulestead_admin/live/session_test.exs test/rulestead_admin/live/flag_live/simulate_test.exs test/rulestead_admin/live/flag_live/rollouts_test.exs test/rulestead_admin/live/flag_live/kill_test.exs test/rulestead_admin/live/flag_live/timeline_test.exs test/rulestead_admin/live/audit_live/index_test.exs test/rulestead_admin/live/flag_live/simulate_accessibility_test.exs test/rulestead_admin/live/flag_live/rollouts_accessibility_test.exs test/rulestead_admin/live/flag_live/phase7_accessibility_test.exs` | `27 tests, 0 failures` | ✓ PASS |
 
 ### Requirements Coverage
 
@@ -113,17 +102,15 @@ gaps:
 
 ### Anti-Patterns Found
 
-| File | Line | Pattern | Severity | Impact |
-| --- | --- | --- | --- | --- |
-| `rulestead_admin/test/rulestead_admin/live/flag_live/simulate_test.exs` | 184 | Stale test helper bypasses the actor-bearing admin write contract | 🛑 Blocker | The sibling-package Phase 7 test entrypoint is still red, so the automation contract is not achieved. |
+None in the current verification scope.
 
 ### Gaps Summary
 
-Re-verification closes the substantive Phase 7 implementation gaps. Authorization now wraps the public draft/publish/archive paths, kill-switch engage/release publish fresh runtime snapshots, and audit rows carry actor-linked reorder diffs that the admin UI renders. The prior security, runtime, and audit gaps are therefore closed.
+Re-verification closes the substantive Phase 7 implementation gaps and the final automation gap. Authorization wraps the public draft/publish/archive paths, kill-switch engage/release publish fresh runtime snapshots, audit rows carry actor-linked reorder diffs that the admin UI renders, and the sibling-package simulation helper now seeds rulesets through the same actor-bearing contract used by production admin writes.
 
-Phase 7 still does not achieve `passed` because the sibling-package verification path is not fully aligned with the new contract. The remaining blocker is test drift, not missing feature code: `rulestead_admin/test/rulestead_admin/live/flag_live/simulate_test.exs` still seeds rulesets without an actor, so the package-local Phase 7 test slice fails under the now-correct authorization envelope. Until the full `rulestead_admin` Phase 7 slice is green again, the automation must-have remains unmet.
+Phase 7 now achieves `passed`. The exact sibling-package commands called out in the prior gap report are green again, so the roadmap CI and accessibility contract is satisfied without caveat.
 
 ---
 
-_Verified: 2026-04-24T10:02:55Z_  
+_Verified: 2026-05-17T21:57:11Z_  
 _Verifier: Claude (gsd-verifier)_

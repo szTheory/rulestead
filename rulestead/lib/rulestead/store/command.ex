@@ -181,6 +181,7 @@ defmodule Rulestead.Store.Command do
     defstruct [
       :source_environment_key,
       :target_environment_key,
+      tenant_key: nil,
       flag_keys: nil,
       compare_token: nil
     ]
@@ -188,6 +189,7 @@ defmodule Rulestead.Store.Command do
     @type t :: %__MODULE__{
             source_environment_key: String.t(),
             target_environment_key: String.t(),
+            tenant_key: nil | String.t(),
             flag_keys: nil | [String.t()],
             compare_token: nil | String.t()
           }
@@ -197,6 +199,7 @@ defmodule Rulestead.Store.Command do
       %__MODULE__{
         source_environment_key: GovernanceSupport.normalize_string(source_environment_key),
         target_environment_key: GovernanceSupport.normalize_string(target_environment_key),
+        tenant_key: GovernanceSupport.normalize_string(Keyword.get(opts, :tenant_key)),
         flag_keys: normalize_flag_keys(Keyword.get(opts, :flag_keys)),
         compare_token: GovernanceSupport.normalize_string(Keyword.get(opts, :compare_token))
       }
@@ -220,6 +223,282 @@ defmodule Rulestead.Store.Command do
     defp normalize_flag_keys(flag_key) do
       normalize_flag_keys([flag_key])
     end
+  end
+
+  defmodule ApplyPromotion do
+    @moduledoc false
+
+    alias Rulestead.Promotion.Apply
+    alias Rulestead.Store.Command.GovernanceSupport
+
+    @enforce_keys [
+      :source_environment_key,
+      :target_environment_key,
+      :flag_keys,
+      :compare_token,
+      :compare_schema_version,
+      :source_fingerprint,
+      :target_fingerprint,
+      :dependency_closure_keys,
+      :proposed_target_bundle
+    ]
+    defstruct [
+      :source_environment_key,
+      :target_environment_key,
+      :tenant_key,
+      :flag_keys,
+      :compare_token,
+      :compare_schema_version,
+      :source_fingerprint,
+      :target_fingerprint,
+      :dependency_closure_keys,
+      :proposed_target_bundle,
+      actor: nil,
+      reason: nil,
+      metadata: %{}
+    ]
+
+    @type t :: %__MODULE__{
+            source_environment_key: String.t(),
+            target_environment_key: String.t(),
+            tenant_key: nil | String.t(),
+            flag_keys: [String.t()],
+            compare_token: String.t(),
+            compare_schema_version: pos_integer(),
+            source_fingerprint: String.t(),
+            target_fingerprint: String.t(),
+            dependency_closure_keys: [String.t()],
+            proposed_target_bundle: map(),
+            actor: nil | map(),
+            reason: nil | String.t(),
+            metadata: map()
+          }
+
+    @spec new(map() | keyword(), keyword()) :: t()
+    def new(attrs, opts \\ []) when is_map(attrs) or is_list(attrs) do
+      attrs = Map.new(attrs)
+
+      %__MODULE__{
+        source_environment_key:
+          attrs
+          |> GovernanceSupport.fetch_required!(:source_environment_key)
+          |> GovernanceSupport.normalize_string(),
+        target_environment_key:
+          attrs
+          |> GovernanceSupport.fetch_required!(:target_environment_key)
+          |> GovernanceSupport.normalize_string(),
+        tenant_key:
+          attrs
+          |> GovernanceSupport.fetch(:tenant_key)
+          |> GovernanceSupport.normalize_string(),
+        flag_keys:
+          attrs
+          |> GovernanceSupport.fetch_required!(:flag_keys)
+          |> normalize_flag_keys(),
+        compare_token:
+          attrs
+          |> GovernanceSupport.fetch_required!(:compare_token)
+          |> GovernanceSupport.normalize_string(),
+        compare_schema_version:
+          attrs
+          |> GovernanceSupport.fetch_required!(:compare_schema_version)
+          |> normalize_schema_version(),
+        source_fingerprint:
+          attrs
+          |> GovernanceSupport.fetch_required!(:source_fingerprint)
+          |> GovernanceSupport.normalize_string(),
+        target_fingerprint:
+          attrs
+          |> GovernanceSupport.fetch_required!(:target_fingerprint)
+          |> GovernanceSupport.normalize_string(),
+        dependency_closure_keys:
+          attrs
+          |> GovernanceSupport.fetch_required!(:dependency_closure_keys)
+          |> normalize_flag_keys(),
+        proposed_target_bundle:
+          attrs
+          |> GovernanceSupport.fetch_required!(:proposed_target_bundle)
+          |> Apply.normalize_proposed_target_bundle(),
+        actor:
+          opts
+          |> Keyword.get(:actor, GovernanceSupport.fetch(attrs, :actor))
+          |> GovernanceSupport.normalize_actor(),
+        reason:
+          opts
+          |> Keyword.get(:reason, GovernanceSupport.fetch(attrs, :reason))
+          |> GovernanceSupport.normalize_string(),
+        metadata:
+          opts
+          |> Keyword.get(:metadata, GovernanceSupport.fetch(attrs, :metadata))
+          |> GovernanceSupport.normalize_metadata()
+      }
+    end
+
+    defp normalize_schema_version(version) when is_integer(version) and version > 0, do: version
+
+    defp normalize_schema_version(version) when is_binary(version) do
+      case Integer.parse(version) do
+        {parsed, ""} when parsed > 0 -> parsed
+        _other -> version
+      end
+    end
+
+    defp normalize_schema_version(version), do: version
+
+    defp normalize_flag_keys(nil), do: []
+    defp normalize_flag_keys([]), do: []
+
+    defp normalize_flag_keys(values) when is_list(values) do
+      values
+      |> Enum.map(&GovernanceSupport.normalize_string/1)
+      |> Enum.reject(&is_nil/1)
+      |> Enum.uniq()
+      |> Enum.sort()
+    end
+
+    defp normalize_flag_keys(value), do: normalize_flag_keys([value])
+  end
+
+  defmodule PreviewManifestImport do
+    @moduledoc false
+
+    alias Rulestead.Manifest
+    alias Rulestead.Store.Command.GovernanceSupport
+
+    @enforce_keys [:source_environment_key, :target_environment_key, :manifest]
+    defstruct [:source_environment_key, :target_environment_key, :manifest]
+
+    @type t :: %__MODULE__{
+            source_environment_key: String.t(),
+            target_environment_key: String.t(),
+            manifest: map()
+          }
+
+    @spec new(map() | keyword()) :: t()
+    def new(attrs) when is_map(attrs) or is_list(attrs) do
+      attrs = Map.new(attrs)
+
+      %__MODULE__{
+        source_environment_key:
+          attrs
+          |> GovernanceSupport.fetch_required!(:source_environment_key)
+          |> GovernanceSupport.normalize_string(),
+        target_environment_key:
+          attrs
+          |> GovernanceSupport.fetch_required!(:target_environment_key)
+          |> GovernanceSupport.normalize_string(),
+        manifest:
+          attrs
+          |> GovernanceSupport.fetch_required!(:manifest)
+          |> Manifest.normalize_map()
+      }
+    end
+  end
+
+  defmodule ApplyManifestImport do
+    @moduledoc false
+
+    alias Rulestead.Promotion.Apply
+    alias Rulestead.Store.Command.GovernanceSupport
+
+    @enforce_keys [
+      :target_environment_key,
+      :plan_token,
+      :target_fingerprint,
+      :dependency_closure_keys,
+      :flag_keys,
+      :proposed_target_bundle
+    ]
+    defstruct [
+      :source_environment_key,
+      :target_environment_key,
+      :tenant_key,
+      :plan_token,
+      :target_fingerprint,
+      :dependency_closure_keys,
+      :flag_keys,
+      :proposed_target_bundle,
+      actor: nil,
+      reason: nil,
+      metadata: %{}
+    ]
+
+    @type t :: %__MODULE__{
+            source_environment_key: nil | String.t(),
+            target_environment_key: String.t(),
+            tenant_key: nil | String.t(),
+            plan_token: String.t(),
+            target_fingerprint: String.t(),
+            dependency_closure_keys: [String.t()],
+            flag_keys: [String.t()],
+            proposed_target_bundle: map(),
+            actor: nil | map(),
+            reason: nil | String.t(),
+            metadata: map()
+          }
+
+    @spec new(map() | keyword(), keyword()) :: t()
+    def new(attrs, opts \\ []) when is_map(attrs) or is_list(attrs) do
+      attrs = Map.new(attrs)
+
+      %__MODULE__{
+        source_environment_key:
+          attrs
+          |> GovernanceSupport.fetch(:source_environment_key)
+          |> GovernanceSupport.normalize_string(),
+        target_environment_key:
+          attrs
+          |> GovernanceSupport.fetch_required!(:target_environment_key)
+          |> GovernanceSupport.normalize_string(),
+        tenant_key:
+          attrs
+          |> GovernanceSupport.fetch(:tenant_key)
+          |> GovernanceSupport.normalize_string(),
+        plan_token:
+          attrs
+          |> GovernanceSupport.fetch_required!(:plan_token)
+          |> GovernanceSupport.normalize_string(),
+        target_fingerprint:
+          attrs
+          |> GovernanceSupport.fetch_required!(:target_fingerprint)
+          |> GovernanceSupport.normalize_string(),
+        dependency_closure_keys:
+          attrs
+          |> GovernanceSupport.fetch_required!(:dependency_closure_keys)
+          |> normalize_flag_keys(),
+        flag_keys:
+          attrs
+          |> GovernanceSupport.fetch_required!(:flag_keys)
+          |> normalize_flag_keys(),
+        proposed_target_bundle:
+          attrs
+          |> GovernanceSupport.fetch_required!(:proposed_target_bundle)
+          |> Apply.normalize_proposed_target_bundle(),
+        actor:
+          opts
+          |> Keyword.get(:actor, GovernanceSupport.fetch(attrs, :actor))
+          |> GovernanceSupport.normalize_actor(),
+        reason:
+          opts
+          |> Keyword.get(:reason, GovernanceSupport.fetch(attrs, :reason))
+          |> GovernanceSupport.normalize_string(),
+        metadata:
+          opts
+          |> Keyword.get(:metadata, GovernanceSupport.fetch(attrs, :metadata))
+          |> GovernanceSupport.normalize_metadata()
+      }
+    end
+
+    defp normalize_flag_keys(nil), do: []
+    defp normalize_flag_keys(values) when is_list(values) do
+      values
+      |> Enum.map(&GovernanceSupport.normalize_string/1)
+      |> Enum.reject(&is_nil/1)
+      |> Enum.uniq()
+      |> Enum.sort()
+    end
+
+    defp normalize_flag_keys(value), do: normalize_flag_keys([value])
   end
 
   defmodule CreateFlag do

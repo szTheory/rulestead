@@ -1,7 +1,6 @@
 defmodule Rulestead.Admin.Lifecycle do
-  @moduledoc """
-  Derives persisted admin lifecycle state from authored flag data.
-  """
+  @moduledoc false
+  # Derives persisted admin lifecycle state from authored flag data.
 
   @default_stale_after_seconds 30 * 24 * 60 * 60
 

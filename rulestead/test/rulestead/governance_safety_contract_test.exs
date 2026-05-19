@@ -129,6 +129,34 @@ defmodule Rulestead.GovernanceSafetyContractTest do
              )
   end
 
+  test "protected-target promotion submits durable governed state with the reviewed bundle snapshot" do
+    submitter = actor("submitter-3")
+
+    assert {:ok, %{change_request: submitted}} =
+             Rulestead.submit_change_request(governed_promotion_command(submitter,
+               reason: "Promote staging checkout to production",
+               request_id: "corr-promote"
+             ))
+
+    assert submitted.state == :submitted
+    assert submitted.action == :promote_environment
+    assert submitted.environment_key == "production"
+    assert submitted.resource_type == "environment"
+    assert submitted.resource_key == "production"
+    assert submitted.command["compare_token"] == "cmp_promote_123"
+    assert submitted.command["flag_keys"] == ["checkout-redesign"]
+    assert submitted.command["source_environment_key"] == "staging"
+    assert submitted.command["target_environment_key"] == "production"
+    assert submitted.approval_requirement.action == :promote_environment
+
+    assert {:ok, %{change_request: fetched, approvals: [], audit_events: audit_events}} =
+             Rulestead.fetch_change_request(Command.FetchChangeRequest.new(submitted.id))
+
+    assert fetched.id == submitted.id
+    assert fetched.command["compare_token"] == "cmp_promote_123"
+    assert Enum.any?(audit_events, &(&1.event_type == "change_request.submitted"))
+  end
+
   defp governed_publish_command(actor, opts) do
     Command.SubmitChangeRequest.new(
       %{
@@ -149,6 +177,43 @@ defmodule Rulestead.GovernanceSafetyContractTest do
       actor: actor,
       reason: Keyword.fetch!(opts, :reason),
       metadata: %{request_id: Keyword.fetch!(opts, :request_id), source: :review_queue}
+    )
+  end
+
+  defp governed_promotion_command(actor, opts) do
+    Command.SubmitChangeRequest.new(
+      %{
+        action: :promote_environment,
+        environment_key: "production",
+        resource_type: "environment",
+        resource_key: "production",
+        command: %{
+          compare_token: "cmp_promote_123",
+          compare_schema_version: 1,
+          flag_keys: ["checkout-redesign"],
+          source_environment_key: "staging",
+          target_environment_key: "production",
+          source_fingerprint: "sha256:source",
+          target_fingerprint: "sha256:target",
+          dependency_closure_keys: ["audience:vip-users"],
+          proposed_target_bundle: %{
+            "checkout-redesign" => %{
+              "active_ruleset" => %{"version" => 2}
+            }
+          }
+        },
+        approval_requirement:
+          ApprovalRequirement.new(
+            action: :promote_environment,
+            environment_key: "production",
+            required_approvals: 1,
+            change_request_required?: true,
+            self_approval_allowed?: false
+          )
+      },
+      actor: actor,
+      reason: Keyword.fetch!(opts, :reason),
+      metadata: %{request_id: Keyword.fetch!(opts, :request_id), source: :compare_review}
     )
   end
 
@@ -196,7 +261,9 @@ defmodule Rulestead.GovernanceSafetyContractTest do
     def can?(_actor, _action, _resource, _environment_key), do: true
 
     @impl true
-    def change_request_required?(_actor, :publish_ruleset, _resource, "production"), do: true
+    def change_request_required?(_actor, action, _resource, "production")
+        when action in [:publish_ruleset, :promote_environment],
+        do: true
 
     def change_request_required?(_actor, _action, _resource, _environment_key), do: false
 

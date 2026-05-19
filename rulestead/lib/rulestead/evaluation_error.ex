@@ -1,7 +1,7 @@
 defmodule Rulestead.EvaluationError do
-  @moduledoc """
-  Constructors for evaluation-domain `Rulestead.Error` values.
-  """
+  @moduledoc false
+  # Constructors for evaluation-domain `Rulestead.Error` values.
+
 
   alias Rulestead.Error
 

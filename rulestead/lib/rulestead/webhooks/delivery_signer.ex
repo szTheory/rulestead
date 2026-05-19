@@ -1,8 +1,8 @@
 defmodule Rulestead.Webhooks.DeliverySigner do
-  @moduledoc """
-  Explicit signing helper for outbound HTTP payloads and headers.
-  Constructs signed headers without exposing secrets in audit logs.
-  """
+  @moduledoc false
+  # Explicit signing helper for outbound HTTP payloads and headers.
+  # Constructs signed headers without exposing secrets in audit logs.
+
 
   @doc """
   Signs the JSON string payload with the given secret.

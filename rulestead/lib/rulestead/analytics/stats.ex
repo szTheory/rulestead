@@ -1,18 +1,17 @@
 defmodule Rulestead.Analytics.Stats do
-  @moduledoc """
-  Calculates statistical significance for A/B test results without external dependencies.
-  """
+  @moduledoc false
+  # # Calculates statistical significance for A/B test results without external dependencies.
 
-  @doc """
-  Evaluates control and variant counts to compute conversion lift, z-score, p-value, and significance.
-  Expects maps with `:exposures` and `:conversions` keys.
+  # @doc """
+  # Evaluates control and variant counts to compute conversion lift, z-score, p-value, and significance.
+  # Expects maps with `:exposures` and `:conversions` keys.
 
-  Returns a map containing:
-  - `:lift` - percentage lift (0.50 means 50%)
-  - `:z_score` - standard score
-  - `:p_value` - probability value
-  - `:significant` - boolean (true if p-value < 0.05, 95% confidence)
-  """
+  # Returns a map containing:
+  # - `:lift` - percentage lift (0.50 means 50%)
+  # - `:z_score` - standard score
+  # - `:p_value` - probability value
+  # - `:significant` - boolean (true if p-value < 0.05, 95% confidence)
+
   def evaluate(%{exposures: c_exp, conversions: c_conv}, %{exposures: v_exp, conversions: v_conv}) do
     # Handle edge cases
     if c_exp == 0 or v_exp == 0 do

@@ -27,12 +27,13 @@ defmodule Rulestead.Runtime.Supervisor do
 
         Supervisor.child_spec(
           {Refresh,
-             Keyword.merge(
+           Keyword.merge(
              opts,
              environment_key: environment_key,
              notifier: Config.notifier(opts),
              store: Config.store(opts),
              pubsub: Config.pubsub(opts),
+             pubsub_topic: Config.pubsub_topic(opts),
              name: refresh_name
            )},
           id: {Refresh, environment_key}

@@ -71,6 +71,20 @@ defmodule Rulestead.Runtime.HealthTest do
              Health.current(peer_nodes: [peer_snapshot])
   end
 
+  test "host-provided peer module feeds the public infrastructure health seam" do
+    previous_runtime = Application.get_env(:rulestead, :runtime)
+
+    Application.put_env(:rulestead, :runtime,
+      Keyword.merge(previous_runtime || [], health_peer_provider: __MODULE__.PeerProvider)
+    )
+
+    on_exit(fn -> restore_env(:runtime, previous_runtime) end)
+
+    assert %{topology_scope: :host_provided, peer_nodes: [peer]} = Rulestead.infrastructure_health()
+    assert peer.node == :"peer@node"
+    assert [%{environment_key: "health-provider", refresh_status: :ready}] = peer.environments
+  end
+
   test "public facade matches the runtime health projection", %{environment_key: environment_key} do
     assert Rulestead.infrastructure_health() == Health.current()
 
@@ -86,6 +100,21 @@ defmodule Rulestead.Runtime.HealthTest do
 
   defp restore_repo_env(nil), do: Application.delete_env(:rulestead, Rulestead.Repo)
   defp restore_repo_env(value), do: Application.put_env(:rulestead, Rulestead.Repo, value)
+
+  defmodule PeerProvider do
+    @behaviour Rulestead.Runtime.HealthPeerProvider
+
+    @impl true
+    def peer_nodes do
+      [
+        %{
+          node: :"peer@node",
+          topology_scope: :peer_snapshot,
+          environments: [%{environment_key: "health-provider", refresh_status: :ready}]
+        }
+      ]
+    end
+  end
 
   defp published_snapshot(environment_key) do
     now = DateTime.utc_now()

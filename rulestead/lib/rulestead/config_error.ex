@@ -1,7 +1,7 @@
 defmodule Rulestead.ConfigError do
-  @moduledoc """
-  Constructors for config-domain `Rulestead.Error` values.
-  """
+  @moduledoc false
+  # Constructors for config-domain `Rulestead.Error` values.
+
 
   alias Rulestead.Error
 

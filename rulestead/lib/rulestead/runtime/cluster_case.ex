@@ -116,14 +116,18 @@ defmodule Rulestead.Runtime.ClusterCase do
               key: "beta-rollout",
               strategy: :forced_value,
               value: %{value: forced_value},
-              conditions: [%{attribute: "actor.key", operator: :equals, value: %{equals: "user-1"}}]
+              conditions: [
+                %{attribute: "actor.key", operator: :equals, value: %{equals: "user-1"}}
+              ]
             }
           ]
         })
       )
 
     {:ok, _published} =
-      Rulestead.publish_ruleset(Rulestead.Store.Command.PublishRuleset.new("checkout-redesign", environment_key))
+      Rulestead.publish_ruleset(
+        Rulestead.Store.Command.PublishRuleset.new("checkout-redesign", environment_key)
+      )
 
     Control.latest_snapshot!(environment_key)
   end
@@ -146,9 +150,14 @@ defmodule Rulestead.Runtime.ClusterCase do
     :ok
   end
 
-  @spec remote_enabled?(node(), String.t(), Rulestead.Context.t()) :: {:ok, boolean()} | {:error, term()}
+  @spec remote_enabled?(node(), String.t(), Rulestead.Context.t()) ::
+          {:ok, boolean()} | {:error, term()}
   def remote_enabled?(peer_node, environment_key, context) do
-    :rpc.call(peer_node, Rulestead.Runtime, :enabled?, [environment_key, "checkout-redesign", context])
+    :rpc.call(peer_node, Rulestead.Runtime, :enabled?, [
+      environment_key,
+      "checkout-redesign",
+      context
+    ])
   end
 
   @spec remote_diagnostics(node()) :: map()
@@ -197,7 +206,14 @@ defmodule Rulestead.Runtime.ClusterCase do
     :ok = rpc!(peer_node, :code, :add_paths, [:code.get_path()])
     {:ok, _started} = rpc!(peer_node, :application, :ensure_all_started, [:rulestead])
     :ok = rpc!(peer_node, :application, :set_env, [:rulestead, :cluster_store_controller, node()])
-    :ok = rpc!(peer_node, :application, :set_env, [:rulestead, :cluster_case_pubsub_name, cluster_pubsub_name()])
+
+    :ok =
+      rpc!(peer_node, :application, :set_env, [
+        :rulestead,
+        :cluster_case_pubsub_name,
+        cluster_pubsub_name()
+      ])
+
     :ok = rpc!(peer_node, __MODULE__, :start_pubsub_detached!, [cluster_pubsub_name()])
     wait_for_remote_pubsub!(peer_node, cluster_pubsub_name())
     {peer_ref, peer_node}
@@ -236,8 +252,11 @@ defmodule Rulestead.Runtime.ClusterCase do
 
   defp rpc!(peer_node, module, function, args) do
     case :rpc.call(peer_node, module, function, args) do
-      {:badrpc, reason} -> raise "rpc #{inspect(module)}.#{function}/#{length(args)} failed: #{inspect(reason)}"
-      result -> result
+      {:badrpc, reason} ->
+        raise "rpc #{inspect(module)}.#{function}/#{length(args)} failed: #{inspect(reason)}"
+
+      result ->
+        result
     end
   end
 

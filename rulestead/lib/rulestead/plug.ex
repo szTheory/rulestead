@@ -1,8 +1,8 @@
 defmodule Rulestead.Plug do
-  @moduledoc """
-  Plug-facing seam that assigns a normalized `%Rulestead.Context{}` onto
-  `conn.assigns[:rulestead_context]`.
-  """
+  @moduledoc false
+  # Plug-facing seam that assigns a normalized `%Rulestead.Context{}` onto
+  # `conn.assigns[:rulestead_context]`.
+
 
   alias Rulestead.Phoenix
 

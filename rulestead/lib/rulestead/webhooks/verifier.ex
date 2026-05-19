@@ -1,7 +1,7 @@
 defmodule Rulestead.Webhooks.Verifier do
-  @moduledoc """
-  Verifier boundary for raw-body signature, freshness, and replay checks.
-  """
+  @moduledoc false
+  # Verifier boundary for raw-body signature, freshness, and replay checks.
+
   alias Rulestead.Webhooks.InboundEvent
 
   @type outcome ::
@@ -9,9 +9,9 @@ defmodule Rulestead.Webhooks.Verifier do
           | {:error, {verified_state :: atom(), reason :: String.t()}}
 
   defmodule ProviderAdapter do
-    @moduledoc """
-    Behavior for provider-specific webhook verification and normalization.
-    """
+    @moduledoc false
+    # Behavior for provider-specific webhook verification and normalization.
+
     @callback verify_signature(raw_body :: String.t(), headers :: map(), secret :: String.t()) ::
                 :ok | {:error, :invalid_signature}
 

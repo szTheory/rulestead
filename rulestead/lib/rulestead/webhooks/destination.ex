@@ -1,7 +1,7 @@
 defmodule Rulestead.Webhooks.Destination do
-  @moduledoc """
-  A durable outbound webhook destination.
-  """
+  @moduledoc false
+  # A durable outbound webhook destination.
+
   use Ecto.Schema
   import Ecto.Changeset
 

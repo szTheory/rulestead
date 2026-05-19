@@ -1,8 +1,8 @@
 defmodule Rulestead.LiveView do
-  @moduledoc """
-  Explicit LiveView helpers for carrying `%Rulestead.Context{}` and eagerly
-  assigning runtime-backed flag values onto a socket.
-  """
+  @moduledoc false
+  # Explicit LiveView helpers for carrying `%Rulestead.Context{}` and eagerly
+  # assigning runtime-backed flag values onto a socket.
+
 
   alias Rulestead.{Context, Runtime}
 

@@ -1,5 +1,4 @@
 defmodule Rulestead.Ruleset do
-  @moduledoc false
 
   use Ecto.Schema
 

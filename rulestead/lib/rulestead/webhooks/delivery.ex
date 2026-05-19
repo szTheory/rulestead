@@ -1,7 +1,7 @@
 defmodule Rulestead.Webhooks.Delivery do
-  @moduledoc """
-  A durable outbound webhook delivery attempt.
-  """
+  @moduledoc false
+  # A durable outbound webhook delivery attempt.
+
   use Ecto.Schema
   import Ecto.Changeset
 

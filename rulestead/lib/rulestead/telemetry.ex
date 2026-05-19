@@ -1,7 +1,7 @@
 defmodule Rulestead.Telemetry do
-  @moduledoc """
-  Shared telemetry helpers for the locked Phase 4 public event catalog.
-  """
+  @moduledoc false
+  # Shared telemetry helpers for the locked Phase 4 public event catalog.
+
 
   alias Rulestead.{Context, Result}
 

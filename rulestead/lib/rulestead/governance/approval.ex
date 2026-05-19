@@ -1,7 +1,6 @@
 defmodule Rulestead.Governance.Approval do
-  @moduledoc """
-  Review decision recorded against a governed change request.
-  """
+  @moduledoc false
+  # Review decision recorded against a governed change request.
 
   @enforce_keys [:change_request_id, :decision, :reviewed_by, :correlation_id]
   defstruct [:change_request_id, :decision, :reviewed_by, :reason, :correlation_id]

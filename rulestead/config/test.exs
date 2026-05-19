@@ -16,3 +16,5 @@ config :rulestead, Rulestead.Repo,
   pool_size: 10,
   stacktrace: true,
   show_sensitive_data_on_connection_error: true
+
+config :rulestead, :redis, enabled: false

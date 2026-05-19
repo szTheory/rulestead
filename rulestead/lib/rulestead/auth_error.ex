@@ -1,7 +1,6 @@
 defmodule Rulestead.AuthError do
-  @moduledoc """
-  Constructors for auth-domain `Rulestead.Error` values.
-  """
+  @moduledoc false
+  # Constructors for auth-domain `Rulestead.Error` values.
 
   alias Rulestead.Error
 

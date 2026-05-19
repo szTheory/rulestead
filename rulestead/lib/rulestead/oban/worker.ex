@@ -1,8 +1,8 @@
 defmodule Rulestead.Oban.Worker do
-  @moduledoc """
-  Worker-side seam that restores the serialized `%Rulestead.Context{}` from an
-  Oban job without repeating helper boilerplate in each worker module.
-  """
+  @moduledoc false
+  # Worker-side seam that restores the serialized `%Rulestead.Context{}` from an
+  # Oban job without repeating helper boilerplate in each worker module.
+
 
   defmacro __using__(_opts) do
     quote do

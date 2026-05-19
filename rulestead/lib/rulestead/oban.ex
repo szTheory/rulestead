@@ -1,8 +1,8 @@
 defmodule Rulestead.Oban do
-  @moduledoc """
-  Explicit Oban-facing helpers for serializing and restoring
-  `%Rulestead.Context{}` values across job boundaries.
-  """
+  @moduledoc false
+  # Explicit Oban-facing helpers for serializing and restoring
+  # `%Rulestead.Context{}` values across job boundaries.
+
 
   alias Rulestead.Context
   alias Rulestead.Governance.ScheduledExecution

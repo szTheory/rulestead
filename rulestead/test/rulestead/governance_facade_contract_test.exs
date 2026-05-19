@@ -1,7 +1,14 @@
 defmodule Rulestead.GovernanceFacadeContractTest do
   use ExUnit.Case, async: false
 
-  alias Rulestead.{Error, Governance.ApprovalRequirement, Store.Command, Telemetry}
+  alias Rulestead.{
+    Error,
+    Governance.ApprovalRequirement,
+    Governance.ChangeRequest,
+    Governance.ScheduledExecution,
+    Store.Command,
+    Telemetry
+  }
 
   setup do
     previous_policy = Application.get_env(:rulestead, :admin_policy)
@@ -90,6 +97,56 @@ defmodule Rulestead.GovernanceFacadeContractTest do
                environment_key: "production",
                status: :submitted,
                resource_key: "checkout-redesign"
+             )
+  end
+
+  test "promotion is accepted as a first-class governed action across contract surfaces" do
+    assert :promote_environment in ChangeRequest.governed_actions()
+    assert :promote_environment in ScheduledExecution.governed_actions()
+    assert :promote_environment in Rulestead.Admin.Policy.governance_actions()
+
+    approval_requirement =
+      ApprovalRequirement.new(
+        action: :promote_environment,
+        environment_key: "production",
+        required_approvals: 1,
+        change_request_required?: true,
+        self_approval_allowed?: false
+      )
+
+    assert %Command.SubmitChangeRequest{
+             action: :promote_environment,
+             environment_key: "production",
+             resource_type: "environment",
+             resource_key: "production",
+             command: %{
+               "compare_token" => "cmp_123",
+               "flag_keys" => ["checkout-redesign"],
+               "source_environment_key" => "staging",
+               "target_environment_key" => "production"
+             },
+             approval_requirement: %{
+               "action" => "promote_environment",
+               "change_request_required?" => true,
+               "environment_key" => "production",
+               "required_approvals" => 1,
+               "self_approval_allowed?" => false
+             }
+           } =
+             Command.SubmitChangeRequest.new(
+               %{
+                 action: :promote_environment,
+                 environment_key: "production",
+                 resource_type: "environment",
+                 resource_key: "production",
+                 command: %{
+                   compare_token: "cmp_123",
+                   flag_keys: ["checkout-redesign"],
+                   source_environment_key: "staging",
+                   target_environment_key: "production"
+                 },
+                 approval_requirement: approval_requirement
+               }
              )
   end
 
@@ -205,7 +262,9 @@ defmodule Rulestead.GovernanceFacadeContractTest do
     def can?(_actor, _action, _resource, _environment_key), do: true
 
     @impl true
-    def change_request_required?(_actor, :publish_ruleset, _resource, "production"), do: true
+    def change_request_required?(_actor, action, _resource, "production")
+        when action in [:publish_ruleset, :promote_environment],
+        do: true
 
     def change_request_required?(_actor, _action, _resource, _environment_key), do: false
 

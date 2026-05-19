@@ -4,7 +4,7 @@ defmodule Rulestead.Bucket do
   @hash_version 1
   @bucket_count 10_000
 
-  @type namespace :: :rollout | :variant
+  @type namespace :: :rollout | :variant | :experiment
 
   @spec hash_version() :: pos_integer()
   def hash_version, do: @hash_version
@@ -43,8 +43,10 @@ defmodule Rulestead.Bucket do
 
   defp normalize_namespace(:rollout), do: "rollout"
   defp normalize_namespace(:variant), do: "variant"
+  defp normalize_namespace(:experiment), do: "experiment"
   defp normalize_namespace("rollout"), do: "rollout"
   defp normalize_namespace("variant"), do: "variant"
+  defp normalize_namespace("experiment"), do: "experiment"
   defp normalize_namespace(namespace), do: namespace |> to_string() |> String.trim()
 
   defp normalize_bucket_by(nil), do: "subject"

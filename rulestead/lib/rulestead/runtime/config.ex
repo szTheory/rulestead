@@ -12,12 +12,19 @@ defmodule Rulestead.Runtime.Config do
 
   @spec runtime_options(keyword()) :: keyword()
   def runtime_options(overrides \\ []) do
+    host_runtime =
+      Rulestead.Config.load()
+      |> Keyword.get(:runtime, [])
+      |> normalize_keyword()
+
     runtime =
       :rulestead
       |> Application.get_env(:runtime, [])
       |> normalize_keyword()
 
-    Keyword.merge(runtime, overrides)
+    host_runtime
+    |> Keyword.merge(runtime)
+    |> Keyword.merge(overrides)
   end
 
   @spec environment_keys(keyword()) :: [String.t()]
@@ -35,6 +42,35 @@ defmodule Rulestead.Runtime.Config do
     opts
     |> runtime_options()
     |> Keyword.get(:store, Application.get_env(:rulestead, :store))
+  end
+
+  @spec notifier(keyword()) :: module() | nil
+  def notifier(opts \\ []) do
+    opts
+    |> runtime_options()
+    |> Keyword.get(:notifier)
+  end
+
+  @spec health_peer_provider(keyword()) :: module() | nil
+  def health_peer_provider(opts \\ []) do
+    opts
+    |> runtime_options()
+    |> Keyword.get(:health_peer_provider)
+  end
+
+  @spec pubsub(keyword()) :: module() | atom() | nil
+  def pubsub(opts \\ []) do
+    opts
+    |> runtime_options()
+    |> Keyword.get(:pubsub)
+  end
+
+  @spec pubsub_topic(keyword()) :: String.t()
+  def pubsub_topic(opts \\ []) do
+    opts
+    |> runtime_options()
+    |> Keyword.get(:pubsub_topic, snapshot(opts)[:pubsub_topic])
+    |> to_string()
   end
 
   @spec snapshot(keyword()) :: keyword()

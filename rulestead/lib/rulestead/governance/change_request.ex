@@ -1,13 +1,18 @@
 defmodule Rulestead.Governance.ChangeRequest do
-  @moduledoc """
-  Canonical governed mutation contract for approvals-first workflows.
-  """
+  @moduledoc false
+  # Canonical governed mutation contract for approvals-first workflows.
 
   alias Rulestead.Governance.ApprovalRequirement
 
   @states [:submitted, :approved, :rejected, :cancelled, :executed]
   @terminal_states [:rejected, :cancelled, :executed]
-  @governed_actions [:publish_ruleset, :advance_rollout, :engage_kill_switch, :release_kill_switch]
+  @governed_actions [
+    :publish_ruleset,
+    :advance_rollout,
+    :engage_kill_switch,
+    :release_kill_switch,
+    :promote_environment
+  ]
 
   @enforce_keys [
     :state,
@@ -36,7 +41,12 @@ defmodule Rulestead.Governance.ChangeRequest do
   ]
 
   @type state :: :submitted | :approved | :rejected | :cancelled | :executed
-  @type action :: :publish_ruleset | :advance_rollout | :engage_kill_switch | :release_kill_switch
+  @type action ::
+          :publish_ruleset
+          | :advance_rollout
+          | :engage_kill_switch
+          | :release_kill_switch
+          | :promote_environment
 
   @type actor_summary :: %{
           optional(:id) => String.t(),

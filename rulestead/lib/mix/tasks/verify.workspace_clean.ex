@@ -1,4 +1,6 @@
 defmodule Mix.Tasks.Verify.WorkspaceClean do
+  @moduledoc false
+
   use Mix.Task
 
   @shortdoc "Fails when publishable rulestead surfaces are dirty"

@@ -39,15 +39,11 @@ bundled auth system.
 
 ## Stable Operator Navigation
 
-Operators can treat these URL shapes as the stable mounted navigation layer for the shipped admin package:
+Operators can treat these URL shapes as the stable v0.1.0 navigation layer:
 
 - `/admin/flags`
 - `/admin/flags/new`
 - `/admin/flags/audit`
-- `/admin/flags/change-requests`
-- `/admin/flags/change-requests/:id`
-- `/admin/flags/schedule`
-- `/admin/flags/schedule/:scheduled_execution_id`
 - `/admin/flags/:key`
 - `/admin/flags/:key/edit`
 - `/admin/flags/:key/rules`
@@ -57,9 +53,7 @@ Operators can treat these URL shapes as the stable mounted navigation layer for 
 - `/admin/flags/:key/timeline`
 
 The `env` query parameter is the canonical environment selector across the
-mounted UI. Change-request review and scheduled-change pages follow the same
-mounted path and `?env=` contract as the flag routes; they do not imply a
-standalone admin app or a separate calendar surface.
+mounted UI.
 
 ## What Operators Can Do
 
@@ -72,9 +66,6 @@ The shipped package supports these bounded workflows:
 - simulate and explain one flag decision in one environment
 - stage rollout changes
 - engage or release a kill switch
-- review change requests in a dedicated queue and approve, reject, execute, or schedule from the mounted review route
-- inspect scheduled changes from the mounted schedule list and detail routes
-- review inbound webhook rejections, accepted events, and outbound deliveries from the mounted integration visibility routes
 - review redacted audit timeline entries and roll back supported changes
 
 These are package-level workflows. They do not freeze the internal LiveView

@@ -1,10 +1,9 @@
 defmodule Rulestead.Fake.Control do
-  @moduledoc """
-  Test-only controls for `Rulestead.Fake`.
-
-  These helpers are intentionally separate from the shared `Rulestead.Store`
-  behaviour so production callers cannot rely on fake-only affordances.
-  """
+  @moduledoc false
+  # Test-only controls for `Rulestead.Fake`.
+  #
+  # These helpers are intentionally separate from the shared `Rulestead.Store`
+  # behaviour so production callers cannot rely on fake-only affordances.
 
   alias Rulestead.Fake
   alias Rulestead.Runtime.{Config, Notifier}

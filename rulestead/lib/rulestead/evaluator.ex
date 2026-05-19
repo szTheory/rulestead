@@ -14,7 +14,6 @@ defmodule Rulestead.Evaluator do
       evaluate_rules(rules, flag_payload, flag, active_ruleset, context)
     else
       {:error, %Rulestead.Error{} = error} -> {:error, error}
-      _other -> {:error, EvaluationError.malformed_runtime_data()}
     end
   end
 

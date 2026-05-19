@@ -125,25 +125,35 @@ defmodule RulesteadAdmin.Components.AuditComponents do
   end
 
   attr :entry, :map, required: true
+  attr :source_label, :string, default: "Before"
+  attr :current_target_label, :string, default: nil
+  attr :proposed_target_label, :string, default: "After"
+  attr :structured_label, :string, default: "Readable diff"
 
   def diff_card(assigns) do
     ~H"""
-    <section class="rs-diff-card" aria-label={"Diff for #{@entry.title}"}>
-      <h4>Readable diff</h4>
-      <div class="rs-diff-card__values">
-        <div>
-          <p>Before</p>
-          <code>{@entry.before_summary}</code>
+    <details aria-label={@structured_label}>
+      <summary>{@structured_label}</summary>
+      <section class="rs-diff-card" aria-label={"Diff for #{@entry.title}"}>
+        <div class="rs-diff-card__values">
+          <div>
+            <p>{@source_label}</p>
+            <code>{Map.get(@entry, :source_summary) || Map.get(@entry, :before_summary)}</code>
+          </div>
+          <div :if={@current_target_label}>
+            <p>{@current_target_label}</p>
+            <code>{Map.get(@entry, :current_target_summary) || "Not available"}</code>
+          </div>
+          <div>
+            <p>{@proposed_target_label}</p>
+            <code>{Map.get(@entry, :proposed_target_summary) || Map.get(@entry, :after_summary)}</code>
+          </div>
         </div>
-        <div>
-          <p>After</p>
-          <code>{@entry.after_summary}</code>
-        </div>
-      </div>
-      <ul :if={Map.get(@entry, :diff_lines, []) != []} class="rs-diff-card__positions">
-        <li :for={line <- @entry.diff_lines}>{line}</li>
-      </ul>
-    </section>
+        <ul :if={Map.get(@entry, :diff_lines, []) != []} class="rs-diff-card__positions">
+          <li :for={line <- @entry.diff_lines}>{line}</li>
+        </ul>
+      </section>
+    </details>
     """
   end
 end

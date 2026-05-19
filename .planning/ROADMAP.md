@@ -1,72 +1,50 @@
-# Roadmap: v0.6.0 - Multi-environment Sync & Tenancy
+# Roadmap: v1.0.0 - General Availability (GA)
 
 ## Phases
 
-- [x] **Phase 22: Environment Compare & Conflict Model** - Establish the authored-state diff model, dependency checks, and operator-facing compare semantics for environment promotion.
-- [x] **Phase 23: Governed Promotion Apply** - Apply whole-flag environment promotion through existing governance, audit, and safety boundaries.
-- [x] **Phase 24: GitOps Manifests & CLI Surface** - Ship deterministic manifest export, validation, diffing, import, and promotion automation tasks.
-- [ ] **Phase 25: Tenancy Helpers & Validation** - Add the minimal tenant-aware scope, bucketing, audit, and validation seams that fit the current linked-version product shape.
+- [ ] **Phase 26: API Lockdown & Documentation Perfection** - Refactoring internal modules to `@moduledoc false`, perfecting Hexdocs, ensuring 100% Dialyzer passing, and freezing the public API.
+- [ ] **Phase 27: Comprehensive RBAC & Security Hardening** - Implementing pure Elixir Context-based Policies (like Bodyguard pattern but built-in) for the Admin UI and API.
+- [ ] **Phase 28: E2E Demo Environments & GA Release** - Creating a Docker Compose setup with a Next.js/Phoenix demo application showcasing real-time flag streaming and evaluation.
 
 ## Phase Details
 
-### Phase 22: Environment Compare & Conflict Model
-**Goal**: Operators can compare source and target environment configuration with clear dependency and drift feedback before any apply happens.
-**Depends on**: Phase 21
-**Requirements**: PROM-01, PROM-02
-**Plans**: 2 plans
-- [x] 22-01-PLAN.md — Authored-state Diff Engine & Dependency Closure
-- [x] 22-02-PLAN.md — Admin Compare View & Conflict Presentation
+### Phase 26: API Lockdown & Documentation Perfection
+**Goal**: The public API boundary is frozen, strongly typed, and comprehensively documented.
+**Depends on**: Phase 25
+**Requirements**: API-01, API-02, DOC-01, DOC-02
 **Success Criteria** (what must be TRUE):
-  1. A source and target environment can be compared using authored flag state rather than runtime snapshots.
-  2. The compare result surfaces dependency gaps, target drift, and stale-preview conflicts before mutation.
-  3. Operators can review a clear compare view without the admin package becoming an independent release-orchestration product.
+  1. A developer can view clear public Hexdocs without internal implementation details cluttering the index.
+  2. Dialyzer runs cleanly on the project with no warnings, proving type stability.
+  3. A developer migrating from FunWithFlags can follow a step-by-step guide to transition to Rulestead.
+  4. A host application can depend on the public API without risking breaking changes from internal module shifts.
+**Plans**: TBD
 
-### Phase 23: Governed Promotion Apply
-**Goal**: Whole-flag environment configuration can be promoted safely into a target environment through the existing mutation, approval, and audit envelope.
-**Depends on**: Phase 22
-**Requirements**: PROM-03, PROM-04
-**Plans**: 5 plans
-- [x] 23-01-PLAN.md — Transactional Promotion Apply & Snapshot Regeneration
-- [x] 23-02-PLAN.md — Governed Promotion Action, Persistence, and Policy Surfaces
-- [x] 23-03-PLAN.md — Governed Promotion Snapshot Execution & Schedule Revalidation
-- [x] 23-04-PLAN.md — Promotion Audit Linkage & Backend Re-apply Path
-- [x] 23-05-PLAN.md — Mounted Admin Promotion Handoff & Re-apply Entry Points
+### Phase 27: Comprehensive RBAC & Security Hardening
+**Goal**: System enforces strict, dependency-free role-based access control for operations.
+**Depends on**: Phase 26
+**Requirements**: SEC-01, SEC-02, SEC-03
 **Success Criteria** (what must be TRUE):
-  1. Promotion applies authored configuration changes transactionally and regenerates target runtime state afterward.
-  2. Protected target environments require the same governed mutation path as other high-impact admin changes.
-  3. Operators have a minimal revert path by re-applying a prior environment configuration version.
+  1. An operator with a "Viewer" role can read flags but is denied from saving changes.
+  2. An operator with an "Editor" role can mutate flags but cannot change admin-level system settings.
+  3. Host applications can integrate Rulestead's RBAC policies using pure Elixir context mechanisms, without installing new dependencies like Ash or Permit.
+**Plans**: TBD
+**UI hint**: yes
 
-### Phase 24: GitOps Manifests & CLI Surface
-**Goal**: Teams can export, validate, diff, import, and promote deterministic manifests from local workflows and CI.
-**Depends on**: Phase 23
-**Requirements**: MAN-01, MAN-02, MAN-03, MAN-04
-**Plans**: 4 plans
-- [x] 24-01-PLAN.md — Canonical Manifest Schema & Export
-- [x] 24-02-PLAN.md — Validation, Diffing, and Machine-readable Output
-- [x] 24-03-PLAN.md — Saved Import Plan Artifact & Adapter Parity
-- [x] 24-04-PLAN.md — Promote CLI Apply & Governed Automation Reuse
+### Phase 28: E2E Demo Environments & GA Release
+**Goal**: Platform engineers can evaluate the entire Rulestead stack locally in under 5 minutes.
+**Depends on**: Phase 27
+**Requirements**: GA-01, GA-02
 **Success Criteria** (what must be TRUE):
-  1. Exported manifests are deterministic, semantic, and suitable for code review.
-  2. Validation and diff commands work in both human-readable and machine-readable modes.
-  3. Import and promote operations support preview/dry-run before explicit apply.
+  1. A user can run `docker-compose up` and immediately access the Rulestead Admin UI.
+  2. The demo environment streams real-time flag evaluations to an external (e.g., Next.js) sample application.
+  3. A user can toggle a flag in the Admin UI and observe the change in the sample application via the OpenFeature integration.
+**Plans**: TBD
+**UI hint**: yes
 
-### Phase 25: Tenancy Helpers & Validation
-**Goal**: Rulestead supports tenant-aware scoping and validation without introducing tenant-partitioned storage or environment-per-tenant topology.
-**Depends on**: Phase 24
-**Requirements**: TEN-01, TEN-02, TEN-03
-**Plans**: 2 plans
-- [ ] 25-01-PLAN.md — Tenancy Seam, SingleTenant Default, and Bucketing Hooks
-- [ ] 25-02-PLAN.md — Tenant-aware Validation, Audit Metadata, and Admin Scope
-**Success Criteria** (what must be TRUE):
-  1. Tenant scope is explicit in runtime and admin flows where it matters.
-  2. Promotion and import paths reject tenant-sensitive invalid states before apply.
-  3. The shipped tenancy seam remains minimal, composable, and aligned with the current two-package release model.
-
-## Progress Table
+## Progress
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 22. Environment Compare & Conflict Model | 2/2 | Complete | 2026-05-18 |
-| 23. Governed Promotion Apply | 5/5 | Complete | 2026-05-18 |
-| 24. GitOps Manifests & CLI Surface | 4/4 | Complete | 2026-05-19 |
-| 25. Tenancy Helpers & Validation | 0/2 | Pending | — |
+| 26. API Lockdown & Documentation Perfection | 0/0 | Not started | - |
+| 27. Comprehensive RBAC & Security Hardening | 0/0 | Not started | - |
+| 28. E2E Demo Environments & GA Release | 0/0 | Not started | - |

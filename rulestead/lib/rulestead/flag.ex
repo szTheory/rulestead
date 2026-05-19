@@ -1,5 +1,4 @@
 defmodule Rulestead.Flag do
-  @moduledoc false
 
   use Ecto.Schema
 

@@ -1,7 +1,6 @@
 defmodule Rulestead.Analytics do
-  @moduledoc """
-  Public analytics tracking interface.
-  """
+  @moduledoc false
+  # Public analytics tracking interface.
 
   alias Rulestead.Context
   alias Rulestead.Analytics.Batcher

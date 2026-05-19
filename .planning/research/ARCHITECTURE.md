@@ -1,51 +1,63 @@
-# Architecture Patterns
+# Architecture Patterns: v1.0.0 (GA)
 
-**Domain:** Feature Management Platform (SaaS)
-**Researched:** 2026-05-14
+**Domain:** Feature Management Platform
+**Researched:** 2026-05-17
 
 ## Recommended Architecture
 
-### OpenFeature Integration Pattern
+For v1.0.0, the architectural focus shifts from adding capabilities to enforcing boundaries. 
 
-Rulestead should be integrated as a **Provider** within the OpenFeature ecosystem, rather than changing its internal evaluation engine.
+### Component Boundaries (Public vs Private)
 
-| Component | Responsibility | Communicates With |
+| Component | Responsibility | Boundary Enforcement |
 |-----------|---------------|-------------------|
-| `OpenFeature` (Core) | Exposes the standardized API (`OpenFeature.get_client().get_boolean_value(...)`). | `RulesteadProvider` |
-| `RulesteadProvider` | Translates OpenFeature context to Rulestead context, calls `Rulestead.resolve`, and maps the result back. | `Rulestead` Core Evaluator |
-| `Rulestead` | Evaluates rules deterministically based on ETS snapshots. | ETS Cache |
+| `Rulestead` | Core Public API (Evaluation) | Fully documented, strictly spec'd, covered by SemVer 1.x guarantees. |
+| `Rulestead.Admin` | Public API for Management | Same as above. Contains the pure Elixir context functions for managing flags. |
+| `Rulestead.Internal.*` | Implementation details | Tagged with `@moduledoc false`. No SemVer guarantees. |
 
-### Code References Pattern (The "Push" Model)
+### Data Flow for RBAC
 
-Instead of Rulestead reaching out to GitHub (which requires complex OAuth and permissions), the CI/CD pipeline pushes references to Rulestead.
-
-1. **GitHub Action** runs on push to `main`.
-2. Uses regex or AST to find `Rulestead.enabled?(:flag_key)`.
-3. Pushes JSON payload (flag_key, file_path, line_number) to a new Rulestead webhook ingress endpoint (`/admin/api/code_references`).
-4. Rulestead UI displays these references on the Flag Detail page.
+1. Web Request (Admin UI / API)
+2. Plug / LiveView `on_mount` hook retrieves the current User/Role.
+3. Web layer calls `Rulestead.Admin` context.
+4. `Rulestead.Admin` immediately delegates to `Rulestead.Policy` to verify action.
+5. If `{:ok, :authorized}`, execution proceeds to Ecto / Redis.
+6. If `{:error, :unauthorized}`, operation halts and audit log is written (optional).
 
 ## Patterns to Follow
 
-### Pattern 1: Abstracted Evaluation via OpenFeature
-**What:** Users do not call Rulestead directly. They call OpenFeature.
-**When:** For host apps that mandate vendor-agnostic architecture.
+### Pattern 1: Pure Elixir Policy Modules
+**What:** Decoupling authorization logic from Ecto queries or Web Plugs using pure functions.
+**When:** Enforcing RBAC before executing mutations.
 **Example:**
 ```elixir
-# Setup
-OpenFeature.set_provider(RulesteadProvider.new())
-
-# Usage
-OpenFeature.get_client().get_boolean_value("new_checkout", false, open_feature_context)
+defmodule Rulestead.Policy do
+  @doc "Checks if the given actor can perform the action on the resource."
+  def authorize(:create_flag, %User{role: "admin"}, _resource), do: :ok
+  def authorize(:create_flag, %User{role: "editor"}, _resource), do: :ok
+  def authorize(:create_flag, _, _), do: {:error, :unauthorized}
+  
+  def authorize(:delete_environment, %User{role: "admin"}, _resource), do: :ok
+  def authorize(:delete_environment, _, _), do: {:error, :unauthorized}
+end
 ```
+
+### Pattern 2: Explicit Internal Namespaces
+**What:** Moving all implementation details into `Rulestead.Internal` or strictly using `@moduledoc false`.
+**Why:** Prevents users from relying on internal functions, which makes future refactoring impossible without breaking SemVer.
 
 ## Anti-Patterns to Avoid
 
-### Anti-Pattern 1: Rulestead polling GitHub
-**What:** Making Rulestead poll the host app's GitHub repository to find code references.
-**Why bad:** Huge security/permission footprint. Self-hosted Rulestead instances might not have outbound internet access.
-**Instead:** Rely on a GitHub Action that pushes data *inward* to Rulestead via a secure webhook.
+### Anti-Pattern 1: Heavy Authorization Dependencies
+**What:** Bringing in `permit` or `ash` for RBAC.
+**Why bad:** Rulestead is meant to be embedded. If the host application uses Ash 2.x and Rulestead uses Ash 3.x, you have created an unresolvable dependency conflict.
+**Instead:** Write 50 lines of pure Elixir pattern matching.
+
+### Anti-Pattern 2: Config-driven Roles
+**What:** Trying to allow users to define complex custom roles in `config.exs`.
+**Why bad:** Creates massive complexity in the UI and evaluation layer.
+**Instead:** Hardcode 3-4 sensible default roles (Admin, Editor, Viewer).
 
 ## Sources
 
-- OpenFeature CNCF Specification
-- LaunchDarkly code-references action architecture
+- Best practices for embeddable Elixir engines (e.g., Oban, Phoenix LiveDashboard).

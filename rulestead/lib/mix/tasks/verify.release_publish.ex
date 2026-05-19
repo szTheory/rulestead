@@ -1,4 +1,6 @@
 defmodule Mix.Tasks.Verify.ReleasePublish do
+  @moduledoc false
+
   use Mix.Task
 
   @shortdoc "Verifies published rulestead artifacts from fresh consumer fixtures"

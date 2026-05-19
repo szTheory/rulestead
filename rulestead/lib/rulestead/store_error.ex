@@ -1,7 +1,7 @@
 defmodule Rulestead.StoreError do
-  @moduledoc """
-  Constructors for store-domain `Rulestead.Error` values.
-  """
+  @moduledoc false
+  # Constructors for store-domain `Rulestead.Error` values.
+
 
   alias Rulestead.Error
 

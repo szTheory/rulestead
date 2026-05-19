@@ -1,7 +1,6 @@
 defmodule Rulestead.Governance.ExecutionAttempt do
-  @moduledoc """
-  Append-only execution attempt contract for scheduled execution retries.
-  """
+  @moduledoc false
+  # Append-only execution attempt contract for scheduled execution retries.
 
   @states [:running, :completed, :failed, :quarantined, :cancelled]
 

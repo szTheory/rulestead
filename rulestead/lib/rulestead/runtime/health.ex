@@ -6,7 +6,7 @@ defmodule Rulestead.Runtime.Health do
 
   @spec current(keyword()) :: map()
   def current(opts \\ []) do
-    peer_nodes = Keyword.get(opts, :peer_nodes, [])
+    peer_nodes = peer_nodes(opts)
 
     %{
       node: node(),
@@ -30,6 +30,21 @@ defmodule Rulestead.Runtime.Health do
 
   defp topology_scope([]), do: :current_node
   defp topology_scope(_peer_nodes), do: :host_provided
+
+  defp peer_nodes(opts) do
+    if Keyword.has_key?(opts, :peer_nodes) do
+      opts |> Keyword.get(:peer_nodes, []) |> List.wrap()
+    else
+      peer_nodes_from_provider(opts)
+    end
+  end
+
+  defp peer_nodes_from_provider(opts) do
+    case Config.health_peer_provider(opts) do
+      nil -> []
+      provider -> provider.peer_nodes() |> List.wrap()
+    end
+  end
 
   defp sync_latency_ms(%{published_at: %DateTime{} = published_at, applied_at: %DateTime{} = applied_at}) do
     applied_at

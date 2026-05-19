@@ -72,6 +72,7 @@ Top-level error family used to group stable leaf error types.
 @type type() ::
   :flag_not_found
   | :environment_not_found
+  | :snapshot_not_found
   | :ruleset_not_found
   | :missing_targeting_key
   | :repo_not_configured

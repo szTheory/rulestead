@@ -1,7 +1,6 @@
 defmodule Rulestead.Analytics.Query do
-  @moduledoc """
-  Ecto aggregation queries for experiment metrics.
-  """
+  @moduledoc false
+  # Ecto aggregation queries for experiment metrics.
 
   import Ecto.Query
 

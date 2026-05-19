@@ -9,6 +9,8 @@ defmodule RulesteadAdmin.Live.DiagnosticsLive.IndexTest do
   end
 
   setup %{conn: conn} do
+    previous_runtime = Application.get_env(:rulestead, :runtime)
+
     prod_environment = "prod"
     staging_environment = "staging"
 
@@ -21,6 +23,7 @@ defmodule RulesteadAdmin.Live.DiagnosticsLive.IndexTest do
     on_exit(fn ->
       Cache.reset(prod_environment)
       Cache.reset(staging_environment)
+      restore_env(:runtime, previous_runtime)
     end)
 
     conn =
@@ -35,7 +38,7 @@ defmodule RulesteadAdmin.Live.DiagnosticsLive.IndexTest do
         ]
       })
 
-    {:ok, conn: conn}
+    {:ok, conn: conn, previous_runtime: previous_runtime}
   end
 
   test "diagnostics renders a summary-first current-node health page for the selected environment",
@@ -93,6 +96,40 @@ defmodule RulesteadAdmin.Live.DiagnosticsLive.IndexTest do
     assert loaded_html =~ "Current node only"
     assert loaded_html =~ "Use refresh after a sync lands"
     refute loaded_html =~ "FunctionClauseError"
+  end
+
+  test "diagnostics switches to host-provided topology copy only when a peer provider is configured", %{
+    conn: conn,
+    previous_runtime: previous_runtime
+  } do
+    Application.put_env(:rulestead, :runtime,
+      Keyword.merge(previous_runtime || [], health_peer_provider: __MODULE__.PeerProvider)
+    )
+
+    {:ok, view, _html} = live(conn, "/admin/flags/diagnostics?env=prod")
+    loaded_html = render_async(view)
+
+    assert loaded_html =~ "Host-provided topology"
+    assert loaded_html =~ "This screen includes host-supplied peer context."
+    refute loaded_html =~ "It does not imply undiscovered peers are healthy."
+  end
+
+  defp restore_env(key, nil), do: Application.delete_env(:rulestead, key)
+  defp restore_env(key, value), do: Application.put_env(:rulestead, key, value)
+
+  defmodule PeerProvider do
+    @behaviour Rulestead.Runtime.HealthPeerProvider
+
+    @impl true
+    def peer_nodes do
+      [
+        %{
+          node: :"peer@node",
+          topology_scope: :peer_snapshot,
+          environments: [%{environment_key: "prod", refresh_status: :ready}]
+        }
+      ]
+    end
   end
 
   defp compile_snapshot!(snapshot) do

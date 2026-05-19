@@ -8,7 +8,15 @@ defmodule Rulestead.Error do
   """
 
   @enforce_keys [:domain, :type, :message]
-  defexception [:domain, :type, :message, metadata: %{}, details: [], cause: nil, plug_status: nil]
+  defexception [
+    :domain,
+    :type,
+    :message,
+    metadata: %{},
+    details: [],
+    cause: nil,
+    plug_status: nil
+  ]
 
   @typedoc "Top-level error family used to group stable leaf error types."
   @type domain :: :evaluation | :ruleset | :kill_switch | :config | :store | :auth
@@ -22,6 +30,7 @@ defmodule Rulestead.Error do
   @type type ::
           :flag_not_found
           | :environment_not_found
+          | :snapshot_not_found
           | :ruleset_not_found
           | :missing_targeting_key
           | :repo_not_configured
@@ -61,6 +70,7 @@ defmodule Rulestead.Error do
   @leaf_types [
     :flag_not_found,
     :environment_not_found,
+    :snapshot_not_found,
     :ruleset_not_found,
     :missing_targeting_key,
     :repo_not_configured,
@@ -128,7 +138,9 @@ defmodule Rulestead.Error do
   defp normalize_type(type) when type in @leaf_types, do: type
   defp normalize_type(_type), do: :invalid_command
 
-  defp normalize_message(message, _type) when is_binary(message) and byte_size(message) > 0, do: message
+  defp normalize_message(message, _type) when is_binary(message) and byte_size(message) > 0,
+    do: message
+
   defp normalize_message(_message, type) when is_atom(type), do: Atom.to_string(type)
   defp normalize_message(_message, _type), do: "rulestead error"
 

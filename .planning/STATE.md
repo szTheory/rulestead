@@ -1,48 +1,48 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.6.0
-milestone_name: Multi-environment Sync & Tenancy
-status: in_progress
-last_updated: "2026-05-19T13:52:42Z"
+milestone: v1.0.0
+milestone_name: General Availability (GA)
+status: planning
+last_updated: "2026-05-19T14:30:00Z"
 last_activity: 2026-05-19
 progress:
-  total_phases: 4
-  completed_phases: 3
-  total_plans: 13
-  completed_plans: 11
-  percent: 85
+  total_phases: 3
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # State: Rulestead
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-05-18)
+See: `.planning/PROJECT.md` (updated 2026-05-19)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
-**Current focus:** Phase 24 is complete; Phase 25 (`Tenancy Helpers & Validation`) planning is the next active slice for `v0.6.0` (`Multi-environment Sync & Tenancy`)
-**Milestone:** v0.6.0
+**Current focus:** Planning milestone v1.0.0: General Availability (GA) focusing on API lockdown, comprehensive RBAC, and E2E Demo environments.
+**Milestone:** v1.0.0
 
 ## Roadmap Reference
 
-See: `.planning/ROADMAP.md` for the active milestone roadmap.
+See: `.planning/ROADMAP.md` for the active milestone roadmap (v1.0.0).
 
 ## Current Position
 
-Phase: 25-tenancy-helpers-validation
+Phase: 26
 Plan: pending
-Status: Phase 24 execution and verification are complete; Phase 25 planning is the next milestone slice
+Status: Awaiting planning for milestone v1.0.0 (Phase 26)
 Last activity: 2026-05-19
 
 ## Active Requirement Focus
 
-- Ship deterministic export/validate/diff/import/promote workflows for GitOps-style use.
-- Add explicit tenant-aware scoping, validation, and bucketing helpers without tenant topology sprawl.
-- Preserve the mounted admin and linked-version sibling-package release posture while Phase 24 and 25 land.
+- **Phase 26**: API Lockdown & Documentation Perfection
+- **Phase 27**: Comprehensive RBAC & Security Hardening
+- **Phase 28**: E2E Demo Environments & GA Release
 
 ## Carryover Items
 
-None. `v0.5.0` closed without carryover items.
+- **Phase 25 (Tenancy Helpers & Validation)** from previous milestones remains an active slice, though the current focus is 1.0 GA delivery via Phases 26-28.
 
 ## Anchor Docs (prompts/)
 
@@ -108,6 +108,8 @@ These remain the primary source of truth and should be loaded selectively per ph
 
 ## Latest Activity
 
+- 2026-05-19 — Defined milestone `v1.0.0`, created the active `REQUIREMENTS.md` and `ROADMAP.md`, and queued Phase 26 for planning.
+- 2026-05-19 — Marked milestone `v0.6.0` shipped, carried over Phase 25 (Tenancy Helpers), and queued `v0.7.0` (now fast-tracked to v1.0.0) as the next milestone definition target.
 - 2026-05-19 — Verified and closed Phase 24: targeted export/validate/diff/import/promote suites passed, `24-VERIFICATION.md` was added, and roadmap/state now mark GitOps Manifests & CLI Surface complete.
 - 2026-05-19 — Completed 24-04-PLAN.md: added saved-plan `mix rulestead.promote`, public promote plan/apply facade helpers, and governed protected-target apply reuse.
 - 2026-05-19 — Revised Phase 24 planning after verification: split the original import/promote CLI slice into `24-03` (saved import plan artifact and adapter parity) and `24-04` (promote CLI apply plus governed automation reuse) to keep adapter seams explicit and reduce execution density.
@@ -143,4 +145,4 @@ These remain the primary source of truth and should be loaded selectively per ph
 
 ## Next Action
 
-Next: Run `$gsd-plan-phase 25` to plan Tenancy Helpers & Validation
+Next: Run `/gsd-plan-phase 26` to begin work on Phase 26 (API Lockdown & Documentation Perfection).

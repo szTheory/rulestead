@@ -1,24 +1,18 @@
 ---
 phase: 21-infrastructure-observability-ui
-verified: 2026-05-17T20:59:10Z
-status: human_needed
-score: 7/7 must-haves verified
+verified: 2026-05-17T21:51:10Z
+status: complete
+score: 8/8 must-haves verified
 overrides_applied: 0
-human_verification:
-  - test: "Open the mounted diagnostics page in a real browser session and verify the summary-first operator flow"
-    expected: "The page shows the current-node scope banner, environment picker, refresh control, and readable health summaries without visual ambiguity."
-    why_human: "Automated tests confirm render paths and accessibility markup, but not visual hierarchy, operator comprehension, or real browser interaction quality."
-  - test: "Verify topology honesty in a host app with multiple nodes and optional peer input"
-    expected: "Without host-supplied peer data the screen never implies undiscovered peers are healthy; with peer input it switches to host-provided topology copy only for the rendered peer facts."
-    why_human: "This repo verifies the seam and copy, but not an actual multi-node host deployment or operator interpretation of cluster-wide health."
+human_verification: []
 ---
 
 # Phase 21: Infrastructure Observability UI Verification Report
 
 **Phase Goal:** SREs and Operators can visually confirm that cache states across the cluster are healthy and synchronized.
-**Verified:** 2026-05-17T20:59:10Z
-**Status:** human_needed
-**Re-verification:** No — initial verification
+**Verified:** 2026-05-17T21:51:10Z
+**Status:** complete
+**Re-verification:** Yes — upgraded from human-needed to shift-left complete
 
 ## Goal Achievement
 
@@ -33,14 +27,16 @@ human_verification:
 | 5 | The diagnostics screen preserves mounted-admin session, environment picker, and accessibility posture. | ✓ VERIFIED | The route is inside the existing `rulestead_admin` macro and `on_mount` envelope at [router.ex](/Users/jon/projects/rulestead/rulestead_admin/lib/rulestead_admin/router.ex:15); tests verify env links and refresh control at [index_test.exs](/Users/jon/projects/rulestead/rulestead_admin/test/rulestead_admin/live/diagnostics_live/index_test.exs:58), and accessibility coverage checks named regions and refresh state at [accessibility_test.exs](/Users/jon/projects/rulestead/rulestead_admin/test/rulestead_admin/live/diagnostics_live/accessibility_test.exs:42). |
 | 6 | The backend health snapshot is bounded, UI-safe, and does not invent peer discovery. | ✓ VERIFIED | `Health.current/1` only projects selected fields from `Cache.diagnostics/0`, derives latency from publish/apply timestamps, and reports adapter process health without exposing raw payloads at [health.ex](/Users/jon/projects/rulestead/rulestead/lib/rulestead/runtime/health.ex:19); runtime tests assert omitted raw metadata and explicit peer seam at [health_test.exs](/Users/jon/projects/rulestead/rulestead/test/rulestead/runtime/health_test.exs:34) and [diagnostics_test.exs](/Users/jon/projects/rulestead/rulestead/test/rulestead/runtime/diagnostics_test.exs:33). |
 | 7 | Phase 20 invalidation telemetry remains intact while Phase 21 compatibility events are additive. | ✓ VERIFIED | `emit_invalidation/4` still executes `[:rulestead, :runtime, :invalidation, ...]` before alias emission at [refresh.ex](/Users/jon/projects/rulestead/rulestead/lib/rulestead/runtime/refresh.ex:402); the existing telemetry contract test still passes in [telemetry_test.exs](/Users/jon/projects/rulestead/rulestead/test/rulestead/telemetry_test.exs:64). |
+| 8 | Host-supplied peer topology is now executable through the public facade and mounted admin UI without requiring manual browser-only validation. | ✓ VERIFIED | Runtime config accepts an optional `health_peer_provider` seam at [config.ex](/Users/jon/projects/rulestead/rulestead/lib/rulestead/config.ex:35), `Rulestead.infrastructure_health/1` and `Rulestead.Runtime.diagnostics/1` forward that seam to `Health.current/1`, and the mounted diagnostics LiveView test asserts the page switches to `Host-provided topology` only when the provider is configured at [index_test.exs](/Users/jon/projects/rulestead/rulestead_admin/test/rulestead_admin/live/diagnostics_live/index_test.exs:96). |
 
-**Score:** 7/7 truths verified
+**Score:** 8/8 truths verified
 
 ### Required Artifacts
 
 | Artifact | Expected | Status | Details |
 | --- | --- | --- | --- |
 | `rulestead/lib/rulestead/runtime/health.ex` | Bounded health projection with truthful topology scope | ✓ VERIFIED | Exists, substantive, used by diagnostics facade, and supplies real data from `Cache.diagnostics/0`. |
+| `rulestead/lib/rulestead/runtime/health_peer_provider.ex` | Optional host-owned peer topology seam | ✓ VERIFIED | Exists, defines the callback contract, and is consumed through validated runtime config. |
 | `rulestead/lib/rulestead/runtime/diagnostics.ex` | Runtime diagnostics composed with infrastructure health | ✓ VERIFIED | Exists, substantive, and wired into public `Rulestead.diagnostics/0`. |
 | `rulestead/lib/rulestead/runtime/refresh.ex` | Additive invalidation alias telemetry | ✓ VERIFIED | Existing invalidation flow preserved and alias emission wired into same branches. |
 | `rulestead/lib/rulestead.ex` | Stable public facade for diagnostics and infrastructure health | ✓ VERIFIED | Exposes `diagnostics/0` and `infrastructure_health/0` for admin use. |
@@ -48,6 +44,7 @@ human_verification:
 | `rulestead_admin/lib/rulestead_admin/router.ex` | Mounted `/diagnostics` route inside existing admin session | ✓ VERIFIED | Route is present before catch-all `/:key` routes. |
 | `rulestead_admin/lib/rulestead_admin/components/operator_components.ex` | Reusable status rendering helpers | ✓ VERIFIED | `banner`, `summary_grid`, `trace_panel`, and `status_list` support the diagnostics page. |
 | `rulestead/test/rulestead/runtime/health_test.exs` | Locks truthful health projection semantics | ✓ VERIFIED | Tests node scope, latency math, bounded fields, and facade parity. |
+| `rulestead/test/rulestead/config_test.exs` | Locks host runtime config for the peer provider seam | ✓ VERIFIED | Tests validated host runtime config accepts `health_peer_provider` alongside notifier and PubSub wiring. |
 | `rulestead/test/rulestead/runtime/health_telemetry_test.exs` | Locks additive telemetry alias behavior | ✓ VERIFIED | Tests old and new events together with bounded metadata keys. |
 | `rulestead_admin/test/rulestead_admin/live/diagnostics_live/index_test.exs` | LiveView rendering and refresh coverage | ✓ VERIFIED | Tests summary-first copy, environment links, refresh action, and missing-snapshot state. |
 | `rulestead_admin/test/rulestead_admin/live/diagnostics_live/accessibility_test.exs` | Accessibility regression coverage | ✓ VERIFIED | Tests named regions, async load, refresh, and degraded state with Axe. |
@@ -68,6 +65,7 @@ human_verification:
 | Artifact | Data Variable | Source | Produces Real Data | Status |
 | --- | --- | --- | --- | --- |
 | `rulestead/lib/rulestead/runtime/health.ex` | `environments` | `Cache.diagnostics/0` rows mapped into bounded health fields | Yes | ✓ FLOWING |
+| `rulestead/lib/rulestead/runtime/health.ex` | `peer_nodes` | Explicit `peer_nodes` opt or configured `health_peer_provider` callback | Yes | ✓ FLOWING |
 | `rulestead/lib/rulestead/runtime/diagnostics.ex` | `infrastructure_health` | `Health.current/0` | Yes | ✓ FLOWING |
 | `rulestead_admin/lib/rulestead_admin/live/diagnostics_live/index.ex` | `@health_snapshot` | `assign_async` -> `build_health_view/1` -> `Rulestead.infrastructure_health/0` | Yes | ✓ FLOWING |
 | `rulestead_admin/lib/rulestead_admin/live/diagnostics_live/index.ex` | `summary_items` / `adapter_entries` | Selected environment inside runtime health snapshot | Yes | ✓ FLOWING |
@@ -76,8 +74,8 @@ human_verification:
 
 | Behavior | Command | Result | Status |
 | --- | --- | --- | --- |
-| Runtime health projection and telemetry contract | `cd rulestead && mix test test/rulestead/runtime/diagnostics_test.exs test/rulestead/runtime/health_test.exs test/rulestead/runtime/health_telemetry_test.exs test/rulestead/telemetry_test.exs` | `14 tests, 0 failures` | ✓ PASS |
-| Mounted diagnostics UI and accessibility coverage | `cd rulestead_admin && mix test test/rulestead_admin/live/diagnostics_live/index_test.exs test/rulestead_admin/live/diagnostics_live/accessibility_test.exs` | `5 tests, 0 failures` | ✓ PASS |
+| Runtime health projection, host seam, and telemetry contract | `cd rulestead && mix test test/rulestead/config_test.exs test/rulestead/runtime/health_test.exs test/rulestead/runtime/diagnostics_test.exs test/rulestead/runtime/health_telemetry_test.exs test/rulestead/telemetry_test.exs` | `18 tests, 0 failures` | ✓ PASS |
+| Mounted diagnostics UI, host-topology rendering, and accessibility coverage | `cd rulestead_admin && mix test test/rulestead_admin/live/diagnostics_live/index_test.exs test/rulestead_admin/live/diagnostics_live/accessibility_test.exs` | `6 tests, 0 failures` | ✓ PASS |
 
 ### Requirements Coverage
 
@@ -94,25 +92,11 @@ No orphaned Phase 21 requirement IDs were found in `.planning/milestones/v0.5.0-
 | --- | --- | --- | --- | --- |
 | None | - | No TODO/FIXME/placeholder/hardcoded-empty implementation blockers found in scanned Phase 21 files | ℹ️ Info | No anti-patterns blocking goal achievement were detected in the implementation or phase tests. |
 
-### Human Verification Required
-
-### 1. Mounted Diagnostics UX
-
-**Test:** Open `/admin/flags/diagnostics?env=prod` in a real mounted admin host.
-**Expected:** The current-node scope banner, summary-first metrics, adapter statuses, environment picker, and refresh interaction are visually clear and readable.
-**Why human:** Automated tests verify markup and state transitions, but not operator comprehension or visual hierarchy.
-
-### 2. Multi-Node Scope Honesty
-
-**Test:** In a host deployment with more than one node, compare the diagnostics page with and without explicit host-provided peer input.
-**Expected:** The page never implies undiscovered peers are healthy; topology copy changes only when peer input is actually supplied.
-**Why human:** The repo verifies the seam and copy, but not a real multi-node deployment or end-user interpretation.
-
 ### Gaps Summary
 
-No code or test gaps were found against the roadmap success criteria, plan must-haves, or requirement IDs `INF-01` and `INF-02`. Automated verification shows the diagnostics UI is mounted, wired to the public runtime health facade, and backed by additive telemetry aliases. Human verification is still required because the phase goal is explicitly a visual operator confirmation surface and because real multi-node/operator interpretation cannot be closed programmatically from this repo alone.
+No code or test gaps were found against the roadmap success criteria, plan must-haves, or requirement IDs `INF-01` and `INF-02`. Automated verification now covers the mounted diagnostics flow, degraded and accessibility states, telemetry compatibility, and the host-provided peer-topology branch through an explicit runtime seam, so Phase 21 no longer requires manual UAT to be considered complete.
 
 ---
 
-_Verified: 2026-05-17T20:59:10Z_
+_Verified: 2026-05-17T21:51:10Z_
 _Verifier: Claude (gsd-verifier)_

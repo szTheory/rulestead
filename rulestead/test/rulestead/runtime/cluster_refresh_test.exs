@@ -13,23 +13,35 @@ defmodule Rulestead.Runtime.ClusterRefreshTest do
     context = Context.new(actor: %{key: "user-1"})
 
     assert {:ok, true} = Rulestead.Runtime.enabled?(environment_key, "checkout-redesign", context)
+
     assert :ok =
              ClusterCase.assert_eventually(fn ->
-               match?({:ok, true}, ClusterCase.remote_enabled?(cluster.peer_node, environment_key, context))
+               match?(
+                 {:ok, true},
+                 ClusterCase.remote_enabled?(cluster.peer_node, environment_key, context)
+               )
              end)
 
     version_two = ClusterCase.publish_ruleset_version(environment_key, false)
     started_at = System.monotonic_time(:millisecond)
 
-    Control.publish!(cluster.pubsub_name, environment_key, version_two.version, notifier: cluster.notifier)
+    Control.publish!(cluster.pubsub_name, environment_key, version_two.version,
+      notifier: cluster.notifier
+    )
 
     assert :ok =
              ClusterCase.assert_eventually(fn ->
                local_ready? =
-                 match?({:ok, false}, Rulestead.Runtime.enabled?(environment_key, "checkout-redesign", context))
+                 match?(
+                   {:ok, false},
+                   Rulestead.Runtime.enabled?(environment_key, "checkout-redesign", context)
+                 )
 
                remote_ready? =
-                 match?({:ok, false}, ClusterCase.remote_enabled?(cluster.peer_node, environment_key, context))
+                 match?(
+                   {:ok, false},
+                   ClusterCase.remote_enabled?(cluster.peer_node, environment_key, context)
+                 )
 
                local_ready? and remote_ready?
              end)
@@ -44,25 +56,37 @@ defmodule Rulestead.Runtime.ClusterRefreshTest do
              ]
            } = Rulestead.Runtime.diagnostics()
 
-    assert %{environments: remote_environments} = ClusterCase.remote_diagnostics(cluster.peer_node)
+    assert %{environments: remote_environments} =
+             ClusterCase.remote_diagnostics(cluster.peer_node)
+
     remote_environment = Enum.find(remote_environments, &(&1.environment_key == environment_key))
 
     assert local_version == version_two.version
     assert remote_environment.snapshot_version == version_two.version
 
-    Control.publish!(cluster.pubsub_name, environment_key, version_two.version, notifier: cluster.notifier)
-    Control.publish!(cluster.pubsub_name, environment_key, version_two.version - 1, notifier: cluster.notifier)
+    Control.publish!(cluster.pubsub_name, environment_key, version_two.version,
+      notifier: cluster.notifier
+    )
+
+    Control.publish!(cluster.pubsub_name, environment_key, version_two.version - 1,
+      notifier: cluster.notifier
+    )
 
     assert :ok =
              ClusterCase.assert_eventually(fn ->
                %{environments: local_environments} = Rulestead.Runtime.diagnostics()
-               local_environment = Enum.find(local_environments, &(&1.environment_key == environment_key))
+
+               local_environment =
+                 Enum.find(local_environments, &(&1.environment_key == environment_key))
 
                %{environments: remote_environments_after_duplicate} =
                  ClusterCase.remote_diagnostics(cluster.peer_node)
 
                remote_environment_after_duplicate =
-                 Enum.find(remote_environments_after_duplicate, &(&1.environment_key == environment_key))
+                 Enum.find(
+                   remote_environments_after_duplicate,
+                   &(&1.environment_key == environment_key)
+                 )
 
                local_environment.snapshot_version == version_two.version and
                  remote_environment_after_duplicate.snapshot_version == version_two.version

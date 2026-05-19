@@ -86,6 +86,19 @@ defmodule Rulestead.Runtime.DiagnosticsTest do
     refute Map.has_key?(health_environment, :applied_monotonic_ms)
   end
 
+  test "runtime diagnostics forwards host-provided peer topology into infrastructure health", %{
+    environment_key: environment_key
+  } do
+    peer_snapshot = %{
+      node: :"peer@node",
+      topology_scope: :peer_snapshot,
+      environments: [%{environment_key: environment_key, refresh_status: :ready}]
+    }
+
+    assert %{infrastructure_health: %{topology_scope: :host_provided, peer_nodes: [^peer_snapshot]}} =
+             Runtime.diagnostics(peer_nodes: [peer_snapshot])
+  end
+
   test "runtime explain output composes evaluation facts with safe runtime metadata and omits raw context", %{
     environment_key: environment_key
   } do

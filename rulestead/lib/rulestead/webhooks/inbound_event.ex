@@ -1,7 +1,7 @@
 defmodule Rulestead.Webhooks.InboundEvent do
-  @moduledoc """
-  A canonical internal envelope representing a verified inbound webhook event.
-  """
+  @moduledoc false
+  # A canonical internal envelope representing a verified inbound webhook event.
+
   defstruct [
     :provider,
     :endpoint_key,

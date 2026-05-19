@@ -1,7 +1,7 @@
 defmodule Rulestead.Webhooks.InboundReceipt do
-  @moduledoc """
-  A durable record of an inbound webhook delivery attempt.
-  """
+  @moduledoc false
+  # A durable record of an inbound webhook delivery attempt.
+
   use Ecto.Schema
   import Ecto.Changeset
 

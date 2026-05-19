@@ -1,7 +1,7 @@
 defmodule Rulestead.Webhooks.CodeRefsPlug do
-  @moduledoc """
-  Ingress endpoint for receiving code references from CI.
-  """
+  @moduledoc false
+  # Ingress endpoint for receiving code references from CI.
+
   import Plug.Conn
   alias Rulestead.Repo
   alias Rulestead.CodeRefs.CodeReference

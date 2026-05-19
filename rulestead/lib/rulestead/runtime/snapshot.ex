@@ -1,5 +1,4 @@
 defmodule Rulestead.Runtime.Snapshot do
-  @moduledoc false
 
   alias Rulestead.EvaluationError
 

@@ -1,7 +1,6 @@
 defmodule Rulestead.Admin.Redaction do
-  @moduledoc """
-  Allowlist-driven redaction for admin telemetry and audit metadata.
-  """
+  @moduledoc false
+  # Allowlist-driven redaction for admin telemetry and audit metadata.
 
   @redacted "[REDACTED]"
 
@@ -52,6 +51,5 @@ defmodule Rulestead.Admin.Redaction do
 
   defp direct_match?(path, allowed), do: path == allowed || Enum.take(path, length(allowed)) == allowed
 
-  defp tl_or_empty([]), do: []
   defp tl_or_empty([_head | tail]), do: tail
 end

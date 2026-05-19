@@ -11,6 +11,57 @@ over an explicit in-memory authored flag payload:
 - evaluation helpers consume an authored flag payload first and explicit
   context second
 
+# `apply_manifest_plan`
+
+```elixir
+@spec apply_manifest_plan(
+  binary() | map(),
+  keyword()
+) :: {:ok, map()} | {:error, Rulestead.Error.t()}
+```
+
+Applies a previously generated manifest import plan artifact.
+
+# `apply_promotion`
+
+```elixir
+@spec apply_promotion(Rulestead.Store.Command.ApplyPromotion.t()) ::
+  Rulestead.Store.result(map())
+```
+
+Applies a bounded direct promotion bundle through compare revalidation and the configured store.
+
+# `apply_promotion`
+
+```elixir
+@spec apply_promotion(
+  map() | keyword(),
+  keyword()
+) :: Rulestead.Store.result(map())
+```
+
+Builds and applies a direct promotion bundle from root-level attributes.
+
+# `apply_promotion_plan`
+
+```elixir
+@spec apply_promotion_plan(
+  binary() | map(),
+  keyword()
+) :: {:ok, map()} | {:error, Rulestead.Error.t()}
+```
+
+Applies a previously generated promote plan artifact.
+
+# `approve_change_request`
+
+```elixir
+@spec approve_change_request(Rulestead.Store.Command.ApproveChangeRequest.t()) ::
+  Rulestead.Store.result(map())
+```
+
+Approves a governed change request through the configured store adapter.
+
 # `archive_flag`
 
 ```elixir
@@ -27,6 +78,68 @@ Archives a flag through the configured store adapter.
 ```
 
 Bang variant of `archive_flag/1`.
+
+# `authorize_change_request_approval`
+
+```elixir
+@spec authorize_change_request_approval(
+  term(),
+  term(),
+  atom(),
+  term(),
+  String.t() | atom() | nil
+) ::
+  {:ok, Rulestead.Governance.ApprovalRequirement.t()}
+  | {:error, Rulestead.Error.t(), Rulestead.Admin.Authorizer.audit_payload()}
+```
+
+Resolves whether an actor may approve a specific change request.
+
+# `authorize_governed_action`
+
+```elixir
+@spec authorize_governed_action(term(), atom(), term(), String.t() | atom() | nil) ::
+  {:ok, Rulestead.Governance.ApprovalRequirement.t()}
+  | {:error, Rulestead.Error.t(), Rulestead.Admin.Authorizer.audit_payload()}
+```
+
+Resolves whether a governed action must go through a change request.
+
+# `cancel_change_request`
+
+```elixir
+@spec cancel_change_request(Rulestead.Store.Command.CancelChangeRequest.t()) ::
+  Rulestead.Store.result(map())
+```
+
+Cancels a governed change request through the configured store adapter.
+
+# `cancel_scheduled_execution`
+
+```elixir
+@spec cancel_scheduled_execution(Rulestead.Store.Command.CancelScheduledExecution.t()) ::
+  Rulestead.Store.result(map())
+```
+
+Cancels a scheduled execution through the configured store adapter.
+
+# `compare_environments`
+
+```elixir
+@spec compare_environments(Rulestead.Store.Command.CompareEnvironments.t()) ::
+  Rulestead.Store.result(map())
+```
+
+Compares authored source and target environment state for a pre-built compare command.
+
+# `compare_environments`
+
+```elixir
+@spec compare_environments(String.t() | atom(), String.t() | atom(), keyword()) ::
+  Rulestead.Store.result(map())
+```
+
+Compares authored source and target environment state for promotion preview flows.
 
 # `create_flag`
 
@@ -99,6 +212,24 @@ Evaluates an authored in-memory flag payload against an explicit context.
 
 Bang variant of `evaluate/3`.
 
+# `execute_change_request`
+
+```elixir
+@spec execute_change_request(Rulestead.Store.Command.ExecuteChangeRequest.t()) ::
+  Rulestead.Store.result(map())
+```
+
+Executes an approved governed change request through the configured store adapter.
+
+# `execute_inbound_event`
+
+```elixir
+@spec execute_inbound_event(Rulestead.Webhooks.InboundEvent.t(), map()) ::
+  Rulestead.Store.result(map())
+```
+
+Normalizes a verified inbound webhook event into the local governance path.
+
 # `explain`
 
 ```elixir
@@ -120,6 +251,26 @@ Returns a human-readable explanation derived from the evaluation trace.
 ```
 
 Admin-safe explain seam for one flag and environment.
+
+# `export_manifest`
+
+```elixir
+@spec export_manifest(
+  String.t() | atom(),
+  keyword()
+) :: {:ok, map()} | {:error, Rulestead.Error.t()}
+```
+
+Exports a deterministic authored-state manifest for one environment.
+
+# `fetch_change_request`
+
+```elixir
+@spec fetch_change_request(Rulestead.Store.Command.FetchChangeRequest.t()) ::
+  Rulestead.Store.result(map())
+```
+
+Fetches one change request through the configured store adapter.
 
 # `fetch_flag`
 
@@ -147,6 +298,26 @@ Fetches the authored flag state for a `flag_key` and `environment_key`.
 
 Bang variant of `fetch_flag/3`.
 
+# `fetch_scheduled_execution`
+
+```elixir
+@spec fetch_scheduled_execution(Rulestead.Store.Command.FetchScheduledExecution.t()) ::
+  Rulestead.Store.result(map())
+```
+
+Fetches one scheduled execution through the configured store adapter.
+
+# `fetch_webhook_record`
+
+```elixir
+@spec fetch_webhook_record(
+  String.t() | Rulestead.Store.Command.FetchWebhookRecord.t(),
+  keyword()
+) :: Rulestead.Store.result(map())
+```
+
+Fetches one webhook receipt through the configured store adapter.
+
 # `get_value`
 
 ```elixir
@@ -164,6 +335,25 @@ Returns the projected value for an authored flag payload.
 ```
 
 Returns the assigned variant key for an authored flag payload.
+
+# `import_manifest`
+
+```elixir
+@spec import_manifest(
+  binary() | map(),
+  keyword()
+) :: {:ok, map()} | {:error, Rulestead.Error.t()}
+```
+
+Previews a manifest import as a saved apply plan artifact.
+
+# `infrastructure_health`
+
+```elixir
+@spec infrastructure_health() :: map()
+```
+
+Returns the bounded infrastructure health snapshot for the local node.
 
 # `list_audiences`
 
@@ -189,6 +379,15 @@ Lists reusable audiences through the configured store adapter.
 ```
 
 Lists redacted audit events for one flag or all flags.
+
+# `list_change_requests`
+
+```elixir
+@spec list_change_requests(Rulestead.Store.Command.ListChangeRequests.t() | keyword()) ::
+  Rulestead.Store.result(Rulestead.Store.Command.Page.t(map()))
+```
+
+Lists change requests through the configured store adapter.
 
 # `list_environments`
 
@@ -234,6 +433,36 @@ Phase 2 keeps this as the shared list/search surface for store adapters.
 
 Bang variant of `list_flags/0` and `list_flags/1`.
 
+# `list_scheduled_executions`
+
+```elixir
+@spec list_scheduled_executions(
+  Rulestead.Store.Command.ListScheduledExecutions.t()
+  | keyword()
+) ::
+  Rulestead.Store.result(Rulestead.Store.Command.Page.t(map()))
+```
+
+Lists scheduled executions through the configured store adapter.
+
+# `list_webhook_records`
+
+```elixir
+@spec list_webhook_records(Rulestead.Store.Command.ListWebhookRecords.t() | keyword()) ::
+  Rulestead.Store.result(Rulestead.Store.Command.Page.t(map()))
+```
+
+Lists webhook receipts through the configured store adapter.
+
+# `plan_promotion`
+
+```elixir
+@spec plan_promotion(String.t() | atom(), String.t() | atom(), keyword()) ::
+  {:ok, map()} | {:error, Rulestead.Error.t()}
+```
+
+Builds a saved promote plan artifact from a live compare preview.
+
 # `publish_ruleset`
 
 ```elixir
@@ -250,6 +479,15 @@ Publishes a ruleset version through the configured store adapter.
 ```
 
 Bang variant of `publish_ruleset/1`.
+
+# `receive_inbound_webhook`
+
+```elixir
+@spec receive_inbound_webhook(Rulestead.Store.Command.ReceiveInboundWebhook.t()) ::
+  Rulestead.Store.result(map())
+```
+
+Records an inbound webhook receipt through the configured store adapter.
 
 # `record_evaluation`
 
@@ -269,6 +507,15 @@ Records bounded evaluation freshness for one flag/environment pair.
 
 Records bounded evaluation freshness using root-level arguments.
 
+# `reject_change_request`
+
+```elixir
+@spec reject_change_request(Rulestead.Store.Command.RejectChangeRequest.t()) ::
+  Rulestead.Store.result(map())
+```
+
+Rejects a governed change request through the configured store adapter.
+
 # `release_kill_switch`
 
 ```elixir
@@ -284,6 +531,17 @@ Releases a per-flag per-environment kill switch.
 @spec release_kill_switch(String.t() | atom(), String.t() | atom(), map(), keyword()) ::
   Rulestead.Store.result(map())
 ```
+
+# `requeue_scheduled_execution`
+
+```elixir
+@spec requeue_scheduled_execution(
+  Rulestead.Store.Command.RequeueScheduledExecution.t()
+) ::
+  Rulestead.Store.result(map())
+```
+
+Requeues a quarantined scheduled execution through the configured store adapter.
 
 # `rollback_audit_event`
 
@@ -320,6 +578,24 @@ Saves a draft ruleset through the configured store adapter.
 
 Bang variant of `save_draft_ruleset/1`.
 
+# `schedule_change_request`
+
+```elixir
+@spec schedule_change_request(Rulestead.Store.Command.ScheduleChangeRequest.t()) ::
+  Rulestead.Store.result(map())
+```
+
+Schedules an approved governed change request through the configured store adapter.
+
+# `schedule_governed_action`
+
+```elixir
+@spec schedule_governed_action(Rulestead.Store.Command.ScheduleGovernedAction.t()) ::
+  Rulestead.Store.result(map())
+```
+
+Schedules a narrowly allowed direct governed action through the configured store adapter.
+
 # `simulate_flag`
 
 ```elixir
@@ -332,6 +608,23 @@ Bang variant of `save_draft_ruleset/1`.
 ```
 
 Admin-safe runtime simulation for one flag and environment.
+
+# `submit_change_request`
+
+```elixir
+@spec submit_change_request(Rulestead.Store.Command.SubmitChangeRequest.t()) ::
+  Rulestead.Store.result(map())
+```
+
+Submits a governed change request through the configured store adapter.
+
+# `track`
+
+```elixir
+@spec track(Rulestead.Context.t() | map() | String.t(), String.t(), map()) :: :ok
+```
+
+Tracks a custom analytics event.
 
 # `update_flag`
 

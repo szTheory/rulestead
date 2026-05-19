@@ -1,14 +1,19 @@
 defmodule Rulestead.Admin.Authorizer do
-  @moduledoc """
-  Central policy gate for Phase 7 admin reads and writes.
-  """
+  @moduledoc false
+  # Central policy gate for Phase 7 admin reads and writes.
 
   alias Rulestead.{AuthError, Governance.ApprovalRequirement}
 
   @viewer_roles ~w(viewer auditor operator engineer admin incident_commander prod_operator)a
   @editor_roles ~w(operator engineer admin incident_commander prod_operator)a
   @production_roles ~w(admin incident_commander prod_operator)a
-  @governed_actions [:publish_ruleset, :advance_rollout, :engage_kill_switch, :release_kill_switch]
+  @governed_actions [
+    :publish_ruleset,
+    :advance_rollout,
+    :engage_kill_switch,
+    :release_kill_switch,
+    :promote_environment
+  ]
 
   @type audit_payload :: %{
           required(:action) => atom(),

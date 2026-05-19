@@ -4,12 +4,12 @@ defmodule Rulestead.Runtime.Diagnostics do
   alias Rulestead.Runtime.Cache
   alias Rulestead.Runtime.Health
 
-  @spec current() :: map()
-  def current do
+  @spec current(keyword()) :: map()
+  def current(opts \\ []) do
     %{
       node: node(),
       environments: Cache.diagnostics(),
-      infrastructure_health: Health.current()
+      infrastructure_health: Health.current(opts)
     }
   end
 end

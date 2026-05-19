@@ -1,11 +1,17 @@
 defmodule Rulestead.Governance.ScheduledExecution do
-  @moduledoc """
-  Canonical durable contract for a future-dated governed mutation.
-  """
+  @moduledoc false
+  # Canonical durable contract for a future-dated governed mutation.
+
 
   @states [:scheduled, :running, :completed, :failed, :quarantined, :cancelled]
   @terminal_states [:completed, :failed, :quarantined, :cancelled]
-  @governed_actions [:publish_ruleset, :advance_rollout, :engage_kill_switch, :release_kill_switch]
+  @governed_actions [
+    :publish_ruleset,
+    :advance_rollout,
+    :engage_kill_switch,
+    :release_kill_switch,
+    :promote_environment
+  ]
   @execution_modes [:change_request, :policy_bypass, :emergency_bypass]
 
   @enforce_keys [:state, :action, :scheduled_for, :correlation_id, :idempotency_key]
@@ -34,7 +40,12 @@ defmodule Rulestead.Governance.ScheduledExecution do
   ]
 
   @type state :: :scheduled | :running | :completed | :failed | :quarantined | :cancelled
-  @type action :: :publish_ruleset | :advance_rollout | :engage_kill_switch | :release_kill_switch
+  @type action ::
+          :publish_ruleset
+          | :advance_rollout
+          | :engage_kill_switch
+          | :release_kill_switch
+          | :promote_environment
   @type execution_mode :: :change_request | :policy_bypass | :emergency_bypass
 
   @type actor_summary :: %{

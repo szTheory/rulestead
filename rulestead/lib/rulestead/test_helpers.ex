@@ -1,7 +1,7 @@
 defmodule Rulestead.TestHelpers do
-  @moduledoc """
-  Public fake-backed test helpers for host app tests.
-  """
+  @moduledoc false
+  # Public fake-backed test helpers for host app tests.
+
 
   import ExUnit.Assertions
 

@@ -19,26 +19,28 @@ defmodule RulesteadAdmin.Router do
             "mount_path" => path
           },
           on_mount: [{RulesteadAdmin.Live.Session, :default}] do
-          live "/", RulesteadAdmin.Live.FlagLive.Index, :index
-          live "/new", RulesteadAdmin.Live.FlagLive.Form, :new
-          live "/audit", RulesteadAdmin.Live.AuditLive.Index, :index
-          live "/change-requests", RulesteadAdmin.Live.ChangeRequestLive.Index, :index
-          live "/change-requests/:id", RulesteadAdmin.Live.ChangeRequestLive.Show, :show
-          live "/schedule", RulesteadAdmin.Live.ScheduleLive.Index, :index
-          live "/schedule/:scheduled_execution_id", RulesteadAdmin.Live.ScheduleLive.Show, :show
-          live "/webhooks", RulesteadAdmin.Live.WebhookLive.Index, :index
-          live "/webhooks/:id", RulesteadAdmin.Live.WebhookLive.Show, :show
-          live "/experiments", RulesteadAdmin.Live.ExperimentLive.Index, :index
-          live "/experiments/:key", RulesteadAdmin.Live.ExperimentLive.Show, :show
-          live "/diagnostics", RulesteadAdmin.Live.DiagnosticsLive.Index, :index
-          live "/:key", RulesteadAdmin.Live.FlagLive.Show, :show
-          live "/:key/edit", RulesteadAdmin.Live.FlagLive.Form, :edit
-          live "/:key/rules", RulesteadAdmin.Live.FlagLive.Rules, :index
-          live "/:key/simulate", RulesteadAdmin.Live.FlagLive.Simulate, :show
-          live "/:key/rollouts", RulesteadAdmin.Live.FlagLive.Rollouts, :show
-          live "/:key/kill", RulesteadAdmin.Live.FlagLive.Kill, :show
-          live "/:key/cleanup", RulesteadAdmin.Live.FlagLive.Cleanup, :show
-          live "/:key/timeline", RulesteadAdmin.Live.FlagLive.Timeline, :show
+          live("/", RulesteadAdmin.Live.FlagLive.Index, :index)
+          live("/new", RulesteadAdmin.Live.FlagLive.Form, :new)
+          live("/audit", RulesteadAdmin.Live.AuditLive.Index, :index)
+          live("/change-requests", RulesteadAdmin.Live.ChangeRequestLive.Index, :index)
+          live("/change-requests/:id", RulesteadAdmin.Live.ChangeRequestLive.Show, :show)
+          live("/schedule", RulesteadAdmin.Live.ScheduleLive.Index, :index)
+          live("/schedule/:scheduled_execution_id", RulesteadAdmin.Live.ScheduleLive.Show, :show)
+          live("/webhooks", RulesteadAdmin.Live.WebhookLive.Index, :index)
+          live("/webhooks/:id", RulesteadAdmin.Live.WebhookLive.Show, :show)
+          live("/experiments", RulesteadAdmin.Live.ExperimentLive.Index, :index)
+          live("/experiments/:key", RulesteadAdmin.Live.ExperimentLive.Show, :show)
+          live("/diagnostics", RulesteadAdmin.Live.DiagnosticsLive.Index, :index)
+          live("/compare", RulesteadAdmin.Live.EnvironmentCompareLive.Index, :index)
+          live("/compare/:key", RulesteadAdmin.Live.EnvironmentCompareLive.Show, :show)
+          live("/:key", RulesteadAdmin.Live.FlagLive.Show, :show)
+          live("/:key/edit", RulesteadAdmin.Live.FlagLive.Form, :edit)
+          live("/:key/rules", RulesteadAdmin.Live.FlagLive.Rules, :index)
+          live("/:key/simulate", RulesteadAdmin.Live.FlagLive.Simulate, :show)
+          live("/:key/rollouts", RulesteadAdmin.Live.FlagLive.Rollouts, :show)
+          live("/:key/kill", RulesteadAdmin.Live.FlagLive.Kill, :show)
+          live("/:key/cleanup", RulesteadAdmin.Live.FlagLive.Cleanup, :show)
+          live("/:key/timeline", RulesteadAdmin.Live.FlagLive.Timeline, :show)
         end
       end
     end

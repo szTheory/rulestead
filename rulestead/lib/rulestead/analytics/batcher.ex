@@ -1,8 +1,8 @@
 defmodule Rulestead.Analytics.Batcher do
-  @moduledoc """
-  High-throughput, non-blocking ingestion buffer for analytics events.
-  Uses ETS as a buffer and periodically flushes to the database.
-  """
+  @moduledoc false
+  # High-throughput, non-blocking ingestion buffer for analytics events.
+  # Uses ETS as a buffer and periodically flushes to the database.
+
   use GenServer
   require Logger
 

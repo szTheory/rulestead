@@ -1,7 +1,7 @@
 defmodule Rulestead.Webhooks.OutboundEvent do
-  @moduledoc """
-  A durable outbound webhook event.
-  """
+  @moduledoc false
+  # A durable outbound webhook event.
+
   use Ecto.Schema
   import Ecto.Changeset
 

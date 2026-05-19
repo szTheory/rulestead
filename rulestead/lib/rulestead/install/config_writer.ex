@@ -23,6 +23,8 @@ defmodule Rulestead.Install.ConfigWriter do
   end
 
   defp render_template(repo) do
+    host_defaults = host_defaults(repo)
+
     """
     import Config
 
@@ -32,8 +34,33 @@ defmodule Rulestead.Install.ConfigWriter do
       repo: #{inspect(repo)}
 
     config :rulestead, :host,
-    #{render_keyword_block(RulesteadConfig.defaults(), 2)}
+    #{render_keyword_block(host_defaults, 2)}
     """
+  end
+
+  defp host_defaults(repo) do
+    RulesteadConfig.defaults()
+    |> Enum.map(fn
+      {:runtime, runtime_defaults} ->
+        runtime =
+          Enum.map(runtime_defaults, fn
+            {:pubsub, _value} -> {:pubsub, pubsub_module(repo)}
+            entry -> entry
+          end)
+
+        {:runtime, runtime}
+
+      entry ->
+        entry
+    end)
+  end
+
+  defp pubsub_module(repo) do
+    repo
+    |> Module.split()
+    |> Enum.drop(-1)
+    |> Kernel.++(["PubSub"])
+    |> Module.concat()
   end
 
   defp maybe_write_rulestead_config(path, rendered) do

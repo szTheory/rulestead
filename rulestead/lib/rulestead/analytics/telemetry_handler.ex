@@ -1,8 +1,7 @@
 defmodule Rulestead.Analytics.TelemetryHandler do
-  @moduledoc """
-  Telemetry hook that captures evaluation events and pushes them to the Analytics Batcher.
-  Aligns with framework conventions from Rulestead.Telemetry.
-  """
+  @moduledoc false
+  # Telemetry hook that captures evaluation events and pushes them to the Analytics Batcher.
+  # Aligns with framework conventions from Rulestead.Telemetry.
 
   alias Rulestead.Analytics.Batcher
 

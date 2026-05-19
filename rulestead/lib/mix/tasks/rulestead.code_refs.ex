@@ -1,12 +1,12 @@
 defmodule Mix.Tasks.Rulestead.CodeRefs do
-  @moduledoc """
-  Scans application code for Rulestead flag references and pushes them to the Rulestead API.
+  @moduledoc false
+  # Scans application code for Rulestead flag references and pushes them to the Rulestead API.
 
-  ## Examples
+  # ## Examples
 
-      mix rulestead.code_refs --token secret_token
-      mix rulestead.code_refs --dir lib --url http://example.com/api/webhooks/rulestead/code_refs
-  """
+  #     mix rulestead.code_refs --token secret_token
+  #     mix rulestead.code_refs --dir lib --url http://example.com/api/webhooks/rulestead/code_refs
+
   use Mix.Task
 
   alias Rulestead.CodeRefs.Scanner

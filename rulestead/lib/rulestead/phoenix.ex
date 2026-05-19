@@ -1,10 +1,10 @@
 defmodule Rulestead.Phoenix do
-  @moduledoc """
-  Explicit Phoenix-facing helpers for building `%Rulestead.Context{}` values.
+  @moduledoc false
+  # Explicit Phoenix-facing helpers for building `%Rulestead.Context{}` values.
 
-  This module keeps framework structs at the edge and only projects configured,
-  bounded fields into the runtime context.
-  """
+  # This module keeps framework structs at the edge and only projects configured,
+  # bounded fields into the runtime context.
+
 
   alias Rulestead.Context
 

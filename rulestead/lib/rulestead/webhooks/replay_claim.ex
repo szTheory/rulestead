@@ -1,7 +1,7 @@
 defmodule Rulestead.Webhooks.ReplayClaim do
-  @moduledoc """
-  A durable record of a seen webhook delivery identity to prevent replays.
-  """
+  @moduledoc false
+  # A durable record of a seen webhook delivery identity to prevent replays.
+
   use Ecto.Schema
   import Ecto.Changeset
 

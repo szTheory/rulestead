@@ -1,7 +1,7 @@
 defmodule Rulestead.RulesetError do
-  @moduledoc """
-  Constructors for ruleset-domain `Rulestead.Error` values.
-  """
+  @moduledoc false
+  # Constructors for ruleset-domain `Rulestead.Error` values.
+
 
   alias Rulestead.Error
 

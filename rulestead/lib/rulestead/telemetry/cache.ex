@@ -1,8 +1,8 @@
 defmodule Rulestead.Telemetry.Cache do
-  @moduledoc """
-  ETS write-behind caching for telemetry.
-  Stores `last_evaluated_at` and `variants_served` for each flag evaluated.
-  """
+  @moduledoc false
+  # ETS write-behind caching for telemetry.
+  # Stores `last_evaluated_at` and `variants_served` for each flag evaluated.
+
   use GenServer
 
   @table :rulestead_telemetry_cache

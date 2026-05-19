@@ -384,17 +384,15 @@ metadata:
 |---|-------|---------|---------------|
 | A1 | The simplest coarse implementation path would tempt developers to use one environment-wide timestamp for staleness rather than a scoped fingerprint. [ASSUMED] | Common Pitfalls | Medium — planning may under-specify compare-token scope and create noisy invalidation behavior. |
 
-## Open Questions
+## Open Questions (RESOLVED 2026-05-18)
 
 1. **Should Phase 22 expose one multi-flag compare facade, one per-flag compare facade, or both?**
-   - What we know: The roadmap plans a summary surface plus per-flag drill-in, and the existing public facade already prefers explicit verbs and command structs. [VERIFIED: `.planning/ROADMAP.md`][VERIFIED: `rulestead/lib/rulestead.ex`]
-   - What's unclear: Whether the public core API should expose a list-level and drill-in-level command separately or one command with optional scope narrowing.
-   - Recommendation: Plan one list-level compare command with optional `flag_keys` filtering; let the per-flag UI consume the same payload narrowed by scope. [VERIFIED: `rulestead/lib/rulestead/store/command.ex`][VERIFIED: `.planning/phases/22-environment-compare-conflict-model/22-CONTEXT.md`]
+   - Decision: Expose one list-level compare command/facade with optional `flag_keys` narrowing. The summary route uses the full scoped result, and the per-flag drill-in consumes the same canonical payload narrowed to a single flag rather than a second backend contract. [VERIFIED: `.planning/ROADMAP.md`][VERIFIED: `rulestead/lib/rulestead.ex`][VERIFIED: `rulestead/lib/rulestead/store/command.ex`]
+   - Rationale: This preserves one backend compare contract for admin now and CLI/manifests later, keeps the public API smaller, and matches the locked requirement that UI and future automation render the same canonical compare payload. [VERIFIED: `.planning/phases/22-environment-compare-conflict-model/22-CONTEXT.md`]
 
 2. **Should compare-token fingerprints be derived from serialized compare input or from authored record heads?**
-   - What we know: The token must include schema/algorithm version, source/target environments, compared keys, dependency-closure keys, and authored-state heads/fingerprints. [VERIFIED: `.planning/phases/22-environment-compare-conflict-model/22-CONTEXT.md`]
-   - What's unclear: The exact lowest-risk implementation in this codebase.
-   - Recommendation: Plan for deterministic hashing of normalized authored projections per scope, because existing store payload serializers already provide stable, explicit maps and avoid dependence on whole-environment churn. [VERIFIED: `rulestead/lib/rulestead/store/ecto.ex`]
+   - Decision: Derive compare-token fingerprints from deterministic hashing of normalized authored projections for the scoped flag set plus dependency closure, including the compare schema version and environment pair in the token envelope. [VERIFIED: `.planning/phases/22-environment-compare-conflict-model/22-CONTEXT.md`][VERIFIED: `rulestead/lib/rulestead/store/ecto.ex`]
+   - Rationale: Existing payload serializers already produce stable, explicit authored maps, which is lower-risk in this codebase than relying on coarse environment timestamps or unrelated record churn. This also keeps staleness scoped to apply-relevant authored state only. [VERIFIED: `rulestead/lib/rulestead/store/ecto.ex`]
 
 ## Environment Availability
 

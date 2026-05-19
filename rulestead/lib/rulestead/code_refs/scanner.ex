@@ -1,11 +1,10 @@
 defmodule Rulestead.CodeRefs.Scanner do
-  @moduledoc """
-  Scans Elixir source code to find usages of `Rulestead.evaluate`.
-  """
+  @moduledoc false
+  # # Scans Elixir source code to find usages of `Rulestead.evaluate`.
 
-  @doc """
-  Scans a directory for `.ex` and `.exs` files and returns a list of references.
-  """
+  # @doc """
+  # Scans a directory for `.ex` and `.exs` files and returns a list of references.
+
   def scan_dir(dir_path) do
     dir_path
     |> Path.join("**/*.{ex,exs}")

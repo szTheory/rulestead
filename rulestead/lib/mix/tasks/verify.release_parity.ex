@@ -1,4 +1,6 @@
 defmodule Mix.Tasks.Verify.ReleaseParity do
+  @moduledoc false
+
   use Mix.Task
 
   @shortdoc "Diffs the git tag contents against the published Hex tarball"

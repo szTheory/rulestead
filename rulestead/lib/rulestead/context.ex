@@ -1,7 +1,6 @@
 defmodule Rulestead.Context do
-  @moduledoc """
-  Canonical runtime context used by the Phase 3 evaluator surface.
-  """
+  @moduledoc false
+  # Canonical runtime context used by the Phase 3 evaluator surface.
 
   @enforce_keys []
   defstruct actor: nil,

@@ -14,6 +14,9 @@ defmodule Rulestead.Store do
 
   @callback fetch_flag(Command.FetchFlag.t()) :: result(map())
   @callback compare_environments(Command.CompareEnvironments.t()) :: result(map())
+  @callback apply_promotion(Command.ApplyPromotion.t()) :: result(map())
+  @callback preview_manifest_import(Command.PreviewManifestImport.t()) :: result(map())
+  @callback apply_manifest_import(Command.ApplyManifestImport.t()) :: result(map())
   @callback fetch_snapshot(Command.FetchSnapshot.t()) :: result(map())
   @callback create_flag(Command.CreateFlag.t()) :: result(map())
   @callback update_flag(Command.UpdateFlag.t()) :: result(map())

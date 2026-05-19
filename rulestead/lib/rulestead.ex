@@ -20,6 +20,8 @@ defmodule Rulestead do
     Evaluator,
     Explainer,
     Governance.ApprovalRequirement,
+    Manifest,
+    Promotion.Apply,
     Promotion.Compare,
     Result,
     Runtime,
@@ -28,6 +30,8 @@ defmodule Rulestead do
     Telemetry
   }
 
+  alias Rulestead.Manifest.Plan
+  alias Rulestead.Manifest.Result, as: ManifestResult
   alias Rulestead.Store.Command
 
   @version Mix.Project.config()[:version] || "0.1.0"
@@ -79,6 +83,117 @@ defmodule Rulestead do
   @spec compare_environments(Command.CompareEnvironments.t()) :: Store.result(map())
   def compare_environments(%Command.CompareEnvironments{} = command) do
     Compare.compare(command)
+  end
+
+  @doc """
+  Applies a bounded direct promotion bundle through compare revalidation and the configured store.
+  """
+  @spec apply_promotion(Command.ApplyPromotion.t()) :: Store.result(map())
+  def apply_promotion(%Command.ApplyPromotion{} = command) do
+    Apply.apply(command)
+  end
+
+  @doc """
+  Builds and applies a direct promotion bundle from root-level attributes.
+  """
+  @spec apply_promotion(map() | keyword(), keyword()) :: Store.result(map())
+  def apply_promotion(attrs, opts \\ []) when is_map(attrs) or is_list(attrs) do
+    attrs
+    |> Command.ApplyPromotion.new(opts)
+    |> apply_promotion()
+  end
+
+  @doc """
+  Exports a deterministic authored-state manifest for one environment.
+  """
+  @spec export_manifest(String.t() | atom(), keyword()) :: {:ok, map()} | {:error, Error.t()}
+  def export_manifest(environment_key, opts \\ []) do
+    Manifest.export(environment_key, opts)
+  end
+
+  @doc """
+  Previews a manifest import as a saved apply plan artifact.
+  """
+  @spec import_manifest(binary() | map(), keyword()) :: {:ok, map()} | {:error, Error.t()}
+  def import_manifest(content, opts \\ []) do
+    Manifest.Import.plan(content, opts)
+  end
+
+  @doc """
+  Applies a previously generated manifest import plan artifact.
+  """
+  @spec apply_manifest_plan(binary() | map(), keyword()) :: {:ok, map()} | {:error, Error.t()}
+  def apply_manifest_plan(content, opts \\ []) do
+    Manifest.Import.apply(content, opts)
+  end
+
+  @doc """
+  Builds a saved promote plan artifact from a live compare preview.
+  """
+  @spec plan_promotion(String.t() | atom(), String.t() | atom(), keyword()) ::
+          {:ok, map()} | {:error, Error.t()}
+  def plan_promotion(source_environment_key, target_environment_key, opts \\ []) do
+    compare_opts =
+      case Keyword.get(opts, :flag_keys) do
+        nil -> []
+        flag_keys -> [flag_keys: flag_keys]
+      end
+
+    with {:ok, compare} <-
+           compare_environments(source_environment_key, target_environment_key, compare_opts) do
+      plan =
+        Plan.build_promote(%{
+          source_environment_key: compare.source_environment.key,
+          target_environment_key: compare.target_environment.key,
+          status: promotion_plan_status(compare),
+          compare_token: compare.compare_token,
+          source_fingerprint: compare.source_fingerprint,
+          target_fingerprint: compare.target_fingerprint,
+          dependency_closure_keys: compare.dependency_closure_keys,
+          proposed_target_bundle:
+            Map.new(compare.flags, fn flag ->
+              {flag.flag_key, flag.proposed_target_state}
+            end)
+        })
+
+      {:ok,
+       ManifestResult.new(%{
+         status: plan["status"],
+         command: "rulestead.promote.plan",
+         summary: %{
+           "source_environment_key" => plan["source_environment_key"],
+           "target_environment_key" => plan["target_environment_key"],
+           "flag_count" => length(plan["flag_keys"]),
+           "plan_token" => plan["plan_token"]
+         },
+         findings: promotion_findings(compare),
+         details: %{"plan" => plan}
+       })}
+    end
+  end
+
+  @doc """
+  Applies a previously generated promote plan artifact.
+  """
+  @spec apply_promotion_plan(binary() | map(), keyword()) :: {:ok, map()} | {:error, Error.t()}
+  def apply_promotion_plan(content, opts \\ []) do
+    with {:ok, plan} <- Plan.load(content),
+         :ok <- validate_promotion_plan_mode(plan),
+         {:ok, reason} <- require_promotion_reason(opts),
+         :ok <- validate_target_tenant(plan, opts),
+         command <- promotion_apply_command(plan, reason, opts),
+         {:ok, envelope} <- dispatch_promotion_plan(plan, command, reason, opts) do
+      {:ok, envelope}
+    else
+      {:error, %Error{message: "promotion compare preview is stale"}} ->
+        stale_promotion_result(content)
+
+      {:error, %Error{message: "promotion target tenant drifted"}} ->
+        stale_promotion_result(content, "target tenant drifted")
+
+      {:error, %Error{} = error} ->
+        map_promotion_apply_error(content, error)
+    end
   end
 
   @doc """
@@ -569,9 +684,6 @@ defmodule Rulestead do
 
   defp dispatch_governance_command(%Command.ScheduleGovernedAction{} = command),
     do: schedule_governed_action(command)
-
-  defp dispatch_governance_command(_),
-    do: {:error, StoreError.invalid_command("unsupported governance command from webhook")}
 
   @doc """
   Resolves whether a governed action must go through a change request.
@@ -1243,10 +1355,6 @@ defmodule Rulestead do
     end
   end
 
-  defp command_resource(command) do
-    %{resource_type: :flag, resource_key: Map.get(command, :flag_key)}
-  end
-
   defp command_action(:submit_change_request, _command), do: :submit_change_request
   defp command_action(:approve_change_request, _command), do: :approve_change_request
   defp command_action(:reject_change_request, _command), do: :reject_change_request
@@ -1409,7 +1517,7 @@ defmodule Rulestead do
   end
 
   defp ensure_emergency_metadata(reason, metadata) do
-    emergency_reason = Map.get(metadata || %{}, "emergency_reason")
+    emergency_reason = Map.get(metadata, "emergency_reason")
 
     cond do
       is_nil(reason) or String.trim(reason) == "" ->
@@ -1423,6 +1531,225 @@ defmodule Rulestead do
       true ->
         :ok
     end
+  end
+
+  defp promotion_plan_status(compare) do
+    cond do
+      compare.flags == [] -> "no_changes"
+      Compare.protected_target?(compare.target_environment.key) -> "governance_required"
+      true -> "changes"
+    end
+  end
+
+  defp promotion_findings(compare) do
+    top_level =
+      Enum.map(compare.findings, fn finding ->
+        ManifestResult.finding(finding.code, finding.severity, compare.target_environment.key,
+          message: finding[:message]
+        )
+      end)
+
+    per_flag =
+      Enum.flat_map(compare.flags, fn flag ->
+        Enum.map(flag.findings, fn finding ->
+          ManifestResult.finding(finding.code, finding.severity, flag.flag_key,
+            message: finding[:message]
+          )
+        end)
+      end)
+
+    ManifestResult.sort_findings(top_level ++ per_flag)
+  end
+
+  defp validate_promotion_plan_mode(plan) do
+    if plan["mode"] == "promote" do
+      :ok
+    else
+      {:error, Manifest.invalid("apply plan is not a promote plan")}
+    end
+  end
+
+  defp require_promotion_reason(opts) do
+    case Manifest.normalize_string(Keyword.get(opts, :reason)) do
+      nil -> {:error, Manifest.invalid("promote apply requires an explicit reason")}
+      value -> {:ok, value}
+    end
+  end
+
+  defp promotion_apply_command(plan, reason, opts) do
+    Command.ApplyPromotion.new(
+      %{
+        source_environment_key: plan["source_environment_key"],
+        target_environment_key: plan["target_environment_key"],
+        flag_keys: plan["flag_keys"],
+        compare_token: plan["compare_token"],
+        compare_schema_version: Compare.schema_version(),
+        source_fingerprint: plan["source_fingerprint"],
+        target_fingerprint: plan["target_fingerprint"],
+        dependency_closure_keys: plan["dependency_closure_keys"],
+        proposed_target_bundle: plan["proposed_target_bundle"]
+      },
+      actor: Keyword.get(opts, :actor, default_cli_actor()),
+      reason: reason,
+      metadata: Keyword.get(opts, :metadata, default_cli_metadata(plan))
+    )
+  end
+
+  defp dispatch_promotion_plan(plan, command, _reason, _opts) do
+    if Compare.protected_target?(plan["target_environment_key"]) or plan["status"] == "governance_required" do
+      with :ok <- Apply.validate_governed(command),
+           approval_requirement <-
+             Authorizer.approval_requirement(
+               command.actor,
+               :promote_environment,
+               %{resource_type: "environment", resource_key: plan["target_environment_key"]},
+               plan["target_environment_key"]
+             ),
+           {:ok, %{change_request: change_request}} <-
+             submit_change_request(
+               Command.SubmitChangeRequest.new(
+                 %{
+                   action: :promote_environment,
+                   environment_key: plan["target_environment_key"],
+                   resource_type: "environment",
+                   resource_key: plan["target_environment_key"],
+                   command: promotion_governance_command_payload(plan),
+                   approval_requirement: approval_requirement
+                 },
+                 actor: command.actor,
+                 reason: command.reason,
+                 metadata: command.metadata
+               )
+             ) do
+        {:ok,
+         ManifestResult.new(%{
+           status: "queued",
+           command: "rulestead.promote.apply",
+           summary: %{
+             "source_environment_key" => plan["source_environment_key"],
+             "target_environment_key" => plan["target_environment_key"],
+             "flag_count" => length(plan["flag_keys"]),
+             "plan_token" => plan["plan_token"],
+             "change_request_id" => change_request.id
+           },
+           details: %{
+             "plan" => plan,
+             "change_request" => Manifest.normalize_map(change_request)
+           }
+         })}
+      end
+    else
+      with {:ok, result} <- apply_promotion(command) do
+        {:ok,
+         ManifestResult.new(%{
+           status: "applied",
+           command: "rulestead.promote.apply",
+           summary: %{
+             "source_environment_key" => plan["source_environment_key"],
+             "target_environment_key" => plan["target_environment_key"],
+             "flag_count" => length(plan["flag_keys"]),
+             "plan_token" => plan["plan_token"]
+           },
+           details: %{
+             "plan" => plan,
+             "apply" => Manifest.normalize_map(result)
+           }
+         })}
+      end
+    end
+  end
+
+  defp promotion_governance_command_payload(plan) do
+    %{
+      "source_environment_key" => plan["source_environment_key"],
+      "target_environment_key" => plan["target_environment_key"],
+      "flag_keys" => plan["flag_keys"],
+      "compare_token" => plan["compare_token"],
+      "compare_schema_version" => Compare.schema_version(),
+      "source_fingerprint" => plan["source_fingerprint"],
+      "target_fingerprint" => plan["target_fingerprint"],
+      "dependency_closure_keys" => plan["dependency_closure_keys"],
+      "proposed_target_bundle" => plan["proposed_target_bundle"]
+    }
+  end
+
+  defp stale_promotion_result(content, message \\ "saved promote plan no longer matches live compare state") do
+    with {:ok, plan} <- Plan.load(content) do
+      {:ok,
+       ManifestResult.new(%{
+         status: "stale",
+         command: "rulestead.promote.apply",
+         summary: %{
+           "target_environment_key" => plan["target_environment_key"],
+           "plan_token" => plan["plan_token"]
+         },
+         findings: [
+           ManifestResult.finding("stale_plan", "blocker", plan["target_environment_key"],
+             message: message
+           )
+         ],
+         details: %{"plan" => plan}
+       })}
+    end
+  end
+
+  defp validate_target_tenant(plan, opts) do
+    live_tenant = Rulestead.Manifest.normalize_string(Keyword.get(opts, :tenant_key))
+    plan_tenant = plan["tenant_key"]
+
+    if live_tenant == plan_tenant do
+      :ok
+    else
+      {:error, StoreError.invalid_command("promotion target tenant drifted")}
+    end
+  end
+
+  defp map_promotion_apply_error(content, %Error{} = error) do
+    status =
+      cond do
+        String.contains?(error.message, "drifted") or String.contains?(error.message, "stale") ->
+          "stale"
+
+        String.contains?(error.message, "dependency") or
+            String.contains?(error.message, "blocker") ->
+          "blocked"
+
+        true ->
+          "invalid"
+      end
+
+    with {:ok, plan} <- Plan.load(content) do
+      {:ok,
+       ManifestResult.new(%{
+         status: status,
+         command: "rulestead.promote.apply",
+         summary: %{
+           "target_environment_key" => plan["target_environment_key"],
+           "plan_token" => plan["plan_token"]
+         },
+         findings: [
+           ManifestResult.finding(promotion_status_code(status), "blocker", plan["target_environment_key"],
+             message: error.message
+           )
+         ],
+         details: %{
+           "plan" => plan,
+           "error" => Manifest.normalize_map(%{message: error.message, type: error.type})
+         }
+       })}
+    end
+  end
+
+  defp promotion_status_code("stale"), do: "stale_plan"
+  defp promotion_status_code("blocked"), do: "blocked_promotion"
+  defp promotion_status_code(_status), do: "invalid_promotion"
+
+  defp default_cli_actor do
+    %{id: "rulestead-cli", type: "system", display: "Rulestead CLI", roles: [:admin]}
+  end
+
+  defp default_cli_metadata(plan) do
+    %{request_id: plan["plan_token"], source: :mix_task}
   end
 
   defp governance_change_request_resource(change_request, fallback_resource) do

@@ -1,11 +1,11 @@
 defmodule Rulestead.Fake do
-  @moduledoc """
-  Contract-faithful in-memory store adapter for tests.
+  @moduledoc false
+  # Contract-faithful in-memory store adapter for tests.
 
-  The fake reuses the same command structs, error taxonomy, and ruleset
-  validation semantics as the real store contract. Test-only reset, clock, and
-  inspection helpers live in `Rulestead.Fake.Control`.
-  """
+  # The fake reuses the same command structs, error taxonomy, and ruleset
+  # validation semantics as the real store contract. Test-only reset, clock, and
+  # inspection helpers live in `Rulestead.Fake.Control`.
+
 
   use GenServer
 
@@ -15,11 +15,14 @@ defmodule Rulestead.Fake do
     Admin.Lifecycle,
     AuditEvent,
     Environment,
+    EnvironmentVersion,
     Flag,
     Governance.Approval,
     Governance.ChangeRequest,
     Governance.ExecutionAttempt,
     Governance.ScheduledExecution,
+    Manifest.Import,
+    Promotion.Apply,
     Promotion.Compare,
     Ruleset,
     RulesetError,
@@ -46,6 +49,7 @@ defmodule Rulestead.Fake do
           scheduled_executions: %{required(String.t()) => map()},
           execution_attempts: %{required(String.t()) => [map()]},
           audit_events: [map()],
+          environment_versions: %{required(String.t()) => %{required(pos_integer()) => map()}},
           snapshots: %{required(String.t()) => %{required(pos_integer()) => map()}},
           webhook_receipts: %{required(String.t()) => map()},
           webhook_replay_claims: %{required(String.t()) => %{required(String.t()) => String.t()}},
@@ -79,6 +83,21 @@ defmodule Rulestead.Fake do
   @impl Store
   def compare_environments(%Command.CompareEnvironments{} = command) do
     call({:compare_environments, command})
+  end
+
+  @impl Store
+  def apply_promotion(%Command.ApplyPromotion{} = command) do
+    call({:apply_promotion, command})
+  end
+
+  @impl Store
+  def preview_manifest_import(%Command.PreviewManifestImport{} = command) do
+    call({:preview_manifest_import, command})
+  end
+
+  @impl Store
+  def apply_manifest_import(%Command.ApplyManifestImport{} = command) do
+    call({:apply_manifest_import, command})
   end
 
   @impl Store
@@ -389,30 +408,36 @@ defmodule Rulestead.Fake do
   end
 
   def handle_call({:compare_environments, command}, _from, state) do
-    with {:ok, source_environment} <-
-           fetch_environment_from_state(state, command.source_environment_key),
-         {:ok, target_environment} <-
-           fetch_environment_from_state(state, command.target_environment_key) do
-      source_flags = compare_payloads_for_environment(state, source_environment.key)
-      target_flags = compare_payloads_for_environment(state, target_environment.key)
+    {:reply, compare_environments_in_state(state, command), state}
+  end
 
-      audiences =
-        Map.new(state.audiences, fn {key, audience} -> {key, audience_summary(audience)} end)
-
-      {:reply,
-       {:ok,
-        Compare.compare_projected(%{
-          source_environment: source_environment,
-          target_environment: target_environment,
-          requested_flag_keys: command.flag_keys,
-          compare_token: command.compare_token,
-          source_flags: source_flags,
-          target_flags: target_flags,
-          audiences: audiences
-        })}, state}
+  def handle_call({:apply_promotion, command}, _from, state) do
+    if Compare.protected_target?(command.target_environment_key) do
+      {:reply, {:error, StoreError.invalid_command("promotion to protected targets requires governance")}, state}
     else
-      {:error, error} ->
-        {:reply, {:error, error}, state}
+      case do_apply_promotion(state, command, allow_protected_target?: false) do
+        {:ok, payload, next_state} -> {:reply, {:ok, payload}, next_state}
+        {:error, error} -> {:reply, {:error, error}, state}
+      end
+    end
+  end
+
+  def handle_call({:preview_manifest_import, command}, _from, state) do
+    reply =
+      with {:ok, target_manifest} <- Rulestead.export_manifest(command.target_environment_key) do
+        {:ok,
+         Import.preview(command.manifest, target_manifest,
+           target_environment_key: command.target_environment_key
+         )}
+      end
+
+    {:reply, reply, state}
+  end
+
+  def handle_call({:apply_manifest_import, command}, _from, state) do
+    case do_apply_manifest_import(state, command, allow_protected_target?: false) do
+      {:ok, result, next_state} -> {:reply, {:ok, result}, next_state}
+      {:error, error} -> {:reply, {:error, error}, state}
     end
   end
 
@@ -1061,36 +1086,44 @@ defmodule Rulestead.Fake do
 
   def handle_call({:execute_change_request, command}, _from, state) do
     with {:ok, change_request} <- fetch_change_request_record(state, command.change_request_id),
-         :ok <- ensure_governance_transition(change_request, ["approved"]),
-         {:ok, execution_result, next_state} <-
-           execute_governed_change(state, change_request, command) do
-      updated_change_request =
-        change_request
-        |> Map.put(:status, "executed")
-        |> Map.put(:resolved_at, state.now)
-        |> Map.put(:executed_at, state.now)
-        |> Map.put(:updated_at, state.now)
+         :ok <- ensure_governance_transition(change_request, ["approved"]) do
+      case execute_governed_change(state, change_request, command) do
+        {:ok, execution_result, next_state} ->
+          updated_change_request =
+            change_request
+            |> Map.put(:status, "executed")
+            |> Map.put(:resolved_at, state.now)
+            |> Map.put(:executed_at, state.now)
+            |> Map.put(:updated_at, state.now)
 
-      audit_command = governance_audit_command(command, updated_change_request, "merged")
+          audit_command = governance_audit_command(command, updated_change_request, "merged")
 
-      {audit_event, post_audit_state} =
-        append_audit_event(next_state, audit_command, "change_request.merged", :ok)
+          {audit_event, post_audit_state} =
+            append_audit_event(next_state, audit_command, "change_request.merged", :ok)
 
-      final_state =
-        post_audit_state
-        |> put_in([:change_requests, change_request.id], updated_change_request)
-        |> update_in([:audit_events], fn events -> [audit_event | events] end)
+          final_state =
+            post_audit_state
+            |> put_in([:change_requests, change_request.id], updated_change_request)
+            |> update_in([:audit_events], fn events -> [audit_event | events] end)
 
-      emit_governance_telemetry(:merged, audit_command, updated_change_request, audit_event)
+          emit_governance_telemetry(:merged, audit_command, updated_change_request, audit_event)
 
-      {:reply,
-       {:ok,
-        %{
-          change_request: serialize_change_request(updated_change_request),
-          execution_result: execution_result
-        }}, final_state}
+          {:reply,
+           {:ok,
+            %{
+              change_request: serialize_change_request(updated_change_request),
+              execution_result: execution_result
+            }}, final_state}
+
+        {:error, error, next_state} ->
+          {:reply, {:error, error}, next_state}
+
+        {:error, error} ->
+          {:reply, {:error, error}, state}
+      end
     else
-      {:error, error} -> {:reply, {:error, error}, state}
+      {:error, error} ->
+        {:reply, {:error, error}, state}
     end
   end
 
@@ -1532,6 +1565,7 @@ defmodule Rulestead.Fake do
       scheduled_executions: %{},
       execution_attempts: %{},
       audit_events: [],
+      environment_versions: %{},
       flags: %{},
       snapshots: %{},
       webhook_receipts: %{},
@@ -2144,7 +2178,8 @@ defmodule Rulestead.Fake do
               "publish_ruleset",
               "advance_rollout",
               "engage_kill_switch",
-              "release_kill_switch"
+              "release_kill_switch",
+              "promote_environment"
             ] do
     execute_bounded_governed_change(state, governed_action, change_request, command)
   end
@@ -2287,7 +2322,8 @@ defmodule Rulestead.Fake do
               "publish_ruleset",
               "advance_rollout",
               "engage_kill_switch",
-              "release_kill_switch"
+              "release_kill_switch",
+              "promote_environment"
             ] do
     execute_direct_scheduled_action(state, governed_action, scheduled_execution, command)
   end
@@ -2417,6 +2453,31 @@ defmodule Rulestead.Fake do
            ),
          :ok <- ensure_rollout_stage_available(flag_environment, change_request.command_snapshot) do
       {:error, "rollout_stage_conflict", state}
+    end
+  end
+
+  defp execute_bounded_governed_change(state, "promote_environment", change_request, command) do
+    promotion_command =
+      change_request.command_snapshot
+      |> Command.ApplyPromotion.new(
+        actor: command.actor,
+        reason: command.reason,
+        metadata:
+          promotion_execution_metadata(
+            command.metadata,
+            change_request.correlation_id,
+            change_request.metadata["source"],
+            change_request_id: change_request.id,
+            execution_stage: "execute"
+          )
+      )
+
+    with :ok <- Apply.validate_governed_snapshot(promotion_command),
+         {:ok, execution_result, next_state} <-
+           do_apply_promotion(state, promotion_command, allow_protected_target?: true) do
+      {:ok, execution_result, next_state}
+    else
+      {:error, error} -> {:error, error, state}
     end
   end
 
@@ -2551,6 +2612,76 @@ defmodule Rulestead.Fake do
       {:error, "rollout_stage_conflict", state}
     else
       {:error, error} -> {:error, error, state}
+    end
+  end
+
+  defp execute_direct_scheduled_action(state, "promote_environment", scheduled_execution, command) do
+    promotion_command =
+      scheduled_execution.command_snapshot
+      |> Command.ApplyPromotion.new(
+        actor: command.actor,
+        reason: command.reason,
+        metadata:
+          promotion_execution_metadata(
+            command.metadata,
+            scheduled_execution.correlation_id,
+            scheduled_execution.metadata["source"],
+            scheduled_execution_id: scheduled_execution.id,
+            execution_stage: "scheduled_execution"
+          )
+      )
+
+    with {:ok, compare} <- compare_environments_in_state(state, compare_command(promotion_command)),
+         :ok <- Apply.validate_with_compare(promotion_command, compare, allow_protected_target?: true),
+         {:ok, execution_result, next_state} <-
+           do_apply_promotion(state, promotion_command, allow_protected_target?: true) do
+      {:ok, execution_result, next_state}
+    else
+      {:error, error} -> {:error, error, state}
+    end
+  end
+
+  defp promotion_execution_metadata(metadata, request_id, source, links) do
+    metadata
+    |> Map.merge(%{
+      "request_id" => request_id,
+      "source" => source,
+      "governance_action" => "promote_environment"
+    })
+    |> Map.merge(Map.new(links))
+  end
+
+  defp compare_command(%Command.ApplyPromotion{} = command) do
+    Command.CompareEnvironments.new(
+      command.source_environment_key,
+      command.target_environment_key,
+      flag_keys: command.flag_keys,
+      compare_token: command.compare_token
+    )
+  end
+
+  defp compare_environments_in_state(state, %Command.CompareEnvironments{} = command) do
+    with {:ok, source_environment} <-
+           fetch_environment_from_state(state, command.source_environment_key),
+         {:ok, target_environment} <-
+           fetch_environment_from_state(state, command.target_environment_key) do
+      source_flags = compare_payloads_for_environment(state, source_environment.key)
+      target_flags = compare_payloads_for_environment(state, target_environment.key)
+
+      audiences =
+        Map.new(state.audiences, fn {key, audience} -> {key, audience_summary(audience)} end)
+
+      {:ok,
+       Compare.compare_projected(%{
+         source_environment: source_environment,
+         target_environment: target_environment,
+         requested_flag_keys: command.flag_keys,
+         compare_token: command.compare_token,
+         tenant_key: command.tenant_key,
+         source_flags: source_flags,
+         target_flags: target_flags,
+         audiences: audiences
+       })}
     end
   end
 
@@ -3041,6 +3172,494 @@ defmodule Rulestead.Fake do
     {:ok, next_state}
   end
 
+  defp do_apply_promotion(state, command, opts) do
+    with {:ok, _source_environment} <-
+           fetch_environment_from_state(state, command.source_environment_key),
+         {:ok, target_environment} <-
+           fetch_environment_from_state(state, command.target_environment_key),
+         :ok <-
+           ensure_promotion_target_allowed(
+             target_environment.key,
+             Keyword.get(opts, :allow_protected_target?, false)
+           ),
+         {:ok, applied_state} <- apply_promotion_bundle(state, target_environment.key, command) do
+      version = next_environment_version(state, target_environment.key)
+
+      environment_version =
+        normalize_environment_version(%EnvironmentVersion{
+          id: Ecto.UUID.generate(),
+          environment_key: target_environment.key,
+          version: version,
+          authored_snapshot: command.proposed_target_bundle,
+          source_environment_key: command.source_environment_key,
+          target_environment_key: command.target_environment_key,
+          compare_token: command.compare_token,
+          source_fingerprint: command.source_fingerprint,
+          target_fingerprint: command.target_fingerprint,
+          dependency_closure_keys: command.dependency_closure_keys,
+          applied_flag_keys: command.flag_keys,
+          metadata: %{
+            "actor" => command.actor || %{},
+            "reason" => command.reason,
+            "metadata" => command.metadata
+          },
+          inserted_at: applied_state.now,
+          updated_at: applied_state.now
+        })
+
+      next_state =
+        applied_state
+        |> update_in([:environment_versions], fn environment_versions ->
+          Map.update(
+            environment_versions,
+            target_environment.key,
+            %{version => environment_version},
+            fn versions ->
+              Map.put(versions, version, environment_version)
+            end
+          )
+        end)
+        |> put_runtime_snapshot(target_environment.key)
+
+      snapshot_version = next_snapshot_version(applied_state, target_environment.key)
+
+      {:ok,
+       %{
+         source_environment_key: command.source_environment_key,
+         target_environment_key: command.target_environment_key,
+         compare_token: command.compare_token,
+         compare_schema_version: command.compare_schema_version,
+         applied_flag_keys: command.flag_keys,
+         dependency_closure_keys: command.dependency_closure_keys,
+         environment_version_id: environment_version.id,
+         environment_version_version: environment_version.version,
+         snapshot_version: snapshot_version
+       }, next_state}
+    end
+  end
+
+  defp do_apply_manifest_import(state, command, opts) do
+    with {:ok, target_environment} <-
+           fetch_environment_from_state(state, command.target_environment_key),
+         :ok <-
+           ensure_promotion_target_allowed(
+             target_environment.key,
+             Keyword.get(opts, :allow_protected_target?, false)
+           ),
+         {:ok, applied_state} <- apply_manifest_import_bundle(state, target_environment.key, command) do
+      version = next_environment_version(state, target_environment.key)
+
+      environment_version =
+        normalize_environment_version(%EnvironmentVersion{
+          id: Ecto.UUID.generate(),
+          environment_key: target_environment.key,
+          version: version,
+          authored_snapshot: command.proposed_target_bundle,
+          source_environment_key: command.source_environment_key,
+          target_environment_key: command.target_environment_key,
+          compare_token: command.plan_token,
+          source_fingerprint: nil,
+          target_fingerprint: command.target_fingerprint,
+          dependency_closure_keys: command.dependency_closure_keys,
+          applied_flag_keys: command.flag_keys,
+          metadata: %{
+            "mode" => "manifest_import",
+            "actor" => command.actor || %{},
+            "reason" => command.reason,
+            "metadata" => command.metadata
+          },
+          inserted_at: applied_state.now,
+          updated_at: applied_state.now
+        })
+
+      next_state =
+        applied_state
+        |> update_in([:environment_versions], fn environment_versions ->
+          Map.update(
+            environment_versions,
+            target_environment.key,
+            %{version => environment_version},
+            fn versions ->
+              Map.put(versions, version, environment_version)
+            end
+          )
+        end)
+        |> put_runtime_snapshot(target_environment.key)
+
+      snapshot_version = next_snapshot_version(applied_state, target_environment.key)
+
+      {:ok,
+       %{
+         source_environment_key: command.source_environment_key,
+         target_environment_key: command.target_environment_key,
+         plan_token: command.plan_token,
+         applied_flag_keys: command.flag_keys,
+         dependency_closure_keys: command.dependency_closure_keys,
+         environment_version_id: environment_version.id,
+         environment_version_version: environment_version.version,
+         snapshot_version: snapshot_version
+       }, next_state}
+    end
+  end
+
+  defp ensure_promotion_target_allowed(_target_environment_key, true), do: :ok
+
+  defp ensure_promotion_target_allowed(target_environment_key, false) do
+    if Compare.protected_target?(target_environment_key) do
+      {:error, StoreError.invalid_command("promotion to protected targets requires governance")}
+    else
+      :ok
+    end
+  end
+
+  defp apply_promotion_bundle(state, target_environment_key, command) do
+    Enum.reduce_while(command.flag_keys, {:ok, state}, fn flag_key, {:ok, acc_state} ->
+      case apply_promoted_flag(acc_state, flag_key, target_environment_key, command) do
+        {:ok, next_state} -> {:cont, {:ok, next_state}}
+        {:error, error} -> {:halt, {:error, error}}
+      end
+    end)
+  end
+
+  defp apply_manifest_import_bundle(state, target_environment_key, command) do
+    Enum.reduce_while(command.flag_keys, {:ok, state}, fn flag_key, {:ok, acc_state} ->
+      case apply_imported_flag(acc_state, flag_key, target_environment_key, command) do
+        {:ok, next_state} -> {:cont, {:ok, next_state}}
+        {:error, error} -> {:halt, {:error, error}}
+      end
+    end)
+  end
+
+  defp apply_promoted_flag(state, flag_key, target_environment_key, command) do
+    with {:ok, _environment, flag, flag_environment} <-
+           fetch_flag_apply_context(state, flag_key, target_environment_key),
+         proposed_state <- Map.get(command.proposed_target_bundle, flag_key),
+         false <- is_nil(proposed_state) do
+      proposed_flag = Map.get(proposed_state, "flag", %{}) |> denormalize_promoted_value()
+
+      proposed_flag_environment =
+        Map.get(proposed_state, "flag_environment", %{}) |> denormalize_promoted_value()
+
+      proposed_ruleset =
+        Map.get(proposed_state, "active_ruleset", %{}) |> denormalize_promoted_value()
+
+      updated_flag =
+        flag
+        |> maybe_put(:description, proposed_flag["description"])
+        |> maybe_put(:owner, proposed_flag["owner"])
+        |> maybe_put(:default_value, proposed_flag["default_value"])
+        |> maybe_put(:expected_expiration, proposed_flag["expected_expiration"])
+        |> maybe_put(:permanent, proposed_flag["permanent"])
+        |> maybe_put(:tags, proposed_flag["tags"])
+        |> Map.put(:updated_at, state.now)
+
+      ruleset_version = next_ruleset_version(state, flag_key, target_environment_key)
+
+      ruleset_attrs = %{
+        flag_environment_id: flag_environment.id,
+        version: ruleset_version,
+        status: :published,
+        salt: proposed_ruleset["salt"],
+        published_at: state.now,
+        metadata: Map.get(proposed_ruleset, "metadata", %{}),
+        rules: Map.get(proposed_ruleset, "rules", [])
+      }
+
+      case Changeset.apply_action(Ruleset.changeset(%Ruleset{}, ruleset_attrs), :insert) do
+        {:ok, ruleset} ->
+          ruleset = serialize_ruleset(ruleset, state.now)
+
+          updated_flag_environment =
+            flag_environment
+            |> Map.put(:active_ruleset_version, ruleset_version)
+            |> Map.put(
+              :status,
+              normalize_flag_environment_status(proposed_flag_environment["status"])
+            )
+            |> Map.put(
+              :kill_switch_variant_key,
+              proposed_flag_environment["kill_switch_variant_key"]
+            )
+            |> Map.put(:last_published_at, state.now)
+            |> Map.put(:last_evaluated_at, proposed_flag_environment["last_evaluated_at"])
+            |> Map.put(:variants_served, Map.get(proposed_flag_environment, "variants_served", %{}))
+            |> Map.put(:updated_at, state.now)
+
+          next_state =
+            state
+            |> put_in([:flags, flag_key], updated_flag)
+            |> put_in([
+              :flags,
+              flag_key,
+              :environments,
+              target_environment_key
+            ], updated_flag_environment)
+            |> put_in([:flags, flag_key, :rulesets, target_environment_key, ruleset_version], ruleset)
+
+          {:ok, next_state}
+
+        {:error, invalid_changeset} ->
+          {:error, ruleset_error(invalid_changeset, flag_key, target_environment_key)}
+      end
+    else
+      true ->
+        {:error,
+         StoreError.invalid_command("promotion bundle is missing a proposed target state",
+           metadata: %{flag_key: flag_key}
+         )}
+
+      {:error, error} ->
+        {:error, error}
+    end
+  end
+
+  defp apply_imported_flag(state, flag_key, target_environment_key, command) do
+    proposed_state = Map.get(command.proposed_target_bundle, flag_key)
+
+    if is_nil(proposed_state) do
+      {:error,
+       StoreError.invalid_command("manifest import plan is missing a proposed target state",
+         metadata: %{flag_key: flag_key}
+       )}
+    else
+      proposed_flag = Map.get(proposed_state, "flag", %{}) |> denormalize_promoted_value()
+      proposed_flag_environment =
+        Map.get(proposed_state, "flag_environment", %{}) |> denormalize_promoted_value()
+      proposed_ruleset = Map.get(proposed_state, "active_ruleset", %{}) |> denormalize_promoted_value()
+
+      with {:ok, environment} <- fetch_environment(state, target_environment_key),
+           {:ok, next_state, flag} <-
+             upsert_import_flag(state, flag_key, proposed_flag, target_environment_key),
+           :ok <- ensure_not_archived(flag_key, flag),
+           {:ok, next_state, flag_environment} <-
+             upsert_import_flag_environment(
+               next_state,
+               flag,
+               environment,
+               proposed_flag_environment
+             ) do
+        ruleset_version = next_ruleset_version(next_state, flag_key, target_environment_key)
+
+        ruleset_attrs = %{
+          flag_environment_id: flag_environment.id,
+          version: ruleset_version,
+          status: :published,
+          salt: proposed_ruleset["salt"],
+          published_at: next_state.now,
+          metadata: Map.get(proposed_ruleset, "metadata", %{}),
+          rules: Map.get(proposed_ruleset, "rules", [])
+        }
+
+        case Changeset.apply_action(Ruleset.changeset(%Ruleset{}, ruleset_attrs), :insert) do
+          {:ok, ruleset} ->
+            ruleset = serialize_ruleset(ruleset, next_state.now)
+
+            updated_flag_environment =
+              flag_environment
+              |> Map.put(:active_ruleset_version, ruleset_version)
+              |> Map.put(
+                :status,
+                normalize_flag_environment_status(proposed_flag_environment["status"])
+              )
+              |> Map.put(
+                :kill_switch_variant_key,
+                proposed_flag_environment["kill_switch_variant_key"]
+              )
+              |> Map.put(:last_published_at, next_state.now)
+              |> Map.put(:last_evaluated_at, proposed_flag_environment["last_evaluated_at"])
+              |> Map.put(:variants_served, Map.get(proposed_flag_environment, "variants_served", %{}))
+              |> Map.put(:updated_at, next_state.now)
+
+            final_state =
+              next_state
+              |> put_in([:flags, flag_key, :environments, target_environment_key], updated_flag_environment)
+              |> put_in([:flags, flag_key, :rulesets, target_environment_key, ruleset_version], ruleset)
+
+            {:ok, final_state}
+
+          {:error, invalid_changeset} ->
+            {:error, ruleset_error(invalid_changeset, flag_key, target_environment_key)}
+        end
+      end
+    end
+  end
+
+  defp upsert_import_flag(state, flag_key, proposed_flag, target_environment_key) do
+    normalized_flag_key = to_string(flag_key)
+
+    case Map.get(state.flags, normalized_flag_key) do
+      nil ->
+        attrs = %{
+          key: normalized_flag_key,
+          description: proposed_flag["description"],
+          flag_type: normalize_import_flag_type(proposed_flag["flag_type"]),
+          value_type: normalize_import_value_type(proposed_flag["value_type"]),
+          default_value: proposed_flag["default_value"] || %{},
+          owner: proposed_flag["owner"],
+          expected_expiration: proposed_flag["expected_expiration"],
+          permanent: proposed_flag["permanent"] || false,
+          tags: proposed_flag["tags"] || [],
+          environment_keys: [target_environment_key]
+        }
+
+        case do_put_flag(state, attrs) do
+          {:ok, _payload, next_state} -> {:ok, next_state, next_state.flags[normalized_flag_key]}
+          {:error, error} -> {:error, error}
+        end
+
+      flag ->
+        updated_flag =
+          flag
+          |> maybe_put(:description, proposed_flag["description"])
+          |> maybe_put(:owner, proposed_flag["owner"])
+          |> maybe_put(:default_value, proposed_flag["default_value"])
+          |> maybe_put(:expected_expiration, proposed_flag["expected_expiration"])
+          |> maybe_put(:permanent, proposed_flag["permanent"])
+          |> maybe_put(:tags, proposed_flag["tags"])
+          |> Map.put(:updated_at, state.now)
+
+        {:ok, put_in(state.flags[normalized_flag_key], updated_flag), updated_flag}
+    end
+  end
+
+  defp upsert_import_flag_environment(state, flag, environment, proposed_flag_environment) do
+    case Map.get(flag.environments, environment.key) do
+      %{status: :archived} ->
+        {:error,
+         StoreError.invalid_command("manifest import would revive an archived flag environment",
+           metadata: %{flag_key: flag.key}
+         )}
+
+      nil ->
+        flag_environment = %{
+          id: Ecto.UUID.generate(),
+          flag_id: flag.id,
+          environment_id: environment.id,
+          environment_key: environment.key,
+          status: normalize_flag_environment_status(proposed_flag_environment["status"]),
+          kill_switch_variant_key: proposed_flag_environment["kill_switch_variant_key"],
+          active_ruleset_version: nil,
+          last_published_at: nil,
+          last_evaluated_at: proposed_flag_environment["last_evaluated_at"],
+          variants_served: Map.get(proposed_flag_environment, "variants_served", %{}),
+          inserted_at: state.now,
+          updated_at: state.now
+        }
+
+        next_state =
+          state
+          |> put_in([:flags, flag.key, :environments, environment.key], flag_environment)
+          |> update_in([:flags, flag.key, :rulesets], fn rulesets ->
+            Map.put(rulesets || %{}, environment.key, %{})
+          end)
+
+        {:ok, next_state, flag_environment}
+
+      flag_environment ->
+        {:ok, state, flag_environment}
+    end
+  end
+
+  defp normalize_import_flag_type(value) when is_binary(value) do
+    try do
+      parsed = String.to_existing_atom(value)
+      if parsed in Flag.flag_types(), do: parsed, else: :release
+    rescue
+      ArgumentError -> :release
+    end
+  end
+
+  defp normalize_import_flag_type(value) when is_atom(value) do
+    if value in Flag.flag_types(), do: value, else: :release
+  end
+
+  defp normalize_import_flag_type(_value), do: :release
+
+  defp normalize_import_value_type(value) when is_binary(value) do
+    try do
+      parsed = String.to_existing_atom(value)
+      if parsed in Flag.value_types(), do: parsed, else: :boolean
+    rescue
+      ArgumentError -> :boolean
+    end
+  end
+
+  defp normalize_import_value_type(value) when is_atom(value) do
+    if value in Flag.value_types(), do: value, else: :boolean
+  end
+
+  defp normalize_import_value_type(_value), do: :boolean
+
+  defp fetch_flag_apply_context(state, flag_key, environment_key) do
+    with {:ok, environment} <- fetch_environment_from_state(state, environment_key),
+         {:ok, flag, flag_environment} <- fetch_flag_environment(state, flag_key, environment_key) do
+      {:ok, environment, flag, flag_environment}
+    end
+  end
+
+  defp next_ruleset_version(state, flag_key, environment_key) do
+    state.flags
+    |> Map.fetch!(flag_key)
+    |> next_ruleset_version(environment_key)
+  end
+
+  defp next_environment_version(state, environment_key) do
+    state.environment_versions
+    |> Map.get(environment_key, %{})
+    |> Map.keys()
+    |> Enum.max(fn -> 0 end)
+    |> Kernel.+(1)
+  end
+
+  defp normalize_environment_version(%EnvironmentVersion{} = environment_version) do
+    %{
+      id: environment_version.id,
+      environment_key: environment_version.environment_key,
+      version: environment_version.version,
+      authored_snapshot: environment_version.authored_snapshot,
+      source_environment_key: environment_version.source_environment_key,
+      target_environment_key: environment_version.target_environment_key,
+      compare_token: environment_version.compare_token,
+      source_fingerprint: environment_version.source_fingerprint,
+      target_fingerprint: environment_version.target_fingerprint,
+      dependency_closure_keys: environment_version.dependency_closure_keys,
+      applied_flag_keys: environment_version.applied_flag_keys,
+      metadata: environment_version.metadata,
+      inserted_at: environment_version.inserted_at,
+      updated_at: environment_version.updated_at
+    }
+  end
+
+  defp normalize_flag_environment_status(nil), do: :active
+
+  defp normalize_flag_environment_status(status) when is_binary(status) do
+    case String.to_existing_atom(status) do
+      normalized ->
+        if normalized in Rulestead.FlagEnvironment.statuses(), do: normalized, else: :active
+    end
+  rescue
+    ArgumentError -> :active
+  end
+
+  defp normalize_flag_environment_status(status) when is_atom(status) do
+    if status in Rulestead.FlagEnvironment.statuses(), do: status, else: :active
+  end
+
+  defp normalize_flag_environment_status(_status), do: :active
+
+  defp denormalize_promoted_value(map) when is_map(map) do
+    Map.new(map, fn {key, value} -> {key, denormalize_promoted_value(value)} end)
+  end
+
+  defp denormalize_promoted_value(list) when is_list(list) do
+    Enum.map(list, &denormalize_promoted_value/1)
+  end
+
+  defp denormalize_promoted_value("nil"), do: nil
+  defp denormalize_promoted_value("true"), do: true
+  defp denormalize_promoted_value("false"), do: false
+  defp denormalize_promoted_value(value), do: value
+
   defp put_runtime_snapshot(state, environment_key) do
     snapshot_payload = build_environment_snapshot_payload(state, environment_key)
     payload = :erlang.term_to_binary(snapshot_payload)
@@ -3472,7 +4091,7 @@ defmodule Rulestead.Fake do
       name: rule.name,
       description: rule.description,
       strategy: rule.strategy,
-      value: rule.value,
+      value: normalize_embedded_value(rule.value),
       audience_id: rule.audience_id,
       audience_key: rule.audience_key,
       conditions: Enum.map(rule.conditions, &serialize_condition/1),
@@ -3485,14 +4104,14 @@ defmodule Rulestead.Fake do
     %{
       attribute: condition.attribute,
       operator: condition.operator,
-      value: condition.value
+      value: normalize_embedded_value(condition.value)
     }
   end
 
   defp serialize_variant(variant) do
     %{
       key: variant.key,
-      value: variant.value,
+      value: normalize_embedded_value(variant.value),
       weight: variant.weight
     }
   end
@@ -3506,6 +4125,29 @@ defmodule Rulestead.Fake do
       salt: rollout.salt
     }
   end
+
+  defp normalize_embedded_value(map) when is_map(map) do
+    Map.new(map, fn {key, value} ->
+      normalized_key =
+        if is_binary(key) do
+          try do
+            String.to_existing_atom(key)
+          rescue
+            ArgumentError -> key
+          end
+        else
+          key
+        end
+
+      {normalized_key, normalize_embedded_value(value)}
+    end)
+  end
+
+  defp normalize_embedded_value(list) when is_list(list) do
+    Enum.map(list, &normalize_embedded_value/1)
+  end
+
+  defp normalize_embedded_value(value), do: value
 
   defp decorate_payload(payload, state, flag, environment, flag_environment) do
     environment_cards = environment_cards(state, flag)

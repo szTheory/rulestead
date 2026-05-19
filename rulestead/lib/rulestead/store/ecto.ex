@@ -1,5 +1,4 @@
 defmodule Rulestead.Store.Ecto do
-  @moduledoc false
 
   import Ecto.Query
 
@@ -17,9 +16,12 @@ defmodule Rulestead.Store.Ecto do
     AuditEvent,
     Context,
     Environment,
+    EnvironmentVersion,
     Flag,
     FlagEnvironment,
+    Manifest.Import,
     Oban,
+    Promotion.Apply,
     Promotion.Compare,
     Repo,
     RuntimeSnapshot,
@@ -73,10 +75,140 @@ defmodule Rulestead.Store.Ecto do
          target_environment: environment_summary(target_environment),
          requested_flag_keys: command.flag_keys,
          compare_token: command.compare_token,
+         tenant_key: command.tenant_key,
          source_flags: compare_payloads(flags, source_environment),
          target_flags: compare_payloads(flags, target_environment),
          audiences: audiences
        })}
+    end
+  end
+
+  @impl Store
+  def apply_promotion(%Command.ApplyPromotion{} = command) do
+    run_promotion_apply(command, allow_protected_target?: false)
+  rescue
+    error in [ConstraintError] ->
+      {:error, StoreError.unavailable(cause: error)}
+  end
+
+  @impl Store
+  def preview_manifest_import(%Command.PreviewManifestImport{} = command) do
+    with {:ok, target_manifest} <- Rulestead.export_manifest(command.target_environment_key) do
+      {:ok,
+       Import.preview(command.manifest, target_manifest,
+         target_environment_key: command.target_environment_key
+       )}
+    end
+  end
+
+  @impl Store
+  def apply_manifest_import(%Command.ApplyManifestImport{} = command) do
+    run_manifest_import_apply(command, allow_protected_target?: false)
+  rescue
+    error in [ConstraintError] ->
+      {:error, StoreError.unavailable(cause: error)}
+  end
+
+  defp run_promotion_apply(%Command.ApplyPromotion{} = command, opts) do
+    with {:ok, _source_environment} <- fetch_environment(command.source_environment_key),
+         {:ok, target_environment} <- fetch_environment(command.target_environment_key),
+         :ok <-
+           ensure_promotion_target_allowed(
+             target_environment.key,
+             Keyword.get(opts, :allow_protected_target?, false)
+           ) do
+      published_at = now()
+
+      Multi.new()
+      |> Multi.run(:applied_flags, fn repo, _changes ->
+        apply_promotion_bundle(repo, target_environment, command, published_at)
+      end)
+      |> Multi.run(:environment_version, fn repo, %{applied_flags: applied_flags} ->
+        insert_environment_version(repo, target_environment, command, applied_flags)
+      end)
+      |> Multi.run(:runtime_snapshot, fn repo, _changes ->
+        insert_runtime_snapshot(repo, target_environment, published_at)
+      end)
+      |> Repo.transact()
+      |> case do
+        {:ok, %{environment_version: environment_version, runtime_snapshot: runtime_snapshot}} ->
+          {:ok,
+           %{
+             source_environment_key: command.source_environment_key,
+             target_environment_key: command.target_environment_key,
+             compare_token: command.compare_token,
+             compare_schema_version: command.compare_schema_version,
+             applied_flag_keys: command.flag_keys,
+             dependency_closure_keys: command.dependency_closure_keys,
+             environment_version_id: environment_version.id,
+             environment_version_version: environment_version.version,
+             snapshot_version: runtime_snapshot.version
+           }}
+
+        {:error, _operation, %Rulestead.Error{} = error, _changes} ->
+          {:error, error}
+
+        {:error, _operation, %Changeset{} = changeset, _changes} ->
+          {:error, StoreError.invalid_command("promotion apply could not be persisted", cause: changeset)}
+
+        {:error, _operation, reason, _changes} ->
+          {:error, StoreError.unavailable(cause: reason)}
+      end
+    else
+      {:error, error} ->
+        {:error, error}
+    end
+  end
+
+  defp run_manifest_import_apply(%Command.ApplyManifestImport{} = command, opts) do
+    with {:ok, target_environment} <- fetch_environment(command.target_environment_key),
+         :ok <-
+           ensure_promotion_target_allowed(
+             target_environment.key,
+             Keyword.get(opts, :allow_protected_target?, false)
+           ) do
+      published_at = now()
+
+      Multi.new()
+      |> Multi.run(:applied_flags, fn repo, _changes ->
+        apply_manifest_import_bundle(repo, target_environment, command, published_at)
+      end)
+      |> Multi.run(:environment_version, fn repo, %{applied_flags: applied_flags} ->
+        insert_manifest_import_environment_version(
+          repo,
+          target_environment,
+          command,
+          applied_flags,
+          published_at
+        )
+      end)
+      |> Multi.run(:runtime_snapshot, fn repo, _changes ->
+        insert_runtime_snapshot(repo, target_environment, published_at)
+      end)
+      |> Repo.transact()
+      |> case do
+        {:ok, %{environment_version: environment_version, runtime_snapshot: runtime_snapshot}} ->
+          {:ok,
+           %{
+             source_environment_key: command.source_environment_key,
+             target_environment_key: command.target_environment_key,
+             plan_token: command.plan_token,
+             applied_flag_keys: command.flag_keys,
+             dependency_closure_keys: command.dependency_closure_keys,
+             environment_version_id: environment_version.id,
+             environment_version_version: environment_version.version,
+             snapshot_version: runtime_snapshot.version
+           }}
+
+        {:error, _operation, %Rulestead.Error{} = error, _changes} ->
+          {:error, error}
+
+        {:error, _operation, %Changeset{} = changeset, _changes} ->
+          {:error, StoreError.invalid_command("manifest import could not be persisted", cause: changeset)}
+
+        {:error, _operation, reason, _changes} ->
+          {:error, StoreError.unavailable(cause: reason)}
+      end
     end
   end
 
@@ -1575,6 +1707,425 @@ defmodule Rulestead.Store.Ecto do
   defp active_version(flag_environment),
     do: flag_environment.active_ruleset && flag_environment.active_ruleset.version
 
+  defp apply_promotion_bundle(repo, target_environment, command, published_at) do
+    Enum.reduce_while(command.flag_keys, {:ok, []}, fn flag_key, {:ok, acc} ->
+      case apply_promoted_flag(repo, flag_key, target_environment.key, command, published_at) do
+        {:ok, applied_flag} -> {:cont, {:ok, [applied_flag | acc]}}
+        {:error, error} -> {:halt, {:error, error}}
+      end
+    end)
+    |> case do
+      {:ok, applied_flags} -> {:ok, Enum.reverse(applied_flags)}
+      {:error, error} -> {:error, error}
+    end
+  end
+
+  defp apply_manifest_import_bundle(repo, target_environment, command, published_at) do
+    Enum.reduce_while(command.flag_keys, {:ok, []}, fn flag_key, {:ok, acc} ->
+      case apply_imported_flag(repo, flag_key, target_environment, command, published_at) do
+        {:ok, applied_flag} -> {:cont, {:ok, [applied_flag | acc]}}
+        {:error, error} -> {:halt, {:error, error}}
+      end
+    end)
+    |> case do
+      {:ok, applied_flags} -> {:ok, Enum.reverse(applied_flags)}
+      {:error, error} -> {:error, error}
+    end
+  end
+
+  defp ensure_promotion_target_allowed(_target_environment_key, true), do: :ok
+
+  defp ensure_promotion_target_allowed(target_environment_key, false) do
+    if Compare.protected_target?(target_environment_key) do
+      {:error, StoreError.invalid_command("promotion to protected targets requires governance")}
+    else
+      :ok
+    end
+  end
+
+  defp apply_promoted_flag(repo, flag_key, target_environment_key, command, published_at) do
+    with {:ok, flag, flag_environment} <- fetch_flag_environment_for_repo(repo, flag_key, target_environment_key),
+         proposed_state <- Map.get(command.proposed_target_bundle, flag_key),
+         false <- is_nil(proposed_state) do
+      proposed_flag = Map.get(proposed_state, "flag", %{}) |> denormalize_promoted_value()
+      proposed_flag_environment = Map.get(proposed_state, "flag_environment", %{}) |> denormalize_promoted_value()
+      proposed_ruleset = Map.get(proposed_state, "active_ruleset", %{}) |> denormalize_promoted_value()
+
+      flag_attrs =
+        %{}
+        |> maybe_put_update_field(:description, proposed_flag["description"])
+        |> maybe_put_update_field(:owner, proposed_flag["owner"])
+        |> maybe_put_update_field(:default_value, proposed_flag["default_value"])
+        |> maybe_put_update_field(
+          :expected_expiration,
+          normalize_expected_expiration(proposed_flag["expected_expiration"])
+        )
+        |> maybe_put_update_field(:permanent, normalize_boolean(proposed_flag["permanent"]))
+        |> maybe_put_update_field(:tags, proposed_flag["tags"])
+
+      {:ok, updated_flag} =
+        flag
+        |> Flag.changeset(flag_attrs)
+        |> repo.update()
+
+      {:ok, inserted_ruleset} =
+        %Ruleset{}
+        |> Ruleset.changeset(%{
+          flag_environment_id: flag_environment.id,
+          version: next_ruleset_version_for_repo(repo, flag_environment.id),
+          status: :published,
+          salt: proposed_ruleset["salt"],
+          published_at: published_at,
+          metadata: Map.get(proposed_ruleset, "metadata", %{}),
+          rules: Map.get(proposed_ruleset, "rules", [])
+        })
+        |> repo.insert()
+
+      {:ok, updated_flag_environment} =
+        flag_environment
+        |> FlagEnvironment.changeset(%{
+          active_ruleset_id: inserted_ruleset.id,
+          status: normalize_flag_environment_status(proposed_flag_environment["status"]),
+          kill_switch_variant_key: proposed_flag_environment["kill_switch_variant_key"],
+          last_published_at: published_at,
+          last_evaluated_at: proposed_flag_environment["last_evaluated_at"],
+          variants_served: Map.get(proposed_flag_environment, "variants_served", %{})
+        })
+        |> repo.update()
+
+      {:ok,
+       %{
+         flag_key: flag_key,
+         flag: updated_flag,
+         flag_environment: updated_flag_environment,
+         ruleset: inserted_ruleset
+       }}
+    else
+      true ->
+        {:error, StoreError.invalid_command("promotion bundle is missing a proposed target state", metadata: %{flag_key: flag_key})}
+
+      {:error, error} ->
+        {:error, error}
+    end
+  rescue
+    error in [Ecto.InvalidChangesetError] ->
+      {:error, StoreError.invalid_command("promotion apply could not be persisted", cause: error)}
+  end
+
+  defp apply_imported_flag(repo, flag_key, target_environment, command, published_at) do
+    proposed_state = Map.get(command.proposed_target_bundle, flag_key)
+
+    if is_nil(proposed_state) do
+      {:error, StoreError.invalid_command("manifest import plan is missing a proposed target state", metadata: %{flag_key: flag_key})}
+    else
+      proposed_flag = Map.get(proposed_state, "flag", %{}) |> denormalize_promoted_value()
+      proposed_flag_environment = Map.get(proposed_state, "flag_environment", %{}) |> denormalize_promoted_value()
+      proposed_ruleset = Map.get(proposed_state, "active_ruleset", %{}) |> denormalize_promoted_value()
+
+      with {:ok, flag} <- upsert_import_flag(repo, flag_key, proposed_flag),
+           :ok <- ensure_not_archived(flag_key, flag),
+           {:ok, flag_environment} <-
+             upsert_import_flag_environment(
+               repo,
+               flag,
+               target_environment,
+               proposed_flag_environment,
+               published_at
+             ),
+           {:ok, inserted_ruleset} <-
+             insert_import_ruleset(repo, flag_environment, proposed_ruleset, published_at),
+           {:ok, updated_flag_environment} <-
+             finalize_import_flag_environment(
+               repo,
+               flag_environment,
+               inserted_ruleset,
+               proposed_flag_environment,
+               published_at
+             ) do
+        {:ok,
+         %{
+           flag_key: flag_key,
+           flag: flag,
+           flag_environment: updated_flag_environment,
+           ruleset: inserted_ruleset
+         }}
+      end
+    end
+  rescue
+    error in [Ecto.InvalidChangesetError] ->
+      {:error, StoreError.invalid_command("manifest import could not be persisted", cause: error)}
+  end
+
+  defp insert_environment_version(repo, target_environment, command, _applied_flags) do
+    %EnvironmentVersion{}
+    |> EnvironmentVersion.changeset(%{
+      environment_key: target_environment.key,
+      version: next_environment_version(repo, target_environment.key),
+      authored_snapshot: command.proposed_target_bundle,
+      source_environment_key: command.source_environment_key,
+      target_environment_key: command.target_environment_key,
+      compare_token: command.compare_token,
+      source_fingerprint: command.source_fingerprint,
+      target_fingerprint: command.target_fingerprint,
+      dependency_closure_keys: command.dependency_closure_keys,
+      applied_flag_keys: command.flag_keys,
+      metadata: %{
+        "actor" => command.actor || %{},
+        "reason" => command.reason,
+        "metadata" => command.metadata
+      }
+    })
+    |> repo.insert()
+  end
+
+  defp insert_manifest_import_environment_version(
+         repo,
+         target_environment,
+         command,
+         _applied_flags,
+         published_at
+       ) do
+    %EnvironmentVersion{}
+    |> EnvironmentVersion.changeset(%{
+      environment_key: target_environment.key,
+      version: next_environment_version(repo, target_environment.key),
+      authored_snapshot: command.proposed_target_bundle,
+      source_environment_key: command.source_environment_key,
+      target_environment_key: command.target_environment_key,
+      compare_token: command.plan_token,
+      source_fingerprint: nil,
+      target_fingerprint: command.target_fingerprint,
+      dependency_closure_keys: command.dependency_closure_keys,
+      applied_flag_keys: command.flag_keys,
+      metadata: %{
+        "mode" => "manifest_import",
+        "actor" => command.actor || %{},
+        "reason" => command.reason,
+        "metadata" => command.metadata,
+        "published_at" => DateTime.to_iso8601(published_at)
+      }
+    })
+    |> repo.insert()
+  end
+
+  defp fetch_flag_environment_for_repo(repo, flag_key, environment_key) do
+    flag =
+      from(flag in Flag,
+        where: flag.key == ^to_string(flag_key),
+        join: fe in assoc(flag, :flag_environments),
+        join: env in assoc(fe, :environment),
+        where: env.key == ^to_string(environment_key),
+        preload: [flag_environments: {fe, [:environment, :active_ruleset]}]
+      )
+      |> repo.one()
+
+    case flag do
+      nil ->
+        {:error, StoreError.flag_not_found(flag_key, environment_key)}
+
+      %{flag_environments: [flag_environment]} ->
+        {:ok, flag, flag_environment}
+    end
+  end
+
+  defp upsert_import_flag(repo, flag_key, proposed_flag) do
+    flag_attrs =
+      %{
+        key: flag_key,
+        description: proposed_flag["description"],
+        flag_type: normalize_flag_type(proposed_flag["flag_type"]),
+        value_type: normalize_value_type(proposed_flag["value_type"]),
+        default_value: proposed_flag["default_value"] || %{},
+        owner: proposed_flag["owner"],
+        expected_expiration: normalize_expected_expiration(proposed_flag["expected_expiration"]),
+        permanent: normalize_boolean(proposed_flag["permanent"]) || false,
+        tags: proposed_flag["tags"] || []
+      }
+
+    case flag_by_key_query(flag_key) |> repo.one() do
+      nil ->
+        %Flag{}
+        |> Flag.changeset(flag_attrs)
+        |> repo.insert()
+
+      flag ->
+        flag
+        |> Flag.changeset(flag_attrs)
+        |> repo.update()
+    end
+  end
+
+  defp upsert_import_flag_environment(
+         repo,
+         flag,
+         target_environment,
+         proposed_flag_environment,
+         published_at
+       ) do
+    case fetch_existing_flag_environment_for_repo(repo, flag.id, target_environment.id) do
+      nil ->
+        %FlagEnvironment{}
+        |> FlagEnvironment.changeset(%{
+          flag_id: flag.id,
+          environment_id: target_environment.id,
+          status: normalize_flag_environment_status(proposed_flag_environment["status"]),
+          kill_switch_variant_key: proposed_flag_environment["kill_switch_variant_key"],
+          last_published_at: published_at,
+          last_evaluated_at: proposed_flag_environment["last_evaluated_at"],
+          variants_served: Map.get(proposed_flag_environment, "variants_served", %{})
+        })
+        |> repo.insert()
+
+      %FlagEnvironment{} = flag_environment ->
+        if flag_environment.status == :archived do
+          {:error, StoreError.invalid_command("manifest import would revive an archived flag environment", metadata: %{flag_key: flag.key})}
+        else
+          {:ok, flag_environment}
+        end
+    end
+  end
+
+  defp insert_import_ruleset(repo, flag_environment, proposed_ruleset, published_at) do
+    %Ruleset{}
+    |> Ruleset.changeset(%{
+      flag_environment_id: flag_environment.id,
+      version: next_ruleset_version_for_repo(repo, flag_environment.id),
+      status: :published,
+      salt: proposed_ruleset["salt"],
+      published_at: published_at,
+      metadata: Map.get(proposed_ruleset, "metadata", %{}),
+      rules: Map.get(proposed_ruleset, "rules", [])
+    })
+    |> repo.insert()
+  end
+
+  defp finalize_import_flag_environment(
+         repo,
+         flag_environment,
+         inserted_ruleset,
+         proposed_flag_environment,
+         published_at
+       ) do
+    flag_environment
+    |> FlagEnvironment.changeset(%{
+      active_ruleset_id: inserted_ruleset.id,
+      status: normalize_flag_environment_status(proposed_flag_environment["status"]),
+      kill_switch_variant_key: proposed_flag_environment["kill_switch_variant_key"],
+      last_published_at: published_at,
+      last_evaluated_at: proposed_flag_environment["last_evaluated_at"],
+      variants_served: Map.get(proposed_flag_environment, "variants_served", %{})
+    })
+    |> repo.update()
+  end
+
+  defp fetch_existing_flag_environment_for_repo(repo, flag_id, environment_id) do
+    from(fe in FlagEnvironment,
+      where: fe.flag_id == ^flag_id and fe.environment_id == ^environment_id
+    )
+    |> repo.one()
+  end
+
+  defp normalize_flag_type(nil), do: :release
+
+  defp normalize_flag_type(value) when is_binary(value) do
+    try do
+      parsed = String.to_existing_atom(value)
+      if parsed in Flag.flag_types(), do: parsed, else: :release
+    rescue
+      ArgumentError -> :release
+    end
+  end
+
+  defp normalize_flag_type(value) when is_atom(value) do
+    if value in Flag.flag_types(), do: value, else: :release
+  end
+
+  defp normalize_flag_type(_value), do: :release
+
+  defp normalize_value_type(nil), do: :boolean
+
+  defp normalize_value_type(value) when is_binary(value) do
+    try do
+      parsed = String.to_existing_atom(value)
+      if parsed in Flag.value_types(), do: parsed, else: :boolean
+    rescue
+      ArgumentError -> :boolean
+    end
+  end
+
+  defp normalize_value_type(value) when is_atom(value) do
+    if value in Flag.value_types(), do: value, else: :boolean
+  end
+
+  defp normalize_value_type(_value), do: :boolean
+
+  defp next_ruleset_version_for_repo(repo, flag_environment_id) do
+    from(ruleset in Ruleset,
+      where: ruleset.flag_environment_id == ^flag_environment_id,
+      select: max(ruleset.version)
+    )
+    |> repo.one()
+    |> Kernel.||(0)
+    |> Kernel.+(1)
+  end
+
+  defp next_environment_version(repo, environment_key) do
+    from(version in EnvironmentVersion,
+      where: version.environment_key == ^environment_key,
+      select: max(version.version)
+    )
+    |> repo.one()
+    |> Kernel.||(0)
+    |> Kernel.+(1)
+  end
+
+  defp normalize_flag_environment_status(nil), do: :active
+
+  defp normalize_flag_environment_status(status) when is_binary(status) do
+    case String.to_existing_atom(status) do
+      normalized ->
+        if normalized in FlagEnvironment.statuses(), do: normalized, else: :active
+    end
+  rescue
+    ArgumentError -> :active
+  end
+
+  defp normalize_flag_environment_status(status) when is_atom(status) do
+    if status in FlagEnvironment.statuses(), do: status, else: :active
+  end
+
+  defp normalize_flag_environment_status(_status), do: :active
+
+  defp normalize_expected_expiration(nil), do: nil
+  defp normalize_expected_expiration(%Date{} = value), do: value
+
+  defp normalize_expected_expiration(value) when is_binary(value) do
+    case Date.from_iso8601(value) do
+      {:ok, date} -> date
+      _other -> nil
+    end
+  end
+
+  defp normalize_expected_expiration(_value), do: nil
+
+  defp normalize_boolean(value) when is_boolean(value), do: value
+  defp normalize_boolean("true"), do: true
+  defp normalize_boolean("false"), do: false
+  defp normalize_boolean(_value), do: nil
+
+  defp denormalize_promoted_value(map) when is_map(map) do
+    Map.new(map, fn {key, value} -> {key, denormalize_promoted_value(value)} end)
+  end
+
+  defp denormalize_promoted_value(list) when is_list(list) do
+    Enum.map(list, &denormalize_promoted_value/1)
+  end
+
+  defp denormalize_promoted_value("nil"), do: nil
+  defp denormalize_promoted_value("true"), do: true
+  defp denormalize_promoted_value("false"), do: false
+  defp denormalize_promoted_value(value), do: value
+
   defp insert_runtime_snapshot(repo, environment, published_at) do
     snapshot_payload = build_environment_snapshot_payload(repo, environment)
     payload = :erlang.term_to_binary(snapshot_payload)
@@ -2420,7 +2971,8 @@ defmodule Rulestead.Store.Ecto do
               "publish_ruleset",
               "advance_rollout",
               "engage_kill_switch",
-              "release_kill_switch"
+              "release_kill_switch",
+              "promote_environment"
             ] do
     execute_bounded_governed_action(governed_action, change_request, command)
   end
@@ -2572,7 +3124,8 @@ defmodule Rulestead.Store.Ecto do
               "publish_ruleset",
               "advance_rollout",
               "engage_kill_switch",
-              "release_kill_switch"
+              "release_kill_switch",
+              "promote_environment"
             ] do
     execute_direct_scheduled_action(governed_action, scheduled_execution, command)
   end
@@ -2679,9 +3232,37 @@ defmodule Rulestead.Store.Ecto do
            fetch_schedulable_flag_context(
              change_request.resource_key,
              change_request.environment_key
-           ),
-         :ok <- ensure_rollout_stage_available(flag_environment, change_request.command_snapshot) do
-      {:error, StoreError.invalid_command("rollout_stage_conflict")}
+           ) do
+      ensure_rollout_stage_available(flag_environment, change_request.command_snapshot)
+    end
+  end
+
+  defp execute_bounded_governed_action("promote_environment", change_request, command) do
+    promotion_command =
+      change_request.command_snapshot
+      |> Command.ApplyPromotion.new(
+        actor: command.actor,
+        reason: command.reason,
+        metadata:
+          promotion_execution_metadata(
+            command.metadata,
+            change_request.correlation_id,
+            change_request.metadata["source"],
+            change_request_id: change_request.id,
+            execution_stage: "execute"
+          )
+      )
+
+    with :ok <- Apply.validate_governed_snapshot(promotion_command),
+         {:ok, execution_result} <-
+           run_promotion_apply(promotion_command, allow_protected_target?: true) do
+      persisted_change_request =
+        case fetch_change_request_row(change_request.id) do
+          {:ok, current_change_request} -> current_change_request
+          {:error, _error} -> change_request
+        end
+
+      {:ok, execution_result, persisted_change_request, nil}
     end
   end
 
@@ -2768,11 +3349,42 @@ defmodule Rulestead.Store.Ecto do
            fetch_schedulable_flag_context(
              scheduled_execution.resource_key,
              scheduled_execution.environment_key
-           ),
-         :ok <-
-           ensure_rollout_stage_available(flag_environment, scheduled_execution.command_snapshot) do
-      {:error, StoreError.invalid_command("rollout_stage_conflict")}
+           ) do
+      ensure_rollout_stage_available(flag_environment, scheduled_execution.command_snapshot)
     end
+  end
+
+  defp execute_direct_scheduled_action("promote_environment", scheduled_execution, command) do
+    promotion_command =
+      scheduled_execution.command_snapshot
+      |> Command.ApplyPromotion.new(
+        actor: command.actor,
+        reason: command.reason,
+        metadata:
+          promotion_execution_metadata(
+            command.metadata,
+            scheduled_execution.correlation_id,
+            scheduled_execution.metadata["source"],
+            scheduled_execution_id: scheduled_execution.id,
+            execution_stage: "scheduled_execution"
+          )
+      )
+
+    with :ok <- Apply.validate_governed(promotion_command),
+         {:ok, execution_result} <-
+           run_promotion_apply(promotion_command, allow_protected_target?: true) do
+      {:ok, execution_result}
+    end
+  end
+
+  defp promotion_execution_metadata(metadata, request_id, source, links) do
+    metadata
+    |> Map.merge(%{
+      request_id: request_id,
+      source: source,
+      governance_action: "promote_environment"
+    })
+    |> Map.merge(Map.new(links))
   end
 
   defp fetch_schedulable_flag_context(resource_key, environment_key) do
@@ -3540,8 +4152,6 @@ defmodule Rulestead.Store.Ecto do
         end)
     }
   end
-
-  defp normalize_ruleset_position_state(nil), do: %{rules: []}
 
   defp normalize_ruleset_position_state(%{rules: rules}) when is_list(rules) do
     case rules do

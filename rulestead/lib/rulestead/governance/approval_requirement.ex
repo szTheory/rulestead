@@ -1,7 +1,7 @@
 defmodule Rulestead.Governance.ApprovalRequirement do
-  @moduledoc """
-  Snapshot of the approval policy applied to a governed change request.
-  """
+  @moduledoc false
+  # Snapshot of the approval policy applied to a governed change request.
+
 
   @enforce_keys [
     :action,
@@ -12,9 +12,20 @@ defmodule Rulestead.Governance.ApprovalRequirement do
   ]
   defstruct [:action, :environment_key, :required_approvals, :change_request_required?, :self_approval_allowed?]
 
-  @governed_actions [:publish_ruleset, :advance_rollout, :engage_kill_switch, :release_kill_switch]
+  @governed_actions [
+    :publish_ruleset,
+    :advance_rollout,
+    :engage_kill_switch,
+    :release_kill_switch,
+    :promote_environment
+  ]
 
-  @type action :: :publish_ruleset | :advance_rollout | :engage_kill_switch | :release_kill_switch
+  @type action ::
+          :publish_ruleset
+          | :advance_rollout
+          | :engage_kill_switch
+          | :release_kill_switch
+          | :promote_environment
 
   @type t :: %__MODULE__{
           action: action(),

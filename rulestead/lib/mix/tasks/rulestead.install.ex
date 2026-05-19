@@ -1,4 +1,6 @@
 defmodule Mix.Tasks.Rulestead.Install do
+  @moduledoc false
+
   use Mix.Task
 
   alias Rulestead.Install

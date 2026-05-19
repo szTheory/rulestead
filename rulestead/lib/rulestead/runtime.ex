@@ -79,8 +79,8 @@ defmodule Rulestead.Runtime do
     end
   end
 
-  @spec diagnostics() :: map()
-  def diagnostics, do: Diagnostics.current()
+  @spec diagnostics(keyword()) :: map()
+  def diagnostics(opts \\ []), do: Diagnostics.current(opts)
 
   defp maybe_degraded_result(flag_key, %{refresh_status: :degraded, source: :none}, _error) do
     {:ok,

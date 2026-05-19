@@ -1,7 +1,7 @@
 defmodule Rulestead.Oban.StaleFlagWorker do
-  @moduledoc """
-  Worker to periodically flush the ETS telemetry cache to the database.
-  """
+  @moduledoc false
+  # Worker to periodically flush the ETS telemetry cache to the database.
+
   use Rulestead.Oban.Worker,
     queue: :telemetry,
     max_attempts: 3

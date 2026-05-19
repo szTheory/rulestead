@@ -250,6 +250,97 @@ defmodule Rulestead.ScheduledExecutionAdapterContractTest do
     end)
   end
 
+  test "approved protected-target promotion executes the stored bundle snapshot" do
+    Enum.each(@adapters, fn adapter ->
+      reset_adapter!(adapter)
+      seed_promotable_flag!(adapter)
+
+      compare = promotion_compare!(adapter)
+
+      assert {:ok, %{change_request: submitted}} =
+               adapter.submit_change_request(
+                 governed_promotion_command(compare, "corr-promote-approved")
+               )
+
+      assert {:ok, %{change_request: approved}} =
+               adapter.approve_change_request(
+                 Command.ApproveChangeRequest.new(submitted.id,
+                   actor: %{id: "reviewer-1", type: "operator", display: "Reviewer"},
+                   reason: "Approved",
+                   metadata: %{request_id: "corr-promote-approved", source: :review_queue}
+                 )
+               )
+
+      assert approved.state == :approved
+
+      assert {:ok, %{change_request: executed, execution_result: execution_result}} =
+               adapter.execute_change_request(
+                 Command.ExecuteChangeRequest.new(approved.id,
+                   actor: %{id: "executor-1", type: "operator", display: "Executor"},
+                   reason: "Execute promotion",
+                   metadata: %{request_id: "corr-promote-approved", source: :governance_worker}
+                 )
+               )
+
+      assert executed.state == :executed
+      assert execution_result.target_environment_key == "production"
+      assert execution_result.applied_flag_keys == ["checkout-redesign"]
+      assert is_binary(execution_result.environment_version_id)
+
+      assert {:ok, target_payload} =
+               adapter.fetch_flag(
+                 Command.FetchFlag.new("checkout-redesign", "production")
+               )
+
+      assert target_payload.active_ruleset.salt == "checkout-redesign:v2"
+    end)
+  end
+
+  test "scheduled protected-target promotion revalidates the stored bundle before mutating target" do
+    Enum.each(@adapters, fn adapter ->
+      reset_adapter!(adapter)
+      seed_promotable_flag!(adapter)
+
+      compare = promotion_compare!(adapter)
+
+      assert {:ok, %{scheduled_execution: scheduled_execution}} =
+               adapter.schedule_governed_action(
+                 scheduled_promotion_command(compare, "corr-promote-scheduled")
+               )
+
+      mutate_source_environment!(adapter, "checkout-redesign:v3")
+
+      assert {:error,
+              %Rulestead.Error{
+                type: :invalid_command,
+                message: "promotion compare preview is stale"
+              }} =
+               adapter.execute_scheduled_execution(
+                 Command.ExecuteScheduledExecution.new(scheduled_execution.id,
+                   actor: %{id: "scheduler", type: "system", display: "Scheduler"},
+                   reason: "Execute scheduled promotion",
+                   metadata: %{request_id: "req-promote-scheduled", source: :scheduled_execution_worker}
+                 )
+               )
+
+      assert {:ok, %{scheduled_execution: fetched, attempts: attempts}} =
+               adapter.fetch_scheduled_execution(
+                 Command.FetchScheduledExecution.new(scheduled_execution.id)
+               )
+
+      assert fetched.state == :scheduled
+      assert fetched.attempt_count == 1
+      assert [%{attempt_number: 1, state: :failed}] = attempts
+
+      assert {:ok, target_payload} =
+               adapter.fetch_flag(
+                 Command.FetchFlag.new("checkout-redesign", "production")
+               )
+
+      assert target_payload.active_ruleset.salt == "checkout-redesign:v1"
+    end)
+  end
+
   defp scheduled_publish_command(version, request_id) do
     Command.ScheduleGovernedAction.new(
       %{
@@ -303,6 +394,176 @@ defmodule Rulestead.ScheduledExecutionAdapterContractTest do
                  StoreFixtures.valid_ruleset_attrs(%{salt: "checkout-redesign:v2"})
                )
              )
+  end
+
+  defp governed_promotion_command(compare, request_id) do
+    Command.SubmitChangeRequest.new(
+      %{
+        action: :promote_environment,
+        environment_key: "production",
+        resource_type: "environment",
+        resource_key: "production",
+        command: promotion_command_attrs(compare),
+        approval_requirement:
+          ApprovalRequirement.new(
+            action: :promote_environment,
+            environment_key: "production",
+            required_approvals: 1,
+            change_request_required?: true,
+            self_approval_allowed?: false
+          )
+      },
+      actor: %{id: "submitter-1", type: "operator", display: "Submitter"},
+      reason: "Promote checkout to production",
+      metadata: %{request_id: request_id, source: :compare_review}
+    )
+  end
+
+  defp scheduled_promotion_command(compare, request_id) do
+    Command.ScheduleGovernedAction.new(
+      %{
+        action: :promote_environment,
+        environment_key: "production",
+        resource_type: "environment",
+        resource_key: "production",
+        command: promotion_command_attrs(compare),
+        scheduled_for: ~U[2026-04-25 12:30:00Z],
+        execution_mode: :policy_bypass,
+        approval_requirement:
+          ApprovalRequirement.new(
+            action: :promote_environment,
+            environment_key: "production",
+            required_approvals: 0,
+            change_request_required?: false,
+            self_approval_allowed?: true
+          )
+      },
+      actor: %{id: "scheduler-1", type: "operator", display: "Scheduler"},
+      reason: "Run the reviewed promotion bundle",
+      metadata: %{request_id: request_id, source: :compare_review}
+    )
+  end
+
+  defp promotion_command_attrs(compare) do
+    %{
+      source_environment_key: compare.source_environment.key,
+      target_environment_key: compare.target_environment.key,
+      flag_keys: compare.requested_flag_keys,
+      compare_token: compare.compare_token,
+      compare_schema_version: compare.compare_schema_version,
+      source_fingerprint: compare.source_fingerprint,
+      target_fingerprint: compare.target_fingerprint,
+      dependency_closure_keys: compare.dependency_closure_keys,
+      proposed_target_bundle:
+        Map.new(compare.flags, fn flag ->
+          {flag.flag_key, flag.proposed_target_state}
+        end)
+    }
+  end
+
+  defp promotion_compare!(adapter) do
+    assert {:ok, compare} =
+             adapter.compare_environments(
+               Command.CompareEnvironments.new("staging", "production",
+                 flag_keys: ["checkout-redesign"]
+               )
+             )
+
+    compare
+  end
+
+  defp seed_promotable_flag!(adapter) do
+    ensure_environment!("staging")
+    ensure_environment!("production")
+    seed_default_audience!(adapter)
+
+    assert {:ok, _} =
+             adapter.create_flag(
+               Command.CreateFlag.new(
+                 StoreFixtures.valid_flag_attrs(%{
+                   permanent: true,
+                   environment_keys: ["staging", "production"]
+                 })
+               )
+             )
+
+    assert {:ok, _} =
+             adapter.save_draft_ruleset(
+               StoreFixtures.save_draft_command(
+                 "checkout-redesign",
+                 "staging",
+                 StoreFixtures.valid_ruleset_attrs(%{salt: "checkout-redesign:v2"})
+               )
+             )
+
+    assert {:ok, _} =
+             adapter.publish_ruleset(
+               StoreFixtures.publish_ruleset_command("checkout-redesign", "staging")
+             )
+
+    assert {:ok, _} =
+             adapter.save_draft_ruleset(
+               StoreFixtures.save_draft_command(
+                 "checkout-redesign",
+                 "production",
+                 StoreFixtures.valid_ruleset_attrs(%{salt: "checkout-redesign:v1"})
+               )
+             )
+
+    assert {:ok, _} =
+             adapter.publish_ruleset(
+               StoreFixtures.publish_ruleset_command("checkout-redesign", "production")
+             )
+  end
+
+  defp mutate_source_environment!(adapter, salt) do
+    assert {:ok, _} =
+             adapter.save_draft_ruleset(
+               StoreFixtures.save_draft_command(
+                 "checkout-redesign",
+                 "staging",
+                 StoreFixtures.valid_ruleset_attrs(%{salt: salt})
+               )
+             )
+
+    assert {:ok, _} =
+             adapter.publish_ruleset(
+               StoreFixtures.publish_ruleset_command("checkout-redesign", "staging")
+             )
+  end
+
+  defp seed_default_audience!(Rulestead.Fake) do
+    snapshot = Rulestead.Fake.Control.snapshot!()
+    now = snapshot.now
+
+    audience = %{
+      id: Ecto.UUID.generate(),
+      key: "vip-users",
+      description: nil,
+      definition: %{clauses: [%{attribute: "plan", op: "eq", value: "vip"}]},
+      archived_at: nil,
+      inserted_at: now,
+      updated_at: now
+    }
+
+    snapshot
+    |> put_in([:audiences, "vip-users"], audience)
+    |> Rulestead.Fake.Control.restore!()
+  end
+
+  defp seed_default_audience!(StoreEcto) do
+    case Rulestead.Repo.get_by(Rulestead.Audience, key: "vip-users") do
+      nil ->
+        %Rulestead.Audience{}
+        |> Rulestead.Audience.changeset(%{
+          key: "vip-users",
+          definition: %{clauses: [%{attribute: "plan", op: "eq", value: "vip"}]}
+        })
+        |> Rulestead.Repo.insert!()
+
+      _audience ->
+        :ok
+    end
   end
 
   defp reset_adapter!(Rulestead.Fake), do: Rulestead.Fake.Control.reset!()
@@ -405,6 +666,27 @@ defmodule Rulestead.ScheduledExecutionAdapterContractTest do
       "CREATE UNIQUE INDEX IF NOT EXISTS scheduled_executions_idempotency_key_index ON scheduled_executions (idempotency_key)"
     )
 
+    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS environment_versions (
+      id uuid PRIMARY KEY,
+      environment_key varchar(128) NOT NULL,
+      version integer NOT NULL,
+      authored_snapshot jsonb NOT NULL DEFAULT '{}'::jsonb,
+      source_environment_key varchar(128),
+      target_environment_key varchar(128),
+      compare_token varchar(256),
+      source_fingerprint varchar(256),
+      target_fingerprint varchar(256),
+      dependency_closure_keys text[] NOT NULL DEFAULT '{}',
+      applied_flag_keys text[] NOT NULL DEFAULT '{}',
+      metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
+      inserted_at timestamp(6) with time zone NOT NULL,
+      updated_at timestamp(6) with time zone NOT NULL
+    )")
+
+    Rulestead.Repo.query!(
+      "CREATE UNIQUE INDEX IF NOT EXISTS environment_versions_environment_key_version_index ON environment_versions (environment_key, version)"
+    )
+
     Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS execution_attempts (
       id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
       scheduled_execution_id uuid NOT NULL REFERENCES scheduled_executions(id) ON DELETE CASCADE,
@@ -441,5 +723,21 @@ defmodule Rulestead.ScheduledExecutionAdapterContractTest do
       inserted_at timestamp(6) with time zone NOT NULL,
       scheduled_at timestamp(6) with time zone NOT NULL
     )")
+
+    Rulestead.Repo.query!(
+      "ALTER TABLE change_requests DROP CONSTRAINT IF EXISTS change_requests_governed_action_must_be_valid"
+    )
+
+    Rulestead.Repo.query!(
+      "ALTER TABLE change_requests ADD CONSTRAINT change_requests_governed_action_must_be_valid CHECK (governed_action IN ('publish_ruleset', 'advance_rollout', 'engage_kill_switch', 'manage_settings', 'promote_environment'))"
+    )
+
+    Rulestead.Repo.query!(
+      "ALTER TABLE scheduled_executions DROP CONSTRAINT IF EXISTS scheduled_executions_governed_action_must_be_valid"
+    )
+
+    Rulestead.Repo.query!(
+      "ALTER TABLE scheduled_executions ADD CONSTRAINT scheduled_executions_governed_action_must_be_valid CHECK (governed_action IN ('publish_ruleset', 'advance_rollout', 'engage_kill_switch', 'release_kill_switch', 'promote_environment'))"
+    )
   end
 end

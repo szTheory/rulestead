@@ -1,12 +1,11 @@
 defmodule Rulestead.Analytics.EventMapper do
-  @moduledoc """
-  Pure mapping functions to format raw incoming metrics before they hit the database.
-  """
+  @moduledoc false
+  # # Pure mapping functions to format raw incoming metrics before they hit the database.
 
-  @doc """
-  Transforms a raw event map into an Ecto insertable map.
-  Ensures explicit :id, :occurred_at, :inserted_at, and :updated_at.
-  """
+  # @doc """
+  # Transforms a raw event map into an Ecto insertable map.
+  # Ensures explicit :id, :occurred_at, :inserted_at, and :updated_at.
+
   @spec to_insert_map(map()) :: map()
   def to_insert_map(raw_event) when is_map(raw_event) do
     now = DateTime.utc_now() |> DateTime.truncate(:microsecond)

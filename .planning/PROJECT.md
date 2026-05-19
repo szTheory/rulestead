@@ -6,13 +6,13 @@ Rulestead is a batteries-included, Elixir-native feature-flag and remote-config 
 
 ## Current State
 
-- `v0.5.0` shipped on 2026-05-17 across Phases 19-21.
-- Runtime deployments can now use Redis-backed snapshot distribution, PubSub invalidation, and mounted infrastructure diagnostics without breaking the linked-version two-package release model.
-- `v0.6.0` is now in active execution: authored-state compare and governed promotion apply are complete, with GitOps manifests and tenancy helpers remaining.
+- `v0.6.0` shipped on 2026-05-19 across Phases 22-24.
+- Runtime deployments can now use deterministic GitOps manifest export/import, authored-state compare, and governed promotion apply workflows.
+- `v0.7.0` is next: Phase 25 (Tenancy Helpers) carries over as the first active slice.
 
-## Current Milestone: v0.6.0 (In Progress)
+## Current Milestone: v0.7.0 (Planning)
 
-**Previous Milestone (v0.5.0) Complete:** Rulestead now supports Redis-backed runtime state, notifier-driven cross-node invalidation, and operator-visible infrastructure health for distributed deployments.
+**Previous Milestone (v0.6.0) Complete:** Rulestead now supports whole-flag environment promotion (Dev->Staging->Prod), diffing, and GitOps-friendly manifest export/import workflows.
 
 ## Core Value
 
@@ -59,16 +59,15 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 - ✓ Add Redis-backed runtime storage and degraded-read fallbacks for distributed deployments (`STO-01`, `STO-02`) — `v0.5.0`
 - ✓ Stream invalidation across nodes through the notifier seam with first-class PubSub wiring (`INV-01`, `INV-02`) — `v0.5.0`
 - ✓ Surface infrastructure health and additive sync telemetry for operators (`INF-01`, `INF-02`) — `v0.5.0`
-- ✓ Compare authored environment state and execute governed whole-flag promotion, including immutable history and re-apply (`PROM-01` to `PROM-04`) — `Validated in Phase 22-23`
+- ✓ Compare authored environment state and execute governed whole-flag promotion, including immutable history and re-apply (`PROM-01` to `PROM-04`) — `v0.6.0`
+- ✓ Export, validate, diff, and import GitOps-friendly environment manifests (`MAN-01` to `MAN-04`) — `v0.6.0`
 
 ### Active
 
-- Import and export environment state in a GitOps-friendly format that remains reproducible in CI.
-- Add explicit tenancy helpers that preserve the current sibling-package release design without turning `rulestead_admin` into a standalone product.
+- Add explicit tenancy helpers that preserve the current sibling-package release design without turning `rulestead_admin` into a standalone product (`TEN-01` to `TEN-03`).
 
 ## Next Milestone Goals
 
-- Establish import/export seams that fit host-app release engineering and audit expectations.
 - Add tenant-aware primitives only where they strengthen the current linked-version platform model.
 
 ### Out of Scope
@@ -78,9 +77,9 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 
 ## Context
 
-- `v0.1.0` through `v0.5.0` are now archived, covering the core runtime, admin UX, governance workflows, ecosystem seams, experimentation analytics, Redis-backed distribution, and infrastructure diagnostics.
-- `v0.5.0` shipped in a single day across 7 completed plans and 24 product/planning files changed in the final milestone execution range.
-- The current focus is finishing `v0.6.0` by adding GitOps manifest workflows and minimal tenancy helpers on top of the now-verified compare and governed promotion foundation.
+- `v0.1.0` through `v0.6.0` are now archived, covering the core runtime, admin UX, governance workflows, ecosystem seams, experimentation analytics, Redis-backed distribution, infrastructure diagnostics, and environment promotion via GitOps manifests.
+- `v0.6.0` shipped across Phases 22-24, delivering the authored-state compare engine, governed promotion apply, and robust CLI manifest workflows.
+- The current focus is planning `v0.7.0`, beginning with the Phase 25 (Tenancy Helpers) carryover from the previous milestone.
 - The project remains a linked-version, two-package monorepo.
 
 ## Constraints
@@ -102,8 +101,8 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 
 ## Milestone Archives
 
-- Roadmap archive: [.planning/milestones/v0.1.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.1.0-ROADMAP.md), [.planning/milestones/v0.2.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.2.0-ROADMAP.md), [.planning/milestones/v0.3.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.3.0-ROADMAP.md), [.planning/milestones/v0.4.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.4.0-ROADMAP.md), [.planning/milestones/v0.5.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.5.0-ROADMAP.md)
-- Requirements archive: [.planning/milestones/v0.1.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.1.0-REQUIREMENTS.md), [.planning/milestones/v0.2.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.2.0-REQUIREMENTS.md), [.planning/milestones/v0.3.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.3.0-REQUIREMENTS.md), [.planning/milestones/v0.4.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.4.0-REQUIREMENTS.md), [.planning/milestones/v0.5.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.5.0-REQUIREMENTS.md)
+- Roadmap archive: [.planning/milestones/v0.1.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.1.0-ROADMAP.md), [.planning/milestones/v0.2.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.2.0-ROADMAP.md), [.planning/milestones/v0.3.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.3.0-ROADMAP.md), [.planning/milestones/v0.4.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.4.0-ROADMAP.md), [.planning/milestones/v0.5.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.5.0-ROADMAP.md), [.planning/milestones/v0.6.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.6.0-ROADMAP.md)
+- Requirements archive: [.planning/milestones/v0.1.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.1.0-REQUIREMENTS.md), [.planning/milestones/v0.2.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.2.0-REQUIREMENTS.md), [.planning/milestones/v0.3.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.3.0-REQUIREMENTS.md), [.planning/milestones/v0.4.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.4.0-REQUIREMENTS.md), [.planning/milestones/v0.5.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.5.0-REQUIREMENTS.md), [.planning/milestones/v0.6.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.6.0-REQUIREMENTS.md)
 
 ## Historical Context
 
@@ -134,4 +133,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-18 after Phase 23 verification*
+*Last updated: 2026-05-19 after Milestone v0.6.0 completion*
