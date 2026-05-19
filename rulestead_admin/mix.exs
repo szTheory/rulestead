@@ -14,7 +14,10 @@ defmodule RulesteadAdmin.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       deps: deps(),
       package: package(),
-      docs: docs()
+      docs: docs(),
+      dialyzer: [
+        ignore_warnings: ".dialyzer_ignore.exs"
+      ]
     ]
   end
 
@@ -28,6 +31,7 @@ defmodule RulesteadAdmin.MixProject do
   defp deps do
     [
       {:a11y_audit, "~> 0.3.1", only: :test},
+      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:lazy_html, ">= 0.0.0", only: :test},
       {:phoenix, "~> 1.8.1"},
       {:phoenix_html, "~> 4.2"},

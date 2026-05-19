@@ -21,7 +21,7 @@ defmodule Rulestead.MixProject do
 
   def application do
     [
-      extra_applications: [:logger],
+      extra_applications: [:logger, :inets, :ssl],
       mod: {Rulestead.Application, []}
     ]
   end
@@ -34,6 +34,8 @@ defmodule Rulestead.MixProject do
       {:phoenix_pubsub, "~> 2.1"},
       {:plug, "~> 1.16"},
       {:postgrex, ">= 0.0.0"},
+      {:redix, "~> 1.5"},
+      {:telemetry, "~> 1.2"},
       {:stream_data, "~> 1.1", only: :test},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
@@ -86,7 +88,32 @@ defmodule Rulestead.MixProject do
         "../guides/recipes/ecto-conventions.md",
         "../guides/recipes/oban-background-jobs.md",
         "../guides/recipes/deployment.md",
-        "../guides/recipes/context-propagation.md"
+        "../guides/recipes/context-propagation.md",
+        "../guides/recipes/migrating-from-funwithflags.md"
+      ],
+      groups_for_modules: [
+        "Public API": [
+          Rulestead,
+          Rulestead.Ruleset,
+          Rulestead.Rule,
+          Rulestead.Flag,
+          Rulestead.Result,
+          Rulestead.Error
+        ],
+        "Store Adapters": [
+          Rulestead.Store.Ecto,
+          Rulestead.Store.Redis
+        ],
+        "Extensibility": [
+          Rulestead.Store,
+          Rulestead.Runtime.Snapshot,
+          Rulestead.Tenancy
+        ]
+      ],
+      groups_for_extras: [
+        "Introduction": ~r"guides/introduction/",
+        "Flows": ~r"guides/flows/",
+        "Recipes": ~r"guides/recipes/"
       ],
       # Original Phase 1 shape: skip_undefined_reference_warnings_on: &String.starts_with?(&1, "lib/")
       skip_undefined_reference_warnings_on: fn ref ->
