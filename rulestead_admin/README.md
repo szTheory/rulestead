@@ -25,7 +25,17 @@ end
 ```
 
 The `policy:` option is required. The host policy module owns authorization via
-the `Rulestead.Admin.Policy` behaviour.
+the `Rulestead.Admin.Policy.can?/4` behaviour.
+
+## Canonical Role Model
+
+`rulestead_admin` maps its views and capabilities to three conceptual roles. Your `Rulestead.Admin.Policy.can?/4` implementation enforces these boundaries:
+
+1. **Viewer**: Can read flags, review change requests, explore environments, and inspect infrastructure diagnostics.
+2. **Editor**: Can propose changes, create/update flags, submit change requests, and author draft state. Editors cannot publish directly to production.
+3. **Admin**: Can publish flag changes, execute approved change requests, bypass approval rules (if configured), and manage webhook settings.
+
+The UI gracefully degrades based on the actor's capabilities in the requested environment.
 
 ## Host session contract
 

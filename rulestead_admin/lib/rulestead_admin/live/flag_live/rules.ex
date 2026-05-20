@@ -4,7 +4,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Rules do
   use Phoenix.LiveView
 
   alias Rulestead.Store.Command
-  alias RulesteadAdmin.Components.{RuleEditorComponents, Shell}
+  alias RulesteadAdmin.Components.{OperatorComponents, RuleEditorComponents, Shell}
   alias RulesteadAdmin.Live.Session
 
   @impl true
@@ -104,6 +104,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Rules do
       environments={@available_environments}
       env_links={@env_links}
     >
+      <OperatorComponents.policy_state policy_state={@rulestead_admin_policy_state} />
+
       <div :if={@detail} class="rs-rules-workspace">
         <div class="rs-rules-workspace__header">
           <div>
@@ -220,7 +222,13 @@ defmodule RulesteadAdmin.Live.FlagLive.Rules do
 
   defp assign_workspace(socket, detail, rules, opts) do
     audiences = Keyword.fetch!(opts, :audiences)
-    editable? = detail && is_nil(detail.flag.archived_at)
+    
+    capability_editable? =
+      socket.assigns.rulestead_admin_policy_state.capabilities.edit? or
+        socket.assigns.rulestead_admin_policy_state.capabilities.admin? or
+        socket.assigns.rulestead_admin_policy_state.capabilities.propose?
+
+    editable? = capability_editable? && detail && is_nil(detail.flag.archived_at)
     errors = validate_rules(rules, audiences, editable?: editable?)
 
     socket

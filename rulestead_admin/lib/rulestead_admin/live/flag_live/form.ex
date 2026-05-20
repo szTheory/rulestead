@@ -19,23 +19,27 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
 
   @impl true
   def handle_params(params, uri, socket) do
-    env = query_params(uri)["env"] || socket.assigns.current_environment.key
+    if not socket.assigns.rulestead_admin_policy_state.capabilities.edit? do
+      {:noreply, push_navigate(socket, to: socket.assigns.rulestead_admin_mount_path)}
+    else
+      env = query_params(uri)["env"] || socket.assigns.current_environment.key
 
-    socket =
-      case socket.assigns.live_action do
-        :new ->
-          socket
-          |> assign(:mode, :new)
-          |> assign(:flag_key, nil)
-          |> assign(:form_data, Map.put(default_form_data(), "environment_keys", [env]))
-          |> assign(:errors, %{})
-          |> assign(:current_path, "/admin/flags/new?env=#{env}")
+      socket =
+        case socket.assigns.live_action do
+          :new ->
+            socket
+            |> assign(:mode, :new)
+            |> assign(:flag_key, nil)
+            |> assign(:form_data, Map.put(default_form_data(), "environment_keys", [env]))
+            |> assign(:errors, %{})
+            |> assign(:current_path, "/admin/flags/new?env=#{env}")
 
-        :edit ->
-          load_edit(socket, params["key"], env)
-      end
+          :edit ->
+            load_edit(socket, params["key"], env)
+        end
 
-    {:noreply, socket}
+      {:noreply, socket}
+    end
   end
 
   @impl true

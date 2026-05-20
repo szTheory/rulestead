@@ -38,7 +38,26 @@ defmodule RulesteadAdmin.Components.OperatorComponents do
     <aside class="rs-policy-state" data-tone={@policy_state.tone}>
       <p class="rs-policy-state__label"><%= @policy_state.label %></p>
       <p><%= @policy_state.summary %></p>
+      <ul class="rs-policy-capabilities" :if={Map.has_key?(@policy_state, :capabilities)}>
+        <li data-allowed={to_string(@policy_state.capabilities.read?)}>Read</li>
+        <li data-allowed={to_string(@policy_state.capabilities.execute?)}>Execute</li>
+        <li data-allowed={to_string(@policy_state.capabilities.propose?)}>Propose</li>
+        <li data-allowed={to_string(@policy_state.capabilities.admin?)}>Admin</li>
+      </ul>
     </aside>
+    """
+  end
+
+  attr :title, :string, required: true
+  attr :reason, :string, required: true
+  attr :tone, :string, default: "warning"
+
+  def capability_explanation(assigns) do
+    ~H"""
+    <div class="rs-capability-explanation" data-tone={@tone}>
+      <strong><%= @title %></strong>
+      <span><%= @reason %></span>
+    </div>
     """
   end
 

@@ -4,7 +4,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
   use Phoenix.LiveView
 
   alias Rulestead.Admin.Redaction
-  alias RulesteadAdmin.Components.{AuditComponents, FlagComponents, Shell}
+  alias RulesteadAdmin.Components.{AuditComponents, FlagComponents, OperatorComponents, Shell}
   alias RulesteadAdmin.Live.Session
 
   @impl true
@@ -53,6 +53,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
         </a>
       </:header_actions>
 
+      <OperatorComponents.policy_state policy_state={@rulestead_admin_policy_state} />
+
       <p :if={@error_message} role="alert">{@error_message}</p>
       <p :if={@notice} role="status">{@notice}</p>
 
@@ -69,7 +71,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
       </FlagComponents.section_card>
 
       <div :for={entry <- @entries}>
-        <AuditComponents.timeline_row entry={entry} show_rollback={entry.rollback_allowed?} />
+        <AuditComponents.timeline_row entry={entry} show_rollback={entry.rollback_allowed? and (@rulestead_admin_policy_state.capabilities.edit? or @rulestead_admin_policy_state.capabilities.admin?)} />
         <AuditComponents.diff_card :if={entry.show_diff?} entry={entry} />
       </div>
     </Shell.page>

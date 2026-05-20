@@ -103,6 +103,7 @@ defmodule RulesteadAdmin.Live.Session do
     alias Rulestead.Admin.Authorizer
 
     can_read? = Authorizer.authorize(actor, :read_flags, nil, environment.key) == :ok
+    can_edit? = Authorizer.authorize(actor, :create_flag, nil, environment.key) == :ok
     can_execute? = Authorizer.authorize(actor, :publish_ruleset, nil, environment.key) == :ok
     
     # We resolve the requirement for execution to see if it's proposal-only
@@ -113,6 +114,7 @@ defmodule RulesteadAdmin.Live.Session do
 
     capabilities = %{
       read?: can_read?,
+      edit?: can_edit?,
       execute?: can_execute?,
       propose?: proposal_only?,
       admin?: can_admin?

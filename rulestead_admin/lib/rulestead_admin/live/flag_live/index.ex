@@ -3,7 +3,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
 
   use Phoenix.LiveView
 
-  alias RulesteadAdmin.Components.{FlagComponents, Shell}
+  alias RulesteadAdmin.Components.{FlagComponents, OperatorComponents, Shell}
 
   @default_limit 25
   @allowed_lifecycle ~w(active potentially_stale stale archived)
@@ -69,13 +69,17 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
       environments={@available_environments}
       env_links={@env_links}
     >
+      <OperatorComponents.policy_state policy_state={@rulestead_admin_policy_state} />
+
       <section class="rs-inventory">
         <div class="rs-inventory__toolbar">
           <div>
             <h2>Flag inventory</h2>
             <p>Monospace key, lifecycle, stale status, and environment state stay visible for fast scanning.</p>
           </div>
-          <a href={@base_path <> "/new?env=" <> @current_environment.key}>Create flag</a>
+          <div :if={@rulestead_admin_policy_state.capabilities.edit? or @rulestead_admin_policy_state.capabilities.admin?}>
+            <a href={@base_path <> "/new?env=" <> @current_environment.key}>Create flag</a>
+          </div>
         </div>
 
         <form aria-label="Flag filters" phx-change="filters_changed" class="rs-filter-grid">

@@ -3,7 +3,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
 
   use Phoenix.LiveView
 
-  alias RulesteadAdmin.Components.{AuditComponents, FlagComponents, Shell}
+  alias RulesteadAdmin.Components.{AuditComponents, FlagComponents, OperatorComponents, Shell}
   alias RulesteadAdmin.Live.Session
 
   @impl true
@@ -47,13 +47,15 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
       environments={@available_environments}
       env_links={@env_links}
     >
+      <OperatorComponents.policy_state policy_state={@rulestead_admin_policy_state} />
+
       <p :if={@error_message} role="alert"><%= @error_message %></p>
 
       <div :if={@detail} class="rs-detail">
         <div class="rs-detail__actions">
-          <a href={path_for(assigns, "/#{@detail.flag.key}/edit")}>Edit metadata</a>
+          <a :if={@rulestead_admin_policy_state.capabilities.edit? or @rulestead_admin_policy_state.capabilities.admin?} href={path_for(assigns, "/#{@detail.flag.key}/edit")}>Edit metadata</a>
           <a href={path_for(assigns, "/#{@detail.flag.key}/rules")}>Open rules workspace</a>
-          <a href={path_for(assigns, "/#{@detail.flag.key}/kill")}>Open kill switch</a>
+          <a :if={@rulestead_admin_policy_state.capabilities.execute? or @rulestead_admin_policy_state.capabilities.admin?} href={path_for(assigns, "/#{@detail.flag.key}/kill")}>Open kill switch</a>
           <a href={path_for(assigns, "/#{@detail.flag.key}/timeline")}>Open audit timeline</a>
         </div>
 
@@ -65,7 +67,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
           reason={latest_reason(@detail, @current_actor)}
           kill_path={path_for(assigns, "/#{@detail.flag.key}/kill")}
           timeline_path={path_for(assigns, "/#{@detail.flag.key}/timeline")}
-          show_release_button={true}
+          show_release_button={@rulestead_admin_policy_state.capabilities.execute? or @rulestead_admin_policy_state.capabilities.admin?}
         />
 
         <div class="rs-detail__hero">

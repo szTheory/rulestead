@@ -5,7 +5,7 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Index do
 
   alias Rulestead.Governance.ChangeRequest
   alias Rulestead.Store.Command
-  alias RulesteadAdmin.Components.Shell
+  alias RulesteadAdmin.Components.{OperatorComponents, Shell}
   alias RulesteadAdmin.Live.Session
 
   @impl true
@@ -74,6 +74,8 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Index do
       env_links={@page.env_links}
       navigation_links={@page.navigation_links}
     >
+      <OperatorComponents.policy_state policy_state={@page.policy_state} />
+
       <section>
         <h2>Review queue</h2>
         <p>

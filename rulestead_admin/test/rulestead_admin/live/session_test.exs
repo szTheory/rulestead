@@ -90,6 +90,7 @@ defmodule RulesteadAdmin.Live.SessionTest do
              summary: "Production actions should stay explicit and auditable.",
              capabilities: %{
                admin?: true,
+               edit?: true,
                execute?: true,
                propose?: true,
                read?: true

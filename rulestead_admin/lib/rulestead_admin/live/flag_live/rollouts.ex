@@ -152,7 +152,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
         tone="warning"
       />
 
-      <OperatorComponents.policy_state policy_state={Session.policy_state(assigns)} />
+      <OperatorComponents.policy_state policy_state={@rulestead_admin_policy_state} />
 
       <p :if={@error_message} role="alert"><%= @error_message %></p>
 
@@ -196,8 +196,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
 
               <div class="rs-rollouts__actions">
                 <button type="button" phx-click="preview">Preview sample</button>
-                <button :if={@editable?} type="button" phx-click="save_draft">Save draft</button>
-                <button :if={@editable?} type="button" phx-click="publish">Publish</button>
+                <button :if={@editable? and (@rulestead_admin_policy_state.capabilities.edit? or @rulestead_admin_policy_state.capabilities.admin?)} type="button" phx-click="save_draft">Save draft</button>
+                <button :if={@editable? and (@rulestead_admin_policy_state.capabilities.execute? or @rulestead_admin_policy_state.capabilities.admin?)} type="button" phx-click="publish">Publish</button>
               </div>
             </FlagComponents.section_card>
 
