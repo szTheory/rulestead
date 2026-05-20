@@ -82,7 +82,7 @@ defmodule Rulestead do
   """
   @spec compare_environments(Command.CompareEnvironments.t()) :: Store.result(map())
   def compare_environments(%Command.CompareEnvironments{} = command) do
-    Compare.compare(command)
+    admin_read(:compare_environments, command)
   end
 
   @doc """
@@ -90,7 +90,9 @@ defmodule Rulestead do
   """
   @spec apply_promotion(Command.ApplyPromotion.t()) :: Store.result(map())
   def apply_promotion(%Command.ApplyPromotion{} = command) do
-    Apply.apply(command)
+    with :ok <- Apply.validate(command) do
+      admin_write(:apply_promotion, command)
+    end
   end
 
   @doc """
@@ -550,6 +552,98 @@ defmodule Rulestead do
     opts
     |> Command.ListWebhookRecords.new()
     |> list_webhook_records()
+  end
+
+  @doc """
+  Creates a new webhook destination.
+  """
+  @spec create_webhook_destination(Command.CreateWebhookDestination.t() | map() | keyword()) :: Store.result(map())
+  def create_webhook_destination(%Command.CreateWebhookDestination{} = command) do
+    admin_write(:create_webhook_destination, command)
+  end
+
+  def create_webhook_destination(attrs) when is_map(attrs) or is_list(attrs) do
+    attrs
+    |> Command.CreateWebhookDestination.new()
+    |> create_webhook_destination()
+  end
+
+  @doc """
+  Updates an existing webhook destination.
+  """
+  @spec update_webhook_destination(Command.UpdateWebhookDestination.t() | {String.t(), map() | keyword()}) :: Store.result(map())
+  def update_webhook_destination(%Command.UpdateWebhookDestination{} = command) do
+    admin_write(:update_webhook_destination, command)
+  end
+
+  def update_webhook_destination(id, attrs) when is_binary(id) and (is_map(attrs) or is_list(attrs)) do
+    id
+    |> Command.UpdateWebhookDestination.new(attrs)
+    |> update_webhook_destination()
+  end
+
+  @doc """
+  Fetches a single webhook destination by ID.
+  """
+  @spec fetch_webhook_destination(Command.FetchWebhookDestination.t() | String.t(), keyword()) :: Store.result(map())
+  def fetch_webhook_destination(id_or_command, opts \\ [])
+
+  def fetch_webhook_destination(%Command.FetchWebhookDestination{} = command, _opts) do
+    admin_read(:fetch_webhook_destination, command)
+  end
+
+  def fetch_webhook_destination(id, opts) when is_binary(id) do
+    id
+    |> Command.FetchWebhookDestination.new(opts)
+    |> fetch_webhook_destination([])
+  end
+
+  @doc """
+  Lists webhook destinations.
+  """
+  @spec list_webhook_destinations(Command.ListWebhookDestinations.t() | keyword()) :: Store.result(Command.Page.t(map()))
+  def list_webhook_destinations(command_or_opts \\ [])
+
+  def list_webhook_destinations(%Command.ListWebhookDestinations{} = command) do
+    admin_read(:list_webhook_destinations, command)
+  end
+
+  def list_webhook_destinations(opts) when is_list(opts) do
+    opts
+    |> Command.ListWebhookDestinations.new()
+    |> list_webhook_destinations()
+  end
+
+  @doc """
+  Lists webhook outbound deliveries.
+  """
+  @spec list_webhook_deliveries(Command.ListWebhookDeliveries.t() | keyword()) :: Store.result(Command.Page.t(map()))
+  def list_webhook_deliveries(command_or_opts \\ [])
+
+  def list_webhook_deliveries(%Command.ListWebhookDeliveries{} = command) do
+    admin_read(:list_webhook_deliveries, command)
+  end
+
+  def list_webhook_deliveries(opts) when is_list(opts) do
+    opts
+    |> Command.ListWebhookDeliveries.new()
+    |> list_webhook_deliveries()
+  end
+
+  @doc """
+  Retries a failed webhook delivery.
+  """
+  @spec retry_webhook_delivery(Command.RetryWebhookDelivery.t() | String.t(), keyword()) :: Store.result(map())
+  def retry_webhook_delivery(id_or_command, opts \\ [])
+
+  def retry_webhook_delivery(%Command.RetryWebhookDelivery{} = command, _opts) do
+    admin_write(:retry_webhook_delivery, command)
+  end
+
+  def retry_webhook_delivery(delivery_id, opts) when is_binary(delivery_id) do
+    delivery_id
+    |> Command.RetryWebhookDelivery.new(opts)
+    |> retry_webhook_delivery([])
   end
 
   @doc """
@@ -1288,7 +1382,7 @@ defmodule Rulestead do
 
     with :ok <-
            authorize_admin_read(
-             command.actor,
+             Map.get(command, :actor),
              action,
              command_resource(command),
              Map.get(command, :environment_key)
@@ -1371,6 +1465,13 @@ defmodule Rulestead do
   defp command_action(:release_kill_switch, _command), do: :release_kill_switch
   defp command_action(:rollback_audit_event, _command), do: :rollback_audit_event
   defp command_action(:list_audit_events, _command), do: :list_audit_events
+  defp command_action(:apply_promotion, _command), do: :promote_environment
+  defp command_action(:create_webhook_destination, _command), do: :manage_webhooks
+  defp command_action(:update_webhook_destination, _command), do: :manage_webhooks
+  defp command_action(:list_webhook_destinations, _command), do: :manage_webhooks
+  defp command_action(:fetch_webhook_destination, _command), do: :manage_webhooks
+  defp command_action(:list_webhook_deliveries, _command), do: :manage_webhooks
+  defp command_action(:retry_webhook_delivery, _command), do: :manage_webhooks
   defp command_action(operation, _command), do: operation
 
   defp maybe_persist_denied_mutation(operation, command, denied_audit)
