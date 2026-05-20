@@ -96,23 +96,43 @@ defmodule RulesteadAdmin.Live.Session do
   end
 
   @spec policy_state(Socket.t() | map() | resolved()) :: map()
-  def policy_state(%{environment: environment}) when is_map(environment) do
+  def policy_state(%{environment: environment, actor: actor}) when is_map(environment) do
     tone = if production_env?(environment), do: "critical", else: "warning"
     label = if production_env?(environment), do: "Production policy", else: "Environment policy"
+
+    alias Rulestead.Admin.Authorizer
+
+    can_read? = Authorizer.authorize(actor, :read_flags, nil, environment.key) == :ok
+    can_execute? = Authorizer.authorize(actor, :publish_ruleset, nil, environment.key) == :ok
+    
+    # We resolve the requirement for execution to see if it's proposal-only
+    requirement = Authorizer.approval_requirement(actor, :publish_ruleset, nil, environment.key)
+    proposal_only? = requirement.change_request_required?
+
+    can_admin? = Authorizer.authorize(actor, :manage_settings, nil, environment.key) == :ok
+
+    capabilities = %{
+      read?: can_read?,
+      execute?: can_execute?,
+      propose?: proposal_only?,
+      admin?: can_admin?
+    }
 
     %{
       environment_key: environment.key,
       production?: production_env?(environment),
       tone: tone,
       label: label,
-      summary: policy_summary(environment)
+      summary: policy_summary(environment),
+      capabilities: capabilities
     }
   end
 
   def policy_state(socket_or_assigns) do
-    socket_or_assigns
-    |> fetch_assign(:current_environment)
-    |> then(&policy_state(%{environment: &1}))
+    environment = fetch_assign(socket_or_assigns, :current_environment)
+    actor = fetch_assign(socket_or_assigns, :current_actor, %{id: nil, roles: []})
+    
+    policy_state(%{environment: environment, actor: actor})
   end
 
   @spec placeholder_assigns(Socket.t() | map(), keyword()) :: map()

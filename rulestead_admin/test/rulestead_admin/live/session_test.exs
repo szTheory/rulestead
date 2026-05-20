@@ -67,7 +67,8 @@ defmodule RulesteadAdmin.Live.SessionTest do
       available_environments: [
         %{key: "dev", name: "Development"},
         %{key: "prod", name: "Production"}
-      ]
+      ],
+      current_actor: %{id: "sys", roles: [:admin]}
     }
 
     assert Session.current_path(assigns, "/admin/flags/pricing/simulate") ==
@@ -86,7 +87,13 @@ defmodule RulesteadAdmin.Live.SessionTest do
              production?: true,
              tone: "critical",
              label: "Production policy",
-             summary: "Production actions should stay explicit and auditable."
+             summary: "Production actions should stay explicit and auditable.",
+             capabilities: %{
+               admin?: true,
+               execute?: true,
+               propose?: true,
+               read?: true
+             }
            }
   end
 
