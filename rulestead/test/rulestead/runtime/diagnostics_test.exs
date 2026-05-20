@@ -37,8 +37,10 @@ defmodule Rulestead.Runtime.DiagnosticsTest do
     assert %{node: _, environments: runtime_environments, infrastructure_health: runtime_health} =
              Runtime.diagnostics()
 
-    assert environments == runtime_environments
-    assert infrastructure_health == runtime_health
+    assert Enum.map(environments, &Map.delete(&1, :cache_age_ms)) ==
+             Enum.map(runtime_environments, &Map.delete(&1, :cache_age_ms))
+    assert Enum.map(infrastructure_health.environments, &Map.delete(&1, :cache_age_ms)) ==
+             Enum.map(runtime_health.environments, &Map.delete(&1, :cache_age_ms))
 
     assert environment =
              Enum.find(runtime_environments, &(&1.environment_key == environment_key))

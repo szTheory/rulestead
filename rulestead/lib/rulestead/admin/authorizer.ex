@@ -4,16 +4,11 @@ defmodule Rulestead.Admin.Authorizer do
 
   alias Rulestead.{AuthError, Governance.ApprovalRequirement}
 
-  @viewer_roles ~w(viewer auditor operator engineer admin incident_commander prod_operator)a
-  @editor_roles ~w(operator engineer admin incident_commander prod_operator)a
-  @production_roles ~w(admin incident_commander prod_operator)a
-  @governed_actions [
-    :publish_ruleset,
-    :advance_rollout,
-    :engage_kill_switch,
-    :release_kill_switch,
-    :promote_environment
-  ]
+  @canonical_viewer_roles ~w(viewer editor admin)a
+  @canonical_editor_roles ~w(editor admin)a
+  @canonical_admin_roles ~w(admin)a
+  
+  @governed_actions Rulestead.Admin.Policy.governance_actions()
 
   @type audit_payload :: %{
           required(:action) => atom(),
@@ -22,7 +17,7 @@ defmodule Rulestead.Admin.Authorizer do
           required(:resource) => map(),
           required(:actor) => map(),
           optional(:reason) => atom(),
-          optional(:approval_requirement) => ApprovalRequirement.t()
+          optional(:approval_requirement) => Rulestead.Governance.ApprovalRequirement.t()
         }
 
   @spec authorize(term(), atom(), term(), String.t() | atom() | nil) ::
@@ -160,20 +155,20 @@ defmodule Rulestead.Admin.Authorizer do
     roles = actor.roles
 
     cond do
-      action in [
-        :list_audit_events,
-        :simulate_flag,
-        :explain_flag,
-        :list_webhook_records,
-        :fetch_webhook_record
-      ] ->
-        Enum.any?(roles, &(&1 in @viewer_roles))
+      action in Rulestead.Admin.Policy.viewer_actions() ->
+        Enum.any?(roles, &(&1 in @canonical_viewer_roles))
+
+      action in Rulestead.Admin.Policy.admin_actions() ->
+        Enum.any?(roles, &(&1 in @canonical_admin_roles))
 
       production_environment?(environment_key) ->
-        Enum.any?(roles, &(&1 in @production_roles))
+        Enum.any?(roles, &(&1 in @canonical_admin_roles))
+
+      action in Rulestead.Admin.Policy.editor_actions() or action in Rulestead.Admin.Policy.governance_actions() ->
+        Enum.any?(roles, &(&1 in @canonical_editor_roles))
 
       true ->
-        Enum.any?(roles, &(&1 in @editor_roles))
+        Enum.any?(roles, &(&1 in @canonical_editor_roles))
     end
   end
 
@@ -325,20 +320,27 @@ defmodule Rulestead.Admin.Authorizer do
   defp normalize_resource(_resource), do: %{resource_type: nil, resource_key: nil}
 
   defp normalize_role(nil), do: nil
-  defp normalize_role(value) when is_atom(value), do: value
+  
+  defp normalize_role(value) when is_atom(value) do
+    value |> Atom.to_string() |> normalize_role()
+  end
 
   defp normalize_role(value) when is_binary(value) do
     value
     |> String.trim()
+    |> String.downcase()
     |> case do
       "" -> nil
+      # Canonical roles
       "viewer" -> :viewer
-      "auditor" -> :auditor
-      "operator" -> :operator
-      "engineer" -> :engineer
+      "editor" -> :editor
       "admin" -> :admin
-      "incident_commander" -> :incident_commander
-      "prod_operator" -> :prod_operator
+      # Compatibility aliases
+      "auditor" -> :viewer
+      "operator" -> :editor
+      "engineer" -> :editor
+      "incident_commander" -> :admin
+      "prod_operator" -> :admin
       _ -> nil
     end
   end

@@ -86,7 +86,8 @@ defmodule Rulestead.AdminGovernancePolicyTest do
              :publish_ruleset,
              :advance_rollout,
              :engage_kill_switch,
-             :release_kill_switch
+             :release_kill_switch,
+             :promote_environment
            ]
 
     assert {:ok, %ApprovalRequirement{action: :release_kill_switch}} =
