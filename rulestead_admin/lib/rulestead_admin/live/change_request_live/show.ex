@@ -122,7 +122,7 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Show do
         <p :if={@action_notice} role="status"><%= @action_notice %></p>
         <p :if={@action_error} role="alert"><%= @action_error %></p>
 
-        <div :if={is_nil(@pending_action)} class="rs-detail__actions">
+        <div :if={is_nil(@pending_action) and (@rulestead_admin_policy_state.capabilities.execute? or @rulestead_admin_policy_state.capabilities.admin?)} class="rs-detail__actions">
           <button
             :if={@change_request.state == :submitted}
             type="button"
@@ -156,8 +156,15 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Show do
             Schedule
           </button>
         </div>
+        
+        <div :if={is_nil(@pending_action) and not @rulestead_admin_policy_state.capabilities.execute? and not @rulestead_admin_policy_state.capabilities.admin?} class="rs-actions-disabled">
+          <RulesteadAdmin.Components.OperatorComponents.capability_explanation
+            title="Execution required"
+            reason="You do not have permission to execute or approve change requests."
+          />
+        </div>
 
-        <form :if={@pending_action} id="change-request-action-form" phx-submit="submit_action">
+        <form :if={not is_nil(@pending_action) and (@rulestead_admin_policy_state.capabilities.execute? or @rulestead_admin_policy_state.capabilities.admin?)} id="change-request-action-form" phx-submit="submit_action">
           <p>Confirm <%= humanize(@pending_action) %> before mutation.</p>
           <label>
             <span>Reason</span>

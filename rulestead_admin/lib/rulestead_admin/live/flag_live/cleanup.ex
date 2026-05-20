@@ -25,18 +25,24 @@ defmodule RulesteadAdmin.Live.FlagLive.Cleanup do
 
   @impl true
   def handle_params(%{"key" => key}, uri, socket) do
-    env = query_params(uri)["env"] || socket.assigns.current_environment.key
-    base_path = build_base_path(socket, key)
+    capabilities = socket.assigns.rulestead_admin_policy_state.capabilities
 
-    socket =
-      socket
-      |> assign(:flag_key, key)
-      |> assign(:current_path, Session.current_path(socket, base_path))
-      |> assign(:env_links, Session.env_links(socket, base_path))
-      |> load_detail(key, env)
-      |> load_code_references(key)
+    if not capabilities.edit? and not capabilities.execute? and not capabilities.admin? do
+      {:noreply, push_navigate(socket, to: socket.assigns.rulestead_admin_mount_path)}
+    else
+      env = query_params(uri)["env"] || socket.assigns.current_environment.key
+      base_path = build_base_path(socket, key)
 
-    {:noreply, socket}
+      socket =
+        socket
+        |> assign(:flag_key, key)
+        |> assign(:current_path, Session.current_path(socket, base_path))
+        |> assign(:env_links, Session.env_links(socket, base_path))
+        |> load_detail(key, env)
+        |> load_code_references(key)
+
+      {:noreply, socket}
+    end
   end
 
   @impl true

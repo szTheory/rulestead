@@ -137,7 +137,7 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Show do
         <p :if={@action_error} role="alert"><%= @action_error %></p>
 
         <form
-          :if={show_action_form?(@scheduled_execution)}
+          :if={show_action_form?(@scheduled_execution) and (@rulestead_admin_policy_state.capabilities.execute? or @rulestead_admin_policy_state.capabilities.admin?)}
           id="scheduled-execution-action-form"
           phx-submit="submit_action"
         >
@@ -147,6 +147,13 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Show do
           </label>
           <button type="submit"><%= action_button_label(@scheduled_execution) %></button>
         </form>
+        
+        <div :if={show_action_form?(@scheduled_execution) and not @rulestead_admin_policy_state.capabilities.execute? and not @rulestead_admin_policy_state.capabilities.admin?} class="rs-actions-disabled">
+          <RulesteadAdmin.Components.OperatorComponents.capability_explanation
+            title="Execution required"
+            reason="You do not have permission to modify scheduled executions."
+          />
+        </div>
       </section>
 
       <section>
