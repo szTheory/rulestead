@@ -1,19 +1,82 @@
 {
   "version": "1.0",
-  "timestamp": "2026-05-17T13:30:00.000Z",
-  "phase": null,
-  "phase_name": null,
-  "phase_dir": null,
-  "plan": null,
-  "task": null,
-  "total_tasks": 0,
-  "status": "idle",
-  "completed_tasks": [],
-  "remaining_tasks": [],
-  "blockers": [],
-  "human_actions_pending": [],
-  "decisions": [],
-  "uncommitted_files": [],
-  "next_action": "Run /gsd-new-milestone to begin planning the next milestone.",
-  "context_notes": "Milestone v0.4.0 is successfully completed."
+  "timestamp": "2026-05-21T16:18:45Z",
+  "phase": "28",
+  "phase_name": "e2e-demo-environments-ga-release",
+  "phase_dir": ".planning/phases/28-e2e-demo-environments-ga-release",
+  "plan": 4,
+  "task": 2,
+  "total_tasks": 2,
+  "status": "paused",
+  "completed_tasks": [
+    {
+      "id": 1,
+      "name": "Build Phase 28 UAT artifact from current verification evidence",
+      "status": "done",
+      "commit": "16f6e3a"
+    },
+    {
+      "id": 2,
+      "name": "Re-run blocked verification checks to separate external blockers from repo defects",
+      "status": "in_progress",
+      "progress": "Confirmed `docker compose config`, backend targeted tests, frontend Jest provider tests, and frontend production build pass. Confirmed `scripts/demo/smoke.sh` is still blocked by Docker Desktop not starting. Confirmed `npm run test:e2e` fails independently because Playwright discovers a Jest unit test file."
+    }
+  ],
+  "remaining_tasks": [
+    {
+      "id": 1,
+      "name": "Narrow Playwright discovery so `npm run test:e2e` runs only the browser proof",
+      "status": "not_started"
+    },
+    {
+      "id": 2,
+      "name": "Once Docker Desktop is healthy, rerun `scripts/demo/smoke.sh` and the Playwright browser proof to close Phase 28 verification",
+      "status": "not_started"
+    }
+  ],
+  "blockers": [
+    {
+      "description": "Local Docker daemon still fails with `Docker Desktop is unable to start`, so the Compose-backed smoke test cannot boot the demo stack.",
+      "type": "external",
+      "workaround": "None in-repo. Docker Desktop must be brought back to a healthy running state before `scripts/demo/smoke.sh` can pass."
+    },
+    {
+      "description": "The `npm run test:e2e` command is broken in-repo because Playwright discovers `tests/rulestead-web-provider.test.ts` and crashes on `jest is not defined` before browser automation starts.",
+      "type": "technical",
+      "workaround": "Restrict Playwright discovery to `*.spec.ts` or explicitly target `demo-toggle.spec.ts`, or move Jest unit tests out of Playwright's `testDir`."
+    }
+  ],
+  "human_actions_pending": [
+    {
+      "action": "Start Docker Desktop successfully and verify the daemon responds to `docker info`.",
+      "context": "Phase 28 smoke verification is blocked before containers build or start.",
+      "blocking": true
+    }
+  ],
+  "decisions": [
+    {
+      "decision": "Recorded Phase 28 verification in shift-left UAT mode instead of conversational human-UAT.",
+      "rationale": "The phase already had executable verification evidence for most checks; only two real gaps remained.",
+      "phase": "28"
+    },
+    {
+      "decision": "Split the remaining verification blockers into external runtime failure and repo-local Playwright misconfiguration.",
+      "rationale": "The Playwright failure is actionable without Docker and should be fixed independently before final reruns.",
+      "phase": "28"
+    }
+  ],
+  "uncommitted_files": [
+    ".planning/phases/28-e2e-demo-environments-ga-release/28-UAT.md",
+    ".planning/HANDOFF.json",
+    ".planning/phases/28-e2e-demo-environments-ga-release/.continue-here.md",
+    ".planning/ROADMAP.md",
+    ".planning/STATE.md",
+    "README.md",
+    "docker-compose.yml",
+    "examples/demo/**",
+    "scripts/demo/**",
+    "multiple generated `_build`, `doc`, and `.DS_Store` artifacts already present in the dirty worktree"
+  ],
+  "next_action": "First fix `examples/demo/frontend/playwright.config.ts` so `npm run test:e2e` runs only the browser spec. Then rerun that command. Separately, once Docker Desktop is healthy, rerun `scripts/demo/smoke.sh` and update `28-UAT.md`, roadmap, and state.",
+  "context_notes": "Phase 28 implementation is complete. Verification is the only remaining work. The repo worktree is very dirty and includes lots of generated/build artifacts unrelated to the handoff; do not assume they were created by this pause flow or try to clean them indiscriminately. The highest-signal gap is Playwright's overly broad discovery pattern. Docker remains an external blocker."
 }
