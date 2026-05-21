@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0.0
-milestone_name: General Availability (GA)
-status: planning
-last_updated: "2026-05-19T14:30:00Z"
-last_activity: 2026-05-19
+milestone: none
+milestone_name: none
+status: milestone_shipped
+last_updated: "2026-05-21T21:09:58Z"
+last_activity: 2026-05-21
 progress:
   total_phases: 3
-  completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
-  percent: 33
+  completed_phases: 3
+  total_plans: 7
+  completed_plans: 7
+  percent: 100
 ---
 
 # State: Rulestead
@@ -20,29 +20,27 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-19)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
-**Current focus:** Planning milestone v1.0.0: General Availability (GA) focusing on API lockdown, comprehensive RBAC, and E2E Demo environments.
-**Milestone:** v1.0.0
+**Current focus:** `v1.0.0` is shipped. The planning surface is now waiting for the next milestone definition.
+**Milestone:** none active
 
 ## Roadmap Reference
 
-See: `.planning/ROADMAP.md` for the active milestone roadmap (v1.0.0).
+See: `.planning/ROADMAP.md` for current roadmap state and archive links.
 
 ## Current Position
 
-Phase: 27
-Plan: pending
-Status: Awaiting planning for milestone v1.0.0 (Phase 27)
-Last activity: 2026-05-19
+Phase: none
+Plan: none
+Status: v1.0.0 archived and shipped; waiting for the next milestone definition
+Last activity: 2026-05-21
 
 ## Active Requirement Focus
 
-- **Phase 26**: API Lockdown & Documentation Perfection
-- **Phase 27**: Comprehensive RBAC & Security Hardening
-- **Phase 28**: E2E Demo Environments & GA Release
+- None. Define the next milestone before reintroducing active requirements.
 
 ## Carryover Items
 
-- **Phase 25 (Tenancy Helpers & Validation)** from previous milestones remains an active slice, though the current focus is 1.0 GA delivery via Phases 26-28.
+- **Phase 25 (Tenancy Helpers & Validation)** remains a post-GA candidate, but it is not active until the next milestone is explicitly defined.
 
 ## Anchor Docs (prompts/)
 
@@ -108,6 +106,8 @@ These remain the primary source of truth and should be loaded selectively per ph
 
 ## Latest Activity
 
+- 2026-05-21 — Archived milestone `v1.0.0`, created shipped roadmap and requirements archives, removed the active milestone requirements file, and tagged the release boundary after accepting the documented Phase 26 Dialyzer tooling override as non-blocking debt.
+
 - 2026-05-19 — Defined milestone `v1.0.0`, created the active `REQUIREMENTS.md` and `ROADMAP.md`, and queued Phase 26 for planning.
 - 2026-05-19 — Marked milestone `v0.6.0` shipped, carried over Phase 25 (Tenancy Helpers), and queued `v0.7.0` (now fast-tracked to v1.0.0) as the next milestone definition target.
 - 2026-05-19 — Verified and closed Phase 24: targeted export/validate/diff/import/promote suites passed, `24-VERIFICATION.md` was added, and roadmap/state now mark GitOps Manifests & CLI Surface complete.
@@ -145,4 +145,4 @@ These remain the primary source of truth and should be loaded selectively per ph
 
 ## Next Action
 
-Next: Run `/gsd-plan-phase 26` to begin work on Phase 26 (API Lockdown & Documentation Perfection).
+Next: Run `$gsd-new-milestone` to define the post-GA roadmap.

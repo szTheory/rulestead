@@ -1,39 +1,46 @@
-# Phase 26: API Lockdown & Documentation Perfection - Planning Summary
+---
+requirements-completed:
+  - API-01
+  - API-02
+  - DOC-01
+  - DOC-02
+---
+
+# Phase 26 Execution Summary
 
 **Phase:** 26
-**Status:** Planned
+**Name:** API Lockdown & Documentation Perfection
+**Status:** Complete on 2026-05-21 with one documented Dialyzer tooling override
 **Plans:** 3
 **Waves:** 2
 
 ## Overview
 
-Phase 26 focuses on stabilizing the `rulestead` public API and perfecting documentation ahead of the v1.0.0 General Availability release. The goals are strictly type-checking the codebase (zero Dialyzer warnings), enforcing public/private API boundaries via `@moduledoc false` and HexDocs grouping, and providing a seamless migration path for FunWithFlags users.
+Phase 26 is complete. The public `rulestead` surface is now deliberately packaged, internal implementation modules are hidden from HexDocs, the FunWithFlags migration guide ships in the public documentation set, and the public package passes Dialyzer cleanly.
 
-## Plan Breakdown
+The only exception recorded for milestone closure is the previously documented `rulestead_admin` Dialyxir/Erlang tooling bug that leaves an unignorable baseline warning despite the product code changes in this phase. That exception is explicitly accepted in `26-VERIFICATION.md` rather than being treated as an open product gap.
 
-### Wave 1
+## Execution Result
 
-- **26-01-PLAN.md (Strict Typing & Dialyzer Compliance)**
-  - Audits all public API and internal modules for comprehensive `@spec` and `@type` annotations.
-  - Sets up `.dialyzer_ignore.exs` to skip non-actionable external warnings (like `:inets` in mix tasks).
-  - Fixes typespecs and pattern match warnings in `Rulestead.Config`, `Rulestead.ex`, and `Rulestead.Store.Ecto`.
-  - Ensures clean `mix dialyzer` runs in both `rulestead` and `rulestead_admin`.
-  - *Addresses:* API-02
+### 26-01
 
-- **26-02-PLAN.md (Migration Guide Creation)**
-  - Authors `guides/recipes/migrating-from-funwithflags.md`.
-  - Maps old concepts (Gates, Priority) to new Rulestead features (Rules, Ordered Evaluation).
-  - *Addresses:* DOC-02
+Completed the strict typing and Dialyzer compliance sweep across the public package. `rulestead` now passes `mix dialyzer` cleanly, and the admin package retains only the documented tooling-level warning baseline.
 
-### Wave 2
+### 26-02
 
-- **26-03-PLAN.md (Public Boundary & Hexdocs Configuration)**
-  - *Depends on: 01, 02*
-  - Mass-applies `@moduledoc false` to all non-public internal modules inside `rulestead/lib/`.
-  - Explicitly strips `@moduledoc false` from properly designated public API modules to ensure they appear in Hexdocs.
-  - Modifies `rulestead/mix.exs` `docs/0` function to introduce explicit module and extra groupings for the newly finalized public API.
-  - *Addresses:* API-01, DOC-01
+Completed the FunWithFlags migration guide with explicit conceptual mapping and code examples for migrating host applications to Rulestead.
 
-## Next Steps
+### 26-03
 
-Run `/gsd-execute-phase 26` to begin execution of Wave 1 plans.
+Completed the public/private module-boundary sweep and HexDocs grouping work so the published docs surface reflects the intended stable API boundary.
+
+## Verification Evidence
+
+- `cd rulestead && mix dialyzer`
+- `cd rulestead && mix docs`
+- `.planning/phases/26-api-lockdown-and-documentation-perfection/26-VERIFICATION.md`
+
+## Notes
+
+- `API-02` is closed with a documented tooling override rather than a claim that the known `rulestead_admin` Dialyxir/Erlang warning has disappeared.
+- The milestone traceability now records all four Phase 26 requirements as completed.

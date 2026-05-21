@@ -6,13 +6,13 @@ Rulestead is a batteries-included, Elixir-native feature-flag and remote-config 
 
 ## Current State
 
-- `v0.6.0` shipped on 2026-05-19 across Phases 22-24.
-- Runtime deployments can now use deterministic GitOps manifest export/import, authored-state compare, and governed promotion apply workflows.
-- `v0.7.0` is next: Phase 25 (Tenancy Helpers) carries over as the first active slice.
+- `v1.0.0` shipped on 2026-05-21 across Phases 26-28.
+- The product now has a frozen public API boundary, canonical mounted-admin RBAC, and a proven Compose-backed end-to-end demo with Phoenix + Next.js/OpenFeature integration.
+- The release line is now in post-GA planning mode; no next milestone is active yet.
 
-## Current Milestone: v0.7.0 (Planning)
+## Current Milestone: None Active
 
-**Previous Milestone (v0.6.0) Complete:** Rulestead now supports whole-flag environment promotion (Dev->Staging->Prod), diffing, and GitOps-friendly manifest export/import workflows.
+**Latest Milestone (v1.0.0) Complete:** Rulestead now ships with API lockdown, documentation hardening, strict RBAC, and a verified end-to-end demo stack.
 
 ## Core Value
 
@@ -22,7 +22,7 @@ Everything else can fail; this cannot. If the runtime evaluator is not fast, pur
 
 ## Strategic Arc (Future Milestones)
 
-To provide a clear path forward for Rulestead as a "batteries included" feature-management platform, the following long-term strategic arc outlines our planned evolution toward a stable 1.0 release (detailed further in `.planning/research/EPIC_ARC.md`):
+To provide a clear path forward for Rulestead as a "batteries included" feature-management platform, the following strategic arc captures the shipped path to GA and the open post-GA slot (detailed further in `.planning/research/EPIC_ARC.md`):
 
 - **v0.6.0: Multi-environment Sync & Tenancy**
   - Focus: Environment promotion (Dev->Staging->Prod), diffing, GitOps export/import, and explicit multi-tenant helpers.
@@ -30,12 +30,15 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 - **v1.0.0: General Availability & RBAC**
   - Focus: Role-Based Access Control, API lockdown, security hardening, and complete reference documentation.
   - Value: A reliable, trusted, "done" system without feature creep that fulfills the Elixir-native platform promise.
+- **Post-GA milestone: TBD**
+  - Focus: Define the first post-GA roadmap deliberately instead of inheriting pre-GA assumptions wholesale.
+  - Value: Avoid accidental scope carryover after the GA boundary.
 
 ## Release Posture
 
-- First public Hex release target: after `v0.6.0`, once multi-environment promotion, GitOps-friendly import/export, and minimal tenancy helpers are shipped and verified.
+- First public Hex release planning was intentionally delayed until the platform had credible multi-environment and governance depth.
 - Public distribution shape: publish both sibling packages together on Hex, with `rulestead_admin` documented as the mounted admin companion rather than a standalone control-plane product.
-- General Availability target: `v1.0.0`, when RBAC, API lockdown, and hardening make stronger long-term stability promises credible.
+- General Availability shipped in `v1.0.0` on 2026-05-21.
 
 ## Requirements
 
@@ -61,25 +64,28 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 - ✓ Surface infrastructure health and additive sync telemetry for operators (`INF-01`, `INF-02`) — `v0.5.0`
 - ✓ Compare authored environment state and execute governed whole-flag promotion, including immutable history and re-apply (`PROM-01` to `PROM-04`) — `v0.6.0`
 - ✓ Export, validate, diff, and import GitOps-friendly environment manifests (`MAN-01` to `MAN-04`) — `v0.6.0`
+- ✓ Freeze the public API surface, package docs cleanly, and ship the FunWithFlags migration path (`API-01`, `API-02`, `DOC-01`, `DOC-02`) — `v1.0.0`
+- ✓ Enforce canonical Viewer / Editor / Admin RBAC through the host-owned policy seam (`SEC-01`, `SEC-02`, `SEC-03`) — `v1.0.0`
+- ✓ Prove the Docker-backed Phoenix + Next.js/OpenFeature demo stack end to end (`GA-01`, `GA-02`) — `v1.0.0`
 
 ### Active
 
-- Add explicit tenancy helpers that preserve the current sibling-package release design without turning `rulestead_admin` into a standalone product (`TEN-01` to `TEN-03`).
+- No active milestone requirements are defined right now.
 
 ## Next Milestone Goals
 
-- Add tenant-aware primitives only where they strengthen the current linked-version platform model.
+- Reassess whether the old Phase 25 tenancy-helper carryover is still the highest-value post-GA work.
+- Define the next milestone explicitly before restoring an active requirements set.
 
 ### Out of Scope
 
-- Role-based access control, API lockdown, and GA hardening — slated for `v1.0.0`.
 - Broadening `rulestead_admin` beyond the mounted sibling-package design into a standalone control-plane product — explicitly disallowed by the current release design.
 
 ## Context
 
-- `v0.1.0` through `v0.6.0` are now archived, covering the core runtime, admin UX, governance workflows, ecosystem seams, experimentation analytics, Redis-backed distribution, infrastructure diagnostics, and environment promotion via GitOps manifests.
-- `v0.6.0` shipped across Phases 22-24, delivering the authored-state compare engine, governed promotion apply, and robust CLI manifest workflows.
-- The current focus is planning `v0.7.0`, beginning with the Phase 25 (Tenancy Helpers) carryover from the previous milestone.
+- `v0.1.0` through `v1.0.0` are now archived, covering the core runtime, admin UX, governance workflows, ecosystem seams, experimentation analytics, Redis-backed distribution, environment promotion, GitOps manifests, API lockdown, RBAC, and the GA demo stack.
+- `v1.0.0` shipped across Phases 26-28, delivering the public API freeze, canonical RBAC, and the verified GA demo environment.
+- The current focus is deciding the first post-GA milestone rather than auto-activating pre-GA carryover.
 - The project remains a linked-version, two-package monorepo.
 
 ## Constraints
@@ -97,12 +103,12 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 | Mount diagnostics inside the existing `rulestead_admin` router macro | Keeps diagnostics inside the current session, policy, and linked-version admin envelope. | Validated |
 | Reuse the existing governed-action envelope for protected-environment promotion | Keeps approvals, scheduling, audit linkage, and operator review on one path instead of splitting promotion into a parallel workflow. | Validated |
 | Model re-apply-version as a fresh forward promotion from immutable history | Preserves authored-truth semantics and avoids hidden rollback shortcuts that drift from compare/apply behavior. | Validated |
-| Target the first public Hex release for after `v0.6.0`, not at `v0.1.0` and not only at `v1.0.0` | `v0.6.0` is the first milestone that completes the multi-environment/GitOps story serious adopters will expect, while `v1.0.0` remains the right point for GA-level stability promises. | Active |
+| Target the first public Hex release for after `v0.6.0`, not at `v0.1.0` and not only at `v1.0.0` | `v0.6.0` completed the multi-environment/GitOps story, while `v1.0.0` delivered the stronger GA-level stability promises. | Validated |
 
 ## Milestone Archives
 
-- Roadmap archive: [.planning/milestones/v0.1.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.1.0-ROADMAP.md), [.planning/milestones/v0.2.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.2.0-ROADMAP.md), [.planning/milestones/v0.3.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.3.0-ROADMAP.md), [.planning/milestones/v0.4.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.4.0-ROADMAP.md), [.planning/milestones/v0.5.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.5.0-ROADMAP.md), [.planning/milestones/v0.6.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.6.0-ROADMAP.md)
-- Requirements archive: [.planning/milestones/v0.1.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.1.0-REQUIREMENTS.md), [.planning/milestones/v0.2.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.2.0-REQUIREMENTS.md), [.planning/milestones/v0.3.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.3.0-REQUIREMENTS.md), [.planning/milestones/v0.4.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.4.0-REQUIREMENTS.md), [.planning/milestones/v0.5.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.5.0-REQUIREMENTS.md), [.planning/milestones/v0.6.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.6.0-REQUIREMENTS.md)
+- Roadmap archive: [.planning/milestones/v0.1.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.1.0-ROADMAP.md), [.planning/milestones/v0.2.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.2.0-ROADMAP.md), [.planning/milestones/v0.3.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.3.0-ROADMAP.md), [.planning/milestones/v0.4.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.4.0-ROADMAP.md), [.planning/milestones/v0.5.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.5.0-ROADMAP.md), [.planning/milestones/v0.6.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.6.0-ROADMAP.md), [.planning/milestones/v1.0.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.0.0-ROADMAP.md)
+- Requirements archive: [.planning/milestones/v0.1.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.1.0-REQUIREMENTS.md), [.planning/milestones/v0.2.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.2.0-REQUIREMENTS.md), [.planning/milestones/v0.3.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.3.0-REQUIREMENTS.md), [.planning/milestones/v0.4.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.4.0-REQUIREMENTS.md), [.planning/milestones/v0.5.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.5.0-REQUIREMENTS.md), [.planning/milestones/v0.6.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.6.0-REQUIREMENTS.md), [.planning/milestones/v1.0.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v1.0.0-REQUIREMENTS.md)
 
 ## Historical Context
 
@@ -133,4 +139,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-19 after Milestone v0.6.0 completion*
+*Last updated: 2026-05-21 after Milestone v1.0.0 completion*
