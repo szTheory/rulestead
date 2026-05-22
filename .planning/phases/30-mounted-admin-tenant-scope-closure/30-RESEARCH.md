@@ -263,7 +263,7 @@ end
 
 All claims in this research were verified or cited in this session. No user confirmation is required before planning.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 None that block planning. The remaining choices are implementation detail choices already delegated by the Phase 30 context, such as exact session key/helper names and exact shell chip layout. [VERIFIED: .planning/phases/30-mounted-admin-tenant-scope-closure/30-CONTEXT.md]
 

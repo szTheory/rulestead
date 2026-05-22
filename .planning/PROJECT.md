@@ -8,11 +8,18 @@ Rulestead is a batteries-included, Elixir-native feature-flag and remote-config 
 
 - `v1.0.0` shipped on 2026-05-21 across Phases 26-28.
 - The product now has a frozen public API boundary, canonical mounted-admin RBAC, and a proven Compose-backed end-to-end demo with Phoenix + Next.js/OpenFeature integration.
-- The release line is now in post-GA planning mode; no next milestone is active yet.
+- `v1.1.0` has completed Phase 29 on 2026-05-21, delivering the bounded tenancy seam, tenant-aware reviewed-artifact validation, and mounted-admin tenant scope without widening the product shape.
 
-## Current Milestone: None Active
+## Current Milestone: v1.1.0 Tenancy Helpers & Validation
 
-**Latest Milestone (v1.0.0) Complete:** Rulestead now ships with API lockdown, documentation hardening, strict RBAC, and a verified end-to-end demo stack.
+**Goal:** Finish the smallest coherent tenancy-aware seam so runtime, admin, promotion, and manifest workflows can carry explicit tenant scope safely in real SaaS environments.
+
+**Target features:**
+- Minimal `Rulestead.Tenancy` seam with a safe `SingleTenant` default and additive tenant-aware bucketing hooks.
+- Tenant-aware preview/apply validation for import and promotion, with bounded tenant scope metadata in saved plans and audit trails.
+- Minimum mounted-admin tenant scope handling that stays explicit, fail-closed, and aligned with the linked-version two-package model.
+
+**Why now:** Post-GA adoption pressure is most likely to come from multi-tenant SaaS teams. Tenancy is the highest-value immediate JTBD gap that fits the current architecture and can be finished without drifting into a standalone control plane or tenant-partitioned topology.
 
 ## Core Value
 
@@ -67,15 +74,17 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 - ✓ Freeze the public API surface, package docs cleanly, and ship the FunWithFlags migration path (`API-01`, `API-02`, `DOC-01`, `DOC-02`) — `v1.0.0`
 - ✓ Enforce canonical Viewer / Editor / Admin RBAC through the host-owned policy seam (`SEC-01`, `SEC-02`, `SEC-03`) — `v1.0.0`
 - ✓ Prove the Docker-backed Phoenix + Next.js/OpenFeature demo stack end to end (`GA-01`, `GA-02`) — `v1.0.0`
+- ✓ Support explicit tenant scope across runtime, admin, promotion, and manifest flows without environment-per-tenant topology (`TEN-01`, `TEN-02`, `TEN-03`) — `v1.1.0`
 
 ### Active
 
-- No active milestone requirements are defined right now.
+No active milestone requirements. `v1.1.0` is ready for milestone closeout and next-milestone definition.
 
 ## Next Milestone Goals
 
-- Reassess whether the old Phase 25 tenancy-helper carryover is still the highest-value post-GA work.
-- Define the next milestone explicitly before restoring an active requirements set.
+- Restore the old Phase 25 tenancy carryover as an explicit post-GA milestone with fresh numbering, not as an inherited pre-GA leftover.
+- Keep the phase boundary tight around helper seams, validation, audit metadata, and minimum mounted-admin scope handling.
+- Preserve the sibling-package release model and avoid tenant-partitioned storage or standalone admin drift.
 
 ### Out of Scope
 
@@ -85,13 +94,15 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 
 - `v0.1.0` through `v1.0.0` are now archived, covering the core runtime, admin UX, governance workflows, ecosystem seams, experimentation analytics, Redis-backed distribution, environment promotion, GitOps manifests, API lockdown, RBAC, and the GA demo stack.
 - `v1.0.0` shipped across Phases 26-28, delivering the public API freeze, canonical RBAC, and the verified GA demo environment.
-- The current focus is deciding the first post-GA milestone rather than auto-activating pre-GA carryover.
+- The current focus is `v1.1.0`, which intentionally activates tenancy as the first post-GA milestone after reviewing the new JTBD gap map and confirming it is still the highest-value near-term fit.
+- Phase 29 is now complete and verified. The tenancy work stayed inside helper seams, reviewed-artifact validation, bounded metadata, and mounted-admin scope.
 - The project remains a linked-version, two-package monorepo.
 
 ## Constraints
 
 - **Release design**: Keep the linked-version sibling-package release shape — the runtime and admin packages evolve together.
 - **Security**: Maintain default-deny mutation security and strict audit logs.
+- **Tenancy scope**: Ship explicit tenant-aware helpers and validation only; do not introduce tenant-partitioned authored storage, environment-per-tenant topology, or implicit all-tenant mutation behavior.
 
 ## Key Decisions
 
@@ -104,6 +115,7 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 | Reuse the existing governed-action envelope for protected-environment promotion | Keeps approvals, scheduling, audit linkage, and operator review on one path instead of splitting promotion into a parallel workflow. | Validated |
 | Model re-apply-version as a fresh forward promotion from immutable history | Preserves authored-truth semantics and avoids hidden rollback shortcuts that drift from compare/apply behavior. | Validated |
 | Target the first public Hex release for after `v0.6.0`, not at `v0.1.0` and not only at `v1.0.0` | `v0.6.0` completed the multi-environment/GitOps story, while `v1.0.0` delivered the stronger GA-level stability promises. | Validated |
+| Activate tenancy as `v1.1.0`, not as a silent Phase 25 carryover | Keeps the first post-GA milestone explicit, preserves current phase numbering, and aligns the roadmap with the current JTBD gap analysis. | Validated |
 
 ## Milestone Archives
 
@@ -139,4 +151,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-21 after Milestone v1.0.0 completion*
+*Last updated: 2026-05-21 after Phase 29 execution*

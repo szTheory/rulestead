@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
-milestone: none
-milestone_name: none
-status: milestone_shipped
-last_updated: "2026-05-21T21:09:58Z"
-last_activity: 2026-05-21
+milestone: v1.1.0
+milestone_name: tenancy-helpers-and-validation
+status: phase_complete
+last_updated: "2026-05-22T08:10:00Z"
+last_activity: 2026-05-22
 progress:
-  total_phases: 3
-  completed_phases: 3
-  total_plans: 7
-  completed_plans: 7
+  total_phases: 2
+  completed_phases: 2
+  total_plans: 4
+  completed_plans: 4
   percent: 100
 ---
 
@@ -17,11 +17,11 @@ progress:
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-05-19)
+See: `.planning/PROJECT.md` (updated 2026-05-21)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
-**Current focus:** `v1.0.0` is shipped. The planning surface is now waiting for the next milestone definition.
-**Milestone:** none active
+**Current focus:** `v1.1.0` has closed the mounted-admin tenant carry-through gap; the remaining milestone work is audit-provenance enforcement on mutation and apply paths.
+**Milestone:** `v1.1.0` active
 
 ## Roadmap Reference
 
@@ -29,18 +29,21 @@ See: `.planning/ROADMAP.md` for current roadmap state and archive links.
 
 ## Current Position
 
-Phase: none
-Plan: none
-Status: v1.0.0 archived and shipped; waiting for the next milestone definition
-Last activity: 2026-05-21
+Phase: 30
+Plan: complete
+Status: `Phase 30 complete; Phase 31 audit-provenance closure is next`
+Last activity: 2026-05-22
 
 ## Active Requirement Focus
 
-- None. Define the next milestone before reintroducing active requirements.
+- **TEN-01**: Runtime and admin flows support explicit tenant scope without requiring environment-per-tenant or cloned flag topology.
+- **TEN-02**: Promotion and import validation detect tenant-sensitive dependency, scoping, or targeting issues before apply.
+- **TEN-03**: Rulestead exposes a minimal tenancy seam with a safe single-tenant default, tenant-aware bucketing hooks, and tenant-aware audit metadata.
 
 ## Carryover Items
 
-- **Phase 25 (Tenancy Helpers & Validation)** remains a post-GA candidate, but it is not active until the next milestone is explicitly defined.
+- **Former Phase 25 tenancy work** has been deliberately reactivated as `v1.1.0` / Phase 29 with fresh milestone framing and continued numbering.
+- **Lifecycle and ownership work** remains the strongest follow-on candidate after tenancy if the bounded seam lands cleanly.
 
 ## Anchor Docs (prompts/)
 
@@ -106,6 +109,9 @@ These remain the primary source of truth and should be loaded selectively per ph
 
 ## Latest Activity
 
+- 2026-05-22 — Completed and verified Phase 30: mounted-admin session and compare routes now preserve explicit tenant scope, targeted admin/core compare regressions passed, and the shared compare payload now retains `tenant_key` alongside tenant-scoped compare tokens.
+- 2026-05-21 — Completed and verified Phase 29: targeted tenancy runtime, reviewed-artifact validation, audit provenance, and mounted-admin session suites all passed; roadmap, requirements, and phase summaries now mark the bounded tenancy seam complete up to the remaining mounted/admin and provenance gaps.
+- 2026-05-21 — Defined milestone `v1.1.0` for Tenancy Helpers & Validation, restored active `REQUIREMENTS.md`, refreshed `PROJECT.md`, and created the Phase 29 roadmap as the first deliberate post-GA milestone.
 - 2026-05-21 — Archived milestone `v1.0.0`, created shipped roadmap and requirements archives, removed the active milestone requirements file, and tagged the release boundary after accepting the documented Phase 26 Dialyzer tooling override as non-blocking debt.
 
 - 2026-05-19 — Defined milestone `v1.0.0`, created the active `REQUIREMENTS.md` and `ROADMAP.md`, and queued Phase 26 for planning.
@@ -145,4 +151,4 @@ These remain the primary source of truth and should be loaded selectively per ph
 
 ## Next Action
 
-Next: Run `$gsd-new-milestone` to define the post-GA roadmap.
+Next: Run `$gsd-plan-phase 31`.
