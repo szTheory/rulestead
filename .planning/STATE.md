@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.1.0
 milestone_name: tenancy-helpers-and-validation
-status: phase_complete
-last_updated: "2026-05-22T08:10:00Z"
-last_activity: 2026-05-22
+status: ready_to_closeout
+last_updated: "2026-05-23T00:00:00Z"
+last_activity: 2026-05-23 -- Completed and verified Phase 34
 progress:
-  total_phases: 2
-  completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
+  total_phases: 6
+  completed_phases: 6
+  total_plans: 12
+  completed_plans: 12
   percent: 100
 ---
 
@@ -20,7 +20,7 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-21)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
-**Current focus:** `v1.1.0` has closed the mounted-admin tenant carry-through gap; the remaining milestone work is audit-provenance enforcement on mutation and apply paths.
+**Current focus:** Milestone `v1.1.0` closeout
 **Milestone:** `v1.1.0` active
 
 ## Roadmap Reference
@@ -29,10 +29,10 @@ See: `.planning/ROADMAP.md` for current roadmap state and archive links.
 
 ## Current Position
 
-Phase: 30
-Plan: complete
-Status: `Phase 30 complete; Phase 31 audit-provenance closure is next`
-Last activity: 2026-05-22
+Phase: 34 (milestone-auditability-backfill) — COMPLETE
+Plan: 2 of 2 completed
+Status: Ready to close out milestone `v1.1.0`
+Last activity: 2026-05-23 -- Completed and verified Phase 34
 
 ## Active Requirement Focus
 
@@ -62,6 +62,7 @@ These remain the primary source of truth and should be loaded selectively per ph
 - `prompts/rulestead-host-app-integration-seam.md` — host-app integration seam reference
 
 ## Decisions
+
 - **14-01**: Scaffolded `open_feature_rulestead` as a sibling package to core `rulestead` to avoid vendor lock-in.
 - **14-01**: Implemented `ContextMapper` to map loosely typed OpenFeature attributes into strongly typed Rulestead Contexts.
 - **14-02**: Adopted OpenFeature.Provider behaviour to map contexts and resolutions.
@@ -84,6 +85,7 @@ These remain the primary source of truth and should be loaded selectively per ph
 - **24-04**: Reused the existing governed promotion change-request path for protected-target CLI promote apply rather than adding a direct CLI bypass.
 
 ## Execution Metrics
+
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
 | 14 | 01 | 15min | 2 | 6 |
@@ -109,6 +111,12 @@ These remain the primary source of truth and should be loaded selectively per ph
 
 ## Latest Activity
 
+- 2026-05-23 — Completed and verified Phase 34: restored `30-SUMMARY.md` and `30-VERIFICATION.md`, reran the targeted Phase 30 mounted-admin/core compare suites (`12 tests, 0 failures` and `13 tests, 0 failures`), refreshed `v1.1.0-MILESTONE-AUDIT.md`, and synced roadmap/state routing to milestone closeout.
+- 2026-05-23 — Planned Phase 34: added `34-RESEARCH.md`, `34-PATTERNS.md`, `34-01-PLAN.md`, `34-02-PLAN.md`, and `34-VALIDATION.md` to restore the missing Phase 30 audit artifacts and refresh the stale `v1.1.0` milestone audit from current tenancy evidence.
+- 2026-05-22 — Completed and verified Phase 33: mounted compare summary links now preserve the reviewed `compare_token` into drill-in routes, reviewed and stale preview drill-ins remain bound to the same compare identity, and the targeted mounted compare suite passed with `7 tests, 0 failures`.
+- 2026-05-22 — Planned Phase 33: added `33-RESEARCH.md`, `33-PATTERNS.md`, `33-01-PLAN.md`, and `33-VALIDATION.md` to close the mounted compare summary-to-drill-in preview-identity gap with targeted `rulestead_admin` verification.
+- 2026-05-22 — Completed and verified Phase 32: `Rulestead.plan_promotion/3` now preserves explicit `tenant_key` through compare and saved-plan generation, tenant-scoped saved plans stay bounded across direct/governed replay and programmatic Mix entrypoints, and the combined Phase 32 suite passed with `26 tests, 0 failures`.
+- 2026-05-22 — Completed and verified Phase 31: command/replay tenant provenance is now normalized once, Ecto and Fake audit builders merge the bounded tenant block automatically, scheduled execution preserves tenant provenance through delayed apply paths, and the combined Phase 31 suite passed with `42 tests, 0 failures`.
 - 2026-05-22 — Completed and verified Phase 30: mounted-admin session and compare routes now preserve explicit tenant scope, targeted admin/core compare regressions passed, and the shared compare payload now retains `tenant_key` alongside tenant-scoped compare tokens.
 - 2026-05-21 — Completed and verified Phase 29: targeted tenancy runtime, reviewed-artifact validation, audit provenance, and mounted-admin session suites all passed; roadmap, requirements, and phase summaries now mark the bounded tenancy seam complete up to the remaining mounted/admin and provenance gaps.
 - 2026-05-21 — Defined milestone `v1.1.0` for Tenancy Helpers & Validation, restored active `REQUIREMENTS.md`, refreshed `PROJECT.md`, and created the Phase 29 roadmap as the first deliberate post-GA milestone.
@@ -151,4 +159,4 @@ These remain the primary source of truth and should be loaded selectively per ph
 
 ## Next Action
 
-Next: Run `$gsd-plan-phase 31`.
+Next: Run `$gsd-complete-milestone`.
