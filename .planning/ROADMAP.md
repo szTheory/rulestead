@@ -63,9 +63,9 @@ Plans:
 - milestone closeout evidence for lifecycle workflows
 
 Plans:
-- [ ] `38-01-PLAN.md` — create the lifecycle spine guide and route root/package entrypoints into the canonical story
-- [ ] `38-02-PLAN.md` — align satellite runbooks, testing guidance, API-stability language, and maintainer lifecycle release notes
-- [ ] `38-03-PLAN.md` — codify lifecycle release-surface tests and write the phase-local `LIF-05` verification artifact
+- [x] `38-01-PLAN.md` — create the lifecycle spine guide and route root/package entrypoints into the canonical story
+- [x] `38-02-PLAN.md` — align satellite runbooks, testing guidance, API-stability language, and maintainer lifecycle release notes
+- [x] `38-03-PLAN.md` — codify lifecycle release-surface tests and write the phase-local `LIF-05` verification artifact
 
 ## Next Candidates
 
@@ -79,4 +79,4 @@ Plans:
 
 ## Next Step
 
-Start execution with `$gsd-plan-phase 35`.
+Run `$gsd-verify-work 38` to review the completed lifecycle docs, tests, and `38-VERIFICATION.md` evidence.

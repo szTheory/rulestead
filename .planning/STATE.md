@@ -29,7 +29,7 @@ See: `.planning/ROADMAP.md` for current roadmap state and archive links.
 
 ## Current Position
 
-Phase: 38 (lifecycle-docs-runbooks-verification) — EXECUTING
+Phase: 38 (lifecycle-docs-runbooks-verification) — VERIFYING
 Plan: 3 of 3
 Status: Phase complete — ready for verification
 Last activity: 2026-05-23
@@ -129,4 +129,4 @@ These remain the primary source of truth and should be loaded selectively per ph
 
 ## Next Action
 
-Next: Run `$gsd-plan-phase 35` to begin milestone execution.
+Next: Run `$gsd-verify-work 38` to review the completed `LIF-05` docs, release-surface tests, and verification artifact.
