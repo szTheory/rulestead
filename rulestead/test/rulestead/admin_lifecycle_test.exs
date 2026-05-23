@@ -1,7 +1,7 @@
 defmodule Rulestead.AdminLifecycleTest do
   use ExUnit.Case, async: true
 
-  alias Rulestead.Admin.Lifecycle
+  alias Rulestead.Admin.{Lifecycle, LifecycleDefaults}
   alias Rulestead.{Flag, FlagEnvironment}
 
   test "flag changeset requires owner and exactly one lifecycle mode" do
@@ -88,6 +88,104 @@ defmodule Rulestead.AdminLifecycleTest do
 
     assert changeset.valid?
     assert DateTime.to_unix(get_change(changeset, :last_evaluated_at)) == DateTime.to_unix(evaluated_at)
+  end
+
+  test "flag changeset accepts authored ownership metadata and rejects blank refs or invalid kinds" do
+    valid_base = %{
+      key: "pricing-rollout",
+      flag_type: :release,
+      value_type: :boolean,
+      default_value: %{value: false},
+      owner: "legacy-owner",
+      permanent: true,
+      ownership: %{
+        owner_ref: "team:pricing",
+        owner_kind: :team,
+        owner_display: "Pricing Team"
+      },
+      lifecycle: %{
+        mode: :permanent,
+        default_source: :flag_type,
+        default_overridden: false
+      }
+    }
+
+    assert %Ecto.Changeset{valid?: true} = Flag.changeset(%Flag{}, valid_base)
+
+    blank_ref =
+      Flag.changeset(%Flag{}, put_in(valid_base, [:ownership, :owner_ref], "   "))
+
+    refute blank_ref.valid?
+    assert "can't be blank" in errors_on(blank_ref).ownership.owner_ref
+
+    invalid_kind =
+      Flag.changeset(%Flag{}, put_in(valid_base, [:ownership, :owner_kind], :vendor))
+
+    refute invalid_kind.valid?
+    assert "is invalid" in errors_on(invalid_kind).ownership.owner_kind
+  end
+
+  test "flag changeset stores authored lifecycle metadata and requires explicit remote config posture" do
+    base = %{
+      key: "checkout-copy",
+      value_type: :boolean,
+      default_value: %{value: false},
+      owner: "growth",
+      ownership: %{owner_ref: "team:growth", owner_kind: :team},
+      lifecycle: %{
+        mode: :expiring,
+        default_source: :flag_type,
+        default_overridden: false,
+        review_by: ~D[2026-06-01]
+      },
+      expected_expiration: ~D[2026-05-01],
+      permanent: false
+    }
+
+    assert %Ecto.Changeset{valid?: true} =
+             Flag.changeset(%Flag{}, Map.put(base, :flag_type, :release))
+
+    remote_config =
+      Flag.changeset(
+        %Flag{},
+        Map.merge(base, %{
+          flag_type: :remote_config,
+          lifecycle: %{mode: nil, default_source: :operator_required, default_overridden: false}
+        })
+      )
+
+    refute remote_config.valid?
+    assert "must choose permanent or expected expiration for remote config" in errors_on(remote_config).lifecycle.mode
+  end
+
+  test "lifecycle defaults stay advisory and never persist computed stale or archive-ready states" do
+    assert %{
+             mode: :expiring,
+             rationale: rationale,
+             default_source: :flag_type,
+             default_overridden: false
+           } = LifecycleDefaults.suggest(:release)
+
+    assert rationale =~ "release"
+
+    assert %{
+             mode: nil,
+             rationale: remote_config_rationale,
+             default_source: :operator_required,
+             default_overridden: false
+           } = LifecycleDefaults.suggest(:remote_config)
+
+    assert remote_config_rationale =~ "explicit"
+
+    overridden =
+      LifecycleDefaults.suggest(:permission,
+        authored_mode: :expiring,
+        authored_review_by: ~D[2026-06-10]
+      )
+
+    assert overridden.default_overridden
+    refute Map.has_key?(overridden, :state)
+    refute Map.has_key?(overridden, :archive_ready)
   end
 
   defp errors_on(changeset) do
