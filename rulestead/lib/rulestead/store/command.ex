@@ -6,11 +6,17 @@ defmodule Rulestead.Store.Command do
   remain adapter-private.
   """
 
+  alias Rulestead.Admin.LifecycleDefaults
+  alias Rulestead.Flag.{LifecycleMetadata, Ownership}
   alias Rulestead.Governance.ApprovalRequirement
   alias Rulestead.Governance.ScheduledExecution
 
   defmodule GovernanceSupport do
     @moduledoc false
+
+    @tenant_scope_sources ["explicit", "host_resolved", "single_tenant"]
+    @tenant_validation_evidence ["same_tenant_guard", "single_tenant", "not_applicable"]
+    @tenant_validation_status ["passed", "bypassed"]
 
     def fetch_required!(attrs, key) do
       case fetch(attrs, key) do
@@ -55,6 +61,83 @@ defmodule Rulestead.Store.Command do
     def normalize_metadata(metadata), do: metadata |> normalize_map() |> drop_sensitive_keys()
     def normalize_command(metadata), do: normalize_map(metadata)
 
+    def normalize_tenant_provenance(nil), do: nil
+
+    def normalize_tenant_provenance(value) when is_list(value) or is_map(value) do
+      value = normalize_map(value)
+      validation = normalize_tenant_validation_map(Map.get(value, "validation"))
+
+      provenance =
+        %{}
+        |> maybe_put("tenant_key", normalize_string(Map.get(value, "tenant_key")))
+        |> maybe_put(
+          "scope_source",
+          normalize_enum(Map.get(value, "scope_source"), @tenant_scope_sources)
+        )
+        |> maybe_put("validation", validation)
+
+      if map_size(provenance) == 0, do: nil, else: provenance
+    end
+
+    def normalize_tenant_provenance(_value), do: nil
+
+    def tenant_provenance(source, opts \\ []) do
+      metadata =
+        opts
+        |> Keyword.get(:metadata, fetch(source, :metadata))
+        |> normalize_metadata()
+
+      fallback =
+        opts
+        |> Keyword.get(:fallback)
+        |> fallback_tenant_provenance()
+
+      existing =
+        metadata
+        |> metadata_tenant_provenance()
+        |> case do
+          nil -> fallback
+          provenance -> merge_tenant_provenance(fallback, provenance)
+        end
+
+      tenant_key =
+        existing_tenant_key(existing) ||
+          source_tenant_key(source) ||
+          metadata_tenant_key(metadata)
+
+      single_tenant? =
+        Keyword.get(opts, :tenancy_module, Rulestead.Tenancy.module()) ==
+          Rulestead.Tenancy.SingleTenant
+
+      scope_source =
+        existing_scope_source(existing) ||
+          normalize_enum(metadata["tenant_scope_source"], @tenant_scope_sources) ||
+          default_scope_source(tenant_key, single_tenant?)
+
+      validation =
+        tenant_validation(
+          existing_validation(existing),
+          metadata,
+          tenant_key,
+          single_tenant?
+        )
+
+      %{}
+      |> maybe_put("tenant_key", tenant_key)
+      |> maybe_put("scope_source", scope_source)
+      |> maybe_put("validation", validation)
+    end
+
+    def with_tenant_provenance(payload, source \\ nil, opts \\ [])
+        when is_list(payload) or is_map(payload) do
+      payload = normalize_map(payload)
+      provenance = tenant_provenance(source || payload, Keyword.put(opts, :metadata, payload))
+
+      payload
+      |> maybe_put("tenant_key", Map.get(provenance, "tenant_key"))
+      |> Map.put("tenant", provenance)
+    end
+
     def normalize_approval_requirement(%ApprovalRequirement{} = requirement),
       do: requirement |> ApprovalRequirement.serialize() |> normalize_map()
 
@@ -91,6 +174,114 @@ defmodule Rulestead.Store.Command do
     def maybe_put(map, _key, nil), do: map
     def maybe_put(map, key, value), do: Map.put(map, key, value)
 
+    defp fallback_tenant_provenance(nil), do: nil
+
+    defp fallback_tenant_provenance(value) do
+      normalize_tenant_provenance(value) ||
+        value
+        |> normalize_map()
+        |> metadata_tenant_provenance()
+    end
+
+    defp metadata_tenant_provenance(metadata) do
+      metadata["tenant"] || metadata["tenant_provenance"]
+    end
+
+    defp merge_tenant_provenance(nil, provenance), do: provenance
+    defp merge_tenant_provenance(provenance, nil), do: provenance
+
+    defp merge_tenant_provenance(left, right) do
+      Map.merge(left, right, fn
+        "validation", left_validation, right_validation ->
+          Map.merge(left_validation || %{}, right_validation || %{})
+
+        _key, _left, right_value ->
+          right_value
+      end)
+    end
+
+    defp existing_tenant_key(nil), do: nil
+    defp existing_tenant_key(provenance), do: normalize_string(Map.get(provenance, "tenant_key"))
+
+    defp existing_scope_source(nil), do: nil
+
+    defp existing_scope_source(provenance),
+      do: normalize_enum(Map.get(provenance, "scope_source"), @tenant_scope_sources)
+
+    defp existing_validation(nil), do: nil
+    defp existing_validation(provenance), do: Map.get(provenance, "validation")
+
+    defp source_tenant_key(source) do
+      source
+      |> fetch(:tenant_key)
+      |> normalize_string()
+    end
+
+    defp metadata_tenant_key(metadata), do: normalize_string(metadata["tenant_key"])
+
+    defp default_scope_source(tenant_key, _single_tenant?) when is_binary(tenant_key),
+      do: "explicit"
+
+    defp default_scope_source(_tenant_key, true), do: "single_tenant"
+    defp default_scope_source(_tenant_key, false), do: "host_resolved"
+
+    defp tenant_validation(existing, metadata, tenant_key, single_tenant?) do
+      existing = normalize_tenant_validation_map(existing) || %{}
+
+      evidence =
+        Map.get(existing, "evidence") ||
+          normalize_enum(metadata["tenant_validation_evidence"], @tenant_validation_evidence) ||
+          default_validation_evidence(tenant_key, single_tenant?)
+
+      status =
+        Map.get(existing, "status") ||
+          normalize_enum(metadata["tenant_validation_status"], @tenant_validation_status) ||
+          default_validation_status(tenant_key)
+
+      %{}
+      |> maybe_put("evidence", evidence)
+      |> maybe_put("status", status)
+      |> case do
+        validation when map_size(validation) == 0 -> nil
+        validation -> validation
+      end
+    end
+
+    defp normalize_tenant_validation_map(nil), do: nil
+
+    defp normalize_tenant_validation_map(value) when is_list(value) or is_map(value) do
+      value = normalize_map(value)
+
+      validation =
+        %{}
+        |> maybe_put(
+          "evidence",
+          normalize_enum(Map.get(value, "evidence"), @tenant_validation_evidence)
+        )
+        |> maybe_put(
+          "status",
+          normalize_enum(Map.get(value, "status"), @tenant_validation_status)
+        )
+
+      if map_size(validation) == 0, do: nil, else: validation
+    end
+
+    defp normalize_tenant_validation_map(_value), do: nil
+
+    defp default_validation_evidence(tenant_key, _single_tenant?) when is_binary(tenant_key),
+      do: "same_tenant_guard"
+
+    defp default_validation_evidence(_tenant_key, true), do: "single_tenant"
+    defp default_validation_evidence(_tenant_key, false), do: "not_applicable"
+
+    defp default_validation_status(tenant_key) when is_binary(tenant_key), do: "passed"
+    defp default_validation_status(_tenant_key), do: "bypassed"
+
+    defp normalize_enum(value, allowed) do
+      value = normalize_string(value)
+      if value in allowed, do: value, else: nil
+    end
+
     defp drop_sensitive_keys(map) do
       map
       |> Map.drop([
@@ -111,6 +302,182 @@ defmodule Rulestead.Store.Command do
     defp drop_sensitive_value(value) when is_map(value), do: drop_sensitive_keys(value)
     defp drop_sensitive_value(value), do: value
   end
+
+  @owner_kinds [:person, :team, :service]
+  @lifecycle_modes [:expiring, :permanent]
+  @lifecycle_default_sources [
+    :flag_type,
+    :operator_override,
+    :operator_required,
+    :legacy_backfill
+  ]
+
+  @spec normalize_ownership(map() | keyword()) :: nil | map()
+  def normalize_ownership(attrs) when is_map(attrs) or is_list(attrs) do
+    attrs = Map.new(attrs)
+    ownership = fetch_nested(attrs, :ownership)
+    picker = fetch_nested(attrs, :owner_picker)
+
+    owner_ref =
+      ownership
+      |> fetch_optional(:owner_ref)
+      |> Kernel.||(GovernanceSupport.fetch(attrs, :owner_ref))
+      |> Kernel.||(fetch_optional(picker, :owner_ref))
+      |> GovernanceSupport.normalize_string()
+
+    owner_kind =
+      ownership
+      |> fetch_optional(:owner_kind)
+      |> Kernel.||(GovernanceSupport.fetch(attrs, :owner_kind))
+      |> Kernel.||(fetch_optional(picker, :owner_kind))
+      |> normalize_owner_kind()
+
+    owner_display =
+      ownership
+      |> fetch_optional(:owner_display)
+      |> Kernel.||(GovernanceSupport.fetch(attrs, :owner_display))
+      |> Kernel.||(fetch_optional(picker, :owner_display))
+      |> GovernanceSupport.normalize_string()
+
+    if is_binary(owner_ref) do
+      %{
+        owner_ref: owner_ref,
+        owner_kind: owner_kind || :team,
+        owner_display: owner_display
+      }
+    else
+      Ownership.default_from_owner(GovernanceSupport.fetch(attrs, :owner))
+    end
+  end
+
+  @spec ownership_label(nil | map(), term()) :: nil | String.t()
+  def ownership_label(nil, owner), do: GovernanceSupport.normalize_string(owner)
+
+  def ownership_label(ownership, owner) do
+    GovernanceSupport.normalize_string(fetch_optional(ownership, :owner_display)) ||
+      GovernanceSupport.normalize_string(fetch_optional(ownership, :owner_ref)) ||
+      GovernanceSupport.normalize_string(owner)
+  end
+
+  @spec normalize_lifecycle(map() | keyword()) :: map()
+  def normalize_lifecycle(attrs) when is_map(attrs) or is_list(attrs) do
+    attrs = Map.new(attrs)
+    lifecycle = fetch_nested(attrs, :lifecycle)
+
+    explicit_mode =
+      lifecycle
+      |> fetch_optional(:mode)
+      |> Kernel.||(GovernanceSupport.fetch(attrs, :lifecycle_mode))
+      |> normalize_lifecycle_mode()
+
+    review_by =
+      lifecycle
+      |> fetch_optional(:review_by)
+      |> Kernel.||(GovernanceSupport.fetch(attrs, :review_by))
+      |> Kernel.||(GovernanceSupport.fetch(attrs, :expected_expiration))
+
+    suggestion =
+      LifecycleDefaults.suggest(
+        GovernanceSupport.fetch(attrs, :flag_type),
+        authored_mode: explicit_mode,
+        authored_review_by: review_by
+      )
+
+    mode = explicit_mode || LifecycleMetadata.mode_from_flag(attrs)
+
+    overridden? =
+      lifecycle
+      |> fetch_optional(:default_overridden)
+      |> normalize_boolean()
+      |> Kernel.||(Map.get(suggestion, :default_overridden, false))
+
+    default_source =
+      lifecycle
+      |> fetch_optional(:default_source)
+      |> normalize_default_source()
+      |> Kernel.||(default_source_for(mode, suggestion, overridden?))
+
+    %{
+      mode: mode,
+      review_by: review_by,
+      default_source: default_source,
+      default_overridden: overridden?
+    }
+  end
+
+  def normalize_lifecycle(_attrs), do: LifecycleMetadata.default_from_flag(%{})
+
+  @spec lifecycle_update(nil | map() | keyword()) :: nil | map()
+  def lifecycle_update(attrs) when is_map(attrs) or is_list(attrs) do
+    attrs = Map.new(attrs)
+    lifecycle = fetch_nested(attrs, :lifecycle)
+
+    lifecycle_provided? =
+      not is_nil(lifecycle) or
+        not is_nil(GovernanceSupport.fetch(attrs, :permanent)) or
+        not is_nil(GovernanceSupport.fetch(attrs, :expected_expiration)) or
+        not is_nil(GovernanceSupport.fetch(attrs, :review_by)) or
+        not is_nil(GovernanceSupport.fetch(attrs, :lifecycle_mode))
+
+    if lifecycle_provided?, do: normalize_lifecycle(attrs), else: nil
+  end
+
+  def lifecycle_update(_attrs), do: nil
+
+  defp fetch_nested(attrs, key) do
+    case GovernanceSupport.fetch(attrs, key) do
+      value when is_list(value) or is_map(value) -> Map.new(value)
+      _other -> nil
+    end
+  end
+
+  defp fetch_optional(nil, _key), do: nil
+  defp fetch_optional(map, key), do: GovernanceSupport.fetch(map, key)
+
+  defp normalize_owner_kind(value) do
+    value =
+      value
+      |> GovernanceSupport.normalize_string()
+      |> string_to_existing_atom()
+
+    if value in @owner_kinds, do: value, else: nil
+  end
+
+  defp normalize_lifecycle_mode(value) do
+    value =
+      value
+      |> GovernanceSupport.normalize_string()
+      |> string_to_existing_atom()
+
+    if value in @lifecycle_modes, do: value, else: nil
+  end
+
+  defp normalize_default_source(value) do
+    value =
+      value
+      |> GovernanceSupport.normalize_string()
+      |> string_to_existing_atom()
+
+    if value in @lifecycle_default_sources, do: value, else: nil
+  end
+
+  defp string_to_existing_atom(nil), do: nil
+
+  defp string_to_existing_atom(value) when is_binary(value) do
+    try do
+      String.to_existing_atom(value)
+    rescue
+      ArgumentError -> nil
+    end
+  end
+
+  defp normalize_boolean(value) when value in [true, "true", 1, "1"], do: true
+  defp normalize_boolean(value) when value in [false, "false", 0, "0"], do: false
+  defp normalize_boolean(_value), do: nil
+
+  defp default_source_for(_mode, _suggestion, true), do: :operator_override
+  defp default_source_for(_mode, %{default_source: source}, false), do: source
+  defp default_source_for(_mode, _suggestion, false), do: :legacy_backfill
 
   defmodule FetchSnapshot do
     @moduledoc false
@@ -490,6 +857,7 @@ defmodule Rulestead.Store.Command do
     end
 
     defp normalize_flag_keys(nil), do: []
+
     defp normalize_flag_keys(values) when is_list(values) do
       values
       |> Enum.map(&GovernanceSupport.normalize_string/1)
@@ -512,8 +880,10 @@ defmodule Rulestead.Store.Command do
       :value_type,
       :default_value,
       :owner,
+      :ownership,
       :expected_expiration,
       :permanent,
+      :lifecycle,
       environment_keys: [],
       tags: [],
       actor: nil,
@@ -527,8 +897,10 @@ defmodule Rulestead.Store.Command do
             value_type: atom(),
             default_value: map(),
             owner: String.t(),
+            ownership: nil | map(),
             expected_expiration: nil | Date.t(),
             permanent: nil | boolean(),
+            lifecycle: nil | map(),
             environment_keys: [String.t() | atom()],
             tags: [String.t()],
             actor: nil | map(),
@@ -538,6 +910,8 @@ defmodule Rulestead.Store.Command do
     @spec new(map() | keyword(), keyword()) :: t()
     def new(attrs, opts \\ []) when is_map(attrs) or is_list(attrs) do
       attrs = Map.new(attrs)
+      ownership = Rulestead.Store.Command.normalize_ownership(attrs)
+      lifecycle = Rulestead.Store.Command.normalize_lifecycle(attrs)
 
       %__MODULE__{
         key: Map.fetch!(attrs, :key),
@@ -545,9 +919,13 @@ defmodule Rulestead.Store.Command do
         flag_type: Map.fetch!(attrs, :flag_type),
         value_type: Map.fetch!(attrs, :value_type),
         default_value: Map.fetch!(attrs, :default_value),
-        owner: Map.fetch!(attrs, :owner),
+        owner:
+          ownership
+          |> Rulestead.Store.Command.ownership_label(Map.fetch!(attrs, :owner)),
+        ownership: ownership,
         expected_expiration: Map.get(attrs, :expected_expiration),
         permanent: Map.get(attrs, :permanent, false),
+        lifecycle: lifecycle,
         environment_keys: Map.get(attrs, :environment_keys, []),
         tags: Map.get(attrs, :tags, []),
         actor: Keyword.get(opts, :actor, Map.get(attrs, :actor)),
@@ -564,8 +942,10 @@ defmodule Rulestead.Store.Command do
       :flag_key,
       :description,
       :owner,
+      :ownership,
       :expected_expiration,
       :permanent,
+      :lifecycle,
       tags: nil,
       actor: nil,
       metadata: %{}
@@ -575,8 +955,10 @@ defmodule Rulestead.Store.Command do
             flag_key: String.t() | atom(),
             description: nil | String.t(),
             owner: nil | String.t(),
+            ownership: nil | map(),
             expected_expiration: nil | Date.t(),
             permanent: nil | boolean(),
+            lifecycle: nil | map(),
             tags: nil | [String.t()],
             actor: nil | map(),
             metadata: map()
@@ -585,13 +967,17 @@ defmodule Rulestead.Store.Command do
     @spec new(String.t() | atom(), map() | keyword(), keyword()) :: t()
     def new(flag_key, attrs, opts \\ []) when is_map(attrs) or is_list(attrs) do
       attrs = Map.new(attrs)
+      ownership = Rulestead.Store.Command.normalize_ownership(attrs)
+      lifecycle = Rulestead.Store.Command.lifecycle_update(attrs)
 
       %__MODULE__{
         flag_key: flag_key,
         description: Map.get(attrs, :description),
-        owner: Map.get(attrs, :owner),
+        owner: Rulestead.Store.Command.ownership_label(ownership, Map.get(attrs, :owner)),
+        ownership: ownership,
         expected_expiration: Map.get(attrs, :expected_expiration),
         permanent: Map.get(attrs, :permanent),
+        lifecycle: lifecycle,
         tags: Map.get(attrs, :tags),
         actor: Keyword.get(opts, :actor, Map.get(attrs, :actor)),
         metadata: Keyword.get(opts, :metadata, Map.get(attrs, :metadata, %{}))
@@ -684,6 +1070,8 @@ defmodule Rulestead.Store.Command do
               tags: [],
               lifecycle: nil,
               stale: nil,
+              readiness: nil,
+              evidence_quality: nil,
               flag_type: nil,
               include_archived?: false,
               limit: 50,
@@ -700,6 +1088,8 @@ defmodule Rulestead.Store.Command do
             tags: [String.t()],
             lifecycle: nil | :active | :potentially_stale | :stale | :archived,
             stale: nil | :fresh | :potentially_stale | :stale,
+            readiness: nil | :keep_active | :needs_review | :archive_candidate,
+            evidence_quality: nil | :strong | :partial | :weak,
             flag_type: nil | atom(),
             include_archived?: boolean(),
             limit: pos_integer(),
@@ -719,6 +1109,8 @@ defmodule Rulestead.Store.Command do
         tags: Keyword.get(opts, :tags, []),
         lifecycle: Keyword.get(opts, :lifecycle),
         stale: Keyword.get(opts, :stale),
+        readiness: Keyword.get(opts, :readiness),
+        evidence_quality: Keyword.get(opts, :evidence_quality),
         flag_type: Keyword.get(opts, :flag_type),
         include_archived?: Keyword.get(opts, :include_archived?, false),
         limit: Keyword.get(opts, :limit, 50),

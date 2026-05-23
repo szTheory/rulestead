@@ -6,7 +6,6 @@ defmodule Rulestead.Fake do
   # validation semantics as the real store contract. Test-only reset, clock, and
   # inspection helpers live in `Rulestead.Fake.Control`.
 
-
   use GenServer
 
   alias Ecto.Changeset
@@ -413,7 +412,9 @@ defmodule Rulestead.Fake do
 
   def handle_call({:apply_promotion, command}, _from, state) do
     if Compare.protected_target?(command.target_environment_key) do
-      {:reply, {:error, StoreError.invalid_command("promotion to protected targets requires governance")}, state}
+      {:reply,
+       {:error, StoreError.invalid_command("promotion to protected targets requires governance")},
+       state}
     else
       case do_apply_promotion(state, command, allow_protected_target?: false) do
         {:ok, payload, next_state} -> {:reply, {:ok, payload}, next_state}
@@ -463,8 +464,10 @@ defmodule Rulestead.Fake do
       value_type: command.value_type,
       default_value: command.default_value,
       owner: command.owner,
+      ownership: command.ownership,
       expected_expiration: command.expected_expiration,
       permanent: command.permanent,
+      lifecycle: command.lifecycle,
       tags: command.tags,
       environment_keys: command.environment_keys
     }
@@ -659,6 +662,8 @@ defmodule Rulestead.Fake do
           |> maybe_filter_tags(command.tags)
           |> maybe_filter_lifecycle(command.lifecycle)
           |> maybe_filter_stale(command.stale)
+          |> maybe_filter_readiness(command.readiness)
+          |> maybe_filter_evidence_quality(command.evidence_quality)
           |> maybe_filter_flag_type(command.flag_type)
           |> sort_entries(command.sort)
 
@@ -902,7 +907,7 @@ defmodule Rulestead.Fake do
         submitter_display: get_in(command.actor || %{}, ["display"]),
         reason: command.reason,
         approval_requirement_snapshot: command.approval_requirement,
-        command_snapshot: command.command,
+        command_snapshot: Command.GovernanceSupport.with_tenant_provenance(command.command),
         metadata: command.metadata,
         correlation_id: correlation_id,
         submitted_at: state.now,
@@ -1182,7 +1187,11 @@ defmodule Rulestead.Fake do
             scheduled_for: command.scheduled_for,
             command_snapshot: change_request.command_snapshot,
             approval_requirement_snapshot: change_request.approval_requirement_snapshot,
-            metadata: command.metadata,
+            metadata:
+              Command.GovernanceSupport.with_tenant_provenance(
+                command.metadata,
+                change_request.command_snapshot
+              ),
             correlation_id: change_request.correlation_id,
             idempotency_key: "scheduled_execution:change_request:#{change_request.id}"
           })
@@ -1217,9 +1226,10 @@ defmodule Rulestead.Fake do
         scheduled_by_display: actor_value(command.actor, "display"),
         approved_by_snapshot: [],
         scheduled_for: command.scheduled_for,
-        command_snapshot: command.command,
+        command_snapshot: Command.GovernanceSupport.with_tenant_provenance(command.command),
         approval_requirement_snapshot: command.approval_requirement,
-        metadata: command.metadata,
+        metadata:
+          Command.GovernanceSupport.with_tenant_provenance(command.metadata, command.command),
         correlation_id: correlation_id,
         idempotency_key: "scheduled_execution:#{correlation_id}"
       })
@@ -1634,6 +1644,7 @@ defmodule Rulestead.Fake do
   defp do_put_flag(state, attrs) do
     environment_keys = normalize_environment_keys(attrs)
     flag_attrs = Map.drop(attrs, [:environment_keys, "environment_keys"])
+    extra_attrs = Map.take(flag_attrs, [:code_reference_count, :code_refs_scan])
     changeset = Flag.changeset(%Flag{}, flag_attrs)
 
     with {:ok, flag} <- Changeset.apply_action(changeset, :insert),
@@ -1645,7 +1656,7 @@ defmodule Rulestead.Fake do
            metadata: %{flag_key: flag.key}
          )}
       else
-        {flag_record, next_state} = build_flag_record(state, flag, environment_keys)
+        {flag_record, next_state} = build_flag_record(state, flag, environment_keys, extra_attrs)
         {:ok, build_create_payload(next_state, flag_record), next_state}
       end
     else
@@ -1695,7 +1706,7 @@ defmodule Rulestead.Fake do
     end
   end
 
-  defp build_flag_record(state, flag, environment_keys) do
+  defp build_flag_record(state, flag, environment_keys, extra_attrs) do
     flag_id = Ecto.UUID.generate()
 
     {environments, state} =
@@ -1727,8 +1738,10 @@ defmodule Rulestead.Fake do
       value_type: flag.value_type,
       default_value: flag.default_value,
       owner: flag.owner,
+      ownership: flag.ownership,
       expected_expiration: flag.expected_expiration,
       permanent: flag.permanent,
+      lifecycle: flag.lifecycle,
       tags: flag.tags,
       archived_at: flag.archived_at,
       previous_owners: [flag.owner],
@@ -1737,6 +1750,7 @@ defmodule Rulestead.Fake do
       environments: environments,
       rulesets: Map.new(environment_keys, &{&1, %{}})
     }
+    |> Map.merge(extra_attrs)
 
     next_state = put_in(state.flags[flag.key], flag_record)
     {flag_record, next_state}
@@ -1906,6 +1920,7 @@ defmodule Rulestead.Fake do
           Keyword.get(opts, :links, %{})
           |> Map.new()
           |> maybe_put("rollback_of_event_id", Keyword.get(opts, :rollback_of_event_id)),
+        tenant: Command.GovernanceSupport.tenant_provenance(command, metadata: command_metadata),
         context: command_metadata,
         request_id:
           Map.get(command_metadata, :request_id) || Map.get(command_metadata, "request_id"),
@@ -2133,7 +2148,8 @@ defmodule Rulestead.Fake do
         "change_request_id" => change_request.id,
         "governance_action" => change_request.governed_action,
         "execution_stage" => stage,
-        "resource_key" => change_request.resource_key
+        "resource_key" => change_request.resource_key,
+        "tenant" => change_request.command_snapshot["tenant"]
       })
 
     Map.merge(command, %{
@@ -2631,8 +2647,10 @@ defmodule Rulestead.Fake do
           )
       )
 
-    with {:ok, compare} <- compare_environments_in_state(state, compare_command(promotion_command)),
-         :ok <- Apply.validate_with_compare(promotion_command, compare, allow_protected_target?: true),
+    with {:ok, compare} <-
+           compare_environments_in_state(state, compare_command(promotion_command)),
+         :ok <-
+           Apply.validate_with_compare(promotion_command, compare, allow_protected_target?: true),
          {:ok, execution_result, next_state} <-
            do_apply_promotion(state, promotion_command, allow_protected_target?: true) do
       {:ok, execution_result, next_state}
@@ -2656,7 +2674,8 @@ defmodule Rulestead.Fake do
       command.source_environment_key,
       command.target_environment_key,
       flag_keys: command.flag_keys,
-      compare_token: command.compare_token
+      compare_token: command.compare_token,
+      tenant_key: command.tenant_key
     )
   end
 
@@ -3198,10 +3217,12 @@ defmodule Rulestead.Fake do
           target_fingerprint: command.target_fingerprint,
           dependency_closure_keys: command.dependency_closure_keys,
           applied_flag_keys: command.flag_keys,
+          tenant_key: command.tenant_key,
           metadata: %{
             "actor" => command.actor || %{},
             "reason" => command.reason,
-            "metadata" => command.metadata
+            "metadata" => command.metadata,
+            "tenant" => Command.GovernanceSupport.tenant_provenance(command)
           },
           inserted_at: applied_state.now,
           updated_at: applied_state.now
@@ -3246,7 +3267,8 @@ defmodule Rulestead.Fake do
              target_environment.key,
              Keyword.get(opts, :allow_protected_target?, false)
            ),
-         {:ok, applied_state} <- apply_manifest_import_bundle(state, target_environment.key, command) do
+         {:ok, applied_state} <-
+           apply_manifest_import_bundle(state, target_environment.key, command) do
       version = next_environment_version(state, target_environment.key)
 
       environment_version =
@@ -3262,11 +3284,13 @@ defmodule Rulestead.Fake do
           target_fingerprint: command.target_fingerprint,
           dependency_closure_keys: command.dependency_closure_keys,
           applied_flag_keys: command.flag_keys,
+          tenant_key: command.tenant_key,
           metadata: %{
             "mode" => "manifest_import",
             "actor" => command.actor || %{},
             "reason" => command.reason,
-            "metadata" => command.metadata
+            "metadata" => command.metadata,
+            "tenant" => Command.GovernanceSupport.tenant_provenance(command)
           },
           inserted_at: applied_state.now,
           updated_at: applied_state.now
@@ -3382,19 +3406,28 @@ defmodule Rulestead.Fake do
             )
             |> Map.put(:last_published_at, state.now)
             |> Map.put(:last_evaluated_at, proposed_flag_environment["last_evaluated_at"])
-            |> Map.put(:variants_served, Map.get(proposed_flag_environment, "variants_served", %{}))
+            |> Map.put(
+              :variants_served,
+              Map.get(proposed_flag_environment, "variants_served", %{})
+            )
             |> Map.put(:updated_at, state.now)
 
           next_state =
             state
             |> put_in([:flags, flag_key], updated_flag)
-            |> put_in([
-              :flags,
-              flag_key,
-              :environments,
-              target_environment_key
-            ], updated_flag_environment)
-            |> put_in([:flags, flag_key, :rulesets, target_environment_key, ruleset_version], ruleset)
+            |> put_in(
+              [
+                :flags,
+                flag_key,
+                :environments,
+                target_environment_key
+              ],
+              updated_flag_environment
+            )
+            |> put_in(
+              [:flags, flag_key, :rulesets, target_environment_key, ruleset_version],
+              ruleset
+            )
 
           {:ok, next_state}
 
@@ -3423,9 +3456,12 @@ defmodule Rulestead.Fake do
        )}
     else
       proposed_flag = Map.get(proposed_state, "flag", %{}) |> denormalize_promoted_value()
+
       proposed_flag_environment =
         Map.get(proposed_state, "flag_environment", %{}) |> denormalize_promoted_value()
-      proposed_ruleset = Map.get(proposed_state, "active_ruleset", %{}) |> denormalize_promoted_value()
+
+      proposed_ruleset =
+        Map.get(proposed_state, "active_ruleset", %{}) |> denormalize_promoted_value()
 
       with {:ok, environment} <- fetch_environment(state, target_environment_key),
            {:ok, next_state, flag} <-
@@ -3467,13 +3503,22 @@ defmodule Rulestead.Fake do
               )
               |> Map.put(:last_published_at, next_state.now)
               |> Map.put(:last_evaluated_at, proposed_flag_environment["last_evaluated_at"])
-              |> Map.put(:variants_served, Map.get(proposed_flag_environment, "variants_served", %{}))
+              |> Map.put(
+                :variants_served,
+                Map.get(proposed_flag_environment, "variants_served", %{})
+              )
               |> Map.put(:updated_at, next_state.now)
 
             final_state =
               next_state
-              |> put_in([:flags, flag_key, :environments, target_environment_key], updated_flag_environment)
-              |> put_in([:flags, flag_key, :rulesets, target_environment_key, ruleset_version], ruleset)
+              |> put_in(
+                [:flags, flag_key, :environments, target_environment_key],
+                updated_flag_environment
+              )
+              |> put_in(
+                [:flags, flag_key, :rulesets, target_environment_key, ruleset_version],
+                ruleset
+              )
 
             {:ok, final_state}
 
@@ -3624,6 +3669,7 @@ defmodule Rulestead.Fake do
       target_fingerprint: environment_version.target_fingerprint,
       dependency_closure_keys: environment_version.dependency_closure_keys,
       applied_flag_keys: environment_version.applied_flag_keys,
+      tenant_key: environment_version.tenant_key,
       metadata: environment_version.metadata,
       inserted_at: environment_version.inserted_at,
       updated_at: environment_version.updated_at
@@ -3836,9 +3882,13 @@ defmodule Rulestead.Fake do
       :value_type,
       :default_value,
       :owner,
+      :ownership,
       :expected_expiration,
       :permanent,
+      :lifecycle,
       :tags,
+      :code_reference_count,
+      :code_refs_scan,
       :archived_at,
       :inserted_at,
       :updated_at
@@ -4190,12 +4240,14 @@ defmodule Rulestead.Fake do
     Lifecycle.classify(
       flag_summary(flag),
       flag_environment_summary(flag_environment),
-      lifecycle_opts()
+      lifecycle_opts(flag)
     )
   end
 
-  defp lifecycle_opts do
+  defp lifecycle_opts(flag) do
     Application.get_env(:rulestead, :admin_lifecycle, [])
+    |> Keyword.put(:code_reference_count, flag[:code_reference_count])
+    |> Keyword.put(:code_refs_scan, flag[:code_refs_scan])
   end
 
   defp recent_owners(state, current_owner) do
@@ -4227,7 +4279,16 @@ defmodule Rulestead.Fake do
 
   defp maybe_filter_owner(entries, owner) do
     normalized = normalize_owner(owner)
-    Enum.filter(entries, fn entry -> normalize_owner(entry.flag.owner) == normalized end)
+
+    Enum.filter(entries, fn entry ->
+      ownership = Map.get(entry.flag, :ownership) || %{}
+
+      normalized in [
+        normalize_owner(entry.flag.owner),
+        normalize_owner(Map.get(ownership, :owner_ref) || Map.get(ownership, "owner_ref")),
+        normalize_owner(Map.get(ownership, :owner_display) || Map.get(ownership, "owner_display"))
+      ]
+    end)
   end
 
   defp maybe_filter_flag_type(entries, nil), do: entries
@@ -4256,7 +4317,7 @@ defmodule Rulestead.Fake do
 
   defp maybe_filter_stale(entries, stale_state) do
     Enum.filter(entries, fn entry ->
-      case entry.lifecycle.state do
+      case entry.lifecycle.freshness.state do
         :active -> stale_state == :fresh
         :potentially_stale -> stale_state == :potentially_stale
         :stale -> stale_state == :stale
@@ -4264,6 +4325,16 @@ defmodule Rulestead.Fake do
       end
     end)
   end
+
+  defp maybe_filter_readiness(entries, nil), do: entries
+
+  defp maybe_filter_readiness(entries, readiness),
+    do: Enum.filter(entries, &(&1.lifecycle.archive_readiness.readiness == readiness))
+
+  defp maybe_filter_evidence_quality(entries, nil), do: entries
+
+  defp maybe_filter_evidence_quality(entries, evidence_quality),
+    do: Enum.filter(entries, &(&1.lifecycle.archive_readiness.evidence_quality == evidence_quality))
 
   defp paginate_entries(entries, command) do
     filtered_entries =
@@ -4381,6 +4452,7 @@ defmodule Rulestead.Fake do
       %{}
       |> maybe_put_update_field(:description, command.description)
       |> maybe_put_update_field(:owner, command.owner)
+      |> maybe_put_update_field(:ownership, command.ownership)
       |> maybe_put_update_field(:tags, command.tags)
       |> maybe_put_lifecycle_update(command)
 
@@ -4393,8 +4465,10 @@ defmodule Rulestead.Fake do
         :value_type,
         :default_value,
         :owner,
+        :ownership,
         :expected_expiration,
         :permanent,
+        :lifecycle,
         :tags,
         :archived_at
       ])
@@ -4406,8 +4480,10 @@ defmodule Rulestead.Fake do
          flag
          |> Map.put(:description, updated_flag.description)
          |> Map.put(:owner, updated_flag.owner)
+         |> Map.put(:ownership, updated_flag.ownership)
          |> Map.put(:expected_expiration, updated_flag.expected_expiration)
          |> Map.put(:permanent, updated_flag.permanent)
+         |> Map.put(:lifecycle, updated_flag.lifecycle)
          |> Map.put(:tags, updated_flag.tags)
          |> Map.put(
            :previous_owners,
@@ -4463,8 +4539,15 @@ defmodule Rulestead.Fake do
         attrs
       end
 
-    if Map.has_key?(attrs, :permanent) or not is_nil(command.expected_expiration) do
-      Map.put(attrs, :expected_expiration, command.expected_expiration)
+    attrs =
+      if Map.has_key?(attrs, :permanent) or not is_nil(command.expected_expiration) do
+        Map.put(attrs, :expected_expiration, command.expected_expiration)
+      else
+        attrs
+      end
+
+    if not is_nil(command.lifecycle) do
+      Map.put(attrs, :lifecycle, command.lifecycle)
     else
       attrs
     end

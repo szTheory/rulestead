@@ -1,5 +1,4 @@
 defmodule Rulestead.Store.Ecto do
-
   import Ecto.Query
 
   alias Ecto.Changeset
@@ -14,6 +13,8 @@ defmodule Rulestead.Store.Ecto do
     Governance.ExecutionAttempt,
     Governance.ScheduledExecution,
     AuditEvent,
+    CodeRefs.CodeReference,
+    CodeRefs.ScanReceipt,
     Context,
     Environment,
     EnvironmentVersion,
@@ -47,8 +48,16 @@ defmodule Rulestead.Store.Ecto do
     with {:ok, environment} <- fetch_environment(command.environment_key),
          {:ok, flag, flag_environment} <-
            fetch_flag_environment(command.flag_key, environment.key) do
+      lifecycle_context = lifecycle_context_for_flags([flag.key])
+
       {:ok,
-       build_flag_detail_payload(flag, environment, flag_environment, command.include_ruleset?)}
+       build_flag_detail_payload(
+         flag,
+         environment,
+         flag_environment,
+         command.include_ruleset?,
+         lifecycle_context
+       )}
     end
   end
 
@@ -149,7 +158,8 @@ defmodule Rulestead.Store.Ecto do
           {:error, error}
 
         {:error, _operation, %Changeset{} = changeset, _changes} ->
-          {:error, StoreError.invalid_command("promotion apply could not be persisted", cause: changeset)}
+          {:error,
+           StoreError.invalid_command("promotion apply could not be persisted", cause: changeset)}
 
         {:error, _operation, reason, _changes} ->
           {:error, StoreError.unavailable(cause: reason)}
@@ -204,7 +214,8 @@ defmodule Rulestead.Store.Ecto do
           {:error, error}
 
         {:error, _operation, %Changeset{} = changeset, _changes} ->
-          {:error, StoreError.invalid_command("manifest import could not be persisted", cause: changeset)}
+          {:error,
+           StoreError.invalid_command("manifest import could not be persisted", cause: changeset)}
 
         {:error, _operation, reason, _changes} ->
           {:error, StoreError.unavailable(cause: reason)}
@@ -242,8 +253,10 @@ defmodule Rulestead.Store.Ecto do
         value_type: command.value_type,
         default_value: command.default_value,
         owner: command.owner,
+        ownership: command.ownership,
         expected_expiration: command.expected_expiration,
         permanent: command.permanent,
+        lifecycle: command.lifecycle,
         tags: command.tags
       }
 
@@ -285,6 +298,7 @@ defmodule Rulestead.Store.Ecto do
             %{}
             |> maybe_put_update_field(:description, command.description)
             |> maybe_put_update_field(:owner, command.owner)
+            |> maybe_put_update_field(:ownership, command.ownership)
             |> maybe_put_update_field(:tags, command.tags)
             |> maybe_put_lifecycle_update(command)
 
@@ -457,7 +471,7 @@ defmodule Rulestead.Store.Ecto do
   @impl Store
   def list_flags(%Command.ListFlags{} = command) do
     with {:ok, environment_filter} <- list_environment_filter(command.environment_key) do
-      entries =
+      raw_entries =
         from(flag in Flag,
           join: fe in FlagEnvironment,
           on: fe.flag_id == flag.id,
@@ -471,17 +485,24 @@ defmodule Rulestead.Store.Ecto do
         |> Repo.all()
         |> Enum.flat_map(fn flag ->
           Enum.map(flag.flag_environments, fn flag_environment ->
-            build_list_entry(%{
+            %{
               flag: flag,
               environment: flag_environment.environment,
               flag_environment: flag_environment
-            })
+            }
           end)
         end)
+      lifecycle_context = lifecycle_context_for_flags(Enum.map(raw_entries, & &1.flag.key))
+
+      entries =
+        raw_entries
+        |> Enum.map(&build_list_entry(&1, lifecycle_context))
         |> maybe_filter_owner(command.owner)
         |> maybe_filter_tags(command.tags)
         |> maybe_filter_lifecycle(command.lifecycle)
         |> maybe_filter_stale(command.stale)
+        |> maybe_filter_readiness(command.readiness)
+        |> maybe_filter_evidence_quality(command.evidence_quality)
         |> maybe_filter_flag_type(command.flag_type)
         |> sort_entries(command.sort)
 
@@ -1081,7 +1102,11 @@ defmodule Rulestead.Store.Ecto do
         last_oban_job_id: nil,
         command_snapshot: change_request.command_snapshot,
         approval_requirement_snapshot: change_request.approval_requirement_snapshot,
-        metadata: command.metadata,
+        metadata:
+          Command.GovernanceSupport.with_tenant_provenance(
+            command.metadata,
+            change_request.command_snapshot
+          ),
         correlation_id: change_request.correlation_id,
         idempotency_key: "scheduled_execution:change_request:#{change_request.id}",
         inserted_at: now(),
@@ -1115,9 +1140,10 @@ defmodule Rulestead.Store.Ecto do
       attempt_count: 0,
       failure_reason: nil,
       last_oban_job_id: nil,
-      command_snapshot: command.command,
+      command_snapshot: Command.GovernanceSupport.with_tenant_provenance(command.command),
       approval_requirement_snapshot: command.approval_requirement,
-      metadata: command.metadata,
+      metadata:
+        Command.GovernanceSupport.with_tenant_provenance(command.metadata, command.command),
       correlation_id: correlation_id,
       idempotency_key: "scheduled_execution:#{correlation_id}",
       inserted_at: inserted_at,
@@ -1744,12 +1770,17 @@ defmodule Rulestead.Store.Ecto do
   end
 
   defp apply_promoted_flag(repo, flag_key, target_environment_key, command, published_at) do
-    with {:ok, flag, flag_environment} <- fetch_flag_environment_for_repo(repo, flag_key, target_environment_key),
+    with {:ok, flag, flag_environment} <-
+           fetch_flag_environment_for_repo(repo, flag_key, target_environment_key),
          proposed_state <- Map.get(command.proposed_target_bundle, flag_key),
          false <- is_nil(proposed_state) do
       proposed_flag = Map.get(proposed_state, "flag", %{}) |> denormalize_promoted_value()
-      proposed_flag_environment = Map.get(proposed_state, "flag_environment", %{}) |> denormalize_promoted_value()
-      proposed_ruleset = Map.get(proposed_state, "active_ruleset", %{}) |> denormalize_promoted_value()
+
+      proposed_flag_environment =
+        Map.get(proposed_state, "flag_environment", %{}) |> denormalize_promoted_value()
+
+      proposed_ruleset =
+        Map.get(proposed_state, "active_ruleset", %{}) |> denormalize_promoted_value()
 
       flag_attrs =
         %{}
@@ -1802,7 +1833,10 @@ defmodule Rulestead.Store.Ecto do
        }}
     else
       true ->
-        {:error, StoreError.invalid_command("promotion bundle is missing a proposed target state", metadata: %{flag_key: flag_key})}
+        {:error,
+         StoreError.invalid_command("promotion bundle is missing a proposed target state",
+           metadata: %{flag_key: flag_key}
+         )}
 
       {:error, error} ->
         {:error, error}
@@ -1816,11 +1850,18 @@ defmodule Rulestead.Store.Ecto do
     proposed_state = Map.get(command.proposed_target_bundle, flag_key)
 
     if is_nil(proposed_state) do
-      {:error, StoreError.invalid_command("manifest import plan is missing a proposed target state", metadata: %{flag_key: flag_key})}
+      {:error,
+       StoreError.invalid_command("manifest import plan is missing a proposed target state",
+         metadata: %{flag_key: flag_key}
+       )}
     else
       proposed_flag = Map.get(proposed_state, "flag", %{}) |> denormalize_promoted_value()
-      proposed_flag_environment = Map.get(proposed_state, "flag_environment", %{}) |> denormalize_promoted_value()
-      proposed_ruleset = Map.get(proposed_state, "active_ruleset", %{}) |> denormalize_promoted_value()
+
+      proposed_flag_environment =
+        Map.get(proposed_state, "flag_environment", %{}) |> denormalize_promoted_value()
+
+      proposed_ruleset =
+        Map.get(proposed_state, "active_ruleset", %{}) |> denormalize_promoted_value()
 
       with {:ok, flag} <- upsert_import_flag(repo, flag_key, proposed_flag),
            :ok <- ensure_not_archived(flag_key, flag),
@@ -1869,10 +1910,12 @@ defmodule Rulestead.Store.Ecto do
       target_fingerprint: command.target_fingerprint,
       dependency_closure_keys: command.dependency_closure_keys,
       applied_flag_keys: command.flag_keys,
+      tenant_key: command.tenant_key,
       metadata: %{
         "actor" => command.actor || %{},
         "reason" => command.reason,
-        "metadata" => command.metadata
+        "metadata" => command.metadata,
+        "tenant" => Command.GovernanceSupport.tenant_provenance(command)
       }
     })
     |> repo.insert()
@@ -1897,11 +1940,13 @@ defmodule Rulestead.Store.Ecto do
       target_fingerprint: command.target_fingerprint,
       dependency_closure_keys: command.dependency_closure_keys,
       applied_flag_keys: command.flag_keys,
+      tenant_key: command.tenant_key,
       metadata: %{
         "mode" => "manifest_import",
         "actor" => command.actor || %{},
         "reason" => command.reason,
         "metadata" => command.metadata,
+        "tenant" => Command.GovernanceSupport.tenant_provenance(command),
         "published_at" => DateTime.to_iso8601(published_at)
       }
     })
@@ -1978,7 +2023,10 @@ defmodule Rulestead.Store.Ecto do
 
       %FlagEnvironment{} = flag_environment ->
         if flag_environment.status == :archived do
-          {:error, StoreError.invalid_command("manifest import would revive an archived flag environment", metadata: %{flag_key: flag.key})}
+          {:error,
+           StoreError.invalid_command("manifest import would revive an archived flag environment",
+             metadata: %{flag_key: flag.key}
+           )}
         else
           {:ok, flag_environment}
         end
@@ -2224,15 +2272,21 @@ defmodule Rulestead.Store.Ecto do
     }
   end
 
-  defp build_flag_detail_payload(flag, environment, flag_environment, include_ruleset?) do
+  defp build_flag_detail_payload(
+         flag,
+         environment,
+         flag_environment,
+         include_ruleset?,
+         lifecycle_context
+       ) do
     build_flag_payload(flag, environment, flag_environment, include_ruleset?)
-    |> decorate_payload(flag, environment, flag_environment)
+    |> decorate_payload(flag, environment, flag_environment, lifecycle_context)
   end
 
-  defp build_list_entry(entry) do
+  defp build_list_entry(entry, lifecycle_context) do
     entry
     |> entry_to_payload()
-    |> decorate_payload(entry.flag, entry.environment, entry.flag_environment)
+    |> decorate_payload(entry.flag, entry.environment, entry.flag_environment, lifecycle_context)
   end
 
   defp build_archive_payload(flag) do
@@ -2263,8 +2317,9 @@ defmodule Rulestead.Store.Ecto do
 
   defp build_update_payload(flag, previous_owner) do
     {environment, flag_environment} = preferred_environment(flag)
+    lifecycle_context = lifecycle_context_for_flags([flag.key])
 
-    build_flag_detail_payload(flag, environment, flag_environment, true)
+    build_flag_detail_payload(flag, environment, flag_environment, true, lifecycle_context)
     |> Map.put(:recent_owners, recent_owners(flag.owner, previous_owner))
   end
 
@@ -2291,8 +2346,10 @@ defmodule Rulestead.Store.Ecto do
       :value_type,
       :default_value,
       :owner,
+      :ownership,
       :expected_expiration,
       :permanent,
+      :lifecycle,
       :tags,
       :archived_at,
       :inserted_at,
@@ -2673,6 +2730,7 @@ defmodule Rulestead.Store.Ecto do
           after: Map.get(opts, :after, %{}),
           diff: diff_map(Map.get(opts, :before, %{}), Map.get(opts, :after, %{})),
           links: Map.get(opts, :links, %{}),
+          tenant: Command.GovernanceSupport.tenant_provenance(command),
           context: Map.get(command, :metadata, %{}),
           request_id: correlation_id(command),
           source: command.metadata[:source] || command.metadata["source"],
@@ -2695,7 +2753,7 @@ defmodule Rulestead.Store.Ecto do
       submitter_display: actor_value(command.actor, "display"),
       reason: command.reason,
       approval_requirement_snapshot: command.approval_requirement,
-      command_snapshot: command.command,
+      command_snapshot: Command.GovernanceSupport.with_tenant_provenance(command.command),
       metadata: command.metadata,
       correlation_id: correlation_id,
       submitted_at: submitted_at,
@@ -2960,7 +3018,8 @@ defmodule Rulestead.Store.Ecto do
         "change_request_id" => change_request.id,
         "governance_action" => change_request.governed_action,
         "execution_stage" => stage,
-        "resource_key" => change_request.resource_key
+        "resource_key" => change_request.resource_key,
+        "tenant" => change_request.command_snapshot["tenant"]
       })
 
     Map.merge(command, %{metadata: metadata, actor: command.actor, reason: command.reason})
@@ -3724,6 +3783,11 @@ defmodule Rulestead.Store.Ecto do
       result: result,
       metadata:
         AuditEvent.metadata(%{
+          tenant:
+            Command.GovernanceSupport.tenant_provenance(
+              command,
+              fallback: scheduled_execution.command_snapshot
+            ),
           context: scheduled_execution_audit_context(scheduled_execution, command),
           request_id: scheduled_execution.correlation_id,
           source: scheduled_execution_source(scheduled_execution, command),
@@ -4172,11 +4236,11 @@ defmodule Rulestead.Store.Ecto do
 
   defp now, do: DateTime.utc_now() |> DateTime.truncate(:microsecond)
 
-  defp decorate_payload(payload, flag, environment, flag_environment) do
-    environment_cards = environment_cards(flag)
+  defp decorate_payload(payload, flag, environment, flag_environment, lifecycle_context) do
+    environment_cards = environment_cards(flag, lifecycle_context)
 
     payload
-    |> Map.put(:lifecycle, lifecycle(flag, flag_environment))
+    |> Map.put(:lifecycle, lifecycle(flag, flag_environment, lifecycle_context))
     |> Map.put(:has_draft_ruleset?, payload.draft_rulesets != [])
     |> Map.put(:recent_owners, recent_owners(flag.owner))
     |> Map.put(:environments, Enum.map(environment_cards, & &1.environment))
@@ -4185,7 +4249,7 @@ defmodule Rulestead.Store.Ecto do
     |> Map.put(:environment_key, environment.key)
   end
 
-  defp environment_cards(flag) do
+  defp environment_cards(flag, lifecycle_context) do
     flag.flag_environments
     |> Enum.sort_by(& &1.environment.key)
     |> Enum.map(fn flag_environment ->
@@ -4197,21 +4261,55 @@ defmodule Rulestead.Store.Ecto do
         active_ruleset: active_ruleset_payload(flag_environment),
         draft_rulesets: drafts,
         has_draft_ruleset?: drafts != [],
-        lifecycle: lifecycle(flag, flag_environment)
+        lifecycle: lifecycle(flag, flag_environment, lifecycle_context)
       }
     end)
   end
 
-  defp lifecycle(flag, flag_environment) do
+  defp lifecycle(flag, flag_environment, lifecycle_context) do
     Lifecycle.classify(
       flag_summary(flag),
       flag_environment_summary(flag_environment),
-      lifecycle_opts()
+      lifecycle_opts(flag, lifecycle_context)
     )
   end
 
-  defp lifecycle_opts do
+  defp lifecycle_opts(flag, lifecycle_context) do
+    evidence = Map.get(lifecycle_context, flag.key, %{})
+
     Application.get_env(:rulestead, :admin_lifecycle, [])
+    |> Keyword.put(:code_reference_count, Map.get(evidence, :code_reference_count))
+    |> Keyword.put(:code_refs_scan, Map.get(lifecycle_context, :code_refs_scan))
+  end
+
+  defp lifecycle_context_for_flags(flag_keys) do
+    counts = code_reference_counts(flag_keys)
+    scan = latest_code_refs_scan()
+
+    Enum.reduce(flag_keys, %{code_refs_scan: scan}, fn flag_key, acc ->
+      Map.put(acc, flag_key, %{code_reference_count: Map.get(counts, flag_key, 0)})
+    end)
+  end
+
+  defp latest_code_refs_scan do
+    ScanReceipt.latest_query()
+    |> Repo.one()
+    |> case do
+      nil -> nil
+      receipt -> %{received_at: receipt.received_at, reference_count: receipt.reference_count}
+    end
+  end
+
+  defp code_reference_counts(flag_keys) do
+    keys = flag_keys |> Enum.uniq() |> Enum.reject(&is_nil/1)
+
+    from(code_reference in CodeReference,
+      where: code_reference.flag_key in ^keys,
+      group_by: code_reference.flag_key,
+      select: {code_reference.flag_key, count(code_reference.id)}
+    )
+    |> Repo.all()
+    |> Map.new()
   end
 
   defp recent_owners(current_owner, extra_owner \\ nil) do
@@ -4242,7 +4340,16 @@ defmodule Rulestead.Store.Ecto do
 
   defp maybe_filter_owner(entries, owner) do
     normalized = normalize_owner(owner)
-    Enum.filter(entries, fn entry -> normalize_owner(entry.flag.owner) == normalized end)
+
+    Enum.filter(entries, fn entry ->
+      ownership = Map.get(entry.flag, :ownership) || %{}
+
+      normalized in [
+        normalize_owner(entry.flag.owner),
+        normalize_owner(Map.get(ownership, :owner_ref) || Map.get(ownership, "owner_ref")),
+        normalize_owner(Map.get(ownership, :owner_display) || Map.get(ownership, "owner_display"))
+      ]
+    end)
   end
 
   defp maybe_filter_tags(entries, []), do: entries
@@ -4268,13 +4375,25 @@ defmodule Rulestead.Store.Ecto do
 
   defp maybe_filter_stale(entries, stale_state) do
     Enum.filter(entries, fn entry ->
-      case entry.lifecycle.state do
+      case entry.lifecycle.freshness.state do
         :active -> stale_state == :fresh
         :potentially_stale -> stale_state == :potentially_stale
         :stale -> stale_state == :stale
         :archived -> false
       end
     end)
+  end
+
+  defp maybe_filter_readiness(entries, nil), do: entries
+
+  defp maybe_filter_readiness(entries, readiness) do
+    Enum.filter(entries, &(&1.lifecycle.archive_readiness.readiness == readiness))
+  end
+
+  defp maybe_filter_evidence_quality(entries, nil), do: entries
+
+  defp maybe_filter_evidence_quality(entries, evidence_quality) do
+    Enum.filter(entries, &(&1.lifecycle.archive_readiness.evidence_quality == evidence_quality))
   end
 
   defp sort_entries(entries, :inserted_at) do
@@ -4486,8 +4605,15 @@ defmodule Rulestead.Store.Ecto do
         attrs
       end
 
-    if Map.has_key?(attrs, :permanent) or not is_nil(command.expected_expiration) do
-      Map.put(attrs, :expected_expiration, command.expected_expiration)
+    attrs =
+      if Map.has_key?(attrs, :permanent) or not is_nil(command.expected_expiration) do
+        Map.put(attrs, :expected_expiration, command.expected_expiration)
+      else
+        attrs
+      end
+
+    if not is_nil(command.lifecycle) do
+      Map.put(attrs, :lifecycle, command.lifecycle)
     else
       attrs
     end
