@@ -40,7 +40,7 @@ created: 2026-05-23
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
 | 35-01-01 | 01 | 1 | LIF-01 | T-35-01, T-35-04 | Authored ownership/lifecycle contract stays bounded, explicit, and free of machine lifecycle status persistence | targeted-core | `cd /Users/jon/projects/rulestead/rulestead && mix test test/rulestead/admin_lifecycle_test.exs test/rulestead/admin_contract_test.exs` | ✅ | ⬜ pending |
-| 35-01-02 | 01 | 1 | LIF-01 | T-35-02, T-35-03 | Commands, adapters, and mounted authoring preserve one canonical ownership/lifecycle payload | targeted-core+ui | `cd /Users/jon/projects/rulestead/rulestead && mix test test/rulestead/store_ecto_admin_test.exs test/rulestead/admin_contract_test.exs && cd /Users/jon/projects/rulestead/rulestead_admin && mix test test/rulestead_admin/live/flag_live/form_test.exs` | ✅ | ⬜ pending |
+| 35-01-02 | 01 | 1 | LIF-01 | T-35-02, T-35-03 | Commands, adapters, and mounted authoring preserve one canonical ownership/lifecycle payload, including optional host validation and manual fallback | targeted-core+ui | `cd /Users/jon/projects/rulestead/rulestead && mix test test/rulestead/store_ecto_admin_test.exs test/rulestead/admin_contract_test.exs && cd /Users/jon/projects/rulestead/rulestead_admin && mix test test/rulestead_admin/live/flag_live/form_test.exs` | ✅ | ⬜ pending |
 | 35-02-01 | 02 | 2 | LIF-01 | T-35-05, T-35-06 | Audit rows expose bounded lifecycle/ownership transition summaries without schema sprawl or sensitive context leakage | targeted-core | `cd /Users/jon/projects/rulestead/rulestead && mix test test/rulestead/audit_event_governance_test.exs test/rulestead/store_ecto_admin_test.exs` | ✅ | ⬜ pending |
 | 35-02-02 | 02 | 2 | LIF-01 | T-35-07, T-35-08 | Projector and mounted detail render authored truth without pulling in runtime hot-path or future-phase semantics | targeted-core+ui | `cd /Users/jon/projects/rulestead/rulestead && mix test test/rulestead/admin_lifecycle_test.exs test/rulestead/store_ecto_admin_test.exs && cd /Users/jon/projects/rulestead/rulestead_admin && mix test test/rulestead_admin/live/flag_live/show_test.exs` | ✅ | ⬜ pending |
 
@@ -63,7 +63,7 @@ created: 2026-05-23
 
 | Source Item | Covered By | Notes |
 |-------------|------------|-------|
-| Bounded authored ownership contract that stays host-friendly and auditable | `35-01-01`, `35-01-02`, `35-02-01` | Durable ownership metadata, normalization, and audit continuity |
+| Bounded authored ownership contract that stays host-friendly and auditable | `35-01-01`, `35-01-02`, `35-02-01` | Durable ownership metadata, optional host validation seam, normalization, and audit continuity |
 | Explicit lifecycle intent independent from the runtime hot path | `35-01-01`, `35-01-02`, `35-02-02` | Advisory defaults + authored facts + shared projector |
 | Mounted-admin contract alignment without Phase 36/37 scope creep | `35-01-02`, `35-02-02` | Authoring and detail alignment only; filters/workbench deferred |
 
@@ -87,7 +87,7 @@ created: 2026-05-23
 | Context Constraint | Covered By | Notes |
 |--------------------|------------|-------|
 | D-01, D-02 | all tasks | One coherent Phase 35-only contract path |
-| D-03 to D-08 | `35-01-01`, `35-01-02`, `35-02-02` | Bounded host-owned ownership metadata, no runtime owner resolution |
+| D-03 to D-08 | `35-01-01`, `35-01-02`, `35-02-02` | Bounded host-owned ownership metadata, optional host picker/validation seam, no runtime owner resolution |
 | D-09 to D-18 | `35-01-01`, `35-01-02`, `35-02-02` | Authored lifecycle truth plus admin-only suggestions, no computed persistence |
 | D-19 to D-23 | `35-02-01` | Stable audit envelope with bounded transition summaries |
 | D-24, D-25 | `35-01-01`, `35-01-02`, `35-02-01`, `35-02-02` | Legacy owner compatibility, no auto-archive/cleanup |

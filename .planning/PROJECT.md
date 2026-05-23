@@ -9,11 +9,18 @@ Rulestead is a batteries-included, Elixir-native feature-flag and remote-config 
 - `v1.0.0` shipped on 2026-05-21 across Phases 26-28.
 - The product now has a frozen public API boundary, canonical mounted-admin RBAC, and a proven Compose-backed end-to-end demo with Phoenix + Next.js/OpenFeature integration.
 - `v1.1.0` shipped on 2026-05-23 across Phases 29-34, delivering the bounded tenancy seam, mounted-admin tenant scope, audit tenant provenance enforcement, public promotion-plan tenant-scope closure, compare preview-identity carry-through, and milestone auditability backfill without widening the product shape.
-- No next milestone is active yet.
+- `v1.2.0` is now active as the next milestone, focused on making lifecycle hygiene and ownership first-class operator flows without widening the sibling-package release model.
 
-## Current Milestone: None Active
+## Current Milestone: v1.2.0 Lifecycle Hygiene & Ownership
 
-**Latest Milestone (v1.1.0) Complete:** Rulestead now ships the bounded tenancy contract across runtime, mounted admin, promotion replay/apply, compare drill-in identity, and audit provenance.
+**Goal:** Make ownership metadata, lifecycle state, archive-readiness guidance, and cleanup UX feel first-class and least-surprising for Phoenix teams.
+
+**Target features:**
+- First-class ownership and lifecycle metadata that remain host-friendly and auditable
+- Archive-readiness guidance built from bounded lifecycle, evaluation, and code-reference signals
+- Mounted admin and CLI cleanup workflows that keep mutation preview and audit posture explicit
+
+**Why now:** The biggest everyday post-GA gap is not more rule power; it is the missing “flag from birth to retirement” loop. This milestone tightens operator trust and cleanup discipline before Rulestead reaches for more complex rollout automation or reusable targeting abstractions.
 
 ## Core Value
 
@@ -23,7 +30,7 @@ Everything else can fail; this cannot. If the runtime evaluator is not fast, pur
 
 ## Strategic Arc (Future Milestones)
 
-To provide a clear path forward for Rulestead as a "batteries included" feature-management platform, the following strategic arc captures the shipped path to GA and the open post-GA slot (detailed further in `.planning/research/EPIC_ARC.md`):
+To provide a clear path forward for Rulestead as a "batteries included" feature-management platform, the following strategic arc captures the shipped path to GA and the current post-GA ordering (see `.planning/MILESTONE-ARC.md` for the decision record and tradeoffs):
 
 - **v0.6.0: Multi-environment Sync & Tenancy**
   - Focus: Environment promotion (Dev->Staging->Prod), diffing, GitOps export/import, and explicit multi-tenant helpers.
@@ -31,9 +38,15 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 - **v1.0.0: General Availability & RBAC**
   - Focus: Role-Based Access Control, API lockdown, security hardening, and complete reference documentation.
   - Value: A reliable, trusted, "done" system without feature creep that fulfills the Elixir-native platform promise.
-- **Post-GA milestone: TBD**
-  - Focus: Define the first post-GA roadmap deliberately instead of inheriting pre-GA assumptions wholesale.
-  - Value: Avoid accidental scope carryover after the GA boundary.
+- **v1.2.0: Lifecycle Hygiene & Ownership**
+  - Focus: Ownership metadata, lifecycle state, archive-readiness guidance, cleanup workbench UX, and docs that teach “flag from birth to retirement.”
+  - Value: Close the biggest everyday trust and cleanup gap before adding more complex automation or reuse layers.
+- **v1.3.0: Guarded Rollout Foundations**
+  - Focus: Host-supplied rollout guardrail signals, stage hold/rollback, and explicit audited health-gated rollout behavior.
+  - Value: Add a strong differentiator after the lifecycle loop is credible.
+- **v1.4.0: Reusable Targeting Assets**
+  - Focus: Shared audiences first, with impact previews and explicit dependency visibility.
+  - Value: Reduce duplicated targeting logic only after lifecycle and rollout posture remain understandable.
 
 ## Release Posture
 
@@ -72,24 +85,30 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 
 ### Active
 
-- No active milestone requirements are defined right now.
+- [ ] **LIF-01**: Flags expose first-class ownership and lifecycle metadata that remain explicit across authored-state reads, writes, audit events, and mounted-admin presentation without creating a Rulestead-owned identity directory.
+- [ ] **LIF-02**: Rulestead classifies lifecycle state and archive readiness from bounded signals such as flag type, expected lifetime, last evaluation evidence, and code-reference coverage instead of a single blunt stale heuristic.
+- [ ] **LIF-03**: Operators can review lifecycle and cleanup posture through shareable admin filters and CLI/reporting surfaces that highlight owner, lifecycle state, last evaluated, code-reference status, and recommended next action.
+- [ ] **LIF-04**: Archive and cleanup flows stay explicit, previewable, and audited; Rulestead never auto-archives flags and never hides uncertainty behind false precision.
+- [ ] **LIF-05**: Docs and runbooks teach the “flag from birth to retirement” lifecycle clearly for Phoenix teams, including least-surprise defaults and host-owned integration expectations.
 
 ## Next Milestone Goals
 
-- Reassess the next JTBD gap deliberately now that the bounded tenancy seam is shipped.
-- Lifecycle and ownership work remain the strongest follow-on candidate if no higher-value post-GA gap displaces them.
-- Preserve the sibling-package release model and avoid tenant-partitioned storage or standalone admin drift.
+- Make lifecycle and ownership first-class enough that stale-state cleanup stops feeling heroic or ambiguous.
+- Preserve the sibling-package release model and avoid runtime hot-path coupling, tenant-partitioned storage, or standalone admin drift.
+- Keep guarded rollouts and reusable targeting queued behind this milestone unless materially stronger evidence appears.
 
 ### Out of Scope
 
 - Broadening `rulestead_admin` beyond the mounted sibling-package design into a standalone control-plane product — explicitly disallowed by the current release design.
+- Rulestead-owned identity or team-directory truth for lifecycle owners — host applications continue to own identity and accountability mapping.
+- Automatic archival or automated code removal based on lifecycle heuristics — archive readiness remains advisory and explicit.
 
 ## Context
 
 - `v0.1.0` through `v1.0.0` are now archived, covering the core runtime, admin UX, governance workflows, ecosystem seams, experimentation analytics, Redis-backed distribution, environment promotion, GitOps manifests, API lockdown, RBAC, and the GA demo stack.
 - `v1.0.0` shipped across Phases 26-28, delivering the public API freeze, canonical RBAC, and the verified GA demo environment.
 - `v1.1.0` shipped across Phases 29-34 as the first deliberate post-GA milestone, proving tenancy can stay bounded inside helper seams, reviewed-artifact validation, mounted-admin scope, public promotion replay/apply, and audit provenance without changing the release shape.
-- The current focus is selecting the next milestone explicitly rather than auto-extending the roadmap.
+- `v1.2.0` was selected after a cross-candidate research pass recorded in `.planning/MILESTONE-ARC.md`, which ranked lifecycle/ownership ahead of guarded rollout foundations and reusable targeting assets for coherence and least-surprise reasons.
 - The project remains a linked-version, two-package monorepo.
 
 ## Constraints
@@ -97,6 +116,8 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 - **Release design**: Keep the linked-version sibling-package release shape — the runtime and admin packages evolve together.
 - **Security**: Maintain default-deny mutation security and strict audit logs.
 - **Tenancy scope**: Ship explicit tenant-aware helpers and validation only; do not introduce tenant-partitioned authored storage, environment-per-tenant topology, or implicit all-tenant mutation behavior.
+- **Lifecycle ownership**: Treat owner references as host-owned opaque metadata; do not create a Rulestead-owned identity directory or team graph.
+- **Operator trust**: Lifecycle guidance must be advisory, explicit, and previewable; never auto-archive based on heuristics.
 
 ## Key Decisions
 
@@ -110,6 +131,7 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 | Model re-apply-version as a fresh forward promotion from immutable history | Preserves authored-truth semantics and avoids hidden rollback shortcuts that drift from compare/apply behavior. | Validated |
 | Target the first public Hex release for after `v0.6.0`, not at `v0.1.0` and not only at `v1.0.0` | `v0.6.0` completed the multi-environment/GitOps story, while `v1.0.0` delivered the stronger GA-level stability promises. | Validated |
 | Activate tenancy as `v1.1.0`, not as a silent Phase 25 carryover | Keeps the first post-GA milestone explicit, preserves current phase numbering, and aligns the roadmap with the current JTBD gap analysis. | Validated |
+| Activate lifecycle hygiene and ownership as `v1.2.0` ahead of guarded rollout and reusable targeting | Closes the strongest everyday trust/cleanup gap first, fits the sibling-package architecture cleanly, and keeps more complex automation layered on a calmer operator foundation. | Pending |
 
 ## Milestone Archives
 
@@ -145,4 +167,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-23 after Milestone v1.1.0 completion*
+*Last updated: 2026-05-23 after defining Milestone v1.2.0*

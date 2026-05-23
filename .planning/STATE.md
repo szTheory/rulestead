@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: none
-milestone_name: none
-status: milestone_shipped
-last_updated: "2026-05-23T00:40:33Z"
-last_activity: 2026-05-23 -- Archived and shipped milestone v1.1.0
+milestone: v1.2.0
+milestone_name: lifecycle-hygiene-and-ownership
+status: executing
+last_updated: "2026-05-23T12:04:33.672Z"
+last_activity: 2026-05-23 -- Phase 35 execution started
 progress:
-  total_phases: 6
-  completed_phases: 6
-  total_plans: 12
-  completed_plans: 12
-  percent: 100
+  total_phases: 4
+  completed_phases: 0
+  total_plans: 2
+  completed_plans: 0
+  percent: 0
 ---
 
 # State: Rulestead
@@ -20,8 +20,8 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-23)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
-**Current focus:** `v1.1.0` is shipped. The planning surface is now waiting for the next milestone definition.
-**Milestone:** none active
+**Current focus:** Phase 35 — lifecycle-contract-ownership-metadata
+**Milestone:** `v1.2.0 — Lifecycle Hygiene & Ownership`
 
 ## Roadmap Reference
 
@@ -29,18 +29,24 @@ See: `.planning/ROADMAP.md` for current roadmap state and archive links.
 
 ## Current Position
 
-Phase: none
-Plan: none
-Status: `v1.1.0` archived and shipped; waiting for the next milestone definition
-Last activity: 2026-05-23 -- Archived and shipped milestone `v1.1.0`
+Phase: 35 (lifecycle-contract-ownership-metadata) — EXECUTING
+Plan: 1 of 2
+Status: Executing Phase 35
+Last activity: 2026-05-23 -- Phase 35 execution started
 
 ## Active Requirement Focus
 
-- None. Define the next milestone before reintroducing active requirements.
+- `LIF-01`: first-class ownership and lifecycle metadata without a Rulestead-owned identity directory
+- `LIF-02`: bounded lifecycle state and archive-readiness guidance from explicit signals
+- `LIF-03`: shareable admin and CLI cleanup visibility with recommended next actions
+- `LIF-04`: explicit, previewable, audited archive and cleanup flows
+- `LIF-05`: docs and runbooks for the full flag lifecycle
 
 ## Carryover Items
 
-- **Lifecycle and ownership work** remains the strongest follow-on candidate after the bounded tenancy seam shipped cleanly.
+- **Guarded rollout foundations** remain the strongest immediate follow-on after `v1.2.0`.
+- **Reusable targeting assets** remain the next queued scale/reuse milestone after guarded rollout.
+- Milestone-selection preference is now recorded in `.planning/MILESTONE-ARC.md` so future low-impact candidate ordering can stay left-shifted inside GSD.
 
 ## Anchor Docs (prompts/)
 
@@ -74,12 +80,12 @@ These remain the primary source of truth and should be loaded selectively per ph
 - **21-01**: Added `[:rulestead, :sync, :delta_received]` and `[:rulestead, :cache, :invalidation]` as additive aliases on top of the Phase 20 runtime invalidation telemetry family.
 - **21-02**: Mounted diagnostics inside the existing `rulestead_admin` router macro so the screen inherits the current session and policy envelope.
 - **21-02**: Kept the diagnostics page explicitly current-node by default and rendered missing-snapshot states as critical operator copy instead of implying peer health.
-
 - **23-02**: Reused the existing governed-action approval and policy surfaces for protected-environment promotion instead of introducing a parallel promotion workflow.
 - **23-03**: Executed approved and scheduled governed promotion from the stored reviewed bundle snapshot instead of recomputing source intent later.
 - **23-04**: Modeled re-apply-version as a fresh forward promotion from immutable environment-version history rather than a rollback shortcut.
 - **23-05**: Kept compare, change-request, and schedule routes as the mounted operator entrypoints for promotion and re-apply.
 - **24-04**: Reused the existing governed promotion change-request path for protected-target CLI promote apply rather than adding a direct CLI bypass.
+- **35-00**: Activated lifecycle hygiene and ownership as `v1.2.0` ahead of guarded rollout and reusable targeting to close the strongest everyday trust/cleanup gap first.
 
 ## Execution Metrics
 
@@ -108,6 +114,7 @@ These remain the primary source of truth and should be loaded selectively per ph
 
 ## Latest Activity
 
+- 2026-05-23 — Defined milestone `v1.2.0` for Lifecycle Hygiene & Ownership, added `.planning/MILESTONE-ARC.md`, restored the active `REQUIREMENTS.md`, refreshed `PROJECT.md`, and created the continued Phase 35-38 roadmap.
 - 2026-05-23 — Archived milestone `v1.1.0`, created shipped roadmap and requirements archives, removed the active milestone requirements file, and reset planning state to await the next milestone definition.
 - 2026-05-23 — Completed and verified Phase 34: restored `30-SUMMARY.md` and `30-VERIFICATION.md`, reran the targeted Phase 30 mounted-admin/core compare suites (`12 tests, 0 failures` and `13 tests, 0 failures`), refreshed `v1.1.0-MILESTONE-AUDIT.md`, and synced roadmap/state routing to milestone closeout.
 - 2026-05-23 — Planned Phase 34: added `34-RESEARCH.md`, `34-PATTERNS.md`, `34-01-PLAN.md`, `34-02-PLAN.md`, and `34-VALIDATION.md` to restore the missing Phase 30 audit artifacts and refresh the stale `v1.1.0` milestone audit from current tenancy evidence.
@@ -120,41 +127,6 @@ These remain the primary source of truth and should be loaded selectively per ph
 - 2026-05-21 — Defined milestone `v1.1.0` for Tenancy Helpers & Validation, restored active `REQUIREMENTS.md`, refreshed `PROJECT.md`, and created the Phase 29 roadmap as the first deliberate post-GA milestone.
 - 2026-05-21 — Archived milestone `v1.0.0`, created shipped roadmap and requirements archives, removed the active milestone requirements file, and tagged the release boundary after accepting the documented Phase 26 Dialyzer tooling override as non-blocking debt.
 
-- 2026-05-19 — Defined milestone `v1.0.0`, created the active `REQUIREMENTS.md` and `ROADMAP.md`, and queued Phase 26 for planning.
-- 2026-05-19 — Marked milestone `v0.6.0` shipped, carried over Phase 25 (Tenancy Helpers), and queued `v0.7.0` (now fast-tracked to v1.0.0) as the next milestone definition target.
-- 2026-05-19 — Verified and closed Phase 24: targeted export/validate/diff/import/promote suites passed, `24-VERIFICATION.md` was added, and roadmap/state now mark GitOps Manifests & CLI Surface complete.
-- 2026-05-19 — Completed 24-04-PLAN.md: added saved-plan `mix rulestead.promote`, public promote plan/apply facade helpers, and governed protected-target apply reuse.
-- 2026-05-19 — Revised Phase 24 planning after verification: split the original import/promote CLI slice into `24-03` (saved import plan artifact and adapter parity) and `24-04` (promote CLI apply plus governed automation reuse) to keep adapter seams explicit and reduce execution density.
-- 2026-05-19 — Added `24-VALIDATION.md` and reran plan verification; Phase 24 is now execution-ready with validated four-plan coverage for export, validate/diff, import, and promote.
-- 2026-05-18 — Verified and closed Phase 23: targeted `rulestead` and `rulestead_admin` promotion suites passed, and roadmap/requirements state now mark Governed Promotion Apply complete.
-- 2026-05-18 — Completed 23-05-PLAN.md: verified mounted compare, change-request, and schedule promotion handoff plus explicit re-apply-version deep links.
-- 2026-05-18 — Completed 23-04-PLAN.md: verified promotion audit linkage and backend re-apply-version support against targeted regression coverage.
-- 2026-05-18 — Completed 23-03-PLAN.md: wired stored-snapshot governed promotion execution and schedule-time revalidation.
-- 2026-05-18 — Completed 23-02-PLAN.md: added first-class governed promotion action vocabulary, persistence support, and policy coverage.
-- 2026-05-18 — Completed 23-01-PLAN.md: shipped transactional promotion apply, immutable environment versions, and adapter parity coverage.
-- 2026-05-18 — Synced planning state after Phase 22 completion so Phase 23 can execute against the active roadmap boundary.
-- 2026-05-18 — Completed Phase 22 execution: shipped the authored-state compare contract, mounted compare routes, and Phase 22 summary artifacts.
-- 2026-05-18 — Defined milestone `v0.6.0`, created the active `REQUIREMENTS.md` and `ROADMAP.md`, and queued Phase 22 for planning.
-- 2026-05-18 — Marked milestone `v0.5.0` shipped, refreshed project planning state, and queued `v0.6.0` as the next milestone definition target.
-- 2026-05-17 — Completed 21-02-PLAN.md: added the mounted diagnostics LiveView, explicit current-node health copy, and diagnostics accessibility coverage; verified with the targeted Phase 21 admin tests.
-- 2026-05-17 — Completed 21-01-PLAN.md: added the bounded runtime infrastructure health projection, public diagnostics facade, and additive invalidation telemetry aliases; verified with the targeted Phase 21 backend tests.
-- 2026-05-17 — Completed Phase 20 execution: added the notifier seam, runtime invalidation handling, invalidation telemetry, and installer PubSub scaffolding; verified with the full Phase 20 targeted test suite.
-- 2026-05-17 — Planned Phase 20 with `20-01`, `20-02`, and `20-03`, covering the notifier seam, runtime invalidation flow, and installer PubSub scaffolding.
-- 2026-05-17 — Completed 19-02-PLAN.md and closed Phase 19 (Redis Storage & Caching Adapter).
-- 2026-05-17 — Completed 19-01-PLAN.md, adding the Redis store adapter and runtime connection wiring.
-- 2026-05-17 — Completed milestone `v0.4.0` for Experimentation & Analytics.
-- 2026-05-16 — Completed 16-01-PLAN.md execution.
-- 2026-05-16 — Planned milestone `v0.4.0` for Experimentation & Analytics, identifying Phase 16 (Experimentation Core), Phase 17 (Analytics Ingestion), and Phase 18 (UI).
-- 2026-05-16 — Completed milestone `v0.3.0`.
-- 2026-05-16 — Completed 15-03-PLAN.md.
-- 2026-05-16 — Completed 15-02-PLAN.md.
-- 2026-05-16 — Completed 15-01-PLAN.md.
-- 2026-05-15 — Completed 14-02-PLAN.md.
-- 2026-05-14 — Completed 14-01-PLAN.md.
-- 2026-05-14 — Planned milestone `v0.3.0` for Ecosystem Integration and Lifecycle Hygiene, identifying Phase 14 (OpenFeature) and Phase 15 (Code References).
-- 2026-05-14 — Completed `13-04`, wrapping up milestone `v0.2.0` by archiving requirements, roadmap, and state, fulfilling the gsd-complete-milestone command.
-- 2026-04-24 — Milestone `v0.2.0` defined with governance, scheduling, webhook, and operational follow-through scope.
-
 ## Next Action
 
-Next: Run `$gsd-new-milestone` to define the next roadmap.
+Next: Run `$gsd-plan-phase 35` to begin milestone execution.

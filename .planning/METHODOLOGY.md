@@ -22,6 +22,29 @@ Bias toward coherent, recommendation-heavy output by default. Treat the user as 
 - keep recommendations internally consistent across API, UX, architecture, and testing
 - prefer least-surprise defaults and explicit failure modes
 - avoid pushing routine tradeoff sorting back onto the user; resolve it in-agent unless the choice hits the high-impact exception below
+- after reading the codebase and prompt anchors, lock ordinary implementation decisions directly in context/plans instead of turning them into questionnaires
+- treat this as the default collaboration style for this repo: ask less, synthesize more, and escalate only when the user-facing impact is genuinely material
+
+## Research-Then-Recommend Lens
+
+### Intent
+
+When a phase has meaningful design surface area, do the research work first, then return one cohesive recommendation set rather than a menu of loosely-related options.
+
+### Use this lens when
+
+- the phase touches operator workflows, public/admin contracts, or architectural seams with real tradeoffs
+- codebase context plus prompt anchors are enough to research deeply without blocking on user input
+- outside-ecosystem examples could sharpen the recommendation while still preserving Rulestead’s bounded shape
+
+### What this lens recommends
+
+- read the closest prompt anchors and prior phase context before asking anything
+- use subagents or sidecar research when that will improve recommendation quality without blocking the critical path
+- compare alternatives internally, then surface the best coherent path as the default answer
+- pull in lessons from successful libraries/products in adjacent ecosystems when they reinforce least surprise, auditability, DX, or operator trust
+- preserve explicit uncertainty in the recommendation instead of using fake precision
+- only escalate a choice to the user when it would materially change public API/wire contract, security/governance posture, release/package shape, or milestone scope
 
 ### High-impact exception
 
