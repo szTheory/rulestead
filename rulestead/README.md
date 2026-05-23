@@ -6,6 +6,12 @@ Use this package when your application needs deterministic flag evaluation,
 typed values, context builders, installer support, and fake-backed test helpers
 without mounting the admin UI.
 
+Lifecycle guidance still lives in the shared root docs. The canonical flag from
+birth to retirement guide is
+[../guides/flows/flag-lifecycle.md](../guides/flows/flag-lifecycle.md), and it
+keeps owner truth host-owned instead of turning the runtime package into an
+identity directory.
+
 ## Install
 
 The first public Hex release for `rulestead` is planned for after `v0.6.0`.
@@ -36,5 +42,6 @@ mix ecto.migrate
 
 - Root front door: [../README.md](../README.md)
 - Guided onboarding: [../guides/introduction/getting-started.md](../guides/introduction/getting-started.md)
+- Lifecycle guide: [../guides/flows/flag-lifecycle.md](../guides/flows/flag-lifecycle.md)
 - Runtime usage: [../guides/flows/evaluation.md](../guides/flows/evaluation.md)
 - Testing helpers: [../guides/recipes/testing.md](../guides/recipes/testing.md)

@@ -72,6 +72,11 @@ end
 
 The guided walkthrough continues in
 [Getting Started](guides/introduction/getting-started.md).
+If you want the fast product mental model first, read
+[User Flows and JTBD](guides/introduction/user-flows-and-jtbd.md).
+If you want the lifecycle operator story, read
+[Flag Lifecycle](guides/flows/flag-lifecycle.md) for the canonical flag from
+birth to retirement guide.
 
 ## Choose your path
 
@@ -82,6 +87,10 @@ controllers, LiveViews, jobs, or explicit `%Rulestead.Context{}` structs.
 
 - Start with [Installation](guides/introduction/installation.md)
 - Continue with [Getting Started](guides/introduction/getting-started.md)
+- Read [Flag Lifecycle](guides/flows/flag-lifecycle.md) for the canonical
+  birth to retirement operator path
+- Read [User Flows and JTBD](guides/introduction/user-flows-and-jtbd.md) for the
+  cross-role mental model
 - Go deeper with [Evaluation](guides/flows/evaluation.md),
   [Rulesets](guides/flows/rulesets.md), and
   [Testing](guides/recipes/testing.md)
@@ -93,6 +102,8 @@ mounted operator surface with host-owned authorization and environment-aware
 URLs.
 
 - Start with [rulestead_admin/README.md](rulestead_admin/README.md)
+- Read [Flag Lifecycle](guides/flows/flag-lifecycle.md) for the shared
+  lifecycle narrative across runtime, CLI, and mounted admin
 - Continue with [Admin UI](guides/flows/admin-ui.md),
   [Explainability](guides/flows/explainability.md), and
   [Multi-environment usage](guides/flows/multi-env.md)
@@ -120,8 +131,31 @@ itself or integrating it into a larger release process.
 
 - `rulestead/` — runtime package
 - `rulestead_admin/` — optional admin package
+- `examples/demo/` — Phase 28 local demo backend/frontend stack
 - `guides/` — shared HexDocs guides
 - `prompts/` — product and engineering reference docs
+
+## Local demo
+
+Phase 28 adds a full local demo stack under `examples/demo/`:
+
+```bash
+docker compose up --build
+```
+
+That boots Postgres, Redis, the Phoenix demo backend at `http://localhost:4000`,
+the mounted Admin sign-in route at `http://localhost:4000/demo/sign-in`, and the
+Next.js sample frontend at `http://localhost:3000`.
+
+The shortest end-to-end proof is:
+
+1. Open `http://localhost:3000` and confirm `The new operator cockpit is live.`
+2. Open `http://localhost:4000/demo/sign-in`.
+3. In the Admin UI, engage the kill switch for `enable-new-dashboard` in `staging`.
+4. Confirm the frontend flips to `The classic cockpit is holding.`
+
+See [examples/demo/README.md](examples/demo/README.md) for the smoke script and
+browser automation path.
 
 ## Versioning and upgrade posture
 

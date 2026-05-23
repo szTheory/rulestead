@@ -6,6 +6,11 @@ The first public Hex release for `rulestead_admin` is planned for after
 `v0.6.0`, and the package will stay documented as the mounted admin companion
 rather than a standalone control-plane product.
 
+The canonical flag from birth to retirement guide lives in the shared root docs
+at [../guides/flows/flag-lifecycle.md](../guides/flows/flag-lifecycle.md). Use
+this README for the mounted companion contract, not as a second lifecycle
+walkthrough.
+
 This README documents the host-facing contract only. Internal LiveView modules,
 socket assigns, CSS/DOM structure, and other implementation details are not
 part of the public package promise.
@@ -57,8 +62,13 @@ Add `rulestead_admin` only when your Phoenix app needs the mounted operator UI.
 Applications that only evaluate flags at runtime can depend on `rulestead`
 alone.
 
+The host still owns actor identity, session truth, and owner truth for the
+lifecycle workflow. The mounted companion surfaces that data; it does not
+replace it.
+
 ## Next docs
 
 - Root overview: [../README.md](../README.md)
 - Installation choices: [../guides/introduction/installation.md](../guides/introduction/installation.md)
+- Lifecycle guide: [../guides/flows/flag-lifecycle.md](../guides/flows/flag-lifecycle.md)
 - Operator guidance: [../guides/flows/admin-ui.md](../guides/flows/admin-ui.md)
