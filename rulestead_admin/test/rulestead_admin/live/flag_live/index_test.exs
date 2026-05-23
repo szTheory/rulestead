@@ -34,7 +34,9 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
       owner: "ops",
       tags: ["infra"],
       expected_expiration: ~D[2026-04-20],
-      permanent: false
+      permanent: false,
+      code_reference_count: 0,
+      code_refs_scan: %{received_at: DateTime.add(now, -600, :second), reference_count: 0}
     )
 
     seed_flag!(
@@ -42,6 +44,15 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
       owner: "growth",
       tags: ["search"],
       expected_expiration: ~D[2026-04-28],
+      permanent: false
+    )
+
+    seed_flag!(
+      key: "remote-config-review",
+      owner: "ops",
+      tags: ["config"],
+      flag_type: :remote_config,
+      expected_expiration: ~D[2026-04-20],
       permanent: false
     )
 
@@ -55,6 +66,7 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
     publish_flag!("checkout-redesign")
     publish_flag!("ops-cleanup")
     publish_flag!("search-ranking")
+    publish_flag!("remote-config-review")
     publish_flag!("archive-me")
 
     assert {:ok, _} = Rulestead.record_evaluation("checkout-redesign", "prod", DateTime.add(now, -600, :second))
@@ -162,6 +174,53 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
     |> render_click()
 
     assert has_element?(paged_view, "[data-flag-key='checkout-redesign']")
+  end
+
+  test "round-trips readiness and evidence-quality filters through the url and renders advisory guidance separately", %{
+    conn: conn
+  } do
+    {:ok, view, _html} = live(conn, "/admin/flags?env=prod&readiness=archive_candidate&evidence_quality=strong")
+
+    assert has_element?(view, "select[name='filters[readiness]'] option[selected][value='archive_candidate']")
+    assert has_element?(view, "select[name='filters[evidence_quality]'] option[selected][value='strong']")
+    assert has_element?(view, "[data-flag-key='ops-cleanup']")
+    refute has_element?(view, "[data-flag-key='checkout-redesign']")
+
+    view
+    |> form("form[aria-label='Flag filters']", %{
+      "filters" => %{
+        "query" => "",
+        "owner" => "",
+        "tags" => "",
+        "lifecycle" => "",
+        "stale" => "",
+        "readiness" => "needs_review",
+        "evidence_quality" => "weak",
+        "limit" => "25"
+      }
+    })
+    |> render_change()
+
+    path = assert_patch(view)
+    assert path =~ "readiness=needs_review"
+    assert path =~ "evidence_quality=weak"
+    assert has_element?(view, "[data-flag-key='search-ranking']")
+    assert has_element?(view, "[data-flag-key='remote-config-review']")
+    refute has_element?(view, "[data-flag-key='ops-cleanup']")
+  end
+
+  test "renders lifecycle freshness and archive-readiness badges as separate signals with uncertainty-first copy",
+       %{conn: conn} do
+    {:ok, _view, html} = live(conn, "/admin/flags?env=prod")
+
+    assert html =~ "Archive readiness"
+    assert html =~ "Evidence quality"
+    assert html =~ "Archive candidate"
+    assert html =~ "Strong"
+    assert html =~ "Needs review"
+    assert html =~ "Weak"
+    assert html =~ "Guidance limited by missing evidence"
+    assert html =~ "Recent scan missing"
   end
 
   test "renders keyboard-safe dense table semantics without hidden environment state", %{conn: conn} do
