@@ -13,6 +13,10 @@ surprise framework structs crossing the boundary.
 - `Rulestead.get_variant(flag_payload, context)`
 - `Rulestead.explain(flag_payload, context)`
 
+Lifecycle posture is adjacent to these calls, not part of them. Owner truth is
+host-owned, lifecycle guidance is advisory, and lifecycle review does not
+change hot-path evaluation semantics.
+
 Each call accepts the in-memory authored flag payload first and the evaluation
 context second. `context` may already be a `%Rulestead.Context{}` or any
 map/keyword input that `Rulestead.Context.new/1` can normalize.
@@ -133,6 +137,21 @@ the flag by environment and key.
 Those runtime calls are what mounted admin workflows use under the hood. They
 remain within the shipped public package boundary; they do not expose admin UI
 internals.
+
+## Lifecycle Boundary
+
+Keep this boundary explicit:
+
+- owner truth is host-owned metadata
+- lifecycle guidance is advisory operator support
+- archive readiness does not affect evaluation
+- cleanup review does not change the evaluator's rule order, bucket math, or
+  result semantics
+
+That means a flag can be under lifecycle review while `Rulestead.evaluate/3`
+continues to behave exactly the same for a given payload and context. Lifecycle
+docs should help operators decide what to do next; they should not change the
+runtime contract.
 
 ## Common Pattern
 

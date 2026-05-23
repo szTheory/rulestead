@@ -62,6 +62,25 @@ Use it like this:
 The URL and environment convention are stable. Internal LiveView implementation
 details are not.
 
+## Lifecycle Evidence For Support And SRE
+
+Support and SRE should not use explainability in isolation when lifecycle
+questions appear. Use three bounded surfaces together:
+
+- explain output for one decision path
+- lifecycle evidence from mounted review or `mix rulestead.lifecycle`
+- audit history for who changed what and why
+
+That combination answers the real operator questions:
+
+- is the flag still expected to be active?
+- was it an archive candidate or blocked by missing evidence?
+- did a recent cleanup or owner handoff happen?
+- who changed the lifecycle posture?
+
+This keeps lifecycle evidence, explain traces, and audit history aligned for
+support handoff without turning explainability into a second lifecycle system.
+
 ## Redaction Rules
 
 Explain and simulation workflows should stay redacted by default:
@@ -92,6 +111,7 @@ Use that pair when:
 If an explanation is not enough, escalate to:
 
 - the timeline route for change history
+- lifecycle evidence from `mix rulestead.lifecycle` or the mounted queue
 - telemetry for aggregate runtime signals
 - the authored ruleset itself for exact rule order and conditions
 

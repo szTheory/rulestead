@@ -65,6 +65,11 @@ Operators can treat these URL shapes as the stable v0.1.0 navigation layer:
 The `env` query parameter is the canonical environment selector across the
 mounted UI.
 
+Lifecycle review also relies on preserving `return_to` when operators move from
+the queue into detail or cleanup review. Keep those links mounted and
+shareable; do not replace them with host-local shortcuts that drop queue
+context.
+
 ## What Operators Can Do
 
 The shipped package supports these bounded workflows:
@@ -80,6 +85,41 @@ The shipped package supports these bounded workflows:
 
 These are package-level workflows. They do not freeze the internal LiveView
 implementation.
+
+## Lifecycle Review Workflow
+
+The mounted companion is the canonical queue-first lifecycle surface for host
+apps that install `rulestead_admin`.
+
+Use this default path:
+
+1. open `/admin/flags?env=prod`
+2. keep `?env=` intact as the canonical environment selector
+3. review lifecycle guidance from the mounted queue first
+4. compare that queue view with `mix rulestead.lifecycle` when CLI parity helps
+5. move into cleanup only when the evidence says explicit review is warranted
+6. preserve `return_to` so preview, confirm, and audit can land the operator
+   back in the same queue
+
+That is the public lifecycle workflow the docs rely on. It is still a mounted
+companion, not a standalone control plane, and the host continues to own
+identity, authorization, and surrounding layout.
+
+## Cleanup Flow
+
+Cleanup is not a hidden button press. The expected lifecycle mutation sequence
+is preview, confirm, audit.
+
+Mounted admin should make these boundaries obvious:
+
+- lifecycle guidance is read-only review
+- cleanup is the explicit pre-mutation review surface
+- archive happens only after preview and confirm
+- audit continuity remains part of the operator contract
+
+Use `mix rulestead.lifecycle` for the read-only report and the mounted
+companion for the queue and route-backed review flow. Do not promise selector
+or DOM stability for any of these screens.
 
 ## What Is Not Public API
 
