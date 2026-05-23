@@ -144,6 +144,26 @@ documented install or mount contract yet. A failed `verify.release_parity` run
 means the Hex tarball differs from the tagged source and must be investigated
 before the release can be considered verified.
 
+## Lifecycle Release Surface
+
+Phase 38 adds a lifecycle release surface that maintainers must verify
+explicitly when closing the milestone or preparing later lifecycle-sensitive
+releases.
+
+The machine-backed lifecycle release surface is:
+
+- root and sibling README lifecycle discoverability
+- the shared `guides/flows/flag-lifecycle.md` narrative
+- `mix rulestead.lifecycle` contract coverage
+- mounted host-seam verification through `admin_mount_test.exs`
+
+Do not treat this as a prose-only checklist. The lifecycle closeout requires a
+machine-backed evidence artifact at
+`.planning/phases/38-lifecycle-docs-runbooks-verification/38-VERIFICATION.md`.
+
+That artifact should point to the exact `mix test` commands, `rg` checks, and
+pass outputs used to verify the lifecycle release surface.
+
 ## Timing expectations
 
 Do not use the existence of the release workflows alone as the signal to ship.

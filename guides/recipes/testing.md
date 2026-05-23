@@ -138,6 +138,31 @@ That is why this guide stays aligned with
 [`rulestead/test/rulestead/integration/install_smoke_test.exs`](/Users/jon/projects/rulestead/rulestead/test/rulestead/integration/install_smoke_test.exs:1)
 instead of teaching path-dependency-only shortcuts.
 
+## Lifecycle Release Surface
+
+Lifecycle verification should stay on stable public seams.
+
+Use this layered release-facing path:
+
+1. docs and README content checks for lifecycle discoverability
+2. `mix rulestead.lifecycle` contract tests for read-only text and JSON output
+3. `release_contract_test.exs` for shared docs and sibling-package posture
+4. one mounted host-seam check through `admin_mount_test.exs`
+
+That is the supported lifecycle verification recipe. It proves the public seam
+without turning internal LiveView structure into contract.
+
+### Public Seam, Not Browser-Heavy Lock-In
+
+Prefer these checks:
+
+- `rulestead_lifecycle_test.exs` for CLI/report vocabulary and schema
+- `release_contract_test.exs` for lifecycle guide discoverability
+- `admin_mount_test.exs` for mount, route, query, and environment behavior
+
+Avoid browser-heavy lifecycle assertions that freeze private DOM or CSS
+structure. The mounted host seam is public; internal selectors are not.
+
 ## When to use the real store
 
 Use the Ecto-backed store only when you are intentionally testing your own

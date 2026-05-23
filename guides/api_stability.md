@@ -241,6 +241,29 @@ The admin policy seam is public and intentionally small:
 
 Hosts own authorization. Rulestead does not ship a bundled auth stack. `can?/4` maps host actors to the canonical Rulestead operator role model (Viewer, Editor, Admin) and specific workflow actions.
 
+## Stable Lifecycle Verification Seams
+
+Lifecycle verification in this repo may rely on these public seams:
+
+- shared README and guide content
+- `mix rulestead.lifecycle` text and JSON behavior
+- mounted admin route, query, and mount semantics such as `?env=`
+- documented queue-to-review navigation semantics
+
+Those seams are public because they are part of the release-facing docs and
+host integration contract.
+
+The following are still not public lifecycle API:
+
+- internal LiveView modules
+- DOM structure
+- CSS classes
+- test selectors
+- socket assigns
+
+Use route, query, and mount behavior for lifecycle verification. Do not freeze
+implementation details that the mounted package intentionally keeps flexible.
+
 ## Stable Telemetry Contract
 
 The event catalog from [Telemetry](flows/telemetry.md) is part of the public
