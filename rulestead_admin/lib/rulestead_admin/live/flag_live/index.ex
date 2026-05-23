@@ -8,6 +8,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
   @default_limit 25
   @allowed_lifecycle ~w(active potentially_stale stale archived)
   @allowed_stale ~w(fresh potentially_stale stale)
+  @allowed_readiness ~w(keep_active needs_review archive_candidate)
+  @allowed_evidence_quality ~w(strong partial weak)
 
   @impl true
   def mount(_params, _session, socket) do
@@ -20,6 +22,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
       |> assign(:error_message, nil)
       |> assign(:allowed_lifecycle, @allowed_lifecycle)
       |> assign(:allowed_stale, @allowed_stale)
+      |> assign(:allowed_readiness, @allowed_readiness)
+      |> assign(:allowed_evidence_quality, @allowed_evidence_quality)
       |> stream_configure(:flags, dom_id: &"flag-#{&1.flag.key}")
       |> stream(:flags, [])
 
@@ -122,6 +126,24 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
               </option>
             </select>
           </label>
+          <label>
+            <span>Archive readiness</span>
+            <select name="filters[readiness]">
+              <option value="">All readiness states</option>
+              <option :for={state <- @allowed_readiness} value={state} selected={@filters["readiness"] == state}>
+                <%= humanize(state) %>
+              </option>
+            </select>
+          </label>
+          <label>
+            <span>Evidence quality</span>
+            <select name="filters[evidence_quality]">
+              <option value="">All evidence states</option>
+              <option :for={state <- @allowed_evidence_quality} value={state} selected={@filters["evidence_quality"] == state}>
+                <%= humanize(state) %>
+              </option>
+            </select>
+          </label>
           <label class="rs-filter-grid__checkbox">
             <input type="checkbox" name="filters[include_archived]" value="true" checked={@filters["include_archived"] == "true"} />
             <span>Include archived</span>
@@ -140,6 +162,9 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
               <th scope="col">Lifecycle</th>
               <th scope="col">Environment status</th>
               <th scope="col">Stale indicator</th>
+              <th scope="col">Archive readiness</th>
+              <th scope="col">Evidence quality</th>
+              <th scope="col">Advisory note</th>
               <th scope="col">Last changed</th>
             </tr>
           </thead>
@@ -164,10 +189,13 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
                   <FlagComponents.stale_badge state={stale_state(entry.lifecycle)} last_evaluated_at={entry.lifecycle.last_evaluated_at} />
                 <% end %>
               </td>
+              <td><FlagComponents.readiness_badge readiness={entry.lifecycle.archive_readiness.readiness} /></td>
+              <td><FlagComponents.evidence_quality_badge quality={entry.lifecycle.archive_readiness.evidence_quality} /></td>
+              <td><%= advisory_note(entry.lifecycle) %></td>
               <td><%= format_last_changed(entry.flag.updated_at || entry.flag.inserted_at) %></td>
             </tr>
-            <tr :if={Enum.empty?(@page.entries)}>
-              <td colspan="7">No flags matched the current environment and filters.</td>
+            <tr :if={Enum.empty?(@page.entries)} id="flags-empty">
+              <td colspan="10">No flags matched the current environment and filters.</td>
             </tr>
           </tbody>
         </table>
@@ -204,6 +232,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
       tags: split_tags(filters["tags"]),
       lifecycle: maybe_atom(filters["lifecycle"]),
       stale: maybe_atom(filters["stale"]),
+      readiness: maybe_atom(filters["readiness"]),
+      evidence_quality: maybe_atom(filters["evidence_quality"]),
       include_archived?: filters["include_archived"] == "true",
       limit: String.to_integer(filters["limit"]),
       after: blank_to_nil(filters["after"]),
@@ -248,6 +278,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
       {"tags", filters["tags"]},
       {"lifecycle", filters["lifecycle"]},
       {"stale", filters["stale"]},
+      {"readiness", filters["readiness"]},
+      {"evidence_quality", filters["evidence_quality"]},
       {"include_archived", filters["include_archived"]},
       {"limit", serialize_limit(filters["limit"])},
       {"after", filters["after"]},
@@ -268,6 +300,9 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
       "tags" => normalize_tags(params["tags"]),
       "lifecycle" => normalize_enum(params["lifecycle"], @allowed_lifecycle),
       "stale" => normalize_enum(params["stale"], @allowed_stale),
+      "readiness" => normalize_enum(params["readiness"], @allowed_readiness),
+      "evidence_quality" =>
+        normalize_enum(params["evidence_quality"], @allowed_evidence_quality),
       "include_archived" => normalize_boolean(params["include_archived"]),
       "limit" => normalize_limit(params["limit"]),
       "after" => if(before_cursor, do: nil, else: after_cursor),
@@ -334,6 +369,25 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
   defp stale_state(%{state: _state}), do: :fresh
   defp stale_state(_value), do: :fresh
 
+  defp advisory_note(%{archive_readiness: archive_readiness, freshness: freshness}) do
+    cond do
+      freshness.code_references == :scan_unknown ->
+        "Guidance limited by missing evidence. Recent scan missing."
+
+      freshness.code_references == :scan_stale ->
+        "Guidance limited by missing evidence. Recent scan is stale."
+
+      archive_readiness.readiness == :archive_candidate ->
+        "Ready for explicit cleanup review."
+
+      archive_readiness.readiness == :keep_active ->
+        "Keep active until stronger archive evidence appears."
+
+      true ->
+        "Manual review recommended before cleanup."
+    end
+  end
+
   defp default_filters do
     %{
       "env" => nil,
@@ -342,6 +396,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
       "tags" => "",
       "lifecycle" => "",
       "stale" => "",
+      "readiness" => "",
+      "evidence_quality" => "",
       "include_archived" => "false",
       "limit" => Integer.to_string(@default_limit),
       "after" => nil,

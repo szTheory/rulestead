@@ -3,7 +3,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Cleanup do
 
   use Phoenix.LiveView
 
-  alias RulesteadAdmin.Components.{AuditComponents, FlagComponents, Shell}
+  alias RulesteadAdmin.Components.{FlagComponents, Shell}
   alias RulesteadAdmin.Live.Session
   import Ecto.Query, only: [from: 2]
 
@@ -16,10 +16,6 @@ defmodule RulesteadAdmin.Live.FlagLive.Cleanup do
      |> assign(:current_path, nil)
      |> assign(:env_links, %{})
      |> assign(:error_message, nil)
-     |> assign(:confirmation_error, nil)
-     |> assign(:confirmation_value, "")
-     |> assign(:reason_value, "")
-     |> assign(:notice, nil)
      |> assign(:code_references, [])}
   end
 
@@ -51,7 +47,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Cleanup do
     <Shell.page
       page_title={if(@flag_key, do: "#{@flag_key} cleanup", else: "Cleanup")}
       page_kicker="Cleanup"
-      page_summary="Review remaining code references and permanently archive this flag."
+      page_summary="Advisory cleanup analysis for code references, blockers, and next steps. Phase 36 stays read-only."
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}
@@ -61,16 +57,55 @@ defmodule RulesteadAdmin.Live.FlagLive.Cleanup do
       </:header_actions>
 
       <p :if={@error_message} role="alert">{@error_message}</p>
-      <p :if={@notice} role="status">{@notice}</p>
 
       <div :if={@detail}>
         <div class="rs-summary-grid" aria-label="Cleanup summary">
           <FlagComponents.stat
-            title="Confirmation"
-            value={confirmation_hint(@current_environment.key)}
-            tone={if(production_env?(@current_environment.key), do: "critical", else: "warning")}
+            title="Archive readiness"
+            value={humanize(archive_readiness(@detail).readiness)}
+            tone="neutral"
+          />
+          <FlagComponents.stat
+            title="Evidence quality"
+            value={humanize(archive_readiness(@detail).evidence_quality)}
+            tone="neutral"
+          />
+          <FlagComponents.stat
+            title="Code references"
+            value={humanize(freshness(@detail).code_references)}
+            tone="neutral"
+          />
+          <FlagComponents.stat
+            title="Evaluation evidence"
+            value={humanize(freshness(@detail).evaluation)}
+            tone="neutral"
           />
         </div>
+
+        <FlagComponents.section_card title="Phase boundary">
+          <p>Phase 36 keeps cleanup advisory only. Archive preview, confirmation, and mutation follow in a later phase.</p>
+          <p :if={guidance_limited?(archive_readiness(@detail))}>
+            Guidance limited by missing evidence. Review this flag manually before choosing a cleanup path.
+          </p>
+        </FlagComponents.section_card>
+
+        <FlagComponents.section_card title="Recommended next action">
+          <p>
+            <FlagComponents.readiness_badge readiness={archive_readiness(@detail).readiness} />
+            <FlagComponents.evidence_quality_badge quality={archive_readiness(@detail).evidence_quality} />
+          </p>
+          <p><strong>Primary recommendation:</strong> <%= primary_action_label(archive_readiness(@detail)) %></p>
+          <p :if={archive_readiness(@detail).secondary_actions != []}>
+            <strong>Secondary actions:</strong> <%= secondary_actions_label(archive_readiness(@detail).secondary_actions) %>
+          </p>
+        </FlagComponents.section_card>
+
+        <FlagComponents.section_card title="Evidence and uncertainty">
+          <p><strong>Reasons:</strong> <%= joined_labels(archive_readiness(@detail).reasons, &reason_label/1, "No archive-positive signals yet.") %></p>
+          <p><strong>Unknowns:</strong> <%= joined_labels(archive_readiness(@detail).unknowns, &unknown_label/1, "No known evidence gaps.") %></p>
+          <p><strong>Blockers:</strong> <%= joined_labels(archive_readiness(@detail).blockers, &blocker_label/1, "No blockers identified.") %></p>
+          <p><strong>Latest scan receipt:</strong> <%= scan_label(freshness(@detail).code_refs_scan) %></p>
+        </FlagComponents.section_card>
 
         <FlagComponents.section_card title="Code References">
           <p :if={Enum.empty?(@code_references)}>No known code references.</p>
@@ -81,50 +116,17 @@ defmodule RulesteadAdmin.Live.FlagLive.Cleanup do
           </ul>
         </FlagComponents.section_card>
 
-        <FlagComponents.section_card title="Archive Flag">
-          <form phx-submit="archive" aria-label="Archive Flag Form">
-            <div>
-              <label for="confirmation">Confirm exact flag key</label>
-              <input type="text" name="confirmation" id="confirmation" value={@confirmation_value} />
-            </div>
-            <div>
-              <label for="reason">Reason</label>
-              <input type="text" name="reason" id="reason" value={@reason_value} />
-            </div>
-            <p :if={@confirmation_error} role="alert">{@confirmation_error}</p>
-            <button type="submit">Archive Flag</button>
-          </form>
+        <FlagComponents.section_card title="Current lifecycle posture">
+          <p>
+            <FlagComponents.lifecycle_badge state={@detail.lifecycle} />
+            <FlagComponents.stale_badge state={@detail.lifecycle.state} last_evaluated_at={@detail.lifecycle.last_evaluated_at} />
+          </p>
+          <p><strong>Lifecycle posture:</strong> <%= humanize(@detail.lifecycle.mode) %></p>
+          <p><strong>Review by:</strong> <%= @detail.lifecycle.review_by || "Not scheduled" %></p>
         </FlagComponents.section_card>
       </div>
     </Shell.page>
     """
-  end
-
-  @impl true
-  def handle_event("archive", params, socket) do
-    reason = String.trim(Map.get(params, "reason", ""))
-    confirmation = String.trim(Map.get(params, "confirmation", ""))
-
-    with :ok <- validate_reason(reason),
-         :ok <- validate_confirmation(socket.assigns.flag_key, socket.assigns.current_environment.key, confirmation),
-         {:ok, _payload} <-
-           Rulestead.archive_flag(
-             Rulestead.Store.Command.ArchiveFlag.new(socket.assigns.flag_key, actor: socket.assigns.current_actor, reason: reason)
-           ) do
-      {:noreply,
-       socket
-       |> assign(:confirmation_error, nil)
-       |> assign(:confirmation_value, "")
-       |> assign(:reason_value, "")
-       |> assign(:notice, "Flag archived successfully.")
-       |> load_detail(socket.assigns.flag_key, socket.assigns.current_environment.key)}
-    else
-      {:error, error} ->
-        {:noreply, assign(socket, :confirmation_error, error.message) |> assign(:reason_value, reason) |> assign(:confirmation_value, confirmation)}
-
-      {:validation, message} ->
-        {:noreply, assign(socket, :confirmation_error, message) |> assign(:reason_value, reason) |> assign(:confirmation_value, confirmation)}
-    end
   end
 
   defp load_detail(socket, key, env) do
@@ -165,27 +167,6 @@ defmodule RulesteadAdmin.Live.FlagLive.Cleanup do
     end
   end
 
-  defp production_env?(environment_key), do: environment_key in ["prod", "production"]
-
-  defp confirmation_hint(environment_key) do
-    if production_env?(environment_key) do
-      "Typed key confirmation required for production."
-    else
-      "Standard confirmation required for non-production environments."
-    end
-  end
-
-  defp validate_reason(""), do: {:validation, "Reason is required."}
-  defp validate_reason(_reason), do: :ok
-
-  defp validate_confirmation(flag_key, environment_key, confirmation) do
-    if production_env?(environment_key) and confirmation != flag_key do
-      {:validation, "Type the exact flag key to confirm this production action."}
-    else
-      :ok
-    end
-  end
-
   defp build_base_path(socket, key), do: admin_base_path(socket, "/#{key}/cleanup")
 
   defp path_for(socket, suffix), do: Session.current_path(socket, admin_base_path(socket, suffix))
@@ -197,4 +178,75 @@ defmodule RulesteadAdmin.Live.FlagLive.Cleanup do
     do: socket.assigns.rulestead_admin_mount_path
 
   defp fetch_mount_path(%{rulestead_admin_mount_path: mount_path}), do: mount_path
+
+  defp archive_readiness(detail), do: detail.lifecycle.archive_readiness
+  defp freshness(detail), do: detail.lifecycle.freshness
+
+  defp humanize(value) when is_atom(value), do: humanize(to_string(value))
+
+  defp humanize(value) when is_binary(value),
+    do: value |> String.replace("_", " ") |> String.capitalize()
+
+  defp humanize(value), do: to_string(value)
+
+  defp primary_action_label(%{recommended_next_action: nil}),
+    do: "No primary recommendation yet."
+
+  defp primary_action_label(%{recommended_next_action: action}),
+    do: action_label(action)
+
+  defp secondary_actions_label(actions) do
+    actions
+    |> Enum.map(&action_label/1)
+    |> Enum.join(", ")
+  end
+
+  defp guidance_limited?(%{evidence_quality: :weak}), do: true
+  defp guidance_limited?(%{recommended_next_action: nil}), do: true
+  defp guidance_limited?(_archive_readiness), do: false
+
+  defp joined_labels([], _mapper, fallback), do: fallback
+
+  defp joined_labels(values, mapper, _fallback) do
+    values
+    |> Enum.map(mapper)
+    |> Enum.join(", ")
+  end
+
+  defp reason_label(:expiring_posture), do: "Expiring posture authored"
+  defp reason_label(:review_horizon_passed), do: "Review horizon passed"
+  defp reason_label(:stale_evaluation), do: "Evaluation has not run recently"
+  defp reason_label(:never_evaluated), do: "Evaluation has never run"
+  defp reason_label(:no_code_refs), do: "Fresh scan found no code references"
+  defp reason_label(:already_archived), do: "Already archived"
+  defp reason_label(reason), do: humanize(reason)
+
+  defp unknown_label(:code_refs_scan_missing), do: "Code-reference scan receipt is missing"
+  defp unknown_label(:code_refs_scan_stale), do: "Code-reference scan receipt is stale"
+  defp unknown_label(:evaluation_missing), do: "Evaluation evidence is missing"
+  defp unknown_label(reason), do: humanize(reason)
+
+  defp blocker_label(:protected_flag_type), do: "Protected flag type resists archival"
+  defp blocker_label(:permanent_posture), do: "Permanent posture keeps this flag active"
+  defp blocker_label(:remote_config_requires_review), do: "Remote config flags require stronger review"
+  defp blocker_label(:code_refs_present), do: "Code references are still present"
+  defp blocker_label(:already_archived), do: "Already archived"
+  defp blocker_label(reason), do: humanize(reason)
+
+  defp action_label(:archive_ready), do: "Archive when the review is complete"
+  defp action_label(:keep_active), do: "Keep active"
+  defp action_label(:review_manually), do: "Review manually"
+  defp action_label(:refresh_code_refs), do: "Refresh code references"
+  defp action_label(:collect_eval_evidence), do: "Collect evaluation evidence"
+  defp action_label(:remove_code_refs), do: "Remove code references"
+  defp action_label(:mark_permanent), do: "Mark permanent"
+  defp action_label(action), do: humanize(action)
+
+  defp scan_label(nil), do: "No code-reference scan receipt yet."
+
+  defp scan_label(%{received_at: %DateTime{} = received_at, reference_count: reference_count}) do
+    "Received #{DateTime.to_iso8601(received_at)} with #{reference_count} references."
+  end
+
+  defp scan_label(_scan), do: "Scan receipt unavailable."
 end

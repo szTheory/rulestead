@@ -205,7 +205,7 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
     assert path =~ "readiness=needs_review"
     assert path =~ "evidence_quality=weak"
     assert has_element?(view, "[data-flag-key='search-ranking']")
-    assert has_element?(view, "[data-flag-key='remote-config-review']")
+    refute has_element?(view, "[data-flag-key='remote-config-review']")
     refute has_element?(view, "[data-flag-key='ops-cleanup']")
   end
 
@@ -254,7 +254,11 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
       |> Map.put_new(:environment_keys, ["prod"])
       |> Map.put_new(:tags, [])
 
-    assert {:ok, _payload} = Rulestead.create_flag(attrs)
+    if Map.has_key?(attrs, :code_reference_count) or Map.has_key?(attrs, :code_refs_scan) do
+      assert %{flag: %{key: _key}} = Control.put_flag!(attrs)
+    else
+      assert {:ok, _payload} = Rulestead.create_flag(attrs)
+    end
   end
 
   defp seed_environment!(key, name) do

@@ -2,7 +2,6 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupTest do
   use RulesteadAdmin.ConnCase, async: false
 
   alias Rulestead.Fake.Control
-  alias Rulestead.Governance.ApprovalRequirement
   alias Rulestead.Store.Command
 
   @admin_actor %{id: 7, email: "priya@example.com", roles: [:admin]}
@@ -25,6 +24,12 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupTest do
     Application.put_env(:rulestead, :store, Rulestead.Fake)
     Application.put_env(:rulestead, :admin_policy, AllowPolicy)
 
+    Application.put_env(:rulestead, :admin_lifecycle,
+      warning_after_seconds: 1_800,
+      stale_after_seconds: 3_600,
+      now: ~U[2026-04-23 16:00:00Z]
+    )
+
     on_exit(fn ->
       case previous_policy do
         nil -> Application.delete_env(:rulestead, :admin_policy)
@@ -36,22 +41,35 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupTest do
     Control.reset!(now: now)
     Control.set_now!(now)
     seed_environment!("prod", "Production")
-    seed_environment!("staging", "Staging")
 
     seed_flag!(
-      key: "checkout-redesign",
-      owner: "growth",
-      tags: ["checkout", "release"],
-      description: "Checkout experiment for the new payment flow",
-      expected_expiration: ~D[2026-05-01],
+      key: "ops-cleanup",
+      owner: "ops",
+      tags: ["infra"],
+      description: "Ops cleanup candidate",
+      expected_expiration: ~D[2026-04-20],
       permanent: false,
-      environment_keys: ["prod", "staging"]
+      environment_keys: ["prod"],
+      code_reference_count: 0,
+      code_refs_scan: %{received_at: DateTime.add(now, -600, :second), reference_count: 0}
     )
 
-    # Note: Rulestead.CodeRefs.CodeReference is an Ecto schema, but we don't have a database configured for Rulestead.Fake in tests,
-    # wait, does Rulestead.Fake use Ecto? No, Rulestead.Fake is an in-memory store.
-    # Code references are currently stored via Rulestead.Repo (Ecto). Let's see if we can mock it or insert it.
-    
+    seed_flag!(
+      key: "remote-config-review",
+      owner: "ops",
+      tags: ["config"],
+      description: "Remote config needs review",
+      expected_expiration: ~D[2026-04-20],
+      permanent: false,
+      environment_keys: ["prod"],
+      flag_type: :remote_config
+    )
+
+    publish_flag!("ops-cleanup")
+    publish_flag!("remote-config-review")
+
+    assert {:ok, _} = Rulestead.record_evaluation("ops-cleanup", "prod", DateTime.add(now, -7_200, :second))
+
     conn =
       conn
       |> Phoenix.ConnTest.init_test_session(%{
@@ -67,35 +85,27 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupTest do
     {:ok, conn: conn}
   end
 
-  test "renders code references (files and lines) for the flag", %{conn: conn} do
-    # Assuming code references can be passed or we simulate an empty list. 
-    # Let's insert a code reference via Ecto if possible, or mock Repo.all
-    # Since RulesteadAdmin.ConnCase runs in a standard test setup, we can use Repo.insert!
-    # Wait, `cleanup.ex` will query code references. We should insert one.
-    
-    # insert_code_reference!("checkout-redesign", "lib/app/checkout.ex", 42)
+  test "cleanup is advisory-only and removes archive submission controls", %{conn: conn} do
+    {:ok, view, html} = live(conn, "/admin/flags/ops-cleanup/cleanup?env=prod")
 
-    {:ok, _view, html} = live(conn, "/admin/flags/checkout-redesign/cleanup?env=prod")
-    
-    assert html =~ "Cleanup"
-    # assert html =~ "lib/app/checkout.ex"
-    # assert html =~ "42"
+    assert html =~ "Phase 36 keeps cleanup advisory only"
+    assert html =~ "Recommended next action"
+    assert html =~ "Archive candidate"
+    assert html =~ "Archive when the review is complete"
+    assert html =~ "Fresh scan found no code references"
+    assert html =~ "No known code references."
+    refute has_element?(view, "form")
+    refute html =~ "Archive Flag"
   end
 
-  test "in production environment, requires exact flag key typed to confirm", %{conn: conn} do
-    {:ok, view, _html} = live(conn, "/admin/flags/checkout-redesign/cleanup?env=prod")
+  test "cleanup shows uncertainty and blockers when evidence is weak", %{conn: conn} do
+    {:ok, _view, html} = live(conn, "/admin/flags/remote-config-review/cleanup?env=prod")
 
-    assert view |> element("form") |> render_submit(%{"confirmation" => "wrong", "reason" => "Cleaning up"}) =~
-             "Type the exact flag key to confirm this production action."
-  end
-
-  test "proceeds with archival only when confirmation validation passes", %{conn: conn} do
-    {:ok, view, _html} = live(conn, "/admin/flags/checkout-redesign/cleanup?env=prod")
-
-    assert view |> element("form") |> render_submit(%{"confirmation" => "checkout-redesign", "reason" => "Cleaned up"})
-    
-    # Check that flag is archived.
-    assert {:ok, %{environment_status: :archived}} = Rulestead.fetch_flag("checkout-redesign", "prod")
+    assert html =~ "Guidance limited by missing evidence"
+    assert html =~ "Primary recommendation:"
+    assert html =~ "Keep active"
+    assert html =~ "Code-reference scan receipt is missing"
+    assert html =~ "Remote config flags require stronger review"
   end
 
   defp seed_flag!(attrs) do
@@ -108,7 +118,37 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupTest do
       |> Map.put_new(:environment_keys, ["prod"])
       |> Map.put_new(:tags, [])
 
-    assert {:ok, _payload} = Rulestead.create_flag(attrs)
+    if Map.has_key?(attrs, :code_reference_count) or Map.has_key?(attrs, :code_refs_scan) do
+      assert %{flag: %{key: _key}} = Control.put_flag!(attrs)
+    else
+      assert {:ok, _payload} = Rulestead.create_flag(attrs)
+    end
+  end
+
+  defp publish_flag!(flag_key) do
+    ruleset = %{
+      salt: "#{flag_key}:prod:v1",
+      rules: [
+        %{
+          key: "#{flag_key}-enabled",
+          strategy: :forced_value,
+          value: %{value: true},
+          conditions: []
+        }
+      ]
+    }
+
+    assert {:ok, _draft} =
+             Rulestead.save_draft_ruleset(
+               Command.SaveDraftRuleset.new(flag_key, "prod", ruleset,
+                 actor: @admin_actor
+               )
+             )
+
+    assert {:ok, _published} =
+             Rulestead.publish_ruleset(
+               Command.PublishRuleset.new(flag_key, "prod", actor: @admin_actor)
+             )
   end
 
   defp seed_environment!(key, name) do

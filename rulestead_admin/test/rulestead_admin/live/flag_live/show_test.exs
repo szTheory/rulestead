@@ -63,9 +63,34 @@ defmodule RulesteadAdmin.Live.FlagLive.ShowTest do
       environment_keys: ["prod", "staging"]
     )
 
+    seed_flag!(
+      key: "ops-cleanup",
+      owner: "ops",
+      tags: ["infra"],
+      description: "Ops cleanup candidate",
+      expected_expiration: ~D[2026-04-20],
+      permanent: false,
+      environment_keys: ["prod"],
+      code_reference_count: 0,
+      code_refs_scan: %{received_at: DateTime.add(now, -600, :second), reference_count: 0}
+    )
+
+    seed_flag!(
+      key: "remote-config-review",
+      owner: "ops",
+      tags: ["config"],
+      description: "Remote config needs review",
+      expected_expiration: ~D[2026-04-20],
+      permanent: false,
+      environment_keys: ["prod"],
+      flag_type: :remote_config
+    )
+
     publish_flag!("checkout-redesign", "prod")
     save_draft!("checkout-redesign", "prod", 2, false)
     save_draft!("checkout-redesign", "staging", 1, true)
+    publish_flag!("ops-cleanup", "prod")
+    publish_flag!("remote-config-review", "prod")
     seed_change_request!("checkout-redesign", "prod")
 
     assert {:ok, _} =
@@ -73,6 +98,13 @@ defmodule RulesteadAdmin.Live.FlagLive.ShowTest do
                "checkout-redesign",
                "prod",
                DateTime.add(now, -600, :second)
+             )
+
+    assert {:ok, _} =
+             Rulestead.record_evaluation(
+               "ops-cleanup",
+               "prod",
+               DateTime.add(now, -7_200, :second)
              )
 
     conn =
@@ -99,11 +131,14 @@ defmodule RulesteadAdmin.Live.FlagLive.ShowTest do
     assert html =~ "Boolean"
     assert html =~ "false"
     assert html =~ "growth"
+    assert html =~ "Kind:"
+    assert html =~ "Reference:"
     assert html =~ "checkout"
     assert html =~ "Production"
     assert html =~ "Staging"
     assert html =~ "Lifecycle"
     assert html =~ "Active"
+    assert html =~ "Lifecycle posture"
   end
 
   test "detail links to the dedicated phase 7 routes and keeps audit summary on the read surface",
@@ -166,6 +201,33 @@ defmodule RulesteadAdmin.Live.FlagLive.ShowTest do
     assert html =~ "/admin/flags/schedule/"
   end
 
+  test "detail renders archive-readiness reasons, bounded actions, and strong evidence for archive candidates",
+       %{conn: conn} do
+    {:ok, _view, html} = live(conn, "/admin/flags/ops-cleanup?env=prod")
+
+    assert html =~ "Archive readiness guidance"
+    assert html =~ "Archive candidate"
+    assert html =~ "Strong"
+    assert html =~ "Primary recommendation:"
+    assert html =~ "Archive when the review is complete"
+    assert html =~ "Fresh scan found no code references"
+    assert html =~ "Review horizon passed"
+    assert html =~ "Evaluation has not run recently"
+    assert html =~ "Latest scan receipt:"
+  end
+
+  test "detail withholds a primary recommendation when evidence is weak and blockers remain", %{
+    conn: conn
+  } do
+    {:ok, _view, html} = live(conn, "/admin/flags/remote-config-review?env=prod")
+
+    assert html =~ "Guidance limited by missing evidence"
+    assert html =~ "Primary recommendation:"
+    assert html =~ "Keep active"
+    assert html =~ "Code-reference scan receipt is missing"
+    assert html =~ "Remote config flags require stronger review"
+  end
+
   defp seed_flag!(attrs) do
     attrs =
       attrs
@@ -176,7 +238,11 @@ defmodule RulesteadAdmin.Live.FlagLive.ShowTest do
       |> Map.put_new(:environment_keys, ["prod"])
       |> Map.put_new(:tags, [])
 
-    assert {:ok, _payload} = Rulestead.create_flag(attrs)
+    if Map.has_key?(attrs, :code_reference_count) or Map.has_key?(attrs, :code_refs_scan) do
+      assert %{flag: %{key: _key}} = Control.put_flag!(attrs)
+    else
+      assert {:ok, _payload} = Rulestead.create_flag(attrs)
+    end
   end
 
   defp publish_flag!(flag_key, environment_key) do
