@@ -4,6 +4,10 @@ defmodule Rulestead.Mix.Tasks.VerifyReleasePublishTest do
   alias Mix.Tasks.Verify.ReleasePublish
   alias Rulestead.Test.ReleasePublishFixture
 
+  @root_readme_path Path.expand("../../../../../README.md", __DIR__)
+  @runtime_readme_path Path.expand("../../../../README.md", __DIR__)
+  @admin_readme_path Path.expand("../../../../../rulestead_admin/README.md", __DIR__)
+
   defmodule FixtureDouble do
     def setup_core_consumer!(tmp_dir, version, opts) do
       send(opts[:notify], {:fixture, :core, version})
@@ -164,6 +168,16 @@ defmodule Rulestead.Mix.Tasks.VerifyReleasePublishTest do
     assert Enum.all?(plan.consumers, fn consumer ->
              Enum.all?(consumer.deps, &(Map.get(&1, :path) == nil))
            end)
+  end
+
+  test "published release verification still depends on lifecycle doc discoverability" do
+    root_readme = File.read!(@root_readme_path)
+    runtime_readme = File.read!(@runtime_readme_path)
+    admin_readme = File.read!(@admin_readme_path)
+
+    assert root_readme =~ "guides/flows/flag-lifecycle.md"
+    assert runtime_readme =~ "flag-lifecycle"
+    assert admin_readme =~ "mounted companion"
   end
 
   defp tmp_dir do

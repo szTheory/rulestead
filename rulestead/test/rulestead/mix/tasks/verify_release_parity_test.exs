@@ -4,8 +4,17 @@ defmodule Rulestead.Mix.Tasks.VerifyReleaseParityTest do
   alias Mix.Tasks.Verify.ReleaseParity
 
   test "compute reports parity when tag and tarball contents match" do
-    tag_manifest = %{"README.md" => "abc123", "lib/rulestead.ex" => "def456"}
-    tarball_manifest = %{"README.md" => "abc123", "lib/rulestead.ex" => "def456"}
+    tag_manifest = %{
+      "README.md" => "abc123",
+      "guides/flows/flag-lifecycle.md" => "life789",
+      "lib/rulestead.ex" => "def456"
+    }
+
+    tarball_manifest = %{
+      "README.md" => "abc123",
+      "guides/flows/flag-lifecycle.md" => "life789",
+      "lib/rulestead.ex" => "def456"
+    }
 
     assert {:ok, %{status: :parity, drift: %{missing: [], extra: [], changed: []}}} =
              ReleaseParity.compute(tag_manifest, tarball_manifest)
@@ -14,15 +23,25 @@ defmodule Rulestead.Mix.Tasks.VerifyReleaseParityTest do
   end
 
   test "compute reports drift with a dedicated exit code" do
-    tag_manifest = %{"README.md" => "abc123", "lib/rulestead.ex" => "def456"}
-    tarball_manifest = %{"README.md" => "abc123", "lib/rulestead.ex" => "zzz999", "extra.txt" => "111"}
+    tag_manifest = %{
+      "README.md" => "abc123",
+      "guides/flows/flag-lifecycle.md" => "life789",
+      "lib/rulestead.ex" => "def456"
+    }
+
+    tarball_manifest = %{
+      "README.md" => "abc123",
+      "guides/flows/flag-lifecycle.md" => "other000",
+      "lib/rulestead.ex" => "zzz999",
+      "extra.txt" => "111"
+    }
 
     assert {:drift, %{status: :drift, drift: drift}} =
              ReleaseParity.compute(tag_manifest, tarball_manifest)
 
     assert drift.missing == []
     assert drift.extra == ["extra.txt"]
-    assert drift.changed == ["lib/rulestead.ex"]
+    assert drift.changed == ["guides/flows/flag-lifecycle.md", "lib/rulestead.ex"]
     assert ReleaseParity.exit_code({:drift, %{status: :drift}}) == 2
   end
 

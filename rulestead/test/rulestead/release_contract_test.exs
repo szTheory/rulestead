@@ -4,6 +4,10 @@ defmodule Rulestead.ReleaseContractTest do
   alias Rulestead.{Admin.Policy, Config, Context, Error, Result, Store, Telemetry}
 
   @api_stability_path Path.expand("../../../guides/api_stability.md", __DIR__)
+  @root_readme_path Path.expand("../../../README.md", __DIR__)
+  @runtime_readme_path Path.expand("../../README.md", __DIR__)
+  @admin_readme_path Path.expand("../../../rulestead_admin/README.md", __DIR__)
+  @flag_lifecycle_path Path.expand("../../../guides/flows/flag-lifecycle.md", __DIR__)
   @root_changelog_path Path.expand("../../CHANGELOG.md", __DIR__)
   @admin_changelog_path Path.expand("../../../rulestead_admin/CHANGELOG.md", __DIR__)
 
@@ -158,6 +162,28 @@ defmodule Rulestead.ReleaseContractTest do
   test "package changelogs point at the shared api stability contract" do
     assert File.read!(@root_changelog_path) =~ "../guides/api_stability.md"
     assert File.read!(@admin_changelog_path) =~ "../guides/api_stability.md"
+  end
+
+  test "root and sibling docs route readers into the lifecycle spine without standalone admin drift" do
+    root_readme = File.read!(@root_readme_path)
+    runtime_readme = File.read!(@runtime_readme_path)
+    admin_readme = File.read!(@admin_readme_path)
+    lifecycle_guide = File.read!(@flag_lifecycle_path)
+
+    assert root_readme =~ "guides/flows/flag-lifecycle.md"
+    assert root_readme =~ "birth to retirement"
+
+    assert runtime_readme =~ "../guides/flows/flag-lifecycle.md"
+    assert runtime_readme =~ "owner truth host-owned"
+
+    assert admin_readme =~ "../guides/flows/flag-lifecycle.md"
+    assert admin_readme =~ "mounted admin companion"
+    assert admin_readme =~ "not as a second lifecycle"
+    assert admin_readme =~ "walkthrough"
+
+    assert lifecycle_guide =~ "mix rulestead.lifecycle"
+    assert lifecycle_guide =~ "archive_candidate"
+    assert lifecycle_guide =~ "preview, confirm, and audit"
   end
 
   test "the root module exposes the locked v0.1.0 public function catalog" do

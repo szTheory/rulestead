@@ -87,6 +87,7 @@ defmodule Rulestead.Mix.Tasks.RulesteadLifecycleTest do
     assert output =~ "Lifecycle report"
     assert output =~ "Environment: prod"
     assert output =~ "* ops-cleanup [archive_candidate / strong]"
+    assert output =~ "owner: ops"
     assert output =~ "code references: fresh_refs_absent"
     assert output =~ "primary action: archive_ready"
     refute output =~ "search-ranking"
@@ -111,6 +112,7 @@ defmodule Rulestead.Mix.Tasks.RulesteadLifecycleTest do
       Enum.find(payload["entries"], fn entry -> entry["flag_key"] == "search-ranking" end)
 
     assert ops_cleanup["freshness"]["code_references"] == "fresh_refs_absent"
+    assert ops_cleanup["owner"] == "ops"
     assert ops_cleanup["archive_readiness"]["readiness"] == "archive_candidate"
     assert ops_cleanup["archive_readiness"]["recommended_next_action"] == "archive_ready"
     assert search_ranking["freshness"]["code_references"] == "scan_unknown"
@@ -121,6 +123,14 @@ defmodule Rulestead.Mix.Tasks.RulesteadLifecycleTest do
     assert_raise Mix.Error, ~r/read-only/, fn ->
       capture_io(fn ->
         Lifecycle.run(["--plan"])
+      end)
+    end
+  end
+
+  test "rejects unknown filter atoms without interning user input" do
+    assert_raise Mix.Error, ~r/invalid --readiness value: unknown/, fn ->
+      capture_io(fn ->
+        Lifecycle.run(["--env", "prod", "--readiness", "unknown"])
       end)
     end
   end
