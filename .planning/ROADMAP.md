@@ -55,11 +55,17 @@ Plans:
 
 **Goal**: The lifecycle system is documented and verified as a coherent “birth to retirement” operator story for Phoenix teams.
 **Depends on**: Phase 37
+**Plans:** 1/3 plans executed
 **Planned focus**:
 
 - docs, runbooks, and least-surprise default guidance
 - release-surface verification and support-truth coverage
 - milestone closeout evidence for lifecycle workflows
+
+Plans:
+- [ ] `38-01-PLAN.md` — create the lifecycle spine guide and route root/package entrypoints into the canonical story
+- [ ] `38-02-PLAN.md` — align satellite runbooks, testing guidance, API-stability language, and maintainer lifecycle release notes
+- [ ] `38-03-PLAN.md` — codify lifecycle release-surface tests and write the phase-local `LIF-05` verification artifact
 
 ## Next Candidates
 
