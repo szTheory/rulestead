@@ -5,6 +5,7 @@ defmodule Rulestead.Webhooks.CodeRefsPlug do
   import Plug.Conn
   alias Rulestead.Repo
   alias Rulestead.CodeRefs.CodeReference
+  alias Rulestead.CodeRefs.ScanReceipt
 
   def init(opts), do: opts
 
@@ -46,6 +47,13 @@ defmodule Rulestead.Webhooks.CodeRefsPlug do
     Ecto.Multi.new()
     |> Ecto.Multi.delete_all(:delete_old, CodeReference)
     |> Ecto.Multi.insert_all(:insert_new, CodeReference, valid_references)
+    |> Ecto.Multi.insert(
+      :scan_receipt,
+      ScanReceipt.changeset(%ScanReceipt{}, %{
+        received_at: now,
+        reference_count: length(valid_references)
+      })
+    )
     |> Repo.transact()
     |> case do
       {:ok, _} ->

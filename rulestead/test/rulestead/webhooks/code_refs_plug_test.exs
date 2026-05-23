@@ -11,6 +11,11 @@ defmodule Rulestead.Webhooks.CodeRefsPlugTest do
 
   @opts CodeRefsPlug.init(secret: "test_secret_token")
 
+  setup do
+    ensure_scan_receipts_schema!()
+    :ok
+  end
+
   test "accepts valid JSON payload with valid token and returns 200" do
     payload = Jason.encode!(%{
       references: [
@@ -175,5 +180,19 @@ defmodule Rulestead.Webhooks.CodeRefsPlugTest do
     |> order_by(desc: :received_at, desc: :inserted_at)
     |> limit(1)
     |> Repo.one()
+  end
+
+  defp ensure_scan_receipts_schema! do
+    Repo.query!(
+      """
+      CREATE TABLE IF NOT EXISTS code_reference_scans (
+        id uuid PRIMARY KEY,
+        received_at timestamp(6) with time zone NOT NULL,
+        reference_count integer NOT NULL DEFAULT 0,
+        inserted_at timestamp(6) with time zone NOT NULL,
+        updated_at timestamp(6) with time zone NOT NULL
+      )
+      """
+    )
   end
 end
