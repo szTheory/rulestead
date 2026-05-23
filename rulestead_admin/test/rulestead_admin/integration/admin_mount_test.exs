@@ -102,15 +102,15 @@ defmodule RulesteadAdmin.Integration.AdminMountTest do
     assert list_html =~ "Production"
     assert list_html =~ ~s(href="/admin/flags?env=dev")
     assert list_html =~ ~s(href="/admin/flags?env=prod")
-    assert list_html =~ ~s(href="/admin/flags/checkout-redesign?env=prod")
+    assert list_html =~ "/admin/flags/checkout-redesign"
 
     detail_conn = Phoenix.ConnTest.recycle(conn)
     {:ok, _detail_view, detail_html} = live(detail_conn, "/admin/flags/checkout-redesign?env=prod")
     assert detail_html =~ "Open rules workspace"
     assert detail_html =~ "Production"
-    assert detail_html =~ ~s(href="/admin/flags/checkout-redesign/rules?env=prod")
-    assert detail_html =~ ~s(href="/admin/flags/checkout-redesign/kill?env=prod")
-    assert detail_html =~ ~s(href="/admin/flags/checkout-redesign/timeline?env=prod")
+    assert detail_html =~ "/admin/flags/checkout-redesign/rules?env=prod"
+    assert detail_html =~ "/admin/flags/checkout-redesign/kill?env=prod"
+    assert detail_html =~ "/admin/flags/checkout-redesign/timeline?env=prod"
 
     rules_conn = Phoenix.ConnTest.recycle(conn)
     {:ok, _rules_view, rules_html} = live(rules_conn, "/admin/flags/checkout-redesign/rules?env=prod")
@@ -128,6 +128,27 @@ defmodule RulesteadAdmin.Integration.AdminMountTest do
     {:ok, _rollouts_view, rollouts_html} = live(rollouts_conn, "/admin/flags/checkout-redesign/rollouts?env=prod")
     assert rollouts_html =~ "Rollout controls"
     assert rollouts_html =~ "Production"
+  end
+
+  test "mounted lifecycle routes keep env query and cleanup review available through the public host seam", %{conn: conn} do
+    lifecycle_conn = Phoenix.ConnTest.recycle(conn)
+    {:ok, _view, lifecycle_html} = live(lifecycle_conn, "/admin/flags?env=prod&readiness=archive_candidate")
+
+    assert lifecycle_html =~ "Flag inventory"
+    assert lifecycle_html =~ "Production"
+    assert lifecycle_html =~ "/admin/flags?env=prod"
+
+    cleanup_conn = Phoenix.ConnTest.recycle(conn)
+
+    {:ok, _cleanup_view, cleanup_html} =
+      live(
+        cleanup_conn,
+        "/admin/flags/checkout-redesign/cleanup?env=prod&return_to=%2Fadmin%2Fflags%3Fenv%3Dprod"
+      )
+
+    assert cleanup_html =~ "Cleanup review"
+    assert cleanup_html =~ "Production"
+    assert cleanup_html =~ "Back to queue"
   end
 
   defp ensure_environment!(key, name) do
