@@ -75,6 +75,92 @@ defmodule Rulestead.AdminLifecycleTest do
              Lifecycle.classify(flag, %{status: :archived, last_evaluated_at: now}, now: now)
   end
 
+  test "lifecycle classifier separates authored posture freshness and archive readiness guidance" do
+    now = ~U[2026-04-23 16:00:00Z]
+
+    result =
+      Lifecycle.classify(
+        %{
+          owner: "growth",
+          flag_type: :release,
+          permanent: false,
+          expected_expiration: ~D[2026-04-20],
+          lifecycle: %{mode: :expiring, review_by: ~D[2026-04-20]}
+        },
+        %{status: :active, last_evaluated_at: DateTime.add(now, -7_200, :second)},
+        now: now,
+        warning_after_seconds: 1_800,
+        stale_after_seconds: 3_600,
+        code_reference_count: 0,
+        code_refs_scan: %{received_at: DateTime.add(now, -600, :second), reference_count: 0}
+      )
+
+    assert result.state == :stale
+    assert result.lifecycle.mode == :expiring
+    assert result.lifecycle.review_by == ~D[2026-04-20]
+    assert result.freshness.state == :stale
+    assert result.freshness.evaluation == :not_evaluated_recently
+    assert result.freshness.code_references == :fresh_refs_absent
+    assert result.archive_readiness.readiness == :archive_candidate
+    assert result.archive_readiness.evidence_quality == :strong
+    assert :no_code_refs in result.archive_readiness.reasons
+    assert :stale_evaluation in result.archive_readiness.reasons
+    assert result.archive_readiness.recommended_next_action == :archive_ready
+  end
+
+  test "protected and permanent flags resist archive candidate guidance without explicit retirement evidence" do
+    now = ~U[2026-04-23 16:00:00Z]
+
+    result =
+      Lifecycle.classify(
+        %{
+          owner: "ops",
+          flag_type: :kill_switch,
+          permanent: true,
+          lifecycle: %{mode: :permanent}
+        },
+        %{status: :active, last_evaluated_at: DateTime.add(now, -7_200, :second)},
+        now: now,
+        warning_after_seconds: 1_800,
+        stale_after_seconds: 3_600,
+        code_reference_count: 0,
+        code_refs_scan: %{received_at: DateTime.add(now, -600, :second), reference_count: 0}
+      )
+
+    assert result.archive_readiness.readiness == :keep_active
+    assert result.archive_readiness.evidence_quality == :partial
+    assert :protected_flag_type in result.archive_readiness.blockers
+    assert :permanent_posture in result.archive_readiness.blockers
+    assert result.archive_readiness.recommended_next_action == :keep_active
+  end
+
+  test "missing or stale scan evidence stays uncertain and withholds a primary archive recommendation" do
+    now = ~U[2026-04-23 16:00:00Z]
+
+    result =
+      Lifecycle.classify(
+        %{
+          owner: "growth",
+          flag_type: :release,
+          permanent: false,
+          expected_expiration: ~D[2026-04-20],
+          lifecycle: %{mode: :expiring, review_by: ~D[2026-04-20]}
+        },
+        %{status: :active, last_evaluated_at: DateTime.add(now, -7_200, :second)},
+        now: now,
+        warning_after_seconds: 1_800,
+        stale_after_seconds: 3_600,
+        code_reference_count: 0
+      )
+
+    assert result.freshness.code_references == :scan_unknown
+    assert result.archive_readiness.readiness == :needs_review
+    assert result.archive_readiness.evidence_quality == :weak
+    assert :code_refs_scan_missing in result.archive_readiness.unknowns
+    assert is_nil(result.archive_readiness.recommended_next_action)
+    assert :refresh_code_refs in result.archive_readiness.secondary_actions
+  end
+
   test "flag environment changeset persists last_evaluated_at" do
     evaluated_at = DateTime.from_naive!(~N[2026-04-23 14:00:00], "Etc/UTC")
 
