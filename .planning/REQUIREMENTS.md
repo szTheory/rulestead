@@ -11,7 +11,7 @@
 - [ ] **LIF-02**: Rulestead classifies lifecycle state and archive readiness from bounded signals such as flag type, expected lifetime, last evaluation evidence, and code-reference coverage instead of a single blunt stale heuristic.
 - [ ] **LIF-03**: Operators can review lifecycle and cleanup posture through shareable admin filters and CLI/reporting surfaces that highlight owner, lifecycle state, last evaluated, code-reference status, and recommended next action.
 - [ ] **LIF-04**: Archive and cleanup flows stay explicit, previewable, and audited; Rulestead never auto-archives flags and never hides uncertainty behind false precision.
-- [ ] **LIF-05**: Docs and runbooks teach the “flag from birth to retirement” lifecycle clearly for Phoenix teams, including least-surprise defaults and host-owned integration expectations.
+- [x] **LIF-05**: Docs and runbooks teach the “flag from birth to retirement” lifecycle clearly for Phoenix teams, including least-surprise defaults and host-owned integration expectations.
 
 ## Future Requirements
 
@@ -40,7 +40,7 @@
 | LIF-02 | Phase 36 | Pending |
 | LIF-03 | Phase 37 | Pending |
 | LIF-04 | Phase 37 | Pending |
-| LIF-05 | Phase 38 | Pending |
+| LIF-05 | Phase 38 | Complete |
 
 **Coverage:**
 - v1.2.0 requirements: 5 total

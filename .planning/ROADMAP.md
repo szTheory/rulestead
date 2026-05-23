@@ -55,7 +55,7 @@ Plans:
 
 **Goal**: The lifecycle system is documented and verified as a coherent “birth to retirement” operator story for Phoenix teams.
 **Depends on**: Phase 37
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 **Planned focus**:
 
 - docs, runbooks, and least-surprise default guidance
