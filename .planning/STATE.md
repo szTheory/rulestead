@@ -1,10 +1,10 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1.0
-milestone_name: tenancy-helpers-and-validation
-status: ready_to_closeout
-last_updated: "2026-05-23T00:00:00Z"
-last_activity: 2026-05-23 -- Completed and verified Phase 34
+milestone: none
+milestone_name: none
+status: milestone_shipped
+last_updated: "2026-05-23T00:40:33Z"
+last_activity: 2026-05-23 -- Archived and shipped milestone v1.1.0
 progress:
   total_phases: 6
   completed_phases: 6
@@ -17,11 +17,11 @@ progress:
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-05-21)
+See: `.planning/PROJECT.md` (updated 2026-05-23)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
-**Current focus:** Milestone `v1.1.0` closeout
-**Milestone:** `v1.1.0` active
+**Current focus:** `v1.1.0` is shipped. The planning surface is now waiting for the next milestone definition.
+**Milestone:** none active
 
 ## Roadmap Reference
 
@@ -29,21 +29,18 @@ See: `.planning/ROADMAP.md` for current roadmap state and archive links.
 
 ## Current Position
 
-Phase: 34 (milestone-auditability-backfill) — COMPLETE
-Plan: 2 of 2 completed
-Status: Ready to close out milestone `v1.1.0`
-Last activity: 2026-05-23 -- Completed and verified Phase 34
+Phase: none
+Plan: none
+Status: `v1.1.0` archived and shipped; waiting for the next milestone definition
+Last activity: 2026-05-23 -- Archived and shipped milestone `v1.1.0`
 
 ## Active Requirement Focus
 
-- **TEN-01**: Runtime and admin flows support explicit tenant scope without requiring environment-per-tenant or cloned flag topology.
-- **TEN-02**: Promotion and import validation detect tenant-sensitive dependency, scoping, or targeting issues before apply.
-- **TEN-03**: Rulestead exposes a minimal tenancy seam with a safe single-tenant default, tenant-aware bucketing hooks, and tenant-aware audit metadata.
+- None. Define the next milestone before reintroducing active requirements.
 
 ## Carryover Items
 
-- **Former Phase 25 tenancy work** has been deliberately reactivated as `v1.1.0` / Phase 29 with fresh milestone framing and continued numbering.
-- **Lifecycle and ownership work** remains the strongest follow-on candidate after tenancy if the bounded seam lands cleanly.
+- **Lifecycle and ownership work** remains the strongest follow-on candidate after the bounded tenancy seam shipped cleanly.
 
 ## Anchor Docs (prompts/)
 
@@ -111,6 +108,7 @@ These remain the primary source of truth and should be loaded selectively per ph
 
 ## Latest Activity
 
+- 2026-05-23 — Archived milestone `v1.1.0`, created shipped roadmap and requirements archives, removed the active milestone requirements file, and reset planning state to await the next milestone definition.
 - 2026-05-23 — Completed and verified Phase 34: restored `30-SUMMARY.md` and `30-VERIFICATION.md`, reran the targeted Phase 30 mounted-admin/core compare suites (`12 tests, 0 failures` and `13 tests, 0 failures`), refreshed `v1.1.0-MILESTONE-AUDIT.md`, and synced roadmap/state routing to milestone closeout.
 - 2026-05-23 — Planned Phase 34: added `34-RESEARCH.md`, `34-PATTERNS.md`, `34-01-PLAN.md`, `34-02-PLAN.md`, and `34-VALIDATION.md` to restore the missing Phase 30 audit artifacts and refresh the stale `v1.1.0` milestone audit from current tenancy evidence.
 - 2026-05-22 — Completed and verified Phase 33: mounted compare summary links now preserve the reviewed `compare_token` into drill-in routes, reviewed and stale preview drill-ins remain bound to the same compare identity, and the targeted mounted compare suite passed with `7 tests, 0 failures`.
@@ -159,4 +157,4 @@ These remain the primary source of truth and should be loaded selectively per ph
 
 ## Next Action
 
-Next: Run `$gsd-complete-milestone`.
+Next: Run `$gsd-new-milestone` to define the next roadmap.

@@ -8,18 +8,12 @@ Rulestead is a batteries-included, Elixir-native feature-flag and remote-config 
 
 - `v1.0.0` shipped on 2026-05-21 across Phases 26-28.
 - The product now has a frozen public API boundary, canonical mounted-admin RBAC, and a proven Compose-backed end-to-end demo with Phoenix + Next.js/OpenFeature integration.
-- `v1.1.0` has completed Phase 29 on 2026-05-21, delivering the bounded tenancy seam, tenant-aware reviewed-artifact validation, and mounted-admin tenant scope without widening the product shape.
+- `v1.1.0` shipped on 2026-05-23 across Phases 29-34, delivering the bounded tenancy seam, mounted-admin tenant scope, audit tenant provenance enforcement, public promotion-plan tenant-scope closure, compare preview-identity carry-through, and milestone auditability backfill without widening the product shape.
+- No next milestone is active yet.
 
-## Current Milestone: v1.1.0 Tenancy Helpers & Validation
+## Current Milestone: None Active
 
-**Goal:** Finish the smallest coherent tenancy-aware seam so runtime, admin, promotion, and manifest workflows can carry explicit tenant scope safely in real SaaS environments.
-
-**Target features:**
-- Minimal `Rulestead.Tenancy` seam with a safe `SingleTenant` default and additive tenant-aware bucketing hooks.
-- Tenant-aware preview/apply validation for import and promotion, with bounded tenant scope metadata in saved plans and audit trails.
-- Minimum mounted-admin tenant scope handling that stays explicit, fail-closed, and aligned with the linked-version two-package model.
-
-**Why now:** Post-GA adoption pressure is most likely to come from multi-tenant SaaS teams. Tenancy is the highest-value immediate JTBD gap that fits the current architecture and can be finished without drifting into a standalone control plane or tenant-partitioned topology.
+**Latest Milestone (v1.1.0) Complete:** Rulestead now ships the bounded tenancy contract across runtime, mounted admin, promotion replay/apply, compare drill-in identity, and audit provenance.
 
 ## Core Value
 
@@ -78,12 +72,12 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 
 ### Active
 
-No active milestone requirements. `v1.1.0` is ready for milestone closeout and next-milestone definition.
+- No active milestone requirements are defined right now.
 
 ## Next Milestone Goals
 
-- Restore the old Phase 25 tenancy carryover as an explicit post-GA milestone with fresh numbering, not as an inherited pre-GA leftover.
-- Keep the phase boundary tight around helper seams, validation, audit metadata, and minimum mounted-admin scope handling.
+- Reassess the next JTBD gap deliberately now that the bounded tenancy seam is shipped.
+- Lifecycle and ownership work remain the strongest follow-on candidate if no higher-value post-GA gap displaces them.
 - Preserve the sibling-package release model and avoid tenant-partitioned storage or standalone admin drift.
 
 ### Out of Scope
@@ -94,8 +88,8 @@ No active milestone requirements. `v1.1.0` is ready for milestone closeout and n
 
 - `v0.1.0` through `v1.0.0` are now archived, covering the core runtime, admin UX, governance workflows, ecosystem seams, experimentation analytics, Redis-backed distribution, environment promotion, GitOps manifests, API lockdown, RBAC, and the GA demo stack.
 - `v1.0.0` shipped across Phases 26-28, delivering the public API freeze, canonical RBAC, and the verified GA demo environment.
-- The current focus is `v1.1.0`, which intentionally activates tenancy as the first post-GA milestone after reviewing the new JTBD gap map and confirming it is still the highest-value near-term fit.
-- Phase 29 is now complete and verified. The tenancy work stayed inside helper seams, reviewed-artifact validation, bounded metadata, and mounted-admin scope.
+- `v1.1.0` shipped across Phases 29-34 as the first deliberate post-GA milestone, proving tenancy can stay bounded inside helper seams, reviewed-artifact validation, mounted-admin scope, public promotion replay/apply, and audit provenance without changing the release shape.
+- The current focus is selecting the next milestone explicitly rather than auto-extending the roadmap.
 - The project remains a linked-version, two-package monorepo.
 
 ## Constraints
@@ -119,8 +113,8 @@ No active milestone requirements. `v1.1.0` is ready for milestone closeout and n
 
 ## Milestone Archives
 
-- Roadmap archive: [.planning/milestones/v0.1.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.1.0-ROADMAP.md), [.planning/milestones/v0.2.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.2.0-ROADMAP.md), [.planning/milestones/v0.3.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.3.0-ROADMAP.md), [.planning/milestones/v0.4.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.4.0-ROADMAP.md), [.planning/milestones/v0.5.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.5.0-ROADMAP.md), [.planning/milestones/v0.6.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.6.0-ROADMAP.md), [.planning/milestones/v1.0.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.0.0-ROADMAP.md)
-- Requirements archive: [.planning/milestones/v0.1.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.1.0-REQUIREMENTS.md), [.planning/milestones/v0.2.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.2.0-REQUIREMENTS.md), [.planning/milestones/v0.3.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.3.0-REQUIREMENTS.md), [.planning/milestones/v0.4.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.4.0-REQUIREMENTS.md), [.planning/milestones/v0.5.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.5.0-REQUIREMENTS.md), [.planning/milestones/v0.6.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.6.0-REQUIREMENTS.md), [.planning/milestones/v1.0.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v1.0.0-REQUIREMENTS.md)
+- Roadmap archive: [.planning/milestones/v0.1.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.1.0-ROADMAP.md), [.planning/milestones/v0.2.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.2.0-ROADMAP.md), [.planning/milestones/v0.3.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.3.0-ROADMAP.md), [.planning/milestones/v0.4.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.4.0-ROADMAP.md), [.planning/milestones/v0.5.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.5.0-ROADMAP.md), [.planning/milestones/v0.6.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.6.0-ROADMAP.md), [.planning/milestones/v1.0.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.0.0-ROADMAP.md), [.planning/milestones/v1.1.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.1.0-ROADMAP.md)
+- Requirements archive: [.planning/milestones/v0.1.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.1.0-REQUIREMENTS.md), [.planning/milestones/v0.2.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.2.0-REQUIREMENTS.md), [.planning/milestones/v0.3.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.3.0-REQUIREMENTS.md), [.planning/milestones/v0.4.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.4.0-REQUIREMENTS.md), [.planning/milestones/v0.5.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.5.0-REQUIREMENTS.md), [.planning/milestones/v0.6.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.6.0-REQUIREMENTS.md), [.planning/milestones/v1.0.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v1.0.0-REQUIREMENTS.md), [.planning/milestones/v1.1.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v1.1.0-REQUIREMENTS.md)
 
 ## Historical Context
 
@@ -151,4 +145,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-21 after Phase 29 execution*
+*Last updated: 2026-05-23 after Milestone v1.1.0 completion*
