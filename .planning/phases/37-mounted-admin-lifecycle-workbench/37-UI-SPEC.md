@@ -1,10 +1,11 @@
 ---
 phase: 37
 slug: mounted-admin-lifecycle-workbench
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-05-23
+reviewed_at: 2026-05-23T00:00:00Z
 ---
 
 # Phase 37 — UI Design Contract
@@ -88,6 +89,12 @@ Rules:
 ---
 
 ## Interaction Contract
+
+### Visual Hierarchy
+
+- `FlagLive.Index` primary focal point: the lifecycle preset strip plus the key-first filtered workbench table. These two elements should read as one queue-management surface, not as separate tools.
+- Default scan order on the workbench: post-action outcome banner when present, then lifecycle preset strip, then filter grid, then the monospace key-first rows and their readiness/evidence badges.
+- On detail and cleanup surfaces, the lifecycle/readiness summary cards lead the eye first, while destructive archive affordances stay visually secondary until the operator reaches route-backed preview/confirm.
 
 ### Canonical Workbench
 
@@ -215,11 +222,11 @@ Destructive actions in scope:
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** approved 2026-05-23
