@@ -23,6 +23,7 @@ Bias toward coherent, recommendation-heavy output by default. Treat the user as 
 - prefer least-surprise defaults and explicit failure modes
 - avoid pushing routine tradeoff sorting back onto the user; resolve it in-agent unless the choice hits the high-impact exception below
 - after reading the codebase and prompt anchors, lock ordinary implementation decisions directly in context/plans instead of turning them into questionnaires
+- treat this as a strong default: do the synthesis and decision sorting in-agent unless a choice is unusually high-impact and likely something the user would specifically want to weigh in on
 - treat this as the default collaboration style for this repo: ask less, synthesize more, and escalate only when the user-facing impact is genuinely material
 
 ## Research-Then-Recommend Lens
@@ -55,5 +56,6 @@ Do **not** auto-lock choices that materially change:
 - security or governance posture
 - release model
 - package boundary
+- other unusually high-impact user-facing semantics that would be surprising to decide without confirmation
 
 Those still deserve explicit user confirmation.

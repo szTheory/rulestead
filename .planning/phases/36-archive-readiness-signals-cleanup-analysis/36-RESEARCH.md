@@ -384,17 +384,17 @@ payload
 
 All material claims in this research were verified against the codebase, repo docs, runtime environment, or current official docs. No `[ASSUMED]` claims remain. [VERIFIED: codebase grep]
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **How should Phase 36 prove code-reference scan freshness?**
-   - What we know: the current webhook deletes and replaces all code-reference rows, and the schema stores no explicit scan batch or scan status row. [VERIFIED: codebase grep]
-   - What's unclear: whether Phase 36 should infer freshness from row timestamps alone, add a lightweight scan metadata record, or withhold “fresh scan found no refs” until a later phase. [VERIFIED: codebase grep]
-   - Recommendation: plan a bounded freshness marker in the read model or persistence layer if needed for honesty, but do not invent a crawler or background subsystem. [VERIFIED: repo docs]
+   - Resolution: Phase 36 should add a lightweight, bounded scan-freshness signal in the existing code-reference ingestion/persistence path so the classifier can distinguish `fresh scan found no refs` from `no fresh scan evidence`. [VERIFIED: repo docs] [VERIFIED: codebase grep]
+   - Chosen shape: keep the passive host-run scanner model, but write scan-level freshness metadata alongside the existing code-reference replacement flow. Do not add a crawler, background subsystem, or persisted readiness score. [VERIFIED: repo docs]
+   - Planning implication: the plan must include explicit work in the code-reference webhook/storage seam so D-17 and LIF-02 are deliverable rather than inferred from row timestamps alone. [VERIFIED: repo docs]
 
 2. **Should the current cleanup LiveView be softened into a read surface in Phase 36 or only supplemented?**
-   - What we know: the existing page directly archives flags today, which exceeds the new phase’s advisory-only posture. [VERIFIED: codebase grep]
-   - What's unclear: whether the plan should temporarily narrow that surface in Phase 36 or simply avoid touching its mutation path until Phase 37. [VERIFIED: codebase grep]
-   - Recommendation: keep Phase 36 scoped to projection/reporting improvements and avoid adding any new mutation behavior; only narrow the page if needed to keep the public/admin contract honest. [VERIFIED: repo docs]
+   - Resolution: Phase 36 should narrow the existing cleanup screen into an advisory read surface so the mounted-admin contract stays honest with the phase’s read-only boundary. [VERIFIED: repo docs] [VERIFIED: codebase grep]
+   - Chosen shape: remove or defer archive submission affordances in this phase and reuse the screen as the operator-facing cleanup analysis surface, with explicit mutation workflows deferred to Phase 37. [VERIFIED: repo docs]
+   - Planning implication: mounted-admin work for Phase 36 must cover detail and cleanup rendering changes, not only additive badges or reporting output. [VERIFIED: repo docs]
 
 ## Environment Availability
 
