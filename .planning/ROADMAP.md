@@ -30,11 +30,16 @@ Plans:
 
 **Goal**: Archive-readiness becomes a bounded advisory system built from lifecycle metadata, evaluation evidence, and code-reference signals instead of a blunt stale flag.
 **Depends on**: Phase 35
+**Plans:** 2 plans
 **Planned focus**:
 
 - lifecycle classification and next-action guidance
 - code-reference and last-evaluation signal composition
 - CLI/reporting surface for stale and cleanup review
+
+Plans:
+- [ ] `36-01-PLAN.md` — build the shared archive-readiness projector plus Ecto/Fake payload and advisory filter parity
+- [ ] `36-02-PLAN.md` — expose the shared archive-readiness contract through mounted-admin read surfaces and the read-only lifecycle Mix report
 
 ### Phase 37: Mounted Admin Lifecycle Workbench
 
