@@ -8,7 +8,7 @@
 ### Lifecycle Metadata & Ownership (LIF)
 
 - [ ] **LIF-01**: Flags expose first-class ownership and lifecycle metadata that remain explicit across authored-state reads, writes, audit events, and mounted-admin presentation without creating a Rulestead-owned identity directory.
-- [ ] **LIF-02**: Rulestead classifies lifecycle state and archive readiness from bounded signals such as flag type, expected lifetime, last evaluation evidence, and code-reference coverage instead of a single blunt stale heuristic.
+- [x] **LIF-02**: Rulestead classifies lifecycle state and archive readiness from bounded signals such as flag type, expected lifetime, last evaluation evidence, and code-reference coverage instead of a single blunt stale heuristic.
 - [ ] **LIF-03**: Operators can review lifecycle and cleanup posture through shareable admin filters and CLI/reporting surfaces that highlight owner, lifecycle state, last evaluated, code-reference status, and recommended next action.
 - [ ] **LIF-04**: Archive and cleanup flows stay explicit, previewable, and audited; Rulestead never auto-archives flags and never hides uncertainty behind false precision.
 - [x] **LIF-05**: Docs and runbooks teach the “flag from birth to retirement” lifecycle clearly for Phoenix teams, including least-surprise defaults and host-owned integration expectations.
@@ -36,10 +36,10 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| LIF-01 | Phase 35 | Pending |
-| LIF-02 | Phase 36 | Pending |
-| LIF-03 | Phase 37 | Pending |
-| LIF-04 | Phase 37 | Pending |
+| LIF-01 | Phase 39 | Pending |
+| LIF-02 | Phase 36 | Complete |
+| LIF-03 | Phase 40 | Pending |
+| LIF-04 | Phase 40 | Pending |
 | LIF-05 | Phase 38 | Complete |
 
 **Coverage:**
@@ -49,4 +49,4 @@
 
 ---
 *Requirements defined: 2026-05-23*
-*Last updated: 2026-05-23 after milestone definition*
+*Last updated: 2026-05-24 after milestone audit gap planning*
