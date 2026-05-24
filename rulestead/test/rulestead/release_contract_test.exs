@@ -7,6 +7,9 @@ defmodule Rulestead.ReleaseContractTest do
   @root_readme_path Path.expand("../../../README.md", __DIR__)
   @runtime_readme_path Path.expand("../../README.md", __DIR__)
   @admin_readme_path Path.expand("../../../rulestead_admin/README.md", __DIR__)
+  @upgrading_path Path.expand("../../../guides/introduction/upgrading.md", __DIR__)
+  @demo_readme_path Path.expand("../../../examples/demo/README.md", __DIR__)
+  @maintaining_path Path.expand("../../../MAINTAINING.md", __DIR__)
   @flag_lifecycle_path Path.expand("../../../guides/flows/flag-lifecycle.md", __DIR__)
   @root_changelog_path Path.expand("../../CHANGELOG.md", __DIR__)
   @admin_changelog_path Path.expand("../../../rulestead_admin/CHANGELOG.md", __DIR__)
@@ -177,13 +180,68 @@ defmodule Rulestead.ReleaseContractTest do
     assert runtime_readme =~ "owner truth host-owned"
 
     assert admin_readme =~ "../guides/flows/flag-lifecycle.md"
-    assert admin_readme =~ "mounted admin companion"
+    assert admin_readme =~ "mounted companion"
     assert admin_readme =~ "not as a second lifecycle"
     assert admin_readme =~ "walkthrough"
 
     assert lifecycle_guide =~ "mix rulestead.lifecycle"
     assert lifecycle_guide =~ "archive_candidate"
     assert lifecycle_guide =~ "preview, confirm, and audit"
+  end
+
+  test "public release docs state the shipped repo truth and bounded proof posture" do
+    root_readme = File.read!(@root_readme_path)
+    runtime_readme = File.read!(@runtime_readme_path)
+    admin_readme = File.read!(@admin_readme_path)
+    upgrading = File.read!(@upgrading_path)
+    demo_readme = File.read!(@demo_readme_path)
+
+    assert root_readme =~ "v1.0.0"
+    assert root_readme =~ "2026-05-21"
+    assert root_readme =~ "0.1.0"
+    assert root_readme =~ "Proof today"
+    assert root_readme =~ "verify.release_publish"
+    assert root_readme =~ "verify.release_parity"
+
+    assert runtime_readme =~ "0.1.0"
+    assert runtime_readme =~ "shared root docs"
+
+    assert admin_readme =~ "0.1.0"
+    assert admin_readme =~ "mounted companion"
+    assert admin_readme =~ "rather than a standalone control-plane product"
+
+    assert upgrading =~ "v1.0.0"
+    assert upgrading =~ "0.1.0"
+    assert upgrading =~ "verify.release_publish"
+    assert upgrading =~ "verify.release_parity"
+    assert upgrading =~ "demo proof path"
+
+    assert demo_readme =~ "0.1.0"
+    assert demo_readme =~ "verify.release_publish"
+    assert demo_readme =~ "verify.release_parity"
+    assert demo_readme =~ "companion proof surface"
+  end
+
+  test "maintainer guidance matches the shipped release and support truth" do
+    maintaining = File.read!(@maintaining_path)
+    banned_phrases = [
+      ["first public Hex release", "target is"],
+      ["first public Hex release", "should happen only after"],
+      ["planned for", "`v0.6.0`"]
+    ]
+
+    assert maintaining =~ "v1.0.0"
+    assert maintaining =~ "2026-05-21"
+    assert maintaining =~ "0.1.0"
+    assert maintaining =~ "mounted companion"
+    assert maintaining =~ "examples/demo/"
+    assert maintaining =~ "mix verify.release_publish <version>"
+    assert maintaining =~ "mix verify.release_parity <version>"
+
+    for fragments <- banned_phrases do
+      phrase = Enum.join(fragments, " ")
+      refute maintaining =~ phrase
+    end
   end
 
   test "the root module exposes the locked v0.1.0 public function catalog" do

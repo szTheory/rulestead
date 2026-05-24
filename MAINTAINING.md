@@ -7,6 +7,12 @@ Rulestead ships as a linked-version sibling-package monorepo:
 - `rulestead`
 - `rulestead_admin`
 
+Repo GA shipped in `v1.0.0` on 2026-05-21. The current installable
+sibling-package line remains `0.1.0`, so maintainer release work should treat
+the `0.1.x` packages as the live consumer surface while keeping
+`rulestead_admin` documented as the mounted companion rather than a standalone
+product.
+
 The release machine is intentionally semi-automated:
 
 - `release-please.yml` still owns release PRs and tags.
@@ -14,8 +20,8 @@ The release machine is intentionally semi-automated:
 - One explicit maintainer approval in the protected `hex-publish`
   environment is required before `HEX_API_KEY` is exposed to a publish job.
 - Publish order is fixed: `rulestead` first, then `rulestead_admin`.
-- The first public Hex release target is **after `v0.6.0`**, with **`v1.0.0`**
-  reserved for GA hardening and stronger stability promises.
+- Support proof remains intentionally bounded to the current runnable and
+  release-verification seams.
 
 The sibling-package publish decision is intentional:
 
@@ -72,7 +78,7 @@ with the minimum write scope needed for the workflow.
 
 ## Gated publish choreography
 
-The expected first public Hex release path after `v0.6.0` is:
+The expected release path for the current shipped `0.1.0` line is:
 
 1. Merge the Release Please PR for the intended version.
 2. Let `release-please.yml` create the linked tags and dispatch
@@ -144,6 +150,11 @@ documented install or mount contract yet. A failed `verify.release_parity` run
 means the Hex tarball differs from the tagged source and must be investigated
 before the release can be considered verified.
 
+This is the same bounded proof posture described in the public docs: the local
+demo under `examples/demo/` is the primary runnable proof path, while
+`verify.release_publish` and `verify.release_parity` are the release-facing
+proof seams for published artifacts.
+
 ## Lifecycle Release Surface
 
 Phase 38 adds a lifecycle release surface that maintainers must verify
@@ -168,24 +179,21 @@ pass outputs used to verify the lifecycle release surface.
 
 Do not use the existence of the release workflows alone as the signal to ship.
 
-The first public Hex release should happen only after:
+Ship or document support only when these conditions are true:
 
-1. `v0.6.0` is shipped and verified.
+1. The current `0.1.x` package line is aligned with the root and sibling docs.
 2. The multi-environment compare/promote and import/export seams are documented
    well enough for early adopters to use honestly.
-3. The mounted-admin posture is clear in `README.md`, `rulestead/README.md`,
+3. The mounted companion posture is clear in `README.md`, `rulestead/README.md`,
    and `rulestead_admin/README.md`.
 4. The post-publish verification wave is ready to prove both sibling packages
    from live Hex artifacts.
-
-`v1.0.0` remains the point for GA framing: RBAC, API lockdown, and hardening.
 
 The recurring drift monitor lives in `.github/workflows/verify-published-release.yml`.
 It reuses the same shell entrypoint on a daily cron and on manual dispatch,
 resolves the latest shared stable sibling release from Hex, and opens or updates
 one rolling GitHub issue only when published verification actually fails or the
-sibling versions drift out of lockstep. Before the first live publish exists,
-the workflow exits cleanly instead of opening a false-positive drift issue.
+sibling versions drift out of lockstep.
 
 ## Deferred Phase 8 artifacts
 
