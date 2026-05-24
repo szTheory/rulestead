@@ -1,19 +1,19 @@
-# Milestone Arc: Post-v1.1.0
+# Milestone Arc: Post-v1.2.0
 
-**Last updated:** 2026-05-23 during `gsd-new-milestone`
+**Last updated:** 2026-05-24 during `gsd-complete-milestone`
 **Selection posture:** Default to the highest-priority candidate below unless the user explicitly chooses a materially different direction. Shift low-impact milestone-selection preference left inside GSD instead of re-opening the full tradeoff set every time.
 
 ## Current Recommendation
 
-- **Activate now:** `v1.2.0 — Lifecycle Hygiene & Ownership`
-- **Why now:** This is the clearest everyday JTBD gap after GA and bounded tenancy. It improves operator trust, cleanup safety, and least-surprise UX without widening the linked-version, two-package product shape.
+- **Activate now:** `v1.3.0 — Guarded Rollout Foundations`
+- **Why now:** Lifecycle and ownership are now shipped, so the strongest next differentiator is explicit guarded rollout behavior built on top of the calmer operator foundation instead of skipping ahead to broader reuse features.
 
 ## Candidate Ranking
 
 ### 1. `v1.2.0 — Lifecycle Hygiene & Ownership`
 
-**Status:** active candidate selected on 2026-05-23
-**Why it wins now:**
+**Status:** shipped on 2026-05-24
+**Why it won:**
 
 - Solves daily trust and cleanup pain instead of later-stage scale pain.
 - Fits the existing Elixir/Phoenix shape cleanly: metadata and lifecycle contracts in `rulestead`, mounted workflow and operator UX in `rulestead_admin`, host identity still host-owned.
@@ -41,8 +41,8 @@
 
 ### 2. `v1.3.0 — Guarded Rollout Foundations`
 
-**Status:** immediate follow-on candidate
-**Why it is next, not now:**
+**Status:** current recommendation
+**Why it is next now:**
 
 - High-value differentiator, but it depends on stronger operator trust, clear threshold semantics, and disciplined host-supplied signals
 - More complex and more surprising if pulled left before the lifecycle/cleanup loop is fully credible

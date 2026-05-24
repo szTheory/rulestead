@@ -9,18 +9,12 @@ Rulestead is a batteries-included, Elixir-native feature-flag and remote-config 
 - `v1.0.0` shipped on 2026-05-21 across Phases 26-28.
 - The product now has a frozen public API boundary, canonical mounted-admin RBAC, and a proven Compose-backed end-to-end demo with Phoenix + Next.js/OpenFeature integration.
 - `v1.1.0` shipped on 2026-05-23 across Phases 29-34, delivering the bounded tenancy seam, mounted-admin tenant scope, audit tenant provenance enforcement, public promotion-plan tenant-scope closure, compare preview-identity carry-through, and milestone auditability backfill without widening the product shape.
-- `v1.2.0` is now active as the next milestone, focused on making lifecycle hygiene and ownership first-class operator flows without widening the sibling-package release model.
+- `v1.2.0` shipped on 2026-05-24 across Phases 35-40, delivering host-owned ownership metadata, bounded archive-readiness guidance, a governed mounted lifecycle cleanup flow, and release-facing lifecycle docs plus verification without widening the sibling-package release model.
+- No next milestone is active yet.
 
-## Current Milestone: v1.2.0 Lifecycle Hygiene & Ownership
+## Current Milestone: None Active
 
-**Goal:** Make ownership metadata, lifecycle state, archive-readiness guidance, and cleanup UX feel first-class and least-surprising for Phoenix teams.
-
-**Target features:**
-- First-class ownership and lifecycle metadata that remain host-friendly and auditable
-- Archive-readiness guidance built from bounded lifecycle, evaluation, and code-reference signals
-- Mounted admin and CLI cleanup workflows that keep mutation preview and audit posture explicit
-
-**Why now:** The biggest everyday post-GA gap is not more rule power; it is the missing “flag from birth to retirement” loop. This milestone tightens operator trust and cleanup discipline before Rulestead reaches for more complex rollout automation or reusable targeting abstractions.
+**Latest Milestone (v1.2.0) Complete:** Rulestead now ships first-class lifecycle and ownership flows across authored-state contracts, advisory cleanup evidence, mounted-admin archive review, and release-facing docs.
 
 ## Core Value
 
@@ -40,10 +34,10 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
   - Value: A reliable, trusted, "done" system without feature creep that fulfills the Elixir-native platform promise.
 - **v1.2.0: Lifecycle Hygiene & Ownership**
   - Focus: Ownership metadata, lifecycle state, archive-readiness guidance, cleanup workbench UX, and docs that teach “flag from birth to retirement.”
-  - Value: Close the biggest everyday trust and cleanup gap before adding more complex automation or reuse layers.
+  - Value: Closed the biggest everyday trust and cleanup gap before adding more complex automation or reuse layers.
 - **v1.3.0: Guarded Rollout Foundations**
   - Focus: Host-supplied rollout guardrail signals, stage hold/rollback, and explicit audited health-gated rollout behavior.
-  - Value: Add a strong differentiator after the lifecycle loop is credible.
+  - Value: The strongest next differentiator now that the lifecycle loop is credible.
 - **v1.4.0: Reusable Targeting Assets**
   - Focus: Shared audiences first, with impact previews and explicit dependency visibility.
   - Value: Reduce duplicated targeting logic only after lifecycle and rollout posture remain understandable.
@@ -82,20 +76,17 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 - ✓ Enforce canonical Viewer / Editor / Admin RBAC through the host-owned policy seam (`SEC-01`, `SEC-02`, `SEC-03`) — `v1.0.0`
 - ✓ Prove the Docker-backed Phoenix + Next.js/OpenFeature demo stack end to end (`GA-01`, `GA-02`) — `v1.0.0`
 - ✓ Support explicit tenant scope across runtime, admin, promotion, and manifest flows without environment-per-tenant topology (`TEN-01`, `TEN-02`, `TEN-03`) — `v1.1.0`
+- ✓ Make ownership metadata, lifecycle guidance, cleanup review, and lifecycle docs first-class without widening the product shape (`LIF-01` to `LIF-05`) — `v1.2.0`
 
 ### Active
 
-- [ ] **LIF-01**: Flags expose first-class ownership and lifecycle metadata that remain explicit across authored-state reads, writes, audit events, and mounted-admin presentation without creating a Rulestead-owned identity directory.
-- [ ] **LIF-02**: Rulestead classifies lifecycle state and archive readiness from bounded signals such as flag type, expected lifetime, last evaluation evidence, and code-reference coverage instead of a single blunt stale heuristic.
-- [ ] **LIF-03**: Operators can review lifecycle and cleanup posture through shareable admin filters and CLI/reporting surfaces that highlight owner, lifecycle state, last evaluated, code-reference status, and recommended next action.
-- [ ] **LIF-04**: Archive and cleanup flows stay explicit, previewable, and audited; Rulestead never auto-archives flags and never hides uncertainty behind false precision.
-- [ ] **LIF-05**: Docs and runbooks teach the “flag from birth to retirement” lifecycle clearly for Phoenix teams, including least-surprise defaults and host-owned integration expectations.
+- No active milestone requirements are defined right now.
 
 ## Next Milestone Goals
 
-- Make lifecycle and ownership first-class enough that stale-state cleanup stops feeling heroic or ambiguous.
-- Preserve the sibling-package release model and avoid runtime hot-path coupling, tenant-partitioned storage, or standalone admin drift.
-- Keep guarded rollouts and reusable targeting queued behind this milestone unless materially stronger evidence appears.
+- Define the next milestone deliberately before extending the roadmap again.
+- Guarded rollout foundations remain the strongest current follow-on if no higher-value gap displaces them.
+- Preserve the sibling-package release model and avoid runtime hot-path coupling, tenant-partitioned storage, observability-product drift, or standalone admin drift.
 
 ### Out of Scope
 
@@ -108,7 +99,8 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 - `v0.1.0` through `v1.0.0` are now archived, covering the core runtime, admin UX, governance workflows, ecosystem seams, experimentation analytics, Redis-backed distribution, environment promotion, GitOps manifests, API lockdown, RBAC, and the GA demo stack.
 - `v1.0.0` shipped across Phases 26-28, delivering the public API freeze, canonical RBAC, and the verified GA demo environment.
 - `v1.1.0` shipped across Phases 29-34 as the first deliberate post-GA milestone, proving tenancy can stay bounded inside helper seams, reviewed-artifact validation, mounted-admin scope, public promotion replay/apply, and audit provenance without changing the release shape.
-- `v1.2.0` was selected after a cross-candidate research pass recorded in `.planning/MILESTONE-ARC.md`, which ranked lifecycle/ownership ahead of guarded rollout foundations and reusable targeting assets for coherence and least-surprise reasons.
+- `v1.2.0` shipped across Phases 35-40, proving ownership metadata, archive-readiness guidance, mounted cleanup preview/confirm flows, and lifecycle release surfaces can stay explicit, host-friendly, and sibling-package aligned.
+- The current focus is selecting the next milestone explicitly, with guarded rollout foundations now the lead candidate in `.planning/MILESTONE-ARC.md`.
 - The project remains a linked-version, two-package monorepo.
 
 ## Constraints
@@ -118,6 +110,7 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 - **Tenancy scope**: Ship explicit tenant-aware helpers and validation only; do not introduce tenant-partitioned authored storage, environment-per-tenant topology, or implicit all-tenant mutation behavior.
 - **Lifecycle ownership**: Treat owner references as host-owned opaque metadata; do not create a Rulestead-owned identity directory or team graph.
 - **Operator trust**: Lifecycle guidance must be advisory, explicit, and previewable; never auto-archive based on heuristics.
+- **Guarded rollout scope**: Any future rollout guardrails must stay host-supplied and must not widen Rulestead into an observability platform.
 
 ## Key Decisions
 
@@ -131,12 +124,12 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 | Model re-apply-version as a fresh forward promotion from immutable history | Preserves authored-truth semantics and avoids hidden rollback shortcuts that drift from compare/apply behavior. | Validated |
 | Target the first public Hex release for after `v0.6.0`, not at `v0.1.0` and not only at `v1.0.0` | `v0.6.0` completed the multi-environment/GitOps story, while `v1.0.0` delivered the stronger GA-level stability promises. | Validated |
 | Activate tenancy as `v1.1.0`, not as a silent Phase 25 carryover | Keeps the first post-GA milestone explicit, preserves current phase numbering, and aligns the roadmap with the current JTBD gap analysis. | Validated |
-| Activate lifecycle hygiene and ownership as `v1.2.0` ahead of guarded rollout and reusable targeting | Closes the strongest everyday trust/cleanup gap first, fits the sibling-package architecture cleanly, and keeps more complex automation layered on a calmer operator foundation. | Pending |
+| Activate lifecycle hygiene and ownership as `v1.2.0` ahead of guarded rollout and reusable targeting | Closes the strongest everyday trust/cleanup gap first, fits the sibling-package architecture cleanly, and keeps more complex automation layered on a calmer operator foundation. | Validated |
 
 ## Milestone Archives
 
-- Roadmap archive: [.planning/milestones/v0.1.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.1.0-ROADMAP.md), [.planning/milestones/v0.2.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.2.0-ROADMAP.md), [.planning/milestones/v0.3.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.3.0-ROADMAP.md), [.planning/milestones/v0.4.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.4.0-ROADMAP.md), [.planning/milestones/v0.5.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.5.0-ROADMAP.md), [.planning/milestones/v0.6.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.6.0-ROADMAP.md), [.planning/milestones/v1.0.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.0.0-ROADMAP.md), [.planning/milestones/v1.1.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.1.0-ROADMAP.md)
-- Requirements archive: [.planning/milestones/v0.1.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.1.0-REQUIREMENTS.md), [.planning/milestones/v0.2.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.2.0-REQUIREMENTS.md), [.planning/milestones/v0.3.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.3.0-REQUIREMENTS.md), [.planning/milestones/v0.4.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.4.0-REQUIREMENTS.md), [.planning/milestones/v0.5.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.5.0-REQUIREMENTS.md), [.planning/milestones/v0.6.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.6.0-REQUIREMENTS.md), [.planning/milestones/v1.0.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v1.0.0-REQUIREMENTS.md), [.planning/milestones/v1.1.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v1.1.0-REQUIREMENTS.md)
+- Roadmap archive: [.planning/milestones/v0.1.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.1.0-ROADMAP.md), [.planning/milestones/v0.2.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.2.0-ROADMAP.md), [.planning/milestones/v0.3.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.3.0-ROADMAP.md), [.planning/milestones/v0.4.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.4.0-ROADMAP.md), [.planning/milestones/v0.5.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.5.0-ROADMAP.md), [.planning/milestones/v0.6.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.6.0-ROADMAP.md), [.planning/milestones/v1.0.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.0.0-ROADMAP.md), [.planning/milestones/v1.1.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.1.0-ROADMAP.md), [.planning/milestones/v1.2.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.2.0-ROADMAP.md)
+- Requirements archive: [.planning/milestones/v0.1.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.1.0-REQUIREMENTS.md), [.planning/milestones/v0.2.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.2.0-REQUIREMENTS.md), [.planning/milestones/v0.3.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.3.0-REQUIREMENTS.md), [.planning/milestones/v0.4.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.4.0-REQUIREMENTS.md), [.planning/milestones/v0.5.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.5.0-REQUIREMENTS.md), [.planning/milestones/v0.6.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.6.0-REQUIREMENTS.md), [.planning/milestones/v1.0.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v1.0.0-REQUIREMENTS.md), [.planning/milestones/v1.1.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v1.1.0-REQUIREMENTS.md), [.planning/milestones/v1.2.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v1.2.0-REQUIREMENTS.md)
 
 ## Historical Context
 
@@ -167,4 +160,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-23 after defining Milestone v1.2.0*
+*Last updated: 2026-05-24 after Milestone v1.2.0 completion*

@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.2.0
-milestone_name: lifecycle-hygiene-and-ownership
-status: verifying
-last_updated: "2026-05-23T21:14:50.597Z"
-last_activity: 2026-05-23
+milestone: none
+milestone_name: none
+status: milestone_shipped
+last_updated: "2026-05-24T11:53:53Z"
+last_activity: 2026-05-24 -- Archived and shipped milestone v1.2.0
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 9
-  completed_plans: 9
+  total_phases: 6
+  completed_phases: 6
+  total_plans: 11
+  completed_plans: 11
   percent: 100
 ---
 
@@ -17,11 +17,11 @@ progress:
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-05-23)
+See: `.planning/PROJECT.md` (updated 2026-05-24)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
-**Current focus:** Phase 38 — lifecycle-docs-runbooks-verification
-**Milestone:** `v1.2.0 — Lifecycle Hygiene & Ownership`
+**Current focus:** `v1.2.0` is shipped. The planning surface is now waiting for the next milestone definition.
+**Milestone:** none active
 
 ## Roadmap Reference
 
@@ -29,24 +29,20 @@ See: `.planning/ROADMAP.md` for current roadmap state and archive links.
 
 ## Current Position
 
-Phase: 38 (lifecycle-docs-runbooks-verification) — VERIFYING
-Plan: 3 of 3
-Status: Phase complete — ready for verification
-Last activity: 2026-05-23
+Phase: none
+Plan: none
+Status: `v1.2.0` archived and shipped; waiting for the next milestone definition
+Last activity: 2026-05-24 -- Archived and shipped milestone `v1.2.0`
 
 ## Active Requirement Focus
 
-- `LIF-01`: first-class ownership and lifecycle metadata without a Rulestead-owned identity directory
-- `LIF-02`: bounded lifecycle state and archive-readiness guidance from explicit signals
-- `LIF-03`: shareable admin and CLI cleanup visibility with recommended next actions
-- `LIF-04`: explicit, previewable, audited archive and cleanup flows
-- `LIF-05`: docs and runbooks for the full flag lifecycle
+- None. Define the next milestone before reintroducing active requirements.
 
 ## Carryover Items
 
-- **Guarded rollout foundations** remain the strongest immediate follow-on after `v1.2.0`.
+- **Guarded rollout foundations** remain the strongest immediate follow-on after lifecycle and ownership shipped cleanly.
 - **Reusable targeting assets** remain the next queued scale/reuse milestone after guarded rollout.
-- Milestone-selection preference is now recorded in `.planning/MILESTONE-ARC.md` so future low-impact candidate ordering can stay left-shifted inside GSD.
+- Milestone-selection preference remains recorded in `.planning/MILESTONE-ARC.md` so future candidate ordering can stay explicit.
 
 ## Anchor Docs (prompts/)
 
@@ -114,6 +110,10 @@ These remain the primary source of truth and should be loaded selectively per ph
 
 ## Latest Activity
 
+- 2026-05-24 — Archived milestone `v1.2.0`, created shipped roadmap and requirements archives, removed the active milestone requirements file, updated the milestone arc to point at guarded rollout foundations, and reset planning state to await the next milestone definition.
+- 2026-05-24 — Completed and verified Phase 40: created `.planning/phases/37-mounted-admin-lifecycle-workbench/37-VERIFICATION.md`, reran the targeted Phase 37 mounted lifecycle suites (`23 tests, 0 failures`), corrected the Phase 37 summary requirement mapping, and reconciled milestone traceability so `LIF-03` and `LIF-04` are now evidenced and `v1.2.0` is ready for closeout.
+- 2026-05-24 — Planned Phase 40: added `40-RESEARCH.md`, `40-PATTERNS.md`, `40-VALIDATION.md`, and `40-01-PLAN.md` to close the missing Phase 37 lifecycle workbench verification artifact, repair Phase 37 requirement mapping drift, and route `v1.2.0` toward closeout once `LIF-03`/`LIF-04` are evidenced.
+- 2026-05-24 — Completed and verified Phase 39: reconstructed `.planning/phases/35-lifecycle-contract-ownership-metadata/35-VERIFICATION.md`, reran the targeted Phase 35 ownership/lifecycle suites (`20 tests, 0 failures` in `rulestead`, `9 tests, 0 failures` in `rulestead_admin`), and reconciled milestone traceability so `LIF-01` is now evidenced while `LIF-03`/`LIF-04` remain open.
 - 2026-05-23 — Defined milestone `v1.2.0` for Lifecycle Hygiene & Ownership, added `.planning/MILESTONE-ARC.md`, restored the active `REQUIREMENTS.md`, refreshed `PROJECT.md`, and created the continued Phase 35-38 roadmap.
 - 2026-05-23 — Archived milestone `v1.1.0`, created shipped roadmap and requirements archives, removed the active milestone requirements file, and reset planning state to await the next milestone definition.
 - 2026-05-23 — Completed and verified Phase 34: restored `30-SUMMARY.md` and `30-VERIFICATION.md`, reran the targeted Phase 30 mounted-admin/core compare suites (`12 tests, 0 failures` and `13 tests, 0 failures`), refreshed `v1.1.0-MILESTONE-AUDIT.md`, and synced roadmap/state routing to milestone closeout.
@@ -129,4 +129,4 @@ These remain the primary source of truth and should be loaded selectively per ph
 
 ## Next Action
 
-Next: Run `$gsd-verify-work 38` to review the completed `LIF-05` docs, release-surface tests, and verification artifact.
+Next: Run `$gsd-new-milestone` to define the next roadmap.
