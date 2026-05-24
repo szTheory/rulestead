@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.3.0
 milestone_name: Adopter Truth & Proof Closure
-status: milestone_active
-last_updated: "2026-05-24T18:30:00Z"
-last_activity: 2026-05-24 -- Activated milestone v1.3.0 and created the support-truth closure roadmap
+status: verifying
+last_updated: "2026-05-24T15:44:45.159Z"
+last_activity: 2026-05-24
 progress:
   total_phases: 4
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  completed_phases: 1
+  total_plans: 1
+  completed_plans: 1
+  percent: 25
 ---
 
 # State: Rulestead
@@ -20,7 +20,7 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-24)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
-**Current focus:** `v1.3.0` is active. The immediate goal is to make release docs, install truth, migrations, and verification agree with the shipped post-GA surface.
+**Current focus:** Verify Phase 41 and prepare Phase 42 runtime-contract parity work
 **Milestone:** `v1.3.0 — Adopter Truth & Proof Closure`
 
 ## Roadmap Reference
@@ -29,10 +29,10 @@ See: `.planning/ROADMAP.md` for the active milestone and phase sequencing.
 
 ## Current Position
 
-Phase: 41
-Plan: none
-Status: Milestone initialized; ready to discuss and plan Phase 41
-Last activity: 2026-05-24 -- Activated `v1.3.0` and mapped the milestone into Phases 41-44
+Phase: 41 (release-truth-alignment) — EXECUTING
+Plan: 1 of 1
+Status: Phase complete — ready for verification
+Last activity: 2026-05-24
 
 ## Active Requirement Focus
 
@@ -87,13 +87,16 @@ These remain the primary source of truth and should be loaded selectively per ph
 - **35-00**: Activated lifecycle hygiene and ownership as `v1.2.0` ahead of guarded rollout and reusable targeting to close the strongest everyday trust/cleanup gap first.
 - **41-00**: Redirected the next milestone toward adopter-truth and proof-posture closure before guarded rollout because current repo evidence shows conflicting release docs and failing proof surfaces.
 - **41-01**: Activated `v1.3.0` as a bounded support-truth milestone instead of reopening feature prioritization because docs, migrations, and runnable proof are the highest-leverage current adopter gap.
+- **41-02**: Centralized the repo-GA versus package-line explanation at the root README while keeping sibling package READMEs narrow and linked back to shared docs.
+- **41-03**: Bounded public support truth to the local demo plus `mix verify.release_publish` and `mix verify.release_parity`, and locked that posture into release-contract tests.
 
 ## Latest Activity
 
+- 2026-05-24 — Completed Phase 41 plan 01: aligned release/onboarding/support docs to the shipped `v1.0.0` repo posture and current `0.1.0` package line, added bounded proof language, and extended release-contract tests plus maintainer guidance to prevent drift.
 - 2026-05-24 — Activated `v1.3.0 — Adopter Truth & Proof Closure`, refreshed milestone research, restored the active requirements file, and created the continued Phase 41-44 roadmap.
 - 2026-05-24 — Assessed the next milestone from the full sibling-package adopter lens, concluded the product is roughly 83% done for its stated scope, redirected the next recommendation to `v1.3.0 — Adopter Truth & Proof Closure`, added strategic threads for proof/support drift, and updated planning state so future milestone selection starts from repo evidence instead of the previous guarded-rollout default.
 - 2026-05-24 — Archived milestone `v1.2.0`, created shipped roadmap and requirements archives, removed the active milestone requirements file, updated the milestone arc to point at guarded rollout foundations, and reset planning state to await the next milestone definition.
 
 ## Next Action
 
-Next: Run `$gsd-discuss-phase 41` to tighten the release-truth scope or `$gsd-plan-phase 41` to plan it directly.
+Next: Run `$gsd-verify-work 41` to close the phase with explicit verification evidence, or move to `$gsd-plan-phase 42` for runtime-contract parity.

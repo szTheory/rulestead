@@ -7,8 +7,8 @@
 
 ### Release Truth & Docs (`DOC`)
 
-- [ ] **DOC-01**: Root and sibling package READMEs describe the shipped post-`v1.0.0` release posture, linked-version sibling-package model, and mounted-admin companion scope without stale pre-GA messaging.
-- [ ] **DOC-02**: Installation, onboarding, and support-facing docs explain the real current package, migration, demo, and verification posture without implying stronger proof than the repo currently provides.
+- [x] **DOC-01**: Root and sibling package READMEs describe the shipped post-`v1.0.0` release posture, linked-version sibling-package model, and mounted-admin companion scope without stale pre-GA messaging.
+- [x] **DOC-02**: Installation, onboarding, and support-facing docs explain the real current package, migration, demo, and verification posture without implying stronger proof than the repo currently provides.
 
 ### Runtime Contract Parity (`PAR`)
 
@@ -76,8 +76,8 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DOC-01 | Phase 41 | Pending |
-| DOC-02 | Phase 41 | Pending |
+| DOC-01 | Phase 41 | Complete |
+| DOC-02 | Phase 41 | Complete |
 | PAR-01 | Phase 42 | Pending |
 | PAR-02 | Phase 42 | Pending |
 | ADM-01 | Phase 43 | Pending |
