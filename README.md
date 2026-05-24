@@ -4,6 +4,11 @@
 > Typed feature flags, variants, and remote config for Elixir apps, with an
 > optional mounted Phoenix LiveView admin.
 
+> **Release truth:** repo GA shipped in `v1.0.0` on 2026-05-21. The current
+> installable sibling-package line remains `0.1.0`, so adopters should depend
+> on the `0.1.x` Hex packages while using this repo's `v1.0.0` milestone docs
+> as the support and proof posture reference.
+
 ## What this is (60 seconds)
 
 Rulestead ships as two sibling Hex packages:
@@ -17,20 +22,7 @@ engineering application state.
 
 ## 15-minute quickstart
 
-The first public Hex release is planned for **after `v0.6.0`**. Once those
-packages are live on Hex, if you want the runtime plus the admin UI, add both
-packages:
-
-```elixir
-defp deps do
-  [
-    {:rulestead, "~> 0.1"},
-    {:rulestead_admin, "~> 0.1"}
-  ]
-end
-```
-
-If you only need runtime evaluation in application code, start with:
+Start with the runtime package:
 
 ```elixir
 defp deps do
@@ -58,6 +50,18 @@ else
 end
 ```
 
+If your Phoenix app also needs the mounted companion admin, add
+`rulestead_admin` immediately after the runtime dependency:
+
+```elixir
+defp deps do
+  [
+    {:rulestead, "~> 0.1"},
+    {:rulestead_admin, "~> 0.1"}
+  ]
+end
+```
+
 Mount the admin UI only if your app needs it:
 
 ```elixir
@@ -69,6 +73,10 @@ scope "/" do
   rulestead_admin "/admin/flags", policy: MyApp.RulesteadPolicy
 end
 ```
+
+The canonical install-path split lives in
+[Installation](guides/introduction/installation.md), which keeps the
+runtime-first path as the default and the mounted companion as the next step.
 
 The guided walkthrough continues in
 [Getting Started](guides/introduction/getting-started.md).
@@ -137,7 +145,20 @@ itself or integrating it into a larger release process.
 
 ## Local demo
 
-Phase 28 adds a full local demo stack under `examples/demo/`:
+## Proof today
+
+The repo's current proof posture is intentionally bounded:
+
+- `examples/demo/` is the primary runnable end-to-end proof path.
+- `mix verify.release_publish <version>` proves published-consumer install and
+  HexDocs reachability for the shipped `0.1.0` package line.
+- `mix verify.release_parity <version>` proves the tagged release and Hex
+  tarball stay in sync.
+
+Anything beyond those seams should be read as current guidance rather than a
+broader closed support guarantee.
+
+The runnable local demo lives under `examples/demo/`:
 
 ```bash
 docker compose up --build
@@ -159,9 +180,8 @@ browser automation path.
 
 ## Versioning and upgrade posture
 
-Rulestead is targeting its first public Hex release **after `v0.6.0`**. Treat
-the first public `0.x` line as an early-adopter train: additive docs and
-patch-level fixes should stay cheap, and minor bumps before `1.0` remain the
-window where package contracts can still tighten. `v1.0.0` is the intended GA
-line. The current guidance lives in
-[Upgrading](guides/introduction/upgrading.md).
+Repo GA shipped in `v1.0.0` on 2026-05-21, while the installable sibling
+packages currently remain on the `0.1.0` line. Treat that package line as the
+current public consumer surface and use
+[Upgrading](guides/introduction/upgrading.md) for the longer compatibility and
+support-truth explanation.

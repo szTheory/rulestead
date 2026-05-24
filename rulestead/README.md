@@ -6,6 +6,10 @@ Use this package when your application needs deterministic flag evaluation,
 typed values, context builders, installer support, and fake-backed test helpers
 without mounting the admin UI.
 
+Repo GA shipped in `v1.0.0` on 2026-05-21, and the current installable package
+line for `rulestead` is `0.1.0`. Keep the broader release and proof posture in
+the shared root docs at [../README.md](../README.md).
+
 Lifecycle guidance still lives in the shared root docs. The canonical flag from
 birth to retirement guide is
 [../guides/flows/flag-lifecycle.md](../guides/flows/flag-lifecycle.md), and it
@@ -13,8 +17,6 @@ keeps owner truth host-owned instead of turning the runtime package into an
 identity directory.
 
 ## Install
-
-The first public Hex release for `rulestead` is planned for after `v0.6.0`.
 
 ```elixir
 defp deps do
@@ -42,6 +44,7 @@ mix ecto.migrate
 
 - Root front door: [../README.md](../README.md)
 - Guided onboarding: [../guides/introduction/getting-started.md](../guides/introduction/getting-started.md)
+- Installation choices: [../guides/introduction/installation.md](../guides/introduction/installation.md)
 - Lifecycle guide: [../guides/flows/flag-lifecycle.md](../guides/flows/flag-lifecycle.md)
 - Runtime usage: [../guides/flows/evaluation.md](../guides/flows/evaluation.md)
 - Testing helpers: [../guides/recipes/testing.md](../guides/recipes/testing.md)

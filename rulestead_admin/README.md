@@ -2,9 +2,10 @@
 
 `rulestead_admin` is the optional mounted admin package for Rulestead.
 
-The first public Hex release for `rulestead_admin` is planned for after
-`v0.6.0`, and the package will stay documented as the mounted admin companion
-rather than a standalone control-plane product.
+Repo GA shipped in `v1.0.0` on 2026-05-21, and the current installable package
+line for `rulestead_admin` is `0.1.0`. This package stays documented as the
+mounted companion rather than a standalone control-plane product; the broader
+release and proof posture lives in [../README.md](../README.md).
 
 The canonical flag from birth to retirement guide lives in the shared root docs
 at [../guides/flows/flag-lifecycle.md](../guides/flows/flag-lifecycle.md). Use
@@ -16,6 +17,20 @@ socket assigns, CSS/DOM structure, and other implementation details are not
 part of the public package promise.
 
 ## Mount seam
+
+## Install
+
+Add `rulestead_admin` only when a Phoenix host app needs the mounted companion
+surface alongside the runtime package:
+
+```elixir
+defp deps do
+  [
+    {:rulestead, "~> 0.1"},
+    {:rulestead_admin, "~> 0.1"}
+  ]
+end
+```
 
 Mount the admin routes from the host router with the package macro:
 
