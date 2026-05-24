@@ -1,7 +1,7 @@
 # Getting Started
 
-This is the first-success path for `v0.1.0`: install the package, gate one
-code path, and optionally mount the admin UI.
+This is the first-success path for the current `0.1.0` package line: install
+the runtime, gate one code path, and optionally mount the admin UI.
 
 ## 1. Add dependencies
 
@@ -17,6 +17,9 @@ Runtime plus admin UI:
 {:rulestead, "~> 0.1"},
 {:rulestead_admin, "~> 0.1"}
 ```
+
+Repo GA shipped in `v1.0.0` on 2026-05-21, but adoption today still starts
+from the `0.1.x` sibling packages shown above.
 
 ## 2. Install and migrate
 
@@ -73,3 +76,4 @@ selector. The package-local details are in
 - Rules and precedence: [../flows/rulesets.md](../flows/rulesets.md)
 - Explain and support workflows: [../flows/explainability.md](../flows/explainability.md)
 - Testing and fake-backed helpers: [../recipes/testing.md](../recipes/testing.md)
+- Runnable proof path: [../../examples/demo/README.md](../../examples/demo/README.md)

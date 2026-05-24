@@ -5,7 +5,8 @@ Rulestead ships as two sibling packages:
 - `rulestead` for runtime evaluation, installer support, context helpers, and tests
 - `rulestead_admin` for the optional mounted admin UI
 
-Install only the package boundary your app needs.
+Repo GA shipped in `v1.0.0` on 2026-05-21, and the current installable package
+line remains `0.1.0`. Install only the package boundary your app needs.
 
 ## Runtime-only apps
 
@@ -53,3 +54,5 @@ surface. If you mount `rulestead_admin`, follow the router seam documented in
 - Follow [Getting Started](getting-started.md) for the first-success path
 - Use [Evaluation](../flows/evaluation.md) for runtime usage patterns
 - Use [Admin UI](../flows/admin-ui.md) if your app mounts the operator surface
+- Use [../../examples/demo/README.md](../../examples/demo/README.md) when you
+  want the bounded runnable demo proof path
