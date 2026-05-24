@@ -361,12 +361,12 @@ assert contract =~ "Stable `rulestead_admin` Boundary"
 |---|-------|---------|---------------|
 | A1 | The best new spine filename is `guides/flows/lifecycle.md` rather than another flow/introduction path. [ASSUMED] | Recommended Project Structure | Low; planning can rename the file without changing scope or verification shape. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Where should the maintainer-facing lifecycle release/runbook guidance live?**
-   - What we know: existing release verification posture already lives in release docs/tests, and the phase context wants a focused maintainer/release satellite rather than a new QA subsystem. [VERIFIED: codebase grep] [VERIFIED: repo docs]
-   - What's unclear: whether the best landing spot is `MAINTAINING.md`, a guide update, or a phase-local verification artifact. [ASSUMED]
-   - Recommendation: decide this early in planning and keep it to one surface plus links from the lifecycle spine. [ASSUMED]
+   - **Resolved outcome:** keep the maintainer-facing lifecycle release checklist in `MAINTAINING.md`, then link to it from the lifecycle spine and phase-local verification artifact as needed.
+   - **Why this is the right landing surface:** it matches the repo's existing maintainer/release posture, keeps operator-facing guides from absorbing release-checklist detail, and avoids creating a new standalone QA or release document just for Phase 38. [VERIFIED: repo docs]
+   - **Planning implication:** `38-02-PLAN.md` should update `MAINTAINING.md`, while `38-03-PLAN.md` should capture the machine-backed evidence in `38-VERIFICATION.md`.
 
 ## Environment Availability
 
