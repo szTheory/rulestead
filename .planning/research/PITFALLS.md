@@ -1,39 +1,50 @@
-# Domain Pitfalls: v1.0.0 (GA)
+# Pitfalls Research: Rulestead v1.3.0 - Adopter Truth & Proof Closure
 
-**Domain:** Feature Management Platform
-**Researched:** 2026-05-17
+**Project:** Rulestead v1.3.0 - Adopter Truth & Proof Closure
+**Researched:** 2026-05-24
 
-## Critical Pitfalls
+## Major Pitfalls
 
-Mistakes that cause rewrites or major issues upon GA release.
+### 1. Solving Proof Drift With Narrative Only
 
-### Pitfall 1: Leaking Internal APIs
-**What goes wrong:** Developers in the host application start calling `Rulestead.Engine.evaluate_ast/2` because it's public, even though it wasn't meant to be part of the stable API.
-**Why it happens:** Forgetting to add `@moduledoc false` to internal modules before tagging v1.0.0.
-**Consequences:** In v1.1.0, you rewrite the engine, breaking the host application and violating SemVer expectations.
-**Prevention:** Strict review of `mix docs` output. If a module shouldn't be guaranteed for 10 years, hide it.
+Updating planning or README copy without reconciling migrations, installer behavior, and runnable verification preserves the underlying support-truth gap.
 
-### Pitfall 2: Dependency Conflicts in Host Apps
-**What goes wrong:** Rulestead v1.0.0 requires `{:ecto, "~> 3.11.0"}` or `{:permit, "~> 1.0"}`.
-**Why it happens:** Adding heavy, opinionated dependencies for features like RBAC.
-**Consequences:** Users cannot install Rulestead because their app relies on an older/newer version of that dependency.
-**Prevention:** Keep dependencies to the absolute bare minimum (`ecto`, `phoenix`, `jason`). Implement RBAC using standard Elixir pattern matching instead of a framework.
+**Prevention:** Every docs claim in this milestone should map to a test, migration, generator path, or explicitly bounded caveat.
 
-## Moderate Pitfalls
+### 2. Smuggling In New Product Scope
 
-### Pitfall 3: "Empty Room" Demo Experience
-**What goes wrong:** A user successfully installs Rulestead, opens the dashboard, and stares at a blank screen, unsure how it connects to their frontend.
-**Prevention:** The E2E Demo Environment must come pre-seeded with 3-4 flags, a mock user base, and a functioning frontend (e.g., Next.js) that visibly changes when a flag is toggled in the admin UI.
+Guarded rollout, targeting reuse, or broad admin polish can easily hide inside a “proof closure” milestone and blow up sequencing.
 
-## Phase-Specific Warnings
+**Prevention:** Keep scope limited to docs, schema/migration parity, mounted contract truth, and bridge proof.
 
-| Phase Topic | Likely Pitfall | Mitigation |
-|-------------|---------------|------------|
-| API Lockdown | Breaking changes immediately after 1.0 | Aggressive use of `@moduledoc false` for anything not strictly meant for public use. |
-| RBAC | Over-engineering custom roles | Ship with static roles: Admin, Editor, Viewer. |
-| Demo Environments | Flaky Docker builds | Use official, pinned image versions for Postgres/Redis in the `docker-compose.yml`. |
+### 3. Treating Admin Test Drift As Cosmetic
+
+The mounted admin contract is adopter-facing because it defines the host seam. Field-name and permission drift are support-truth issues, not minor UI cleanup.
+
+**Prevention:** Resolve the contract deliberately and record the supported behavior once.
+
+### 4. Leaving Companion Surfaces Half-Supported
+
+If `open_feature_rulestead` remains in the repo and release story, a broken or undocumented proof path becomes an adoption trap.
+
+**Prevention:** Either make the bridge runnable and documented in a bounded way or document its exact support limits.
+
+### 5. Breaking Package Boundaries While Closing Drift
+
+It is easy to fix support gaps by letting admin or bridge concerns leak into `rulestead` core responsibilities.
+
+**Prevention:** Keep runtime/domain truth in `rulestead`, mounted operator truth in `rulestead_admin`, and bridge proof in `open_feature_rulestead`.
+
+## Warning Signs
+
+- Docs mention planned future releases instead of shipped dates.
+- Migration files do not match public Ecto schema fields.
+- Contract tests are rewritten to pass without clarifying intended support behavior.
+- OpenFeature proof is postponed again as “later polish” while remaining in the public surface.
 
 ## Sources
 
-- SemVer 2.0.0 Specifications
-- Maintainer experiences from high-profile Elixir libraries (Oban, Absinthe).
+- `.planning/threads/2026-05-24-next-milestone-assessment.md`
+- `.planning/threads/2026-05-24-proof-posture-drift.md`
+- `prompts/rulestead-testing-and-e2e-strategy.md`
+- `prompts/rulestead-host-app-integration-seam.md`

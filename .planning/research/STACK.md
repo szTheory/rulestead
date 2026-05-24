@@ -1,40 +1,54 @@
-# Technology Stack
+# Technology Stack: Rulestead v1.3.0 - Adopter Truth & Proof Closure
 
-**Project:** Rulestead v1.0.0 (GA)
-**Researched:** 2026-05-17
+**Project:** Rulestead v1.3.0 - Adopter Truth & Proof Closure
+**Researched:** 2026-05-24
 
 ## Recommended Stack
 
-### Core Framework (Locked)
-| Technology | Version | Purpose | Why |
-|------------|---------|---------|-----|
-| Elixir / Phoenix | 1.14+ | Host application integration | Standard, already established. |
+### Core Platform (Carry Forward)
 
-### Security & RBAC
-| Technology | Version | Purpose | Why |
-|------------|---------|---------|-----|
-| Pure Elixir Contexts | Built-in | Role-Based Access Control | Using simple Policy modules (functions returning `{:ok, user} \| {:error, :unauthorized}`) ensures zero dependency conflicts with the host application. Heavy libraries (Permit/Ash) are anti-patterns for embeddable libraries. |
+| Technology | Current Repo Posture | Purpose | Milestone Guidance |
+|------------|----------------------|---------|--------------------|
+| Elixir / Phoenix / Ecto | Existing monorepo baseline | Runtime, admin mount, authored-state persistence | Keep the existing stack; this milestone is about truth and parity, not framework churn. |
+| GitHub Actions | Existing CI surface | Release proof and support-truth verification | Prefer fixing current CI/test truth over adding new lanes or platform complexity. |
+| ExUnit / LiveViewTest / contract tests | Existing proof surface | Public contract verification for core and mounted admin | Treat failing contract tests as milestone-defining evidence, not incidental test debt. |
+| Docker Compose demo | Existing local proof path | Adopter-facing end-to-end proof | Preserve the demo as a release-truth surface and keep docs aligned with what it actually proves. |
 
-### Infrastructure (Demo Environments)
-| Technology | Version | Purpose | Why |
-|------------|---------|---------|-----|
-| Docker Compose | Latest | E2E Demo Environment | Standard for "one-click" local evaluations. Can easily spin up Postgres, Redis, Rulestead core, and a demo client app together. |
-| Livebook | Latest | Interactive Demos | Excellent for developer-focused, Elixir-centric walkthroughs of the Rulestead API. |
+### Companion Surfaces
 
-### Supporting Libraries
-| Library | Version | Purpose | When to Use |
-|---------|---------|---------|-------------|
-| `dialyxir` | 1.4+ | Static Analysis | Strict enforcement of API contracts and specs before locking down 1.0. |
-| `ex_doc` | Latest | Documentation | Essential for "Documentation Perfection". |
+| Surface | Classification | Purpose | Milestone Guidance |
+|---------|----------------|---------|--------------------|
+| `rulestead` | `core` | Runtime evaluator, installer, migration contract, lifecycle/ownership authored shape | This is the source of truth for install, schema, and release posture. |
+| `rulestead_admin` | `companion` | Mounted operator UI and host-facing policy/session seam | Keep it mounted-only; do not widen into a standalone control plane. |
+| `open_feature_rulestead` | `companion` | Optional OpenFeature bridge | Keep the bridge proof runnable and documented, but do not let it redefine core release posture. |
+| `guides/` + package READMEs | `core support surface` | Adopter onboarding, release claims, lifecycle guidance | Docs must match the shipped post-`v1.0.0` state exactly. |
 
-## Alternatives Considered
+### Supporting Tooling To Favor
 
-| Category | Recommended | Alternative | Why Not |
-|----------|-------------|-------------|---------|
-| RBAC | Pure Elixir Contexts | Permit or AshRbac | Would impose heavy dependencies and potential version conflicts on the host application embedding Rulestead. |
-| Demo Env | Docker Compose | Hosted Sandbox | Too expensive to maintain for an open-source project; Docker Compose is reliable and free. |
+| Tooling | Why It Fits This Milestone |
+|---------|----------------------------|
+| Targeted contract tests | Fastest way to close drift between docs, migrations, and UI contract claims. |
+| Existing Mix verification tasks | The repo already treats release parity and publish verification as support-truth gates. |
+| Installer goldens / host-seam checks | Prevent docs and generator guidance from outrunning the actual host integration path. |
+
+## Alternatives Rejected
+
+| Option | Why Not Now |
+|--------|-------------|
+| New rollout or targeting features | Would widen scope before the current release story is coherent. |
+| New CI platforms or hosted proof environments | Solves the wrong problem; the issue is drift in the existing truth surfaces. |
+| Treating `open_feature_rulestead` as docs-only | Leaves a public companion surface in a half-supported state and preserves adopter confusion. |
+
+## Milestone Stack Guidance
+
+- Prefer additive migration backfills and installer parity over schema redesign.
+- Prefer bounded verification recovery over expanding the release matrix.
+- Prefer repo-local proof that a serious adopter can run today over aspirational future release language.
 
 ## Sources
 
-- [HexDocs: Library Guidelines](https://hexdocs.pm/elixir/library-guidelines.html)
-- Community consensus on zero-dependency pure-Elixir libraries for mountable Phoenix engines.
+- `.planning/threads/2026-05-24-next-milestone-assessment.md`
+- `.planning/threads/2026-05-24-proof-posture-drift.md`
+- `prompts/rulestead-release-engineering-and-ci.md`
+- `prompts/rulestead-testing-and-e2e-strategy.md`
+- `prompts/rulestead-host-app-integration-seam.md`

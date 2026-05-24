@@ -1,50 +1,53 @@
-# Feature Landscape: v1.0.0 (GA)
+# Feature Research: Rulestead v1.3.0 - Adopter Truth & Proof Closure
 
-**Domain:** Feature Management Platform (SaaS / Self-Hosted)
-**Researched:** 2026-05-17
+**Project:** Rulestead v1.3.0 - Adopter Truth & Proof Closure
+**Researched:** 2026-05-24
 
-## Table Stakes (GA Requirements)
+## Table Stakes For This Milestone
 
-Features users expect in a 1.0 release. Missing = product feels unstable or unfinished.
+### Release Truth
 
-| Feature | Why Expected | Complexity | Notes |
-|---------|--------------|------------|-------|
-| API Stability Lockdown | SemVer dictates 1.x means no breaking changes. | Medium | Requires strict auditing of public vs private modules (`@moduledoc false`). |
-| Comprehensive RBAC | Enterprise teams cannot use a tool where any dev can delete production flags. | High | Needs Admin, Editor, and Viewer roles baked into the Admin UI and core API. |
-| Documentation Perfection | Operators evaluate tools based on how quickly they can solve problems using docs. | Medium | Complete `ex_doc` coverage, architecture guides, and deployment recipes. |
+- Root README, `rulestead/README.md`, and `rulestead_admin/README.md` describe the actual post-`v1.0.0` GA posture instead of the pre-GA `after v0.6.0` plan.
+- Install and onboarding docs point to a real current package/migration story instead of a future-state placeholder.
+- Support-facing docs stay honest about what is proved today versus what is still bounded or deferred.
 
-## Differentiators
+### Runtime Contract Parity
 
-Features that set product apart. Not expected, but valued.
+- Runtime schema, Ecto migrations, and installer output agree on the lifecycle/ownership fields the authored contract already expects.
+- Lifecycle ownership fields remain host-owned and explicit across authored-state writes, reads, and migrations.
+- Migration truth is additive and reproducible; adopters should not need to infer missing columns from failing tests.
 
-| Feature | Value Proposition | Complexity | Notes |
-|---------|-------------------|------------|-------|
-| E2E Demo Environments | Allows a Platform Engineer to evaluate the entire system (Redis, DB, UI, Client) locally in 5 minutes. | Medium | A Docker Compose stack with a sample OpenFeature client (e.g., Next.js). |
-| FunWithFlags Migration Guide | Lowers the barrier to entry for the most common existing Elixir feature flag library. | Low | Simple markdown guide in hexdocs. |
+### Companion Proof
+
+- Mounted admin contract tests reflect the intended host-facing lifecycle and permission behavior rather than stale UI assumptions.
+- `open_feature_rulestead` has a runnable documented proof path and does not dead-end on missing test/dependency setup.
+- Verification commands across sibling packages are green or explicitly documented as bounded with a credible reason.
+
+## Differentiators For This Milestone
+
+- Treating proof coherence itself as a product requirement for adopter trust.
+- Keeping the sibling-package release model intact while tightening the support surface across runtime, companion admin, and companion bridge.
+- Encoding support-truth obligations explicitly in planning rather than burying them as generic cleanup.
 
 ## Anti-Features
 
-Features to explicitly NOT build in v1.0.0.
+- No new rollout, targeting, or experimentation capabilities.
+- No standalone `rulestead_admin` publish posture.
+- No observability-product expansion or hosted control-plane work.
+- No broad docs rewrite detached from concrete repo truth.
 
-| Anti-Feature | Why Avoid | What to Do Instead |
-|--------------|-----------|-------------------|
-| New Flag Evaluation Strategies | 1.0 is for locking down what exists. Adding new evaluation types resets the stability clock. | Defer to v1.1.0+ |
-| Complex Custom Role Definitions | Letting users define arbitrary roles with granular permissions is overkill for 1.0. | Stick to static roles (Admin, Editor, Viewer). |
+## User Outcomes This Milestone Should Unlock
 
-## Feature Dependencies
-
-```text
-API Stability Lockdown → Comprehensive RBAC (RBAC relies on stable core contexts)
-Comprehensive RBAC → E2E Demo Environments (Demo should showcase roles)
-```
-
-## MVP Recommendation
-
-Prioritize:
-1. Strict `@moduledoc false` on all internals and Dialyzer 100% pass.
-2. Built-in Admin/Editor/Viewer RBAC policies.
-3. Docker Compose E2E Demo.
+- A serious adopter can read the docs and get the same product story the tests and migrations prove.
+- A maintainer can point to one coherent release posture across root docs, package docs, installer behavior, and verification tasks.
+- Future differentiated milestones inherit a trustworthy base instead of compounding support drift.
 
 ## Sources
 
-- Rulestead `.planning/research/EPIC_ARC.md`
+- `.planning/MILESTONE-ARC.md`
+- `.planning/threads/2026-05-24-next-milestone-assessment.md`
+- `.planning/threads/2026-05-24-proof-posture-drift.md`
+- `README.md`
+- `rulestead/README.md`
+- `rulestead_admin/README.md`
+- `open_feature_rulestead/README.md`

@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: none
-milestone_name: none
-status: milestone_shipped
-last_updated: "2026-05-24T11:53:53Z"
-last_activity: 2026-05-24 -- Archived and shipped milestone v1.2.0
+milestone: v1.3.0
+milestone_name: Adopter Truth & Proof Closure
+status: milestone_active
+last_updated: "2026-05-24T18:30:00Z"
+last_activity: 2026-05-24 -- Activated milestone v1.3.0 and created the support-truth closure roadmap
 progress:
-  total_phases: 6
-  completed_phases: 6
-  total_plans: 11
-  completed_plans: 11
-  percent: 100
+  total_phases: 4
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # State: Rulestead
@@ -20,29 +20,32 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-24)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
-**Current focus:** `v1.2.0` is shipped. The planning surface is now waiting for the next milestone definition.
-**Milestone:** none active
+**Current focus:** `v1.3.0` is active. The immediate goal is to make release docs, install truth, migrations, and verification agree with the shipped post-GA surface.
+**Milestone:** `v1.3.0 — Adopter Truth & Proof Closure`
 
 ## Roadmap Reference
 
-See: `.planning/ROADMAP.md` for current roadmap state and archive links.
+See: `.planning/ROADMAP.md` for the active milestone and phase sequencing.
 
 ## Current Position
 
-Phase: none
+Phase: 41
 Plan: none
-Status: `v1.2.0` archived and shipped; waiting for the next milestone definition
-Last activity: 2026-05-24 -- Archived and shipped milestone `v1.2.0`
+Status: Milestone initialized; ready to discuss and plan Phase 41
+Last activity: 2026-05-24 -- Activated `v1.3.0` and mapped the milestone into Phases 41-44
 
 ## Active Requirement Focus
 
-- None. Define the next milestone before reintroducing active requirements.
+- `DOC-01` / `DOC-02` — align release docs and support-facing truth with the actual post-`v1.0.0` package posture
+- `PAR-01` / `PAR-02` — reconcile runtime schema, migrations, and installer parity for lifecycle and ownership
+- `ADM-01` / `VER-01` — restore mounted-admin and sibling-package verification truth
+- `OFE-01` — establish a runnable bounded proof path for `open_feature_rulestead`
 
 ## Carryover Items
 
-- **Guarded rollout foundations** remain the strongest immediate follow-on after lifecycle and ownership shipped cleanly.
-- **Reusable targeting assets** remain the next queued scale/reuse milestone after guarded rollout.
-- Milestone-selection preference remains recorded in `.planning/MILESTONE-ARC.md` so future candidate ordering can stay explicit.
+- `v1.4.0 — Guarded Rollout Foundations` remains next once support-truth credibility is restored.
+- `v1.5.0 — Reusable Targeting Assets` remains queued behind guarded rollout.
+- Keep the sibling-package release model, mounted-admin posture, and host-owned identity boundary unchanged while closing proof drift.
 
 ## Anchor Docs (prompts/)
 
@@ -82,51 +85,15 @@ These remain the primary source of truth and should be loaded selectively per ph
 - **23-05**: Kept compare, change-request, and schedule routes as the mounted operator entrypoints for promotion and re-apply.
 - **24-04**: Reused the existing governed promotion change-request path for protected-target CLI promote apply rather than adding a direct CLI bypass.
 - **35-00**: Activated lifecycle hygiene and ownership as `v1.2.0` ahead of guarded rollout and reusable targeting to close the strongest everyday trust/cleanup gap first.
-
-## Execution Metrics
-
-| Phase | Plan | Duration | Tasks | Files |
-|-------|------|----------|-------|-------|
-| 14 | 01 | 15min | 2 | 6 |
-| 14 | 02 | 5min | 1 | 2 |
-| 15 | 02 | 45m | 3 | 5 |
-| 15 | 03 | 10m | 2 | 4 |
-| 17 | 01 | 15m | 2 | 4 |
-| 17 | 02 | 15m | 2 | 4 |
-| 17 | 03 | 10m | 2 | 5 |
-| 19 | 01 | 20m | 2 | 6 |
-| 19 | 02 | 20m | 3 | 5 |
-| 21 | 01 | 35m | 2 | 8 |
-| 21 | 02 | 5min | 2 | 5 |
-| 23 | 01 | 2h10m | 2 | 12 |
-| 23 | 02 | 35m | 1 | 9 |
-| 23 | 03 | 1h20m | 1 | 4 |
-| 23 | 04 | 15m | 1 | 5 |
-| 23 | 05 | 20m | 2 | 8 |
-| 24 | 01 | 45m | 2 | 10 |
-| 24 | 02 | 35m | 2 | 10 |
-| 24 | 03 | 1h10m | 2 | 8 |
-| 24 | 04 | 40m | 2 | 5 |
+- **41-00**: Redirected the next milestone toward adopter-truth and proof-posture closure before guarded rollout because current repo evidence shows conflicting release docs and failing proof surfaces.
+- **41-01**: Activated `v1.3.0` as a bounded support-truth milestone instead of reopening feature prioritization because docs, migrations, and runnable proof are the highest-leverage current adopter gap.
 
 ## Latest Activity
 
+- 2026-05-24 — Activated `v1.3.0 — Adopter Truth & Proof Closure`, refreshed milestone research, restored the active requirements file, and created the continued Phase 41-44 roadmap.
+- 2026-05-24 — Assessed the next milestone from the full sibling-package adopter lens, concluded the product is roughly 83% done for its stated scope, redirected the next recommendation to `v1.3.0 — Adopter Truth & Proof Closure`, added strategic threads for proof/support drift, and updated planning state so future milestone selection starts from repo evidence instead of the previous guarded-rollout default.
 - 2026-05-24 — Archived milestone `v1.2.0`, created shipped roadmap and requirements archives, removed the active milestone requirements file, updated the milestone arc to point at guarded rollout foundations, and reset planning state to await the next milestone definition.
-- 2026-05-24 — Completed and verified Phase 40: created `.planning/phases/37-mounted-admin-lifecycle-workbench/37-VERIFICATION.md`, reran the targeted Phase 37 mounted lifecycle suites (`23 tests, 0 failures`), corrected the Phase 37 summary requirement mapping, and reconciled milestone traceability so `LIF-03` and `LIF-04` are now evidenced and `v1.2.0` is ready for closeout.
-- 2026-05-24 — Planned Phase 40: added `40-RESEARCH.md`, `40-PATTERNS.md`, `40-VALIDATION.md`, and `40-01-PLAN.md` to close the missing Phase 37 lifecycle workbench verification artifact, repair Phase 37 requirement mapping drift, and route `v1.2.0` toward closeout once `LIF-03`/`LIF-04` are evidenced.
-- 2026-05-24 — Completed and verified Phase 39: reconstructed `.planning/phases/35-lifecycle-contract-ownership-metadata/35-VERIFICATION.md`, reran the targeted Phase 35 ownership/lifecycle suites (`20 tests, 0 failures` in `rulestead`, `9 tests, 0 failures` in `rulestead_admin`), and reconciled milestone traceability so `LIF-01` is now evidenced while `LIF-03`/`LIF-04` remain open.
-- 2026-05-23 — Defined milestone `v1.2.0` for Lifecycle Hygiene & Ownership, added `.planning/MILESTONE-ARC.md`, restored the active `REQUIREMENTS.md`, refreshed `PROJECT.md`, and created the continued Phase 35-38 roadmap.
-- 2026-05-23 — Archived milestone `v1.1.0`, created shipped roadmap and requirements archives, removed the active milestone requirements file, and reset planning state to await the next milestone definition.
-- 2026-05-23 — Completed and verified Phase 34: restored `30-SUMMARY.md` and `30-VERIFICATION.md`, reran the targeted Phase 30 mounted-admin/core compare suites (`12 tests, 0 failures` and `13 tests, 0 failures`), refreshed `v1.1.0-MILESTONE-AUDIT.md`, and synced roadmap/state routing to milestone closeout.
-- 2026-05-23 — Planned Phase 34: added `34-RESEARCH.md`, `34-PATTERNS.md`, `34-01-PLAN.md`, `34-02-PLAN.md`, and `34-VALIDATION.md` to restore the missing Phase 30 audit artifacts and refresh the stale `v1.1.0` milestone audit from current tenancy evidence.
-- 2026-05-22 — Completed and verified Phase 33: mounted compare summary links now preserve the reviewed `compare_token` into drill-in routes, reviewed and stale preview drill-ins remain bound to the same compare identity, and the targeted mounted compare suite passed with `7 tests, 0 failures`.
-- 2026-05-22 — Planned Phase 33: added `33-RESEARCH.md`, `33-PATTERNS.md`, `33-01-PLAN.md`, and `33-VALIDATION.md` to close the mounted compare summary-to-drill-in preview-identity gap with targeted `rulestead_admin` verification.
-- 2026-05-22 — Completed and verified Phase 32: `Rulestead.plan_promotion/3` now preserves explicit `tenant_key` through compare and saved-plan generation, tenant-scoped saved plans stay bounded across direct/governed replay and programmatic Mix entrypoints, and the combined Phase 32 suite passed with `26 tests, 0 failures`.
-- 2026-05-22 — Completed and verified Phase 31: command/replay tenant provenance is now normalized once, Ecto and Fake audit builders merge the bounded tenant block automatically, scheduled execution preserves tenant provenance through delayed apply paths, and the combined Phase 31 suite passed with `42 tests, 0 failures`.
-- 2026-05-22 — Completed and verified Phase 30: mounted-admin session and compare routes now preserve explicit tenant scope, targeted admin/core compare regressions passed, and the shared compare payload now retains `tenant_key` alongside tenant-scoped compare tokens.
-- 2026-05-21 — Completed and verified Phase 29: targeted tenancy runtime, reviewed-artifact validation, audit provenance, and mounted-admin session suites all passed; roadmap, requirements, and phase summaries now mark the bounded tenancy seam complete up to the remaining mounted/admin and provenance gaps.
-- 2026-05-21 — Defined milestone `v1.1.0` for Tenancy Helpers & Validation, restored active `REQUIREMENTS.md`, refreshed `PROJECT.md`, and created the Phase 29 roadmap as the first deliberate post-GA milestone.
-- 2026-05-21 — Archived milestone `v1.0.0`, created shipped roadmap and requirements archives, removed the active milestone requirements file, and tagged the release boundary after accepting the documented Phase 26 Dialyzer tooling override as non-blocking debt.
 
 ## Next Action
 
-Next: Run `$gsd-new-milestone` to define the next roadmap.
+Next: Run `$gsd-discuss-phase 41` to tighten the release-truth scope or `$gsd-plan-phase 41` to plan it directly.

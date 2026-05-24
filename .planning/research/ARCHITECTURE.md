@@ -1,63 +1,59 @@
-# Architecture Patterns: v1.0.0 (GA)
+# Architecture Research: Rulestead v1.3.0 - Adopter Truth & Proof Closure
 
-**Domain:** Feature Management Platform
-**Researched:** 2026-05-17
+**Project:** Rulestead v1.3.0 - Adopter Truth & Proof Closure
+**Researched:** 2026-05-24
 
-## Recommended Architecture
+## Architectural Focus
 
-For v1.0.0, the architectural focus shifts from adding capabilities to enforcing boundaries. 
+This milestone does not introduce a new product subsystem. It reconciles four existing truth surfaces so that the public release story, authored-state contract, mounted companion behavior, and optional bridge proof all describe the same product.
 
-### Component Boundaries (Public vs Private)
+## Required Integration Points
 
-| Component | Responsibility | Boundary Enforcement |
-|-----------|---------------|-------------------|
-| `Rulestead` | Core Public API (Evaluation) | Fully documented, strictly spec'd, covered by SemVer 1.x guarantees. |
-| `Rulestead.Admin` | Public API for Management | Same as above. Contains the pure Elixir context functions for managing flags. |
-| `Rulestead.Internal.*` | Implementation details | Tagged with `@moduledoc false`. No SemVer guarantees. |
+### 1. Public Docs <-> Shipped Release Posture
 
-### Data Flow for RBAC
+- Root and sibling package READMEs must match the `v1.0.0` GA reality recorded in planning.
+- Shared guides remain the canonical cross-package narrative, especially lifecycle and installation.
+- Release messaging should continue to describe `rulestead_admin` as a mounted companion, never a standalone admin product.
 
-1. Web Request (Admin UI / API)
-2. Plug / LiveView `on_mount` hook retrieves the current User/Role.
-3. Web layer calls `Rulestead.Admin` context.
-4. `Rulestead.Admin` immediately delegates to `Rulestead.Policy` to verify action.
-5. If `{:ok, :authorized}`, execution proceeds to Ecto / Redis.
-6. If `{:error, :unauthorized}`, operation halts and audit log is written (optional).
+### 2. Ecto Schema <-> Migrations <-> Installer Truth
 
-## Patterns to Follow
+- `rulestead/lib/rulestead/flag.ex` already expects explicit `ownership` and `lifecycle` embeds plus `expected_expiration`.
+- The initial authoring migration and later lifecycle migration need to prove the same authored shape that runtime code and tests already assume.
+- Installer and upgrade paths must remain reproducible for host apps; migration parity is part of the public contract.
 
-### Pattern 1: Pure Elixir Policy Modules
-**What:** Decoupling authorization logic from Ecto queries or Web Plugs using pure functions.
-**When:** Enforcing RBAC before executing mutations.
-**Example:**
-```elixir
-defmodule Rulestead.Policy do
-  @doc "Checks if the given actor can perform the action on the resource."
-  def authorize(:create_flag, %User{role: "admin"}, _resource), do: :ok
-  def authorize(:create_flag, %User{role: "editor"}, _resource), do: :ok
-  def authorize(:create_flag, _, _), do: {:error, :unauthorized}
-  
-  def authorize(:delete_environment, %User{role: "admin"}, _resource), do: :ok
-  def authorize(:delete_environment, _, _), do: {:error, :unauthorized}
-end
-```
+### 3. Host-Facing Admin Contract <-> Mounted UI
 
-### Pattern 2: Explicit Internal Namespaces
-**What:** Moving all implementation details into `Rulestead.Internal` or strictly using `@moduledoc false`.
-**Why:** Prevents users from relying on internal functions, which makes future refactoring impossible without breaking SemVer.
+- The mounted admin surface is public at the policy/session/route seam, not at the DOM implementation level.
+- Contract tests should assert real host-facing expectations: lifecycle form fields, bounded permission degradation, and mounted-only operator flow posture.
+- Fix the drift by reconciling either tests or intended behavior, but record one truth.
 
-## Anti-Patterns to Avoid
+### 4. Companion Bridge <-> Runnable Proof
 
-### Anti-Pattern 1: Heavy Authorization Dependencies
-**What:** Bringing in `permit` or `ash` for RBAC.
-**Why bad:** Rulestead is meant to be embedded. If the host application uses Ash 2.x and Rulestead uses Ash 3.x, you have created an unresolvable dependency conflict.
-**Instead:** Write 50 lines of pure Elixir pattern matching.
+- `open_feature_rulestead` remains a companion package, not the product center.
+- Its proof surface should be small but real: documented setup, stable dependency posture, and a runnable test path.
+- Bridge proof must not force core package architecture changes.
 
-### Anti-Pattern 2: Config-driven Roles
-**What:** Trying to allow users to define complex custom roles in `config.exs`.
-**Why bad:** Creates massive complexity in the UI and evaluation layer.
-**Instead:** Hardcode 3-4 sensible default roles (Admin, Editor, Viewer).
+## Packaging Ledger
+
+| Surface | Classification | Notes |
+|---------|----------------|-------|
+| Runtime docs and migrations in `rulestead` | `core` | Canonical install and authored-state truth lives here. |
+| Mounted admin docs and contract proof in `rulestead_admin` | `companion` | Mounted-only posture stays unchanged. |
+| OpenFeature bridge docs and tests | `companion` | Support honestly or bound explicitly. |
+| Demo, verification scripts, and shared guides | `core support surface` | Used to prove adoption and release coherence. |
+
+## Suggested Build Order
+
+1. Fix release language and support-truth claims so the intended surface is explicit.
+2. Reconcile runtime schema and migration parity so installer/database truth matches runtime code.
+3. Reconcile mounted admin contract expectations with actual host-facing behavior.
+4. Close cross-package verification, including the OpenFeature bridge, and publish bounded support truth.
 
 ## Sources
 
-- Best practices for embeddable Elixir engines (e.g., Oban, Phoenix LiveDashboard).
+- `.planning/threads/2026-05-24-proof-posture-drift.md`
+- `prompts/rulestead-host-app-integration-seam.md`
+- `prompts/rulestead-release-engineering-and-ci.md`
+- `rulestead/lib/rulestead/flag.ex`
+- `rulestead/priv/repo/migrations/20260423020100_create_rulestead_authoring_tables.exs`
+- `rulestead/priv/repo/migrations/20260424210000_add_phase6_admin_lifecycle_fields.exs`

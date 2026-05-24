@@ -1,12 +1,12 @@
 # Milestone Arc: Post-v1.2.0
 
-**Last updated:** 2026-05-24 during `gsd-complete-milestone`
+**Last updated:** 2026-05-24 during milestone v1.3.0 initialization
 **Selection posture:** Default to the highest-priority candidate below unless the user explicitly chooses a materially different direction. Shift low-impact milestone-selection preference left inside GSD instead of re-opening the full tradeoff set every time.
 
-## Current Recommendation
+## Active Milestone
 
-- **Activate now:** `v1.3.0 — Guarded Rollout Foundations`
-- **Why now:** Lifecycle and ownership are now shipped, so the strongest next differentiator is explicit guarded rollout behavior built on top of the calmer operator foundation instead of skipping ahead to broader reuse features.
+- **Activated now:** `v1.3.0 — Adopter Truth & Proof Closure`
+- **Why now:** The product surface is already broad enough that the highest-leverage next step is to make the public release story, install path, migrations, and verification evidence agree with each other before adding another differentiated control-plane wedge.
 
 ## Candidate Ranking
 
@@ -39,13 +39,40 @@
 - Keep lifecycle/archive guidance advisory; never auto-archive
 - Preserve the linked-version sibling-package model and avoid standalone-admin drift
 
-### 2. `v1.3.0 — Guarded Rollout Foundations`
+### 2. `v1.3.0 — Adopter Truth & Proof Closure`
 
-**Status:** current recommendation
+**Status:** active on 2026-05-24
 **Why it is next now:**
 
-- High-value differentiator, but it depends on stronger operator trust, clear threshold semantics, and disciplined host-supplied signals
-- More complex and more surprising if pulled left before the lifecycle/cleanup loop is fully credible
+- Planning truth currently outruns public package docs and runnable proof in a few important places.
+- A serious adopter is more likely to get blocked by conflicting release/install/test signals than by the absence of another differentiated feature.
+- Closing support-truth drift now keeps later guarded rollout work credible instead of layering it onto a partially trustworthy release surface.
+
+**Recommended shape:**
+
+- Align root/package docs with the actual post-`v1.0.0` release posture
+- Reconcile lifecycle ownership schema, migrations, and installer truth
+- Restore green or honestly bounded verification across `rulestead`, `rulestead_admin`, and the OpenFeature bridge
+- Keep the work bounded to proof, docs, and support-truth rather than expanding into a redesign milestone
+
+**Key tradeoffs:**
+
+- Lower marketing flash than guarded rollout
+- Higher adopter trust and lower support friction per unit of work
+
+**Guardrails:**
+
+- Do not use the milestone as an excuse to widen scope into unrelated polish
+- Fix proof truth, not vanity metrics
+- Keep the sibling-package release model and mounted-admin posture unchanged
+
+### 3. `v1.4.0 — Guarded Rollout Foundations`
+
+**Status:** next differentiator after `v1.3.0`
+**Why it moved back one slot:**
+
+- Still high-value, but it depends on stronger operator trust, clear threshold semantics, and disciplined host-supplied signals.
+- It is a poor next move if docs, migrations, and verification still disagree about the current shipped surface.
 
 **Recommended shape if activated later:**
 
@@ -64,7 +91,7 @@
 - Fail closed on stale, weak, or missing signal data
 - Preserve deterministic sticky rollout semantics; never use time-based gradual rollout for user-facing rollout
 
-### 3. `v1.4.0 — Reusable Targeting Assets`
+### 4. `v1.5.0 — Reusable Targeting Assets`
 
 **Status:** top medium-term candidate after guarded rollout
 **Why it is later:**

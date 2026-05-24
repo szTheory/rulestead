@@ -1,49 +1,60 @@
-# Research Summary: Rulestead v1.0.0 (GA)
+# Research Summary: Rulestead v1.3.0 - Adopter Truth & Proof Closure
 
-**Domain:** Feature Management Platform (SaaS / Self-Hosted)
-**Researched:** 2026-05-17
+**Domain:** Release truth, support posture, and companion-proof closure for a sibling-package Elixir library
+**Researched:** 2026-05-24
 **Overall confidence:** HIGH
 
 ## Executive Summary
 
-Rulestead has successfully completed its multi-milestone evolution, moving from core runtime (v0.1.0-v0.4.0) through distributed scale (v0.5.0) and multi-environment promotion (v0.6.0). The v1.0.0 milestone represents the final "Polish Release." The objective here is strictly API lockdown, documentation perfection, and security hardening (Comprehensive RBAC, API Stability Lockdown, E2E Demo Environments) as outlined in `EPIC_ARC.md`. No new core evaluation features should be added.
+The strongest next milestone is still `v1.3.0 — Adopter Truth & Proof Closure`. Fresh research across the repo threads, package READMEs, release-engineering guidance, testing guidance, and host-integration guidance confirms that the highest-leverage gap is not a missing feature wedge. It is that the public release story, migration/installer truth, mounted admin contract, and OpenFeature bridge proof no longer agree with each other in a few important places.
 
-Our research indicates that the key to an "enterprise-ready" Elixir 1.0 library is rock-solid API stability, comprehensive typed specs (Dialyzer with zero warnings), clear separation of internal modules (`@moduledoc false`), and a low-friction/zero-dependency approach to core security patterns. To achieve Comprehensive RBAC without risking version conflicts in host applications, we recommend pure Elixir context-based boundaries over third-party framework dependencies like Ash or Permit. Finally, to win adoption, providing frictionless "E2E Demo Environments" via Docker Compose or Livebook is paramount for the 5-minute "aha" moment.
+This milestone should stay intentionally narrow. It should restore a coherent post-`v1.0.0` adopter story for the linked-version sibling packages without widening scope into guarded rollouts, targeting reuse, or a redesigned admin product.
 
 ## Key Findings
 
-**Stack:** Pure Elixir Contexts for RBAC (zero dependencies to avoid host application conflicts); Docker Compose for E2E Demo Environments.
-**Architecture:** Strict public/private boundaries using `@moduledoc false` for internals. Explicit Policy modules for authorization checks.
-**Critical pitfall:** Rushing 1.0 without hiding internal APIs, leading to early breaking changes in v1.1 or v2.0. Adding heavy third-party RBAC dependencies that conflict with host apps when the library is mounted.
+**Stack posture:** No new stack is needed. The existing Elixir/Phoenix/Ecto, contract-test, and GitHub Actions surfaces are sufficient if their truth is reconciled.
 
-## Implications for Roadmap
+**Feature table stakes:** Docs must reflect the shipped GA/post-GA reality; runtime schema and migrations must prove the ownership/lifecycle contract; mounted admin tests must match intended host-facing behavior; `open_feature_rulestead` needs a runnable bounded proof path.
 
-Based on research, suggested phase structure for `v1.0.0`:
+**Architecture:** The work splits cleanly across four existing surfaces: release docs, runtime migration/install truth, mounted admin contract truth, and companion bridge proof. Package boundaries should remain unchanged.
 
-1. **Phase 26: API Lockdown & Documentation Perfection** - Refactoring internal modules to `@moduledoc false`, perfecting Hexdocs, ensuring 100% Dialyzer passing, and freezing the public API.
-   - Addresses: API Stability Lockdown.
-   - Avoids: Exposing internals that host apps might depend on, which would break on minor updates.
+**Watch out for:** Narrative-only fixes, sneaking in new product features, treating admin drift as cosmetic, or leaving the OpenFeature bridge half-supported.
 
-2. **Phase 27: Comprehensive RBAC & Security Hardening** - Implementing pure Elixir Context-based Policies (like Bodyguard pattern but built-in) for the Admin UI and API.
-   - Addresses: Enterprise security needs and tenant isolation.
-   - Avoids: Heavy dependency conflicts with host applications using different versions of `permit` or `ash`.
+## Recommended Planning Gates
 
-3. **Phase 28: E2E Demo Environments & GA Release** - Creating a Docker Compose setup with a Next.js/Phoenix demo application showcasing real-time flag streaming and evaluation.
-   - Addresses: The "Aha!" moment for new adopters.
-   - Avoids: Friction during initial evaluation by infrastructure teams.
+### Proof Posture Gate
 
-**Phase ordering rationale:**
-- API lockdown comes first to freeze the foundation. RBAC is applied securely on top of the locked-down API, and the Demo Environments are built to showcase the final, secure, and stable product.
+| Surface | Merge-Blocking Proof | Advisory Proof |
+|---------|----------------------|----------------|
+| `rulestead` docs + runtime contract | README/release-contract checks, migration/schema parity tests | demo walkthrough confirmation |
+| `rulestead_admin` mounted contract | targeted LiveView/contract suites for lifecycle and permission posture | manual mounted smoke path |
+| `open_feature_rulestead` bridge | runnable tests or explicitly bounded documented failure mode | demo integration notes |
 
-## Confidence Assessment
+### Support Truth Gate
 
-| Area | Confidence | Notes |
-|------|------------|-------|
-| Stack | HIGH | Pure Elixir context authorization is a recognized best practice for embedded libraries. |
-| Features | HIGH | 1.0 expectations universally dictate stability over new features. |
-| Architecture | HIGH | Standard Elixir `@moduledoc false` boundaries are well documented. |
-| Pitfalls | HIGH | Ecosystem history (e.g., Ecto 1.0 to 2.0) shows the pain of exposed internals. |
+| Surface | Required Truth |
+|---------|----------------|
+| Root + package READMEs | Must state shipped GA/post-GA posture, sibling-package model, and bounded support claims. |
+| Installer/migrations | Must match current authored schema expectations for lifecycle and ownership fields. |
+| Mounted admin | Must preserve mounted-companion posture and documented host-owned auth/identity seams. |
+| OpenFeature bridge | Must say whether it is fully runnable now or what exact bounded caveat remains. |
 
-## Gaps to Address
+## Suggested Phase Shape
 
-- Whether the E2E Demo Environment should include a sample frontend in Next.js (to show cross-stack usage via OpenFeature) or purely Phoenix LiveView. We recommend at least one external language example to prove the OpenFeature integration.
+1. Public release truth alignment
+2. Runtime schema and installer parity
+3. Mounted admin contract proof closure
+4. OpenFeature bridge proof and final support-truth verification
+
+## Sources
+
+- `.planning/MILESTONE-ARC.md`
+- `.planning/threads/2026-05-24-next-milestone-assessment.md`
+- `.planning/threads/2026-05-24-proof-posture-drift.md`
+- `README.md`
+- `rulestead/README.md`
+- `rulestead_admin/README.md`
+- `open_feature_rulestead/README.md`
+- `prompts/rulestead-release-engineering-and-ci.md`
+- `prompts/rulestead-testing-and-e2e-strategy.md`
+- `prompts/rulestead-host-app-integration-seam.md`
