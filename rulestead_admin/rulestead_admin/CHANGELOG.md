@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.1.1](https://github.com/szTheory/rulestead/compare/rulestead_admin-v0.1.0...rulestead_admin-v0.1.1) (2026-05-25)
+
+
+### Features
+
+* **15-03:** add stale flag UI badges ([a1c6613](https://github.com/szTheory/rulestead/commit/a1c6613658b948461c2a5bbb2e005dcf26aa03b9))
+* **15-03:** implement cleanup confirmation workflow ([edab650](https://github.com/szTheory/rulestead/commit/edab6509ebba82049d5d62cbaf98c19e301e1ae4))
+* **21-02:** add mounted diagnostics liveview ([80fff67](https://github.com/szTheory/rulestead/commit/80fff67121ebaa7a456df60648d59644fe6a837d))
+* **21-02:** label diagnostics regions for accessibility ([17cd7b2](https://github.com/szTheory/rulestead/commit/17cd7b287a791e83a0ed7a63f13c1a4099b71594))
+* **27-03:** project backend-derived capabilities into mounted admin session ([75bac46](https://github.com/szTheory/rulestead/commit/75bac46bae87a16aba8368969a22aadad4d685dd))
+* **36-02:** expose lifecycle advisory surfaces ([c254fe2](https://github.com/szTheory/rulestead/commit/c254fe201df75ddbf98d33c7b8b54da5c5e254cc))
+* **admin:** complete phase 18 experimentation ui and reporting ([d222da0](https://github.com/szTheory/rulestead/commit/d222da0661bffeb3925350cb2349e3b916d54171))
+* land v1.3.0 support-truth worktree ([935c9d5](https://github.com/szTheory/rulestead/commit/935c9d5fa3d8d915fa118007edb08cd2ccb2e4a9))
+* **security:** enforce RBAC capabilities in mounted admin mutation routes ([1c4b38e](https://github.com/szTheory/rulestead/commit/1c4b38e4a279a1e1182e6358b5e28ab027c63ea5))
+* **security:** project canonical capability model to read surfaces and docs ([16f6e3a](https://github.com/szTheory/rulestead/commit/16f6e3aa236d8d85601194acde5a81aef4ca956d))
+
+
+### Bug Fixes
+
+* **13:** resolve test regressions from phase 13 execution ([ef45db8](https://github.com/szTheory/rulestead/commit/ef45db8dc5c7e7dd8db400bd8d92c29f06754ecb))
+
 ## 0.1.0 (2026-05-11)
 
 

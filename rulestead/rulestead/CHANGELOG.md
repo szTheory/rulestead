@@ -1,5 +1,45 @@
 # Changelog
 
+## [0.1.1](https://github.com/szTheory/rulestead/compare/rulestead-v0.1.0...rulestead-v0.1.1) (2026-05-25)
+
+
+### Features
+
+* **15-01:** implement Oban worker to flush telemetry cache ([f0717a1](https://github.com/szTheory/rulestead/commit/f0717a159789b42b3cc3a55be40412f31ddb7bf6))
+* **15-01:** implement telemetry cache ([e99c466](https://github.com/szTheory/rulestead/commit/e99c4667bba064b7507563012d2f8714c8b9355e))
+* **15-01:** implement telemetry ETS cache for high-throughput tracking ([b411def](https://github.com/szTheory/rulestead/commit/b411def27a8fdf32d7356d5e961a16a70274f4a3))
+* **15-01:** wire up telemetry cache to main evaluator and add summary ([f10f512](https://github.com/szTheory/rulestead/commit/f10f5122bf6ac02267848afea6fbcc27e54d6a93))
+* **15-02:** implement AST Code Reference Scanner ([0f1eed0](https://github.com/szTheory/rulestead/commit/0f1eed03e784da1fd07fe24fa7f3d7f8340fcd5b))
+* **15-02:** implement code refs ingress plug ([0880e63](https://github.com/szTheory/rulestead/commit/0880e630ab3b901c57fe91132c6a9c31be2e3d9a))
+* **15-02:** implement Code Refs Mix Task ([7bc5cea](https://github.com/szTheory/rulestead/commit/7bc5cea74fb2ea6dfd13a3e2ae410e214e96f6e5))
+* **15-03:** add stale flag UI badges ([a1c6613](https://github.com/szTheory/rulestead/commit/a1c6613658b948461c2a5bbb2e005dcf26aa03b9))
+* **16-01:** Compile-Time Reduction Commands (EXP-03) ([da132ae](https://github.com/szTheory/rulestead/commit/da132aeaf571b40ac4182bf90bfbeaef3a2df685))
+* **16-01:** Deterministic Bucketing & Telemetry (EXP-02) ([6a4a187](https://github.com/szTheory/rulestead/commit/6a4a187fe05aef5b9f868d3268f6909d6a4b26f0))
+* **16-01:** Experiment Data Model (EXP-01) ([5ad5d3a](https://github.com/szTheory/rulestead/commit/5ad5d3a42b565f5089e745751ee7081a95f5fa00))
+* **17-01:** implement analytics event schema, migration, and mapper ([9763892](https://github.com/szTheory/rulestead/commit/9763892f733071082071df8c47b523ee43a06580))
+* **17-02:** implement high-throughput analytics batcher and telemetry handler ([1a5f441](https://github.com/szTheory/rulestead/commit/1a5f441b92749b842a2f8e95cfaf108086b23c0e))
+* **17-03:** implement public analytics track/3 ([d6987ba](https://github.com/szTheory/rulestead/commit/d6987ba87f469b9b2b2761970109ea9deed52d44))
+* **18-01:** implement experiment metrics query grouping by variation ([131ce1a](https://github.com/szTheory/rulestead/commit/131ce1a0662639e0e977c782e72ddf0a32580668))
+* **18-01:** implement statistical significance engine ([bd091aa](https://github.com/szTheory/rulestead/commit/bd091aa00325155d87ef37a31ec80f729f55b8d3))
+* **20-02:** wire runtime invalidation through notifier seam ([4de38ce](https://github.com/szTheory/rulestead/commit/4de38ce207a2f4fa7c7a75da5eccb73c79beda00))
+* **21-01:** add bounded runtime health snapshot ([ec56d90](https://github.com/szTheory/rulestead/commit/ec56d90e26a185ec48b9bc44cc9a6ef48bfb2f63))
+* **21-01:** add invalidation telemetry aliases ([1d43a17](https://github.com/szTheory/rulestead/commit/1d43a178e2239da69f43ada355dbafd97379cdcc))
+* **22-01:** add authored environment compare contract ([4cfdb0e](https://github.com/szTheory/rulestead/commit/4cfdb0e0baddb74e78010a73e4e7013f3a39b7fa))
+* **35-01:** add authored ownership lifecycle foundation ([8781192](https://github.com/szTheory/rulestead/commit/8781192772c29dc35b9b2b424ebbf91221ecc41e))
+* **36-01:** persist code reference scan receipts ([9077516](https://github.com/szTheory/rulestead/commit/90775160ce5fe81d8d7431cf9b67d988f9695fb0))
+* **36-01:** project archive readiness through stores ([4ff75ca](https://github.com/szTheory/rulestead/commit/4ff75cabe1530a8dc109b6c32758f4d5e513495a))
+* **36-02:** expose lifecycle advisory surfaces ([c254fe2](https://github.com/szTheory/rulestead/commit/c254fe201df75ddbf98d33c7b8b54da5c5e254cc))
+* **admin:** complete phase 18 experimentation ui and reporting ([d222da0](https://github.com/szTheory/rulestead/commit/d222da0661bffeb3925350cb2349e3b916d54171))
+* **admin:** implement canonical RBAC vocabulary and compatibility boundary ([d381dca](https://github.com/szTheory/rulestead/commit/d381dca03a8faa4889f6e38ccaa420ce9f9b1622))
+* land v1.3.0 support-truth worktree ([935c9d5](https://github.com/szTheory/rulestead/commit/935c9d5fa3d8d915fa118007edb08cd2ccb2e4a9))
+* **security:** align facade and command surfaces with canonical RBAC vocabulary ([f25c0c4](https://github.com/szTheory/rulestead/commit/f25c0c45f4ff489acbc18a554195b474cff602f4))
+* **tenancy:** implement explicit tenancy seam and single-tenant default ([26ebe21](https://github.com/szTheory/rulestead/commit/26ebe217e2a54eddafae589bf9b7d483b58d1a6b))
+
+
+### Bug Fixes
+
+* **13:** resolve test regressions from phase 13 execution ([ef45db8](https://github.com/szTheory/rulestead/commit/ef45db8dc5c7e7dd8db400bd8d92c29f06754ecb))
+
 ## 0.1.0 (2026-05-11)
 
 
