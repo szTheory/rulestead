@@ -25,6 +25,7 @@ Bias toward coherent, recommendation-heavy output by default. Treat the user as 
 - after reading the codebase and prompt anchors, lock ordinary implementation decisions directly in context/plans instead of turning them into questionnaires
 - treat this as a strong default: do the synthesis and decision sorting in-agent unless a choice is unusually high-impact and likely something the user would specifically want to weigh in on
 - treat this as the default collaboration style for this repo: ask less, synthesize more, and escalate only when the user-facing impact is genuinely material
+- apply this default inside discuss workflows too: if multiple gray areas are clearly connected, research them together and return one cohesive decision set instead of forcing the user to sort routine tradeoffs area by area
 
 ## Research-Then-Recommend Lens
 
@@ -41,6 +42,7 @@ When a phase has meaningful design surface area, do the research work first, the
 ### What this lens recommends
 
 - read the closest prompt anchors and prior phase context before asking anything
+- treat the relevant `prompts/` files as mandatory inputs when they cover the phase domain, operator UX, release posture, security, or host-integration seam
 - use subagents or sidecar research when that will improve recommendation quality without blocking the critical path
 - compare alternatives internally, then surface the best coherent path as the default answer
 - pull in lessons from successful libraries/products in adjacent ecosystems when they reinforce least surprise, auditability, DX, or operator trust

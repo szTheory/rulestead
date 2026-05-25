@@ -38,10 +38,10 @@
 2. Installer and migration guidance describe the same database shape adopters actually receive.
 3. Targeted runtime tests prove lifecycle and ownership parity end to end.
 
-**Plans:** 1/3 plans executed
+**Plans:** 3/3 plans executed
 - [x] 42-01-PLAN.md — Squosh 16 legacy migrations into a single GA-ready migration baseline
-- [ ] 42-02-PLAN.md — Update Rulestead.Flag and internal data stores to drop legacy columns
-- [ ] 42-03-PLAN.md — Update rulestead_admin views and sync Golden tests to squoshed installer behavior
+- [x] 42-02-PLAN.md — Update Rulestead.Flag and internal data stores to drop legacy columns
+- [x] 42-03-PLAN.md — Update rulestead_admin views and sync Golden tests to squoshed installer behavior
 
 ### Phase 43: Mounted Contract & Verification Closure
 
@@ -51,6 +51,11 @@
 1. Lifecycle form field expectations and permission behavior are aligned across code, tests, and docs.
 2. Mounted-admin remains clearly documented as a companion surface with host-owned auth and identity seams.
 3. `rulestead` and `rulestead_admin` verification surfaces are green again, or any remaining caveats are explicitly bounded in release truth.
+
+**Plans:** 3/3 plans executed
+- [x] 43-01-PLAN.md — Clarify the mounted companion contract and lock the public host-facing route seam in docs and integration proof
+- [x] 43-02-PLAN.md — Repair stale lifecycle/admin-contract proof so the mounted suites encode the current authored-state contract and permission split
+- [x] 43-03-PLAN.md — Restore honest cross-package verification truth for the mounted lifecycle/admin contract surface
 
 ### Phase 44: OpenFeature Bridge Proof & Final Support Audit
 
@@ -72,4 +77,4 @@
 
 ## Next Step
 
-Start Phase 41 with `$gsd-discuss-phase 41` or go straight to `$gsd-plan-phase 41`.
+Run `$gsd-verify-work 43` to capture the mounted companion verification artifact and close the milestone proof loop, or move to `$gsd-plan-phase 44` if you want to stage the OpenFeature bridge proof work next.

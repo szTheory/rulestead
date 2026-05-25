@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.3.0
 milestone_name: Adopter Truth & Proof Closure
-status: verifying
-last_updated: "2026-05-25T04:40:57.395Z"
-last_activity: 2026-05-25
+status: executing
+last_updated: "2026-05-25T05:55:00Z"
+last_activity: 2026-05-25 -- Phase 43 execution complete, targeted proof green
 progress:
   total_phases: 4
-  completed_phases: 1
-  total_plans: 4
-  completed_plans: 2
-  percent: 25
+  completed_phases: 2
+  total_plans: 7
+  completed_plans: 7
+  percent: 50
 ---
 
 # State: Rulestead
@@ -20,7 +20,7 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-24)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
-**Current focus:** Verify Phase 41 and prepare Phase 42 runtime-contract parity work
+**Current focus:** Capture Phase 43 mounted-companion verification evidence after the repaired lifecycle/admin proof bar passed
 **Milestone:** `v1.3.0 — Adopter Truth & Proof Closure`
 
 ## Roadmap Reference
@@ -29,10 +29,10 @@ See: `.planning/ROADMAP.md` for the active milestone and phase sequencing.
 
 ## Current Position
 
-Phase: 41 (release-truth-alignment) — EXECUTING
-Plan: 1 of 1
-Status: Phase complete — ready for verification
-Last activity: 2026-05-25
+Phase: 43 (mounted-contract-verification-closure) — EXECUTING
+Plan: 3 of 3
+Status: Implementation complete — mounted lifecycle/admin proof bar green, verification artifact still pending
+Last activity: 2026-05-25 -- Phase 43 execution complete, targeted proof green
 
 ## Active Requirement Focus
 
@@ -92,6 +92,9 @@ These remain the primary source of truth and should be loaded selectively per ph
 
 ## Latest Activity
 
+- 2026-05-25 — Executed all Phase 43 plans locally: tightened mounted companion contract docs, repaired mounted lifecycle/admin suites to the embed-based authored contract, added the scoped `mounted_admin_contract` proof bar, and verified it green across `rulestead_admin` and the targeted core admin tests.
+- 2026-05-25 — Completed Phase 42 plans 02 and 03 locally: removed remaining core/admin legacy field assumptions, aligned mounted-admin owner/lifecycle reads to embeds, updated installer unit/golden fixtures to the squashed baseline migration, and hardened the install fixture Hex env for generated host-app verification.
+- 2026-05-25 — Completed Phase 42 plan 01: squashed 16 legacy migrations into the single `20260524000000_create_rulestead_tables.exs` baseline and removed the internal milestone-history migration chain from the installer copy path.
 - 2026-05-24 — Completed Phase 41 plan 01: aligned release/onboarding/support docs to the shipped `v1.0.0` repo posture and current `0.1.0` package line, added bounded proof language, and extended release-contract tests plus maintainer guidance to prevent drift.
 - 2026-05-24 — Activated `v1.3.0 — Adopter Truth & Proof Closure`, refreshed milestone research, restored the active requirements file, and created the continued Phase 41-44 roadmap.
 - 2026-05-24 — Assessed the next milestone from the full sibling-package adopter lens, concluded the product is roughly 83% done for its stated scope, redirected the next recommendation to `v1.3.0 — Adopter Truth & Proof Closure`, added strategic threads for proof/support drift, and updated planning state so future milestone selection starts from repo evidence instead of the previous guarded-rollout default.
@@ -99,4 +102,4 @@ These remain the primary source of truth and should be loaded selectively per ph
 
 ## Next Action
 
-Next: Run `$gsd-verify-work 41` to close the phase with explicit verification evidence, or move to `$gsd-plan-phase 42` for runtime-contract parity.
+Next: Run `$gsd-verify-work 43` to capture the mounted companion verification artifact, then move to `$gsd-plan-phase 44` for the OpenFeature bridge proof path.
