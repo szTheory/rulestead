@@ -10,18 +10,18 @@ Rulestead is a batteries-included, Elixir-native feature-flag and remote-config 
 - The product now has a frozen public API boundary, canonical mounted-admin RBAC, and a proven Compose-backed end-to-end demo with Phoenix + Next.js/OpenFeature integration.
 - `v1.1.0` shipped on 2026-05-23 across Phases 29-34, delivering the bounded tenancy seam, mounted-admin tenant scope, audit tenant provenance enforcement, public promotion-plan tenant-scope closure, compare preview-identity carry-through, and milestone auditability backfill without widening the product shape.
 - `v1.2.0` shipped on 2026-05-24 across Phases 35-40, delivering host-owned ownership metadata, bounded archive-readiness guidance, a governed mounted lifecycle cleanup flow, and release-facing lifecycle docs plus verification without widening the sibling-package release model.
-- `v1.3.0` became active on 2026-05-24 to close support-truth and proof-posture drift before guarded rollout work begins.
+- `v1.3.0` shipped on 2026-05-25 across Phases 41-44, closing release-truth drift, authored-state parity, mounted companion verification, and OpenFeature companion proof without widening the linked sibling-package release model.
 
-## Current Milestone: v1.3.0 Adopter Truth & Proof Closure
+## Next Milestone Candidate: v1.4.0 Guarded Rollout Foundations
 
-**Goal:** Make the public release story, install path, migrations, and verification evidence agree with the shipped post-`v1.0.0` sibling-package surface.
+**Goal:** Add host-supplied guardrail signals and audited rollout hold or rollback foundations on top of the now-credible shipped support surface.
 
 **Target features:**
-- Release-facing docs that reflect the real GA/post-GA posture across the root and sibling packages
-- Runtime schema, migration, and installer parity for lifecycle and ownership authored-state fields
-- Mounted admin and OpenFeature companion proof paths that are runnable or explicitly bounded
+- Host-supplied rollout signal seams with explicit threshold semantics
+- Audited hold and rollback behavior that stays deterministic and fail-closed
+- Rollout safety improvements that preserve the mounted sibling-package architecture
 
-**Why now:** Serious adopters are more likely to get blocked by conflicting docs, migration drift, or red verification than by the absence of the next differentiated rollout feature.
+**Why now:** `v1.3.0` removed the support-truth credibility gap, so the next highest-leverage differentiator is guarded rollout safety rather than more proof closure.
 
 ## Core Value
 
@@ -44,10 +44,10 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
   - Value: Closed the biggest everyday trust and cleanup gap before adding more complex automation or reuse layers.
 - **v1.3.0: Adopter Truth & Proof Closure**
   - Focus: Align docs, install truth, migrations, and verification evidence with the actual post-GA product surface.
-  - Value: Remove the highest-friction trust gap for serious adopters before adding another differentiated wedge.
+  - Value: Removed the highest-friction trust gap for serious adopters before adding another differentiated wedge.
 - **v1.4.0: Guarded Rollout Foundations**
   - Focus: Host-supplied rollout guardrail signals, stage hold/rollback, and explicit audited health-gated rollout behavior.
-  - Value: The strongest next differentiator once the support-truth surface is credible again.
+  - Value: The strongest next differentiator now that the support-truth surface is credible again.
 - **v1.5.0: Reusable Targeting Assets**
   - Focus: Shared audiences first, with impact previews and explicit dependency visibility.
   - Value: Reduce duplicated targeting logic only after lifecycle and rollout posture remain understandable.
@@ -87,19 +87,16 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 - ✓ Prove the Docker-backed Phoenix + Next.js/OpenFeature demo stack end to end (`GA-01`, `GA-02`) — `v1.0.0`
 - ✓ Support explicit tenant scope across runtime, admin, promotion, and manifest flows without environment-per-tenant topology (`TEN-01`, `TEN-02`, `TEN-03`) — `v1.1.0`
 - ✓ Make ownership metadata, lifecycle guidance, cleanup review, and lifecycle docs first-class without widening the product shape (`LIF-01` to `LIF-05`) — `v1.2.0`
-
-### Active
-
-- [ ] `DOC-01` / `DOC-02` — align release docs, installation guidance, and support-facing truth with the shipped post-GA package posture
-- [ ] `PAR-01` / `PAR-02` — reconcile runtime schema, migrations, and installer truth for lifecycle and ownership authored-state parity
-- [ ] `ADM-01` / `VER-01` — restore mounted-admin contract truth and sibling-package verification credibility
-- [ ] `OFE-01` — establish a runnable bounded proof path for `open_feature_rulestead`
+- ✓ Align release docs, installation guidance, and support-facing truth with the shipped post-GA package posture (`DOC-01`, `DOC-02`) — `v1.3.0`
+- ✓ Reconcile runtime schema, migrations, and installer truth for lifecycle and ownership authored-state parity (`PAR-01`, `PAR-02`) — `v1.3.0`
+- ✓ Restore mounted-admin contract truth and sibling-package verification credibility (`ADM-01`, `VER-01`) — `v1.3.0`
+- ✓ Establish a runnable bounded proof path for `open_feature_rulestead` (`OFE-01`) — `v1.3.0`
 
 ## Next Milestone Goals
 
-- Execute `v1.3.0` without widening into new rollout or targeting capability.
-- Restore one coherent support-truth story across docs, migrations, installer behavior, and verification evidence.
-- Guarded rollout foundations remain the next differentiated milestone once the current shipped surface is trustworthy again.
+- Define `v1.4.0` as the guarded rollout follow-on without reopening the release-shape debate.
+- Preserve the newly aligned support-truth posture while introducing rollout signal seams and audited intervention behavior.
+- Keep rollout guardrails host-supplied and fail-closed instead of widening Rulestead into an observability product.
 - Preserve the sibling-package release model and avoid runtime hot-path coupling, tenant-partitioned storage, observability-product drift, or standalone admin drift.
 
 ### Out of Scope
@@ -114,7 +111,7 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 - `v1.0.0` shipped across Phases 26-28, delivering the public API freeze, canonical RBAC, and the verified GA demo environment.
 - `v1.1.0` shipped across Phases 29-34 as the first deliberate post-GA milestone, proving tenancy can stay bounded inside helper seams, reviewed-artifact validation, mounted-admin scope, public promotion replay/apply, and audit provenance without changing the release shape.
 - `v1.2.0` shipped across Phases 35-40, proving ownership metadata, archive-readiness guidance, mounted cleanup preview/confirm flows, and lifecycle release surfaces can stay explicit, host-friendly, and sibling-package aligned.
-- The current focus is executing `v1.3.0 — Adopter Truth & Proof Closure` across docs, runtime parity, mounted companion proof, and bridge proof.
+- `v1.3.0` shipped across Phases 41-44, proving release-facing support truth, authored-state parity, mounted companion verification, and bounded OpenFeature proof can align without widening the product shape.
 - The project remains a linked-version, two-package monorepo.
 
 ## Constraints
@@ -140,12 +137,12 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 | Target the first public Hex release for after `v0.6.0`, not at `v0.1.0` and not only at `v1.0.0` | `v0.6.0` completed the multi-environment/GitOps story, while `v1.0.0` delivered the stronger GA-level stability promises. | Validated |
 | Activate tenancy as `v1.1.0`, not as a silent Phase 25 carryover | Keeps the first post-GA milestone explicit, preserves current phase numbering, and aligns the roadmap with the current JTBD gap analysis. | Validated |
 | Activate lifecycle hygiene and ownership as `v1.2.0` ahead of guarded rollout and reusable targeting | Closes the strongest everyday trust/cleanup gap first, fits the sibling-package architecture cleanly, and keeps more complex automation layered on a calmer operator foundation. | Validated |
-| Close adopter-truth and proof-posture drift before guarded rollout foundations | Current repo evidence shows public docs and runnable proof have drifted from planning truth; restoring support trust is higher leverage than adding the next differentiated control-plane feature first. | Active |
+| Close adopter-truth and proof-posture drift before guarded rollout foundations | Current repo evidence showed public docs and runnable proof had drifted from planning truth; restoring support trust was higher leverage than adding the next differentiated control-plane feature first. | Validated |
 
 ## Milestone Archives
 
-- Roadmap archive: [.planning/milestones/v0.1.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.1.0-ROADMAP.md), [.planning/milestones/v0.2.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.2.0-ROADMAP.md), [.planning/milestones/v0.3.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.3.0-ROADMAP.md), [.planning/milestones/v0.4.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.4.0-ROADMAP.md), [.planning/milestones/v0.5.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.5.0-ROADMAP.md), [.planning/milestones/v0.6.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.6.0-ROADMAP.md), [.planning/milestones/v1.0.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.0.0-ROADMAP.md), [.planning/milestones/v1.1.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.1.0-ROADMAP.md), [.planning/milestones/v1.2.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.2.0-ROADMAP.md)
-- Requirements archive: [.planning/milestones/v0.1.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.1.0-REQUIREMENTS.md), [.planning/milestones/v0.2.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.2.0-REQUIREMENTS.md), [.planning/milestones/v0.3.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.3.0-REQUIREMENTS.md), [.planning/milestones/v0.4.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.4.0-REQUIREMENTS.md), [.planning/milestones/v0.5.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.5.0-REQUIREMENTS.md), [.planning/milestones/v0.6.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.6.0-REQUIREMENTS.md), [.planning/milestones/v1.0.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v1.0.0-REQUIREMENTS.md), [.planning/milestones/v1.1.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v1.1.0-REQUIREMENTS.md), [.planning/milestones/v1.2.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v1.2.0-REQUIREMENTS.md)
+- Roadmap archive: [.planning/milestones/v0.1.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.1.0-ROADMAP.md), [.planning/milestones/v0.2.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.2.0-ROADMAP.md), [.planning/milestones/v0.3.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.3.0-ROADMAP.md), [.planning/milestones/v0.4.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.4.0-ROADMAP.md), [.planning/milestones/v0.5.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.5.0-ROADMAP.md), [.planning/milestones/v0.6.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.6.0-ROADMAP.md), [.planning/milestones/v1.0.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.0.0-ROADMAP.md), [.planning/milestones/v1.1.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.1.0-ROADMAP.md), [.planning/milestones/v1.2.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.2.0-ROADMAP.md), [.planning/milestones/v1.3.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.3.0-ROADMAP.md)
+- Requirements archive: [.planning/milestones/v0.1.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.1.0-REQUIREMENTS.md), [.planning/milestones/v0.2.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.2.0-REQUIREMENTS.md), [.planning/milestones/v0.3.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.3.0-REQUIREMENTS.md), [.planning/milestones/v0.4.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.4.0-REQUIREMENTS.md), [.planning/milestones/v0.5.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.5.0-REQUIREMENTS.md), [.planning/milestones/v0.6.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.6.0-REQUIREMENTS.md), [.planning/milestones/v1.0.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v1.0.0-REQUIREMENTS.md), [.planning/milestones/v1.1.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v1.1.0-REQUIREMENTS.md), [.planning/milestones/v1.2.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v1.2.0-REQUIREMENTS.md), [.planning/milestones/v1.3.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v1.3.0-REQUIREMENTS.md)
 
 ## Historical Context
 
@@ -176,4 +173,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-24 after milestone v1.3.0 initialization*
+*Last updated: 2026-05-25 after milestone v1.3.0 completion*

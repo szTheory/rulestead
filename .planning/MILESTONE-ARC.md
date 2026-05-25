@@ -1,12 +1,12 @@
-# Milestone Arc: Post-v1.2.0
+# Milestone Arc: Post-v1.3.0
 
-**Last updated:** 2026-05-24 during milestone v1.3.0 initialization
+**Last updated:** 2026-05-25 during milestone v1.3.0 completion
 **Selection posture:** Default to the highest-priority candidate below unless the user explicitly chooses a materially different direction. Shift low-impact milestone-selection preference left inside GSD instead of re-opening the full tradeoff set every time.
 
 ## Active Milestone
 
-- **Activated now:** `v1.3.0 — Adopter Truth & Proof Closure`
-- **Why now:** The product surface is already broad enough that the highest-leverage next step is to make the public release story, install path, migrations, and verification evidence agree with each other before adding another differentiated control-plane wedge.
+- **Activated now:** `v1.4.0 — Guarded Rollout Foundations` remains the next recommended milestone candidate.
+- **Why now:** `v1.3.0` shipped the support-truth closure work, so the strongest next move is to add guarded rollout safety on top of a now-credible shipped surface.
 
 ## Candidate Ranking
 
@@ -41,12 +41,12 @@
 
 ### 2. `v1.3.0 — Adopter Truth & Proof Closure`
 
-**Status:** active on 2026-05-24
-**Why it is next now:**
+**Status:** shipped on 2026-05-25
+**Why it won:**
 
-- Planning truth currently outruns public package docs and runnable proof in a few important places.
-- A serious adopter is more likely to get blocked by conflicting release/install/test signals than by the absence of another differentiated feature.
-- Closing support-truth drift now keeps later guarded rollout work credible instead of layering it onto a partially trustworthy release surface.
+- Planning truth had outrun public package docs and runnable proof in a few important places.
+- A serious adopter was more likely to get blocked by conflicting release/install/test signals than by the absence of another differentiated feature.
+- Closing support-truth drift before rollout work preserved later roadmap credibility instead of layering new capability on top of a partially trustworthy release surface.
 
 **Recommended shape:**
 
@@ -68,13 +68,14 @@
 
 ### 3. `v1.4.0 — Guarded Rollout Foundations`
 
-**Status:** next differentiator after `v1.3.0`
-**Why it moved back one slot:**
+**Status:** next differentiator after shipped `v1.3.0`
+**Why it remains next:**
 
-- Still high-value, but it depends on stronger operator trust, clear threshold semantics, and disciplined host-supplied signals.
-- It is a poor next move if docs, migrations, and verification still disagree about the current shipped surface.
+- It still offers the strongest product differentiation once the support-truth surface is credible.
+- The work now lands on a calmer base: docs, migrations, installer truth, and bounded verification no longer fight each other.
+- Its main risk remains scope drift into observability or control-plane expansion, so the guardrails stay essential.
 
-**Recommended shape if activated later:**
+**Recommended shape if activated next:**
 
 - Host-supplied rollout-signal behaviour seam
 - Stage-level monitoring windows with explicit `hold` / `roll back`

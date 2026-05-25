@@ -1,40 +1,40 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.3.0
-milestone_name: Adopter Truth & Proof Closure
-status: executing
-last_updated: "2026-05-25T06:25:21.444Z"
-last_activity: 2026-05-25 -- Phase 44 execution started
+milestone: none
+milestone_name: Awaiting next milestone
+status: ready_for_next_milestone
+last_updated: "2026-05-25T06:51:55Z"
+last_activity: 2026-05-25 -- Archived milestone v1.3.0 and prepared v1.4.0 as the next candidate
 progress:
-  total_phases: 4
-  completed_phases: 3
-  total_plans: 10
-  completed_plans: 7
-  percent: 70
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # State: Rulestead
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-05-24)
+See: `.planning/PROJECT.md` (updated 2026-05-25)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
-**Current focus:** Phase 44 — openfeature-bridge-proof-final-support-audit
-**Milestone:** `v1.3.0 — Adopter Truth & Proof Closure`
+**Current focus:** Prepare the next milestone definition after `v1.3.0` shipped
+**Milestone:** none active
 
 ## Roadmap Reference
 
-See: `.planning/ROADMAP.md` for the active milestone and phase sequencing.
+See: `.planning/ROADMAP.md` for shipped milestones and the next candidate.
 
 ## Current Position
 
-Phase: 44 (openfeature-bridge-proof-final-support-audit) — EXECUTING
-Plan: 1 of 3
-Status: Executing Phase 44
-Last activity: 2026-05-25 -- Phase 44 execution started
+Phase: none
+Plan: none
+Status: Milestone archived; awaiting `$gsd-new-milestone`
+Last activity: 2026-05-25 -- milestone v1.3.0 archived after audit pass
 
-## Active Requirement Focus
+## Latest Shipped Focus
 
 - `DOC-01` / `DOC-02` — align release docs and support-facing truth with the actual post-`v1.0.0` package posture
 - `PAR-01` / `PAR-02` — reconcile runtime schema, migrations, and installer parity for lifecycle and ownership
@@ -43,9 +43,9 @@ Last activity: 2026-05-25 -- Phase 44 execution started
 
 ## Carryover Items
 
-- `v1.4.0 — Guarded Rollout Foundations` remains next once support-truth credibility is restored.
+- `v1.4.0 — Guarded Rollout Foundations` is the next candidate after support-truth closure shipped.
 - `v1.5.0 — Reusable Targeting Assets` remains queued behind guarded rollout.
-- Keep the sibling-package release model, mounted-admin posture, and host-owned identity boundary unchanged while closing proof drift.
+- Keep the sibling-package release model, mounted-admin posture, and host-owned identity boundary unchanged while defining the next milestone.
 
 ## Anchor Docs (prompts/)
 
@@ -89,18 +89,17 @@ These remain the primary source of truth and should be loaded selectively per ph
 - **41-01**: Activated `v1.3.0` as a bounded support-truth milestone instead of reopening feature prioritization because docs, migrations, and runnable proof are the highest-leverage current adopter gap.
 - **41-02**: Centralized the repo-GA versus package-line explanation at the root README while keeping sibling package READMEs narrow and linked back to shared docs.
 - **41-03**: Bounded public support truth to the local demo plus `mix verify.release_publish` and `mix verify.release_parity`, and locked that posture into release-contract tests.
+- **44-01**: Kept the OpenFeature companion contract package-first and pushed the browser path to a clearly secondary host-owned demo surface.
+- **44-02**: Exposed `openfeature_companion` as a named, path-gated proof bar instead of widening the default release gate.
+- **44-03**: Closed milestone support truth only after root docs, demo docs, CI, and verification evidence all cited the same bounded proof commands.
 
 ## Latest Activity
 
+- 2026-05-25 — Archived milestone `v1.3.0`, created shipped roadmap and requirements archives, updated the project and milestone arc, and reset planning state to await the next milestone definition.
+- 2026-05-25 — Milestone audit for `v1.3.0` passed with all 7 requirements satisfied and only non-blocking Nyquist process debt noted.
+- 2026-05-25 — Completed Phase 44 and closed the bounded OpenFeature companion proof path, CI scope, root/demo doc truth, and final milestone verification evidence.
 - 2026-05-25 — Captured `.planning/phases/43-mounted-contract-verification-closure/43-UAT.md` in shift-left mode with five passing checks covering the mounted companion seam, embed-based lifecycle/permission proof, scoped cross-package verification bar, and phase-local debt scan.
-- 2026-05-25 — Executed all Phase 43 plans locally: tightened mounted companion contract docs, repaired mounted lifecycle/admin suites to the embed-based authored contract, added the scoped `mounted_admin_contract` proof bar, and verified it green across `rulestead_admin` and the targeted core admin tests.
-- 2026-05-25 — Completed Phase 42 plans 02 and 03 locally: removed remaining core/admin legacy field assumptions, aligned mounted-admin owner/lifecycle reads to embeds, updated installer unit/golden fixtures to the squashed baseline migration, and hardened the install fixture Hex env for generated host-app verification.
-- 2026-05-25 — Completed Phase 42 plan 01: squashed 16 legacy migrations into the single `20260524000000_create_rulestead_tables.exs` baseline and removed the internal milestone-history migration chain from the installer copy path.
-- 2026-05-24 — Completed Phase 41 plan 01: aligned release/onboarding/support docs to the shipped `v1.0.0` repo posture and current `0.1.0` package line, added bounded proof language, and extended release-contract tests plus maintainer guidance to prevent drift.
-- 2026-05-24 — Activated `v1.3.0 — Adopter Truth & Proof Closure`, refreshed milestone research, restored the active requirements file, and created the continued Phase 41-44 roadmap.
-- 2026-05-24 — Assessed the next milestone from the full sibling-package adopter lens, concluded the product is roughly 83% done for its stated scope, redirected the next recommendation to `v1.3.0 — Adopter Truth & Proof Closure`, added strategic threads for proof/support drift, and updated planning state so future milestone selection starts from repo evidence instead of the previous guarded-rollout default.
-- 2026-05-24 — Archived milestone `v1.2.0`, created shipped roadmap and requirements archives, removed the active milestone requirements file, updated the milestone arc to point at guarded rollout foundations, and reset planning state to await the next milestone definition.
 
 ## Next Action
 
-Next: Run `$gsd-secure-phase 43` to satisfy the security gate, then move to `$gsd-plan-phase 44` for the OpenFeature bridge proof path.
+Next: Run `$gsd-new-milestone` to define `v1.4.0` and create a fresh active requirements file.
