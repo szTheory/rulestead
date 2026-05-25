@@ -15,7 +15,7 @@ NORM_RERUN_STDOUT_PATH="${TMP_DIR}/install-rerun.stdout.normalized"
 DB_BASENAME="rulestead_install_contract_$$"
 DB_DEV="${DB_BASENAME}_dev"
 DB_TEST="${DB_BASENAME}_test"
-DB_USER="${PGUSER:-${USER:-postgres}}"
+DB_USER="${PGUSER:-postgres}"
 
 cleanup() {
   rm -rf "${TMP_DIR}"
@@ -110,7 +110,7 @@ PY
 assert_contains() {
   local needle="$1"
   local haystack_path="$2"
-  if ! rg -Fq -- "${needle}" "${haystack_path}"; then
+  if ! grep -Fq -- "${needle}" "${haystack_path}"; then
     echo "missing expected content: ${needle} in ${haystack_path}" >&2
     exit 1
   fi
