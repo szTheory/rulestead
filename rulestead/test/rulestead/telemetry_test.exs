@@ -35,8 +35,8 @@ defmodule Rulestead.TelemetryTest do
       flag_type: :release,
       value_type: :boolean,
       default_value: %{value: false, raw_attribute: "secret"},
-      owner: "ops",
-      expected_expiration: Date.utc_today(),
+      ownership: %{owner_ref: "ops", owner_kind: :team},
+      lifecycle: %{mode: :expiring, review_by: Date.utc_today(), default_source: :flag_type, default_overridden: false},
       environment_keys: [environment_key]
     })
 

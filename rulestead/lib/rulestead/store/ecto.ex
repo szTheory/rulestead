@@ -252,10 +252,7 @@ defmodule Rulestead.Store.Ecto do
         flag_type: command.flag_type,
         value_type: command.value_type,
         default_value: command.default_value,
-        owner: command.owner,
         ownership: command.ownership,
-        expected_expiration: command.expected_expiration,
-        permanent: command.permanent,
         lifecycle: command.lifecycle,
         tags: command.tags
       }
@@ -297,7 +294,6 @@ defmodule Rulestead.Store.Ecto do
           attrs =
             %{}
             |> maybe_put_update_field(:description, command.description)
-            |> maybe_put_update_field(:owner, command.owner)
             |> maybe_put_update_field(:ownership, command.ownership)
             |> maybe_put_update_field(:tags, command.tags)
             |> maybe_put_lifecycle_update(command)
@@ -308,7 +304,7 @@ defmodule Rulestead.Store.Ecto do
           |> case do
             {:ok, updated_flag} ->
               updated_flag = flag_by_key_query(updated_flag.key) |> Repo.one()
-              {:ok, build_update_payload(updated_flag, flag.owner)}
+              {:ok, build_update_payload(updated_flag, flag.ownership.owner_ref)}
 
             {:error, %Changeset{} = changeset} ->
               {:error, store_changeset_error(changeset, command.flag_key, :all)}
@@ -1785,13 +1781,7 @@ defmodule Rulestead.Store.Ecto do
       flag_attrs =
         %{}
         |> maybe_put_update_field(:description, proposed_flag["description"])
-        |> maybe_put_update_field(:owner, proposed_flag["owner"])
         |> maybe_put_update_field(:default_value, proposed_flag["default_value"])
-        |> maybe_put_update_field(
-          :expected_expiration,
-          normalize_expected_expiration(proposed_flag["expected_expiration"])
-        )
-        |> maybe_put_update_field(:permanent, normalize_boolean(proposed_flag["permanent"]))
         |> maybe_put_update_field(:tags, proposed_flag["tags"])
 
       {:ok, updated_flag} =
@@ -1981,9 +1971,6 @@ defmodule Rulestead.Store.Ecto do
         flag_type: normalize_flag_type(proposed_flag["flag_type"]),
         value_type: normalize_value_type(proposed_flag["value_type"]),
         default_value: proposed_flag["default_value"] || %{},
-        owner: proposed_flag["owner"],
-        expected_expiration: normalize_expected_expiration(proposed_flag["expected_expiration"]),
-        permanent: normalize_boolean(proposed_flag["permanent"]) || false,
         tags: proposed_flag["tags"] || []
       }
 
@@ -2144,23 +2131,6 @@ defmodule Rulestead.Store.Ecto do
 
   defp normalize_flag_environment_status(_status), do: :active
 
-  defp normalize_expected_expiration(nil), do: nil
-  defp normalize_expected_expiration(%Date{} = value), do: value
-
-  defp normalize_expected_expiration(value) when is_binary(value) do
-    case Date.from_iso8601(value) do
-      {:ok, date} -> date
-      _other -> nil
-    end
-  end
-
-  defp normalize_expected_expiration(_value), do: nil
-
-  defp normalize_boolean(value) when is_boolean(value), do: value
-  defp normalize_boolean("true"), do: true
-  defp normalize_boolean("false"), do: false
-  defp normalize_boolean(_value), do: nil
-
   defp denormalize_promoted_value(map) when is_map(map) do
     Map.new(map, fn {key, value} -> {key, denormalize_promoted_value(value)} end)
   end
@@ -2311,7 +2281,7 @@ defmodule Rulestead.Store.Ecto do
         flag.flag_environments
         |> Enum.map(&environment_summary(&1.environment))
         |> Enum.sort_by(& &1.key),
-      recent_owners: recent_owners(flag.owner)
+      recent_owners: recent_owners(flag.ownership.owner_ref)
     }
   end
 
@@ -2320,7 +2290,7 @@ defmodule Rulestead.Store.Ecto do
     lifecycle_context = lifecycle_context_for_flags([flag.key])
 
     build_flag_detail_payload(flag, environment, flag_environment, true, lifecycle_context)
-    |> Map.put(:recent_owners, recent_owners(flag.owner, previous_owner))
+    |> Map.put(:recent_owners, recent_owners(flag.ownership.owner_ref, previous_owner))
   end
 
   defp active_ruleset_payload(%FlagEnvironment{active_ruleset: nil}), do: nil
@@ -2345,10 +2315,7 @@ defmodule Rulestead.Store.Ecto do
       :flag_type,
       :value_type,
       :default_value,
-      :owner,
       :ownership,
-      :expected_expiration,
-      :permanent,
       :lifecycle,
       :tags,
       :archived_at,
@@ -4242,7 +4209,7 @@ defmodule Rulestead.Store.Ecto do
     payload
     |> Map.put(:lifecycle, lifecycle(flag, flag_environment, lifecycle_context))
     |> Map.put(:has_draft_ruleset?, payload.draft_rulesets != [])
-    |> Map.put(:recent_owners, recent_owners(flag.owner))
+    |> Map.put(:recent_owners, recent_owners(flag.ownership.owner_ref))
     |> Map.put(:environments, Enum.map(environment_cards, & &1.environment))
     |> Map.put(:environment_cards, environment_cards)
     |> Map.put(:environment_status, flag_environment.status)
@@ -4314,7 +4281,7 @@ defmodule Rulestead.Store.Ecto do
 
   defp recent_owners(current_owner, extra_owner \\ nil) do
     owners =
-      from(flag in Flag, order_by: [desc: flag.updated_at], select: flag.owner)
+      from(flag in Flag, order_by: [desc: flag.updated_at], select: fragment("?->>'owner_ref'", flag.ownership))
       |> Repo.all()
 
     [
@@ -4345,7 +4312,6 @@ defmodule Rulestead.Store.Ecto do
       ownership = Map.get(entry.flag, :ownership) || %{}
 
       normalized in [
-        normalize_owner(entry.flag.owner),
         normalize_owner(Map.get(ownership, :owner_ref) || Map.get(ownership, "owner_ref")),
         normalize_owner(Map.get(ownership, :owner_display) || Map.get(ownership, "owner_display"))
       ]
@@ -4598,20 +4564,6 @@ defmodule Rulestead.Store.Ecto do
   defp maybe_put_update_field(attrs, key, value), do: Map.put(attrs, key, value)
 
   defp maybe_put_lifecycle_update(attrs, command) do
-    attrs =
-      if not is_nil(command.permanent) do
-        Map.put(attrs, :permanent, command.permanent)
-      else
-        attrs
-      end
-
-    attrs =
-      if Map.has_key?(attrs, :permanent) or not is_nil(command.expected_expiration) do
-        Map.put(attrs, :expected_expiration, command.expected_expiration)
-      else
-        attrs
-      end
-
     if not is_nil(command.lifecycle) do
       Map.put(attrs, :lifecycle, command.lifecycle)
     else

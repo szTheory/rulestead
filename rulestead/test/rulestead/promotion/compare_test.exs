@@ -148,9 +148,9 @@ defmodule Rulestead.Promotion.CompareTest do
                 message: "Target owner differs from source"
               )
             ],
-            source_state: %{owner: "growth", active_ruleset_version: 7},
-            current_target_state: %{owner: "platform", active_ruleset_version: 4},
-            proposed_target_state: %{owner: "growth", active_ruleset_version: 7}
+            source_state: %{ownership: %{owner_ref: "growth", owner_kind: :team}, active_ruleset_version: 7},
+            current_target_state: %{ownership: %{owner_ref: "platform", owner_kind: :team}, active_ruleset_version: 4},
+            proposed_target_state: %{ownership: %{owner_ref: "growth", owner_kind: :team}, active_ruleset_version: 7}
           }
         ]
       })

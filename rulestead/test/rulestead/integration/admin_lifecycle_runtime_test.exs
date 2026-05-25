@@ -39,8 +39,8 @@ defmodule Rulestead.Integration.AdminLifecycleRuntimeTest do
                flag_type: :release,
                value_type: :boolean,
                default_value: %{value: false},
-               owner: "growth",
-               permanent: false,
+               ownership: %{owner_ref: "growth", owner_kind: :team},
+      lifecycle: %{mode: :expiring, default_source: :flag_type, default_overridden: false},
                expected_expiration: ~D[2026-05-01],
                environment_keys: ["test"],
                tags: ["checkout"],
@@ -122,8 +122,8 @@ defmodule Rulestead.Integration.AdminLifecycleRuntimeTest do
                flag_type: :release,
                value_type: :boolean,
                default_value: %{value: false},
-               owner: "growth",
-               permanent: true,
+               ownership: %{owner_ref: "growth", owner_kind: :team},
+      lifecycle: %{mode: :permanent, default_source: :flag_type, default_overridden: false},
                environment_keys: ["test"],
                actor: %{id: "seed-operator", roles: [:operator]}
              })

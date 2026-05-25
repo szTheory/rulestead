@@ -67,6 +67,7 @@ selector. The package-local details are in
 
 ## 5. Continue from here
 
+- Product mental model: [User Flows and JTBD](user-flows-and-jtbd.md)
 - Runtime usage: [../flows/evaluation.md](../flows/evaluation.md)
 - Rules and precedence: [../flows/rulesets.md](../flows/rulesets.md)
 - Explain and support workflows: [../flows/explainability.md](../flows/explainability.md)

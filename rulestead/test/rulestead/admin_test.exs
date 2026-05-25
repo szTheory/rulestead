@@ -21,7 +21,7 @@ defmodule Rulestead.AdminTest do
 
     seed_flag!(
       key: "checkout-redesign",
-      owner: "growth",
+      ownership: %{owner_ref: "growth"},
       tags: ["checkout", "release"],
       permanent: true
     )
@@ -36,7 +36,7 @@ defmodule Rulestead.AdminTest do
 
     seed_flag!(
       key: "search-ranking",
-      owner: "growth",
+      ownership: %{owner_ref: "growth"},
       tags: ["search"],
       expected_expiration: ~D[2026-04-28],
       permanent: false
@@ -57,7 +57,7 @@ defmodule Rulestead.AdminTest do
     assert {:ok, %Command.Page{} = page} =
              Rulestead.list_flags(
                environment_key: "test",
-               owner: "growth",
+               ownership: %{owner_ref: "growth"},
                tags: ["checkout"],
                lifecycle: :active,
                stale: :fresh,
@@ -72,7 +72,7 @@ defmodule Rulestead.AdminTest do
 
     assert [
              %{
-               flag: %{key: "checkout-redesign", owner: "growth", tags: ["checkout", "release"]},
+               flag: %{key: "checkout-redesign", ownership: %{owner_ref: "growth", owner_kind: :team}, tags: ["checkout", "release"]},
                environment: %{key: "test"},
                active_ruleset: %{version: 1},
                draft_rulesets: [],
@@ -108,7 +108,7 @@ defmodule Rulestead.AdminTest do
   test "fetch_flag/2 and root metadata verbs return detail payloads and enforce archived read-only behavior" do
     seed_flag!(
       key: "checkout-redesign",
-      owner: "growth",
+      ownership: %{owner_ref: "growth"},
       tags: ["checkout", "release"],
       expected_expiration: ~D[2026-05-01],
       permanent: false
@@ -121,7 +121,7 @@ defmodule Rulestead.AdminTest do
     assert detail.environment.key == "test"
     assert detail.flag_environment.status == :active
     assert detail.active_ruleset.version == 1
-    assert detail.lifecycle.owner == "growth"
+    assert detail.lifecycle.ownership.owner_ref == "growth"
     assert detail.lifecycle.state in [:active, :potentially_stale]
     assert detail.has_draft_ruleset? == false
     assert detail.recent_owners == ["growth"]
@@ -131,15 +131,15 @@ defmodule Rulestead.AdminTest do
     assert {:ok, updated} =
              Rulestead.update_flag("checkout-redesign", %{
                description: "Updated description",
-               owner: "platform",
+               ownership: %{owner_ref: "platform"},
                tags: ["checkout", "critical"],
                permanent: true,
                expected_expiration: nil
              })
 
     assert updated.flag.description == "Updated description"
-    assert updated.flag.owner == "platform"
-    assert updated.flag.permanent == true
+    assert updated.flag.ownership.owner_ref == "platform"
+    assert updated.flag.lifecycle.mode == :permanent
     assert updated.recent_owners == ["platform", "growth"]
 
     assert {:ok, created} =
@@ -149,8 +149,8 @@ defmodule Rulestead.AdminTest do
                flag_type: :release,
                value_type: :boolean,
                default_value: %{value: false},
-               owner: "platform",
-               permanent: true,
+               ownership: %{owner_ref: "platform", owner_kind: :team},
+      lifecycle: %{mode: :permanent, default_source: :flag_type, default_overridden: false},
                environment_keys: ["test", "production"],
                tags: ["admin", "inventory"]
              })
@@ -168,14 +168,14 @@ defmodule Rulestead.AdminTest do
   test "fake adapter list/detail semantics stay aligned with root facade pagination and archive rules" do
     seed_flag!(
       key: "alpha-flag",
-      owner: "growth",
-      permanent: true
+      ownership: %{owner_ref: "growth", owner_kind: :team},
+      lifecycle: %{mode: :permanent, default_source: :flag_type, default_overridden: false}
     )
 
     seed_flag!(
       key: "beta-flag",
-      owner: "growth",
-      permanent: true
+      ownership: %{owner_ref: "growth", owner_kind: :team},
+      lifecycle: %{mode: :permanent, default_source: :flag_type, default_overridden: false}
     )
 
     publish_flag!("alpha-flag")

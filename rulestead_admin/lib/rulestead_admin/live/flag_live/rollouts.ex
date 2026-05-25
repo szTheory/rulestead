@@ -159,7 +159,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
       <div :if={@detail} class="rs-rollouts">
         <OperatorComponents.summary_grid
           items={[
-            %{title: "Owner", value: @detail.lifecycle.owner, tone: "neutral"},
+            %{title: "Owner", value: @detail.flag.ownership.owner_display || @detail.flag.ownership.owner_ref, tone: "neutral"},
             %{title: "Environment", value: @detail.environment.name, tone: "neutral"},
             %{title: "Lifecycle", value: humanize(@detail.lifecycle.state), tone: "neutral"},
             %{title: "Current live exposure", value: "#{@published_percentage}%", tone: "accent"}

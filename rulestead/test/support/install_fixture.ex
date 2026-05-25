@@ -3,6 +3,7 @@ defmodule Rulestead.Test.InstallFixture do
 
   @tmp_root_prefix "rulestead-install-fixture"
   @normalized_timestamp "TIMESTAMP_"
+  @hex_env [{"HEX_HTTP_CONCURRENCY", "1"}, {"HEX_HTTP_TIMEOUT", "120"}]
 
   @generator_args [
     "phx.new",
@@ -20,9 +21,7 @@ defmodule Rulestead.Test.InstallFixture do
     "config/rulestead.exs",
     "lib/host_app_web/endpoint.ex",
     "lib/host_app_web/router.ex",
-    "priv/repo/migrations/TIMESTAMP_create_rulestead_authoring_tables.exs",
-    "priv/repo/migrations/TIMESTAMP_seed_default_environments.exs",
-    "priv/repo/migrations/TIMESTAMP_create_rulestead_runtime_snapshots.exs"
+    "priv/repo/migrations/TIMESTAMP_create_rulestead_tables.exs"
   ]
 
   @skip_tree_prefixes ["_build/", "deps/", ".elixir_ls/"]
@@ -42,24 +41,25 @@ defmodule Rulestead.Test.InstallFixture do
     tmp_dir = create_tmp_dir!()
     app_dir = Path.join(tmp_dir, "host_app")
     hex_home = Path.join(tmp_dir, ".hex")
+    run_env = [{"HEX_HOME", hex_home} | @hex_env]
     File.mkdir_p!(hex_home)
 
-    run!("mix", @generator_args, cd: tmp_dir, env: [{"HEX_HOME", hex_home}])
+    run!("mix", @generator_args, cd: tmp_dir, env: run_env)
     configure_host_dependency!(app_dir)
     configure_host_repo!(app_dir)
-    run!("mix", ["deps.get"], cd: app_dir, env: [{"HEX_HOME", hex_home}])
+    run!("mix", ["deps.get"], cd: app_dir, env: run_env)
 
     install_args = install_args(opts)
-    stdout = run!("mix", install_args, cd: app_dir, env: [{"HEX_HOME", hex_home}])
+    stdout = run!("mix", install_args, cd: app_dir, env: run_env)
 
     if Keyword.get(opts, :migrate?, true) do
-      run!("mix", ["ecto.create"], cd: app_dir, env: [{"HEX_HOME", hex_home}])
-      run!("mix", ["ecto.migrate"], cd: app_dir, env: [{"HEX_HOME", hex_home}])
+      run!("mix", ["ecto.create"], cd: app_dir, env: run_env)
+      run!("mix", ["ecto.migrate"], cd: app_dir, env: run_env)
     end
 
     rerun_stdout =
       if Keyword.get(opts, :rerun_install?, false) do
-        run!("mix", install_args, cd: app_dir, env: [{"HEX_HOME", hex_home}])
+        run!("mix", install_args, cd: app_dir, env: run_env)
       end
 
     %__MODULE__{

@@ -58,6 +58,42 @@ defmodule RulesteadAdmin.Components.FlagComponents do
     """
   end
 
+  attr :readiness, :any, required: true
+
+  def readiness_badge(assigns) do
+    readiness = normalize_readiness(assigns.readiness)
+
+    assigns =
+      assign(assigns,
+        label: humanize_state(readiness),
+        tone: readiness_tone(readiness)
+      )
+
+    ~H"""
+    <span class="rs-badge rs-badge--readiness" data-tone={@tone}>
+      <%= @label %>
+    </span>
+    """
+  end
+
+  attr :quality, :any, required: true
+
+  def evidence_quality_badge(assigns) do
+    quality = normalize_quality(assigns.quality)
+
+    assigns =
+      assign(assigns,
+        label: humanize_state(quality),
+        tone: quality_tone(quality)
+      )
+
+    ~H"""
+    <span class="rs-badge rs-badge--evidence" data-tone={@tone}>
+      <%= @label %>
+    </span>
+    """
+  end
+
   attr :tags, :list, default: []
 
   def tag_list(assigns) do
@@ -120,6 +156,19 @@ defmodule RulesteadAdmin.Components.FlagComponents do
     """
   end
 
+  attr :title, :string, required: true
+  attr :tone, :string, default: "neutral"
+  slot :inner_block, required: true
+
+  def callout(assigns) do
+    ~H"""
+    <section class="rs-card rs-callout" data-tone={@tone}>
+      <h2><%= @title %></h2>
+      <div><%= render_slot(@inner_block) %></div>
+    </section>
+    """
+  end
+
   defp pagination_path(base_path, params, :next, %{next_cursor: cursor}) when is_binary(cursor) do
     build_path(base_path, Map.merge(params, %{"after" => cursor, "before" => nil}))
   end
@@ -149,6 +198,18 @@ defmodule RulesteadAdmin.Components.FlagComponents do
     "draft" => :draft
   }
 
+  @known_readiness %{
+    "keep_active" => :keep_active,
+    "needs_review" => :needs_review,
+    "archive_candidate" => :archive_candidate
+  }
+
+  @known_quality %{
+    "strong" => :strong,
+    "partial" => :partial,
+    "weak" => :weak
+  }
+
   defp normalize_state(%{state: state}), do: normalize_state(state)
   defp normalize_state(nil), do: :unknown
   defp normalize_state(state) when is_binary(state), do: Map.get(@known_states, state, :unknown)
@@ -163,6 +224,16 @@ defmodule RulesteadAdmin.Components.FlagComponents do
   defp state_tone(:draft), do: "accent"
   defp state_tone(_state), do: "neutral"
 
+  defp readiness_tone(:keep_active), do: "positive"
+  defp readiness_tone(:needs_review), do: "warning"
+  defp readiness_tone(:archive_candidate), do: "critical"
+  defp readiness_tone(_readiness), do: "neutral"
+
+  defp quality_tone(:strong), do: "positive"
+  defp quality_tone(:partial), do: "warning"
+  defp quality_tone(:weak), do: "neutral"
+  defp quality_tone(_quality), do: "neutral"
+
   defp humanize_state(state) do
     state
     |> to_string()
@@ -173,4 +244,15 @@ defmodule RulesteadAdmin.Components.FlagComponents do
   defp stale_title(state, nil), do: humanize_state(state)
   defp stale_title(state, %DateTime{} = last_evaluated_at), do: "#{humanize_state(state)}. Last evaluated #{DateTime.to_iso8601(last_evaluated_at)}"
   defp stale_title(state, _value), do: humanize_state(state)
+
+  defp normalize_readiness(%{readiness: readiness}), do: normalize_readiness(readiness)
+  defp normalize_readiness(nil), do: :unknown
+  defp normalize_readiness(readiness) when is_binary(readiness), do: Map.get(@known_readiness, readiness, :unknown)
+  defp normalize_readiness(readiness) when is_atom(readiness), do: readiness
+  defp normalize_readiness(_readiness), do: :unknown
+
+  defp normalize_quality(nil), do: :unknown
+  defp normalize_quality(quality) when is_binary(quality), do: Map.get(@known_quality, quality, :unknown)
+  defp normalize_quality(quality) when is_atom(quality), do: quality
+  defp normalize_quality(_quality), do: :unknown
 end

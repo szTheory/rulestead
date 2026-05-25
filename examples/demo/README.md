@@ -5,10 +5,19 @@ This directory contains the Phase 28 GA demo stack:
 - `backend/` is a thin Phoenix host app that embeds `rulestead` and mounts `rulestead_admin`
 - `frontend/` is an external Next.js sample app that consumes the backend bridge through OpenFeature
 
-This is the primary runnable proof path for the current `0.1.0` package line.
-If you need support truth beyond static docs, start here, then pair it with
-`mix verify.release_publish <version>` and `mix verify.release_parity <version>`
-from the runtime package.
+This is the primary runnable end-to-end proof path for the current `0.1.0`
+package line. It is not the package contract for
+`open_feature_rulestead` itself.
+
+If you need the package-local OpenFeature companion proof first, run:
+
+```bash
+RULESTEAD_TEST_SCOPE=openfeature_companion bash scripts/ci/test.sh
+```
+
+That command proves the Elixir provider package directly. This demo then shows
+the secondary, host-owned browser path built on top of separate backend HTTP
+and frontend glue.
 
 ## One-command boot
 
@@ -56,7 +65,8 @@ DEMO_BACKEND_URL=http://127.0.0.1:4000 DEMO_FRONTEND_URL=http://127.0.0.1:3000 n
 - A host Phoenix app can install `rulestead`, mount `rulestead_admin`, and
   serve a deterministic end-to-end flow locally.
 - The frontend bridge path is discoverable through the demo, but it remains a
-  companion proof surface rather than the primary product front door.
+  secondary, host-owned companion proof surface rather than the package
+  contract or the primary product front door.
 - This demo complements, but does not replace, the published-release checks
   from `mix verify.release_publish <version>` and
   `mix verify.release_parity <version>`.

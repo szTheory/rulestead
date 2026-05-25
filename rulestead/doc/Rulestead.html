@@ -12,7 +12,7 @@
 
     <link rel="stylesheet" href="dist/html-elixir-YJO4MOOW.css" />
 
-    <script defer src="dist/sidebar_items-A552240A.js"></script>
+    <script defer src="dist/sidebar_items-6C704714.js"></script>
     <script defer src="docs_config.js"></script>
     <script defer src="dist/html-YU4BZFVS.js"></script>
 
@@ -285,6 +285,16 @@ context second</li></ul>
 
     <div class="summary-row">
       <div class="summary-signature">
+        <a href="#create_webhook_destination/1" data-no-tooltip="" translate="no">create_webhook_destination(command)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Creates a new webhook destination.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
         <a href="#diagnostics/0" data-no-tooltip="" translate="no">diagnostics()</a>
 
       </div>
@@ -443,6 +453,16 @@ context second</li></ul>
 
     <div class="summary-row">
       <div class="summary-signature">
+        <a href="#fetch_webhook_destination/2" data-no-tooltip="" translate="no">fetch_webhook_destination(id_or_command, opts \\ [])</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Fetches a single webhook destination by ID.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
         <a href="#fetch_webhook_record/2" data-no-tooltip="" translate="no">fetch_webhook_record(id_or_command, opts \\ [])</a>
 
       </div>
@@ -587,6 +607,26 @@ context second</li></ul>
 
     <div class="summary-row">
       <div class="summary-signature">
+        <a href="#list_webhook_deliveries/1" data-no-tooltip="" translate="no">list_webhook_deliveries(command_or_opts \\ [])</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Lists webhook outbound deliveries.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#list_webhook_destinations/1" data-no-tooltip="" translate="no">list_webhook_destinations(command_or_opts \\ [])</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Lists webhook destinations.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
         <a href="#list_webhook_records/1" data-no-tooltip="" translate="no">list_webhook_records(command_or_opts \\ [])</a>
 
       </div>
@@ -690,6 +730,16 @@ context second</li></ul>
       </div>
 
         <div class="summary-synopsis"><p>Requeues a quarantined scheduled execution through the configured store adapter.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#retry_webhook_delivery/2" data-no-tooltip="" translate="no">retry_webhook_delivery(id_or_command, opts \\ [])</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Retries a failed webhook delivery.</p></div>
 
     </div>
 
@@ -803,6 +853,24 @@ context second</li></ul>
 
     <div class="summary-row">
       <div class="summary-signature">
+        <a href="#update_webhook_destination/1" data-no-tooltip="" translate="no">update_webhook_destination(command)</a>
+
+      </div>
+
+        <div class="summary-synopsis"><p>Updates an existing webhook destination.</p></div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
+        <a href="#update_webhook_destination/2" data-no-tooltip="" translate="no">update_webhook_destination(id, attrs)</a>
+
+      </div>
+
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-signature">
         <a href="#version/0" data-no-tooltip="" translate="no">version()</a>
 
       </div>
@@ -837,7 +905,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">apply_manifest_plan(content, opts \\ [])</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L126" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L128" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -897,7 +965,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">apply_promotion(attrs, opts \\ [])</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L100" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L102" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -930,7 +998,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">apply_promotion_plan(content, opts \\ [])</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L179" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L181" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -961,7 +1029,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">approve_change_request(command)</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L387" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L389" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -990,7 +1058,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">archive_flag(command)</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L285" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L287" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -1019,7 +1087,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">archive_flag!(command)</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L293" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L295" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -1047,7 +1115,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">authorize_change_request_approval(actor, submitter, action, resource, environment_key)</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L710" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L804" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -1083,7 +1151,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">authorize_governed_action(actor, action, resource, environment_key)</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L694" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L788" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -1113,7 +1181,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">cancel_change_request(command)</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L403" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L405" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -1142,7 +1210,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">cancel_scheduled_execution(command)</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L460" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L462" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -1231,7 +1299,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">create_flag(command)</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L203" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L205" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -1260,7 +1328,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">create_flag(attrs, opts \\ [])</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L211" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L213" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -1281,6 +1349,38 @@ context second</li></ul>
 <p>Creates a flag from root-level attributes.</p>
   </section>
 </section>
+<section class="detail" id="create_webhook_destination/1">
+
+  <div class="detail-header">
+    <a href="#create_webhook_destination/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">create_webhook_destination(command)</h1>
+
+
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L561" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> create_webhook_destination(
+  Rulestead.Store.Command.CreateWebhookDestination.t()
+  | <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()
+  | <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">keyword</a>()
+) :: <a href="Rulestead.Store.html#t:result/1">Rulestead.Store.result</a>(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>())</pre>
+
+      </div>
+
+<p>Creates a new webhook destination.</p>
+  </section>
+</section>
 <section class="detail" id="diagnostics/0">
 
   <div class="detail-header">
@@ -1291,7 +1391,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">diagnostics()</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L974" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L1068" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -1319,7 +1419,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">enabled?(flag_payload, context)</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L865" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L959" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -1348,7 +1448,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">engage_kill_switch(command)</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L303" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L305" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -1379,7 +1479,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">engage_kill_switch(flag_key, environment_key, actor, opts \\ [])</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L309" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L311" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -1410,7 +1510,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">evaluate(flag_payload, context, opts \\ [])</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L817" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L911" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -1441,7 +1541,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">evaluate!(flag_payload, context, opts \\ [])</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L855" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L949" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -1470,7 +1570,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">execute_change_request(command)</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L411" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L413" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -1499,7 +1599,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">execute_inbound_event(event, receipt)</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L559" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L653" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -1528,7 +1628,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">explain(flag_payload, context)</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L904" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L998" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -1559,7 +1659,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">explain_flag(flag_key, environment_key, context, opts \\ [])</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L950" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L1044" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -1594,7 +1694,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">export_manifest(environment_key, opts \\ [])</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L110" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L112" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -1625,7 +1725,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">fetch_change_request(command)</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L427" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L429" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -1716,7 +1816,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">fetch_flag!(flag_key, environment_key, opts \\ [])</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L239" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L241" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -1744,7 +1844,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">fetch_scheduled_execution(command)</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L476" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L478" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -1763,6 +1863,39 @@ context second</li></ul>
 <p>Fetches one scheduled execution through the configured store adapter.</p>
   </section>
 </section>
+<section class="detail" id="fetch_webhook_destination/2">
+
+    <span id="fetch_webhook_destination/1"></span>
+
+  <div class="detail-header">
+    <a href="#fetch_webhook_destination/2" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">fetch_webhook_destination(id_or_command, opts \\ [])</h1>
+
+
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L589" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> fetch_webhook_destination(
+  Rulestead.Store.Command.FetchWebhookDestination.t() | <a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>(),
+  <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">keyword</a>()
+) :: <a href="Rulestead.Store.html#t:result/1">Rulestead.Store.result</a>(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>())</pre>
+
+      </div>
+
+<p>Fetches a single webhook destination by ID.</p>
+  </section>
+</section>
 <section class="detail" id="fetch_webhook_record/2">
 
     <span id="fetch_webhook_record/1"></span>
@@ -1775,7 +1908,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">fetch_webhook_record(id_or_command, opts \\ [])</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L526" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L528" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -1806,7 +1939,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">get_value(flag_payload, context, default)</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L876" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L970" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -1835,7 +1968,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">get_variant(flag_payload, context)</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L894" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L988" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -1866,7 +1999,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">import_manifest(content, opts \\ [])</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L118" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L120" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -1897,7 +2030,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">infrastructure_health()</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L980" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L1074" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -1925,7 +2058,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">list_audiences()</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L777" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L871" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -1953,7 +2086,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">list_audiences(opts)</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L782" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L876" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -1986,7 +2119,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">list_audit_events(command_or_opts \\ Command.ListAuditEvents.new())</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L344" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L346" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -2017,7 +2150,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">list_change_requests(command_or_opts \\ Command.ListChangeRequests.new())</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L436" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L438" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -2046,7 +2179,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">list_environments()</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L757" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L851" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -2074,7 +2207,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">list_environments(opts)</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L762" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L856" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -2105,7 +2238,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">list_flags()</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L726" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L820" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -2133,7 +2266,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">list_flags(opts)</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L731" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L825" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -2167,7 +2300,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">list_flags!(command \\ Command.ListFlags.new())</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L747" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L841" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -2198,7 +2331,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">list_scheduled_executions(command_or_opts \\ Command.ListScheduledExecutions.new())</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L485" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L487" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -2220,6 +2353,74 @@ context second</li></ul>
 <p>Lists scheduled executions through the configured store adapter.</p>
   </section>
 </section>
+<section class="detail" id="list_webhook_deliveries/1">
+
+    <span id="list_webhook_deliveries/0"></span>
+
+  <div class="detail-header">
+    <a href="#list_webhook_deliveries/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">list_webhook_deliveries(command_or_opts \\ [])</h1>
+
+
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L621" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> list_webhook_deliveries(
+  Rulestead.Store.Command.ListWebhookDeliveries.t()
+  | <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">keyword</a>()
+) ::
+  <a href="Rulestead.Store.html#t:result/1">Rulestead.Store.result</a>(Rulestead.Store.Command.Page.t(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()))</pre>
+
+      </div>
+
+<p>Lists webhook outbound deliveries.</p>
+  </section>
+</section>
+<section class="detail" id="list_webhook_destinations/1">
+
+    <span id="list_webhook_destinations/0"></span>
+
+  <div class="detail-header">
+    <a href="#list_webhook_destinations/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">list_webhook_destinations(command_or_opts \\ [])</h1>
+
+
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L605" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> list_webhook_destinations(
+  Rulestead.Store.Command.ListWebhookDestinations.t()
+  | <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">keyword</a>()
+) ::
+  <a href="Rulestead.Store.html#t:result/1">Rulestead.Store.result</a>(Rulestead.Store.Command.Page.t(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>()))</pre>
+
+      </div>
+
+<p>Lists webhook destinations.</p>
+  </section>
+</section>
 <section class="detail" id="list_webhook_records/1">
 
     <span id="list_webhook_records/0"></span>
@@ -2232,7 +2433,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">list_webhook_records(command_or_opts \\ [])</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L543" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L545" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -2263,7 +2464,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">plan_promotion(source_environment_key, target_environment_key, opts \\ [])</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L135" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L137" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -2292,7 +2493,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">publish_ruleset(command)</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L267" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L269" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -2321,7 +2522,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">publish_ruleset!(command)</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L275" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L277" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -2349,7 +2550,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">receive_inbound_webhook(command)</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L501" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L503" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -2378,7 +2579,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">record_evaluation(command)</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L797" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L891" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -2407,7 +2608,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">record_evaluation(flag_key, environment_key, last_evaluated_at)</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L806" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L900" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -2436,7 +2637,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">reject_change_request(command)</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L395" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L397" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -2465,7 +2666,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">release_kill_switch(command)</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L323" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L325" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -2496,7 +2697,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">release_kill_switch(flag_key, environment_key, actor, opts \\ [])</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L329" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L331" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -2525,7 +2726,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">requeue_scheduled_execution(command)</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L468" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L470" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -2546,6 +2747,39 @@ context second</li></ul>
 <p>Requeues a quarantined scheduled execution through the configured store adapter.</p>
   </section>
 </section>
+<section class="detail" id="retry_webhook_delivery/2">
+
+    <span id="retry_webhook_delivery/1"></span>
+
+  <div class="detail-header">
+    <a href="#retry_webhook_delivery/2" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">retry_webhook_delivery(id_or_command, opts \\ [])</h1>
+
+
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L637" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> retry_webhook_delivery(
+  Rulestead.Store.Command.RetryWebhookDelivery.t() | <a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>(),
+  <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">keyword</a>()
+) :: <a href="Rulestead.Store.html#t:result/1">Rulestead.Store.result</a>(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>())</pre>
+
+      </div>
+
+<p>Retries a failed webhook delivery.</p>
+  </section>
+</section>
 <section class="detail" id="rollback_audit_event/1">
 
   <div class="detail-header">
@@ -2556,7 +2790,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">rollback_audit_event(command)</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L360" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L362" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -2585,7 +2819,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">rollback_audit_event(audit_event_id, opts \\ [])</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L365" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L367" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -2616,7 +2850,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">save_draft_ruleset(command)</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L249" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L251" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -2645,7 +2879,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">save_draft_ruleset!(command)</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L257" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L259" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -2673,7 +2907,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">schedule_change_request(command)</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L419" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L421" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -2702,7 +2936,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">schedule_governed_action(command)</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L452" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L454" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -2733,7 +2967,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">simulate_flag(flag_key, environment_key, context, opts \\ [])</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L920" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L1014" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -2766,7 +3000,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">submit_change_request(command)</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L379" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L381" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -2825,7 +3059,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">update_flag(command)</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L221" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L223" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -2856,7 +3090,7 @@ context second</li></ul>
       <h1 class="signature" translate="no">update_flag(flag_key, attrs, opts \\ [])</h1>
 
 
-        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L229" class="icon-action" rel="help" aria-label="View Source">
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L231" class="icon-action" rel="help" aria-label="View Source">
           <i class="ri-code-s-slash-line" aria-hidden="true"></i>
         </a>
 
@@ -2873,6 +3107,59 @@ context second</li></ul>
       </div>
 
 <p>Updates a flag from root-level attributes.</p>
+  </section>
+</section>
+<section class="detail" id="update_webhook_destination/1">
+
+  <div class="detail-header">
+    <a href="#update_webhook_destination/1" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">update_webhook_destination(command)</h1>
+
+
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L575" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@spec</span> update_webhook_destination(
+  Rulestead.Store.Command.UpdateWebhookDestination.t()
+  | {<a href="https://hexdocs.pm/elixir/String.html#t:t/0">String.t</a>(), <a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>() | <a href="https://hexdocs.pm/elixir/typespecs.html#built-in-types">keyword</a>()}
+) :: <a href="Rulestead.Store.html#t:result/1">Rulestead.Store.result</a>(<a href="https://hexdocs.pm/elixir/typespecs.html#basic-types">map</a>())</pre>
+
+      </div>
+
+<p>Updates an existing webhook destination.</p>
+  </section>
+</section>
+<section class="detail" id="update_webhook_destination/2">
+
+  <div class="detail-header">
+    <a href="#update_webhook_destination/2" class="detail-link" data-no-tooltip="" aria-label="Link to this function">
+      <i class="ri-link-m" aria-hidden="true"></i>
+    </a>
+    <div class="heading-with-actions">
+      <h1 class="signature" translate="no">update_webhook_destination(id, attrs)</h1>
+
+
+        <a href="https://github.com/szTheory/rulestead/blob/v0.1.0/lib/rulestead.ex#L579" class="icon-action" rel="help" aria-label="View Source">
+          <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        </a>
+
+    </div>
+  </div>
+
+  <section class="docstring">
+
+
   </section>
 </section>
 <section class="detail" id="version/0">

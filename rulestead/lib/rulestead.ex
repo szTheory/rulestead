@@ -136,10 +136,9 @@ defmodule Rulestead do
           {:ok, map()} | {:error, Error.t()}
   def plan_promotion(source_environment_key, target_environment_key, opts \\ []) do
     compare_opts =
-      case Keyword.get(opts, :flag_keys) do
-        nil -> []
-        flag_keys -> [flag_keys: flag_keys]
-      end
+      opts
+      |> Keyword.take([:flag_keys, :tenant_key])
+      |> Enum.reject(fn {_key, value} -> is_nil(value) end)
 
     with {:ok, compare} <-
            compare_environments(source_environment_key, target_environment_key, compare_opts) do
@@ -148,6 +147,7 @@ defmodule Rulestead do
           source_environment_key: compare.source_environment.key,
           target_environment_key: compare.target_environment.key,
           status: promotion_plan_status(compare),
+          tenant_key: compare.tenant_key,
           compare_token: compare.compare_token,
           source_fingerprint: compare.source_fingerprint,
           target_fingerprint: compare.target_fingerprint,
@@ -557,7 +557,8 @@ defmodule Rulestead do
   @doc """
   Creates a new webhook destination.
   """
-  @spec create_webhook_destination(Command.CreateWebhookDestination.t() | map() | keyword()) :: Store.result(map())
+  @spec create_webhook_destination(Command.CreateWebhookDestination.t() | map() | keyword()) ::
+          Store.result(map())
   def create_webhook_destination(%Command.CreateWebhookDestination{} = command) do
     admin_write(:create_webhook_destination, command)
   end
@@ -571,12 +572,16 @@ defmodule Rulestead do
   @doc """
   Updates an existing webhook destination.
   """
-  @spec update_webhook_destination(Command.UpdateWebhookDestination.t() | {String.t(), map() | keyword()}) :: Store.result(map())
+  @spec update_webhook_destination(
+          Command.UpdateWebhookDestination.t()
+          | {String.t(), map() | keyword()}
+        ) :: Store.result(map())
   def update_webhook_destination(%Command.UpdateWebhookDestination{} = command) do
     admin_write(:update_webhook_destination, command)
   end
 
-  def update_webhook_destination(id, attrs) when is_binary(id) and (is_map(attrs) or is_list(attrs)) do
+  def update_webhook_destination(id, attrs)
+      when is_binary(id) and (is_map(attrs) or is_list(attrs)) do
     id
     |> Command.UpdateWebhookDestination.new(attrs)
     |> update_webhook_destination()
@@ -585,7 +590,8 @@ defmodule Rulestead do
   @doc """
   Fetches a single webhook destination by ID.
   """
-  @spec fetch_webhook_destination(Command.FetchWebhookDestination.t() | String.t(), keyword()) :: Store.result(map())
+  @spec fetch_webhook_destination(Command.FetchWebhookDestination.t() | String.t(), keyword()) ::
+          Store.result(map())
   def fetch_webhook_destination(id_or_command, opts \\ [])
 
   def fetch_webhook_destination(%Command.FetchWebhookDestination{} = command, _opts) do
@@ -601,7 +607,8 @@ defmodule Rulestead do
   @doc """
   Lists webhook destinations.
   """
-  @spec list_webhook_destinations(Command.ListWebhookDestinations.t() | keyword()) :: Store.result(Command.Page.t(map()))
+  @spec list_webhook_destinations(Command.ListWebhookDestinations.t() | keyword()) ::
+          Store.result(Command.Page.t(map()))
   def list_webhook_destinations(command_or_opts \\ [])
 
   def list_webhook_destinations(%Command.ListWebhookDestinations{} = command) do
@@ -617,7 +624,8 @@ defmodule Rulestead do
   @doc """
   Lists webhook outbound deliveries.
   """
-  @spec list_webhook_deliveries(Command.ListWebhookDeliveries.t() | keyword()) :: Store.result(Command.Page.t(map()))
+  @spec list_webhook_deliveries(Command.ListWebhookDeliveries.t() | keyword()) ::
+          Store.result(Command.Page.t(map()))
   def list_webhook_deliveries(command_or_opts \\ [])
 
   def list_webhook_deliveries(%Command.ListWebhookDeliveries{} = command) do
@@ -633,7 +641,8 @@ defmodule Rulestead do
   @doc """
   Retries a failed webhook delivery.
   """
-  @spec retry_webhook_delivery(Command.RetryWebhookDelivery.t() | String.t(), keyword()) :: Store.result(map())
+  @spec retry_webhook_delivery(Command.RetryWebhookDelivery.t() | String.t(), keyword()) ::
+          Store.result(map())
   def retry_webhook_delivery(id_or_command, opts \\ [])
 
   def retry_webhook_delivery(%Command.RetryWebhookDelivery{} = command, _opts) do
@@ -1682,6 +1691,7 @@ defmodule Rulestead do
       %{
         source_environment_key: plan["source_environment_key"],
         target_environment_key: plan["target_environment_key"],
+        tenant_key: plan["tenant_key"],
         flag_keys: plan["flag_keys"],
         compare_token: plan["compare_token"],
         compare_schema_version: Compare.schema_version(),
@@ -1697,7 +1707,8 @@ defmodule Rulestead do
   end
 
   defp dispatch_promotion_plan(plan, command, _reason, _opts) do
-    if Compare.protected_target?(plan["target_environment_key"]) or plan["status"] == "governance_required" do
+    if Compare.protected_target?(plan["target_environment_key"]) or
+         plan["status"] == "governance_required" do
       with :ok <- Apply.validate_governed(command),
            approval_requirement <-
              Authorizer.approval_requirement(
@@ -1764,6 +1775,7 @@ defmodule Rulestead do
     %{
       "source_environment_key" => plan["source_environment_key"],
       "target_environment_key" => plan["target_environment_key"],
+      "tenant_key" => plan["tenant_key"],
       "flag_keys" => plan["flag_keys"],
       "compare_token" => plan["compare_token"],
       "compare_schema_version" => Compare.schema_version(),
@@ -1774,7 +1786,10 @@ defmodule Rulestead do
     }
   end
 
-  defp stale_promotion_result(content, message \\ "saved promote plan no longer matches live compare state") do
+  defp stale_promotion_result(
+         content,
+         message \\ "saved promote plan no longer matches live compare state"
+       ) do
     with {:ok, plan} <- Plan.load(content) do
       {:ok,
        ManifestResult.new(%{
@@ -1829,9 +1844,10 @@ defmodule Rulestead do
            "plan_token" => plan["plan_token"]
          },
          findings: [
-           ManifestResult.finding(promotion_status_code(status), "blocker", plan["target_environment_key"],
-             message: error.message
-           )
+           ManifestResult.finding(
+             promotion_status_code(status),
+             "blocker",
+             plan["target_environment_key"], message: error.message)
          ],
          details: %{
            "plan" => plan,

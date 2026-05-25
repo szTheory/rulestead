@@ -463,10 +463,7 @@ defmodule Rulestead.Fake do
       flag_type: command.flag_type,
       value_type: command.value_type,
       default_value: command.default_value,
-      owner: command.owner,
       ownership: command.ownership,
-      expected_expiration: command.expected_expiration,
-      permanent: command.permanent,
       lifecycle: command.lifecycle,
       tags: command.tags,
       environment_keys: command.environment_keys
@@ -1643,6 +1640,7 @@ defmodule Rulestead.Fake do
 
   defp do_put_flag(state, attrs) do
     environment_keys = normalize_environment_keys(attrs)
+
     flag_attrs = Map.drop(attrs, [:environment_keys, "environment_keys"])
     extra_attrs = Map.take(flag_attrs, [:code_reference_count, :code_refs_scan])
     changeset = Flag.changeset(%Flag{}, flag_attrs)
@@ -1737,14 +1735,11 @@ defmodule Rulestead.Fake do
       flag_type: flag.flag_type,
       value_type: flag.value_type,
       default_value: flag.default_value,
-      owner: flag.owner,
       ownership: flag.ownership,
-      expected_expiration: flag.expected_expiration,
-      permanent: flag.permanent,
       lifecycle: flag.lifecycle,
       tags: flag.tags,
       archived_at: flag.archived_at,
-      previous_owners: [flag.owner],
+      previous_owners: [flag.ownership.owner_ref],
       inserted_at: state.now,
       updated_at: state.now,
       environments: environments,
@@ -3370,10 +3365,7 @@ defmodule Rulestead.Fake do
       updated_flag =
         flag
         |> maybe_put(:description, proposed_flag["description"])
-        |> maybe_put(:owner, proposed_flag["owner"])
         |> maybe_put(:default_value, proposed_flag["default_value"])
-        |> maybe_put(:expected_expiration, proposed_flag["expected_expiration"])
-        |> maybe_put(:permanent, proposed_flag["permanent"])
         |> maybe_put(:tags, proposed_flag["tags"])
         |> Map.put(:updated_at, state.now)
 
@@ -3540,9 +3532,6 @@ defmodule Rulestead.Fake do
           flag_type: normalize_import_flag_type(proposed_flag["flag_type"]),
           value_type: normalize_import_value_type(proposed_flag["value_type"]),
           default_value: proposed_flag["default_value"] || %{},
-          owner: proposed_flag["owner"],
-          expected_expiration: proposed_flag["expected_expiration"],
-          permanent: proposed_flag["permanent"] || false,
           tags: proposed_flag["tags"] || [],
           environment_keys: [target_environment_key]
         }
@@ -3556,11 +3545,8 @@ defmodule Rulestead.Fake do
         updated_flag =
           flag
           |> maybe_put(:description, proposed_flag["description"])
-          |> maybe_put(:owner, proposed_flag["owner"])
-          |> maybe_put(:default_value, proposed_flag["default_value"])
-          |> maybe_put(:expected_expiration, proposed_flag["expected_expiration"])
-          |> maybe_put(:permanent, proposed_flag["permanent"])
-          |> maybe_put(:tags, proposed_flag["tags"])
+            |> maybe_put(:default_value, proposed_flag["default_value"])
+              |> maybe_put(:tags, proposed_flag["tags"])
           |> Map.put(:updated_at, state.now)
 
         {:ok, put_in(state.flags[normalized_flag_key], updated_flag), updated_flag}
@@ -3864,7 +3850,7 @@ defmodule Rulestead.Fake do
         |> Map.keys()
         |> Enum.map(&state.environments[&1])
         |> Enum.sort_by(& &1.key),
-      recent_owners: recent_owners(state, flag.owner)
+      recent_owners: recent_owners(state, flag.ownership.owner_ref)
     }
   end
 
@@ -3881,10 +3867,7 @@ defmodule Rulestead.Fake do
       :flag_type,
       :value_type,
       :default_value,
-      :owner,
       :ownership,
-      :expected_expiration,
-      :permanent,
       :lifecycle,
       :tags,
       :code_reference_count,
@@ -4205,7 +4188,7 @@ defmodule Rulestead.Fake do
     payload
     |> Map.put(:lifecycle, lifecycle(flag, flag_environment))
     |> Map.put(:has_draft_ruleset?, payload.draft_rulesets != [])
-    |> Map.put(:recent_owners, recent_owners(state, flag.owner))
+    |> Map.put(:recent_owners, recent_owners(state, flag.ownership.owner_ref))
     |> Map.put(:environments, Enum.map(environment_cards, & &1.environment))
     |> Map.put(:environment_cards, environment_cards)
     |> Map.put(:environment_status, flag_environment.status)
@@ -4255,7 +4238,7 @@ defmodule Rulestead.Fake do
       state.flags
       |> Map.values()
       |> Enum.sort_by(& &1.updated_at, {:desc, DateTime})
-      |> Enum.flat_map(fn flag -> [flag.owner | Map.get(flag, :previous_owners, [])] end)
+      |> Enum.flat_map(fn flag -> [flag.ownership.owner_ref | Map.get(flag, :previous_owners, [])] end)
       |> Enum.map(&normalize_owner/1)
 
     [normalize_owner(current_owner) | owners]
@@ -4284,7 +4267,6 @@ defmodule Rulestead.Fake do
       ownership = Map.get(entry.flag, :ownership) || %{}
 
       normalized in [
-        normalize_owner(entry.flag.owner),
         normalize_owner(Map.get(ownership, :owner_ref) || Map.get(ownership, "owner_ref")),
         normalize_owner(Map.get(ownership, :owner_display) || Map.get(ownership, "owner_display"))
       ]
@@ -4464,10 +4446,7 @@ defmodule Rulestead.Fake do
         :flag_type,
         :value_type,
         :default_value,
-        :owner,
         :ownership,
-        :expected_expiration,
-        :permanent,
         :lifecycle,
         :tags,
         :archived_at
@@ -4479,15 +4458,12 @@ defmodule Rulestead.Fake do
         {:ok,
          flag
          |> Map.put(:description, updated_flag.description)
-         |> Map.put(:owner, updated_flag.owner)
          |> Map.put(:ownership, updated_flag.ownership)
-         |> Map.put(:expected_expiration, updated_flag.expected_expiration)
-         |> Map.put(:permanent, updated_flag.permanent)
          |> Map.put(:lifecycle, updated_flag.lifecycle)
          |> Map.put(:tags, updated_flag.tags)
          |> Map.put(
            :previous_owners,
-           [flag.owner | Map.get(flag, :previous_owners, [])] |> Enum.uniq()
+           [flag.ownership.owner_ref | Map.get(flag, :previous_owners, [])] |> Enum.uniq()
          )
          |> Map.put(:updated_at, now)}
 
@@ -4532,20 +4508,6 @@ defmodule Rulestead.Fake do
   defp maybe_put_update_field(attrs, key, value), do: Map.put(attrs, key, value)
 
   defp maybe_put_lifecycle_update(attrs, command) do
-    attrs =
-      if not is_nil(command.permanent) do
-        Map.put(attrs, :permanent, command.permanent)
-      else
-        attrs
-      end
-
-    attrs =
-      if Map.has_key?(attrs, :permanent) or not is_nil(command.expected_expiration) do
-        Map.put(attrs, :expected_expiration, command.expected_expiration)
-      else
-        attrs
-      end
-
     if not is_nil(command.lifecycle) do
       Map.put(attrs, :lifecycle, command.lifecycle)
     else

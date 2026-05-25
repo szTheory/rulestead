@@ -18,7 +18,17 @@ end
 ```
 
 The `policy:` option is required. Host apps own authorization through
-`Rulestead.Admin.Policy`.
+`Rulestead.Admin.Policy.can?/4`.
+
+## Canonical Role Model
+
+`rulestead_admin` maps its views and capabilities to three conceptual roles. Your `Rulestead.Admin.Policy.can?/4` implementation enforces these boundaries:
+
+1. **Viewer**: Can read flags, review change requests, explore environments, and inspect infrastructure diagnostics.
+2. **Editor**: Can propose changes, create/update flags, submit change requests, and author draft state. Editors cannot publish directly to production.
+3. **Admin**: Can publish flag changes, execute approved change requests, bypass approval rules (if configured), and manage webhook settings.
+
+The UI gracefully degrades based on the actor's capabilities in the requested environment.
 
 ## What The Host Owns
 
@@ -32,7 +42,7 @@ The host application also owns:
 
 - browser authentication
 - actor identity and session lifecycle
-- policy decisions for read, edit, publish, explain, rollback, and kill actions
+- `can?/4` policy decisions defining viewer, editor, and admin capabilities per environment
 
 That split is intentional. `rulestead_admin` is a mounted package, not a
 bundled auth system.

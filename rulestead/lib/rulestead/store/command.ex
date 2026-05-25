@@ -7,7 +7,6 @@ defmodule Rulestead.Store.Command do
   """
 
   alias Rulestead.Admin.LifecycleDefaults
-  alias Rulestead.Flag.{LifecycleMetadata, Ownership}
   alias Rulestead.Governance.ApprovalRequirement
   alias Rulestead.Governance.ScheduledExecution
 
@@ -346,7 +345,10 @@ defmodule Rulestead.Store.Command do
         owner_display: owner_display
       }
     else
-      Ownership.default_from_owner(GovernanceSupport.fetch(attrs, :owner))
+      case GovernanceSupport.normalize_string(GovernanceSupport.fetch(attrs, :owner)) do
+        nil -> nil
+        normalized -> %{owner_ref: normalized, owner_kind: :team, owner_display: normalized}
+      end
     end
   end
 
@@ -383,7 +385,12 @@ defmodule Rulestead.Store.Command do
         authored_review_by: review_by
       )
 
-    mode = explicit_mode || LifecycleMetadata.mode_from_flag(attrs)
+    permanent? =
+      case GovernanceSupport.fetch(attrs, :permanent) do
+        value when value in [true, "true", 1, "1"] -> true
+        _other -> false
+      end
+    mode = explicit_mode || if(permanent?, do: :permanent, else: :expiring)
 
     overridden? =
       lifecycle
@@ -405,7 +412,20 @@ defmodule Rulestead.Store.Command do
     }
   end
 
-  def normalize_lifecycle(_attrs), do: LifecycleMetadata.default_from_flag(%{})
+  def normalize_lifecycle(attrs) do
+    permanent? =
+      case GovernanceSupport.fetch(attrs, :permanent) do
+        value when value in [true, "true", 1, "1"] -> true
+        _other -> false
+      end
+
+    %{
+      mode: if(permanent?, do: :permanent, else: :expiring),
+      review_by: GovernanceSupport.fetch(attrs, :expected_expiration),
+      default_source: :legacy_backfill,
+      default_overridden: false
+    }
+  end
 
   @spec lifecycle_update(nil | map() | keyword()) :: nil | map()
   def lifecycle_update(attrs) when is_map(attrs) or is_list(attrs) do
@@ -872,7 +892,7 @@ defmodule Rulestead.Store.Command do
   defmodule CreateFlag do
     @moduledoc false
 
-    @enforce_keys [:key, :flag_type, :value_type, :default_value, :owner]
+    @enforce_keys [:key, :flag_type, :value_type, :default_value]
     defstruct [
       :key,
       :description,
@@ -921,7 +941,7 @@ defmodule Rulestead.Store.Command do
         default_value: Map.fetch!(attrs, :default_value),
         owner:
           ownership
-          |> Rulestead.Store.Command.ownership_label(Map.fetch!(attrs, :owner)),
+          |> Rulestead.Store.Command.ownership_label(Map.get(attrs, :owner)),
         ownership: ownership,
         expected_expiration: Map.get(attrs, :expected_expiration),
         permanent: Map.get(attrs, :permanent, false),

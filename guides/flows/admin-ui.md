@@ -47,9 +47,10 @@ The host application also owns:
 That split is intentional. `rulestead_admin` is a mounted package, not a
 bundled auth system.
 
-## Stable Operator Navigation
+## Stable Mounted Seam
 
-Operators can treat these URL shapes as the stable v0.1.0 navigation layer:
+Operators and host apps can treat these URL shapes as the stable v0.1.0
+mounted seam:
 
 - `/admin/flags`
 - `/admin/flags/new`
@@ -69,6 +70,10 @@ Lifecycle review also relies on preserving `return_to` when operators move from
 the queue into detail or cleanup review. Keep those links mounted and
 shareable; do not replace them with host-local shortcuts that drop queue
 context.
+
+This stable seam is intentionally narrower than every internal route detail.
+`rulestead_admin` remains a mounted companion, and the host still owns
+authentication, actor identity, session truth, and `can?/4` policy decisions.
 
 ## What Operators Can Do
 
@@ -107,13 +112,15 @@ identity, authorization, and surrounding layout.
 
 ## Cleanup Flow
 
-Cleanup is not a hidden button press. The expected lifecycle mutation sequence
-is preview, confirm, audit.
+Cleanup is not a hidden button press. The supported workflow is `cleanup ->
+preview -> confirm -> audit`.
 
 Mounted admin should make these boundaries obvious:
 
 - lifecycle guidance is read-only review
-- cleanup is the explicit pre-mutation review surface
+- cleanup is the viewer-readable advisory step
+- preview is the first execute/admin-only mutation surface
+- confirm is the final execute/admin-only mutation surface
 - archive happens only after preview and confirm
 - audit continuity remains part of the operator contract
 

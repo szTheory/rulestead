@@ -217,6 +217,7 @@ defmodule Rulestead.Promotion.Compare do
     new_result(%{
       source_environment: attrs[:source_environment] || attrs["source_environment"],
       target_environment: attrs[:target_environment] || attrs["target_environment"],
+      tenant_key: attrs[:tenant_key] || attrs["tenant_key"],
       requested_flag_keys: requested_flag_keys,
       compare_token: compare_token,
       flags: Enum.reverse(flags),

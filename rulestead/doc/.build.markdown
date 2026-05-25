@@ -37,3 +37,4 @@ rulesets.md
 telemetry.md
 testing.md
 upgrading.md
+user-flows-and-jtbd.md

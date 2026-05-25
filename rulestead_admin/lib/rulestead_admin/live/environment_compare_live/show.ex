@@ -52,6 +52,9 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Show do
       current_environment={@page.current_environment}
       environments={@page.environments}
       env_links={@page.env_links}
+      current_tenant={@page.current_tenant}
+      tenants={@page.tenants}
+      tenant_links={@page.tenant_links}
     >
       <OperatorComponents.policy_state policy_state={@page.policy_state} />
 
@@ -69,6 +72,7 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Show do
         <FlagComponents.section_card title="Flag compare overview">
           <h2><code><%= @flag.flag_key %></code></h2>
           <p>Source <%= @source_env %>, current target <%= @target_env %>, proposed target after apply from the current published source state.</p>
+          <p :if={@page.current_tenant}>Tenant scope <code><%= @page.current_tenant.key %></code>.</p>
         </FlagComponents.section_card>
 
         <section aria-label={"Compare findings for #{@flag.flag_key}"}>
@@ -113,8 +117,11 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Show do
   end
 
   defp build_page(socket, flag_key, source_env, target_env, compare_token) do
+    tenant = socket.assigns.current_tenant
+
     params =
       %{"source_env" => source_env, "target_env" => target_env}
+      |> maybe_put_param("tenant", tenant && tenant.key)
       |> maybe_put_param("compare_token", compare_token)
 
     %{
@@ -124,8 +131,12 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Show do
         "Inspect one flag across source, current target, and proposed target after apply.",
       current_environment: socket.assigns.current_environment,
       environments: socket.assigns.available_environments,
+      current_tenant: tenant,
+      tenants: socket.assigns.available_tenants,
       env_links:
         Session.env_links(socket, admin_base_path(socket, "/compare/#{flag_key}"), params),
+      tenant_links:
+        Session.tenant_links(socket, admin_base_path(socket, "/compare/#{flag_key}"), params),
       current_path:
         Session.current_path(socket, admin_base_path(socket, "/compare/#{flag_key}"), params),
       policy_state: Session.policy_state(socket)
@@ -135,6 +146,7 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Show do
   defp load_compare(socket) do
     opts =
       [flag_keys: [socket.assigns.flag_key]]
+      |> maybe_put_opt(:tenant_key, current_tenant_key(socket))
       |> maybe_put_opt(:compare_token, socket.assigns.compare_token_param)
 
     case Rulestead.compare_environments(
@@ -172,6 +184,7 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Show do
     [
       %{label: "Compare token", value: compare.compare_token || "not generated"},
       %{label: "Schema version", value: to_string(compare.compare_schema_version)},
+      %{label: "tenant", value: compare.tenant_key || "tenant=unset"},
       %{label: "source_env", value: compare.source_environment.key},
       %{label: "target_env", value: compare.target_environment.key},
       %{label: "Flag key", value: flag.flag_key}
@@ -200,6 +213,10 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Show do
 
   defp maybe_put_param(params, _key, nil), do: params
   defp maybe_put_param(params, key, value), do: Map.put(params, key, value)
+
+  defp current_tenant_key(socket) do
+    socket.assigns.current_tenant && socket.assigns.current_tenant.key
+  end
 
   defp admin_base_path(%Phoenix.LiveView.Socket{} = socket, suffix),
     do: "#{socket.assigns.rulestead_admin_mount_path}#{suffix}"

@@ -17,6 +17,12 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.ShowTest do
       |> Phoenix.ConnTest.init_test_session(%{
         "current_actor" => %{id: 7, email: "priya@example.com", roles: ["admin"]},
         "rulestead_admin_last_env" => "prod",
+        "rulestead_admin_tenants" => [
+          %{"key" => "acme", "name" => "Acme"},
+          %{"key" => "globex", "name" => "Globex"}
+        ],
+        "rulestead_admin_default_tenant" => "acme",
+        "rulestead_admin_last_tenant" => "acme",
         "rulestead_admin_environments" => [
           %{"key" => "dev", "name" => "Development"},
           %{"key" => "staging", "name" => "Staging"},
@@ -31,20 +37,43 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.ShowTest do
     {:ok, _view, html} =
       live(
         conn,
-        "/admin/flags/compare/checkout-redesign?env=prod&source_env=staging&target_env=prod&compare_token=stale-preview"
+        "/admin/flags/compare/checkout-redesign?env=prod&tenant=acme&source_env=staging&target_env=prod&compare_token=stale-preview"
       )
 
     assert html =~ "checkout-redesign"
     assert html =~ "Source"
     assert html =~ "Current target"
     assert html =~ "Proposed target after apply"
+    assert html =~ "Tenant scope"
+    assert html =~ "tenant"
+  end
+
+  test "renders reviewed preview drill-in state from the summary-carried compare token", %{conn: conn} do
+    {:ok, _summary_view, summary_html} =
+      live(
+        conn,
+        "/admin/flags/compare?env=prod&tenant=acme&source_env=staging&target_env=prod"
+      )
+
+    summary_path = drill_in_path(summary_html, "checkout-redesign")
+    query = query_from_path(summary_path)
+
+    {:ok, _view, html} = live(conn, summary_path)
+
+    refute html =~ "Staleness conflict"
+    assert html =~ "compare token metadata"
+    assert html =~ query["compare_token"]
+    assert query["env"] == "prod"
+    assert query["tenant"] == "acme"
+    assert query["source_env"] == "staging"
+    assert query["target_env"] == "prod"
   end
 
   test "renders typed findings and stale preview warnings behind disclosure", %{conn: conn} do
     {:ok, _view, html} =
       live(
         conn,
-        "/admin/flags/compare/checkout-redesign?env=prod&source_env=staging&target_env=prod&compare_token=stale-preview"
+        "/admin/flags/compare/checkout-redesign?env=prod&tenant=acme&source_env=staging&target_env=prod&compare_token=stale-preview"
       )
 
     assert html =~ "Staleness conflict"
@@ -52,13 +81,14 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.ShowTest do
     assert html =~ "Show structured diff for checkout-redesign"
     assert html =~ "Show raw compare payload for checkout-redesign"
     assert html =~ "Compare token"
+    assert html =~ "acme"
   end
 
   test "stays read-only on drill-in route", %{conn: conn} do
     {:ok, _view, html} =
       live(
         conn,
-        "/admin/flags/compare/checkout-redesign?env=prod&source_env=staging&target_env=prod&compare_token=stale-preview"
+        "/admin/flags/compare/checkout-redesign?env=prod&tenant=acme&source_env=staging&target_env=prod&compare_token=stale-preview"
       )
 
     refute html =~ ">Apply<"
@@ -152,5 +182,18 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.ShowTest do
         }
       ]
     }
+  end
+
+  defp drill_in_path(html, flag_key) do
+    Regex.run(~r/href="([^"]*\/compare\/#{flag_key}\?[^"]+)"/, html, capture: :all_but_first)
+    |> List.first()
+    |> String.replace("&amp;", "&")
+  end
+
+  defp query_from_path(path) do
+    path
+    |> URI.parse()
+    |> Map.fetch!(:query)
+    |> URI.decode_query()
   end
 end

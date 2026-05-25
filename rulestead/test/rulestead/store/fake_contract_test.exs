@@ -25,8 +25,8 @@ defmodule Rulestead.Store.FakeContractTest do
     @store_control.put_flag!(
       valid_flag_attrs(%{
         key: "ops-cleanup",
-        owner: "ops",
-        permanent: false,
+        ownership: %{owner_ref: "ops", owner_kind: :team},
+      lifecycle: %{mode: :expiring, default_source: :flag_type, default_overridden: false},
         expected_expiration: ~D[2026-04-20],
         code_reference_count: 0,
         code_refs_scan: %{received_at: ~U[2026-04-23 15:50:00Z], reference_count: 0}
@@ -36,8 +36,8 @@ defmodule Rulestead.Store.FakeContractTest do
     @store_control.put_flag!(
       valid_flag_attrs(%{
         key: "checkout-redesign",
-        owner: "growth",
-        permanent: true,
+        ownership: %{owner_ref: "growth", owner_kind: :team},
+      lifecycle: %{mode: :permanent, default_source: :flag_type, default_overridden: false},
         code_reference_count: 2,
         code_refs_scan: %{received_at: ~U[2026-04-23 15:50:00Z], reference_count: 2}
       })

@@ -61,25 +61,105 @@ defmodule RulesteadAdmin.Live.SessionTest do
     assert resolved_from_invalid_url.env_source == :default
   end
 
+  test "resolve/3 prefers bounded tenant scope and keeps invalid params fail-closed" do
+    tenants = [
+      %{"key" => "acme", "name" => "Acme"},
+      %{"key" => "globex", "name" => "Globex"}
+    ]
+
+    resolved_from_url =
+      Session.resolve(
+        %{"tenant" => "globex"},
+        %{
+          "current_actor" => %{id: 7},
+          "rulestead_admin_tenants" => tenants,
+          "rulestead_admin_default_tenant" => "acme",
+          "rulestead_admin_last_tenant" => "acme"
+        },
+        policy: RulesteadAdmin.TestPolicy,
+        mount_path: "/admin/flags"
+      )
+
+    assert resolved_from_url.tenant.key == "globex"
+    assert resolved_from_url.tenant_source == :url
+
+    resolved_from_memory =
+      Session.resolve(
+        %{},
+        %{
+          "current_actor" => %{id: 7},
+          "rulestead_admin_tenants" => tenants,
+          "rulestead_admin_default_tenant" => "acme",
+          "rulestead_admin_last_tenant" => "globex"
+        },
+        policy: RulesteadAdmin.TestPolicy,
+        mount_path: "/admin/flags"
+      )
+
+    assert resolved_from_memory.tenant.key == "globex"
+    assert resolved_from_memory.tenant_source == :remembered
+
+    resolved_from_invalid_url =
+      Session.resolve(
+        %{"tenant" => "unknown"},
+        %{
+          "current_actor" => %{id: 7},
+          "rulestead_admin_tenants" => tenants,
+          "rulestead_admin_default_tenant" => "acme",
+          "rulestead_admin_last_tenant" => "globex"
+        },
+        policy: RulesteadAdmin.TestPolicy,
+        mount_path: "/admin/flags"
+      )
+
+    assert resolved_from_invalid_url.tenant.key == "globex"
+    assert resolved_from_invalid_url.tenant_source == :remembered
+
+    resolved_from_default =
+      Session.resolve(
+        %{},
+        %{
+          "current_actor" => %{id: 7},
+          "rulestead_admin_tenants" => tenants,
+          "rulestead_admin_default_tenant" => "acme"
+        },
+        policy: RulesteadAdmin.TestPolicy,
+        mount_path: "/admin/flags"
+      )
+
+    assert resolved_from_default.tenant.key == "acme"
+    assert resolved_from_default.tenant_source == :default
+  end
+
   test "shared route helpers build canonical env paths and policy state for phase 7 screens" do
     assigns = %{
       current_environment: %{key: "prod", name: "Production"},
+      current_tenant: %{key: "acme", name: "Acme"},
       available_environments: [
         %{key: "dev", name: "Development"},
         %{key: "prod", name: "Production"}
+      ],
+      available_tenants: [
+        %{key: "acme", name: "Acme"},
+        %{key: "globex", name: "Globex"}
       ],
       current_actor: %{id: "sys", roles: [:admin]}
     }
 
     assert Session.current_path(assigns, "/admin/flags/pricing/simulate") ==
-             "/admin/flags/pricing/simulate?env=prod"
+             "/admin/flags/pricing/simulate?env=prod&tenant=acme"
 
     assert Session.current_path(assigns, "/admin/audit", %{"actor" => "sam", "before" => nil}) ==
-             "/admin/audit?actor=sam&env=prod"
+             "/admin/audit?actor=sam&env=prod&tenant=acme"
 
     assert Session.env_links(assigns, "/admin/flags/pricing/kill", %{"tab" => "confirm"}) == %{
-             "dev" => "/admin/flags/pricing/kill?env=dev&tab=confirm",
-             "prod" => "/admin/flags/pricing/kill?env=prod&tab=confirm"
+             "dev" => "/admin/flags/pricing/kill?env=dev&tab=confirm&tenant=acme",
+             "prod" => "/admin/flags/pricing/kill?env=prod&tab=confirm&tenant=acme"
+           }
+
+    assert Session.tenant_links(assigns, "/admin/audit", %{"actor" => "sam"}) == %{
+             "acme" => "/admin/audit?actor=sam&env=prod&tenant=acme",
+             "globex" => "/admin/audit?actor=sam&env=prod&tenant=globex"
            }
 
     assert Session.policy_state(assigns) == %{
@@ -101,6 +181,7 @@ defmodule RulesteadAdmin.Live.SessionTest do
   test "shared route helpers preserve non-default mount roots for phase 7 screens" do
     assigns = %{
       current_environment: %{key: "staging", name: "Staging"},
+      current_tenant: %{key: "acme", name: "Acme"},
       available_environments: [
         %{key: "staging", name: "Staging"},
         %{key: "prod", name: "Production"}
@@ -108,28 +189,35 @@ defmodule RulesteadAdmin.Live.SessionTest do
     }
 
     assert Session.current_path(assigns, "/ops/flags/checkout-redesign/rollouts") ==
-             "/ops/flags/checkout-redesign/rollouts?env=staging"
+             "/ops/flags/checkout-redesign/rollouts?env=staging&tenant=acme"
 
     assert Session.env_links(assigns, "/ops/flags/audit", %{"mutation" => "ruleset.publish"}) == %{
-             "prod" => "/ops/flags/audit?env=prod&mutation=ruleset.publish",
-             "staging" => "/ops/flags/audit?env=staging&mutation=ruleset.publish"
+             "prod" => "/ops/flags/audit?env=prod&mutation=ruleset.publish&tenant=acme",
+             "staging" => "/ops/flags/audit?env=staging&mutation=ruleset.publish&tenant=acme"
            }
   end
 
-  test "shell renders a global environment picker with explicit production styling" do
+  test "shell renders separate tenant scope chrome without implying an environment switcher" do
     html =
       render_component(&Shell.page/1,
         page_title: "Flags",
         page_kicker: "Flag inventory",
         page_summary: "Compile-safe placeholder",
         current_environment: %{key: "prod", name: "Production"},
+        current_tenant: %{key: "acme", name: "Acme"},
         environments: [
           %{key: "dev", name: "Development"},
           %{key: "prod", name: "Production"}
         ],
+        tenants: [
+          %{key: "acme", name: "Acme"}
+        ],
         env_links: %{
           "dev" => "/admin/flags?env=dev",
           "prod" => "/admin/flags?env=prod"
+        },
+        tenant_links: %{
+          "acme" => "/admin/flags?env=prod&tenant=acme"
         },
         inner_block: [
           %{
@@ -139,7 +227,10 @@ defmodule RulesteadAdmin.Live.SessionTest do
       )
 
     assert html =~ "Environment"
+    assert html =~ "Tenant"
     assert html =~ "Production"
+    assert html =~ "Scoped to"
+    assert html =~ "Acme"
     assert html =~ "Flag list placeholder"
     assert html =~ "data-env-tone=\"production\""
     assert html =~ "/admin/flags?env=dev"

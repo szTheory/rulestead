@@ -70,7 +70,7 @@ defmodule RulesteadAdmin.Live.ExperimentLive.Show do
           </div>
           <div class="rs-detail__stats">
             <FlagComponents.stat title="Lifecycle" value={humanize(@detail.lifecycle.state)} tone="neutral" />
-            <FlagComponents.stat title="Owner" value={@detail.lifecycle.owner} tone="neutral" />
+            <FlagComponents.stat title="Owner" value={@detail.flag.ownership.owner_display || @detail.flag.ownership.owner_ref} tone="neutral" />
             <FlagComponents.stat title="Environment status" value={humanize(@detail.flag_environment.status)} tone="neutral" />
           </div>
         </div>
@@ -104,7 +104,7 @@ defmodule RulesteadAdmin.Live.ExperimentLive.Show do
           <p>
             <FlagComponents.lifecycle_badge state={@detail.lifecycle} />
             <FlagComponents.stale_badge state={@detail.lifecycle.state} last_evaluated_at={@detail.lifecycle.last_evaluated_at} />
-            <span>Owner: <%= @detail.lifecycle.owner %></span>
+            <span>Owner: <%= @detail.flag.ownership.owner_display || @detail.flag.ownership.owner_ref %></span>
           </p>
         </FlagComponents.section_card>
 
@@ -137,7 +137,7 @@ defmodule RulesteadAdmin.Live.ExperimentLive.Show do
     # Target error event for guardrail
     error_metrics = fetch_metrics(key, "error", env)
     
-    control_val = to_string(detail.flag.default_value.value)
+    control_val = detail.flag.default_value |> default_flag_value() |> to_string()
     
     control_metric = Enum.find(conversion_metrics, &(&1.variation == control_val)) || %{exposures: 0, conversions: 0}
     variants = Enum.reject(conversion_metrics, &(&1.variation == control_val))
@@ -184,6 +184,10 @@ defmodule RulesteadAdmin.Live.ExperimentLive.Show do
 
   defp tone_for_pvalue(p) when p < 0.05, do: "positive"
   defp tone_for_pvalue(_), do: "neutral"
+
+  defp default_flag_value(%{value: value}), do: value
+  defp default_flag_value(%{"value" => value}), do: value
+  defp default_flag_value(value), do: value
 
   defp query_params(uri) do
     uri

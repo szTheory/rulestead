@@ -11,6 +11,7 @@ defmodule RulesteadAdmin.Live.FlagLive.FormTest do
 
   setup %{conn: conn} do
     Application.put_env(:rulestead, :store, Rulestead.Fake)
+
     Application.put_env(:rulestead, :admin_lifecycle,
       warning_after_seconds: 1_800,
       stale_after_seconds: 3_600,
@@ -24,10 +25,9 @@ defmodule RulesteadAdmin.Live.FlagLive.FormTest do
 
     seed_flag!(
       key: "checkout-redesign",
-      owner: "growth",
-      tags: ["checkout", "release"],
-      expected_expiration: ~D[2026-05-01],
-      permanent: false
+      ownership: %{owner_ref: "growth", owner_kind: :team, owner_display: "growth"},
+      lifecycle: %{mode: :expiring, review_by: ~D[2026-05-01], default_source: :flag_type, default_overridden: false},
+      tags: ["checkout", "release"]
     )
 
     publish_flag!("checkout-redesign")
@@ -47,7 +47,7 @@ defmodule RulesteadAdmin.Live.FlagLive.FormTest do
     {:ok, conn: conn}
   end
 
-  test "new flag requires owner plus expected expiration or permanent and can create metadata", %{conn: conn} do
+  test "new flag requires ownership and lifecycle posture and can create metadata", %{conn: conn} do
     {:ok, view, html} = live(conn, "/admin/flags/new?env=prod")
 
     assert html =~ "Create flag"
@@ -62,16 +62,19 @@ defmodule RulesteadAdmin.Live.FlagLive.FormTest do
           "flag_type" => "release",
           "value_type" => "boolean",
           "default_value" => "true",
-          "owner" => "",
-          "expected_expiration" => "",
-          "permanent" => "false",
+          "owner_ref" => "",
+          "owner_kind" => "",
+          "owner_display" => "",
+          "lifecycle_mode" => "",
+          "review_by" => "",
           "tags" => "admin, inventory"
         }
       })
       |> render_submit()
 
-    assert invalid_html =~ "Owner is required"
-    assert invalid_html =~ "Choose an expected expiration or mark the flag permanent"
+    assert invalid_html =~ "Owner reference is required"
+    assert invalid_html =~ "Choose a valid owner kind"
+    assert invalid_html =~ "Choose a lifecycle posture"
 
     view
     |> form("form[aria-label='Flag metadata form']", %{
@@ -81,9 +84,11 @@ defmodule RulesteadAdmin.Live.FlagLive.FormTest do
         "flag_type" => "release",
         "value_type" => "boolean",
         "default_value" => "true",
-        "owner" => "platform",
-        "expected_expiration" => "",
-        "permanent" => "true",
+        "owner_ref" => "team:platform",
+        "owner_kind" => "team",
+        "owner_display" => "Platform Team",
+        "lifecycle_mode" => "permanent",
+        "review_by" => "",
         "tags" => "admin, inventory"
       }
     })
@@ -92,14 +97,19 @@ defmodule RulesteadAdmin.Live.FlagLive.FormTest do
     assert_redirect(view, "/admin/flags/inventory-admin?env=prod")
 
     assert {:ok, detail} = Rulestead.fetch_flag("inventory-admin", "prod")
-    assert detail.flag.owner == "platform"
-    assert detail.flag.permanent == true
+    assert detail.flag.ownership.owner_ref == "team:platform"
+    assert detail.flag.ownership.owner_kind == :team
+    assert detail.flag.ownership.owner_display == "Platform Team"
+    assert detail.flag.lifecycle.mode == :permanent
     assert detail.flag.flag_type == :release
     assert detail.flag.default_value == %{value: true}
     assert detail.flag.tags == ["admin", "inventory"]
   end
 
-  test "edit flag updates metadata and keeps immutable fields visible", %{conn: conn} do
+  test "edit flag updates authored ownership and lifecycle metadata while keeping immutable fields visible",
+       %{
+         conn: conn
+       } do
     {:ok, view, html} = live(conn, "/admin/flags/checkout-redesign/edit?env=prod")
 
     assert html =~ "Edit flag"
@@ -111,24 +121,28 @@ defmodule RulesteadAdmin.Live.FlagLive.FormTest do
       |> form("form[aria-label='Flag metadata form']", %{
         "flag" => %{
           "description" => "Updated checkout copy",
-          "owner" => "",
-          "expected_expiration" => "",
-          "permanent" => "false",
+          "owner_ref" => "",
+          "owner_kind" => "team",
+          "owner_display" => "",
+          "lifecycle_mode" => "",
+          "review_by" => "",
           "tags" => "checkout, critical"
         }
       })
       |> render_submit()
 
-    assert invalid_html =~ "Owner is required"
-    assert invalid_html =~ "Choose an expected expiration or mark the flag permanent"
+    assert invalid_html =~ "Owner reference is required"
+    assert invalid_html =~ "Choose a lifecycle posture"
 
     view
     |> form("form[aria-label='Flag metadata form']", %{
       "flag" => %{
         "description" => "Updated checkout copy",
-        "owner" => "platform",
-        "expected_expiration" => "",
-        "permanent" => "true",
+        "owner_ref" => "team:platform",
+        "owner_kind" => "team",
+        "owner_display" => "Platform Team",
+        "lifecycle_mode" => "permanent",
+        "review_by" => "",
         "tags" => "checkout, critical"
       }
     })
@@ -138,8 +152,9 @@ defmodule RulesteadAdmin.Live.FlagLive.FormTest do
 
     assert {:ok, detail} = Rulestead.fetch_flag("checkout-redesign", "prod")
     assert detail.flag.description == "Updated checkout copy"
-    assert detail.flag.owner == "platform"
-    assert detail.flag.permanent == true
+    assert detail.flag.ownership.owner_ref == "team:platform"
+    assert detail.flag.ownership.owner_display == "Platform Team"
+    assert detail.flag.lifecycle.mode == :permanent
     assert detail.flag.tags == ["checkout", "critical"]
     assert detail.flag.flag_type == :release
     assert detail.flag.default_value == %{value: false}
@@ -172,8 +187,11 @@ defmodule RulesteadAdmin.Live.FlagLive.FormTest do
       ]
     }
 
-    assert {:ok, _draft} = Rulestead.save_draft_ruleset(Command.SaveDraftRuleset.new(flag_key, "prod", ruleset))
-    assert {:ok, _published} = Rulestead.publish_ruleset(Command.PublishRuleset.new(flag_key, "prod"))
+    assert {:ok, _draft} =
+             Rulestead.save_draft_ruleset(Command.SaveDraftRuleset.new(flag_key, "prod", ruleset))
+
+    assert {:ok, _published} =
+             Rulestead.publish_ruleset(Command.PublishRuleset.new(flag_key, "prod"))
   end
 
   defp seed_environment!(key, name) do

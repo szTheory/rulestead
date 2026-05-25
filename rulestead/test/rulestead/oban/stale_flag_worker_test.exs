@@ -53,8 +53,8 @@ defmodule Rulestead.Oban.StaleFlagWorkerTest do
       flag_type: :release,
       value_type: :boolean,
       default_value: %{"value" => false},
-      permanent: true,
-      owner: "tester"
+      lifecycle: %{mode: :permanent, default_source: :flag_type, default_overridden: false},
+      ownership: %{owner_ref: "tester", owner_kind: :team}
     }
     |> Repo.insert!()
   end

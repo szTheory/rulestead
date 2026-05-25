@@ -148,19 +148,20 @@ permission. Quiet traffic is not archive permission by itself.
 
 ## Archive Flow: Preview, Confirm, Audit
 
-Archive is a deliberate operator action. The canonical flow is preview, confirm,
-audit.
+Archive is a deliberate operator action. The canonical mounted workflow is
+`cleanup -> preview -> confirm -> audit`.
 
 Use this shape every time:
 
-1. review the lifecycle evidence
-2. open the cleanup preview
-3. confirm the action with a reason
-4. verify the audit event and resulting archived state
+1. review the lifecycle evidence in the queue or cleanup screen
+2. open the cleanup review as the advisory read surface
+3. run the cleanup preview
+4. confirm the action with a reason
+5. verify the audit event and resulting archived state
 
-`preview`, `confirm`, and `audit` are not optional ceremony. They are how the
-system stays trustworthy when the evidence is incomplete or when a support/SRE
-question lands later.
+`cleanup`, `preview`, `confirm`, and `audit` are not optional ceremony. They
+are how the system stays trustworthy when the evidence is incomplete or when a
+support/SRE question lands later.
 
 ### What The Preview Should Tell You
 

@@ -18,6 +18,12 @@ defmodule Mix.Tasks.Rulestead.Lifecycle do
     limit: :integer,
     format: :string
   ]
+  @allowed_filter_atoms %{
+    lifecycle: ~w(active potentially_stale stale archived)a,
+    stale: ~w(fresh potentially_stale stale)a,
+    readiness: ~w(keep_active needs_review archive_candidate)a,
+    evidence_quality: ~w(strong partial weak)a
+  }
 
   @impl Mix.Task
   def run(args) do
@@ -105,10 +111,10 @@ defmodule Mix.Tasks.Rulestead.Lifecycle do
       query: blank_to_nil(Keyword.get(opts, :query)),
       owner: blank_to_nil(Keyword.get(opts, :owner)),
       tags: blank_to_nil(Keyword.get(opts, :tags)),
-      lifecycle: normalize_atom(Keyword.get(opts, :lifecycle)),
-      stale: normalize_atom(Keyword.get(opts, :stale)),
-      readiness: normalize_atom(Keyword.get(opts, :readiness)),
-      evidence_quality: normalize_atom(Keyword.get(opts, :evidence_quality)),
+      lifecycle: normalize_filter_atom(:lifecycle, Keyword.get(opts, :lifecycle)),
+      stale: normalize_filter_atom(:stale, Keyword.get(opts, :stale)),
+      readiness: normalize_filter_atom(:readiness, Keyword.get(opts, :readiness)),
+      evidence_quality: normalize_filter_atom(:evidence_quality, Keyword.get(opts, :evidence_quality)),
       include_archived?: Keyword.get(opts, :include_archived, false),
       limit: Keyword.get(opts, :limit, 25)
     }
@@ -147,7 +153,7 @@ defmodule Mix.Tasks.Rulestead.Lifecycle do
   defp entry_payload(entry) do
     %{
       "flag_key" => entry.flag.key,
-      "owner" => entry.flag.owner,
+      "owner" => entry.flag.ownership.owner_ref,
       "environment_key" => entry.environment_key,
       "lifecycle" => %{
         "state" => atom_string(entry.lifecycle.state),
@@ -200,15 +206,24 @@ defmodule Mix.Tasks.Rulestead.Lifecycle do
     |> Enum.reject(&(&1 == ""))
   end
 
-  defp normalize_atom(nil), do: nil
-  defp normalize_atom(value) when is_atom(value), do: value
+  defp normalize_filter_atom(_field, nil), do: nil
+  defp normalize_filter_atom(field, value) when is_atom(value), do: normalize_filter_atom(field, Atom.to_string(value))
 
-  defp normalize_atom(value) when is_binary(value) do
+  defp normalize_filter_atom(field, value) when is_binary(value) do
     value
     |> blank_to_nil()
     |> case do
       nil -> nil
-      normalized -> String.to_atom(normalized)
+      normalized ->
+        allowed = Map.fetch!(@allowed_filter_atoms, field)
+
+        case Enum.find(allowed, &(Atom.to_string(&1) == normalized)) do
+          nil ->
+          Mix.raise("invalid --#{String.replace(to_string(field), "_", "-")} value: #{normalized}")
+
+          atom ->
+            atom
+        end
     end
   end
 

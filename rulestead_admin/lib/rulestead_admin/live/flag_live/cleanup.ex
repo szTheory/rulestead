@@ -13,7 +13,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Cleanup do
      socket
      |> assign(:detail, nil)
      |> assign(:flag_key, nil)
-     |> assign(:current_path, nil)
+      |> assign(:current_path, nil)
+     |> assign(:return_to, nil)
      |> assign(:env_links, %{})
      |> assign(:error_message, nil)
      |> assign(:code_references, [])}
@@ -23,17 +24,26 @@ defmodule RulesteadAdmin.Live.FlagLive.Cleanup do
   def handle_params(%{"key" => key}, uri, socket) do
     capabilities = socket.assigns.rulestead_admin_policy_state.capabilities
 
-    if not capabilities.edit? and not capabilities.execute? and not capabilities.admin? do
+    if not capabilities.read? do
       {:noreply, push_navigate(socket, to: socket.assigns.rulestead_admin_mount_path)}
     else
-      env = query_params(uri)["env"] || socket.assigns.current_environment.key
+      query = query_params(uri)
+      env = query["env"] || socket.assigns.current_environment.key
       base_path = build_base_path(socket, key)
 
       socket =
         socket
         |> assign(:flag_key, key)
+        |> assign(
+          :return_to,
+          Session.canonical_return_to(
+            socket,
+            query["return_to"],
+            socket.assigns.rulestead_admin_mount_path
+          )
+        )
         |> assign(:current_path, Session.current_path(socket, base_path))
-        |> assign(:env_links, Session.env_links(socket, base_path))
+        |> assign(:env_links, Session.env_links(socket, base_path, %{"return_to" => query["return_to"]}))
         |> load_detail(key, env)
         |> load_code_references(key)
 
@@ -47,12 +57,13 @@ defmodule RulesteadAdmin.Live.FlagLive.Cleanup do
     <Shell.page
       page_title={if(@flag_key, do: "#{@flag_key} cleanup", else: "Cleanup")}
       page_kicker="Cleanup"
-      page_summary="Advisory cleanup analysis for code references, blockers, and next steps. Phase 36 stays read-only."
+      page_summary="Canonical review surface for lifecycle evidence, archive consequences, and the explicit preview-before-mutation path."
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}
     >
       <:header_actions>
+        <a :if={@return_to} href={@return_to}>Back to queue</a>
         <a :if={@flag_key} href={path_for(assigns, "/#{@flag_key}")}>Back to detail</a>
       </:header_actions>
 
@@ -82,12 +93,14 @@ defmodule RulesteadAdmin.Live.FlagLive.Cleanup do
           />
         </div>
 
-        <FlagComponents.section_card title="Phase boundary">
-          <p>Phase 36 keeps cleanup advisory only. Archive preview, confirmation, and mutation follow in a later phase.</p>
+        <FlagComponents.callout title="Cleanup review" tone="warning">
+          <p>
+            Review cleanup is the canonical pre-mutation checkpoint. Archive consequences stay explicit here before the route-backed preview and confirm steps.
+          </p>
           <p :if={guidance_limited?(archive_readiness(@detail))}>
             Guidance limited by missing evidence. Review this flag manually before choosing a cleanup path.
           </p>
-        </FlagComponents.section_card>
+        </FlagComponents.callout>
 
         <FlagComponents.section_card title="Recommended next action">
           <p>
@@ -97,6 +110,10 @@ defmodule RulesteadAdmin.Live.FlagLive.Cleanup do
           <p><strong>Primary recommendation:</strong> <%= primary_action_label(archive_readiness(@detail)) %></p>
           <p :if={archive_readiness(@detail).secondary_actions != []}>
             <strong>Secondary actions:</strong> <%= secondary_actions_label(archive_readiness(@detail).secondary_actions) %>
+          </p>
+          <p><strong>Archive consequences:</strong> Archiving removes the flag from default queues, keeps the audit trail append-only, and should only happen after this review is complete.</p>
+          <p :if={can_preview_archive?(@rulestead_admin_policy_state.capabilities)}>
+            <a href={path_for(assigns, "/#{@detail.flag.key}/cleanup/preview")}>Preview archive</a>
           </p>
         </FlagComponents.section_card>
 
@@ -169,7 +186,13 @@ defmodule RulesteadAdmin.Live.FlagLive.Cleanup do
 
   defp build_base_path(socket, key), do: admin_base_path(socket, "/#{key}/cleanup")
 
-  defp path_for(socket, suffix), do: Session.current_path(socket, admin_base_path(socket, suffix))
+  defp path_for(socket, suffix) do
+    Session.path_with_return_to(
+      socket,
+      admin_base_path(socket, suffix),
+      fetch_return_to(socket)
+    )
+  end
 
   defp admin_base_path(socket_or_assigns, suffix),
     do: "#{fetch_mount_path(socket_or_assigns)}#{suffix}"
@@ -179,8 +202,15 @@ defmodule RulesteadAdmin.Live.FlagLive.Cleanup do
 
   defp fetch_mount_path(%{rulestead_admin_mount_path: mount_path}), do: mount_path
 
+  defp fetch_return_to(%Phoenix.LiveView.Socket{} = socket), do: socket.assigns.return_to
+  defp fetch_return_to(%{return_to: return_to}), do: return_to
+
   defp archive_readiness(detail), do: detail.lifecycle.archive_readiness
   defp freshness(detail), do: detail.lifecycle.freshness
+
+  defp can_preview_archive?(capabilities) do
+    capabilities.execute? or capabilities.admin?
+  end
 
   defp humanize(value) when is_atom(value), do: humanize(to_string(value))
 

@@ -40,6 +40,8 @@ defmodule RulesteadAdmin.Router do
           live("/:key/rollouts", RulesteadAdmin.Live.FlagLive.Rollouts, :show)
           live("/:key/kill", RulesteadAdmin.Live.FlagLive.Kill, :show)
           live("/:key/cleanup", RulesteadAdmin.Live.FlagLive.Cleanup, :show)
+          live("/:key/cleanup/preview", RulesteadAdmin.Live.FlagLive.CleanupPreview, :show)
+          live("/:key/cleanup/confirm", RulesteadAdmin.Live.FlagLive.CleanupConfirm, :show)
           live("/:key/timeline", RulesteadAdmin.Live.FlagLive.Timeline, :show)
         end
       end

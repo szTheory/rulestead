@@ -161,6 +161,18 @@ Creates a flag through the configured store adapter.
 
 Creates a flag from root-level attributes.
 
+# `create_webhook_destination`
+
+```elixir
+@spec create_webhook_destination(
+  Rulestead.Store.Command.CreateWebhookDestination.t()
+  | map()
+  | keyword()
+) :: Rulestead.Store.result(map())
+```
+
+Creates a new webhook destination.
+
 # `diagnostics`
 
 ```elixir
@@ -307,6 +319,17 @@ Bang variant of `fetch_flag/3`.
 
 Fetches one scheduled execution through the configured store adapter.
 
+# `fetch_webhook_destination`
+
+```elixir
+@spec fetch_webhook_destination(
+  Rulestead.Store.Command.FetchWebhookDestination.t() | String.t(),
+  keyword()
+) :: Rulestead.Store.result(map())
+```
+
+Fetches a single webhook destination by ID.
+
 # `fetch_webhook_record`
 
 ```elixir
@@ -445,6 +468,30 @@ Bang variant of `list_flags/0` and `list_flags/1`.
 
 Lists scheduled executions through the configured store adapter.
 
+# `list_webhook_deliveries`
+
+```elixir
+@spec list_webhook_deliveries(
+  Rulestead.Store.Command.ListWebhookDeliveries.t()
+  | keyword()
+) ::
+  Rulestead.Store.result(Rulestead.Store.Command.Page.t(map()))
+```
+
+Lists webhook outbound deliveries.
+
+# `list_webhook_destinations`
+
+```elixir
+@spec list_webhook_destinations(
+  Rulestead.Store.Command.ListWebhookDestinations.t()
+  | keyword()
+) ::
+  Rulestead.Store.result(Rulestead.Store.Command.Page.t(map()))
+```
+
+Lists webhook destinations.
+
 # `list_webhook_records`
 
 ```elixir
@@ -542,6 +589,17 @@ Releases a per-flag per-environment kill switch.
 ```
 
 Requeues a quarantined scheduled execution through the configured store adapter.
+
+# `retry_webhook_delivery`
+
+```elixir
+@spec retry_webhook_delivery(
+  Rulestead.Store.Command.RetryWebhookDelivery.t() | String.t(),
+  keyword()
+) :: Rulestead.Store.result(map())
+```
+
+Retries a failed webhook delivery.
 
 # `rollback_audit_event`
 
@@ -643,6 +701,19 @@ Updates flag metadata through the configured store adapter.
 ```
 
 Updates a flag from root-level attributes.
+
+# `update_webhook_destination`
+
+```elixir
+@spec update_webhook_destination(
+  Rulestead.Store.Command.UpdateWebhookDestination.t()
+  | {String.t(), map() | keyword()}
+) :: Rulestead.Store.result(map())
+```
+
+Updates an existing webhook destination.
+
+# `update_webhook_destination`
 
 # `version`
 

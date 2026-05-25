@@ -5,6 +5,8 @@ defmodule Rulestead.AuditEvent do
 
   import Ecto.Changeset
 
+  alias Rulestead.Store.Command
+
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
 
@@ -34,22 +36,40 @@ defmodule Rulestead.AuditEvent do
   def metadata(attrs \\ %{}) when is_list(attrs) or is_map(attrs) do
     attrs = Map.new(attrs)
     context = normalize_context(Map.get(attrs, :context) || Map.get(attrs, "context"))
+    before = normalize_map(Map.get(attrs, :before) || Map.get(attrs, "before"))
+    after_map = normalize_map(Map.get(attrs, :after) || Map.get(attrs, "after"))
+    diff = normalize_map(Map.get(attrs, :diff) || Map.get(attrs, "diff"))
+
+    tenant =
+      attrs
+      |> Map.get(:tenant, Map.get(attrs, "tenant"))
+      |> Kernel.||(Map.get(attrs, :tenant_provenance) || Map.get(attrs, "tenant_provenance"))
+      |> Command.GovernanceSupport.normalize_tenant_provenance()
 
     %{
-      "before" => normalize_map(Map.get(attrs, :before) || Map.get(attrs, "before")),
-      "after" => normalize_map(Map.get(attrs, :after) || Map.get(attrs, "after")),
-      "diff" => normalize_map(Map.get(attrs, :diff) || Map.get(attrs, "diff")),
+      "before" => before,
+      "after" => after_map,
+      "diff" => diff,
       "links" => normalize_map(Map.get(attrs, :links) || Map.get(attrs, "links")),
       "context" => context
     }
+    |> maybe_put("ownership_transition", ownership_transition(before, after_map, diff))
+    |> maybe_put("lifecycle_transition", lifecycle_transition(before, after_map, diff))
+    |> maybe_put("tenant", tenant)
     |> maybe_put("request_id", Map.get(attrs, :request_id) || Map.get(attrs, "request_id"))
     |> maybe_put("source", Map.get(attrs, :source) || Map.get(attrs, "source"))
-    |> maybe_put("rollback_of_event_id", Map.get(attrs, :rollback_of_event_id) || Map.get(attrs, "rollback_of_event_id"))
+    |> maybe_put(
+      "rollback_of_event_id",
+      Map.get(attrs, :rollback_of_event_id) || Map.get(attrs, "rollback_of_event_id")
+    )
     |> maybe_put("change_request_id", governance_value(attrs, context, :change_request_id))
     |> maybe_put("approval_id", governance_value(attrs, context, :approval_id))
     |> maybe_put("governance_action", governance_value(attrs, context, :governance_action))
     |> maybe_put("execution_stage", governance_value(attrs, context, :execution_stage))
-    |> maybe_put("scheduled_execution_id", scheduled_value(attrs, context, :scheduled_execution_id))
+    |> maybe_put(
+      "scheduled_execution_id",
+      scheduled_value(attrs, context, :scheduled_execution_id)
+    )
     |> maybe_put("attempt_count", scheduled_value(attrs, context, :attempt_count))
     |> maybe_put("scheduled_for", scheduled_value(attrs, context, :scheduled_for))
     |> maybe_put("executed_at", scheduled_value(attrs, context, :executed_at))
@@ -206,8 +226,103 @@ defmodule Rulestead.AuditEvent do
   defp normalize_governance_value(value), do: value
 
   defp normalize_scheduled_value(%DateTime{} = value), do: DateTime.to_iso8601(value)
-  defp normalize_scheduled_value(value) when is_atom(value) and not is_nil(value), do: Atom.to_string(value)
+
+  defp normalize_scheduled_value(value) when is_atom(value) and not is_nil(value),
+    do: Atom.to_string(value)
+
   defp normalize_scheduled_value(value) when is_map(value), do: normalize_map(value)
-  defp normalize_scheduled_value(value) when is_list(value), do: Enum.map(value, &normalize_scheduled_value/1)
+
+  defp normalize_scheduled_value(value) when is_list(value),
+    do: Enum.map(value, &normalize_scheduled_value/1)
+
   defp normalize_scheduled_value(value), do: value
+
+  defp ownership_transition(before, after_map, diff) do
+    before_ownership = ownership_payload(before)
+    after_ownership = ownership_payload(after_map)
+
+    changed? =
+      Map.has_key?(diff, "ownership") or
+        before_ownership != after_ownership
+
+    if changed? and (before_ownership != %{} or after_ownership != %{}) do
+      %{}
+      |> maybe_put("from_ref", Map.get(before_ownership, "owner_ref"))
+      |> maybe_put("to_ref", Map.get(after_ownership, "owner_ref"))
+      |> maybe_put("from_kind", Map.get(before_ownership, "owner_kind"))
+      |> maybe_put("to_kind", Map.get(after_ownership, "owner_kind"))
+      |> maybe_put("from_display", Map.get(before_ownership, "owner_display"))
+      |> maybe_put("to_display", Map.get(after_ownership, "owner_display"))
+    end
+  end
+
+  defp lifecycle_transition(before, after_map, diff) do
+    before_lifecycle = lifecycle_payload(before)
+    after_lifecycle = lifecycle_payload(after_map)
+
+    changed? =
+      Map.has_key?(diff, "lifecycle") or
+        Map.has_key?(diff, "expected_expiration") or
+        Map.has_key?(diff, "permanent") or
+        before_lifecycle != after_lifecycle
+
+    if changed? and (before_lifecycle != %{} or after_lifecycle != %{}) do
+      %{}
+      |> maybe_put("from_mode", Map.get(before_lifecycle, "mode"))
+      |> maybe_put("to_mode", Map.get(after_lifecycle, "mode"))
+      |> maybe_put("from_review_by", Map.get(before_lifecycle, "review_by"))
+      |> maybe_put("to_review_by", Map.get(after_lifecycle, "review_by"))
+      |> maybe_put("from_default_source", Map.get(before_lifecycle, "default_source"))
+      |> maybe_put("to_default_source", Map.get(after_lifecycle, "default_source"))
+      |> maybe_put("default_overridden", Map.get(after_lifecycle, "default_overridden"))
+    end
+  end
+
+  defp ownership_payload(payload) do
+    case Map.get(payload, "ownership") do
+      ownership when is_map(ownership) ->
+        ownership
+        |> Map.take(["owner_ref", "owner_kind", "owner_display"])
+        |> Enum.reject(fn {_key, value} -> is_nil(value) end)
+        |> Map.new()
+
+      _other ->
+        case normalize_string(Map.get(payload, "owner")) do
+          nil ->
+            %{}
+
+          owner ->
+            %{"owner_ref" => owner, "owner_kind" => "team", "owner_display" => owner}
+        end
+    end
+  end
+
+  defp lifecycle_payload(payload) do
+    lifecycle =
+      case Map.get(payload, "lifecycle") do
+        value when is_map(value) -> value
+        _other -> %{}
+      end
+
+    review_by =
+      Map.get(lifecycle, "review_by") || normalize_date(Map.get(payload, "expected_expiration"))
+
+    mode =
+      Map.get(lifecycle, "mode") ||
+        cond do
+          Map.get(payload, "permanent") == true -> "permanent"
+          not is_nil(review_by) -> "expiring"
+          true -> nil
+        end
+
+    %{}
+    |> maybe_put("mode", mode)
+    |> maybe_put("review_by", review_by)
+    |> maybe_put("default_source", Map.get(lifecycle, "default_source"))
+    |> maybe_put("default_overridden", Map.get(lifecycle, "default_overridden"))
+  end
+
+  defp normalize_date(%Date{} = value), do: Date.to_iso8601(value)
+  defp normalize_date(value) when is_binary(value), do: value
+  defp normalize_date(_value), do: nil
 end

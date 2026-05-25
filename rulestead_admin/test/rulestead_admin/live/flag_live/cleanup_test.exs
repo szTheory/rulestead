@@ -14,6 +14,15 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupTest do
     def allow_self_approval?(_actor, _action, _resource, _environment_key), do: true
   end
 
+  defmodule ReadOnlyPolicy do
+    @behaviour Rulestead.Admin.Policy
+
+    def can?(_actor, :read_flags, _resource, _environment_key), do: true
+    def can?(_actor, _action, _resource, _environment_key), do: false
+    def change_request_required?(_actor, _action, _resource, _environment_key), do: false
+    def allow_self_approval?(_actor, _action, _resource, _environment_key), do: false
+  end
+
   setup_all do
     start_supervised!(RulesteadAdmin.TestEndpoint)
     :ok
@@ -44,11 +53,10 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupTest do
 
     seed_flag!(
       key: "ops-cleanup",
-      owner: "ops",
+      ownership: %{owner_ref: "ops", owner_kind: :team, owner_display: "Ops"},
       tags: ["infra"],
       description: "Ops cleanup candidate",
-      expected_expiration: ~D[2026-04-20],
-      permanent: false,
+      lifecycle: %{mode: :expiring, review_by: ~D[2026-04-20], default_source: :flag_type, default_overridden: false},
       environment_keys: ["prod"],
       code_reference_count: 0,
       code_refs_scan: %{received_at: DateTime.add(now, -600, :second), reference_count: 0}
@@ -56,11 +64,10 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupTest do
 
     seed_flag!(
       key: "remote-config-review",
-      owner: "ops",
+      ownership: %{owner_ref: "ops", owner_kind: :team, owner_display: "Ops"},
       tags: ["config"],
       description: "Remote config needs review",
-      expected_expiration: ~D[2026-04-20],
-      permanent: false,
+      lifecycle: %{mode: :expiring, review_by: ~D[2026-04-20], default_source: :flag_type, default_overridden: false},
       environment_keys: ["prod"],
       flag_type: :remote_config
     )
@@ -85,17 +92,28 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupTest do
     {:ok, conn: conn}
   end
 
-  test "cleanup is advisory-only and removes archive submission controls", %{conn: conn} do
-    {:ok, view, html} = live(conn, "/admin/flags/ops-cleanup/cleanup?env=prod")
+  test "cleanup is the canonical review surface and links into route-backed archive preview", %{conn: conn} do
+    {:ok, view, html} =
+      live(
+        conn,
+        "/admin/flags/ops-cleanup/cleanup?env=prod&return_to=%2Fadmin%2Fflags%3Fenv%3Dprod%26owner%3Dops"
+      )
 
-    assert html =~ "Phase 36 keeps cleanup advisory only"
+    assert html =~ "canonical pre-mutation checkpoint"
     assert html =~ "Recommended next action"
     assert html =~ "Archive candidate"
     assert html =~ "Archive when the review is complete"
     assert html =~ "Fresh scan found no code references"
+    assert html =~ "Archive consequences"
     assert html =~ "No known code references."
+    assert has_element?(view, "a[href='/admin/flags?env=prod&owner=ops']", "Back to queue")
+    assert has_element?(
+             view,
+             "a[href='/admin/flags/ops-cleanup/cleanup/preview?env=prod&return_to=%2Fadmin%2Fflags%3Fenv%3Dprod%26owner%3Dops']",
+             "Preview archive"
+           )
     refute has_element?(view, "form")
-    refute html =~ "Archive Flag"
+    refute html =~ "Phase 36 keeps cleanup advisory only"
   end
 
   test "cleanup shows uncertainty and blockers when evidence is weak", %{conn: conn} do
@@ -108,6 +126,29 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupTest do
     assert html =~ "Remote config flags require stronger review"
   end
 
+  test "cleanup remains available to read-only operators", %{conn: conn} do
+    Application.put_env(:rulestead, :admin_policy, ReadOnlyPolicy)
+
+    read_only_conn =
+      conn
+      |> Phoenix.ConnTest.recycle()
+      |> Phoenix.ConnTest.init_test_session(%{
+        "current_actor" => %{id: 8, email: "viewer@example.com", roles: ["viewer"]},
+        "rulestead_admin_last_env" => "prod",
+        "rulestead_admin_environments" => [
+          %{"key" => "dev", "name" => "Development"},
+          %{"key" => "staging", "name" => "Staging"},
+          %{"key" => "prod", "name" => "Production"}
+        ]
+      })
+
+    {:ok, _view, html} = live(read_only_conn, "/admin/flags/ops-cleanup/cleanup?env=prod")
+
+    assert html =~ "Cleanup review"
+    assert html =~ "Archive candidate"
+    refute html =~ "Preview archive"
+  end
+
   defp seed_flag!(attrs) do
     attrs =
       attrs
@@ -115,6 +156,8 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupTest do
       |> Map.put_new(:flag_type, :release)
       |> Map.put_new(:value_type, :boolean)
       |> Map.put_new(:default_value, %{value: false})
+      |> Map.put_new(:ownership, %{owner_ref: "ops", owner_kind: :team, owner_display: "Ops"})
+      |> Map.put_new(:lifecycle, %{mode: :permanent, review_by: nil, default_source: :flag_type, default_overridden: false})
       |> Map.put_new(:environment_keys, ["prod"])
       |> Map.put_new(:tags, [])
 

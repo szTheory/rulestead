@@ -25,9 +25,6 @@ defmodule Rulestead.Flag do
     field(:flag_type, Ecto.Enum, values: @flag_types)
     field(:value_type, Ecto.Enum, values: @value_types)
     field(:default_value, :map, default: %{})
-    field(:owner, :string)
-    field(:expected_expiration, :date)
-    field(:permanent, :boolean, default: false)
     embeds_one(:ownership, Ownership, on_replace: :update)
     embeds_one(:lifecycle, LifecycleMetadata, on_replace: :update)
     field(:tags, {:array, :string}, default: [])
@@ -42,8 +39,6 @@ defmodule Rulestead.Flag do
 
   @spec changeset(t(), map()) :: Ecto.Changeset.t()
   def changeset(flag, attrs) do
-    attrs = normalize_embeds(attrs)
-
     flag
     |> cast(attrs, [
       :key,
@@ -51,22 +46,16 @@ defmodule Rulestead.Flag do
       :flag_type,
       :value_type,
       :default_value,
-      :owner,
-      :expected_expiration,
-      :permanent,
       :tags,
       :archived_at
     ])
     |> cast_embed(:ownership, required: true, with: &Ownership.changeset/2)
     |> cast_embed(:lifecycle, required: true, with: &LifecycleMetadata.changeset/2)
     |> update_change(:key, &normalize_key/1)
-    |> update_change(:owner, &normalize_string/1)
     |> update_change(:tags, &normalize_tags/1)
-    |> validate_required([:key, :flag_type, :value_type, :default_value, :owner])
+    |> validate_required([:key, :flag_type, :value_type, :default_value])
     |> validate_length(:key, min: 2, max: 128)
-    |> validate_length(:owner, min: 1, max: 255)
     |> validate_format(:key, ~r/^[a-z0-9][a-z0-9:_-]*$/)
-    |> validate_lifecycle_mode()
     |> validate_lifecycle_contract()
     |> unique_constraint(:key)
   end
@@ -80,46 +69,21 @@ defmodule Rulestead.Flag do
   defp normalize_key(value) when is_binary(value), do: String.trim(value)
   defp normalize_key(value), do: value
 
-  defp normalize_string(value) when is_binary(value), do: String.trim(value)
-  defp normalize_string(value), do: value
-
-  defp validate_lifecycle_mode(changeset) do
-    permanent = get_field(changeset, :permanent, false)
-    expected_expiration = get_field(changeset, :expected_expiration)
-
-    cond do
-      permanent and is_nil(expected_expiration) ->
-        changeset
-
-      not permanent and not is_nil(expected_expiration) ->
-        changeset
-
-      permanent and not is_nil(expected_expiration) ->
-        changeset
-        |> add_error(:permanent, "must be false when expected expiration is set")
-        |> add_error(:expected_expiration, "must be blank when permanent is true")
-
-      true ->
-        changeset
-        |> add_error(:permanent, "must be true when expected expiration is blank")
-        |> add_error(:expected_expiration, "must be set when permanent is false")
-    end
-  end
-
   defp validate_lifecycle_contract(changeset) do
     lifecycle = get_field(changeset, :lifecycle)
     flag_type = get_field(changeset, :flag_type)
-    permanent = get_field(changeset, :permanent, false)
-    expected_expiration = get_field(changeset, :expected_expiration)
-    expected_mode = if(permanent, do: :permanent, else: :expiring)
 
     changeset
     |> validate_remote_config_posture(flag_type, lifecycle)
-    |> validate_lifecycle_mode_matches(lifecycle, expected_mode, expected_expiration)
+    |> validate_lifecycle_review_by(lifecycle)
   end
 
   defp validate_remote_config_posture(changeset, :remote_config, nil) do
-    add_error(changeset, :lifecycle, "must choose permanent or expected expiration for remote config")
+    add_error(
+      changeset,
+      :lifecycle,
+      "must choose permanent or expected expiration for remote config"
+    )
   end
 
   defp validate_remote_config_posture(changeset, :remote_config, %{mode: nil}) do
@@ -136,57 +100,41 @@ defmodule Rulestead.Flag do
         )
 
       _other ->
-        add_error(changeset, :lifecycle, "must choose permanent or expected expiration for remote config")
+        add_error(
+          changeset,
+          :lifecycle,
+          "must choose permanent or expected expiration for remote config"
+        )
     end
   end
 
   defp validate_remote_config_posture(changeset, _flag_type, _lifecycle), do: changeset
 
-  defp validate_lifecycle_mode_matches(changeset, nil, _expected_mode, _expected_expiration), do: changeset
+  defp validate_lifecycle_review_by(changeset, nil), do: changeset
 
-  defp validate_lifecycle_mode_matches(changeset, lifecycle, expected_mode, expected_expiration) do
-    changeset =
-      if lifecycle.mode && lifecycle.mode != expected_mode do
-        add_error(changeset, :lifecycle, "must match the authored permanent or expiration posture")
-      else
-        changeset
+  defp validate_lifecycle_review_by(changeset, lifecycle) do
+    if lifecycle.mode == :expiring and is_nil(lifecycle.review_by) do
+      case get_change(changeset, :lifecycle) do
+        %Ecto.Changeset{} = lifecycle_changeset ->
+          put_change(
+            changeset,
+            :lifecycle,
+            add_error(
+              lifecycle_changeset,
+              :review_by,
+              "reviewed expiring flags must set an expected expiration"
+            )
+          )
+
+        _ ->
+          add_error(
+            changeset,
+            :lifecycle,
+            "reviewed expiring flags must set an expected expiration"
+          )
       end
-
-    if lifecycle.mode == :expiring and is_nil(expected_expiration) do
-      add_error(changeset, :lifecycle, "reviewed expiring flags must set an expected expiration")
     else
       changeset
-    end
-  end
-
-  defp normalize_embeds(attrs) when is_map(attrs) do
-    attrs
-    |> normalize_ownership_attr()
-    |> normalize_lifecycle_attr()
-  end
-
-  defp normalize_embeds(attrs), do: attrs
-
-  defp normalize_ownership_attr(attrs) do
-    ownership = Map.get(attrs, :ownership) || Map.get(attrs, "ownership")
-
-    if is_nil(ownership) do
-      case Ownership.default_from_owner(Map.get(attrs, :owner) || Map.get(attrs, "owner")) do
-        nil -> attrs
-        fallback -> Map.put(attrs, :ownership, fallback)
-      end
-    else
-      attrs
-    end
-  end
-
-  defp normalize_lifecycle_attr(attrs) do
-    lifecycle = Map.get(attrs, :lifecycle) || Map.get(attrs, "lifecycle")
-
-    if is_nil(lifecycle) do
-      Map.put(attrs, :lifecycle, LifecycleMetadata.default_from_flag(attrs))
-    else
-      attrs
     end
   end
 

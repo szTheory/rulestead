@@ -27,10 +27,18 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
     base_path = detail_base_path(socket, key)
 
     socket =
-      socket
-      |> assign(:flag_key, key)
+     socket
+     |> assign(:flag_key, key)
+      |> assign(
+        :return_to,
+        Session.canonical_return_to(
+          socket,
+          query["return_to"],
+          socket.assigns.rulestead_admin_mount_path
+        )
+      )
       |> assign(:current_path, Session.current_path(socket, base_path))
-      |> assign(:env_links, Session.env_links(socket, base_path))
+      |> assign(:env_links, Session.env_links(socket, base_path, %{"return_to" => query["return_to"]}))
       |> load_detail(key, env)
 
     {:noreply, socket}
@@ -47,6 +55,10 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
       environments={@available_environments}
       env_links={@env_links}
     >
+      <:header_actions>
+        <a href={@return_to}>Back to queue</a>
+      </:header_actions>
+
       <OperatorComponents.policy_state policy_state={@rulestead_admin_policy_state} />
 
       <p :if={@error_message} role="alert"><%= @error_message %></p>
@@ -56,6 +68,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
           <a :if={@rulestead_admin_policy_state.capabilities.edit? or @rulestead_admin_policy_state.capabilities.admin?} href={path_for(assigns, "/#{@detail.flag.key}/edit")}>Edit metadata</a>
           <a href={path_for(assigns, "/#{@detail.flag.key}/rules")}>Open rules workspace</a>
           <a :if={@rulestead_admin_policy_state.capabilities.execute? or @rulestead_admin_policy_state.capabilities.admin?} href={path_for(assigns, "/#{@detail.flag.key}/kill")}>Open kill switch</a>
+          <a href={path_for(assigns, "/#{@detail.flag.key}/cleanup")}>Review cleanup</a>
           <a href={path_for(assigns, "/#{@detail.flag.key}/timeline")}>Open audit timeline</a>
         </div>
 
@@ -88,7 +101,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
               value={humanize(archive_readiness(@detail).evidence_quality)}
               tone="neutral"
             />
-            <FlagComponents.stat title="Owner" value={@detail.lifecycle.owner} tone="neutral" />
+            <FlagComponents.stat title="Owner" value={@detail.flag.ownership.owner_display || @detail.flag.ownership.owner_ref} tone="neutral" />
             <FlagComponents.stat
               title="Review by"
               value={@detail.lifecycle.review_by || "Not scheduled"}
@@ -120,7 +133,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
             <% else %>
               <FlagComponents.stale_badge state={@detail.lifecycle.state} last_evaluated_at={@detail.lifecycle.last_evaluated_at} />
             <% end %>
-            <span>Owner: <%= @detail.lifecycle.owner %></span>
+            <span>Owner: <%= @detail.flag.ownership.owner_display || @detail.flag.ownership.owner_ref %></span>
           </p>
           <p>
             Lifecycle posture: <%= humanize(@detail.lifecycle.mode) %>
@@ -149,6 +162,12 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
           </p>
           <p :if={archive_readiness(@detail).secondary_actions != []}>
             <strong>Secondary actions:</strong> <%= secondary_actions_label(archive_readiness(@detail).secondary_actions) %>
+          </p>
+          <p>
+            <a href={path_for(assigns, "/#{@detail.flag.key}/cleanup")}>
+              Review cleanup
+            </a>
+            to preserve this queue context before any archive flow.
           </p>
         </FlagComponents.section_card>
 
@@ -362,7 +381,13 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
 
   defp detail_base_path(socket, key), do: admin_base_path(socket, "/#{key}")
 
-  defp path_for(socket, suffix), do: Session.current_path(socket, admin_base_path(socket, suffix))
+  defp path_for(socket, suffix) do
+    Session.path_with_return_to(
+      socket,
+      admin_base_path(socket, suffix),
+      fetch_return_to(socket)
+    )
+  end
 
   defp admin_base_path(socket_or_assigns, suffix),
     do: "#{fetch_mount_path(socket_or_assigns)}#{suffix}"
@@ -371,6 +396,9 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
     do: socket.assigns.rulestead_admin_mount_path
 
   defp fetch_mount_path(%{rulestead_admin_mount_path: mount_path}), do: mount_path
+
+  defp fetch_return_to(%Phoenix.LiveView.Socket{} = socket), do: socket.assigns.return_to
+  defp fetch_return_to(%{return_to: return_to}), do: return_to
 
   defp format_schedule(%DateTime{} = datetime),
     do: Calendar.strftime(datetime, "%Y-%m-%d %H:%M UTC")

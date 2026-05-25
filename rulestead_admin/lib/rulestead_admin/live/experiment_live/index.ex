@@ -149,7 +149,7 @@ defmodule RulesteadAdmin.Live.ExperimentLive.Index do
                 <FlagComponents.tag_list tags={entry.flag.tags} />
               </td>
               <td><%= humanize(entry.flag.flag_type) %></td>
-              <td><%= entry.flag.owner %></td>
+              <td><%= entry.flag.ownership.owner_display || entry.flag.ownership.owner_ref %></td>
               <td><FlagComponents.lifecycle_badge state={entry.lifecycle} /></td>
               <td><FlagComponents.environment_status status={entry.environment_status || entry.flag_environment.status || :draft} /></td>
               <td>

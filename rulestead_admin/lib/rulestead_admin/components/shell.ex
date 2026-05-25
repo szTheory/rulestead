@@ -9,6 +9,9 @@ defmodule RulesteadAdmin.Components.Shell do
   attr(:current_environment, :map, required: true)
   attr(:environments, :list, default: [])
   attr(:env_links, :map, default: %{})
+  attr(:current_tenant, :map, default: nil)
+  attr(:tenants, :list, default: [])
+  attr(:tenant_links, :map, default: %{})
   attr(:navigation_links, :list, default: [])
   slot(:header_actions)
   slot(:inner_block, required: true)
@@ -43,6 +46,24 @@ defmodule RulesteadAdmin.Components.Shell do
             <% end %>
           </div>
         </section>
+        <section :if={show_tenant_scope?(assigns)} class="rs-shell__env" aria-label="Tenant scope">
+          <p class="rs-shell__env-label">Tenant</p>
+          <div :if={length(@tenants) > 1} class="rs-shell__env-picker" role="list">
+            <%= for tenant <- @tenants do %>
+              <a
+                href={Map.get(@tenant_links, tenant.key, "#")}
+                class="rs-shell__env-link"
+                data-current={to_string(current_tenant?(assigns, tenant))}
+              >
+                <span><%= tenant.name %></span>
+                <span :if={current_tenant?(assigns, tenant)}>Current</span>
+              </a>
+            <% end %>
+          </div>
+          <p :if={length(@tenants) <= 1 and @current_tenant} class="rs-shell__summary">
+            Scoped to <strong><%= @current_tenant.name %></strong>
+          </p>
+        </section>
       </header>
 
       <nav :if={@navigation_links != []} class="rs-shell__nav" aria-label="Governance navigation">
@@ -66,4 +87,12 @@ defmodule RulesteadAdmin.Components.Shell do
   defp env_tone(%{key: "prod"}), do: "production"
   defp env_tone(%{key: "production"}), do: "production"
   defp env_tone(_environment), do: "standard"
+
+  defp current_tenant?(%{current_tenant: %{key: current_key}}, %{key: tenant_key}),
+    do: current_key == tenant_key
+
+  defp current_tenant?(_assigns, _tenant), do: false
+
+  defp show_tenant_scope?(%{current_tenant: tenant, tenants: tenants}),
+    do: is_map(tenant) or tenants != []
 end

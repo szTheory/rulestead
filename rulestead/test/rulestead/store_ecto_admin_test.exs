@@ -33,20 +33,23 @@ defmodule Rulestead.StoreEctoAdminTest do
 
   test "ecto list_flags/1 and fetch_flag/1 expose admin payloads, filters, and cursor navigation" do
     seed_environment!("qa")
-    seed_flag!("checkout-redesign", owner: "growth", tags: ["checkout"], permanent: true)
+    seed_flag!(
+      "checkout-redesign",
+      ownership: %{owner_ref: "growth", owner_kind: :team},
+      lifecycle: %{mode: :permanent, review_by: nil, default_source: :flag_type, default_overridden: false},
+      tags: ["checkout"]
+    )
 
     seed_flag!("ops-cleanup",
-      owner: "ops",
+      ownership: %{owner_ref: "ops", owner_kind: :team},
       tags: ["infra"],
-      expected_expiration: ~D[2026-04-20],
-      permanent: false
+      lifecycle: %{mode: :expiring, review_by: ~D[2026-04-20], default_source: :flag_type, default_overridden: false}
     )
 
     seed_flag!("search-ranking",
-      owner: "growth",
+      ownership: %{owner_ref: "growth", owner_kind: :team},
       tags: ["search"],
-      expected_expiration: ~D[2026-04-28],
-      permanent: false
+      lifecycle: %{mode: :expiring, review_by: ~D[2026-04-28], default_source: :flag_type, default_overridden: false}
     )
 
     publish_flag!("checkout-redesign")
@@ -149,8 +152,8 @@ defmodule Rulestead.StoreEctoAdminTest do
         flag_type: :release,
         value_type: :boolean,
         default_value: %{value: false},
-        owner: "platform",
-        permanent: true,
+        ownership: %{owner_ref: "platform", owner_kind: :team},
+        lifecycle: %{mode: :permanent, default_source: :flag_type, default_overridden: false},
         environment_keys: ["test", "qa"],
         tags: ["admin", "inventory"]
       })
@@ -165,17 +168,16 @@ defmodule Rulestead.StoreEctoAdminTest do
              StoreEcto.update_flag(
                Command.UpdateFlag.new("inventory-admin", %{
                  description: "Updated inventory control plane",
-                 owner: "ops",
-                 permanent: false,
-                 expected_expiration: ~D[2026-05-15],
+                 ownership: %{owner_ref: "ops", owner_kind: :team},
+                 lifecycle: %{mode: :expiring, review_by: ~D[2026-05-15], default_source: :flag_type, default_overridden: false},
                  tags: ["admin", "critical"]
                })
              )
 
-    assert updated.flag.owner == "ops"
     assert updated.flag.ownership.owner_ref == "ops"
-    assert updated.flag.expected_expiration == ~D[2026-05-15]
-    assert updated.lifecycle.owner == "ops"
+    assert updated.flag.lifecycle.mode == :expiring
+    assert updated.flag.lifecycle.review_by == ~D[2026-05-15]
+    assert updated.lifecycle.ownership.owner_ref == "ops"
     assert updated.lifecycle.review_by == ~D[2026-05-15]
     assert updated.recent_owners == ["ops", "platform"]
 
@@ -188,7 +190,9 @@ defmodule Rulestead.StoreEctoAdminTest do
              StoreEcto.archive_flag(StoreFixtures.archive_flag_command("inventory-admin"))
 
     assert {:error, %Rulestead.Error{type: :flag_archived}} =
-             StoreEcto.update_flag(Command.UpdateFlag.new("inventory-admin", %{owner: "growth"}))
+             StoreEcto.update_flag(
+               Command.UpdateFlag.new("inventory-admin", %{ownership: %{owner_ref: "growth", owner_kind: :team}})
+             )
   end
 
   defp seed_environment!(key) do
@@ -205,10 +209,9 @@ defmodule Rulestead.StoreEctoAdminTest do
         flag_type: :release,
         value_type: :boolean,
         default_value: %{value: false},
-        owner: Keyword.fetch!(opts, :owner),
+        ownership: Keyword.fetch!(opts, :ownership),
+        lifecycle: Keyword.fetch!(opts, :lifecycle),
         tags: Keyword.get(opts, :tags, []),
-        permanent: Keyword.get(opts, :permanent),
-        expected_expiration: Keyword.get(opts, :expected_expiration),
         environment_keys: ["test"]
       }
 

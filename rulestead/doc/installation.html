@@ -12,7 +12,7 @@
 
     <link rel="stylesheet" href="dist/html-elixir-YJO4MOOW.css" />
 
-    <script defer src="dist/sidebar_items-A552240A.js"></script>
+    <script defer src="dist/sidebar_items-6C704714.js"></script>
     <script defer src="docs_config.js"></script>
     <script defer src="dist/html-YU4BZFVS.js"></script>
 
@@ -109,17 +109,17 @@ rulestead
 
 
 <p>Rulestead ships as two sibling packages:</p><ul><li><code class="inline">rulestead</code> for runtime evaluation, installer support, context helpers, and tests</li><li><code class="inline">rulestead_admin</code> for the optional mounted admin UI</li></ul><p>Install only the package boundary your app needs.</p><h2 id="runtime-only-apps" class="section-heading"><a href="#runtime-only-apps" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Runtime-only apps</span></h2><p>Choose this path if application code needs flag evaluation but your team does
-not need the mounted admin UI in the host Phoenix app.</p><pre><code class="makeup elixir" translate="no"><span class="kd">defp</span><span class="w"> </span><span class="nf">deps</span><span class="w"> </span><span class="k" data-group-id="1158203996-1">do</span><span class="w">
-  </span><span class="p" data-group-id="1158203996-2">[</span><span class="w">
-    </span><span class="p" data-group-id="1158203996-3">{</span><span class="ss">:rulestead</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;~&gt; 0.1&quot;</span><span class="p" data-group-id="1158203996-3">}</span><span class="w">
-  </span><span class="p" data-group-id="1158203996-2">]</span><span class="w">
-</span><span class="k" data-group-id="1158203996-1">end</span></code></pre><h2 id="apps-that-also-mount-the-admin-ui" class="section-heading"><a href="#apps-that-also-mount-the-admin-ui" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Apps that also mount the admin UI</span></h2><p>Choose this path if a host Phoenix app needs both runtime evaluation and the
-operator UI.</p><pre><code class="makeup elixir" translate="no"><span class="kd">defp</span><span class="w"> </span><span class="nf">deps</span><span class="w"> </span><span class="k" data-group-id="3918326937-1">do</span><span class="w">
-  </span><span class="p" data-group-id="3918326937-2">[</span><span class="w">
-    </span><span class="p" data-group-id="3918326937-3">{</span><span class="ss">:rulestead</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;~&gt; 0.1&quot;</span><span class="p" data-group-id="3918326937-3">}</span><span class="p">,</span><span class="w">
-    </span><span class="p" data-group-id="3918326937-4">{</span><span class="ss">:rulestead_admin</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;~&gt; 0.1&quot;</span><span class="p" data-group-id="3918326937-4">}</span><span class="w">
-  </span><span class="p" data-group-id="3918326937-2">]</span><span class="w">
-</span><span class="k" data-group-id="3918326937-1">end</span></code></pre><h2 id="install-and-migrate" class="section-heading"><a href="#install-and-migrate" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Install and migrate</span></h2><p>After adding the dependency set you need:</p><pre><code class="makeup bash" translate="no"><span class="">mix deps.get
+not need the mounted admin UI in the host Phoenix app.</p><pre><code class="makeup elixir" translate="no"><span class="kd">defp</span><span class="w"> </span><span class="nf">deps</span><span class="w"> </span><span class="k" data-group-id="3518266111-1">do</span><span class="w">
+  </span><span class="p" data-group-id="3518266111-2">[</span><span class="w">
+    </span><span class="p" data-group-id="3518266111-3">{</span><span class="ss">:rulestead</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;~&gt; 0.1&quot;</span><span class="p" data-group-id="3518266111-3">}</span><span class="w">
+  </span><span class="p" data-group-id="3518266111-2">]</span><span class="w">
+</span><span class="k" data-group-id="3518266111-1">end</span></code></pre><h2 id="apps-that-also-mount-the-admin-ui" class="section-heading"><a href="#apps-that-also-mount-the-admin-ui" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Apps that also mount the admin UI</span></h2><p>Choose this path if a host Phoenix app needs both runtime evaluation and the
+operator UI.</p><pre><code class="makeup elixir" translate="no"><span class="kd">defp</span><span class="w"> </span><span class="nf">deps</span><span class="w"> </span><span class="k" data-group-id="0923065850-1">do</span><span class="w">
+  </span><span class="p" data-group-id="0923065850-2">[</span><span class="w">
+    </span><span class="p" data-group-id="0923065850-3">{</span><span class="ss">:rulestead</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;~&gt; 0.1&quot;</span><span class="p" data-group-id="0923065850-3">}</span><span class="p">,</span><span class="w">
+    </span><span class="p" data-group-id="0923065850-4">{</span><span class="ss">:rulestead_admin</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;~&gt; 0.1&quot;</span><span class="p" data-group-id="0923065850-4">}</span><span class="w">
+  </span><span class="p" data-group-id="0923065850-2">]</span><span class="w">
+</span><span class="k" data-group-id="0923065850-1">end</span></code></pre><h2 id="install-and-migrate" class="section-heading"><a href="#install-and-migrate" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Install and migrate</span></h2><p>After adding the dependency set you need:</p><pre><code class="makeup bash" translate="no"><span class="">mix deps.get
 </span><span class="">mix rulestead.install
 </span><span class="">mix ecto.migrate
 </span></code></pre><p><code class="inline">mix rulestead.install</code> adds the package-owned setup needed for the runtime

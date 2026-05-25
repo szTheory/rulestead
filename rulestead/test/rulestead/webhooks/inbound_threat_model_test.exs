@@ -49,8 +49,8 @@ defmodule Rulestead.Webhooks.InboundThreatModelTest do
       flag_type: :release,
       value_type: :boolean,
       default_value: %{value: false},
-      owner: "admin",
-      permanent: true,
+      ownership: %{owner_ref: "admin", owner_kind: :team},
+      lifecycle: %{mode: :permanent, default_source: :flag_type, default_overridden: false},
       environment_keys: ["development"]
     }, actor: %{id: "admin", roles: [:admin]})
 

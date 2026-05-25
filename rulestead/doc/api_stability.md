@@ -239,7 +239,7 @@ The admin policy seam is public and intentionally small:
 
 - `can?/4`
 
-Hosts own authorization. Rulestead does not ship a bundled auth stack.
+Hosts own authorization. Rulestead does not ship a bundled auth stack. `can?/4` maps host actors to the canonical Rulestead operator role model (Viewer, Editor, Admin) and specific workflow actions.
 
 ## Stable Telemetry Contract
 

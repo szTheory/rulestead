@@ -10,6 +10,7 @@
 - Introduction
   - [Installation](installation.md)
   - [Getting Started](getting-started.md)
+  - [User Flows And Jobs To Be Done](user-flows-and-jtbd.md)
   - [Upgrading](upgrading.md)
 
 - Flows

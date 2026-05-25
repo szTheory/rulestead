@@ -10,37 +10,38 @@ defmodule Rulestead.AdminLifecycleTest do
       flag_type: :release,
       value_type: :boolean,
       default_value: %{value: false},
-      owner: "growth"
+      ownership: %{owner_ref: "growth", owner_kind: :team},
+      lifecycle: %{mode: :expiring, review_by: ~D[2026-05-01], default_source: :flag_type, default_overridden: false}
     }
 
     assert %Ecto.Changeset{valid?: true} =
-             Flag.changeset(%Flag{}, Map.put(valid_base, :expected_expiration, ~D[2026-05-01]))
-
-    assert %Ecto.Changeset{valid?: true} =
-             Flag.changeset(%Flag{}, Map.put(valid_base, :permanent, true))
+             Flag.changeset(%Flag{}, valid_base)
 
     missing_mode =
-      Flag.changeset(%Flag{}, Map.put(valid_base, :owner, "   "))
+      Flag.changeset(%Flag{}, %{valid_base | ownership: %{owner_ref: "   ", owner_kind: :team}})
 
     refute missing_mode.valid?
-    assert "can't be blank" in errors_on(missing_mode).owner
-    assert "must be true when expected expiration is blank" in errors_on(missing_mode).permanent
-    assert "must be set when permanent is false" in errors_on(missing_mode).expected_expiration
+    assert "can't be blank" in errors_on(missing_mode).ownership.owner_ref
 
     contradictory =
       Flag.changeset(
         %Flag{},
-        Map.merge(valid_base, %{expected_expiration: ~D[2026-05-01], permanent: true})
+        %{
+          valid_base
+          | lifecycle: %{mode: :expiring, review_by: nil, default_source: :flag_type, default_overridden: false}
+        }
       )
 
     refute contradictory.valid?
-    assert "must be false when expected expiration is set" in errors_on(contradictory).permanent
-    assert "must be blank when permanent is true" in errors_on(contradictory).expected_expiration
+    assert "reviewed expiring flags must set an expected expiration" in errors_on(contradictory).lifecycle.review_by
   end
 
   test "lifecycle classifier derives active, potentially stale, stale, and archived from persisted data" do
     now = DateTime.from_naive!(~N[2026-04-23 14:00:00], "Etc/UTC")
-    flag = %{owner: "growth", permanent: true, expected_expiration: nil}
+    flag = %{
+      ownership: %{owner_ref: "growth", owner_kind: :team},
+      lifecycle: %{mode: :permanent, default_source: :flag_type, default_overridden: false}
+    }
 
     assert %{state: :active, mode: :permanent} =
              Lifecycle.classify(flag, %{status: :active, last_evaluated_at: DateTime.add(now, -900, :second)},
@@ -81,10 +82,8 @@ defmodule Rulestead.AdminLifecycleTest do
     result =
       Lifecycle.classify(
         %{
-          owner: "growth",
+          ownership: %{owner_ref: "growth", owner_kind: :team},
           flag_type: :release,
-          permanent: false,
-          expected_expiration: ~D[2026-04-20],
           lifecycle: %{mode: :expiring, review_by: ~D[2026-04-20]}
         },
         %{status: :active, last_evaluated_at: DateTime.add(now, -7_200, :second)},
@@ -114,9 +113,8 @@ defmodule Rulestead.AdminLifecycleTest do
     result =
       Lifecycle.classify(
         %{
-          owner: "ops",
+          ownership: %{owner_ref: "ops", owner_kind: :team},
           flag_type: :kill_switch,
-          permanent: true,
           lifecycle: %{mode: :permanent}
         },
         %{status: :active, last_evaluated_at: DateTime.add(now, -7_200, :second)},
@@ -140,10 +138,8 @@ defmodule Rulestead.AdminLifecycleTest do
     result =
       Lifecycle.classify(
         %{
-          owner: "growth",
+          ownership: %{owner_ref: "growth", owner_kind: :team},
           flag_type: :release,
-          permanent: false,
-          expected_expiration: ~D[2026-04-20],
           lifecycle: %{mode: :expiring, review_by: ~D[2026-04-20]}
         },
         %{status: :active, last_evaluated_at: DateTime.add(now, -7_200, :second)},
@@ -182,8 +178,6 @@ defmodule Rulestead.AdminLifecycleTest do
       flag_type: :release,
       value_type: :boolean,
       default_value: %{value: false},
-      owner: "legacy-owner",
-      permanent: true,
       ownership: %{
         owner_ref: "team:pricing",
         owner_kind: :team,
@@ -216,16 +210,13 @@ defmodule Rulestead.AdminLifecycleTest do
       key: "checkout-copy",
       value_type: :boolean,
       default_value: %{value: false},
-      owner: "growth",
       ownership: %{owner_ref: "team:growth", owner_kind: :team},
       lifecycle: %{
         mode: :expiring,
         default_source: :flag_type,
         default_overridden: false,
         review_by: ~D[2026-06-01]
-      },
-      expected_expiration: ~D[2026-05-01],
-      permanent: false
+      }
     }
 
     assert %Ecto.Changeset{valid?: true} =

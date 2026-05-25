@@ -12,7 +12,7 @@
 
     <link rel="stylesheet" href="dist/html-elixir-YJO4MOOW.css" />
 
-    <script defer src="dist/sidebar_items-A552240A.js"></script>
+    <script defer src="dist/sidebar_items-6C704714.js"></script>
     <script defer src="docs_config.js"></script>
     <script defer src="dist/html-YU4BZFVS.js"></script>
 
@@ -112,11 +112,11 @@ rulestead
 the mounted admin package and enforced by the same ordered-rules runtime model.
 The stable contract is the host mount seam, the environment selector, and the
 operator-facing routes. Internal LiveView modules and DOM details are not part
-of the public promise.</p><h2 id="mount-the-admin-first" class="section-heading"><a href="#mount-the-admin-first" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Mount The Admin First</span></h2><p>Host apps mount the package in their router:</p><pre><code class="makeup elixir" translate="no"><span class="n">scope</span><span class="w"> </span><span class="s">&quot;/&quot;</span><span class="w"> </span><span class="k" data-group-id="3398099996-1">do</span><span class="w">
+of the public promise.</p><h2 id="mount-the-admin-first" class="section-heading"><a href="#mount-the-admin-first" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Mount The Admin First</span></h2><p>Host apps mount the package in their router:</p><pre><code class="makeup elixir" translate="no"><span class="n">scope</span><span class="w"> </span><span class="s">&quot;/&quot;</span><span class="w"> </span><span class="k" data-group-id="6718667529-1">do</span><span class="w">
   </span><span class="n">pipe_through</span><span class="w"> </span><span class="ss">:browser</span><span class="w">
 
   </span><span class="n">rulestead_admin</span><span class="w"> </span><span class="s">&quot;/admin/flags&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">policy</span><span class="p">:</span><span class="w"> </span><span class="nc">MyApp.RulesteadPolicy</span><span class="w">
-</span><span class="k" data-group-id="3398099996-1">end</span></code></pre><p>The <code class="inline">policy:</code> option is required. Authorization remains host-owned through the
+</span><span class="k" data-group-id="6718667529-1">end</span></code></pre><p>The <code class="inline">policy:</code> option is required. Authorization remains host-owned through the
 <code class="inline">Rulestead.Admin.Policy</code> behaviour.</p><h2 id="stable-operator-paths" class="section-heading"><a href="#stable-operator-paths" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Stable Operator Paths</span></h2><p>For rollouts, operators should expect these mounted URL shapes:</p><ul><li><code class="inline">/admin/flags</code></li><li><code class="inline">/admin/flags/:key</code></li><li><code class="inline">/admin/flags/:key/rules</code></li><li><code class="inline">/admin/flags/:key/rollouts</code></li><li><code class="inline">/admin/flags/:key/kill</code></li><li><code class="inline">/admin/flags/:key/timeline</code></li></ul><p>The <code class="inline">env</code> query parameter is the canonical environment selector for those
 screens:</p><ul><li><code class="inline">/admin/flags/checkout_v2/rollouts?env=staging</code></li><li><code class="inline">/admin/flags/checkout_v2/rollouts?env=prod</code></li></ul><h2 id="session-inputs-the-host-must-provide" class="section-heading"><a href="#session-inputs-the-host-must-provide" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Session Inputs The Host Must Provide</span></h2><p>The mounted package expects bounded session data from the host app:</p><ul><li><code class="inline">&quot;current_actor&quot;</code> for policy checks</li><li><code class="inline">&quot;rulestead_admin_environments&quot;</code> for the environment picker</li><li><code class="inline">&quot;rulestead_admin_last_env&quot;</code> for the remembered fallback when <code class="inline">?env=</code> is
 absent</li></ul><p>That is the public host contract for operator flow. Do not couple your app to

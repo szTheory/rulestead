@@ -17,6 +17,12 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.IndexTest do
       |> Phoenix.ConnTest.init_test_session(%{
         "current_actor" => %{id: 7, email: "priya@example.com", roles: ["admin"]},
         "rulestead_admin_last_env" => "prod",
+        "rulestead_admin_tenants" => [
+          %{"key" => "acme", "name" => "Acme"},
+          %{"key" => "globex", "name" => "Globex"}
+        ],
+        "rulestead_admin_default_tenant" => "acme",
+        "rulestead_admin_last_tenant" => "acme",
         "rulestead_admin_environments" => [
           %{"key" => "dev", "name" => "Development"},
           %{"key" => "staging", "name" => "Staging"},
@@ -31,7 +37,7 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.IndexTest do
     {:ok, _view, html} =
       live(
         conn,
-        "/admin/flags/compare?env=prod&source_env=staging&target_env=prod"
+        "/admin/flags/compare?env=prod&tenant=acme&source_env=staging&target_env=prod"
       )
 
     assert html =~ "Environment compare"
@@ -39,20 +45,23 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.IndexTest do
     assert html =~ "current target"
     assert html =~ "proposed target after apply"
     assert html =~ "source_env=staging"
+    assert html =~ "tenant=acme"
     assert html =~ "target_env=prod"
+    assert html =~ "Tenant scope"
   end
 
   test "renders findings buckets from compare payload without apply controls", %{conn: conn} do
     {:ok, _view, html} =
       live(
         conn,
-        "/admin/flags/compare?env=prod&source_env=staging&target_env=prod"
+        "/admin/flags/compare?env=prod&tenant=acme&source_env=staging&target_env=prod"
       )
 
     assert html =~ "Blockers"
     assert html =~ "Warnings"
     assert html =~ "Info"
     assert html =~ "compare token"
+    assert html =~ "tenant"
     assert html =~ "unpublished work"
     assert html =~ "operational override"
     refute html =~ ">Apply<"
@@ -65,12 +74,19 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.IndexTest do
     {:ok, _view, html} =
       live(
         conn,
-        "/admin/flags/compare?env=prod&source_env=staging&target_env=prod"
+        "/admin/flags/compare?env=prod&tenant=acme&source_env=staging&target_env=prod"
       )
 
+    query = drill_in_query(html, "checkout-redesign")
+
     assert html =~ "Production target"
-    assert html =~ "/admin/flags/compare/checkout-redesign"
     assert html =~ "Review blockers and governed-apply requirements before continuing."
+    assert query["env"] == "prod"
+    assert query["tenant"] == "acme"
+    assert query["source_env"] == "staging"
+    assert query["target_env"] == "prod"
+    assert is_binary(query["compare_token"])
+    refute query["compare_token"] == ""
   end
 
   defp seed_compare_fixture! do
@@ -188,5 +204,17 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.IndexTest do
         }
       ]
     }
+  end
+
+  defp drill_in_query(html, flag_key) do
+    href =
+      Regex.run(~r/href="([^"]*\/compare\/#{flag_key}\?[^"]+)"/, html, capture: :all_but_first)
+      |> List.first()
+      |> String.replace("&amp;", "&")
+
+    href
+    |> URI.parse()
+    |> Map.fetch!(:query)
+    |> URI.decode_query()
   end
 end

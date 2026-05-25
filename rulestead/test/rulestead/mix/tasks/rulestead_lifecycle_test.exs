@@ -48,7 +48,7 @@ defmodule Rulestead.Mix.Tasks.RulesteadLifecycleTest do
 
     seed_flag!(
       key: "search-ranking",
-      owner: "growth",
+      ownership: %{owner_ref: "growth"},
       tags: ["search"],
       expected_expiration: ~D[2026-04-28],
       permanent: false,

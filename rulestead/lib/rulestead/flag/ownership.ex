@@ -27,21 +27,6 @@ defmodule Rulestead.Flag.Ownership do
     |> validate_length(:owner_display, max: 255)
   end
 
-  @spec default_from_owner(term()) :: nil | map()
-  def default_from_owner(owner) do
-    case normalize_string(owner) do
-      nil ->
-        nil
-
-      normalized ->
-        %{
-          owner_ref: normalized,
-          owner_kind: :team,
-          owner_display: normalized
-        }
-    end
-  end
-
   defp normalize_string(value) when is_binary(value) do
     value
     |> String.trim()

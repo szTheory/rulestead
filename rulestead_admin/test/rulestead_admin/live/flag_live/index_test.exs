@@ -24,43 +24,40 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
 
     seed_flag!(
       key: "checkout-redesign",
-      owner: "growth",
+      ownership: %{owner_ref: "growth", owner_kind: :team, owner_display: "Growth"},
       tags: ["checkout", "release"],
-      permanent: true
+      lifecycle: %{mode: :permanent, review_by: nil, default_source: :flag_type, default_overridden: false}
     )
 
     seed_flag!(
       key: "ops-cleanup",
-      owner: "ops",
+      ownership: %{owner_ref: "ops", owner_kind: :team, owner_display: "Ops"},
       tags: ["infra"],
-      expected_expiration: ~D[2026-04-20],
-      permanent: false,
+      lifecycle: %{mode: :expiring, review_by: ~D[2026-04-20], default_source: :flag_type, default_overridden: false},
       code_reference_count: 0,
       code_refs_scan: %{received_at: DateTime.add(now, -600, :second), reference_count: 0}
     )
 
     seed_flag!(
       key: "search-ranking",
-      owner: "growth",
+      ownership: %{owner_ref: "growth", owner_kind: :team, owner_display: "Growth"},
       tags: ["search"],
-      expected_expiration: ~D[2026-04-28],
-      permanent: false
+      lifecycle: %{mode: :expiring, review_by: ~D[2026-04-28], default_source: :flag_type, default_overridden: false}
     )
 
     seed_flag!(
       key: "remote-config-review",
-      owner: "ops",
+      ownership: %{owner_ref: "ops", owner_kind: :team, owner_display: "Ops"},
       tags: ["config"],
       flag_type: :remote_config,
-      expected_expiration: ~D[2026-04-20],
-      permanent: false
+      lifecycle: %{mode: :expiring, review_by: ~D[2026-04-20], default_source: :flag_type, default_overridden: false}
     )
 
     seed_flag!(
       key: "archive-me",
-      owner: "ops",
+      ownership: %{owner_ref: "ops", owner_kind: :team, owner_display: "Ops"},
       tags: ["legacy"],
-      permanent: true
+      lifecycle: %{mode: :permanent, review_by: nil, default_source: :flag_type, default_overridden: false}
     )
 
     publish_flag!("checkout-redesign")
@@ -103,6 +100,8 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
     assert has_element?(view, "input[name='filters[owner]'][value='growth']")
     assert has_element?(view, "input[name='filters[tags]'][value='checkout']")
     assert has_element?(view, "select[name='filters[stale]'] option[selected][value='fresh']")
+    assert html =~ "Lifecycle presets"
+    assert html =~ "Owner filter uses the exact owner ref"
     refute has_element?(view, "[data-flag-key='archive-me']")
   end
 
@@ -232,8 +231,48 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
     assert html =~ "Monospace key"
     assert html =~ "Last changed"
     assert has_element?(view, "tbody tr[data-flag-key='checkout-redesign'][tabindex='0']")
-    assert has_element?(view, "tbody tr[data-flag-key='checkout-redesign'] a[href='/admin/flags/checkout-redesign?env=prod']")
+    assert has_element?(
+             view,
+             "tbody tr[data-flag-key='checkout-redesign'] a[href='/admin/flags/checkout-redesign?env=prod&return_to=%2Fadmin%2Fflags%3Fenv%3Dprod']"
+           )
     refute html =~ "Current environment hidden"
+  end
+
+  test "lifecycle preset and cleanup links preserve the canonical queue url", %{conn: conn} do
+    {:ok, view, _html} = live(conn, "/admin/flags?env=prod&owner=ops")
+
+    assert has_element?(
+             view,
+             "a[href='/admin/flags?env=prod&owner=ops&readiness=archive_candidate&include_archived=true']",
+             "Archive candidates"
+           )
+
+    assert has_element?(
+             view,
+             "a[href='/admin/flags/ops-cleanup/cleanup?env=prod&return_to=%2Fadmin%2Fflags%3Fenv%3Dprod%26owner%3Dops']",
+             "Review cleanup"
+           )
+  end
+
+  test "renders archive return messaging with archived visibility and an audit timeline link", %{
+    conn: conn
+  } do
+    audit_path = URI.encode_www_form("/admin/flags/archive-me/timeline?env=prod")
+    path =
+      "/admin/flags?env=prod&include_archived=true&notice=archived&flag_key=archive-me&reason=cleanup&audit_path=#{audit_path}&highlight=archive-me"
+
+    {:ok, view, html} =
+      case live(conn, path) do
+        {:ok, view, html} ->
+          {:ok, view, html}
+
+        {:error, {:live_redirect, %{to: redirected_path}}} ->
+          live(conn, redirected_path)
+      end
+
+    assert html =~ "Archived archive-me in Production."
+    assert has_element?(view, "a[href='/admin/flags/archive-me/timeline?env=prod']", "Open audit timeline")
+    assert has_element?(view, "tr[data-flag-key='archive-me'][data-highlighted='true']")
   end
 
   defp next_page_cursor(view) do
@@ -251,6 +290,8 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
       |> Map.put_new(:flag_type, :release)
       |> Map.put_new(:value_type, :boolean)
       |> Map.put_new(:default_value, %{value: false})
+      |> Map.put_new(:ownership, %{owner_ref: "growth", owner_kind: :team, owner_display: "Growth"})
+      |> Map.put_new(:lifecycle, %{mode: :permanent, review_by: nil, default_source: :flag_type, default_overridden: false})
       |> Map.put_new(:environment_keys, ["prod"])
       |> Map.put_new(:tags, [])
 

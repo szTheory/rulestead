@@ -40,9 +40,17 @@ defmodule RulesteadAdmin.Integration.AdminMountTest do
                flag_type: :release,
                value_type: :boolean,
                default_value: %{value: false},
-               owner: "growth",
-               permanent: false,
-               expected_expiration: ~D[2026-05-01],
+               ownership: %{
+                 owner_ref: "team:growth",
+                 owner_kind: :team,
+                 owner_display: "Growth Team"
+               },
+               lifecycle: %{
+                 mode: :expiring,
+                 review_by: ~D[2026-05-01],
+                 default_source: :flag_type,
+                 default_overridden: false
+               },
                environment_keys: ["prod", "staging"],
                tags: ["checkout", "release"]
              })
@@ -149,6 +157,18 @@ defmodule RulesteadAdmin.Integration.AdminMountTest do
     assert cleanup_html =~ "Cleanup review"
     assert cleanup_html =~ "Production"
     assert cleanup_html =~ "Back to queue"
+
+    preview_conn = Phoenix.ConnTest.recycle(conn)
+
+    {:ok, _preview_view, preview_html} =
+      live(
+        preview_conn,
+        "/admin/flags/checkout-redesign/cleanup/preview?env=prod&return_to=%2Fadmin%2Fflags%3Fenv%3Dprod"
+      )
+
+    assert preview_html =~ "Archive preview"
+    assert preview_html =~ "Production"
+    assert preview_html =~ "/admin/flags/checkout-redesign/cleanup/confirm?env=prod"
   end
 
   defp ensure_environment!(key, name) do

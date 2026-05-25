@@ -65,11 +65,20 @@ The mounted package expects the host session to provide:
 - `"rulestead_admin_environments"` as the environment picker source
 - `"rulestead_admin_last_env"` as the remembered fallback when the URL omits `env`
 
+The host continues to own authentication, actor identity, session lifecycle,
+and policy enforcement. `rulestead_admin` consumes those seams; it does not
+replace them with a package-owned auth model.
+
 ## URL contract
 
 The query param `?env=` is the canonical environment selector for mounted admin
 pages. Host apps should preserve it in links and redirects when they build
 adjacent tooling around the admin surface.
+
+Lifecycle review links should also preserve `return_to` when operators move
+from the queue into cleanup, preview, confirm, and back to audit or the queue.
+That keeps the mounted workflow shareable without freezing every internal route
+detail as public API.
 
 ## When to install this package
 
@@ -80,6 +89,17 @@ alone.
 The host still owns actor identity, session truth, and owner truth for the
 lifecycle workflow. The mounted companion surfaces that data; it does not
 replace it.
+
+The supported lifecycle workflow is `cleanup -> preview -> confirm -> audit`.
+Treat that as the documented operator path. The stable contract remains
+narrower: mount seam, `policy:`, required session keys, `?env=`, and
+queue-preserving `return_to`.
+
+The bounded verification proof for this mounted companion surface lives at
+`RULESTEAD_TEST_SCOPE=mounted_admin_contract bash scripts/ci/test.sh`. That
+proof bar covers the mounted lifecycle/admin contract only; it should not be
+read as a claim that every admin-facing screen or future companion workflow is
+fully closed.
 
 ## Next docs
 

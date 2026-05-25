@@ -25,6 +25,7 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       docs-only: ${{ steps.docs-only.outputs.value }}
+      openfeature-companion: ${{ steps.openfeature-companion.outputs.value }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -43,9 +44,23 @@ jobs:
               - '!.planning/**'
               - '!prompts/**'
               - '**'
+            openfeature_companion:
+              - 'open_feature_rulestead/**'
+              - 'scripts/ci/test.sh'
+              - '.github/workflows/ci.yml'
+              - 'README.md'
+              - 'MAINTAINING.md'
+              - 'examples/demo/README.md'
       - id: docs-only
         run: |
           if [[ "${{ steps.filter.outputs.docs }}" == "true" && "${{ steps.filter.outputs.code }}" != "true" ]]; then
+            echo "value=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "value=false" >> "${GITHUB_OUTPUT}"
+          fi
+      - id: openfeature-companion
+        run: |
+          if [[ "${{ steps.filter.outputs.openfeature_companion }}" == "true" ]]; then
             echo "value=true" >> "${GITHUB_OUTPUT}"
           else
             echo "value=false" >> "${GITHUB_OUTPUT}"
@@ -111,14 +126,34 @@ jobs:
         run: scripts/ci/test.sh
 
   integration-placeholder:
-    name: integration-placeholder
+    name: integration (compose demo verification)
     needs: changes
     if: needs.changes.outputs.docs-only != 'true'
     runs-on: ubuntu-24.04
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - name: Run Phase 1 integration placeholder
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version: "22"
+      - name: Run Phase 28 integration lane
         run: scripts/ci/integration_placeholder.sh
+
+  openfeature-companion:
+    name: openfeature companion proof
+    needs: changes
+    if: needs.changes.outputs.openfeature-companion == 'true'
+    runs-on: ubuntu-24.04
+    env:
+      MIX_ENV: test
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: erlef/setup-beam@8251c48667b97e88a0a24ec512f5b72a039fcea7 # v1
+        with:
+          version-file: .tool-versions
+          version-type: strict
+      - name: Run OpenFeature companion proof bar
+        run: RULESTEAD_TEST_SCOPE=openfeature_companion scripts/ci/test.sh
 
   release_gate:
     name: release_gate

@@ -78,7 +78,7 @@ defmodule Rulestead.AdminContractTest do
     assert %Command.CreateFlag{
              key: "checkout-redesign",
              owner: "growth",
-             expected_expiration: ~D[2026-05-01],
+      lifecycle: %{mode: :expiring, review_by: ~D[2026-05-01], default_source: :flag_type, default_overridden: false},
              permanent: false,
              environment_keys: ["test", "production"]
            } =
@@ -88,7 +88,7 @@ defmodule Rulestead.AdminContractTest do
                value_type: :boolean,
                default_value: %{value: false},
                owner: "growth",
-               expected_expiration: ~D[2026-05-01],
+      lifecycle: %{mode: :expiring, review_by: ~D[2026-05-01], default_source: :flag_type, default_overridden: false},
                permanent: false,
                environment_keys: ["test", "production"]
              })
@@ -96,9 +96,12 @@ defmodule Rulestead.AdminContractTest do
     assert %Command.UpdateFlag{
              flag_key: "checkout-redesign",
              owner: "growth",
-             permanent: true
+             lifecycle: %{mode: :permanent, review_by: nil, default_source: :operator_required, default_overridden: false}
            } =
-             Command.UpdateFlag.new("checkout-redesign", %{owner: "growth", permanent: true})
+             Command.UpdateFlag.new("checkout-redesign", %{
+               owner: "growth",
+               permanent: true
+             })
 
     assert %Command.ListEnvironments{query: "prod", limit: 10} =
              Command.ListEnvironments.new(query: "prod", limit: 10)

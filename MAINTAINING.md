@@ -155,6 +155,64 @@ demo under `examples/demo/` is the primary runnable proof path, while
 `verify.release_publish` and `verify.release_parity` are the release-facing
 proof seams for published artifacts.
 
+## Mounted Companion Contract Proof
+
+Phase 43 restores a narrow mounted companion proof bar for lifecycle/admin
+truth. Use it when the work changes the mounted cleanup flow, host-facing route
+conventions, or the authored ownership/lifecycle contract that the companion
+surfaces.
+
+Run the same wrapper locally or in CI:
+
+```bash
+RULESTEAD_TEST_SCOPE=mounted_admin_contract bash scripts/ci/test.sh
+```
+
+That scope is intentionally bounded to:
+
+- `rulestead_admin/test/rulestead_admin/live/flag_live/form_test.exs`
+- `rulestead_admin/test/rulestead_admin/live/flag_live/index_test.exs`
+- `rulestead_admin/test/rulestead_admin/live/flag_live/cleanup_test.exs`
+- `rulestead_admin/test/rulestead_admin/live/flag_live/cleanup_preview_test.exs`
+- `rulestead_admin/test/rulestead_admin/live/flag_live/cleanup_confirm_test.exs`
+- `rulestead_admin/test/rulestead_admin/integration/admin_mount_test.exs`
+- `rulestead/test/rulestead/admin_contract_test.exs`
+- `rulestead/test/rulestead/admin_lifecycle_test.exs`
+
+Treat this proof bar as merge-blocking for Phase 43-style mounted lifecycle and
+admin-contract changes. It is sufficient to claim the mounted lifecycle/admin
+surface is green again. It is not sufficient to claim the entire admin package,
+every repo verification surface, or future Phase 44 proof paths are closed.
+
+## OpenFeature Companion Proof
+
+Phase 44 adds a separate proof bar for the optional `open_feature_rulestead`
+provider package. Use it when the work changes the package README, provider
+contract, context mapping, or the repo-level support truth around the
+OpenFeature companion surface.
+
+Run the same wrapper locally or in CI:
+
+```bash
+RULESTEAD_TEST_SCOPE=openfeature_companion bash scripts/ci/test.sh
+```
+
+That scope is intentionally bounded to:
+
+- `open_feature_rulestead/test/open_feature_rulestead/context_mapper_test.exs`
+- `open_feature_rulestead/test/open_feature_rulestead/provider_test.exs`
+
+CI exposes the same command through the path-gated `openfeature companion
+proof` job in `.github/workflows/ci.yml`. It is visible by name so maintainers
+can cite it directly, but it is not threaded into the default sibling-package
+release gate and does not redefine the repo as a three-package publish machine.
+
+Treat this proof bar as merge-blocking for the OpenFeature companion contract
+it actually covers. It is sufficient to claim the Elixir provider package is
+runnable and documented. It is not sufficient to claim browser/demo glue,
+publish choreography, or unrelated repo surfaces are now part of the same
+contract.
+
 ## Lifecycle Release Surface
 
 Phase 38 adds a lifecycle release surface that maintainers must verify

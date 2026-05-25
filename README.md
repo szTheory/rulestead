@@ -150,13 +150,23 @@ itself or integrating it into a larger release process.
 The repo's current proof posture is intentionally bounded:
 
 - `examples/demo/` is the primary runnable end-to-end proof path.
+- `RULESTEAD_TEST_SCOPE=openfeature_companion bash scripts/ci/test.sh` proves the
+  optional `open_feature_rulestead` companion package's Elixir provider contract:
+  `context_mapper_test` and `provider_test`.
+- `RULESTEAD_TEST_SCOPE=mounted_admin_contract bash scripts/ci/test.sh` proves the
+  repaired mounted companion lifecycle/admin contract surface:
+  `flag_live/form_test`, `flag_live/index_test`, `cleanup_test`,
+  `cleanup_preview_test`, `cleanup_confirm_test`, `admin_mount_test`,
+  `admin_contract_test`, and `admin_lifecycle_test`.
 - `mix verify.release_publish <version>` proves published-consumer install and
   HexDocs reachability for the shipped `0.1.0` package line.
 - `mix verify.release_parity <version>` proves the tagged release and Hex
   tarball stay in sync.
 
 Anything beyond those seams should be read as current guidance rather than a
-broader closed support guarantee.
+broader closed support guarantee. In particular, the OpenFeature companion bar
+proves the package-local Elixir provider only, and the mounted companion proof
+bar is intentionally narrower than "all admin behavior is green."
 
 The runnable local demo lives under `examples/demo/`:
 

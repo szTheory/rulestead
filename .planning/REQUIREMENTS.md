@@ -17,15 +17,15 @@
 
 ### Mounted Companion Proof (`ADM`)
 
-- [ ] **ADM-01**: The mounted admin lifecycle form and permission contract expose one deliberate host-facing truth, with tests and docs aligned to the supported behavior.
+- [x] **ADM-01**: The mounted admin lifecycle form and permission contract expose one deliberate host-facing truth, with tests and docs aligned to the supported behavior.
 
 ### Cross-Package Verification (`VER`)
 
-- [ ] **VER-01**: `rulestead` and `rulestead_admin` verification surfaces are green again, or any intentionally deferred failures are explicitly documented and bounded in release-facing truth.
+- [x] **VER-01**: `rulestead` and `rulestead_admin` verification surfaces are green again, or any intentionally deferred failures are explicitly documented and bounded in release-facing truth.
 
 ### OpenFeature Bridge Proof (`OFE`)
 
-- [ ] **OFE-01**: `open_feature_rulestead` has a runnable documented proof path that either passes in-repo verification or states its exact bounded support caveat honestly.
+- [x] **OFE-01**: `open_feature_rulestead` has a runnable documented proof path that either passes in-repo verification or states its exact bounded support caveat honestly.
 
 ## Future Requirements
 
@@ -80,9 +80,9 @@
 | DOC-02 | Phase 41 | Complete |
 | PAR-01 | Phase 42 | Complete |
 | PAR-02 | Phase 42 | Complete |
-| ADM-01 | Phase 43 | Pending |
-| VER-01 | Phase 43 | Pending |
-| OFE-01 | Phase 44 | Pending |
+| ADM-01 | Phase 43 | Complete |
+| VER-01 | Phase 44 | Complete |
+| OFE-01 | Phase 44 | Complete |
 
 **Coverage:**
 - v1.3.0 requirements: 7 total
@@ -91,4 +91,4 @@
 
 ---
 *Requirements defined: 2026-05-24*
-*Last updated: 2026-05-24 after milestone initialization*
+*Last updated: 2026-05-25 after Phase 44 proof closure*

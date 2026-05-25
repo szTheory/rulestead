@@ -53,4 +53,25 @@ defmodule OpenFeatureRulestead.ContextMapperTest do
     assert result.tenant_key == nil
     assert result.attributes == %{}
   end
+
+  test "keeps recognized keys out of custom attributes and preserves custom metadata" do
+    of_context = %{
+      "environment" => "staging",
+      "sessionId" => "sess-42",
+      "actor" => %{"id" => "operator-7"},
+      "segment" => "beta",
+      "rollout" => %{"bucket" => 12}
+    }
+
+    result = ContextMapper.translate(of_context)
+
+    assert result.environment == "staging"
+    assert result.session_id == "sess-42"
+    assert result.actor == %{"id" => "operator-7"}
+
+    assert result.attributes == %{
+             "segment" => "beta",
+             "rollout" => %{"bucket" => 12}
+           }
+  end
 end

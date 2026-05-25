@@ -11,9 +11,8 @@ defmodule Rulestead.StoreFixtures do
       flag_type: :release,
       value_type: :boolean,
       default_value: %{value: false},
-      owner: "growth",
-      permanent: true,
-      expected_expiration: nil,
+      ownership: %{owner_ref: "growth", owner_kind: :team, owner_display: "growth"},
+      lifecycle: %{mode: :permanent, review_by: nil, default_source: :flag_type, default_overridden: false},
       tags: ["checkout", "release"],
       environment_keys: ["test"]
     }

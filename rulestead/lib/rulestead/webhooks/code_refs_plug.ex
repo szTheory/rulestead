@@ -28,39 +28,42 @@ defmodule Rulestead.Webhooks.CodeRefsPlug do
   end
 
   defp handle_payload(conn, %{"references" => references}) when is_list(references) do
-    now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
+    if Enum.all?(references, &valid_reference?/1) do
+      now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
 
-    valid_references =
-      references
-      |> Enum.filter(&valid_reference?/1)
-      |> Enum.map(fn ref ->
-        %{
-          id: Ecto.UUID.generate(),
-          flag_key: ref["flag_key"],
-          file: ref["file"],
-          line: ref["line"],
-          inserted_at: now,
-          updated_at: now
-        }
-      end)
+      valid_references =
+        Enum.map(references, fn ref ->
+          %{
+            id: Ecto.UUID.generate(),
+            flag_key: ref["flag_key"],
+            file: ref["file"],
+            line: ref["line"],
+            inserted_at: now,
+            updated_at: now
+          }
+        end)
 
-    Ecto.Multi.new()
-    |> Ecto.Multi.delete_all(:delete_old, CodeReference)
-    |> Ecto.Multi.insert_all(:insert_new, CodeReference, valid_references)
-    |> Ecto.Multi.insert(
-      :scan_receipt,
-      ScanReceipt.changeset(%ScanReceipt{}, %{
-        received_at: now,
-        reference_count: length(valid_references)
-      })
-    )
-    |> Repo.transact()
-    |> case do
-      {:ok, _} ->
-        send_json_resp(conn, 200, %{status: "ok", count: length(valid_references)})
+      Ecto.Multi.new()
+      |> Ecto.Multi.delete_all(:delete_old, CodeReference)
+      |> Ecto.Multi.insert_all(:insert_new, CodeReference, valid_references)
+      |> Ecto.Multi.insert(
+        :scan_receipt,
+        ScanReceipt.changeset(%ScanReceipt{}, %{
+          received_at: now,
+          reference_count: length(valid_references)
+        })
+      )
+      |> Repo.transact()
+      |> case do
+        {:ok, _} ->
+          send_json_resp(conn, 200, %{status: "ok", count: length(valid_references)})
 
-      {:error, _, _, _} ->
-        send_json_resp(conn, 500, %{error: "internal server error"})
+        {:error, _, _, _} ->
+          send_json_resp(conn, 500, %{error: "internal server error"})
+      end
+
+    else
+      send_json_resp(conn, 400, %{error: "invalid reference entry"})
     end
   end
 

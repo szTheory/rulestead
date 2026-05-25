@@ -73,6 +73,7 @@ defmodule Rulestead.MixProject do
         "../CONVENTIONS.md",
         "../guides/introduction/installation.md",
         "../guides/introduction/getting-started.md",
+        "../guides/introduction/user-flows-and-jtbd.md",
         "../guides/introduction/upgrading.md",
         "../guides/cheatsheet.cheatmd",
         "../guides/api_stability.md",

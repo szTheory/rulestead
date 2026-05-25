@@ -4,12 +4,19 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
   use Phoenix.LiveView
 
   alias RulesteadAdmin.Components.{FlagComponents, OperatorComponents, Shell}
+  alias RulesteadAdmin.Live.Session
 
   @default_limit 25
   @allowed_lifecycle ~w(active potentially_stale stale archived)
   @allowed_stale ~w(fresh potentially_stale stale)
   @allowed_readiness ~w(keep_active needs_review archive_candidate)
   @allowed_evidence_quality ~w(strong partial weak)
+  @lifecycle_presets [
+    {"All flags", %{}},
+    {"Archive candidates", %{"readiness" => "archive_candidate", "include_archived" => "true"}},
+    {"Needs review", %{"readiness" => "needs_review"}},
+    {"Recently stale", %{"stale" => "stale"}}
+  ]
 
   @impl true
   def mount(_params, _session, socket) do
@@ -20,10 +27,14 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
       |> assign(:filters, default_filters())
       |> assign(:page, empty_page())
       |> assign(:error_message, nil)
+      |> assign(:outcome_notice, nil)
+      |> assign(:outcome_audit_path, nil)
+      |> assign(:highlighted_flag_key, nil)
       |> assign(:allowed_lifecycle, @allowed_lifecycle)
       |> assign(:allowed_stale, @allowed_stale)
       |> assign(:allowed_readiness, @allowed_readiness)
       |> assign(:allowed_evidence_quality, @allowed_evidence_quality)
+      |> assign(:lifecycle_presets, @lifecycle_presets)
       |> stream_configure(:flags, dom_id: &"flag-#{&1.flag.key}")
       |> stream(:flags, [])
 
@@ -34,8 +45,9 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
   def handle_params(params, uri, socket) do
     merged_params = Map.merge(query_params(uri), stringify_keys(params))
     filters = normalize_filters(merged_params, socket.assigns.current_environment.key)
+    outcome = normalize_outcome_params(merged_params)
     current_path = path_with_query(uri)
-    canonical_path = build_index_path(socket.assigns.base_path, filters)
+    canonical_path = build_index_path(socket.assigns.base_path, filters, outcome)
 
     if canonical_path != current_path do
       {:noreply, push_patch(socket, to: canonical_path)}
@@ -45,6 +57,9 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
         |> assign(:current_path, current_path)
         |> assign(:filters, filters)
         |> assign(:env_links, environment_links(socket.assigns.base_path, filters, socket.assigns.available_environments))
+        |> assign(:outcome_notice, outcome_notice(outcome, socket.assigns.current_environment.name))
+        |> assign(:outcome_audit_path, normalize_audit_path(socket, outcome["audit_path"]))
+        |> assign(:highlighted_flag_key, outcome["highlight"])
         |> load_flags(filters)
 
       {:noreply, socket}
@@ -75,6 +90,13 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
     >
       <OperatorComponents.policy_state policy_state={@rulestead_admin_policy_state} />
 
+      <FlagComponents.callout :if={@outcome_notice} title="Archive result" tone="positive">
+        <p><%= @outcome_notice %></p>
+        <p :if={@outcome_audit_path}>
+          <a href={@outcome_audit_path}>Open audit timeline</a>
+        </p>
+      </FlagComponents.callout>
+
       <section class="rs-inventory">
         <div class="rs-inventory__toolbar">
           <div>
@@ -86,15 +108,32 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
           </div>
         </div>
 
+        <nav aria-label="Lifecycle preset strip" class="rs-filter-presets">
+          <div>
+            <h3>Lifecycle presets</h3>
+            <p>Each lifecycle preset resolves into the same shareable queue URL.</p>
+          </div>
+          <div class="rs-filter-presets__links">
+            <.link
+              :for={{label, params} <- @lifecycle_presets}
+              patch={preset_path(@base_path, @filters, params)}
+            >
+              <%= label %>
+            </.link>
+          </div>
+        </nav>
+
         <form aria-label="Flag filters" phx-change="filters_changed" class="rs-filter-grid">
           <input type="hidden" name="filters[env]" value={@current_environment.key} />
           <label>
             <span>Search</span>
             <input type="text" name="filters[query]" value={@filters["query"]} phx-debounce="300" />
+            <small>Search covers owner display and legacy labels without changing the owner filter.</small>
           </label>
           <label>
-            <span>Owner</span>
+            <span>Owner ref</span>
             <input type="text" name="filters[owner]" value={@filters["owner"]} phx-debounce="300" />
+            <small>Owner filter uses the exact owner ref. Use Search for broader owner discovery.</small>
           </label>
           <label>
             <span>Tags</span>
@@ -169,20 +208,26 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
             </tr>
           </thead>
           <tbody id="flags" phx-update="stream">
-            <tr :for={{dom_id, entry} <- @streams.flags} id={dom_id} data-flag-key={entry.flag.key} tabindex="0">
+            <tr
+              :for={{dom_id, entry} <- @streams.flags}
+              id={dom_id}
+              data-flag-key={entry.flag.key}
+              data-highlighted={to_string(@highlighted_flag_key == entry.flag.key)}
+              tabindex="0"
+            >
               <td>
-                <a href={flag_path(@base_path, entry.flag.key, @current_environment.key)}>
+                <a href={flag_path(assigns, entry.flag.key)}>
                   <code><%= entry.flag.key %></code>
                 </a>
                 <FlagComponents.tag_list tags={entry.flag.tags} />
               </td>
               <td><%= humanize(entry.flag.flag_type) %></td>
-              <td><%= entry.flag.owner %></td>
+              <td><%= entry.flag.ownership.owner_display || entry.flag.ownership.owner_ref %></td>
               <td><FlagComponents.lifecycle_badge state={entry.lifecycle} /></td>
               <td><FlagComponents.environment_status status={entry.environment_status || entry.flag_environment.status || :draft} /></td>
               <td>
                 <%= if stale_state(entry.lifecycle) in [:stale, :potentially_stale] do %>
-                  <a href={cleanup_path(@base_path, entry.flag.key, @current_environment.key)}>
+                  <a href={cleanup_path(assigns, entry.flag.key)}>
                     <FlagComponents.stale_badge state={stale_state(entry.lifecycle)} last_evaluated_at={entry.lifecycle.last_evaluated_at} />
                   </a>
                 <% else %>
@@ -191,7 +236,12 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
               </td>
               <td><FlagComponents.readiness_badge readiness={entry.lifecycle.archive_readiness.readiness} /></td>
               <td><FlagComponents.evidence_quality_badge quality={entry.lifecycle.archive_readiness.evidence_quality} /></td>
-              <td><%= advisory_note(entry.lifecycle) %></td>
+              <td>
+                <p><%= advisory_note(entry.lifecycle) %></p>
+                <a :if={show_cleanup_link?(entry.lifecycle)} href={cleanup_path(assigns, entry.flag.key)}>
+                  Review cleanup
+                </a>
+              </td>
               <td><%= format_last_changed(entry.flag.updated_at || entry.flag.inserted_at) %></td>
             </tr>
             <tr :if={Enum.empty?(@page.entries)} id="flags-empty">
@@ -260,10 +310,11 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
     |> Map.new()
   end
 
-  defp build_index_path(base_path, filters) do
+  defp build_index_path(base_path, filters, extras \\ %{}) do
     query =
       filters
       |> ordered_query_params()
+      |> Kernel.++(outcome_query_params(extras))
       |> Enum.reject(fn {_key, value} -> is_nil(value) or value == "" or value == "false" end)
       |> URI.encode_query()
 
@@ -388,6 +439,42 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
     end
   end
 
+  defp normalize_outcome_params(params) do
+    params
+    |> stringify_keys()
+    |> Map.take(["notice", "flag_key", "reason", "audit_path", "highlight"])
+    |> Enum.into(%{}, fn {key, value} -> {key, blank_to_nil(value)} end)
+  end
+
+  defp outcome_notice(%{"notice" => "archived", "flag_key" => flag_key}, environment_name)
+       when is_binary(flag_key) do
+    "Archived #{flag_key} in #{environment_name}. Review the audit timeline for the recorded reason."
+  end
+
+  defp outcome_notice(_outcome, _environment_name), do: nil
+
+  defp normalize_audit_path(_socket, nil), do: nil
+
+  defp normalize_audit_path(socket, path) do
+    parsed = URI.parse(path)
+    mount_path = socket.assigns.rulestead_admin_mount_path
+
+    cond do
+      parsed.scheme not in [nil, ""] -> nil
+      parsed.host not in [nil, ""] -> nil
+      parsed.path == mount_path -> path
+      is_binary(parsed.path) and String.starts_with?(parsed.path, mount_path <> "/") -> path
+      true -> nil
+    end
+  end
+
+  defp show_cleanup_link?(%{archive_readiness: %{readiness: readiness}})
+       when readiness in [:archive_candidate, :needs_review],
+       do: true
+
+  defp show_cleanup_link?(%{state: state}) when state in [:stale, :potentially_stale], do: true
+  defp show_cleanup_link?(_lifecycle), do: false
+
   defp default_filters do
     %{
       "env" => nil,
@@ -409,8 +496,40 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
     %Rulestead.Store.Command.Page{entries: [], limit: @default_limit}
   end
 
-  defp flag_path(base_path, key, env), do: "#{base_path}/#{key}?env=#{env}"
-  defp cleanup_path(base_path, key, env), do: "#{base_path}/#{key}/cleanup?env=#{env}"
+  defp preset_path(base_path, filters, params) do
+    merged_filters =
+      filters
+      |> Map.merge(%{"after" => nil, "before" => nil})
+      |> Map.merge(params)
+
+    build_index_path(base_path, merged_filters)
+  end
+
+  defp outcome_query_params(extras) do
+    [
+      {"notice", extras["notice"]},
+      {"flag_key", extras["flag_key"]},
+      {"reason", extras["reason"]},
+      {"audit_path", extras["audit_path"]},
+      {"highlight", extras["highlight"]}
+    ]
+  end
+
+  defp flag_path(socket_or_assigns, key) do
+    Session.path_with_return_to(
+      socket_or_assigns,
+      "#{socket_or_assigns.base_path}/#{key}",
+      socket_or_assigns.current_path
+    )
+  end
+
+  defp cleanup_path(socket_or_assigns, key) do
+    Session.path_with_return_to(
+      socket_or_assigns,
+      "#{socket_or_assigns.base_path}/#{key}/cleanup",
+      socket_or_assigns.current_path
+    )
+  end
 
   defp path_with_query(uri) do
     parsed = URI.parse(uri)

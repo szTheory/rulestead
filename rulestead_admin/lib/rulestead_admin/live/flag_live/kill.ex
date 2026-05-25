@@ -82,7 +82,11 @@ defmodule RulesteadAdmin.Live.FlagLive.Kill do
             value={confirmation_hint(@current_environment.key)}
             tone={if(production_env?(@current_environment.key), do: "critical", else: "warning")}
           />
-          <FlagComponents.stat title="Default value" value={inspect(@detail.flag.default_value.value)} tone="neutral" />
+          <FlagComponents.stat
+            title="Default value"
+            value={inspect(default_flag_value(@detail.flag.default_value))}
+            tone="neutral"
+          />
         </div>
 
         <FlagComponents.section_card title="State">
@@ -240,6 +244,10 @@ defmodule RulesteadAdmin.Live.FlagLive.Kill do
       _ -> nil
     end
   end
+
+  defp default_flag_value(%{value: value}), do: value
+  defp default_flag_value(%{"value" => value}), do: value
+  defp default_flag_value(value), do: value
 
   defp build_base_path(socket, key), do: admin_base_path(socket, "/#{key}/kill")
 
