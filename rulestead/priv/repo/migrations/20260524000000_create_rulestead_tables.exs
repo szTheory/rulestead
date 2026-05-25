@@ -462,11 +462,15 @@ defmodule Rulestead.Repo.Migrations.CreateRulesteadTables do
 
       add(
         :webhook_destination_id,
-        references(:webhook_destinations, type: :uuid, on_delete: :delete_all), null: false)
+        references(:webhook_destinations, type: :uuid, on_delete: :delete_all),
+        null: false
+      )
 
       add(
         :webhook_outbound_event_id,
-        references(:webhook_outbound_events, type: :uuid, on_delete: :delete_all), null: false)
+        references(:webhook_outbound_events, type: :uuid, on_delete: :delete_all),
+        null: false
+      )
 
       add(:state, :text, null: false)
       add(:attempt_count, :integer, null: false, default: 0)
@@ -648,7 +652,9 @@ defmodule Rulestead.Repo.Migrations.CreateRulesteadTables do
     create(
       constraint(
         :code_reference_scans,
-        :code_reference_scans_reference_count_must_be_non_negative, check: "reference_count >= 0")
+        :code_reference_scans_reference_count_must_be_non_negative,
+        check: "reference_count >= 0"
+      )
     )
   end
 
