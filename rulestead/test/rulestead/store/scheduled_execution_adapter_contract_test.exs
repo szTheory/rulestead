@@ -22,28 +22,26 @@ defmodule Rulestead.ScheduledExecutionAdapterContractTest do
 
       assert {:ok, %{scheduled_execution: scheduled_execution}} =
                adapter.schedule_governed_action(
-                 Command.ScheduleGovernedAction.new(
-                   %{
-                     action: :publish_ruleset,
-                     environment_key: "test",
-                     resource_type: "flag",
-                     resource_key: "checkout-redesign",
-                     command: %{"version" => 3},
-                     scheduled_for: scheduled_for,
-                     execution_mode: :policy_bypass,
-                     actor: %{id: "scheduler-1", type: "operator", display: "Scheduler"},
-                     reason: "Publish v3",
-                     approval_requirement:
-                       ApprovalRequirement.new(
-                         action: :publish_ruleset,
-                         environment_key: "test",
-                         required_approvals: 0,
-                         change_request_required?: false,
-                         self_approval_allowed?: true
-                       ),
-                     metadata: %{request_id: "corr-transient", source: :admin_ui}
-                   }
-                 )
+                 Command.ScheduleGovernedAction.new(%{
+                   action: :publish_ruleset,
+                   environment_key: "test",
+                   resource_type: "flag",
+                   resource_key: "checkout-redesign",
+                   command: %{"version" => 3},
+                   scheduled_for: scheduled_for,
+                   execution_mode: :policy_bypass,
+                   actor: %{id: "scheduler-1", type: "operator", display: "Scheduler"},
+                   reason: "Publish v3",
+                   approval_requirement:
+                     ApprovalRequirement.new(
+                       action: :publish_ruleset,
+                       environment_key: "test",
+                       required_approvals: 0,
+                       change_request_required?: false,
+                       self_approval_allowed?: true
+                     ),
+                   metadata: %{request_id: "corr-transient", source: :admin_ui}
+                 })
                )
 
       assert {:error, %Rulestead.Error{}} =
@@ -56,7 +54,9 @@ defmodule Rulestead.ScheduledExecutionAdapterContractTest do
                )
 
       assert {:ok, %{scheduled_execution: failed_once, attempts: attempts}} =
-               adapter.fetch_scheduled_execution(Command.FetchScheduledExecution.new(scheduled_execution.id))
+               adapter.fetch_scheduled_execution(
+                 Command.FetchScheduledExecution.new(scheduled_execution.id)
+               )
 
       assert failed_once.id == scheduled_execution.id
       assert failed_once.state == :scheduled
@@ -85,12 +85,18 @@ defmodule Rulestead.ScheduledExecutionAdapterContractTest do
       assert completed.state == :completed
 
       assert {:ok, %{scheduled_execution: fetched, attempts: completed_attempts}} =
-               adapter.fetch_scheduled_execution(Command.FetchScheduledExecution.new(scheduled_execution.id))
+               adapter.fetch_scheduled_execution(
+                 Command.FetchScheduledExecution.new(scheduled_execution.id)
+               )
 
       assert fetched.id == scheduled_execution.id
       assert fetched.state == :completed
       assert fetched.attempt_count == 2
-      assert Enum.map(completed_attempts, &{&1.attempt_number, &1.state}) == [{1, :failed}, {2, :completed}]
+
+      assert Enum.map(completed_attempts, &{&1.attempt_number, &1.state}) == [
+               {1, :failed},
+               {2, :completed}
+             ]
     end)
   end
 
@@ -100,9 +106,7 @@ defmodule Rulestead.ScheduledExecutionAdapterContractTest do
       seed_publishable_flag!(adapter)
 
       assert {:ok, %{scheduled_execution: completed_schedule}} =
-               adapter.schedule_governed_action(
-                 scheduled_publish_command(2, "corr-complete")
-               )
+               adapter.schedule_governed_action(scheduled_publish_command(2, "corr-complete"))
 
       assert {:ok, %{scheduled_execution: completed}} =
                adapter.execute_scheduled_execution(
@@ -128,9 +132,7 @@ defmodule Rulestead.ScheduledExecutionAdapterContractTest do
       assert replayed.state == :completed
 
       assert {:ok, %{scheduled_execution: failed_schedule}} =
-               adapter.schedule_governed_action(
-                 scheduled_publish_command(9, "corr-quarantine")
-               )
+               adapter.schedule_governed_action(scheduled_publish_command(9, "corr-quarantine"))
 
       for attempt <- 1..3 do
         assert {:error, %Rulestead.Error{}} =
@@ -138,13 +140,18 @@ defmodule Rulestead.ScheduledExecutionAdapterContractTest do
                    Command.ExecuteScheduledExecution.new(failed_schedule.id,
                      actor: %{id: "scheduler", type: "system", display: "Scheduler"},
                      reason: "Attempt #{attempt}",
-                     metadata: %{request_id: "req-quarantine-#{attempt}", source: :scheduled_execution_worker}
+                     metadata: %{
+                       request_id: "req-quarantine-#{attempt}",
+                       source: :scheduled_execution_worker
+                     }
                    )
                  )
       end
 
       assert {:ok, %{scheduled_execution: quarantined}} =
-               adapter.fetch_scheduled_execution(Command.FetchScheduledExecution.new(failed_schedule.id))
+               adapter.fetch_scheduled_execution(
+                 Command.FetchScheduledExecution.new(failed_schedule.id)
+               )
 
       assert quarantined.id == failed_schedule.id
       assert quarantined.state == :quarantined
@@ -187,7 +194,9 @@ defmodule Rulestead.ScheduledExecutionAdapterContractTest do
       assert cancelled.state == :cancelled
 
       assert {:ok, %{scheduled_execution: quarantined_schedule}} =
-               adapter.schedule_governed_action(scheduled_publish_command(11, "corr-list-quarantine"))
+               adapter.schedule_governed_action(
+                 scheduled_publish_command(11, "corr-list-quarantine")
+               )
 
       for attempt <- 1..3 do
         assert {:error, %Rulestead.Error{}} =
@@ -195,13 +204,18 @@ defmodule Rulestead.ScheduledExecutionAdapterContractTest do
                    Command.ExecuteScheduledExecution.new(quarantined_schedule.id,
                      actor: %{id: "scheduler", type: "system", display: "Scheduler"},
                      reason: "Attempt #{attempt}",
-                     metadata: %{request_id: "req-list-quarantine-#{attempt}", source: :scheduled_execution_worker}
+                     metadata: %{
+                       request_id: "req-list-quarantine-#{attempt}",
+                       source: :scheduled_execution_worker
+                     }
                    )
                  )
       end
 
       assert {:ok, %{scheduled_execution: fetched_cancelled, attempts: cancelled_attempts}} =
-               adapter.fetch_scheduled_execution(Command.FetchScheduledExecution.new(cancelled_schedule.id))
+               adapter.fetch_scheduled_execution(
+                 Command.FetchScheduledExecution.new(cancelled_schedule.id)
+               )
 
       assert fetched_cancelled.id == cancelled_schedule.id
       assert fetched_cancelled.state == :cancelled
@@ -231,7 +245,10 @@ defmodule Rulestead.ScheduledExecutionAdapterContractTest do
                  )
                )
 
-      assert Enum.any?(cancelled_entries, &(&1.id == cancelled_schedule.id and &1.state == :cancelled))
+      assert Enum.any?(
+               cancelled_entries,
+               &(&1.id == cancelled_schedule.id and &1.state == :cancelled)
+             )
 
       assert {:ok, %Command.Page{entries: quarantined_entries}} =
                adapter.list_scheduled_executions(
@@ -246,7 +263,10 @@ defmodule Rulestead.ScheduledExecutionAdapterContractTest do
                  )
                )
 
-      assert Enum.any?(quarantined_entries, &(&1.id == quarantined_schedule.id and &1.state == :quarantined))
+      assert Enum.any?(
+               quarantined_entries,
+               &(&1.id == quarantined_schedule.id and &1.state == :quarantined)
+             )
     end)
   end
 
@@ -288,9 +308,7 @@ defmodule Rulestead.ScheduledExecutionAdapterContractTest do
       assert is_binary(execution_result.environment_version_id)
 
       assert {:ok, target_payload} =
-               adapter.fetch_flag(
-                 Command.FetchFlag.new("checkout-redesign", "production")
-               )
+               adapter.fetch_flag(Command.FetchFlag.new("checkout-redesign", "production"))
 
       assert target_payload.active_ruleset.salt == "checkout-redesign:v2"
     end)
@@ -319,7 +337,10 @@ defmodule Rulestead.ScheduledExecutionAdapterContractTest do
                  Command.ExecuteScheduledExecution.new(scheduled_execution.id,
                    actor: %{id: "scheduler", type: "system", display: "Scheduler"},
                    reason: "Execute scheduled promotion",
-                   metadata: %{request_id: "req-promote-scheduled", source: :scheduled_execution_worker}
+                   metadata: %{
+                     request_id: "req-promote-scheduled",
+                     source: :scheduled_execution_worker
+                   }
                  )
                )
 
@@ -333,37 +354,33 @@ defmodule Rulestead.ScheduledExecutionAdapterContractTest do
       assert [%{attempt_number: 1, state: :failed}] = attempts
 
       assert {:ok, target_payload} =
-               adapter.fetch_flag(
-                 Command.FetchFlag.new("checkout-redesign", "production")
-               )
+               adapter.fetch_flag(Command.FetchFlag.new("checkout-redesign", "production"))
 
       assert target_payload.active_ruleset.salt == "checkout-redesign:v1"
     end)
   end
 
   defp scheduled_publish_command(version, request_id) do
-    Command.ScheduleGovernedAction.new(
-      %{
-        action: :publish_ruleset,
-        environment_key: "test",
-        resource_type: "flag",
-        resource_key: "checkout-redesign",
-        command: %{"version" => version},
-        scheduled_for: ~U[2026-04-25 12:30:00Z],
-        execution_mode: :policy_bypass,
-        actor: %{id: "scheduler-1", type: "operator", display: "Scheduler"},
-        reason: "Publish version #{version}",
-        approval_requirement:
-          ApprovalRequirement.new(
-            action: :publish_ruleset,
-            environment_key: "test",
-            required_approvals: 0,
-            change_request_required?: false,
-            self_approval_allowed?: true
-          ),
-        metadata: %{request_id: request_id, source: :admin_ui}
-      }
-    )
+    Command.ScheduleGovernedAction.new(%{
+      action: :publish_ruleset,
+      environment_key: "test",
+      resource_type: "flag",
+      resource_key: "checkout-redesign",
+      command: %{"version" => version},
+      scheduled_for: ~U[2026-04-25 12:30:00Z],
+      execution_mode: :policy_bypass,
+      actor: %{id: "scheduler-1", type: "operator", display: "Scheduler"},
+      reason: "Publish version #{version}",
+      approval_requirement:
+        ApprovalRequirement.new(
+          action: :publish_ruleset,
+          environment_key: "test",
+          required_approvals: 0,
+          change_request_required?: false,
+          self_approval_allowed?: true
+        ),
+      metadata: %{request_id: request_id, source: :admin_ui}
+    })
   end
 
   defp seed_publishable_flag!(adapter) do
@@ -384,7 +401,9 @@ defmodule Rulestead.ScheduledExecutionAdapterContractTest do
              )
 
     assert {:ok, _} =
-             adapter.publish_ruleset(StoreFixtures.publish_ruleset_command("checkout-redesign", "test"))
+             adapter.publish_ruleset(
+               StoreFixtures.publish_ruleset_command("checkout-redesign", "test")
+             )
 
     assert {:ok, _} =
              adapter.save_draft_ruleset(

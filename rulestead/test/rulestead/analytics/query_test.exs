@@ -65,13 +65,17 @@ defmodule Rulestead.Analytics.QueryTest do
 
   defp insert_event(attrs) do
     now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
-    
-    attrs = Map.merge(%{
-      id: Ecto.UUID.generate(),
-      occurred_at: now,
-      inserted_at: now,
-      updated_at: now
-    }, attrs)
+
+    attrs =
+      Map.merge(
+        %{
+          id: Ecto.UUID.generate(),
+          occurred_at: now,
+          inserted_at: now,
+          updated_at: now
+        },
+        attrs
+      )
 
     %Event{}
     |> Ecto.Changeset.change(attrs)

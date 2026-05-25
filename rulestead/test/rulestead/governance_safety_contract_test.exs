@@ -36,10 +36,12 @@ defmodule Rulestead.GovernanceSafetyContractTest do
     executor = actor("executor-1")
 
     assert {:ok, %{change_request: submitted}} =
-             Rulestead.submit_change_request(governed_publish_command(submitter,
-               reason: "Ship version 2",
-               request_id: "corr-approve"
-             ))
+             Rulestead.submit_change_request(
+               governed_publish_command(submitter,
+                 reason: "Ship version 2",
+                 request_id: "corr-approve"
+               )
+             )
 
     assert submitted.state == :submitted
 
@@ -87,10 +89,12 @@ defmodule Rulestead.GovernanceSafetyContractTest do
     reviewer = actor("reviewer-2")
 
     assert {:ok, %{change_request: rejected_request}} =
-             Rulestead.submit_change_request(governed_publish_command(submitter,
-               reason: "Reject path",
-               request_id: "corr-reject"
-             ))
+             Rulestead.submit_change_request(
+               governed_publish_command(submitter,
+                 reason: "Reject path",
+                 request_id: "corr-reject"
+               )
+             )
 
     assert {:ok, %{change_request: rejected}} =
              Rulestead.reject_change_request(
@@ -108,10 +112,12 @@ defmodule Rulestead.GovernanceSafetyContractTest do
              )
 
     assert {:ok, %{change_request: cancelled_request}} =
-             Rulestead.submit_change_request(governed_publish_command(submitter,
-               reason: "Cancel path",
-               request_id: "corr-cancel"
-             ))
+             Rulestead.submit_change_request(
+               governed_publish_command(submitter,
+                 reason: "Cancel path",
+                 request_id: "corr-cancel"
+               )
+             )
 
     assert {:ok, %{change_request: cancelled}} =
              Rulestead.cancel_change_request(
@@ -133,10 +139,12 @@ defmodule Rulestead.GovernanceSafetyContractTest do
     submitter = actor("submitter-3")
 
     assert {:ok, %{change_request: submitted}} =
-             Rulestead.submit_change_request(governed_promotion_command(submitter,
-               reason: "Promote staging checkout to production",
-               request_id: "corr-promote"
-             ))
+             Rulestead.submit_change_request(
+               governed_promotion_command(submitter,
+                 reason: "Promote staging checkout to production",
+                 request_id: "corr-promote"
+               )
+             )
 
     assert submitted.state == :submitted
     assert submitted.action == :promote_environment
@@ -238,7 +246,9 @@ defmodule Rulestead.GovernanceSafetyContractTest do
              )
 
     assert {:ok, _} =
-             adapter.publish_ruleset(StoreFixtures.publish_ruleset_command("checkout-redesign", "production"))
+             adapter.publish_ruleset(
+               StoreFixtures.publish_ruleset_command("checkout-redesign", "production")
+             )
 
     assert {:ok, _} =
              adapter.save_draft_ruleset(

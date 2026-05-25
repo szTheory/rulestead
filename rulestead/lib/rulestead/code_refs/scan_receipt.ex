@@ -9,8 +9,8 @@ defmodule Rulestead.CodeRefs.ScanReceipt do
   @primary_key {:id, :binary_id, autogenerate: true}
 
   schema "code_reference_scans" do
-    field :received_at, :utc_datetime_usec
-    field :reference_count, :integer, default: 0
+    field(:received_at, :utc_datetime_usec)
+    field(:reference_count, :integer, default: 0)
 
     timestamps(type: :utc_datetime_usec)
   end

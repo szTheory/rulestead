@@ -19,9 +19,10 @@ defmodule Rulestead.Telemetry.Cache do
   """
   def record_evaluation(flag_key, environment_key, variant, timestamp) do
     key = {flag_key, environment_key}
+
     try do
       :ets.insert(@table, {{key, :last_evaluated_at}, timestamp})
-      
+
       try do
         :ets.update_counter(@table, {key, :variants_served, variant}, {2, 1})
       rescue
@@ -33,6 +34,7 @@ defmodule Rulestead.Telemetry.Cache do
         # Table does not exist (likely in test environment where Cache is not started)
         :ok
     end
+
     :ok
   end
 
@@ -68,10 +70,18 @@ defmodule Rulestead.Telemetry.Cache do
   def init(_opts) do
     case :ets.info(@table) do
       :undefined ->
-        :ets.new(@table, [:named_table, :public, :set, read_concurrency: true, write_concurrency: true])
+        :ets.new(@table, [
+          :named_table,
+          :public,
+          :set,
+          read_concurrency: true,
+          write_concurrency: true
+        ])
+
       _ ->
         :ok
     end
+
     {:ok, %{}}
   end
 end

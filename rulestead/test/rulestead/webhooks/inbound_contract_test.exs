@@ -7,6 +7,7 @@ defmodule Rulestead.Webhooks.InboundContractTest do
 
   test "inbound receipt changeset validates required fields and enum values" do
     now = DateTime.utc_now()
+
     attrs = %{
       provider: "github",
       endpoint_key: "default",
@@ -30,7 +31,7 @@ defmodule Rulestead.Webhooks.InboundContractTest do
   test "inbound receipt accepted? and rejected? helpers" do
     assert InboundReceipt.accepted?(%InboundReceipt{verified_state: :accepted})
     refute InboundReceipt.accepted?(%InboundReceipt{verified_state: :rejected})
-    
+
     assert InboundReceipt.rejected?(%InboundReceipt{verified_state: :rejected})
     assert InboundReceipt.rejected?(%InboundReceipt{verified_state: :malformed})
     refute InboundReceipt.rejected?(%InboundReceipt{verified_state: :accepted})
@@ -38,30 +39,33 @@ defmodule Rulestead.Webhooks.InboundContractTest do
 
   test "inbound event envelope constructor" do
     now = DateTime.utc_now()
-    event = InboundEvent.new(%{
-      provider: "github",
-      endpoint_key: "default",
-      delivery_id: "del_123",
-      received_at: now,
-      payload: %{"action" => "opened"},
-      metadata: %{"user" => "jon"},
-      correlation_id: "corr_123"
-    })
+
+    event =
+      InboundEvent.new(%{
+        provider: "github",
+        endpoint_key: "default",
+        delivery_id: "del_123",
+        received_at: now,
+        payload: %{"action" => "opened"},
+        metadata: %{"user" => "jon"},
+        correlation_id: "corr_123"
+      })
 
     assert event.provider == "github"
     assert event.payload == %{"action" => "opened"}
   end
 
   test "replay claims reject duplicate provider delivery identities" do
-    receipt = Repo.insert!(%InboundReceipt{
-      provider: "github",
-      endpoint_key: "default",
-      delivery_id: "del_123",
-      received_at: DateTime.utc_now(),
-      raw_body_sha256: "sha256:abc",
-      verified_state: :accepted,
-      correlation_id: "corr_1"
-    })
+    receipt =
+      Repo.insert!(%InboundReceipt{
+        provider: "github",
+        endpoint_key: "default",
+        delivery_id: "del_123",
+        received_at: DateTime.utc_now(),
+        raw_body_sha256: "sha256:abc",
+        verified_state: :accepted,
+        correlation_id: "corr_1"
+      })
 
     Repo.insert!(%ReplayClaim{
       provider: "github",
@@ -70,21 +74,25 @@ defmodule Rulestead.Webhooks.InboundContractTest do
     })
 
     # Try inserting the same provider/delivery_id
-    receipt2 = Repo.insert!(%InboundReceipt{
-      provider: "github",
-      endpoint_key: "default",
-      delivery_id: "del_123",
-      received_at: DateTime.utc_now(),
-      raw_body_sha256: "sha256:abc",
-      verified_state: :accepted,
-      correlation_id: "corr_2"
-    })
+    receipt2 =
+      Repo.insert!(%InboundReceipt{
+        provider: "github",
+        endpoint_key: "default",
+        delivery_id: "del_123",
+        received_at: DateTime.utc_now(),
+        raw_body_sha256: "sha256:abc",
+        verified_state: :accepted,
+        correlation_id: "corr_2"
+      })
 
-    assert {:error, changeset} = Repo.insert(ReplayClaim.changeset(%ReplayClaim{}, %{
-      provider: "github",
-      delivery_id: "del_123",
-      receipt_id: receipt2.id
-    }))
+    assert {:error, changeset} =
+             Repo.insert(
+               ReplayClaim.changeset(%ReplayClaim{}, %{
+                 provider: "github",
+                 delivery_id: "del_123",
+                 receipt_id: receipt2.id
+               })
+             )
 
     assert %{provider: ["has already been taken"]} = errors_on(changeset)
   end

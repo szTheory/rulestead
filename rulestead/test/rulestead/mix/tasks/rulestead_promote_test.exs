@@ -35,9 +35,7 @@ defmodule Rulestead.Mix.Tasks.RulesteadPromoteTest do
 
   test "compute_plan returns a deterministic saved promote plan artifact" do
     assert {:ok, result} =
-             Promote.compute_plan("staging", "test",
-               tenant_key: "acme"
-             )
+             Promote.compute_plan("staging", "test", tenant_key: "acme")
 
     assert result["status"] == "changes"
     assert Result.exit_code(result) == 2
@@ -60,12 +58,20 @@ defmodule Rulestead.Mix.Tasks.RulesteadPromoteTest do
     assert applied["status"] == "applied"
     assert Result.exit_code(applied) == 0
 
-    publish_ruleset!("checkout-redesign", "test", valid_ruleset_attrs(%{salt: "checkout-redesign:v3"}))
+    publish_ruleset!(
+      "checkout-redesign",
+      "test",
+      valid_ruleset_attrs(%{salt: "checkout-redesign:v3"})
+    )
 
     assert {:ok, stale_plan} = Promote.compute_plan("staging", "test")
     stale = stale_plan["details"]["plan"]
 
-    publish_ruleset!("checkout-redesign", "test", valid_ruleset_attrs(%{salt: "checkout-redesign:v4"}))
+    publish_ruleset!(
+      "checkout-redesign",
+      "test",
+      valid_ruleset_attrs(%{salt: "checkout-redesign:v4"})
+    )
 
     assert {:ok, stale_result} = Promote.compute_apply(stale, reason: "retry")
     assert stale_result["status"] == "stale"
@@ -76,9 +82,7 @@ defmodule Rulestead.Mix.Tasks.RulesteadPromoteTest do
     Application.put_env(:rulestead, :admin_policy, __MODULE__.GovernancePolicy)
 
     assert {:ok, planned} =
-             Promote.compute_plan("staging", "production",
-               tenant_key: "acme"
-             )
+             Promote.compute_plan("staging", "production", tenant_key: "acme")
 
     assert planned["status"] == "governance_required"
 
@@ -110,9 +114,23 @@ defmodule Rulestead.Mix.Tasks.RulesteadPromoteTest do
       })
     )
 
-    publish_ruleset!("checkout-redesign", "staging", valid_ruleset_attrs(%{salt: "checkout-redesign:v2"}))
-    publish_ruleset!("checkout-redesign", "test", valid_ruleset_attrs(%{salt: "checkout-redesign:v1"}))
-    publish_ruleset!("checkout-redesign", "production", valid_ruleset_attrs(%{salt: "checkout-redesign:v1"}))
+    publish_ruleset!(
+      "checkout-redesign",
+      "staging",
+      valid_ruleset_attrs(%{salt: "checkout-redesign:v2"})
+    )
+
+    publish_ruleset!(
+      "checkout-redesign",
+      "test",
+      valid_ruleset_attrs(%{salt: "checkout-redesign:v1"})
+    )
+
+    publish_ruleset!(
+      "checkout-redesign",
+      "production",
+      valid_ruleset_attrs(%{salt: "checkout-redesign:v1"})
+    )
   end
 
   defp seed_fake_audience!(key) do
@@ -141,9 +159,7 @@ defmodule Rulestead.Mix.Tasks.RulesteadPromoteTest do
              )
 
     assert {:ok, _} =
-             Rulestead.publish_ruleset(
-               publish_ruleset_command(flag_key, environment_key)
-             )
+             Rulestead.publish_ruleset(publish_ruleset_command(flag_key, environment_key))
   end
 
   defmodule AllowPolicy do

@@ -49,7 +49,9 @@ defmodule Rulestead.Context do
   def normalize(attrs) when is_list(attrs) or is_map(attrs), do: new(attrs)
 
   defp normalize_aliases(attrs) do
-    actor = Map.get(attrs, :actor) || Map.get(attrs, "actor") || Map.get(attrs, :subject) || Map.get(attrs, "subject")
+    actor =
+      Map.get(attrs, :actor) || Map.get(attrs, "actor") || Map.get(attrs, :subject) ||
+        Map.get(attrs, "subject")
 
     attrs
     |> Map.delete("subject")
@@ -81,9 +83,14 @@ defmodule Rulestead.Context do
     end
   end
 
-  defp normalize_scalar(value) when is_atom(value), do: value |> Atom.to_string() |> normalize_scalar()
+  defp normalize_scalar(value) when is_atom(value),
+    do: value |> Atom.to_string() |> normalize_scalar()
+
   defp normalize_scalar(value) when is_integer(value), do: Integer.to_string(value)
-  defp normalize_scalar(value) when is_float(value), do: :erlang.float_to_binary(value, [:compact])
+
+  defp normalize_scalar(value) when is_float(value),
+    do: :erlang.float_to_binary(value, [:compact])
+
   defp normalize_scalar(_value), do: nil
 
   defp normalize_boolean(value) when is_boolean(value), do: value

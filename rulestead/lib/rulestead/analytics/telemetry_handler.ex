@@ -21,7 +21,8 @@ defmodule Rulestead.Analytics.TelemetryHandler do
   def handle_event([:rulestead, :eval, :decide, :stop], _measurements, metadata, _config) do
     # Pluck only specific targeting metadata to prevent PII leakage
     safe_metadata = %{
-      "targeting_key" => Map.get(metadata, :targeting_key) || Map.get(metadata, :has_targeting_key?),
+      "targeting_key" =>
+        Map.get(metadata, :targeting_key) || Map.get(metadata, :has_targeting_key?),
       "flag_key" => Map.get(metadata, :flag_key),
       "environment" => Map.get(metadata, :environment),
       "variant" => Map.get(metadata, :variant),

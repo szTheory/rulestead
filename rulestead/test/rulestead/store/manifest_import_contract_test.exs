@@ -20,7 +20,16 @@ defmodule Rulestead.Store.ManifestImportContractTest do
   defmodule EctoControl do
     import Ecto.Query
 
-    alias Rulestead.{Audience, Environment, EnvironmentVersion, Flag, FlagEnvironment, Repo, Ruleset, RuntimeSnapshot}
+    alias Rulestead.{
+      Audience,
+      Environment,
+      EnvironmentVersion,
+      Flag,
+      FlagEnvironment,
+      Repo,
+      Ruleset,
+      RuntimeSnapshot
+    }
 
     def ensure_started do
       checkout_repo()
@@ -87,9 +96,17 @@ defmodule Rulestead.Store.ManifestImportContractTest do
 
     defp default_environments do
       [
-        %{key: "development", name: "Development", description: "Local and developer-owned environments"},
+        %{
+          key: "development",
+          name: "Development",
+          description: "Local and developer-owned environments"
+        },
         %{key: "staging", name: "Staging", description: "Pre-production validation environments"},
-        %{key: "production", name: "Production", description: "Live customer-facing environments"},
+        %{
+          key: "production",
+          name: "Production",
+          description: "Live customer-facing environments"
+        },
         %{key: "test", name: "Test", description: "Automated and ephemeral test environments"}
       ]
     end
@@ -197,7 +214,11 @@ defmodule Rulestead.Store.ManifestImportContractTest do
 
     assert {:ok, _} =
              Rulestead.Store.Ecto.save_draft_ruleset(
-               save_draft_command("checkout-redesign", "staging", valid_ruleset_attrs(%{salt: "checkout-redesign:v2"}))
+               save_draft_command(
+                 "checkout-redesign",
+                 "staging",
+                 valid_ruleset_attrs(%{salt: "checkout-redesign:v2"})
+               )
              )
 
     assert {:ok, _} =
@@ -207,11 +228,17 @@ defmodule Rulestead.Store.ManifestImportContractTest do
   end
 
   defp seed_importable_flag_fake! do
-    Rulestead.Fake.Control.put_flag!(valid_flag_attrs(%{key: "checkout-redesign", environment_keys: ["staging"]}))
+    Rulestead.Fake.Control.put_flag!(
+      valid_flag_attrs(%{key: "checkout-redesign", environment_keys: ["staging"]})
+    )
 
     assert {:ok, _} =
              Rulestead.Fake.save_draft_ruleset(
-               save_draft_command("checkout-redesign", "staging", valid_ruleset_attrs(%{salt: "checkout-redesign:v2"}))
+               save_draft_command(
+                 "checkout-redesign",
+                 "staging",
+                 valid_ruleset_attrs(%{salt: "checkout-redesign:v2"})
+               )
              )
 
     assert {:ok, _} =
@@ -220,4 +247,3 @@ defmodule Rulestead.Store.ManifestImportContractTest do
              )
   end
 end
-

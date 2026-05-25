@@ -2,7 +2,6 @@ defmodule Rulestead.Governance.ApprovalRequirement do
   @moduledoc false
   # Snapshot of the approval policy applied to a governed change request.
 
-
   @enforce_keys [
     :action,
     :environment_key,
@@ -10,7 +9,13 @@ defmodule Rulestead.Governance.ApprovalRequirement do
     :change_request_required?,
     :self_approval_allowed?
   ]
-  defstruct [:action, :environment_key, :required_approvals, :change_request_required?, :self_approval_allowed?]
+  defstruct [
+    :action,
+    :environment_key,
+    :required_approvals,
+    :change_request_required?,
+    :self_approval_allowed?
+  ]
 
   @governed_actions [
     :publish_ruleset,
@@ -82,6 +87,8 @@ defmodule Rulestead.Governance.ApprovalRequirement do
     end
   end
 
-  defp normalize_string(value) when is_atom(value), do: value |> Atom.to_string() |> normalize_string()
+  defp normalize_string(value) when is_atom(value),
+    do: value |> Atom.to_string() |> normalize_string()
+
   defp normalize_string(_value), do: nil
 end

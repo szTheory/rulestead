@@ -66,28 +66,35 @@ defmodule Rulestead.Manifest.DiffTest do
     assert {:ok, _} =
              Rulestead.create_flag(
                Command.CreateFlag.new(
-                 valid_flag_attrs(%{key: "checkout-redesign", environment_keys: ["staging", "test"]})
+                 valid_flag_attrs(%{
+                   key: "checkout-redesign",
+                   environment_keys: ["staging", "test"]
+                 })
                )
              )
 
     assert {:ok, _} =
              Rulestead.save_draft_ruleset(
-               save_draft_command("checkout-redesign", "staging", valid_ruleset_attrs(%{salt: "checkout-redesign:v2"}))
+               save_draft_command(
+                 "checkout-redesign",
+                 "staging",
+                 valid_ruleset_attrs(%{salt: "checkout-redesign:v2"})
+               )
              )
 
     assert {:ok, _} =
-             Rulestead.publish_ruleset(
-               publish_ruleset_command("checkout-redesign", "staging")
-             )
+             Rulestead.publish_ruleset(publish_ruleset_command("checkout-redesign", "staging"))
 
     assert {:ok, _} =
              Rulestead.save_draft_ruleset(
-               save_draft_command("checkout-redesign", "test", valid_ruleset_attrs(%{salt: "checkout-redesign:v1"}))
+               save_draft_command(
+                 "checkout-redesign",
+                 "test",
+                 valid_ruleset_attrs(%{salt: "checkout-redesign:v1"})
+               )
              )
 
     assert {:ok, _} =
-             Rulestead.publish_ruleset(
-               publish_ruleset_command("checkout-redesign", "test")
-             )
+             Rulestead.publish_ruleset(publish_ruleset_command("checkout-redesign", "test"))
   end
 end

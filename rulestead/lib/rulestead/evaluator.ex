@@ -51,7 +51,8 @@ defmodule Rulestead.Evaluator do
     end
   end
 
-  defp walk_rules([], _flag_payload, _flag, _active_ruleset, _context, trace), do: {:default, trace}
+  defp walk_rules([], _flag_payload, _flag, _active_ruleset, _context, trace),
+    do: {:default, trace}
 
   defp walk_rules([rule | rest], flag_payload, flag, active_ruleset, context, trace) do
     case evaluate_rule(rule, flag_payload, flag, active_ruleset, context) do
@@ -59,7 +60,14 @@ defmodule Rulestead.Evaluator do
         {:match, result, append_rule_trace(trace, Map.put(rule_trace, :matched?, true))}
 
       {:skip, rule_trace} ->
-        walk_rules(rest, flag_payload, flag, active_ruleset, context, append_rule_trace(trace, Map.put(rule_trace, :matched?, false)))
+        walk_rules(
+          rest,
+          flag_payload,
+          flag,
+          active_ruleset,
+          context,
+          append_rule_trace(trace, Map.put(rule_trace, :matched?, false))
+        )
 
       {:error, %Rulestead.Error{} = error} ->
         {:error, error}
@@ -71,8 +79,10 @@ defmodule Rulestead.Evaluator do
 
     with {:ok, condition_trace} <- evaluate_conditions(fetch_list(rule, :conditions), context),
          {:ok, rollout_trace} <- evaluate_rollout(rule, flag_payload, active_ruleset, context),
-         {:ok, result} <- build_result(rule, flag, active_ruleset, rule_key, condition_trace, rollout_trace) do
-      {:match, result, %{rule_key: rule_key, conditions: condition_trace, rollout: result.debug_trace.rollout}}
+         {:ok, result} <-
+           build_result(rule, flag, active_ruleset, rule_key, condition_trace, rollout_trace) do
+      {:match, result,
+       %{rule_key: rule_key, conditions: condition_trace, rollout: result.debug_trace.rollout}}
     else
       {:skip, reason, detail} ->
         {:skip,
@@ -140,7 +150,9 @@ defmodule Rulestead.Evaluator do
             flag_key = stringify(get_in(flag_payload, [:flag, :key]))
             rule_key = stringify(rule[:key] || rule["key"])
             iteration_salt = experiment[:iteration_salt] || experiment["iteration_salt"]
-            holdout_percentage = experiment[:holdout_percentage] || experiment["holdout_percentage"] || 0
+
+            holdout_percentage =
+              experiment[:holdout_percentage] || experiment["holdout_percentage"] || 0
 
             {:ok,
              %{
@@ -177,11 +189,16 @@ defmodule Rulestead.Evaluator do
                  }
                )}
             else
-              {:skip,
-               :targeting_key_missing,
+              {:skip, :targeting_key_missing,
                %{
                  experiment: %{matched?: false, bucket_by: stringify(bucket_by)},
-                 warnings: [%{type: :missing_targeting_key, bucket_by: stringify(bucket_by), strict?: false}]
+                 warnings: [
+                   %{
+                     type: :missing_targeting_key,
+                     bucket_by: stringify(bucket_by),
+                     strict?: false
+                   }
+                 ]
                }}
             end
         end
@@ -199,6 +216,7 @@ defmodule Rulestead.Evaluator do
             rule_key = stringify(rule[:key] || rule["key"])
             ruleset_salt = active_ruleset[:salt] || active_ruleset["salt"]
             rollout_salt = rollout[:salt] || rollout["salt"]
+
             rollout_bucket =
               Bucket.compute(
                 flag_key,
@@ -226,9 +244,14 @@ defmodule Rulestead.Evaluator do
                    )
                }}
             else
-              {:skip,
-               :rollout_excluded,
-               %{rollout: %{matched?: false, bucket_by: stringify(bucket_by), bucket: rollout_bucket}}}
+              {:skip, :rollout_excluded,
+               %{
+                 rollout: %{
+                   matched?: false,
+                   bucket_by: stringify(bucket_by),
+                   bucket: rollout_bucket
+                 }
+               }}
             end
 
           {:error, :missing_identity} ->
@@ -241,11 +264,16 @@ defmodule Rulestead.Evaluator do
                  }
                )}
             else
-              {:skip,
-               :targeting_key_missing,
+              {:skip, :targeting_key_missing,
                %{
                  rollout: %{matched?: false, bucket_by: stringify(bucket_by)},
-                 warnings: [%{type: :missing_targeting_key, bucket_by: stringify(bucket_by), strict?: false}]
+                 warnings: [
+                   %{
+                     type: :missing_targeting_key,
+                     bucket_by: stringify(bucket_by),
+                     strict?: false
+                   }
+                 ]
                }}
             end
         end
@@ -256,13 +284,20 @@ defmodule Rulestead.Evaluator do
     strategy = rule[:strategy] || rule["strategy"]
 
     case strategy do
-      strategy when strategy in [:forced_value, :segment_match, "forced_value", "segment_match"] ->
+      strategy
+      when strategy in [:forced_value, :segment_match, "forced_value", "segment_match"] ->
         value = extract_value(rule[:value] || rule["value"])
         {:ok, result(flag, active_ruleset, rule_key, value, nil, condition_trace, rollout_trace)}
 
       strategy when strategy in [:percentage_rollout, "percentage_rollout"] ->
         rule_value = extract_value(rule[:value] || rule["value"])
-        value = if(is_nil(rule_value), do: extract_value(flag[:default_value] || flag["default_value"]), else: rule_value)
+
+        value =
+          if(is_nil(rule_value),
+            do: extract_value(flag[:default_value] || flag["default_value"]),
+            else: rule_value
+          )
+
         {:ok, result(flag, active_ruleset, rule_key, value, nil, condition_trace, rollout_trace)}
 
       strategy when strategy in [:variant_split, "variant_split"] ->
@@ -270,7 +305,17 @@ defmodule Rulestead.Evaluator do
           {:ok, variant} ->
             value = extract_value(variant[:value] || variant["value"])
             variant_key = stringify(variant[:key] || variant["key"])
-            {:ok, result(flag, active_ruleset, rule_key, value, variant_key, condition_trace, Map.put(rollout_trace, :variant, variant_key))}
+
+            {:ok,
+             result(
+               flag,
+               active_ruleset,
+               rule_key,
+               value,
+               variant_key,
+               condition_trace,
+               Map.put(rollout_trace, :variant, variant_key)
+             )}
 
           :error ->
             {:error, EvaluationError.malformed_runtime_data()}
@@ -283,11 +328,21 @@ defmodule Rulestead.Evaluator do
         if experiment_bucket < holdout_percentage * 100 do
           variants = fetch_list(rule, :variants)
           control_variant = List.first(variants)
-          
+
           if control_variant do
             value = extract_value(control_variant[:value] || control_variant["value"])
             variant_key = stringify(control_variant[:key] || control_variant["key"])
-            {:ok, result(flag, active_ruleset, rule_key, value, variant_key, condition_trace, Map.put(rollout_trace, :experiment_bucket, "holdout"))}
+
+            {:ok,
+             result(
+               flag,
+               active_ruleset,
+               rule_key,
+               value,
+               variant_key,
+               condition_trace,
+               Map.put(rollout_trace, :experiment_bucket, "holdout")
+             )}
           else
             {:error, EvaluationError.malformed_runtime_data()}
           end
@@ -296,7 +351,17 @@ defmodule Rulestead.Evaluator do
             {:ok, variant} ->
               value = extract_value(variant[:value] || variant["value"])
               variant_key = stringify(variant[:key] || variant["key"])
-              {:ok, result(flag, active_ruleset, rule_key, value, variant_key, condition_trace, Map.put(rollout_trace, :variant, variant_key))}
+
+              {:ok,
+               result(
+                 flag,
+                 active_ruleset,
+                 rule_key,
+                 value,
+                 variant_key,
+                 condition_trace,
+                 Map.put(rollout_trace, :variant, variant_key)
+               )}
 
             :error ->
               {:error, EvaluationError.malformed_runtime_data()}
@@ -350,12 +415,19 @@ defmodule Rulestead.Evaluator do
   defp resolve_bucket_identity(context, bucket_by) do
     default_identity =
       case bucket_by do
-        b when b in [:subject, "subject"] -> context.targeting_key
-        b when b in [:tenant, "tenant"] -> context.tenant_key
-        b when b in [:session, "session"] -> context.session_id
+        b when b in [:subject, "subject"] ->
+          context.targeting_key
+
+        b when b in [:tenant, "tenant"] ->
+          context.tenant_key
+
+        b when b in [:session, "session"] ->
+          context.session_id
+
         b when b in [:account, "account"] ->
           resolve_nested_map(context.attributes, ["account_key"]) ||
             resolve_nested_map(context.attributes, ["account_id"])
+
         _ ->
           context.targeting_key
       end
@@ -382,10 +454,26 @@ defmodule Rulestead.Evaluator do
 
   defp resolve_attribute(context, attribute) when is_binary(attribute) do
     case String.split(attribute, ".", trim: true) do
-      ["attributes" | rest] -> resolve_nested_map(context.attributes, rest)
-      ["actor" | rest] -> resolve_nested_map(context.actor, rest)
-      [single] -> Map.get(%{"targeting_key" => context.targeting_key, "tenant_key" => context.tenant_key, "environment" => context.environment, "request_id" => context.request_id, "session_id" => context.session_id}, single)
-      _other -> nil
+      ["attributes" | rest] ->
+        resolve_nested_map(context.attributes, rest)
+
+      ["actor" | rest] ->
+        resolve_nested_map(context.actor, rest)
+
+      [single] ->
+        Map.get(
+          %{
+            "targeting_key" => context.targeting_key,
+            "tenant_key" => context.tenant_key,
+            "environment" => context.environment,
+            "request_id" => context.request_id,
+            "session_id" => context.session_id
+          },
+          single
+        )
+
+      _other ->
+        nil
     end
   end
 
@@ -393,7 +481,9 @@ defmodule Rulestead.Evaluator do
 
   defp resolve_nested_map(value, []), do: value
   defp resolve_nested_map(nil, _path), do: nil
-  defp resolve_nested_map(%_{} = struct, path), do: struct |> Map.from_struct() |> resolve_nested_map(path)
+
+  defp resolve_nested_map(%_{} = struct, path),
+    do: struct |> Map.from_struct() |> resolve_nested_map(path)
 
   defp resolve_nested_map(map, [segment | rest]) when is_map(map) do
     next =
@@ -414,13 +504,25 @@ defmodule Rulestead.Evaluator do
   defp compare("in", actual, value), do: compare(:in, actual, value)
   defp compare(:not_in, actual, value), do: not compare_list(actual, fetch_value(value, :not_in))
   defp compare("not_in", actual, value), do: compare(:not_in, actual, value)
-  defp compare(:gt, actual, value), do: compare_number(actual, fetch_value(value, :gt), &Kernel.>/2)
+
+  defp compare(:gt, actual, value),
+    do: compare_number(actual, fetch_value(value, :gt), &Kernel.>/2)
+
   defp compare("gt", actual, value), do: compare(:gt, actual, value)
-  defp compare(:lt, actual, value), do: compare_number(actual, fetch_value(value, :lt), &Kernel.</2)
+
+  defp compare(:lt, actual, value),
+    do: compare_number(actual, fetch_value(value, :lt), &Kernel.</2)
+
   defp compare("lt", actual, value), do: compare(:lt, actual, value)
-  defp compare(:gte, actual, value), do: compare_number(actual, fetch_value(value, :gte), &Kernel.>=/2)
+
+  defp compare(:gte, actual, value),
+    do: compare_number(actual, fetch_value(value, :gte), &Kernel.>=/2)
+
   defp compare("gte", actual, value), do: compare(:gte, actual, value)
-  defp compare(:lte, actual, value), do: compare_number(actual, fetch_value(value, :lte), &Kernel.<=/2)
+
+  defp compare(:lte, actual, value),
+    do: compare_number(actual, fetch_value(value, :lte), &Kernel.<=/2)
+
   defp compare("lte", actual, value), do: compare(:lte, actual, value)
   defp compare(:regex, actual, value), do: compare_regex(actual, value)
   defp compare("regex", actual, value), do: compare(:regex, actual, value)
@@ -428,11 +530,14 @@ defmodule Rulestead.Evaluator do
   defp compare("exists", actual, value), do: compare(:exists, actual, value)
   defp compare(_operator, _actual, _value), do: false
 
-  defp compare_list(actual, values) when is_list(values), do: Enum.any?(values, &same_lane?(actual, &1))
+  defp compare_list(actual, values) when is_list(values),
+    do: Enum.any?(values, &same_lane?(actual, &1))
+
   defp compare_list(_actual, _values), do: false
 
-  defp compare_number(actual, expected, comparator) when is_number(actual) and is_number(expected),
-    do: comparator.(actual, expected)
+  defp compare_number(actual, expected, comparator)
+       when is_number(actual) and is_number(expected),
+       do: comparator.(actual, expected)
 
   defp compare_number(_actual, _expected, _comparator), do: false
 
@@ -448,8 +553,12 @@ defmodule Rulestead.Evaluator do
 
   defp compare_regex(_actual, _value), do: false
 
-  defp same_lane?(actual, expected) when is_integer(actual) and is_float(expected), do: actual == expected
-  defp same_lane?(actual, expected) when is_float(actual) and is_integer(expected), do: actual == expected
+  defp same_lane?(actual, expected) when is_integer(actual) and is_float(expected),
+    do: actual == expected
+
+  defp same_lane?(actual, expected) when is_float(actual) and is_integer(expected),
+    do: actual == expected
+
   defp same_lane?(actual, expected) when is_nil(actual) or is_nil(expected), do: false
   defp same_lane?(actual, expected), do: lane(actual) == lane(expected) and actual == expected
 

@@ -1,7 +1,16 @@
 defmodule Rulestead.ScheduledExecutionThreatModelTest do
   use Rulestead.RepoCase, async: false
 
-  alias Rulestead.{AuditEvent, Context, Governance.ApprovalRequirement, Oban, Repo, Store.Command, StoreFixtures}
+  alias Rulestead.{
+    AuditEvent,
+    Context,
+    Governance.ApprovalRequirement,
+    Oban,
+    Repo,
+    Store.Command,
+    StoreFixtures
+  }
+
   alias Rulestead.Store.Ecto, as: StoreEcto
 
   setup do
@@ -37,14 +46,21 @@ defmodule Rulestead.ScheduledExecutionThreatModelTest do
     assert replayed.state == :completed
 
     assert {:ok, %{scheduled_execution: fetched, attempts: attempts}} =
-             StoreEcto.fetch_scheduled_execution(Command.FetchScheduledExecution.new(scheduled_execution.id))
+             StoreEcto.fetch_scheduled_execution(
+               Command.FetchScheduledExecution.new(scheduled_execution.id)
+             )
 
     assert fetched.state == :completed
     assert fetched.attempt_count == 1
     assert Enum.map(attempts, & &1.state) == [:completed]
 
     correlated_events =
-      Repo.all(from event in AuditEvent, where: event.correlation_id == "corr-replay-safe", select: event)
+      Repo.all(
+        from(event in AuditEvent,
+          where: event.correlation_id == "corr-replay-safe",
+          select: event
+        )
+      )
 
     assert Enum.count(correlated_events, &(&1.event_type == "ruleset.publish")) == 1
     assert Enum.count(correlated_events, &(&1.event_type == "scheduled_execution.succeeded")) == 1
@@ -60,7 +76,9 @@ defmodule Rulestead.ScheduledExecutionThreatModelTest do
     end
 
     assert {:ok, %{scheduled_execution: fetched, attempts: attempts}} =
-             StoreEcto.fetch_scheduled_execution(Command.FetchScheduledExecution.new(scheduled_execution.id))
+             StoreEcto.fetch_scheduled_execution(
+               Command.FetchScheduledExecution.new(scheduled_execution.id)
+             )
 
     assert fetched.state == :quarantined
     assert fetched.attempt_count == 3
@@ -68,10 +86,18 @@ defmodule Rulestead.ScheduledExecutionThreatModelTest do
     assert List.last(attempts).state == :quarantined
 
     correlated_events =
-      Repo.all(from event in AuditEvent, where: event.correlation_id == "corr-quarantine-audit", select: event)
+      Repo.all(
+        from(event in AuditEvent,
+          where: event.correlation_id == "corr-quarantine-audit",
+          select: event
+        )
+      )
 
-    failed_events = Enum.filter(correlated_events, &(&1.event_type == "scheduled_execution.failed"))
-    [quarantined_event] = Enum.filter(correlated_events, &(&1.event_type == "scheduled_execution.quarantined"))
+    failed_events =
+      Enum.filter(correlated_events, &(&1.event_type == "scheduled_execution.failed"))
+
+    [quarantined_event] =
+      Enum.filter(correlated_events, &(&1.event_type == "scheduled_execution.quarantined"))
 
     assert length(failed_events) == 2
     assert quarantined_event.metadata["scheduled_execution_id"] == scheduled_execution.id
@@ -182,7 +208,9 @@ defmodule Rulestead.ScheduledExecutionThreatModelTest do
              )
 
     assert {:ok, _} =
-             StoreEcto.publish_ruleset(StoreFixtures.publish_ruleset_command("checkout-redesign", "test"))
+             StoreEcto.publish_ruleset(
+               StoreFixtures.publish_ruleset_command("checkout-redesign", "test")
+             )
 
     assert {:ok, _} =
              StoreEcto.save_draft_ruleset(

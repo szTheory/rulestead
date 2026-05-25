@@ -101,12 +101,22 @@ defmodule Rulestead.Governance.ExecutionAttempt do
     end
   end
 
-  defp normalize_string(value) when is_atom(value), do: value |> Atom.to_string() |> normalize_string()
+  defp normalize_string(value) when is_atom(value),
+    do: value |> Atom.to_string() |> normalize_string()
+
   defp normalize_string(_value), do: nil
 
   defp drop_sensitive_keys(map) do
     map
-    |> Map.drop(["admin_session", "session", "session_data", "session_id", "session_token", "socket", "socket_session"])
+    |> Map.drop([
+      "admin_session",
+      "session",
+      "session_data",
+      "session_id",
+      "session_token",
+      "socket",
+      "socket_session"
+    ])
     |> Map.new(fn
       {key, value} when is_map(value) -> {key, drop_sensitive_keys(value)}
       {key, value} when is_list(value) -> {key, Enum.map(value, &drop_sensitive_value/1)}

@@ -1728,24 +1728,25 @@ defmodule Rulestead.Fake do
         {Map.put(acc, environment_key, flag_environment), acc_state}
       end)
 
-    flag_record = %{
-      id: flag_id,
-      key: flag.key,
-      description: flag.description,
-      flag_type: flag.flag_type,
-      value_type: flag.value_type,
-      default_value: flag.default_value,
-      ownership: flag.ownership,
-      lifecycle: flag.lifecycle,
-      tags: flag.tags,
-      archived_at: flag.archived_at,
-      previous_owners: [flag.ownership.owner_ref],
-      inserted_at: state.now,
-      updated_at: state.now,
-      environments: environments,
-      rulesets: Map.new(environment_keys, &{&1, %{}})
-    }
-    |> Map.merge(extra_attrs)
+    flag_record =
+      %{
+        id: flag_id,
+        key: flag.key,
+        description: flag.description,
+        flag_type: flag.flag_type,
+        value_type: flag.value_type,
+        default_value: flag.default_value,
+        ownership: flag.ownership,
+        lifecycle: flag.lifecycle,
+        tags: flag.tags,
+        archived_at: flag.archived_at,
+        previous_owners: [flag.ownership.owner_ref],
+        inserted_at: state.now,
+        updated_at: state.now,
+        environments: environments,
+        rulesets: Map.new(environment_keys, &{&1, %{}})
+      }
+      |> Map.merge(extra_attrs)
 
     next_state = put_in(state.flags[flag.key], flag_record)
     {flag_record, next_state}
@@ -3545,8 +3546,8 @@ defmodule Rulestead.Fake do
         updated_flag =
           flag
           |> maybe_put(:description, proposed_flag["description"])
-            |> maybe_put(:default_value, proposed_flag["default_value"])
-              |> maybe_put(:tags, proposed_flag["tags"])
+          |> maybe_put(:default_value, proposed_flag["default_value"])
+          |> maybe_put(:tags, proposed_flag["tags"])
           |> Map.put(:updated_at, state.now)
 
         {:ok, put_in(state.flags[normalized_flag_key], updated_flag), updated_flag}
@@ -4238,7 +4239,9 @@ defmodule Rulestead.Fake do
       state.flags
       |> Map.values()
       |> Enum.sort_by(& &1.updated_at, {:desc, DateTime})
-      |> Enum.flat_map(fn flag -> [flag.ownership.owner_ref | Map.get(flag, :previous_owners, [])] end)
+      |> Enum.flat_map(fn flag ->
+        [flag.ownership.owner_ref | Map.get(flag, :previous_owners, [])]
+      end)
       |> Enum.map(&normalize_owner/1)
 
     [normalize_owner(current_owner) | owners]
@@ -4316,7 +4319,8 @@ defmodule Rulestead.Fake do
   defp maybe_filter_evidence_quality(entries, nil), do: entries
 
   defp maybe_filter_evidence_quality(entries, evidence_quality),
-    do: Enum.filter(entries, &(&1.lifecycle.archive_readiness.evidence_quality == evidence_quality))
+    do:
+      Enum.filter(entries, &(&1.lifecycle.archive_readiness.evidence_quality == evidence_quality))
 
   defp paginate_entries(entries, command) do
     filtered_entries =

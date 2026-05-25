@@ -132,7 +132,8 @@ defmodule Rulestead.Test.InstallFixture do
     root
     |> collect_tree_files()
     |> Enum.map(fn relative_path ->
-      {relative_path, root |> Path.join(relative_path) |> File.read!() |> normalize_line_endings()}
+      {relative_path,
+       root |> Path.join(relative_path) |> File.read!() |> normalize_line_endings()}
     end)
     |> Map.new()
   end

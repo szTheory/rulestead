@@ -65,11 +65,11 @@ defmodule Rulestead.Analytics.TelemetryHandlerTest do
     test "attaches telemetry handler" do
       # Attempt attachment
       TelemetryHandler.attach()
-      
+
       # Verify it's attached
       handlers = :telemetry.list_handlers([:rulestead, :eval, :decide, :stop])
       assert Enum.any?(handlers, fn h -> h.id == "rulestead-analytics-handler" end)
-      
+
       # Cleanup
       :telemetry.detach("rulestead-analytics-handler")
     end

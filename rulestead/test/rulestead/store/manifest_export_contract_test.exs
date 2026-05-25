@@ -3,7 +3,17 @@ defmodule Rulestead.Store.ManifestExportContractTest do
 
   import Rulestead.StoreFixtures
 
-  alias Rulestead.{Audience, Environment, Fake, Flag, FlagEnvironment, Manifest, Repo, Ruleset, Store.Command}
+  alias Rulestead.{
+    Audience,
+    Environment,
+    Fake,
+    Flag,
+    FlagEnvironment,
+    Manifest,
+    Repo,
+    Ruleset,
+    Store.Command
+  }
 
   defmodule EctoControl do
     alias Rulestead.{Audience, Environment, Flag, FlagEnvironment, Repo, Ruleset}
@@ -37,9 +47,17 @@ defmodule Rulestead.Store.ManifestExportContractTest do
 
     defp default_environments do
       [
-        %{key: "development", name: "Development", description: "Local and developer-owned environments"},
+        %{
+          key: "development",
+          name: "Development",
+          description: "Local and developer-owned environments"
+        },
         %{key: "staging", name: "Staging", description: "Pre-production validation environments"},
-        %{key: "production", name: "Production", description: "Live customer-facing environments"},
+        %{
+          key: "production",
+          name: "Production",
+          description: "Live customer-facing environments"
+        },
         %{key: "test", name: "Test", description: "Automated and ephemeral test environments"}
       ]
     end
@@ -101,9 +119,7 @@ defmodule Rulestead.Store.ManifestExportContractTest do
              )
 
     assert {:ok, _} =
-             Rulestead.publish_ruleset(
-               publish_ruleset_command("checkout-redesign", "staging")
-             )
+             Rulestead.publish_ruleset(publish_ruleset_command("checkout-redesign", "staging"))
   end
 
   defp expected_manifest do

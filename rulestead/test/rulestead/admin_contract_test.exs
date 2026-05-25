@@ -5,7 +5,11 @@ defmodule Rulestead.AdminContractTest do
   alias Rulestead.Store.Command
 
   test "admin policy exposes authorization and governance callbacks" do
-    assert Enum.sort(Rulestead.Admin.Policy.behaviour_info(:callbacks)) == [allow_self_approval?: 4, can?: 4, change_request_required?: 4]
+    assert Enum.sort(Rulestead.Admin.Policy.behaviour_info(:callbacks)) == [
+             allow_self_approval?: 4,
+             can?: 4,
+             change_request_required?: 4
+           ]
   end
 
   test "the root facade exposes the phase 6 admin verbs" do
@@ -78,7 +82,12 @@ defmodule Rulestead.AdminContractTest do
     assert %Command.CreateFlag{
              key: "checkout-redesign",
              owner: "growth",
-      lifecycle: %{mode: :expiring, review_by: ~D[2026-05-01], default_source: :flag_type, default_overridden: false},
+             lifecycle: %{
+               mode: :expiring,
+               review_by: ~D[2026-05-01],
+               default_source: :flag_type,
+               default_overridden: false
+             },
              permanent: false,
              environment_keys: ["test", "production"]
            } =
@@ -88,7 +97,12 @@ defmodule Rulestead.AdminContractTest do
                value_type: :boolean,
                default_value: %{value: false},
                owner: "growth",
-      lifecycle: %{mode: :expiring, review_by: ~D[2026-05-01], default_source: :flag_type, default_overridden: false},
+               lifecycle: %{
+                 mode: :expiring,
+                 review_by: ~D[2026-05-01],
+                 default_source: :flag_type,
+                 default_overridden: false
+               },
                permanent: false,
                environment_keys: ["test", "production"]
              })
@@ -96,7 +110,12 @@ defmodule Rulestead.AdminContractTest do
     assert %Command.UpdateFlag{
              flag_key: "checkout-redesign",
              owner: "growth",
-             lifecycle: %{mode: :permanent, review_by: nil, default_source: :operator_required, default_overridden: false}
+             lifecycle: %{
+               mode: :permanent,
+               review_by: nil,
+               default_source: :operator_required,
+               default_overridden: false
+             }
            } =
              Command.UpdateFlag.new("checkout-redesign", %{
                owner: "growth",

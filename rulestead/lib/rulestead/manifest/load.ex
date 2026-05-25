@@ -23,7 +23,12 @@ defmodule Rulestead.Manifest.Load do
          "environment_key" => environment_key,
          "flags" => flags
        }
-       |> maybe_put("tenant_key", Manifest.normalize_string(Map.get(manifest, "tenant_key", Map.get(manifest, :tenant_key))))}
+       |> maybe_put(
+         "tenant_key",
+         Manifest.normalize_string(
+           Map.get(manifest, "tenant_key", Map.get(manifest, :tenant_key))
+         )
+       )}
     end
   end
 
@@ -77,7 +82,8 @@ defmodule Rulestead.Manifest.Load do
   defp load_flag(flag) when is_map(flag) do
     with {:ok, flag_key} <- fetch_required_string(flag, "flag_key"),
          {:ok, flag_payload} <- load_flag_payload(Map.get(flag, "flag", Map.get(flag, :flag))),
-         {:ok, environment} <- load_environment(Map.get(flag, "environment", Map.get(flag, :environment))),
+         {:ok, environment} <-
+           load_environment(Map.get(flag, "environment", Map.get(flag, :environment))),
          {:ok, active_ruleset} <-
            load_ruleset(Map.get(flag, "active_ruleset", Map.get(flag, :active_ruleset))) do
       {:ok,
@@ -108,7 +114,8 @@ defmodule Rulestead.Manifest.Load do
      |> maybe_put("tags", Map.get(flag, "tags", Map.get(flag, :tags, [])))}
   end
 
-  defp load_flag_payload(_flag), do: {:error, Manifest.invalid("manifest flag payload must be an object")}
+  defp load_flag_payload(_flag),
+    do: {:error, Manifest.invalid("manifest flag payload must be an object")}
 
   defp load_environment(environment) when is_map(environment) do
     {:ok,
@@ -116,7 +123,11 @@ defmodule Rulestead.Manifest.Load do
      |> maybe_put("status", Map.get(environment, "status", Map.get(environment, :status)))
      |> maybe_put(
        "active_ruleset_version",
-       Map.get(environment, "active_ruleset_version", Map.get(environment, :active_ruleset_version))
+       Map.get(
+         environment,
+         "active_ruleset_version",
+         Map.get(environment, :active_ruleset_version)
+       )
      )}
   end
 
@@ -147,7 +158,8 @@ defmodule Rulestead.Manifest.Load do
     end
   end
 
-  defp load_ruleset(_ruleset), do: {:error, Manifest.invalid("manifest active_ruleset must be an object")}
+  defp load_ruleset(_ruleset),
+    do: {:error, Manifest.invalid("manifest active_ruleset must be an object")}
 
   defp load_rule(rule) when is_map(rule) do
     {:ok,

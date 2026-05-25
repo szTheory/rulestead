@@ -31,15 +31,18 @@ defmodule Rulestead.CodeRefs.Scanner do
   end
 
   defp extract_references(ast, file_path) do
-    {_ast, acc} = Macro.prewalk(ast, [], fn
-      # Rulestead.evaluate(context, "flag_key", opts)
-      {{:., _, [{:__aliases__, _, [:Rulestead]}, :evaluate]}, meta, [_context, flag_key | _rest]} = node, acc
-      when is_binary(flag_key) ->
-        {node, [%{file: file_path, line: Keyword.get(meta, :line), flag_key: flag_key} | acc]}
+    {_ast, acc} =
+      Macro.prewalk(ast, [], fn
+        # Rulestead.evaluate(context, "flag_key", opts)
+        {{:., _, [{:__aliases__, _, [:Rulestead]}, :evaluate]}, meta,
+         [_context, flag_key | _rest]} = node,
+        acc
+        when is_binary(flag_key) ->
+          {node, [%{file: file_path, line: Keyword.get(meta, :line), flag_key: flag_key} | acc]}
 
-      node, acc ->
-        {node, acc}
-    end)
+        node, acc ->
+          {node, acc}
+      end)
 
     Enum.reverse(acc)
   end

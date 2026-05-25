@@ -1847,7 +1847,9 @@ defmodule Rulestead do
            ManifestResult.finding(
              promotion_status_code(status),
              "blocker",
-             plan["target_environment_key"], message: error.message)
+             plan["target_environment_key"],
+             message: error.message
+           )
          ],
          details: %{
            "plan" => plan,

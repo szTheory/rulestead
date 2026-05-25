@@ -35,7 +35,8 @@ defmodule Rulestead.Manifest.Import do
          {:ok, reason} <- require_reason(opts),
          :ok <- validate_target_tenant(plan, opts),
          :ok <- validate_plan_dependency_closure(plan),
-         {:ok, current_manifest} <- Rulestead.export_manifest(plan["target_environment_key"], opts),
+         {:ok, current_manifest} <-
+           Rulestead.export_manifest(plan["target_environment_key"], opts),
          :ok <- validate_target_fingerprint(plan, current_manifest),
          :ok <- validate_target_lifecycle(plan, current_manifest),
          :ok <- validate_referenced_audiences(plan),
@@ -97,10 +98,16 @@ defmodule Rulestead.Manifest.Import do
     }
   end
 
-  @spec preview_manifest(map(), String.t(), keyword()) :: {:ok, map()} | {:error, Rulestead.Error.t()}
+  @spec preview_manifest(map(), String.t(), keyword()) ::
+          {:ok, map()} | {:error, Rulestead.Error.t()}
   def preview_manifest(manifest, target_environment_key, opts \\ []) do
     with {:ok, target_manifest} <- Rulestead.export_manifest(target_environment_key, opts) do
-      {:ok, preview(manifest, target_manifest, Keyword.put(opts, :target_environment_key, target_environment_key))}
+      {:ok,
+       preview(
+         manifest,
+         target_manifest,
+         Keyword.put(opts, :target_environment_key, target_environment_key)
+       )}
     end
   end
 
@@ -117,7 +124,9 @@ defmodule Rulestead.Manifest.Import do
   end
 
   defp resolve_target_environment(manifest, opts) do
-    case Manifest.normalize_string(Keyword.get(opts, :target_environment, manifest["environment_key"])) do
+    case Manifest.normalize_string(
+           Keyword.get(opts, :target_environment, manifest["environment_key"])
+         ) do
       nil -> {:error, Manifest.invalid("import requires a target environment key")}
       value -> {:ok, value}
     end
@@ -171,7 +180,11 @@ defmodule Rulestead.Manifest.Import do
     |> Enum.flat_map(fn key ->
       case Map.get(audience_map, key) do
         nil ->
-          [Result.finding("missing_dependency", "blocker", key, message: "referenced audience was not found")]
+          [
+            Result.finding("missing_dependency", "blocker", key,
+              message: "referenced audience was not found"
+            )
+          ]
 
         audience ->
           archived_at = Map.get(audience, :archived_at) || Map.get(audience, "archived_at")
@@ -179,7 +192,11 @@ defmodule Rulestead.Manifest.Import do
           if is_nil(archived_at) do
             []
           else
-            [Result.finding("archived_dependency", "blocker", key, message: "referenced audience is archived")]
+            [
+              Result.finding("archived_dependency", "blocker", key,
+                message: "referenced audience is archived"
+              )
+            ]
           end
       end
     end)
@@ -263,7 +280,8 @@ defmodule Rulestead.Manifest.Import do
   end
 
   defp validate_plan_dependency_closure(plan) do
-    if plan["dependency_closure_keys"] == Plan.dependency_closure_from_bundle(plan["proposed_target_bundle"]) do
+    if plan["dependency_closure_keys"] ==
+         Plan.dependency_closure_from_bundle(plan["proposed_target_bundle"]) do
       :ok
     else
       {:error, StoreError.invalid_command("manifest import dependency closure drifted")}
@@ -293,14 +311,19 @@ defmodule Rulestead.Manifest.Import do
     source_tenant = source_manifest["tenant_key"]
 
     cond do
-      source_tenant == tenant_key -> []
-      is_nil(source_tenant) and not is_nil(tenant_key) -> []
+      source_tenant == tenant_key ->
+        []
+
+      is_nil(source_tenant) and not is_nil(tenant_key) ->
+        []
+
       not is_nil(source_tenant) and is_nil(tenant_key) ->
         [
           Result.finding("widened_tenant_scope", "blocker", source_manifest["environment_key"],
             message: "import preview would widen tenant scope from specific to all tenants"
           )
         ]
+
       true ->
         [
           Result.finding("mismatched_tenant_scope", "blocker", source_manifest["environment_key"],
@@ -309,6 +332,7 @@ defmodule Rulestead.Manifest.Import do
         ]
     end
   end
+
   defp validate_target_lifecycle(plan, current_manifest) do
     current_flags = Map.new(current_manifest["flags"], &{&1["flag_key"], &1})
 
@@ -318,19 +342,32 @@ defmodule Rulestead.Manifest.Import do
              _other -> false
            end
          end) do
-      nil -> :ok
-      flag_key -> {:error, StoreError.invalid_command("manifest import would revive an archived flag environment", metadata: %{flag_key: flag_key})}
+      nil ->
+        :ok
+
+      flag_key ->
+        {:error,
+         StoreError.invalid_command("manifest import would revive an archived flag environment",
+           metadata: %{flag_key: flag_key}
+         )}
     end
   end
 
   defp validate_referenced_audiences(plan) do
     findings = dependency_findings(plan["dependency_closure_keys"])
-    if blocker_findings?(findings), do: {:error, StoreError.invalid_command("manifest import has unresolved audience dependencies")}, else: :ok
+
+    if blocker_findings?(findings),
+      do:
+        {:error,
+         StoreError.invalid_command("manifest import has unresolved audience dependencies")},
+      else: :ok
   end
 
   defp validate_governance_posture(plan) do
-    if plan["status"] == "governance_required" or Compare.protected_target?(plan["target_environment_key"]) do
-      {:error, StoreError.invalid_command("manifest import to protected targets requires governance")}
+    if plan["status"] == "governance_required" or
+         Compare.protected_target?(plan["target_environment_key"]) do
+      {:error,
+       StoreError.invalid_command("manifest import to protected targets requires governance")}
     else
       :ok
     end
@@ -338,16 +375,17 @@ defmodule Rulestead.Manifest.Import do
 
   defp dispatch_apply(plan, reason, opts) do
     command =
-      Command.ApplyManifestImport.new(%{
-        source_environment_key: plan["source_environment_key"],
-        target_environment_key: plan["target_environment_key"],
-        tenant_key: plan["tenant_key"],
-        plan_token: plan["plan_token"],
-        target_fingerprint: plan["target_fingerprint"],
-        dependency_closure_keys: plan["dependency_closure_keys"],
-        flag_keys: plan["flag_keys"],
-        proposed_target_bundle: plan["proposed_target_bundle"]
-      },
+      Command.ApplyManifestImport.new(
+        %{
+          source_environment_key: plan["source_environment_key"],
+          target_environment_key: plan["target_environment_key"],
+          tenant_key: plan["tenant_key"],
+          plan_token: plan["plan_token"],
+          target_fingerprint: plan["target_fingerprint"],
+          dependency_closure_keys: plan["dependency_closure_keys"],
+          flag_keys: plan["flag_keys"],
+          proposed_target_bundle: plan["proposed_target_bundle"]
+        },
         actor: Keyword.get(opts, :actor),
         reason: reason,
         metadata: Keyword.get(opts, :metadata, %{})
@@ -380,10 +418,17 @@ defmodule Rulestead.Manifest.Import do
   defp map_apply_error(plan_content, %Rulestead.Error{message: message} = error) do
     status =
       cond do
-        String.contains?(message, "protected targets requires governance") -> "governance_required"
-        String.contains?(message, "drifted") or String.contains?(message, "stale") -> "stale"
-        String.contains?(message, "dependency") or String.contains?(message, "archived") -> "blocked"
-        true -> "invalid"
+        String.contains?(message, "protected targets requires governance") ->
+          "governance_required"
+
+        String.contains?(message, "drifted") or String.contains?(message, "stale") ->
+          "stale"
+
+        String.contains?(message, "dependency") or String.contains?(message, "archived") ->
+          "blocked"
+
+        true ->
+          "invalid"
       end
 
     with {:ok, plan} <- Plan.load(plan_content) do
@@ -395,8 +440,15 @@ defmodule Rulestead.Manifest.Import do
            "target_environment_key" => plan["target_environment_key"],
            "plan_token" => plan["plan_token"]
          },
-         findings: [Result.finding(status_code(status), "blocker", plan["target_environment_key"], message: message)],
-         details: %{"plan" => plan, "error" => Manifest.normalize_map(%{message: error.message, type: error.type})}
+         findings: [
+           Result.finding(status_code(status), "blocker", plan["target_environment_key"],
+             message: message
+           )
+         ],
+         details: %{
+           "plan" => plan,
+           "error" => Manifest.normalize_map(%{message: error.message, type: error.type})
+         }
        })}
     end
   end

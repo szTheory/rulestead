@@ -38,7 +38,10 @@ defmodule RulesteadTest do
     on_exit(fn -> :telemetry.detach(handler_id) end)
 
     assert {:ok, false} = Rulestead.enabled?(sticky_payload(), %{})
-    assert_receive {:warning_event, %{count: 1}, %{flag_key: "checkout-redesign", reason: :missing_targeting_key}}
+
+    assert_receive {:warning_event, %{count: 1},
+                    %{flag_key: "checkout-redesign", reason: :missing_targeting_key}}
+
     refute_receive {:warning_event, _, _}
   end
 

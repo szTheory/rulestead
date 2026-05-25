@@ -65,7 +65,9 @@ defmodule Rulestead.Oban.ScheduledExecutionWorker do
     do: %{"id" => "system:scheduler", "type" => "system", "display" => "Scheduler"}
 
   defp execution_actor(%Context{actor: actor}) when is_map(actor), do: Map.new(actor)
-  defp execution_actor(_context), do: %{"id" => "system:scheduler", "type" => "system", "display" => "Scheduler"}
+
+  defp execution_actor(_context),
+    do: %{"id" => "system:scheduler", "type" => "system", "display" => "Scheduler"}
 
   defp fetch_arg(args, key), do: Map.get(args, key) || Map.get(args, String.to_atom(key))
 

@@ -26,7 +26,7 @@ defmodule Rulestead.Store.FakeContractTest do
       valid_flag_attrs(%{
         key: "ops-cleanup",
         ownership: %{owner_ref: "ops", owner_kind: :team},
-      lifecycle: %{mode: :expiring, default_source: :flag_type, default_overridden: false},
+        lifecycle: %{mode: :expiring, default_source: :flag_type, default_overridden: false},
         expected_expiration: ~D[2026-04-20],
         code_reference_count: 0,
         code_refs_scan: %{received_at: ~U[2026-04-23 15:50:00Z], reference_count: 0}
@@ -37,7 +37,7 @@ defmodule Rulestead.Store.FakeContractTest do
       valid_flag_attrs(%{
         key: "checkout-redesign",
         ownership: %{owner_ref: "growth", owner_kind: :team},
-      lifecycle: %{mode: :permanent, default_source: :flag_type, default_overridden: false},
+        lifecycle: %{mode: :permanent, default_source: :flag_type, default_overridden: false},
         code_reference_count: 2,
         code_refs_scan: %{received_at: ~U[2026-04-23 15:50:00Z], reference_count: 2}
       })
@@ -74,7 +74,9 @@ defmodule Rulestead.Store.FakeContractTest do
     assert entry.lifecycle.archive_readiness.readiness == :archive_candidate
     assert entry.lifecycle.freshness.code_references == :fresh_refs_absent
 
-    assert {:ok, detail} = @store_module.fetch_flag(fetch_flag_command("checkout-redesign", "test"))
+    assert {:ok, detail} =
+             @store_module.fetch_flag(fetch_flag_command("checkout-redesign", "test"))
+
     assert detail.lifecycle.archive_readiness.readiness == :keep_active
     assert detail.lifecycle.freshness.code_references == :refs_present
   end

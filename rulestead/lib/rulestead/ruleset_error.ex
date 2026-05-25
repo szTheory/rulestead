@@ -2,7 +2,6 @@ defmodule Rulestead.RulesetError do
   @moduledoc false
   # Constructors for ruleset-domain `Rulestead.Error` values.
 
-
   alias Rulestead.Error
 
   @spec new(Error.type(), String.t(), keyword()) :: Error.t()

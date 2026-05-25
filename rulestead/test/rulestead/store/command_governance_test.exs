@@ -32,7 +32,11 @@ defmodule Rulestead.Store.CommandGovernanceTest do
         },
         actor: %{id: 42, type: :operator, display: "Ops"},
         reason: "Promote ruleset",
-        metadata: [request_id: "req-123", source: :admin_ui, nested: %{correlation_id: "corr-123"}]
+        metadata: [
+          request_id: "req-123",
+          source: :admin_ui,
+          nested: %{correlation_id: "corr-123"}
+        ]
       })
 
     assert %Command.SubmitChangeRequest{
@@ -103,6 +107,10 @@ defmodule Rulestead.Store.CommandGovernanceTest do
              status: :submitted,
              limit: 20
            } =
-             Command.ListChangeRequests.new(environment_key: :production, status: :submitted, limit: 20)
+             Command.ListChangeRequests.new(
+               environment_key: :production,
+               status: :submitted,
+               limit: 20
+             )
   end
 end

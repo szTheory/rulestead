@@ -256,7 +256,9 @@ defmodule Rulestead.Store.CompareContractTest do
                 conditions: []
               }
             ]
-          }), version: 2)
+          }),
+          version: 2
+        )
 
         assert {:ok, stale_compare} =
                  @store_module.compare_environments(

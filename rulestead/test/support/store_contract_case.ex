@@ -195,7 +195,8 @@ defmodule Rulestead.StoreContractCase do
         assert {:error, %Error{domain: :store, type: :flag_archived}} =
                  @store_module.save_draft_ruleset(save_draft_command())
 
-        assert {:ok, %Rulestead.Store.Command.Page{entries: []}} = @store_module.list_flags(list_flags_command())
+        assert {:ok, %Rulestead.Store.Command.Page{entries: []}} =
+                 @store_module.list_flags(list_flags_command())
 
         assert {:ok, %Rulestead.Store.Command.Page{entries: [archived_entry]}} =
                  @store_module.list_flags(list_flags_command(include_archived?: true))

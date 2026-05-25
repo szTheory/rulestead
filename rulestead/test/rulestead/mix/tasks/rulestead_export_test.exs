@@ -27,9 +27,7 @@ defmodule Rulestead.Mix.Tasks.RulesteadExportTest do
              )
 
     assert {:ok, _} =
-             Rulestead.publish_ruleset(
-               publish_ruleset_command("checkout-redesign", "staging")
-             )
+             Rulestead.publish_ruleset(publish_ruleset_command("checkout-redesign", "staging"))
 
     on_exit(fn ->
       case previous_store do

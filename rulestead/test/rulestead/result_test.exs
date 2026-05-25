@@ -35,8 +35,13 @@ defmodule Rulestead.ResultTest do
   end
 
   test "evaluation errors expose missing targeting and malformed runtime constructors" do
-    assert %Rulestead.Error{type: :missing_targeting_key} = EvaluationError.missing_targeting_key()
-    assert %Rulestead.Error{type: :malformed_runtime_data} = EvaluationError.malformed_runtime_data()
-    assert %Rulestead.Error{type: :invalid_value_projection} = EvaluationError.invalid_value_projection()
+    assert %Rulestead.Error{type: :missing_targeting_key} =
+             EvaluationError.missing_targeting_key()
+
+    assert %Rulestead.Error{type: :malformed_runtime_data} =
+             EvaluationError.malformed_runtime_data()
+
+    assert %Rulestead.Error{type: :invalid_value_projection} =
+             EvaluationError.invalid_value_projection()
   end
 end

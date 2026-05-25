@@ -29,12 +29,15 @@ defmodule Rulestead.WebhookOutboundAdapterContractTest do
       submitter = %{id: "submitter-1", type: "operator", display: "Submitter"}
 
       # Create a destination that subscribes to change_request.submitted
-      {:ok, dest} = adapter.create_webhook_destination(Command.CreateWebhookDestination.new(%{
-        name: "Test Slack",
-        url: "https://hooks.slack.com/...",
-        environment_key: "test",
-        subscriptions: ["change_request.submitted"]
-      }))
+      {:ok, dest} =
+        adapter.create_webhook_destination(
+          Command.CreateWebhookDestination.new(%{
+            name: "Test Slack",
+            url: "https://hooks.slack.com/...",
+            environment_key: "test",
+            subscriptions: ["change_request.submitted"]
+          })
+        )
 
       submit_command =
         Command.SubmitChangeRequest.new(
@@ -61,7 +64,11 @@ defmodule Rulestead.WebhookOutboundAdapterContractTest do
       assert {:ok, %{change_request: submitted}} = adapter.submit_change_request(submit_command)
       assert submitted.state == :submitted
 
-      {:ok, deliveries_page} = adapter.list_webhook_deliveries(Command.ListWebhookDeliveries.new(destination_id: dest.id))
+      {:ok, deliveries_page} =
+        adapter.list_webhook_deliveries(
+          Command.ListWebhookDeliveries.new(destination_id: dest.id)
+        )
+
       assert [%{state: :pending} = delivery] = deliveries_page.entries
 
       # Enqueue should have created an Oban job
@@ -119,8 +126,13 @@ defmodule Rulestead.WebhookOutboundAdapterContractTest do
 
   defp ensure_phase9_schema! do
     # Re-use schema from GovernanceAdapterContractTest
-    Rulestead.Repo.query!("ALTER TABLE flags ADD COLUMN IF NOT EXISTS permanent boolean DEFAULT false")
-    Rulestead.Repo.query!("ALTER TABLE flag_environments ADD COLUMN IF NOT EXISTS last_evaluated_at timestamp(6) with time zone")
+    Rulestead.Repo.query!(
+      "ALTER TABLE flags ADD COLUMN IF NOT EXISTS permanent boolean DEFAULT false"
+    )
+
+    Rulestead.Repo.query!(
+      "ALTER TABLE flag_environments ADD COLUMN IF NOT EXISTS last_evaluated_at timestamp(6) with time zone"
+    )
 
     Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS change_requests (
       id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -159,7 +171,7 @@ defmodule Rulestead.WebhookOutboundAdapterContractTest do
       inserted_at timestamp(6) with time zone NOT NULL,
       updated_at timestamp(6) with time zone NOT NULL
     )")
-    
+
     Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS webhook_outbound_events (
       id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
       event_type text NOT NULL,

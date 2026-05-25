@@ -2,7 +2,6 @@ defmodule Rulestead.Telemetry do
   @moduledoc false
   # Shared telemetry helpers for the locked Phase 4 public event catalog.
 
-
   alias Rulestead.{Context, Result}
 
   @handler_table :rulestead_telemetry_handlers
@@ -22,8 +21,9 @@ defmodule Rulestead.Telemetry do
   @type event_name :: [atom()]
   @type metadata :: map()
 
-  @spec span(event_prefix(), metadata(), (() -> {term(), metadata()} | term())) :: term()
-  def span(event_prefix, metadata, fun) when is_list(event_prefix) and is_map(metadata) and is_function(fun, 0) do
+  @spec span(event_prefix(), metadata(), (-> {term(), metadata()} | term())) :: term()
+  def span(event_prefix, metadata, fun)
+      when is_list(event_prefix) and is_map(metadata) and is_function(fun, 0) do
     normalized_prefix = normalize_event_prefix(event_prefix)
     start_metadata = metadata(metadata)
 
@@ -44,7 +44,8 @@ defmodule Rulestead.Telemetry do
     :telemetry.execute(event_name, measurements, metadata(metadata))
   end
 
-  @spec attach_many(term(), [event_name()], :telemetry.handler_function(), term()) :: :ok | {:error, term()}
+  @spec attach_many(term(), [event_name()], :telemetry.handler_function(), term()) ::
+          :ok | {:error, term()}
   def attach_many(handler_id, events, function, config)
       when is_list(events) and is_function(function, 4) do
     ensure_handler_table()
@@ -81,7 +82,10 @@ defmodule Rulestead.Telemetry do
     attrs
     |> Map.new()
     |> Map.put_new(:flag_key, get_in(flag_payload || %{}, [:flag, :key]) |> stringify())
-    |> Map.put_new(:flag_type, get_in(flag_payload || %{}, [:flag, :flag_type]) |> normalize_atom())
+    |> Map.put_new(
+      :flag_type,
+      get_in(flag_payload || %{}, [:flag, :flag_type]) |> normalize_atom()
+    )
     |> Map.put_new(:environment, environment_value(flag_payload, context, attrs))
     |> Map.put_new(:has_targeting_key?, not is_nil(context.targeting_key))
   end
@@ -116,12 +120,32 @@ defmodule Rulestead.Telemetry do
   def runtime_metadata(runtime_metadata, attrs \\ %{}) when is_map(runtime_metadata) do
     attrs
     |> Map.new()
-    |> Map.put_new(:environment, stringify(runtime_metadata[:environment_key] || runtime_metadata["environment_key"]))
-    |> Map.put_new(:snapshot_version, runtime_metadata[:snapshot_version] || runtime_metadata["snapshot_version"])
-    |> Map.put_new(:cache_age_ms, runtime_metadata[:cache_age_ms] || runtime_metadata["cache_age_ms"])
-    |> Map.put_new(:refresh_status, normalize_atom(runtime_metadata[:refresh_status] || runtime_metadata["refresh_status"]))
-    |> Map.put_new(:source, normalize_atom(runtime_metadata[:source] || runtime_metadata["source"]))
-    |> Map.put_new(:reason, normalize_atom(runtime_metadata[:last_refresh_error] || runtime_metadata["last_refresh_error"]))
+    |> Map.put_new(
+      :environment,
+      stringify(runtime_metadata[:environment_key] || runtime_metadata["environment_key"])
+    )
+    |> Map.put_new(
+      :snapshot_version,
+      runtime_metadata[:snapshot_version] || runtime_metadata["snapshot_version"]
+    )
+    |> Map.put_new(
+      :cache_age_ms,
+      runtime_metadata[:cache_age_ms] || runtime_metadata["cache_age_ms"]
+    )
+    |> Map.put_new(
+      :refresh_status,
+      normalize_atom(runtime_metadata[:refresh_status] || runtime_metadata["refresh_status"])
+    )
+    |> Map.put_new(
+      :source,
+      normalize_atom(runtime_metadata[:source] || runtime_metadata["source"])
+    )
+    |> Map.put_new(
+      :reason,
+      normalize_atom(
+        runtime_metadata[:last_refresh_error] || runtime_metadata["last_refresh_error"]
+      )
+    )
   end
 
   @spec command_metadata(struct(), map()) :: map()
@@ -143,11 +167,27 @@ defmodule Rulestead.Telemetry do
 
     %{}
     |> Map.put_new(:operation, governance_operation(command))
-    |> Map.put_new(:change_request_id, Map.get(attrs, :change_request_id) || Map.get(command_map, :change_request_id))
-    |> Map.put_new(:correlation_id, Map.get(attrs, :correlation_id) || Map.get(metadata, "correlation_id"))
-    |> Map.put_new(:audit_event_id, Map.get(attrs, :audit_event_id) || Map.get(metadata, "audit_event_id"))
-    |> Map.put_new(:resource_key, Map.get(attrs, :resource_key) || Map.get(metadata, "resource_key"))
-    |> Map.put_new(:environment, Map.get(attrs, :environment_key) || Map.get(command_map, :environment_key) || Map.get(metadata, "environment_key"))
+    |> Map.put_new(
+      :change_request_id,
+      Map.get(attrs, :change_request_id) || Map.get(command_map, :change_request_id)
+    )
+    |> Map.put_new(
+      :correlation_id,
+      Map.get(attrs, :correlation_id) || Map.get(metadata, "correlation_id")
+    )
+    |> Map.put_new(
+      :audit_event_id,
+      Map.get(attrs, :audit_event_id) || Map.get(metadata, "audit_event_id")
+    )
+    |> Map.put_new(
+      :resource_key,
+      Map.get(attrs, :resource_key) || Map.get(metadata, "resource_key")
+    )
+    |> Map.put_new(
+      :environment,
+      Map.get(attrs, :environment_key) || Map.get(command_map, :environment_key) ||
+        Map.get(metadata, "environment_key")
+    )
     |> Map.put_new(:audit_action, Map.get(attrs, :action))
     |> Map.put_new(:reason, Map.get(attrs, :event))
   end
@@ -175,16 +215,46 @@ defmodule Rulestead.Telemetry do
 
     %{}
     |> Map.put_new(:operation, "scheduled_execution")
-    |> Map.put_new(:change_request_id, Map.get(attrs, :change_request_id) || scheduled_execution[:change_request_id] || scheduled_execution["change_request_id"])
-    |> Map.put_new(:correlation_id, Map.get(attrs, :correlation_id) || scheduled_execution[:correlation_id] || scheduled_execution["correlation_id"])
+    |> Map.put_new(
+      :change_request_id,
+      Map.get(attrs, :change_request_id) || scheduled_execution[:change_request_id] ||
+        scheduled_execution["change_request_id"]
+    )
+    |> Map.put_new(
+      :correlation_id,
+      Map.get(attrs, :correlation_id) || scheduled_execution[:correlation_id] ||
+        scheduled_execution["correlation_id"]
+    )
     |> Map.put_new(:audit_event_id, Map.get(attrs, :audit_event_id))
-    |> Map.put_new(:resource_key, Map.get(attrs, :resource_key) || scheduled_execution[:resource_key] || scheduled_execution["resource_key"])
-    |> Map.put_new(:audit_action, Map.get(attrs, :action) || scheduled_execution[:action] || scheduled_execution["action"])
-    |> Map.put_new(:governance_action, Map.get(attrs, :action) || scheduled_execution[:action] || scheduled_execution["action"])
-    |> Map.put_new(:environment, Map.get(attrs, :environment_key) || scheduled_execution[:environment_key] || scheduled_execution["environment_key"])
-    |> Map.put_new(:environment_key, Map.get(attrs, :environment_key) || scheduled_execution[:environment_key] || scheduled_execution["environment_key"])
+    |> Map.put_new(
+      :resource_key,
+      Map.get(attrs, :resource_key) || scheduled_execution[:resource_key] ||
+        scheduled_execution["resource_key"]
+    )
+    |> Map.put_new(
+      :audit_action,
+      Map.get(attrs, :action) || scheduled_execution[:action] || scheduled_execution["action"]
+    )
+    |> Map.put_new(
+      :governance_action,
+      Map.get(attrs, :action) || scheduled_execution[:action] || scheduled_execution["action"]
+    )
+    |> Map.put_new(
+      :environment,
+      Map.get(attrs, :environment_key) || scheduled_execution[:environment_key] ||
+        scheduled_execution["environment_key"]
+    )
+    |> Map.put_new(
+      :environment_key,
+      Map.get(attrs, :environment_key) || scheduled_execution[:environment_key] ||
+        scheduled_execution["environment_key"]
+    )
     |> Map.put_new(:attempt_count, Map.get(attrs, :attempt_count))
-    |> Map.put_new(:execution_mode, Map.get(attrs, :execution_mode) || scheduled_execution[:execution_mode] || scheduled_execution["execution_mode"])
+    |> Map.put_new(
+      :execution_mode,
+      Map.get(attrs, :execution_mode) || scheduled_execution[:execution_mode] ||
+        scheduled_execution["execution_mode"]
+    )
     |> Map.put_new(:executed_by, Map.get(attrs, :executed_by))
     |> Map.put_new(:reason, Map.get(attrs, :event))
   end
@@ -207,13 +277,18 @@ defmodule Rulestead.Telemetry do
   @spec webhook_delivery_event(atom(), map(), map()) :: :ok
   def webhook_delivery_event(status, delivery, attrs \\ %{}) do
     metadata = webhook_outbound_metadata(delivery, attrs)
-    execute([:rulestead, :admin, :webhook_outbound, status], %{system_time: System.system_time()}, metadata)
+
+    execute(
+      [:rulestead, :admin, :webhook_outbound, status],
+      %{system_time: System.system_time()},
+      metadata
+    )
   end
 
   @spec webhook_outbound_metadata(map(), map()) :: map()
   def webhook_outbound_metadata(delivery, attrs \\ %{}) when is_map(delivery) and is_map(attrs) do
     attrs = Map.new(attrs)
-    
+
     delivery_map = if is_struct(delivery), do: Map.from_struct(delivery), else: delivery
     event = delivery_map[:webhook_outbound_event] || delivery_map["webhook_outbound_event"] || %{}
     event_map = if is_struct(event), do: Map.from_struct(event), else: event
@@ -294,13 +369,41 @@ defmodule Rulestead.Telemetry do
   defp sanitize_value(:cache_age_ms, value) when is_integer(value) and value >= 0, do: value
   defp sanitize_value(:snapshot_version, value) when is_integer(value) and value > 0, do: value
   defp sanitize_value(:attempt_count, value) when is_integer(value) and value >= 0, do: value
-  defp sanitize_value(key, value) when key in [:has_targeting_key?] and is_boolean(value), do: value
-  defp sanitize_value(key, value) when key in [:matched_rule_count] and is_integer(value) and value >= 0, do: value
-  defp sanitize_value(key, value) when key in [:experiment_bucket] and (is_integer(value) or value == "holdout"), do: value
+
+  defp sanitize_value(key, value) when key in [:has_targeting_key?] and is_boolean(value),
+    do: value
+
   defp sanitize_value(key, value)
-       when key in [:flag_key, :environment, :environment_key, :operation, :audit_action, :change_request_id, :correlation_id, :audit_event_id, :resource_key, :governance_action, :execution_mode, :executed_by, :webhook_provider, :webhook_delivery_id, :webhook_receipt_id, :rejection_reason],
+       when key in [:matched_rule_count] and is_integer(value) and value >= 0, do: value
+
+  defp sanitize_value(key, value)
+       when key in [:experiment_bucket] and (is_integer(value) or value == "holdout"), do: value
+
+  defp sanitize_value(key, value)
+       when key in [
+              :flag_key,
+              :environment,
+              :environment_key,
+              :operation,
+              :audit_action,
+              :change_request_id,
+              :correlation_id,
+              :audit_event_id,
+              :resource_key,
+              :governance_action,
+              :execution_mode,
+              :executed_by,
+              :webhook_provider,
+              :webhook_delivery_id,
+              :webhook_receipt_id,
+              :rejection_reason
+            ],
        do: stringify(value)
-  defp sanitize_value(key, value) when key in [:flag_type, :reason, :source, :refresh_status, :error_kind], do: normalize_atom(value)
+
+  defp sanitize_value(key, value)
+       when key in [:flag_type, :reason, :source, :refresh_status, :error_kind],
+       do: normalize_atom(value)
+
   defp sanitize_value(_key, _value), do: nil
 
   defp stringify(nil), do: nil

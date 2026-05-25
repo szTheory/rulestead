@@ -23,7 +23,10 @@ defmodule Rulestead.Ruleset.Experiment do
     |> cast(attrs, [:iteration_salt, :bucket_by, :holdout_percentage])
     |> update_change(:iteration_salt, &normalize_string/1)
     |> validate_required([:iteration_salt, :bucket_by, :holdout_percentage])
-    |> validate_number(:holdout_percentage, greater_than_or_equal_to: 0, less_than_or_equal_to: 100)
+    |> validate_number(:holdout_percentage,
+      greater_than_or_equal_to: 0,
+      less_than_or_equal_to: 100
+    )
     |> validate_length(:iteration_salt, max: 255)
   end
 

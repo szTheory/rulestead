@@ -26,7 +26,8 @@ defmodule Rulestead.Promotion.Apply do
     validate(command, allow_protected_target?: true)
   end
 
-  @spec validate_governed_snapshot(Command.ApplyPromotion.t()) :: :ok | {:error, Rulestead.Error.t()}
+  @spec validate_governed_snapshot(Command.ApplyPromotion.t()) ::
+          :ok | {:error, Rulestead.Error.t()}
   def validate_governed_snapshot(%Command.ApplyPromotion{} = command) do
     validate_schema_version(command)
   end

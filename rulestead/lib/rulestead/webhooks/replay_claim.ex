@@ -7,9 +7,9 @@ defmodule Rulestead.Webhooks.ReplayClaim do
 
   @primary_key false
   schema "webhook_replay_claims" do
-    field :provider, :string, primary_key: true
-    field :delivery_id, :string, primary_key: true
-    belongs_to :receipt, Rulestead.Webhooks.InboundReceipt, type: :binary_id
+    field(:provider, :string, primary_key: true)
+    field(:delivery_id, :string, primary_key: true)
+    belongs_to(:receipt, Rulestead.Webhooks.InboundReceipt, type: :binary_id)
 
     timestamps(type: :utc_datetime_usec, updated_at: false)
   end

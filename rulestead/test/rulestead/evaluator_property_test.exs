@@ -5,9 +5,11 @@ defmodule Rulestead.EvaluatorPropertyTest do
   alias Rulestead.Evaluator
 
   property "first-match-wins is determined only by rule order" do
-    check all value_a <- boolean(),
-              value_b <- boolean(),
-              plan <- member_of(["enterprise", "starter"]) do
+    check all(
+            value_a <- boolean(),
+            value_b <- boolean(),
+            plan <- member_of(["enterprise", "starter"])
+          ) do
       first_payload = payload_for([value_a, value_b])
       second_payload = payload_for([value_b, value_a])
       context = %{attributes: %{plan: plan}}
@@ -26,7 +28,7 @@ defmodule Rulestead.EvaluatorPropertyTest do
   end
 
   property "public projections stay consistent with evaluate/3" do
-    check all targeting_key <- string(:ascii, min_length: 1, max_length: 24) do
+    check all(targeting_key <- string(:ascii, min_length: 1, max_length: 24)) do
       payload = %{
         flag: %{key: "variant-flag", default_value: %{value: false}},
         environment: %{key: "test"},
@@ -61,7 +63,7 @@ defmodule Rulestead.EvaluatorPropertyTest do
   end
 
   property "tenant-aware bucketing remains deterministic" do
-    check all tenant_key <- string(:ascii, min_length: 1, max_length: 24) do
+    check all(tenant_key <- string(:ascii, min_length: 1, max_length: 24)) do
       payload = %{
         flag: %{key: "tenant-flag", default_value: %{value: false}},
         environment: %{key: "test"},
@@ -80,10 +82,10 @@ defmodule Rulestead.EvaluatorPropertyTest do
       }
 
       context = %Rulestead.Context{tenant_key: tenant_key}
-      
+
       assert {:ok, result1} = Rulestead.Evaluator.evaluate(payload, context)
       assert {:ok, result2} = Rulestead.Evaluator.evaluate(payload, context)
-      
+
       assert result1.value == result2.value
     end
   end
@@ -100,13 +102,17 @@ defmodule Rulestead.EvaluatorPropertyTest do
             key: "rule-a",
             strategy: :forced_value,
             value: %{value: first_value},
-            conditions: [%{attribute: "attributes.plan", operator: :equals, value: %{equals: "enterprise"}}]
+            conditions: [
+              %{attribute: "attributes.plan", operator: :equals, value: %{equals: "enterprise"}}
+            ]
           },
           %{
             key: "rule-b",
             strategy: :forced_value,
             value: %{value: second_value},
-            conditions: [%{attribute: "attributes.plan", operator: :equals, value: %{equals: "enterprise"}}]
+            conditions: [
+              %{attribute: "attributes.plan", operator: :equals, value: %{equals: "enterprise"}}
+            ]
           }
         ]
       }

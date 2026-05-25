@@ -34,8 +34,11 @@ defmodule Mix.Tasks.Verify.WorkspaceClean do
 
   def verify_paths(paths, cmd_runner \\ &default_status_cmd/1) do
     case cmd_runner.(paths) do
-      {output, 0} -> verify_status(output)
-      {output, status} -> Mix.raise("git status failed with exit #{status}: #{String.trim(output)}")
+      {output, 0} ->
+        verify_status(output)
+
+      {output, status} ->
+        Mix.raise("git status failed with exit #{status}: #{String.trim(output)}")
     end
   end
 

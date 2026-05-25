@@ -51,12 +51,23 @@ defmodule Rulestead.Ruleset.Condition do
 
   defp validate_operator_value(changeset) do
     case get_field(changeset, :operator) do
-      nil -> changeset
-      :exists -> validate_exists_value(changeset)
-      :regex -> validate_regex_value(changeset)
-      operator when operator in [:in, :not_in] -> validate_list_value(changeset)
-      operator when operator in [:gt, :lt, :gte, :lte] -> validate_scalar_value(changeset, operator, :number)
-      :equals -> validate_scalar_value(changeset, :equals, :any)
+      nil ->
+        changeset
+
+      :exists ->
+        validate_exists_value(changeset)
+
+      :regex ->
+        validate_regex_value(changeset)
+
+      operator when operator in [:in, :not_in] ->
+        validate_list_value(changeset)
+
+      operator when operator in [:gt, :lt, :gte, :lte] ->
+        validate_scalar_value(changeset, operator, :number)
+
+      :equals ->
+        validate_scalar_value(changeset, :equals, :any)
     end
   end
 
@@ -150,7 +161,7 @@ defmodule Rulestead.Ruleset.Condition do
   defp scalar_type(value) when is_float(value), do: :float
   defp scalar_type(value) when is_boolean(value), do: :boolean
   defp scalar_type(value) when is_atom(value), do: :atom
-  defp scalar_type(nil), do: :nil
+  defp scalar_type(nil), do: nil
   defp scalar_type(_value), do: :invalid
 
   defp normalize_string(value) when is_binary(value), do: String.trim(value)

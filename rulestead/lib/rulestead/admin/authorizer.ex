@@ -7,7 +7,7 @@ defmodule Rulestead.Admin.Authorizer do
   @canonical_viewer_roles ~w(viewer editor admin)a
   @canonical_editor_roles ~w(editor admin)a
   @canonical_admin_roles ~w(admin)a
-  
+
   @governed_actions Rulestead.Admin.Policy.governance_actions()
 
   @type audit_payload :: %{
@@ -164,7 +164,8 @@ defmodule Rulestead.Admin.Authorizer do
       production_environment?(environment_key) ->
         Enum.any?(roles, &(&1 in @canonical_admin_roles))
 
-      action in Rulestead.Admin.Policy.editor_actions() or action in Rulestead.Admin.Policy.governance_actions() ->
+      action in Rulestead.Admin.Policy.editor_actions() or
+          action in Rulestead.Admin.Policy.governance_actions() ->
         Enum.any?(roles, &(&1 in @canonical_editor_roles))
 
       true ->
@@ -320,7 +321,7 @@ defmodule Rulestead.Admin.Authorizer do
   defp normalize_resource(_resource), do: %{resource_type: nil, resource_key: nil}
 
   defp normalize_role(nil), do: nil
-  
+
   defp normalize_role(value) when is_atom(value) do
     value |> Atom.to_string() |> normalize_role()
   end

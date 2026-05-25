@@ -133,21 +133,19 @@ defmodule Rulestead.GovernanceFacadeContractTest do
                "self_approval_allowed?" => false
              }
            } =
-             Command.SubmitChangeRequest.new(
-               %{
-                 action: :promote_environment,
-                 environment_key: "production",
-                 resource_type: "environment",
-                 resource_key: "production",
-                 command: %{
-                   compare_token: "cmp_123",
-                   flag_keys: ["checkout-redesign"],
-                   source_environment_key: "staging",
-                   target_environment_key: "production"
-                 },
-                 approval_requirement: approval_requirement
-               }
-             )
+             Command.SubmitChangeRequest.new(%{
+               action: :promote_environment,
+               environment_key: "production",
+               resource_type: "environment",
+               resource_key: "production",
+               command: %{
+                 compare_token: "cmp_123",
+                 flag_keys: ["checkout-redesign"],
+                 source_environment_key: "staging",
+                 target_environment_key: "production"
+               },
+               approval_requirement: approval_requirement
+             })
   end
 
   test "facade exposes change-request fetch and list reads through the public seam" do
@@ -231,7 +229,10 @@ defmodule Rulestead.GovernanceFacadeContractTest do
 
   test "governance telemetry metadata keeps the canonical correlated fields" do
     metadata =
-      %Command.ExecuteChangeRequest{change_request_id: "cr-123", metadata: %{request_id: "req-123"}}
+      %Command.ExecuteChangeRequest{
+        change_request_id: "cr-123",
+        metadata: %{request_id: "req-123"}
+      }
       |> Telemetry.governance_metadata(%{
         event: :merged,
         action: :publish_ruleset,

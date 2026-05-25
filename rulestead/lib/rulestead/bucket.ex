@@ -37,7 +37,12 @@ defmodule Rulestead.Bucket do
   @spec effective_salt(String.t() | nil, String.t() | nil, atom() | String.t() | nil, namespace()) ::
           String.t()
   def effective_salt(ruleset_salt, rollout_salt, bucket_by, namespace) do
-    [normalize_string(ruleset_salt), normalize_string(rollout_salt), normalize_bucket_by(bucket_by), normalize_namespace(namespace)]
+    [
+      normalize_string(ruleset_salt),
+      normalize_string(rollout_salt),
+      normalize_bucket_by(bucket_by),
+      normalize_namespace(namespace)
+    ]
     |> Enum.join(":")
   end
 

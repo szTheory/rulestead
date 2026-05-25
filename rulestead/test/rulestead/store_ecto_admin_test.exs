@@ -33,23 +33,39 @@ defmodule Rulestead.StoreEctoAdminTest do
 
   test "ecto list_flags/1 and fetch_flag/1 expose admin payloads, filters, and cursor navigation" do
     seed_environment!("qa")
+
     seed_flag!(
       "checkout-redesign",
       ownership: %{owner_ref: "growth", owner_kind: :team},
-      lifecycle: %{mode: :permanent, review_by: nil, default_source: :flag_type, default_overridden: false},
+      lifecycle: %{
+        mode: :permanent,
+        review_by: nil,
+        default_source: :flag_type,
+        default_overridden: false
+      },
       tags: ["checkout"]
     )
 
     seed_flag!("ops-cleanup",
       ownership: %{owner_ref: "ops", owner_kind: :team},
       tags: ["infra"],
-      lifecycle: %{mode: :expiring, review_by: ~D[2026-04-20], default_source: :flag_type, default_overridden: false}
+      lifecycle: %{
+        mode: :expiring,
+        review_by: ~D[2026-04-20],
+        default_source: :flag_type,
+        default_overridden: false
+      }
     )
 
     seed_flag!("search-ranking",
       ownership: %{owner_ref: "growth", owner_kind: :team},
       tags: ["search"],
-      lifecycle: %{mode: :expiring, review_by: ~D[2026-04-28], default_source: :flag_type, default_overridden: false}
+      lifecycle: %{
+        mode: :expiring,
+        review_by: ~D[2026-04-28],
+        default_source: :flag_type,
+        default_overridden: false
+      }
     )
 
     publish_flag!("checkout-redesign")
@@ -81,9 +97,9 @@ defmodule Rulestead.StoreEctoAdminTest do
                Command.RecordEvaluation.new(
                  "search-ranking",
                  "test",
-               DateTime.add(now, -2_700, :second)
+                 DateTime.add(now, -2_700, :second)
+               )
              )
-           )
 
     insert_scan_receipt!(DateTime.add(now, -600, :second), 1)
     insert_code_reference!("checkout-redesign", "lib/checkout/redesign.ex", 12)
@@ -169,7 +185,12 @@ defmodule Rulestead.StoreEctoAdminTest do
                Command.UpdateFlag.new("inventory-admin", %{
                  description: "Updated inventory control plane",
                  ownership: %{owner_ref: "ops", owner_kind: :team},
-                 lifecycle: %{mode: :expiring, review_by: ~D[2026-05-15], default_source: :flag_type, default_overridden: false},
+                 lifecycle: %{
+                   mode: :expiring,
+                   review_by: ~D[2026-05-15],
+                   default_source: :flag_type,
+                   default_overridden: false
+                 },
                  tags: ["admin", "critical"]
                })
              )
@@ -191,7 +212,9 @@ defmodule Rulestead.StoreEctoAdminTest do
 
     assert {:error, %Rulestead.Error{type: :flag_archived}} =
              StoreEcto.update_flag(
-               Command.UpdateFlag.new("inventory-admin", %{ownership: %{owner_ref: "growth", owner_kind: :team}})
+               Command.UpdateFlag.new("inventory-admin", %{
+                 ownership: %{owner_ref: "growth", owner_kind: :team}
+               })
              )
   end
 
@@ -251,17 +274,15 @@ defmodule Rulestead.StoreEctoAdminTest do
       "ALTER TABLE flag_environments ADD COLUMN IF NOT EXISTS last_evaluated_at timestamp(6) with time zone"
     )
 
-    Rulestead.Repo.query!(
-      """
-      CREATE TABLE IF NOT EXISTS code_reference_scans (
-        id uuid PRIMARY KEY,
-        received_at timestamp(6) with time zone NOT NULL,
-        reference_count integer NOT NULL DEFAULT 0,
-        inserted_at timestamp(6) with time zone NOT NULL,
-        updated_at timestamp(6) with time zone NOT NULL
-      )
-      """
+    Rulestead.Repo.query!("""
+    CREATE TABLE IF NOT EXISTS code_reference_scans (
+      id uuid PRIMARY KEY,
+      received_at timestamp(6) with time zone NOT NULL,
+      reference_count integer NOT NULL DEFAULT 0,
+      inserted_at timestamp(6) with time zone NOT NULL,
+      updated_at timestamp(6) with time zone NOT NULL
     )
+    """)
   end
 
   defp insert_scan_receipt!(received_at, reference_count) do

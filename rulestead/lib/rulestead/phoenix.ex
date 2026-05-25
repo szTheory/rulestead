@@ -5,7 +5,6 @@ defmodule Rulestead.Phoenix do
   # This module keeps framework structs at the edge and only projects configured,
   # bounded fields into the runtime context.
 
-
   alias Rulestead.Context
 
   @default_context_assign :rulestead_context
@@ -141,6 +140,7 @@ defmodule Rulestead.Phoenix do
 
   defp resolve_tenant_key(host, opts, resolver) do
     explicit = resolve_opt(host, opts, :tenant_key, resolver)
+
     if explicit do
       explicit
     else

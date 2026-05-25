@@ -6,11 +6,13 @@ defmodule Rulestead.AdminTest do
 
   setup do
     Application.put_env(:rulestead, :store, Rulestead.Fake)
+
     Application.put_env(:rulestead, :admin_lifecycle,
       warning_after_seconds: 1_800,
       stale_after_seconds: 3_600,
       now: ~U[2026-04-23 16:00:00Z]
     )
+
     Rulestead.Fake.Control.reset!()
     :ok
   end
@@ -50,7 +52,9 @@ defmodule Rulestead.AdminTest do
     evaluated_warning_at = DateTime.add(now, -2_700, :second)
     evaluated_stale_at = DateTime.add(now, -7_200, :second)
 
-    assert {:ok, _} = Rulestead.record_evaluation("checkout-redesign", "test", evaluated_recently_at)
+    assert {:ok, _} =
+             Rulestead.record_evaluation("checkout-redesign", "test", evaluated_recently_at)
+
     assert {:ok, _} = Rulestead.record_evaluation("search-ranking", "test", evaluated_warning_at)
     assert {:ok, _} = Rulestead.record_evaluation("ops-cleanup", "test", evaluated_stale_at)
 
@@ -72,7 +76,11 @@ defmodule Rulestead.AdminTest do
 
     assert [
              %{
-               flag: %{key: "checkout-redesign", ownership: %{owner_ref: "growth", owner_kind: :team}, tags: ["checkout", "release"]},
+               flag: %{
+                 key: "checkout-redesign",
+                 ownership: %{owner_ref: "growth", owner_kind: :team},
+                 tags: ["checkout", "release"]
+               },
                environment: %{key: "test"},
                active_ruleset: %{version: 1},
                draft_rulesets: [],
@@ -98,11 +106,18 @@ defmodule Rulestead.AdminTest do
     assert is_binary(cursor_page.next_cursor)
 
     assert {:ok, %Command.Page{} = next_page} =
-             Rulestead.list_flags(environment_key: "test", owner: "growth", limit: 1, after: cursor_page.next_cursor)
+             Rulestead.list_flags(
+               environment_key: "test",
+               owner: "growth",
+               limit: 1,
+               after: cursor_page.next_cursor
+             )
 
     assert next_page.has_previous_page?
     assert is_binary(next_page.prev_cursor)
-    assert [%{flag: %{key: "search-ranking"}, lifecycle: %{state: :potentially_stale}}] = next_page.entries
+
+    assert [%{flag: %{key: "search-ranking"}, lifecycle: %{state: :potentially_stale}}] =
+             next_page.entries
   end
 
   test "fetch_flag/2 and root metadata verbs return detail payloads and enforce archived read-only behavior" do
@@ -150,7 +165,11 @@ defmodule Rulestead.AdminTest do
                value_type: :boolean,
                default_value: %{value: false},
                ownership: %{owner_ref: "platform", owner_kind: :team},
-      lifecycle: %{mode: :permanent, default_source: :flag_type, default_overridden: false},
+               lifecycle: %{
+                 mode: :permanent,
+                 default_source: :flag_type,
+                 default_overridden: false
+               },
                environment_keys: ["test", "production"],
                tags: ["admin", "inventory"]
              })
@@ -158,7 +177,9 @@ defmodule Rulestead.AdminTest do
     assert created.flag.key == "inventory-admin"
     assert Enum.sort(created.environment_keys) == ["production", "test"]
 
-    assert {:ok, archived} = Rulestead.archive_flag(StoreFixtures.archive_flag_command("checkout-redesign"))
+    assert {:ok, archived} =
+             Rulestead.archive_flag(StoreFixtures.archive_flag_command("checkout-redesign"))
+
     assert archived.archived?
 
     assert {:error, %Rulestead.Error{type: :flag_archived}} =
@@ -188,14 +209,22 @@ defmodule Rulestead.AdminTest do
     assert is_binary(first_page.next_cursor)
 
     assert {:ok, %Command.Page{} = second_page} =
-             Rulestead.list_flags(environment_key: "test", limit: 1, after: first_page.next_cursor)
+             Rulestead.list_flags(
+               environment_key: "test",
+               limit: 1,
+               after: first_page.next_cursor
+             )
 
     assert [%{flag: %{key: "beta-flag"}}] = second_page.entries
 
-    assert {:ok, archived} = Rulestead.archive_flag(StoreFixtures.archive_flag_command("beta-flag"))
+    assert {:ok, archived} =
+             Rulestead.archive_flag(StoreFixtures.archive_flag_command("beta-flag"))
+
     assert archived.archived?
 
-    assert {:ok, %Command.Page{entries: entries}} = Rulestead.list_flags(environment_key: "test", limit: 10)
+    assert {:ok, %Command.Page{entries: entries}} =
+             Rulestead.list_flags(environment_key: "test", limit: 10)
+
     assert Enum.map(entries, & &1.flag.key) == ["alpha-flag"]
   end
 
@@ -220,7 +249,12 @@ defmodule Rulestead.AdminTest do
         metadata: %{source: "admin-test"}
       })
 
-    assert {:ok, _} = Rulestead.save_draft_ruleset(StoreFixtures.save_draft_command(flag_key, "test", ruleset))
-    assert {:ok, _} = Rulestead.publish_ruleset(StoreFixtures.publish_ruleset_command(flag_key, "test"))
+    assert {:ok, _} =
+             Rulestead.save_draft_ruleset(
+               StoreFixtures.save_draft_command(flag_key, "test", ruleset)
+             )
+
+    assert {:ok, _} =
+             Rulestead.publish_ruleset(StoreFixtures.publish_ruleset_command(flag_key, "test"))
   end
 end

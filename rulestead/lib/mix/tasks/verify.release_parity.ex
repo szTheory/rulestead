@@ -33,7 +33,8 @@ defmodule Mix.Tasks.Verify.ReleaseParity do
     System.halt(exit_code(result))
   end
 
-  def compute(tag_manifest, tarball_manifest) when is_map(tag_manifest) and is_map(tarball_manifest) do
+  def compute(tag_manifest, tarball_manifest)
+      when is_map(tag_manifest) and is_map(tarball_manifest) do
     tag_paths = Map.keys(tag_manifest) |> MapSet.new()
     tarball_paths = Map.keys(tarball_manifest) |> MapSet.new()
 
@@ -142,9 +143,14 @@ defmodule Mix.Tasks.Verify.ReleaseParity do
     :ssl.start()
 
     case :httpc.request(:get, {String.to_charlist(url), []}, [], [{:body_format, :binary}]) do
-      {:ok, {{_http_version, 200, _reason}, _headers, body}} -> {:ok, body}
-      {:ok, {{_http_version, status, _reason}, _headers, _body}} -> {:error, {:hex_tarball_status, status}}
-      {:error, reason} -> {:error, {:hex_tarball_request_failed, reason}}
+      {:ok, {{_http_version, 200, _reason}, _headers, body}} ->
+        {:ok, body}
+
+      {:ok, {{_http_version, status, _reason}, _headers, _body}} ->
+        {:error, {:hex_tarball_status, status}}
+
+      {:error, reason} ->
+        {:error, {:hex_tarball_request_failed, reason}}
     end
   end
 

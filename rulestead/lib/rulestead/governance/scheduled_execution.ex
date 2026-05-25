@@ -2,7 +2,6 @@ defmodule Rulestead.Governance.ScheduledExecution do
   @moduledoc false
   # Canonical durable contract for a future-dated governed mutation.
 
-
   @states [:scheduled, :running, :completed, :failed, :quarantined, :cancelled]
   @terminal_states [:completed, :failed, :quarantined, :cancelled]
   @governed_actions [
@@ -170,7 +169,9 @@ defmodule Rulestead.Governance.ScheduledExecution do
 
   defp normalize_actor_summary(_actor), do: %{}
 
-  defp normalize_actor_list(actors) when is_list(actors), do: Enum.map(actors, &normalize_actor_summary/1)
+  defp normalize_actor_list(actors) when is_list(actors),
+    do: Enum.map(actors, &normalize_actor_summary/1)
+
   defp normalize_actor_list(_actors), do: []
 
   defp normalize_metadata(metadata), do: metadata |> normalize_map() |> drop_sensitive_keys()
@@ -209,8 +210,13 @@ defmodule Rulestead.Governance.ScheduledExecution do
   end
 
   defp normalize_string(nil), do: nil
-  defp normalize_string(value) when is_atom(value), do: value |> Atom.to_string() |> normalize_string()
-  defp normalize_string(value) when is_integer(value), do: value |> Integer.to_string() |> normalize_string()
+
+  defp normalize_string(value) when is_atom(value),
+    do: value |> Atom.to_string() |> normalize_string()
+
+  defp normalize_string(value) when is_integer(value),
+    do: value |> Integer.to_string() |> normalize_string()
+
   defp normalize_string(_value), do: nil
 
   defp maybe_put(map, _key, nil), do: map
@@ -218,7 +224,15 @@ defmodule Rulestead.Governance.ScheduledExecution do
 
   defp drop_sensitive_keys(map) do
     map
-    |> Map.drop(["admin_session", "session", "session_data", "session_id", "session_token", "socket", "socket_session"])
+    |> Map.drop([
+      "admin_session",
+      "session",
+      "session_data",
+      "session_id",
+      "session_token",
+      "socket",
+      "socket_session"
+    ])
     |> Map.new(fn
       {key, value} when is_map(value) -> {key, drop_sensitive_keys(value)}
       {key, value} when is_list(value) -> {key, Enum.map(value, &drop_sensitive_value/1)}

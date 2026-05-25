@@ -37,7 +37,8 @@ defmodule Rulestead.Analytics.EventMapper do
       "custom" -> "custom"
       :exposure -> "exposure"
       :custom -> "custom"
-      _ -> "custom" # Default fallback or should we return nil? The task says "handles both 'exposure' and 'custom' kinds". Let's assume fallback to "custom" or "unknown".
+      # Default fallback or should we return nil? The task says "handles both 'exposure' and 'custom' kinds". Let's assume fallback to "custom" or "unknown".
+      _ -> "custom"
     end
   end
 

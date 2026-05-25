@@ -11,34 +11,40 @@ defmodule Rulestead.Webhooks.InboundGovernanceTest do
 
   test "verified inbound event requiring approvals becomes a local change request" do
     # 1. Setup a flag
-    {:ok, flag} = Rulestead.create_flag(%{
-      key: "webhook-feature",
-      flag_type: :release,
-      value_type: :boolean,
-      default_value: %{value: false},
-      ownership: %{owner_ref: "admin", owner_kind: :team},
-      lifecycle: %{mode: :permanent, default_source: :flag_type, default_overridden: false},
-      environment_keys: ["production"]
-    }, actor: %{id: "admin", roles: [:admin]})
+    {:ok, flag} =
+      Rulestead.create_flag(
+        %{
+          key: "webhook-feature",
+          flag_type: :release,
+          value_type: :boolean,
+          default_value: %{value: false},
+          ownership: %{owner_ref: "admin", owner_kind: :team},
+          lifecycle: %{mode: :permanent, default_source: :flag_type, default_overridden: false},
+          environment_keys: ["production"]
+        },
+        actor: %{id: "admin", roles: [:admin]}
+      )
 
     # 2. Setup a verified inbound event for a change request
     now = DateTime.utc_now()
-    event = InboundEvent.new(%{
-      provider: "github",
-      endpoint_key: "default",
-      delivery_id: "del_123",
-      received_at: now,
-      payload: %{
-        "action" => "submit_change_request",
-        "flag_key" => flag.flag.key,
-        "environment_key" => "production",
-        "command_operation" => "publish_ruleset",
-        "command_attrs" => %{"version" => 1},
-        "reason" => "Inbound from GitHub"
-      },
-      metadata: %{"user" => "github_user"},
-      correlation_id: "corr_123"
-    })
+
+    event =
+      InboundEvent.new(%{
+        provider: "github",
+        endpoint_key: "default",
+        delivery_id: "del_123",
+        received_at: now,
+        payload: %{
+          "action" => "submit_change_request",
+          "flag_key" => flag.flag.key,
+          "environment_key" => "production",
+          "command_operation" => "publish_ruleset",
+          "command_attrs" => %{"version" => 1},
+          "reason" => "Inbound from GitHub"
+        },
+        metadata: %{"user" => "github_user"},
+        correlation_id: "corr_123"
+      })
 
     receipt = %{id: Ecto.UUID.generate()}
 
@@ -57,15 +63,19 @@ defmodule Rulestead.Webhooks.InboundGovernanceTest do
     # 1. Setup a flag
     seed_environment!("development")
 
-    {:ok, flag} = Rulestead.create_flag(%{
-      key: "direct-feature",
-      flag_type: :release,
-      value_type: :boolean,
-      default_value: %{value: false},
-      ownership: %{owner_ref: "admin", owner_kind: :team},
-      lifecycle: %{mode: :permanent, default_source: :flag_type, default_overridden: false},
-      environment_keys: ["development"]
-    }, actor: %{id: "admin", roles: [:admin]})
+    {:ok, flag} =
+      Rulestead.create_flag(
+        %{
+          key: "direct-feature",
+          flag_type: :release,
+          value_type: :boolean,
+          default_value: %{value: false},
+          ownership: %{owner_ref: "admin", owner_kind: :team},
+          lifecycle: %{mode: :permanent, default_source: :flag_type, default_overridden: false},
+          environment_keys: ["development"]
+        },
+        actor: %{id: "admin", roles: [:admin]}
+      )
 
     {:ok, _} =
       Rulestead.save_draft_ruleset(
@@ -76,20 +86,22 @@ defmodule Rulestead.Webhooks.InboundGovernanceTest do
 
     # 2. Setup a verified inbound event for a direct kill-switch action
     now = DateTime.utc_now()
-    event = InboundEvent.new(%{
-      provider: "github",
-      endpoint_key: "dev-webhook",
-      delivery_id: "del_456",
-      received_at: now,
-      payload: %{
-        "action" => "engage_kill_switch",
-        "flag_key" => flag.flag.key,
-        "environment_key" => "development",
-        "reason" => "Inbound from GitHub"
-      },
-      metadata: %{},
-      correlation_id: "corr_456"
-    })
+
+    event =
+      InboundEvent.new(%{
+        provider: "github",
+        endpoint_key: "dev-webhook",
+        delivery_id: "del_456",
+        received_at: now,
+        payload: %{
+          "action" => "engage_kill_switch",
+          "flag_key" => flag.flag.key,
+          "environment_key" => "development",
+          "reason" => "Inbound from GitHub"
+        },
+        metadata: %{},
+        correlation_id: "corr_456"
+      })
 
     receipt = %{id: Ecto.UUID.generate()}
 
@@ -108,6 +120,7 @@ defmodule Rulestead.Webhooks.InboundGovernanceTest do
     }
 
     changeset = Rulestead.Environment.changeset(%Rulestead.Environment{}, attrs)
+
     case Rulestead.Repo.insert(changeset) do
       {:ok, _env} -> :ok
       {:error, %Ecto.Changeset{errors: [key: {"has already been taken", _}]}} -> :ok

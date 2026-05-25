@@ -15,13 +15,17 @@ defmodule Rulestead.EvaluatorTest do
             key: "enterprise-first",
             strategy: :forced_value,
             value: %{value: true},
-            conditions: [%{attribute: "attributes.plan", operator: :equals, value: %{equals: "enterprise"}}]
+            conditions: [
+              %{attribute: "attributes.plan", operator: :equals, value: %{equals: "enterprise"}}
+            ]
           },
           %{
             key: "fallback-second",
             strategy: :forced_value,
             value: %{value: false},
-            conditions: [%{attribute: "attributes.plan", operator: :equals, value: %{equals: "enterprise"}}]
+            conditions: [
+              %{attribute: "attributes.plan", operator: :equals, value: %{equals: "enterprise"}}
+            ]
           }
         ]
       }
@@ -53,7 +57,10 @@ defmodule Rulestead.EvaluatorTest do
 
     assert {:ok, permissive} = Evaluator.evaluate(payload, %{})
     assert permissive.reason == :default
-    assert permissive.debug_trace.warnings == [%{type: :missing_targeting_key, bucket_by: "account", strict?: false}]
+
+    assert permissive.debug_trace.warnings == [
+             %{type: :missing_targeting_key, bucket_by: "account", strict?: false}
+           ]
 
     assert {:error, %Rulestead.Error{type: :missing_targeting_key}} =
              Evaluator.evaluate(payload, %{strict?: true})

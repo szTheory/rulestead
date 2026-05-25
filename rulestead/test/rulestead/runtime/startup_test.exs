@@ -32,7 +32,8 @@ defmodule Rulestead.Runtime.StartupTest do
 
     supervisor =
       start_supervised!(
-        {Supervisor, name: nil, environment_keys: [environment_key], store: Rulestead.MissingStore}
+        {Supervisor,
+         name: nil, environment_keys: [environment_key], store: Rulestead.MissingStore}
       )
 
     assert Process.alive?(supervisor)
@@ -53,7 +54,11 @@ defmodule Rulestead.Runtime.StartupTest do
     )
 
     assert {:ok, %Result{} = result} =
-             Runtime.evaluate(environment_key, "checkout-redesign", Context.new(actor: %{key: "user-1"}))
+             Runtime.evaluate(
+               environment_key,
+               "checkout-redesign",
+               Context.new(actor: %{key: "user-1"})
+             )
 
     assert result.enabled? == false
     assert result.value == nil
@@ -62,7 +67,11 @@ defmodule Rulestead.Runtime.StartupTest do
     assert result.cache_age_ms == nil
 
     assert {:ok, false} =
-             Runtime.enabled?(environment_key, "checkout-redesign", Context.new(actor: %{key: "user-1"}))
+             Runtime.enabled?(
+               environment_key,
+               "checkout-redesign",
+               Context.new(actor: %{key: "user-1"})
+             )
 
     assert {:ok, :fallback} =
              Runtime.get_value(environment_key, "checkout-redesign", %{}, :fallback)
@@ -82,7 +91,11 @@ defmodule Rulestead.Runtime.StartupTest do
     )
 
     assert {:ok, true} =
-             Runtime.enabled?(environment_key, "checkout-redesign", Context.new(actor: %{key: "user-1"}))
+             Runtime.enabled?(
+               environment_key,
+               "checkout-redesign",
+               Context.new(actor: %{key: "user-1"})
+             )
 
     assert %{environments: environments} = Runtime.diagnostics()
     environment = Enum.find(environments, &(&1.environment_key == environment_key))
@@ -102,7 +115,12 @@ defmodule Rulestead.Runtime.StartupTest do
       value_type: :boolean,
       default_value: %{value: false},
       ownership: %{owner_ref: "ops", owner_kind: :team},
-      lifecycle: %{mode: :expiring, review_by: Date.utc_today(), default_source: :flag_type, default_overridden: false},
+      lifecycle: %{
+        mode: :expiring,
+        review_by: Date.utc_today(),
+        default_source: :flag_type,
+        default_overridden: false
+      },
       environment_keys: [environment_key]
     })
 
@@ -115,14 +133,18 @@ defmodule Rulestead.Runtime.StartupTest do
               key: "beta-rollout",
               strategy: :forced_value,
               value: %{value: true},
-              conditions: [%{attribute: "actor.key", operator: :equals, value: %{equals: "user-1"}}]
+              conditions: [
+                %{attribute: "actor.key", operator: :equals, value: %{equals: "user-1"}}
+              ]
             }
           ]
         })
       )
 
     {:ok, _published} =
-      Rulestead.publish_ruleset(Rulestead.Store.Command.PublishRuleset.new("checkout-redesign", environment_key))
+      Rulestead.publish_ruleset(
+        Rulestead.Store.Command.PublishRuleset.new("checkout-redesign", environment_key)
+      )
 
     %{snapshots: snapshots} = Control.snapshot!()
 

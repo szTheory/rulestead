@@ -13,8 +13,13 @@ defmodule Mix.Tasks.Verify.ReleasePublish do
 
     version =
       case argv do
-        [value] -> validate_version!(value)
-        _other -> Mix.raise("expected a published version argument, e.g. mix verify.release_publish 0.1.0")
+        [value] ->
+          validate_version!(value)
+
+        _other ->
+          Mix.raise(
+            "expected a published version argument, e.g. mix verify.release_publish 0.1.0"
+          )
       end
 
     tmp_dir = tmp_dir()

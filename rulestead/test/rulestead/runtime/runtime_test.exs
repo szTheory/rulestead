@@ -32,15 +32,20 @@ defmodule Rulestead.RuntimeTest do
     assert cached_flag.flag_payload[:flag][:key] == "checkout-redesign"
   end
 
-  test "runtime evaluation reads from ETS and projects cache_age_ms without mutating evaluator internals", %{
-    environment_key: environment_key
-  } do
+  test "runtime evaluation reads from ETS and projects cache_age_ms without mutating evaluator internals",
+       %{
+         environment_key: environment_key
+       } do
     snapshot = published_snapshot(environment_key)
     {:ok, compiled} = Snapshot.compile(snapshot)
     {:ok, _applied} = Cache.apply(compiled)
 
     assert {:ok, %Result{} = result} =
-             Runtime.evaluate(environment_key, "checkout-redesign", Context.new(actor: %{key: "user-1"}))
+             Runtime.evaluate(
+               environment_key,
+               "checkout-redesign",
+               Context.new(actor: %{key: "user-1"})
+             )
 
     assert result.enabled? == true
     assert result.flag_key == "checkout-redesign"
@@ -76,7 +81,9 @@ defmodule Rulestead.RuntimeTest do
                 key: "beta-rollout",
                 strategy: :forced_value,
                 value: %{value: true},
-                conditions: [%{attribute: "actor.key", operator: :equals, value: %{equals: "user-1"}}]
+                conditions: [
+                  %{attribute: "actor.key", operator: :equals, value: %{equals: "user-1"}}
+                ]
               }
             ]
           }

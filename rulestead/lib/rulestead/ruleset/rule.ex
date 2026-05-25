@@ -107,7 +107,11 @@ defmodule Rulestead.Ruleset.Rule do
         add_error(changeset, :variants, "must include at least one variant")
 
       strategy not in [:percentage_rollout, :variant_split] and not is_nil(rollout) ->
-        add_error(changeset, :rollout, "is only supported for percentage_rollout and variant_split rules")
+        add_error(
+          changeset,
+          :rollout,
+          "is only supported for percentage_rollout and variant_split rules"
+        )
 
       strategy != :experiment and not is_nil(experiment) ->
         add_error(changeset, :experiment, "is only supported for experiment rules")
@@ -133,4 +137,3 @@ defmodule Rulestead.Ruleset.Rule do
   defp normalize_string(value) when is_binary(value), do: String.trim(value)
   defp normalize_string(value), do: value
 end
-

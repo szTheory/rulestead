@@ -20,7 +20,10 @@ defmodule Rulestead.Runtime do
           result =
             case lookup_result do
               {:ok, %{flag_payload: flag_payload}} ->
-                emit_cache_event(:hit, flag_payload, context, runtime_metadata, %{reason: :cache_hit})
+                emit_cache_event(:hit, flag_payload, context, runtime_metadata, %{
+                  reason: :cache_hit
+                })
+
                 maybe_emit_stale_used(flag_payload, context, runtime_metadata)
 
                 with {:ok, %Result{} = result} <- Evaluator.evaluate(flag_payload, context),
@@ -29,7 +32,11 @@ defmodule Rulestead.Runtime do
                 end
 
               {:error, %Error{type: :flag_not_found} = error} ->
-                emit_cache_event(:miss, nil, context, runtime_metadata, %{flag_key: flag_key, reason: :cache_miss})
+                emit_cache_event(:miss, nil, context, runtime_metadata, %{
+                  flag_key: flag_key,
+                  reason: :cache_miss
+                })
+
                 maybe_degraded_result(flag_key, runtime_metadata, error)
             end
 
@@ -47,7 +54,12 @@ defmodule Rulestead.Runtime do
     end
   end
 
-  @spec get_value(String.t() | atom(), String.t() | atom(), Context.t() | keyword() | map(), term()) ::
+  @spec get_value(
+          String.t() | atom(),
+          String.t() | atom(),
+          Context.t() | keyword() | map(),
+          term()
+        ) ::
           {:ok, term()} | {:error, Rulestead.Error.t()}
   def get_value(environment_key, flag_key, context, default) do
     with {:ok, %Result{} = result} <- evaluate(environment_key, flag_key, context) do
@@ -99,7 +111,10 @@ defmodule Rulestead.Runtime do
       [:rulestead, :runtime, :cache, :stale_used],
       %{count: 1},
       Telemetry.metadata(
-        Telemetry.runtime_metadata(runtime_metadata, %{flag_key: flag_key, reason: :stale_snapshot})
+        Telemetry.runtime_metadata(runtime_metadata, %{
+          flag_key: flag_key,
+          reason: :stale_snapshot
+        })
       )
     )
 
@@ -117,7 +132,9 @@ defmodule Rulestead.Runtime do
   defp maybe_degraded_result(_flag_key, _runtime_metadata, error), do: {:error, error}
 
   defp maybe_emit_stale_used(flag_payload, context, %{refresh_status: :stale} = runtime_metadata) do
-    emit_cache_event(:stale_used, flag_payload, context, runtime_metadata, %{reason: :stale_snapshot})
+    emit_cache_event(:stale_used, flag_payload, context, runtime_metadata, %{
+      reason: :stale_snapshot
+    })
   end
 
   defp maybe_emit_stale_used(_flag_payload, _context, _runtime_metadata), do: :ok
@@ -134,7 +151,11 @@ defmodule Rulestead.Runtime do
         _event -> %{count: 1}
       end
 
-    Telemetry.execute([:rulestead, :runtime, :cache, event], measurements, Telemetry.metadata(metadata))
+    Telemetry.execute(
+      [:rulestead, :runtime, :cache, event],
+      measurements,
+      Telemetry.metadata(metadata)
+    )
   end
 
   defp runtime_eval_stop_metadata({:ok, %Result{} = result}, runtime_metadata, context) do
@@ -152,7 +173,12 @@ defmodule Rulestead.Runtime do
     })
   end
 
-  defp runtime_start_metadata({:ok, %{flag_payload: flag_payload}}, _flag_key, runtime_metadata, context) do
+  defp runtime_start_metadata(
+         {:ok, %{flag_payload: flag_payload}},
+         _flag_key,
+         runtime_metadata,
+         context
+       ) do
     flag_payload
     |> Telemetry.base_metadata(context)
     |> Map.merge(Telemetry.runtime_metadata(runtime_metadata))

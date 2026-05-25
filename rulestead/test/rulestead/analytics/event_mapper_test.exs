@@ -25,7 +25,7 @@ defmodule Rulestead.Analytics.EventMapperTest do
       assert %DateTime{} = result.occurred_at
       assert %DateTime{} = result.inserted_at
       assert %DateTime{} = result.updated_at
-      
+
       # Ensure it's truncated to microseconds
       assert result.occurred_at.microsecond |> elem(1) == 6
     end

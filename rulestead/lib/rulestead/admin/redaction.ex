@@ -49,7 +49,8 @@ defmodule Rulestead.Admin.Redaction do
   defp normalize_path(path) when is_binary(path), do: String.split(path, ".", trim: true)
   defp normalize_path(path) when is_list(path), do: Enum.map(path, &to_string/1)
 
-  defp direct_match?(path, allowed), do: path == allowed || Enum.take(path, length(allowed)) == allowed
+  defp direct_match?(path, allowed),
+    do: path == allowed || Enum.take(path, length(allowed)) == allowed
 
   defp tl_or_empty([_head | tail]), do: tail
 end

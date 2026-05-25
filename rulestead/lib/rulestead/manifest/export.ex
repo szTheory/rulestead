@@ -140,7 +140,10 @@ defmodule Rulestead.Manifest.Export do
     |> maybe_put("description", flag[:description] || flag["description"])
     |> maybe_put("flag_type", to_string(flag[:flag_type] || flag["flag_type"]))
     |> maybe_put("value_type", to_string(flag[:value_type] || flag["value_type"]))
-    |> maybe_put("default_value", Manifest.normalize_value(flag[:default_value] || flag["default_value"]))
+    |> maybe_put(
+      "default_value",
+      Manifest.normalize_value(flag[:default_value] || flag["default_value"])
+    )
     |> maybe_put("owner", flag[:owner] || flag["owner"])
     |> maybe_put("expected_expiration", flag[:expected_expiration] || flag["expected_expiration"])
     |> maybe_put("permanent", flag[:permanent] || flag["permanent"])
@@ -162,7 +165,10 @@ defmodule Rulestead.Manifest.Export do
     %{}
     |> maybe_put("version", ruleset[:version] || ruleset["version"])
     |> maybe_put("salt", ruleset[:salt] || ruleset["salt"])
-    |> maybe_put("metadata", Manifest.normalize_map(ruleset[:metadata] || ruleset["metadata"] || %{}))
+    |> maybe_put(
+      "metadata",
+      Manifest.normalize_map(ruleset[:metadata] || ruleset["metadata"] || %{})
+    )
     |> maybe_put_normalized(
       "rules",
       ruleset
@@ -213,10 +219,15 @@ defmodule Rulestead.Manifest.Export do
     %{}
     |> maybe_put("key", variant[:key] || variant["key"])
     |> maybe_put_normalized("weight", variant[:weight] || variant["weight"])
-    |> maybe_put_normalized("value", Manifest.normalize_map(variant[:value] || variant["value"] || %{}))
+    |> maybe_put_normalized(
+      "value",
+      Manifest.normalize_map(variant[:value] || variant["value"] || %{})
+    )
   end
 
   defp maybe_put_normalized(map, _key, nil), do: map
   defp maybe_put_normalized(map, _key, []), do: map
-  defp maybe_put_normalized(map, key, value), do: Map.put(map, key, Manifest.normalize_value(value))
+
+  defp maybe_put_normalized(map, key, value),
+    do: Map.put(map, key, Manifest.normalize_value(value))
 end

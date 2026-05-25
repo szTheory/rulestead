@@ -2,7 +2,6 @@ defmodule Rulestead.ConfigError do
   @moduledoc false
   # Constructors for config-domain `Rulestead.Error` values.
 
-
   alias Rulestead.Error
 
   @spec new(Error.type(), String.t(), keyword()) :: Error.t()

@@ -12,7 +12,12 @@ defmodule Rulestead.StoreFixtures do
       value_type: :boolean,
       default_value: %{value: false},
       ownership: %{owner_ref: "growth", owner_kind: :team, owner_display: "growth"},
-      lifecycle: %{mode: :permanent, review_by: nil, default_source: :flag_type, default_overridden: false},
+      lifecycle: %{
+        mode: :permanent,
+        review_by: nil,
+        default_source: :flag_type,
+        default_overridden: false
+      },
       tags: ["checkout", "release"],
       environment_keys: ["test"]
     }

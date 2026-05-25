@@ -2,7 +2,6 @@ defmodule Rulestead.StoreError do
   @moduledoc false
   # Constructors for store-domain `Rulestead.Error` values.
 
-
   alias Rulestead.Error
 
   @spec new(Error.type(), String.t(), keyword()) :: Error.t()

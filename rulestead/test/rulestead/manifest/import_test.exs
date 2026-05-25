@@ -56,7 +56,11 @@ defmodule Rulestead.Manifest.ImportTest do
     assert {:error, %Rulestead.Error{message: "apply plan kind is unsupported"}} =
              Import.apply(manifest, reason: "raw manifest should fail")
 
-    publish_ruleset!("checkout-redesign", "test", valid_ruleset_attrs(%{salt: "checkout-redesign:v3"}))
+    publish_ruleset!(
+      "checkout-redesign",
+      "test",
+      valid_ruleset_attrs(%{salt: "checkout-redesign:v3"})
+    )
 
     assert {:ok, stale} = Import.apply(plan, reason: "retry")
     assert stale["status"] == "stale"
@@ -77,7 +81,9 @@ defmodule Rulestead.Manifest.ImportTest do
   test "import preview emits tenant-sensitive findings on mismatch and widening" do
     assert {:ok, manifest} = Rulestead.export_manifest("staging", tenant_key: "acme")
 
-    assert {:ok, mismatch_result} = Import.plan(manifest, target_environment: "test", tenant_key: "other")
+    assert {:ok, mismatch_result} =
+             Import.plan(manifest, target_environment: "test", tenant_key: "other")
+
     assert Enum.any?(mismatch_result["findings"], &(&1["code"] == "mismatched_tenant_scope"))
 
     assert {:ok, widen_result} = Import.plan(manifest, target_environment: "test")
@@ -104,12 +110,24 @@ defmodule Rulestead.Manifest.ImportTest do
     assert {:ok, _} =
              Rulestead.create_flag(
                Command.CreateFlag.new(
-                 valid_flag_attrs(%{key: "checkout-redesign", environment_keys: ["staging", "test"]})
+                 valid_flag_attrs(%{
+                   key: "checkout-redesign",
+                   environment_keys: ["staging", "test"]
+                 })
                )
              )
 
-    publish_ruleset!("checkout-redesign", "staging", valid_ruleset_attrs(%{salt: "checkout-redesign:v2"}))
-    publish_ruleset!("checkout-redesign", "test", valid_ruleset_attrs(%{salt: "checkout-redesign:v1"}))
+    publish_ruleset!(
+      "checkout-redesign",
+      "staging",
+      valid_ruleset_attrs(%{salt: "checkout-redesign:v2"})
+    )
+
+    publish_ruleset!(
+      "checkout-redesign",
+      "test",
+      valid_ruleset_attrs(%{salt: "checkout-redesign:v1"})
+    )
   end
 
   defp seed_fake_audience!(key) do
@@ -138,8 +156,6 @@ defmodule Rulestead.Manifest.ImportTest do
              )
 
     assert {:ok, _} =
-             Rulestead.publish_ruleset(
-               publish_ruleset_command(flag_key, environment_key)
-             )
+             Rulestead.publish_ruleset(publish_ruleset_command(flag_key, environment_key))
   end
 end

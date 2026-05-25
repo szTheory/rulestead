@@ -1,9 +1,16 @@
 defmodule Rulestead.Runtime.Snapshot do
-
   alias Rulestead.EvaluationError
 
   @enforce_keys [:environment_key, :version, :published_at, :generated_at, :flags]
-  defstruct [:environment_key, :version, :published_at, :generated_at, :flags, metadata: %{}, flag_keys: []]
+  defstruct [
+    :environment_key,
+    :version,
+    :published_at,
+    :generated_at,
+    :flags,
+    metadata: %{},
+    flag_keys: []
+  ]
 
   @type flag_entry :: %{
           required(:flag_key) => String.t(),
@@ -114,6 +121,8 @@ defmodule Rulestead.Runtime.Snapshot do
     end
   end
 
-  defp normalize_string(value) when is_atom(value), do: value |> Atom.to_string() |> normalize_string()
+  defp normalize_string(value) when is_atom(value),
+    do: value |> Atom.to_string() |> normalize_string()
+
   defp normalize_string(_value), do: nil
 end

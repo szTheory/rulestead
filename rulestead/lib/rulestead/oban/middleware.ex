@@ -2,7 +2,6 @@ defmodule Rulestead.Oban.Middleware do
   @moduledoc false
   # Explicit enqueue seam for attaching a serialized rulestead context to jobs.
 
-
   alias Rulestead.Oban
 
   @doc """

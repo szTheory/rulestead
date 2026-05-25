@@ -34,8 +34,7 @@ defmodule Rulestead.Promotion.Compare do
         normalize_string(attrs[:source_environment_key] || attrs["source_environment_key"]),
       target_environment_key:
         normalize_string(attrs[:target_environment_key] || attrs["target_environment_key"]),
-      tenant_key:
-        normalize_string(attrs[:tenant_key] || attrs["tenant_key"]),
+      tenant_key: normalize_string(attrs[:tenant_key] || attrs["tenant_key"]),
       compared_flag_keys:
         normalize_string_list(attrs[:compared_flag_keys] || attrs["compared_flag_keys"]),
       dependency_closure_keys:

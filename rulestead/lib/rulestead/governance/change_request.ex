@@ -126,7 +126,10 @@ defmodule Rulestead.Governance.ChangeRequest do
     %{}
     |> maybe_put(:id, normalize_string(Map.get(actor, :id) || Map.get(actor, "id")))
     |> maybe_put(:type, normalize_string(Map.get(actor, :type) || Map.get(actor, "type")))
-    |> maybe_put(:display, normalize_string(Map.get(actor, :display) || Map.get(actor, "display")))
+    |> maybe_put(
+      :display,
+      normalize_string(Map.get(actor, :display) || Map.get(actor, "display"))
+    )
   end
 
   defp normalize_actor_summary(_actor), do: %{}
@@ -146,7 +149,8 @@ defmodule Rulestead.Governance.ChangeRequest do
   defp normalize_value(value) when is_list(value), do: Enum.map(value, &normalize_value/1)
 
   defp normalize_value(value)
-       when is_nil(value) or is_boolean(value) or is_integer(value) or is_float(value) or is_binary(value),
+       when is_nil(value) or is_boolean(value) or is_integer(value) or is_float(value) or
+              is_binary(value),
        do: value
 
   defp normalize_value(value) when is_atom(value), do: Atom.to_string(value)
@@ -161,7 +165,9 @@ defmodule Rulestead.Governance.ChangeRequest do
     end
   end
 
-  defp normalize_string(value) when is_atom(value), do: value |> Atom.to_string() |> normalize_string()
+  defp normalize_string(value) when is_atom(value),
+    do: value |> Atom.to_string() |> normalize_string()
+
   defp normalize_string(_value), do: nil
 
   defp maybe_put(map, _key, nil), do: map

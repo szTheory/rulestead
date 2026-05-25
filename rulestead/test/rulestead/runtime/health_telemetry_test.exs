@@ -24,7 +24,12 @@ defmodule Rulestead.Runtime.HealthTelemetryTest do
       value_type: :boolean,
       default_value: %{value: false},
       ownership: %{owner_ref: "ops", owner_kind: :team},
-      lifecycle: %{mode: :expiring, review_by: Date.utc_today(), default_source: :flag_type, default_overridden: false},
+      lifecycle: %{
+        mode: :expiring,
+        review_by: Date.utc_today(),
+        default_source: :flag_type,
+        default_overridden: false
+      },
       environment_keys: [environment_key]
     })
 
@@ -43,10 +48,11 @@ defmodule Rulestead.Runtime.HealthTelemetryTest do
     %{environment_key: environment_key, pubsub_name: pubsub_name}
   end
 
-  test "compatibility aliases emit alongside runtime invalidation events with bounded metadata", %{
-    environment_key: environment_key,
-    pubsub_name: pubsub_name
-  } do
+  test "compatibility aliases emit alongside runtime invalidation events with bounded metadata",
+       %{
+         environment_key: environment_key,
+         pubsub_name: pubsub_name
+       } do
     _version_one = publish_ruleset_version(environment_key, true)
 
     worker =

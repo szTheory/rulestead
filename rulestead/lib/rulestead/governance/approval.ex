@@ -59,7 +59,10 @@ defmodule Rulestead.Governance.Approval do
     %{}
     |> maybe_put(:id, normalize_string(Map.get(actor, :id) || Map.get(actor, "id")))
     |> maybe_put(:type, normalize_string(Map.get(actor, :type) || Map.get(actor, "type")))
-    |> maybe_put(:display, normalize_string(Map.get(actor, :display) || Map.get(actor, "display")))
+    |> maybe_put(
+      :display,
+      normalize_string(Map.get(actor, :display) || Map.get(actor, "display"))
+    )
   end
 
   defp normalize_actor_summary(_actor), do: %{}
@@ -73,7 +76,9 @@ defmodule Rulestead.Governance.Approval do
     end
   end
 
-  defp normalize_string(value) when is_atom(value), do: value |> Atom.to_string() |> normalize_string()
+  defp normalize_string(value) when is_atom(value),
+    do: value |> Atom.to_string() |> normalize_string()
+
   defp normalize_string(_value), do: nil
 
   defp maybe_put(map, _key, nil), do: map

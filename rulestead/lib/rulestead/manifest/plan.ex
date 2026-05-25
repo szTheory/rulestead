@@ -46,10 +46,18 @@ defmodule Rulestead.Manifest.Plan do
           "proposed_target_bundle" => proposed_target_bundle
         }
         |> maybe_put("tenant_key", fetch_optional_string(plan, "tenant_key"))
-        |> maybe_put("source_environment_key", fetch_optional_string(plan, "source_environment_key"))
+        |> maybe_put(
+          "source_environment_key",
+          fetch_optional_string(plan, "source_environment_key")
+        )
         |> maybe_put("compare_token", fetch_optional_string(plan, "compare_token"))
         |> maybe_put("source_fingerprint", fetch_optional_string(plan, "source_fingerprint"))
-        |> maybe_put("flag_keys", Manifest.normalize_string_list(Map.get(plan, "flag_keys", Map.get(plan, :flag_keys, []))))
+        |> maybe_put(
+          "flag_keys",
+          Manifest.normalize_string_list(
+            Map.get(plan, "flag_keys", Map.get(plan, :flag_keys, []))
+          )
+        )
 
       {:ok, normalized}
     end
@@ -289,7 +297,8 @@ defmodule Rulestead.Manifest.Plan do
   end
 
   defp load_string_list(plan, key) do
-    {:ok, Manifest.normalize_string_list(Map.get(plan, key, Map.get(plan, String.to_atom(key), [])))}
+    {:ok,
+     Manifest.normalize_string_list(Map.get(plan, key, Map.get(plan, String.to_atom(key), [])))}
   end
 
   defp load_bundle(plan) do
@@ -322,10 +331,12 @@ defmodule Rulestead.Manifest.Plan do
     |> Enum.map(fn {key, value} -> {to_string(key), encode_json(value)} end)
     |> Enum.sort_by(&elem(&1, 0))
     |> Enum.map_join(",", fn {key, value} -> Jason.encode!(key) <> ":" <> value end)
-    |> then(&"{" <> &1 <> "}")
+    |> then(&("{" <> &1 <> "}"))
   end
 
-  defp encode_json(list) when is_list(list), do: "[" <> Enum.map_join(list, ",", &encode_json/1) <> "]"
+  defp encode_json(list) when is_list(list),
+    do: "[" <> Enum.map_join(list, ",", &encode_json/1) <> "]"
+
   defp encode_json(value) when is_binary(value), do: Jason.encode!(value)
   defp encode_json(value) when is_boolean(value), do: Jason.encode!(value)
   defp encode_json(value) when is_integer(value), do: Jason.encode!(value)

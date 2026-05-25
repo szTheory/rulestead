@@ -90,7 +90,13 @@ defmodule Rulestead.Runtime.Backup.FileStore do
 
     checksum = :crypto.hash(:sha256, payload)
 
-    IO.iodata_to_binary([@magic, <<@format_version::unsigned-32>>, <<byte_size(payload)::unsigned-32>>, payload, checksum])
+    IO.iodata_to_binary([
+      @magic,
+      <<@format_version::unsigned-32>>,
+      <<byte_size(payload)::unsigned-32>>,
+      payload,
+      checksum
+    ])
   end
 
   defp decode_snapshot(

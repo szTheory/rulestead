@@ -40,7 +40,9 @@ defmodule Mix.Tasks.Rulestead.Diff do
 
   defp validate_args!(opts, argv, invalid) do
     if argv != [] or invalid != [] do
-      Mix.raise("usage: mix rulestead.diff --source <path|-> [--target <path|-> | --environment <environment_key>] [--format text|json]")
+      Mix.raise(
+        "usage: mix rulestead.diff --source <path|-> [--target <path|-> | --environment <environment_key>] [--format text|json]"
+      )
     end
 
     unless Keyword.get(opts, :source) do

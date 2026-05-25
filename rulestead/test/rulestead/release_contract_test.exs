@@ -224,6 +224,7 @@ defmodule Rulestead.ReleaseContractTest do
 
   test "maintainer guidance matches the shipped release and support truth" do
     maintaining = File.read!(@maintaining_path)
+
     banned_phrases = [
       ["first public Hex release", "target is"],
       ["first public Hex release", "should happen only after"],
@@ -251,11 +252,31 @@ defmodule Rulestead.ReleaseContractTest do
   end
 
   test "public helper modules keep their locked exports and callbacks" do
-    assert Enum.sort(Context.__info__(:functions)) == [__struct__: 0, __struct__: 1, new: 1, normalize: 1]
-    assert Enum.sort(Result.__info__(:functions)) == [__struct__: 0, __struct__: 1, new: 1, normalize: 1]
+    assert Enum.sort(Context.__info__(:functions)) == [
+             __struct__: 0,
+             __struct__: 1,
+             new: 1,
+             normalize: 1
+           ]
+
+    assert Enum.sort(Result.__info__(:functions)) == [
+             __struct__: 0,
+             __struct__: 1,
+             new: 1,
+             normalize: 1
+           ]
 
     assert Enum.sort(Error.__info__(:functions)) ==
-             [__struct__: 0, __struct__: 1, domains: 0, exception: 1, leaf_types: 0, message: 1, new: 1, normalize: 1]
+             [
+               __struct__: 0,
+               __struct__: 1,
+               domains: 0,
+               exception: 1,
+               leaf_types: 0,
+               message: 1,
+               new: 1,
+               normalize: 1
+             ]
 
     expected_telemetry = MapSet.new(@telemetry_exports ++ [dispatch: 4])
     actual_telemetry = MapSet.new(Telemetry.__info__(:functions))
@@ -278,16 +299,49 @@ defmodule Rulestead.ReleaseContractTest do
     expected_store = MapSet.new(@store_callbacks)
     actual_store = MapSet.new(Store.behaviour_info(:callbacks))
     assert MapSet.subset?(expected_store, actual_store)
-    assert Enum.sort(Policy.behaviour_info(:callbacks)) == [allow_self_approval?: 4, can?: 4, change_request_required?: 4]
+
+    assert Enum.sort(Policy.behaviour_info(:callbacks)) == [
+             allow_self_approval?: 4,
+             can?: 4,
+             change_request_required?: 4
+           ]
   end
 
   test "public structs keep the documented fields and closed atom sets" do
-    assert context_fields() == [:actor, :attributes, :environment, :request_id, :session_id, :strict?, :targeting_key, :tenant_key]
+    assert context_fields() == [
+             :actor,
+             :attributes,
+             :environment,
+             :request_id,
+             :session_id,
+             :strict?,
+             :targeting_key,
+             :tenant_key
+           ]
 
     assert result_fields() ==
-             [:cache_age_ms, :debug_trace, :enabled?, :flag_key, :flag_version, :matched_rule, :reason, :value, :variant]
+             [
+               :cache_age_ms,
+               :debug_trace,
+               :enabled?,
+               :flag_key,
+               :flag_version,
+               :matched_rule,
+               :reason,
+               :value,
+               :variant
+             ]
 
-    assert error_fields() == [:__exception__, :cause, :details, :domain, :message, :metadata, :plug_status, :type]
+    assert error_fields() == [
+             :__exception__,
+             :cause,
+             :details,
+             :domain,
+             :message,
+             :metadata,
+             :plug_status,
+             :type
+           ]
 
     assert Error.domains() == [:evaluation, :ruleset, :kill_switch, :config, :store, :auth]
 
@@ -335,7 +389,9 @@ defmodule Rulestead.ReleaseContractTest do
         value: true
       })
 
-    assert Map.keys(metadata) |> Enum.sort() == Enum.sort(@shared_metadata_keys ++ @optional_metadata_keys)
+    assert Map.keys(metadata) |> Enum.sort() ==
+             Enum.sort(@shared_metadata_keys ++ @optional_metadata_keys)
+
     refute Map.has_key?(metadata, :actor)
     refute Map.has_key?(metadata, :traits)
     refute Map.has_key?(metadata, :value)

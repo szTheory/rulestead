@@ -47,7 +47,8 @@ defmodule Rulestead.Admin.Policy do
           | :manage_webhooks
           | :manage_settings
 
-  @type action :: governance_action() | viewer_action() | editor_action() | admin_action() | atom()
+  @type action ::
+          governance_action() | viewer_action() | editor_action() | admin_action() | atom()
 
   @type environment_key :: String.t() | atom() | nil
   @type resource :: term()

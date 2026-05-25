@@ -12,7 +12,11 @@ defmodule Rulestead.Mix.Tasks.RulesteadDiffTest do
       "flags" => [
         %{
           "flag_key" => "checkout-redesign",
-          "flag" => %{"flag_type" => "release", "value_type" => "boolean", "default_value" => %{"value" => false}},
+          "flag" => %{
+            "flag_type" => "release",
+            "value_type" => "boolean",
+            "default_value" => %{"value" => false}
+          },
           "environment" => %{"status" => "active", "active_ruleset_version" => 1},
           "active_ruleset" => %{"version" => 1, "salt" => "v2", "metadata" => %{}, "rules" => []}
         }
@@ -20,7 +24,9 @@ defmodule Rulestead.Mix.Tasks.RulesteadDiffTest do
     }
 
     identical_target = put_in(source, ["environment_key"], "test")
-    changed_target = put_in(identical_target, ["flags", Access.at(0), "active_ruleset", "salt"], "v1")
+
+    changed_target =
+      put_in(identical_target, ["flags", Access.at(0), "active_ruleset", "salt"], "v1")
 
     assert {:ok, no_change_result} = Diff.compute(source, target_manifest: identical_target)
     assert no_change_result["status"] == "no_changes"

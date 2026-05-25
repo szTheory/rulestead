@@ -19,6 +19,7 @@ defmodule Rulestead.ScheduledExecutionConflictTest do
 
       archived_publish =
         schedule_action!(adapter, "checkout-archived", :publish_ruleset, %{"version" => 2})
+
       archive_flag!(adapter, "checkout-archived")
 
       assert_conflict_reason(
@@ -91,7 +92,9 @@ defmodule Rulestead.ScheduledExecutionConflictTest do
     assert {:error, %Rulestead.Error{}} = execute_scheduled!(adapter, scheduled_execution_id)
 
     assert {:ok, %{scheduled_execution: scheduled_execution, attempts: attempts}} =
-             adapter.fetch_scheduled_execution(Command.FetchScheduledExecution.new(scheduled_execution_id))
+             adapter.fetch_scheduled_execution(
+               Command.FetchScheduledExecution.new(scheduled_execution_id)
+             )
 
     assert scheduled_execution.state in [:failed, :quarantined, :scheduled]
     assert scheduled_execution.failure_reason == expected_reason
@@ -103,20 +106,18 @@ defmodule Rulestead.ScheduledExecutionConflictTest do
 
     assert {:ok, %{scheduled_execution: scheduled_execution}} =
              adapter.schedule_governed_action(
-               Command.ScheduleGovernedAction.new(
-                 %{
-                   action: action,
-                   environment_key: "test",
-                   resource_type: "flag",
-                   resource_key: flag_key,
-                   command: command_payload,
-                   scheduled_for: ~U[2026-04-25 20:00:00Z],
-                   execution_mode: :policy_bypass,
-                   actor: %{id: "scheduler-1", type: "operator", display: "Scheduler"},
-                   reason: "Run bounded scheduled action",
-                   metadata: %{request_id: request_id, source: :admin_ui}
-                 }
-               )
+               Command.ScheduleGovernedAction.new(%{
+                 action: action,
+                 environment_key: "test",
+                 resource_type: "flag",
+                 resource_key: flag_key,
+                 command: command_payload,
+                 scheduled_for: ~U[2026-04-25 20:00:00Z],
+                 execution_mode: :policy_bypass,
+                 actor: %{id: "scheduler-1", type: "operator", display: "Scheduler"},
+                 reason: "Run bounded scheduled action",
+                 metadata: %{request_id: request_id, source: :admin_ui}
+               })
              )
 
     scheduled_execution
@@ -127,7 +128,10 @@ defmodule Rulestead.ScheduledExecutionConflictTest do
       Command.ExecuteScheduledExecution.new(scheduled_execution_id,
         actor: %{id: "scheduler", type: "system", display: "Scheduler"},
         reason: "Execute due scheduled action",
-        metadata: %{request_id: "req-execute-#{scheduled_execution_id}", source: :scheduled_execution_worker}
+        metadata: %{
+          request_id: "req-execute-#{scheduled_execution_id}",
+          source: :scheduled_execution_worker
+        }
       )
     )
   end

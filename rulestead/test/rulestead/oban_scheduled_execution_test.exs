@@ -28,6 +28,7 @@ defmodule Rulestead.ObanScheduledExecutionTest do
 
     def execute_scheduled_execution(%Command.ExecuteScheduledExecution{} = command) do
       send(self(), {:execute_scheduled_execution, command})
+
       {:ok,
        %{
          scheduled_execution: %{
@@ -141,8 +142,10 @@ defmodule Rulestead.ObanScheduledExecutionTest do
              )
 
     assert scheduled_execution.change_request_id == approved.id
+
     assert DateTime.truncate(scheduled_execution.scheduled_for, :second) ==
              DateTime.truncate(scheduled_for, :second)
+
     assert scheduled_execution.state == :scheduled
 
     [job] =
@@ -190,7 +193,13 @@ defmodule Rulestead.ObanScheduledExecutionTest do
 
     assert_received {:execute_scheduled_execution, command}
     assert command.scheduled_execution_id == "se-worker-123"
-    assert command.actor == %{"id" => "system:scheduler", "type" => "system", "display" => "Scheduler"}
+
+    assert command.actor == %{
+             "id" => "system:scheduler",
+             "type" => "system",
+             "display" => "Scheduler"
+           }
+
     assert command.metadata["request_id"] == "corr-worker-123"
     assert command.metadata["environment_key"] == "prod"
     assert command.metadata["governed_action"] == "publish_ruleset"
@@ -213,7 +222,9 @@ defmodule Rulestead.ObanScheduledExecutionTest do
              )
 
     assert {:ok, _} =
-             StoreEcto.publish_ruleset(StoreFixtures.publish_ruleset_command("checkout-redesign", "test"))
+             StoreEcto.publish_ruleset(
+               StoreFixtures.publish_ruleset_command("checkout-redesign", "test")
+             )
 
     assert {:ok, _} =
              StoreEcto.save_draft_ruleset(

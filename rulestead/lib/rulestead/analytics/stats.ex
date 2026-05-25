@@ -25,26 +25,29 @@ defmodule Rulestead.Analytics.Stats do
       cr_control = c_conv / c_exp
       cr_variant = v_conv / v_exp
 
-      lift = if cr_control == 0.0 do
-        if cr_variant > 0.0, do: 1.0, else: 0.0
-      else
-        (cr_variant - cr_control) / cr_control
-      end
+      lift =
+        if cr_control == 0.0 do
+          if cr_variant > 0.0, do: 1.0, else: 0.0
+        else
+          (cr_variant - cr_control) / cr_control
+        end
 
       # Z-score computation
       p_pool = (c_conv + v_conv) / (c_exp + v_exp)
 
-      se = if p_pool == 0.0 or p_pool == 1.0 do
-        0.0
-      else
-        :math.sqrt(p_pool * (1.0 - p_pool) * (1.0 / c_exp + 1.0 / v_exp))
-      end
+      se =
+        if p_pool == 0.0 or p_pool == 1.0 do
+          0.0
+        else
+          :math.sqrt(p_pool * (1.0 - p_pool) * (1.0 / c_exp + 1.0 / v_exp))
+        end
 
-      z_score = if se == 0.0 do
-        if cr_variant > cr_control, do: 99.0, else: 0.0
-      else
-        (cr_variant - cr_control) / se
-      end
+      z_score =
+        if se == 0.0 do
+          if cr_variant > cr_control, do: 99.0, else: 0.0
+        else
+          (cr_variant - cr_control) / se
+        end
 
       p_value = normal_cdf_two_tailed(z_score)
       significant = p_value < 0.05
@@ -72,15 +75,16 @@ defmodule Rulestead.Analytics.Stats do
       d = 0.3989423 * :math.exp(-z_float * z_float / 2.0)
 
       # Polynomial approximation
-      prob = d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))))
-      
+      prob =
+        d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))))
+
       # Since we want 2 * (1 - CDF(|z|)), and `prob` is approximately (1 - CDF(|z|)) for positive z
       # wait, the formula above gives the upper tail probability directly for positive z
       # CDF(z) = 1 - prob (for z > 0)
       # Upper tail = prob
       # Two tailed = 2 * prob
       p_val = 2.0 * prob
-      
+
       # ensure within bounds [0.0, 1.0]
       min(max(p_val, 0.0), 1.0)
     end

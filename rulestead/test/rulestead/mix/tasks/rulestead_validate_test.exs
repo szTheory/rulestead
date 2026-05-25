@@ -12,14 +12,24 @@ defmodule Rulestead.Mix.Tasks.RulesteadValidateTest do
       "flags" => [
         %{
           "flag_key" => "checkout-redesign",
-          "flag" => %{"flag_type" => "release", "value_type" => "boolean", "default_value" => %{"value" => false}},
+          "flag" => %{
+            "flag_type" => "release",
+            "value_type" => "boolean",
+            "default_value" => %{"value" => false}
+          },
           "environment" => %{"status" => "active", "active_ruleset_version" => 1},
           "active_ruleset" => %{
             "version" => 1,
             "salt" => "checkout-redesign:v1",
             "metadata" => %{},
             "rules" => [
-              %{"key" => "segment", "name" => "Segment", "strategy" => "segment_match", "audience_key" => "vip-users", "value" => %{}}
+              %{
+                "key" => "segment",
+                "name" => "Segment",
+                "strategy" => "segment_match",
+                "audience_key" => "vip-users",
+                "value" => %{}
+              }
             ]
           }
         }

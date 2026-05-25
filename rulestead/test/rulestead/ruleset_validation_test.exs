@@ -20,7 +20,9 @@ defmodule Rulestead.RulesetValidationTest do
 
   test "rejects malformed regex payloads and mixed-type list payloads" do
     regex_changeset = Ruleset.changeset(%Ruleset{}, ruleset_attrs(invalid_regex_ruleset_attrs()))
-    mixed_list_changeset = Ruleset.changeset(%Ruleset{}, ruleset_attrs(invalid_operator_payload_ruleset_attrs()))
+
+    mixed_list_changeset =
+      Ruleset.changeset(%Ruleset{}, ruleset_attrs(invalid_operator_payload_ruleset_attrs()))
 
     refute regex_changeset.valid?
     refute mixed_list_changeset.valid?
@@ -29,7 +31,8 @@ defmodule Rulestead.RulesetValidationTest do
   end
 
   test "keeps variant weights and rollout authoring rules enforced" do
-    changeset = Ruleset.changeset(%Ruleset{}, ruleset_attrs(invalid_variant_weight_ruleset_attrs()))
+    changeset =
+      Ruleset.changeset(%Ruleset{}, ruleset_attrs(invalid_variant_weight_ruleset_attrs()))
 
     refute changeset.valid?
     assert error_on(changeset, :rules) =~ "weights must sum to 100"

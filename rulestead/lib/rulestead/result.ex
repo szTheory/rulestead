@@ -72,7 +72,10 @@ defmodule Rulestead.Result do
   end
 
   defp normalize_string(nil), do: nil
-  defp normalize_string(value) when is_atom(value), do: value |> Atom.to_string() |> normalize_string()
+
+  defp normalize_string(value) when is_atom(value),
+    do: value |> Atom.to_string() |> normalize_string()
+
   defp normalize_string(_value), do: nil
 
   defp normalize_integer(value) when is_integer(value), do: value

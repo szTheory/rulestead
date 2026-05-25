@@ -91,7 +91,10 @@ defmodule Rulestead.Manifest.ExportTest do
     assert {:ok, _} =
              Rulestead.create_flag(
                Command.CreateFlag.new(
-                 valid_flag_attrs(%{key: "checkout-redesign", environment_keys: ["staging", "production"]})
+                 valid_flag_attrs(%{
+                   key: "checkout-redesign",
+                   environment_keys: ["staging", "production"]
+                 })
                )
              )
 
@@ -108,7 +111,13 @@ defmodule Rulestead.Manifest.ExportTest do
              )
 
     publish_ruleset!("checkout-redesign", "staging", valid_ruleset_attrs())
-    publish_ruleset!("checkout-redesign", "production", valid_ruleset_attrs(%{salt: "checkout-redesign:prod"}))
+
+    publish_ruleset!(
+      "checkout-redesign",
+      "production",
+      valid_ruleset_attrs(%{salt: "checkout-redesign:prod"})
+    )
+
     publish_ruleset!("beta-banner", "staging", valid_ruleset_attrs(%{salt: "beta-banner:v1"}))
 
     assert {:ok, _} =

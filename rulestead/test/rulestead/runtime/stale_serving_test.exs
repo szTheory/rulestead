@@ -56,9 +56,10 @@ defmodule Rulestead.Runtime.StaleServingTest do
     assert environment.source == :ets
   end
 
-  test "offline restart restores from disk backup and keeps serving the last-known-good snapshot", %{
-    backup_root: backup_root
-  } do
+  test "offline restart restores from disk backup and keeps serving the last-known-good snapshot",
+       %{
+         backup_root: backup_root
+       } do
     environment_key = unique_environment_key("offline-restart")
     seed_snapshot(environment_key, true)
 
@@ -91,12 +92,15 @@ defmodule Rulestead.Runtime.StaleServingTest do
       id: {:stale_runtime_supervisor, environment_key, System.unique_integer([:positive])},
       start:
         {Supervisor, :start_link,
-         [[
-           name: nil,
-           environment_keys: [environment_key],
-           store: Rulestead.Fake,
-           refresh_name: if(Keyword.get(opts, :named_refresh?, false), do: refresh_name(environment_key))
-         ]]},
+         [
+           [
+             name: nil,
+             environment_keys: [environment_key],
+             store: Rulestead.Fake,
+             refresh_name:
+               if(Keyword.get(opts, :named_refresh?, false), do: refresh_name(environment_key))
+           ]
+         ]},
       type: :supervisor
     })
   end
@@ -111,7 +115,12 @@ defmodule Rulestead.Runtime.StaleServingTest do
       value_type: :boolean,
       default_value: %{value: false},
       ownership: %{owner_ref: "ops", owner_kind: :team},
-      lifecycle: %{mode: :expiring, review_by: Date.utc_today(), default_source: :flag_type, default_overridden: false},
+      lifecycle: %{
+        mode: :expiring,
+        review_by: Date.utc_today(),
+        default_source: :flag_type,
+        default_overridden: false
+      },
       environment_keys: [environment_key]
     })
 
@@ -128,14 +137,18 @@ defmodule Rulestead.Runtime.StaleServingTest do
               key: "beta-rollout",
               strategy: :forced_value,
               value: %{value: forced_value},
-              conditions: [%{attribute: "actor.key", operator: :equals, value: %{equals: "user-1"}}]
+              conditions: [
+                %{attribute: "actor.key", operator: :equals, value: %{equals: "user-1"}}
+              ]
             }
           ]
         })
       )
 
     {:ok, _published} =
-      Rulestead.publish_ruleset(Rulestead.Store.Command.PublishRuleset.new("checkout-redesign", environment_key))
+      Rulestead.publish_ruleset(
+        Rulestead.Store.Command.PublishRuleset.new("checkout-redesign", environment_key)
+      )
   end
 
   defp refresh_name(environment_key), do: :"stale-refresh-#{environment_key}"

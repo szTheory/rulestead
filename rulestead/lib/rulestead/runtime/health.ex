@@ -46,7 +46,10 @@ defmodule Rulestead.Runtime.Health do
     end
   end
 
-  defp sync_latency_ms(%{published_at: %DateTime{} = published_at, applied_at: %DateTime{} = applied_at}) do
+  defp sync_latency_ms(%{
+         published_at: %DateTime{} = published_at,
+         applied_at: %DateTime{} = applied_at
+       }) do
     applied_at
     |> DateTime.diff(published_at, :millisecond)
     |> max(0)

@@ -3,7 +3,6 @@ defmodule Rulestead.LiveView do
   # Explicit LiveView helpers for carrying `%Rulestead.Context{}` and eagerly
   # assigning runtime-backed flag values onto a socket.
 
-
   alias Rulestead.{Context, Runtime}
 
   @default_context_assign :rulestead_context
@@ -169,6 +168,7 @@ defmodule Rulestead.LiveView do
 
   defp resolve_tenant_key(socket, opts) do
     explicit = resolve_opt(socket, opts, :tenant_key)
+
     if explicit do
       explicit
     else

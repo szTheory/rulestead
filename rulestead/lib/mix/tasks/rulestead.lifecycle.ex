@@ -45,7 +45,8 @@ defmodule Mix.Tasks.Rulestead.Lifecycle do
         %{
           "schema_version" => @schema_version,
           "format_version" => @schema_version,
-          "generated_at" => DateTime.utc_now() |> DateTime.truncate(:second) |> DateTime.to_iso8601(),
+          "generated_at" =>
+            DateTime.utc_now() |> DateTime.truncate(:second) |> DateTime.to_iso8601(),
           "filters" => filter_payload(normalized),
           "count" => length(page.entries),
           "entries" => Enum.map(page.entries, &entry_payload/1)
@@ -114,7 +115,8 @@ defmodule Mix.Tasks.Rulestead.Lifecycle do
       lifecycle: normalize_filter_atom(:lifecycle, Keyword.get(opts, :lifecycle)),
       stale: normalize_filter_atom(:stale, Keyword.get(opts, :stale)),
       readiness: normalize_filter_atom(:readiness, Keyword.get(opts, :readiness)),
-      evidence_quality: normalize_filter_atom(:evidence_quality, Keyword.get(opts, :evidence_quality)),
+      evidence_quality:
+        normalize_filter_atom(:evidence_quality, Keyword.get(opts, :evidence_quality)),
       include_archived?: Keyword.get(opts, :include_archived, false),
       limit: Keyword.get(opts, :limit, 25)
     }
@@ -207,19 +209,25 @@ defmodule Mix.Tasks.Rulestead.Lifecycle do
   end
 
   defp normalize_filter_atom(_field, nil), do: nil
-  defp normalize_filter_atom(field, value) when is_atom(value), do: normalize_filter_atom(field, Atom.to_string(value))
+
+  defp normalize_filter_atom(field, value) when is_atom(value),
+    do: normalize_filter_atom(field, Atom.to_string(value))
 
   defp normalize_filter_atom(field, value) when is_binary(value) do
     value
     |> blank_to_nil()
     |> case do
-      nil -> nil
+      nil ->
+        nil
+
       normalized ->
         allowed = Map.fetch!(@allowed_filter_atoms, field)
 
         case Enum.find(allowed, &(Atom.to_string(&1) == normalized)) do
           nil ->
-          Mix.raise("invalid --#{String.replace(to_string(field), "_", "-")} value: #{normalized}")
+            Mix.raise(
+              "invalid --#{String.replace(to_string(field), "_", "-")} value: #{normalized}"
+            )
 
           atom ->
             atom

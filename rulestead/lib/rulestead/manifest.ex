@@ -25,12 +25,16 @@ defmodule Rulestead.Manifest do
   @spec normalize_string(term()) :: String.t() | nil
   def normalize_string(nil), do: nil
   def normalize_string(value) when is_binary(value), do: value |> String.trim() |> blank_to_nil()
-  def normalize_string(value) when is_atom(value), do: value |> Atom.to_string() |> normalize_string()
+
+  def normalize_string(value) when is_atom(value),
+    do: value |> Atom.to_string() |> normalize_string()
+
   def normalize_string(value) when is_integer(value), do: Integer.to_string(value)
   def normalize_string(value), do: to_string(value) |> normalize_string()
 
   @spec normalize_string_list(term()) :: [String.t()]
   def normalize_string_list(nil), do: []
+
   def normalize_string_list(values) when is_list(values) do
     values
     |> Enum.map(&normalize_string/1)
@@ -62,7 +66,10 @@ defmodule Rulestead.Manifest do
   def normalize_value(%DateTime{} = value), do: DateTime.to_iso8601(value)
   def normalize_value(value) when is_map(value), do: normalize_map(value)
   def normalize_value(value) when is_list(value), do: Enum.map(value, &normalize_value/1)
-  def normalize_value(value) when is_atom(value) and value not in [true, false, nil], do: Atom.to_string(value)
+
+  def normalize_value(value) when is_atom(value) and value not in [true, false, nil],
+    do: Atom.to_string(value)
+
   def normalize_value(value), do: value
 
   @spec invalid(String.t(), keyword()) :: Error.t()

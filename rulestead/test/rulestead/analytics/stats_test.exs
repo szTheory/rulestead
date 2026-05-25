@@ -5,8 +5,10 @@ defmodule Rulestead.Analytics.StatsTest do
 
   describe "evaluate/2" do
     test "computes conversion lift percentage between two variations" do
-      control = %{exposures: 1000, conversions: 100} # 10%
-      variant = %{exposures: 1000, conversions: 150} # 15%
+      # 10%
+      control = %{exposures: 1000, conversions: 100}
+      # 15%
+      variant = %{exposures: 1000, conversions: 150}
 
       result = Stats.evaluate(control, variant)
 
@@ -16,8 +18,10 @@ defmodule Rulestead.Analytics.StatsTest do
     end
 
     test "computes a Z-score and p-value for the conversion difference" do
-      control = %{exposures: 1000, conversions: 100} # 10%
-      variant = %{exposures: 1000, conversions: 120} # 12%
+      # 10%
+      control = %{exposures: 1000, conversions: 100}
+      # 12%
+      variant = %{exposures: 1000, conversions: 120}
 
       result = Stats.evaluate(control, variant)
 
@@ -25,7 +29,7 @@ defmodule Rulestead.Analytics.StatsTest do
       # p_pool = 220 / 2000 = 0.11
       # SE = sqrt(0.11 * 0.89 * (2/1000)) = sqrt(0.0979 * 0.002) = sqrt(0.0001958) = 0.01399
       # Z = 0.02 / 0.01399 = ~1.429
-      
+
       assert result.z_score > 1.42
       assert result.z_score < 1.44
 
@@ -35,15 +39,18 @@ defmodule Rulestead.Analytics.StatsTest do
     end
 
     test "determines if difference meets standard significance threshold (e.g. 95%)" do
-      control = %{exposures: 1000, conversions: 100} # 10%
-      
+      # 10%
+      control = %{exposures: 1000, conversions: 100}
+
       # Not significant
-      variant1 = %{exposures: 1000, conversions: 110} # 11%
+      # 11%
+      variant1 = %{exposures: 1000, conversions: 110}
       result1 = Stats.evaluate(control, variant1)
       refute result1.significant
 
       # Significant
-      variant2 = %{exposures: 1000, conversions: 150} # 15%
+      # 15%
+      variant2 = %{exposures: 1000, conversions: 150}
       result2 = Stats.evaluate(control, variant2)
       assert result2.significant
     end
@@ -64,7 +71,8 @@ defmodule Rulestead.Analytics.StatsTest do
       variant = %{exposures: 1000, conversions: 10}
 
       result = Stats.evaluate(control, variant)
-      assert result.lift > 0.0 # Division by zero in lift calculation? Should handle it.
+      # Division by zero in lift calculation? Should handle it.
+      assert result.lift > 0.0
       assert result.z_score > 0.0
     end
   end

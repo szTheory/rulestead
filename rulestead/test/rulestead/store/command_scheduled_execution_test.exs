@@ -68,7 +68,12 @@ defmodule Rulestead.Store.CommandScheduledExecutionTest do
     assert serialized.state == :scheduled
     assert serialized.action == :publish_ruleset
     assert serialized.change_request_id == "cr-123"
-    assert serialized.scheduled_by == %{"id" => "42", "type" => "operator", "display" => "Scheduler"}
+
+    assert serialized.scheduled_by == %{
+             "id" => "42",
+             "type" => "operator",
+             "display" => "Scheduler"
+           }
 
     assert serialized.approved_by_snapshot == [
              %{"id" => "u-1", "type" => "operator", "display" => "Approver One"},
@@ -137,7 +142,10 @@ defmodule Rulestead.Store.CommandScheduledExecutionTest do
              started_at: ~U[2026-04-25 12:32:00Z],
              finished_at: ~U[2026-04-25 12:33:00Z],
              failure_reason: "stale target",
-             metadata: %{"request_id" => "req-123", "context" => %{"step" => "apply", "retry" => 2}}
+             metadata: %{
+               "request_id" => "req-123",
+               "context" => %{"step" => "apply", "retry" => 2}
+             }
            }
   end
 
@@ -209,7 +217,11 @@ defmodule Rulestead.Store.CommandScheduledExecutionTest do
              }
            } = governed_action_command
 
-    assert governed_action_command.command == %{"reason" => "High error rate", "actor" => %{"id" => "ignored"}}
+    assert governed_action_command.command == %{
+             "reason" => "High error rate",
+             "actor" => %{"id" => "ignored"}
+           }
+
     assert governed_action_command.approval_requirement["required_approvals"] == 0
     assert governed_action_command.approval_requirement["self_approval_allowed?"] == true
   end

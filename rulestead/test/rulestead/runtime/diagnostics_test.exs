@@ -30,7 +30,9 @@ defmodule Rulestead.Runtime.DiagnosticsTest do
     assert result.variant == "on"
   end
 
-  test "runtime diagnostics are bounded and exposed from both facades", %{environment_key: environment_key} do
+  test "runtime diagnostics are bounded and exposed from both facades", %{
+    environment_key: environment_key
+  } do
     assert %{node: _, environments: environments, infrastructure_health: infrastructure_health} =
              Rulestead.diagnostics()
 
@@ -39,6 +41,7 @@ defmodule Rulestead.Runtime.DiagnosticsTest do
 
     assert Enum.map(environments, &Map.delete(&1, :cache_age_ms)) ==
              Enum.map(runtime_environments, &Map.delete(&1, :cache_age_ms))
+
     assert Enum.map(infrastructure_health.environments, &Map.delete(&1, :cache_age_ms)) ==
              Enum.map(runtime_health.environments, &Map.delete(&1, :cache_age_ms))
 
@@ -62,6 +65,7 @@ defmodule Rulestead.Runtime.DiagnosticsTest do
     assert health_environment.cache_age_ms >= 0
     assert health_environment.sync_latency_ms >= 0
     assert health_environment.refresh_status == :ready
+
     assert health_environment.refresh_worker_status == %{
              refresh_status: :ready,
              attempt: 0,
@@ -92,18 +96,24 @@ defmodule Rulestead.Runtime.DiagnosticsTest do
     environment_key: environment_key
   } do
     peer_snapshot = %{
-      node: :"peer@node",
+      node: :peer@node,
       topology_scope: :peer_snapshot,
       environments: [%{environment_key: environment_key, refresh_status: :ready}]
     }
 
-    assert %{infrastructure_health: %{topology_scope: :host_provided, peer_nodes: [^peer_snapshot]}} =
+    assert %{
+             infrastructure_health: %{
+               topology_scope: :host_provided,
+               peer_nodes: [^peer_snapshot]
+             }
+           } =
              Runtime.diagnostics(peer_nodes: [peer_snapshot])
   end
 
-  test "runtime explain output composes evaluation facts with safe runtime metadata and omits raw context", %{
-    environment_key: environment_key
-  } do
+  test "runtime explain output composes evaluation facts with safe runtime metadata and omits raw context",
+       %{
+         environment_key: environment_key
+       } do
     context = %{
       actor: %{key: "user-1", email: "hidden@example.com"},
       targeting_key: "raw-targeting-key",

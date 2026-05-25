@@ -57,7 +57,9 @@ defmodule Mix.Tasks.Rulestead.Import do
 
   defp validate_args!(opts, argv, invalid) do
     if argv != [] or invalid != [] do
-      Mix.raise("usage: mix rulestead.import --plan --file <manifest_path|-> [--environment <environment_key>] [--out <plan_path>] [--format text|json] OR mix rulestead.import --apply --file <plan_path|-> --reason <reason> [--format text|json]")
+      Mix.raise(
+        "usage: mix rulestead.import --plan --file <manifest_path|-> [--environment <environment_key>] [--out <plan_path>] [--format text|json] OR mix rulestead.import --apply --file <plan_path|-> --reason <reason> [--format text|json]"
+      )
     end
 
     unless Keyword.get(opts, :file) do

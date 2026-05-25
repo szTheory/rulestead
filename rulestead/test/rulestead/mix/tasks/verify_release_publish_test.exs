@@ -71,11 +71,13 @@ defmodule Rulestead.Mix.Tasks.VerifyReleasePublishTest do
 
     admin = Enum.find(plan.consumers, &(&1.name == :rulestead_admin))
     assert admin.contract.mount_path == "/flags"
+
     assert admin.contract.session_keys == [
              "current_actor",
              "rulestead_admin_environments",
              "rulestead_admin_last_env"
            ]
+
     assert admin.contract.env_query_param == "env"
   end
 
@@ -145,11 +147,13 @@ defmodule Rulestead.Mix.Tasks.VerifyReleasePublishTest do
     assert router =~ "use RulesteadAdmin.Router"
     assert router =~ ~s(rulestead_admin "/flags", policy: AdminConsumer.RulesteadPolicy)
     assert consumer.contract.mount_path == "/flags"
+
     assert consumer.contract.session_keys == [
              "current_actor",
              "rulestead_admin_environments",
              "rulestead_admin_last_env"
            ]
+
     assert consumer.contract.env_query_param == "env"
   end
 
@@ -165,6 +169,7 @@ defmodule Rulestead.Mix.Tasks.VerifyReleasePublishTest do
       )
 
     assert Enum.map(plan.consumers, & &1.name) == [:rulestead, :rulestead_admin]
+
     assert Enum.all?(plan.consumers, fn consumer ->
              Enum.all?(consumer.deps, &(Map.get(&1, :path) == nil))
            end)
@@ -181,7 +186,12 @@ defmodule Rulestead.Mix.Tasks.VerifyReleasePublishTest do
   end
 
   defp tmp_dir do
-    path = Path.join(System.tmp_dir!(), "release-publish-fixture-#{System.unique_integer([:positive])}")
+    path =
+      Path.join(
+        System.tmp_dir!(),
+        "release-publish-fixture-#{System.unique_integer([:positive])}"
+      )
+
     File.mkdir_p!(path)
     path
   end

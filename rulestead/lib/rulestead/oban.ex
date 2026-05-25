@@ -3,7 +3,6 @@ defmodule Rulestead.Oban do
   # Explicit Oban-facing helpers for serializing and restoring
   # `%Rulestead.Context{}` values across job boundaries.
 
-
   alias Rulestead.Context
   alias Rulestead.Governance.ScheduledExecution
 
@@ -59,7 +58,8 @@ defmodule Rulestead.Oban do
   @doc """
   Builds the durable Oban payload for a scheduled execution delivery.
   """
-  @spec scheduled_execution_job(ScheduledExecution.t() | map(), Context.t() | map() | keyword()) :: map()
+  @spec scheduled_execution_job(ScheduledExecution.t() | map(), Context.t() | map() | keyword()) ::
+          map()
   def scheduled_execution_job(scheduled_execution, context \\ %{}) do
     scheduled_execution = ScheduledExecution.new(scheduled_execution)
     inserted_at = DateTime.utc_now() |> DateTime.truncate(:microsecond)
@@ -95,7 +95,11 @@ defmodule Rulestead.Oban do
   """
   @spec webhook_delivery_job(map() | String.t(), keyword()) :: map()
   def webhook_delivery_job(delivery_or_id, opts \\ []) do
-    delivery_id = if is_map(delivery_or_id), do: Map.get(delivery_or_id, :id, Map.get(delivery_or_id, "id")), else: delivery_or_id
+    delivery_id =
+      if is_map(delivery_or_id),
+        do: Map.get(delivery_or_id, :id, Map.get(delivery_or_id, "id")),
+        else: delivery_or_id
+
     schedule_in = Keyword.get(opts, :schedule_in, 0)
     inserted_at = DateTime.utc_now() |> DateTime.truncate(:microsecond)
     scheduled_at = DateTime.add(inserted_at, schedule_in, :second)

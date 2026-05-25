@@ -26,7 +26,8 @@ defmodule Rulestead.Analytics.Batcher do
   def insert(event) do
     try do
       if buffer_full?() do
-        :ok # Drop event
+        # Drop event
+        :ok
       else
         key = System.unique_integer([:monotonic])
         :ets.insert(@table, {key, event})
@@ -45,13 +46,20 @@ defmodule Rulestead.Analytics.Batcher do
   def init(opts) do
     case :ets.info(@table) do
       :undefined ->
-        :ets.new(@table, [:named_table, :public, :set, read_concurrency: true, write_concurrency: true])
+        :ets.new(@table, [
+          :named_table,
+          :public,
+          :set,
+          read_concurrency: true,
+          write_concurrency: true
+        ])
+
       _ ->
         :ok
     end
 
     flush_interval = Keyword.get(opts, :flush_interval, @default_flush_interval)
-    
+
     # Don't schedule flush if interval is 0 or false (useful for tests)
     if flush_interval && flush_interval > 0 do
       schedule_flush(flush_interval)
@@ -71,11 +79,11 @@ defmodule Rulestead.Analytics.Batcher do
   @impl true
   def handle_info(:flush, state) do
     flush_events(state.batch_size)
-    
+
     if state.flush_interval && state.flush_interval > 0 do
       schedule_flush(state.flush_interval)
     end
-    
+
     {:noreply, state}
   end
 
@@ -91,6 +99,7 @@ defmodule Rulestead.Analytics.Batcher do
 
   defp buffer_full? do
     max_size = :persistent_term.get({__MODULE__, :max_size}, @default_max_size)
+
     case :ets.info(@table, :size) do
       size when is_integer(size) and size >= max_size -> true
       _ -> false
@@ -100,6 +109,7 @@ defmodule Rulestead.Analytics.Batcher do
   defp flush_events(batch_size) do
     # We select up to `batch_size` items and delete them
     match_spec = [{:"$1", [], [:"$1"]}]
+
     case :ets.select(@table, match_spec, batch_size) do
       :"$end_of_table" ->
         :ok
@@ -107,13 +117,13 @@ defmodule Rulestead.Analytics.Batcher do
       {matches, _continuation} ->
         # matches is a list of {key, event}
         events = Enum.map(matches, fn {_key, event} -> event end)
-        
+
         # Atomically remove them from ETS so we don't process them again
         # since we might only take a partial batch, we explicitly delete these keys
         Enum.each(matches, fn {key, _} -> :ets.delete(@table, key) end)
-        
+
         insert_to_db(events)
-        
+
         # If we hit the limit, there might be more, but we'll get them next flush
         # or we could recursively call flush_events until empty. For now, just batch_size per flush.
         :ok
@@ -125,6 +135,7 @@ defmodule Rulestead.Analytics.Batcher do
   end
 
   defp insert_to_db([]), do: :ok
+
   defp insert_to_db(raw_events) do
     insert_maps = Enum.map(raw_events, &EventMapper.to_insert_map/1)
 

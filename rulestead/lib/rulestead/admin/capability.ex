@@ -36,15 +36,21 @@ defmodule Rulestead.Admin.Capability do
 
       {:error, _error, audit} ->
         reason = audit[:reason] || :unauthorized
-        
+
         # Determine if it's admin_only by checking if an admin could do it
         admin_actor = %{id: "probe-admin", roles: [:admin]}
+
         admin_only? =
-          case Authorizer.authorize_governed_action(admin_actor, action, resource, environment_key) do
+          case Authorizer.authorize_governed_action(
+                 admin_actor,
+                 action,
+                 resource,
+                 environment_key
+               ) do
             {:ok, _} -> true
             _ -> false
           end
-          
+
         %__MODULE__{
           read_allowed?: read_allowed?,
           execute_allowed?: false,

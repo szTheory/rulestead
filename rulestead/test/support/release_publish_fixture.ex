@@ -82,10 +82,17 @@ defmodule Rulestead.Test.ReleasePublishFixture do
     trimmed = String.trim(version)
 
     cond do
-      trimmed == "" -> raise ArgumentError, "expected published version"
-      String.contains?(trimmed, "path:") -> raise ArgumentError, "path dependencies are not allowed"
-      String.contains?(trimmed, "/") -> raise ArgumentError, "local paths are not allowed"
-      true -> "~> #{trimmed}"
+      trimmed == "" ->
+        raise ArgumentError, "expected published version"
+
+      String.contains?(trimmed, "path:") ->
+        raise ArgumentError, "path dependencies are not allowed"
+
+      String.contains?(trimmed, "/") ->
+        raise ArgumentError, "local paths are not allowed"
+
+      true ->
+        "~> #{trimmed}"
     end
   end
 

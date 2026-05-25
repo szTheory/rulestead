@@ -62,7 +62,9 @@ defmodule Mix.Tasks.Rulestead.Promote do
 
   defp validate_args!(opts, argv, invalid) do
     if argv != [] or invalid != [] do
-      Mix.raise("usage: mix rulestead.promote --plan --source <environment_key> --target <environment_key> [--out <plan_path>] [--format text|json] OR mix rulestead.promote --apply --file <plan_path|-> --reason <reason> [--format text|json]")
+      Mix.raise(
+        "usage: mix rulestead.promote --plan --source <environment_key> --target <environment_key> [--out <plan_path>] [--format text|json] OR mix rulestead.promote --apply --file <plan_path|-> --reason <reason> [--format text|json]"
+      )
     end
 
     modes = Enum.count([Keyword.get(opts, :plan), Keyword.get(opts, :apply)], & &1)
@@ -87,7 +89,9 @@ defmodule Mix.Tasks.Rulestead.Promote do
       end
 
       if Keyword.get(opts, :source) || Keyword.get(opts, :target) do
-        Mix.raise("promote apply does not accept raw --source/--target inputs; pass a saved plan via --file")
+        Mix.raise(
+          "promote apply does not accept raw --source/--target inputs; pass a saved plan via --file"
+        )
       end
 
       if is_nil(Keyword.get(opts, :reason)) do

@@ -3,7 +3,6 @@ defmodule Rulestead.Plug do
   # Plug-facing seam that assigns a normalized `%Rulestead.Context{}` onto
   # `conn.assigns[:rulestead_context]`.
 
-
   alias Rulestead.Phoenix
 
   @default_assign :rulestead_context

@@ -29,12 +29,21 @@ defmodule Rulestead.Integration.RuntimeHotPathTest do
         value_type: :boolean,
         default_value: %{value: false},
         ownership: %{owner_ref: "ops", owner_kind: :team},
-      lifecycle: %{mode: :expiring, review_by: Date.utc_today(), default_source: :flag_type, default_overridden: false}
+        lifecycle: %{
+          mode: :expiring,
+          review_by: Date.utc_today(),
+          default_source: :flag_type,
+          default_overridden: false
+        }
       })
       |> Repo.insert!()
 
     %FlagEnvironment{}
-    |> FlagEnvironment.changeset(%{flag_id: flag.id, environment_id: environment.id, status: :draft})
+    |> FlagEnvironment.changeset(%{
+      flag_id: flag.id,
+      environment_id: environment.id,
+      status: :draft
+    })
     |> Repo.insert!()
 
     store_config = Application.get_env(:rulestead, :store)
@@ -87,7 +96,9 @@ defmodule Rulestead.Integration.RuntimeHotPathTest do
       )
 
     assert :ok = Refresh.sync(worker)
-    assert {:ok, true} = Runtime.enabled?("test", "checkout-redesign", Context.new(actor: %{key: "user-1"}))
+
+    assert {:ok, true} =
+             Runtime.enabled?("test", "checkout-redesign", Context.new(actor: %{key: "user-1"}))
 
     handler_id = "repo-query-count-#{System.unique_integer([:positive])}"
     parent = self()
@@ -105,7 +116,9 @@ defmodule Rulestead.Integration.RuntimeHotPathTest do
 
     on_exit(fn -> :telemetry.detach(handler_id) end)
 
-    assert {:ok, true} = Runtime.enabled?("test", "checkout-redesign", Context.new(actor: %{key: "user-1"}))
+    assert {:ok, true} =
+             Runtime.enabled?("test", "checkout-redesign", Context.new(actor: %{key: "user-1"}))
+
     refute_receive {:repo_query, _query}, 200
   end
 end

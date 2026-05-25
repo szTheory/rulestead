@@ -488,6 +488,7 @@ defmodule Rulestead.Store.Ecto do
             }
           end)
         end)
+
       lifecycle_context = lifecycle_context_for_flags(Enum.map(raw_entries, & &1.flag.key))
 
       entries =
@@ -4281,7 +4282,10 @@ defmodule Rulestead.Store.Ecto do
 
   defp recent_owners(current_owner, extra_owner \\ nil) do
     owners =
-      from(flag in Flag, order_by: [desc: flag.updated_at], select: fragment("?->>'owner_ref'", flag.ownership))
+      from(flag in Flag,
+        order_by: [desc: flag.updated_at],
+        select: fragment("?->>'owner_ref'", flag.ownership)
+      )
       |> Repo.all()
 
     [

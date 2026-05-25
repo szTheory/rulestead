@@ -74,11 +74,20 @@ defmodule Rulestead.CodeRefs.ScannerTest do
       File.write!(Path.join(other_dir, "d.ex"), "Rulestead.evaluate(ctx, \"flag_d\")")
 
       references = Scanner.scan_dir(lib_dir)
-      
+
       # Should only pick up .ex and .exs in lib_dir
       assert length(references) == 2
-      assert Enum.any?(references, &(&1.flag_key == "flag_a" and String.ends_with?(&1.file, "a.ex")))
-      assert Enum.any?(references, &(&1.flag_key == "flag_b" and String.ends_with?(&1.file, "b.exs")))
+
+      assert Enum.any?(
+               references,
+               &(&1.flag_key == "flag_a" and String.ends_with?(&1.file, "a.ex"))
+             )
+
+      assert Enum.any?(
+               references,
+               &(&1.flag_key == "flag_b" and String.ends_with?(&1.file, "b.exs"))
+             )
+
       refute Enum.any?(references, &(&1.flag_key == "flag_c"))
       refute Enum.any?(references, &(&1.flag_key == "flag_d"))
     end

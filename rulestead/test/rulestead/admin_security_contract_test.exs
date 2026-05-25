@@ -67,14 +67,21 @@ defmodule Rulestead.AdminSecurityContractTest do
              environment_key: "production",
              actor: %{id: "auditor-1"}
            } =
-             Command.ListAuditEvents.new(flag_key: "checkout-redesign", environment_key: "production", actor: %{id: "auditor-1"})
+             Command.ListAuditEvents.new(
+               flag_key: "checkout-redesign",
+               environment_key: "production",
+               actor: %{id: "auditor-1"}
+             )
 
     assert %Command.RollbackAuditEvent{
              audit_event_id: "evt-123",
              actor: %{id: "operator-1"},
              metadata: %{reason: "revert"}
            } =
-             Command.RollbackAuditEvent.new("evt-123", actor: %{id: "operator-1"}, metadata: %{reason: "revert"})
+             Command.RollbackAuditEvent.new("evt-123",
+               actor: %{id: "operator-1"},
+               metadata: %{reason: "revert"}
+             )
   end
 
   test "authorization denies return a typed auth error and a normalized denied audit payload" do
@@ -84,7 +91,11 @@ defmodule Rulestead.AdminSecurityContractTest do
     assert {:error, %Error{domain: :auth, type: :unauthorized} = error, denied_audit} =
              Authorizer.authorize(actor, :engage_kill_switch, resource, "production")
 
-    assert error == AuthError.unauthorized(metadata: %{action: "engage_kill_switch", environment_key: "production"})
+    assert error ==
+             AuthError.unauthorized(
+               metadata: %{action: "engage_kill_switch", environment_key: "production"}
+             )
+
     assert denied_audit.result == :denied
     assert denied_audit.action == :engage_kill_switch
     assert denied_audit.environment_key == "production"
@@ -102,7 +113,9 @@ defmodule Rulestead.AdminSecurityContractTest do
     }
 
     assert %{audit: audit, telemetry: telemetry} =
-             Redaction.redact_metadata(%{traits: context}, allow: ["targeting_key", "plan", "nested.region"])
+             Redaction.redact_metadata(%{traits: context},
+               allow: ["targeting_key", "plan", "nested.region"]
+             )
 
     assert audit.traits.targeting_key == "acct-123"
     assert audit.traits.plan == "enterprise"
@@ -127,7 +140,9 @@ defmodule Rulestead.AdminSecurityContractTest do
 
     assert {:error, %Error{domain: :auth, type: :unauthorized}} =
              Rulestead.save_draft_ruleset(
-               StoreFixtures.save_draft_command("checkout-redesign", "test", ruleset, actor: actor)
+               StoreFixtures.save_draft_command("checkout-redesign", "test", ruleset,
+                 actor: actor
+               )
              )
 
     assert {:error, %Error{domain: :auth, type: :unauthorized}} =
@@ -136,7 +151,9 @@ defmodule Rulestead.AdminSecurityContractTest do
              )
 
     assert {:error, %Error{domain: :auth, type: :unauthorized}} =
-             Rulestead.archive_flag(StoreFixtures.archive_flag_command("checkout-redesign", actor: actor))
+             Rulestead.archive_flag(
+               StoreFixtures.archive_flag_command("checkout-redesign", actor: actor)
+             )
   end
 
   test "denied draft, publish, and archive writes append denied audit rows instead of calling direct writes" do
@@ -202,18 +219,25 @@ defmodule Rulestead.AdminSecurityContractTest do
 
     assert {:ok, %{version: 2}} =
              Rulestead.save_draft_ruleset(
-               StoreFixtures.save_draft_command("checkout-redesign", "test", ruleset, actor: actor)
+               StoreFixtures.save_draft_command("checkout-redesign", "test", ruleset,
+                 actor: actor
+               )
              )
 
     assert {:ok, published} =
              Rulestead.publish_ruleset(
-               StoreFixtures.publish_ruleset_command("checkout-redesign", "test", version: 2, actor: actor)
+               StoreFixtures.publish_ruleset_command("checkout-redesign", "test",
+                 version: 2,
+                 actor: actor
+               )
              )
 
     assert published.active_ruleset.version == 2
 
     assert {:ok, archived} =
-             Rulestead.archive_flag(StoreFixtures.archive_flag_command("checkout-redesign", actor: actor))
+             Rulestead.archive_flag(
+               StoreFixtures.archive_flag_command("checkout-redesign", actor: actor)
+             )
 
     assert archived.archived?
   end
@@ -231,7 +255,10 @@ defmodule Rulestead.AdminSecurityContractTest do
 
     assert {:ok, _} =
              Rulestead.save_draft_ruleset(
-               StoreFixtures.save_draft_command("checkout-redesign", "test", StoreFixtures.valid_ruleset_attrs(),
+               StoreFixtures.save_draft_command(
+                 "checkout-redesign",
+                 "test",
+                 StoreFixtures.valid_ruleset_attrs(),
                  actor: %{id: "seed-operator", roles: [:operator]}
                )
              )

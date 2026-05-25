@@ -5,7 +5,6 @@ defmodule Rulestead.Tenancy.SingleTenant do
   # Always resolves a `nil` tenant scope, allows all operations as `same_tenant?`,
   # and returns the unmodified base topic for PubSub operations.
 
-
   @behaviour Rulestead.Tenancy
 
   @impl true

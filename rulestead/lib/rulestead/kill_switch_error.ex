@@ -2,7 +2,6 @@ defmodule Rulestead.KillSwitchError do
   @moduledoc false
   # Constructors for kill-switch-domain `Rulestead.Error` values.
 
-
   alias Rulestead.Error
 
   @spec new(Error.type(), String.t(), keyword()) :: Error.t()

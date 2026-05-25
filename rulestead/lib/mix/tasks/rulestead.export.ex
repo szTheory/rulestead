@@ -31,7 +31,9 @@ defmodule Mix.Tasks.Rulestead.Export do
 
   defp validate_args!(opts, argv, invalid) do
     if argv != [] or invalid != [] do
-      Mix.raise("usage: mix rulestead.export --environment <environment_key> [--flag <flag_key>] [--out <path>|-]")
+      Mix.raise(
+        "usage: mix rulestead.export --environment <environment_key> [--flag <flag_key>] [--out <path>|-]"
+      )
     end
 
     if is_nil(Keyword.get(opts, :environment)) do

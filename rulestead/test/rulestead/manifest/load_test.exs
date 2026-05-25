@@ -58,11 +58,21 @@ defmodule Rulestead.Manifest.LoadTest do
 
   test "rejects invalid manifest kind" do
     assert {:error, %Rulestead.Error{message: "manifest kind is unsupported"}} =
-             Manifest.load(%{"schema_version" => 1, "kind" => "wrong", "environment_key" => "staging", "flags" => []})
+             Manifest.load(%{
+               "schema_version" => 1,
+               "kind" => "wrong",
+               "environment_key" => "staging",
+               "flags" => []
+             })
   end
 
   test "rejects invalid manifest schema version" do
     assert {:error, %Rulestead.Error{message: "manifest schema version is unsupported"}} =
-             Manifest.load(%{"schema_version" => 2, "kind" => "rulestead_environment_manifest", "environment_key" => "staging", "flags" => []})
+             Manifest.load(%{
+               "schema_version" => 2,
+               "kind" => "rulestead_environment_manifest",
+               "environment_key" => "staging",
+               "flags" => []
+             })
   end
 end

@@ -34,9 +34,7 @@ defmodule Rulestead.Store.PromotionGovernedApplyContractTest do
 
   test "saved-plan promote apply submits governed execution instead of direct protected-target rejection" do
     assert {:ok, planned} =
-             Rulestead.plan_promotion("staging", "production",
-               tenant_key: "acme"
-             )
+             Rulestead.plan_promotion("staging", "production", tenant_key: "acme")
 
     plan = planned["details"]["plan"]
 

@@ -8,6 +8,7 @@ defmodule Rulestead.Manifest.ValidateTest do
 
     assert result["status"] == "ok"
     assert result["command"] == "validate"
+
     assert result["summary"] == %{
              "environment_key" => "staging",
              "finding_count" => 0,
@@ -25,11 +26,15 @@ defmodule Rulestead.Manifest.ValidateTest do
         ["flags", Access.at(0), "active_ruleset", "rules", Access.at(0), "audience_key"],
         nil
       )
-      |> put_in(["flags", Access.at(0), "active_ruleset", "rules", Access.at(0), "strategy"], "segment_match")
+      |> put_in(
+        ["flags", Access.at(0), "active_ruleset", "rules", Access.at(0), "strategy"],
+        "segment_match"
+      )
 
     assert {:ok, result} = Validate.validate(manifest)
 
     assert result["status"] == "invalid"
+
     assert result["findings"] == [
              %{
                "code" => "missing_dependency",

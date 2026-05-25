@@ -28,7 +28,8 @@ defmodule Rulestead.Admin.LifecycleDefaults do
         :remote_config ->
           %{
             mode: nil,
-            rationale: "Remote config needs an explicit operator choice because usage can be temporary or durable.",
+            rationale:
+              "Remote config needs an explicit operator choice because usage can be temporary or durable.",
             default_source: :operator_required
           }
 

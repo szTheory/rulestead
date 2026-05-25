@@ -35,7 +35,12 @@ defmodule Rulestead.Store.CommandTest do
                actor: %{"id" => "user_1"},
                reason: "test reason",
                metadata: %{"test" => true}
-             } = Command.StopExperiment.new(:my_experiment, :production, "  rule_123  ", "  v_1  ", actor: %{id: "user_1"}, reason: "test reason", metadata: %{test: true})
+             } =
+               Command.StopExperiment.new(:my_experiment, :production, "  rule_123  ", "  v_1  ",
+                 actor: %{id: "user_1"},
+                 reason: "test reason",
+                 metadata: %{test: true}
+               )
     end
   end
 end

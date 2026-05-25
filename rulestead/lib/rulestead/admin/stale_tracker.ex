@@ -33,7 +33,12 @@ defmodule Rulestead.Admin.StaleTracker do
         %{tracker: self()}
       )
 
-    {:ok, %{pending: %{}, timer: nil, flush_interval: Keyword.get(opts, :flush_interval, @flush_interval)}}
+    {:ok,
+     %{
+       pending: %{},
+       timer: nil,
+       flush_interval: Keyword.get(opts, :flush_interval, @flush_interval)
+     }}
   end
 
   @impl GenServer
@@ -67,7 +72,12 @@ defmodule Rulestead.Admin.StaleTracker do
     with true <- runtime_eval_event?(metadata),
          flag_key when is_binary(flag_key) <- metadata[:flag_key],
          environment_key when is_binary(environment_key) <- metadata[:environment],
-         true <- metadata[:reason] not in [:flag_not_found, :store_not_configured, :store_adapter_invalid] do
+         true <-
+           metadata[:reason] not in [
+             :flag_not_found,
+             :store_not_configured,
+             :store_adapter_invalid
+           ] do
       recorded_at = DateTime.utc_now() |> DateTime.truncate(:microsecond)
       GenServer.cast(tracker, {:record, flag_key, environment_key, recorded_at})
     else

@@ -107,15 +107,22 @@ defmodule Rulestead.Runtime.Cache do
     end
   end
 
-  @spec lookup(String.t() | atom(), String.t() | atom()) :: {:ok, flag_state()} | {:error, Rulestead.Error.t()}
+  @spec lookup(String.t() | atom(), String.t() | atom()) ::
+          {:ok, flag_state()} | {:error, Rulestead.Error.t()}
   def lookup(environment_key, flag_key) do
     ensure_tables()
     environment_key = to_string(environment_key)
     flag_key = to_string(flag_key)
 
     case :ets.lookup(@flags_table, {environment_key, flag_key}) do
-      [{{^environment_key, ^flag_key}, entry}] -> {:ok, entry}
-      [] -> {:error, EvaluationError.new(:flag_not_found, "runtime flag was not found", metadata: %{environment_key: environment_key, flag_key: flag_key})}
+      [{{^environment_key, ^flag_key}, entry}] ->
+        {:ok, entry}
+
+      [] ->
+        {:error,
+         EvaluationError.new(:flag_not_found, "runtime flag was not found",
+           metadata: %{environment_key: environment_key, flag_key: flag_key}
+         )}
     end
   end
 
@@ -125,12 +132,19 @@ defmodule Rulestead.Runtime.Cache do
     environment_key = to_string(environment_key)
 
     case :ets.lookup(@env_table, environment_key) do
-      [{^environment_key, state}] -> {:ok, normalize_env_state(state)}
-      [] -> {:error, EvaluationError.new(:flag_not_found, "runtime environment was not loaded", metadata: %{environment_key: environment_key})}
+      [{^environment_key, state}] ->
+        {:ok, normalize_env_state(state)}
+
+      [] ->
+        {:error,
+         EvaluationError.new(:flag_not_found, "runtime environment was not loaded",
+           metadata: %{environment_key: environment_key}
+         )}
     end
   end
 
-  @spec cache_age_ms(String.t() | atom()) :: {:ok, non_neg_integer() | nil} | {:error, Rulestead.Error.t()}
+  @spec cache_age_ms(String.t() | atom()) ::
+          {:ok, non_neg_integer() | nil} | {:error, Rulestead.Error.t()}
   def cache_age_ms(environment_key) do
     with {:ok, %{applied_monotonic_ms: applied_monotonic_ms}} <- environment(environment_key) do
       case applied_monotonic_ms do
@@ -157,7 +171,7 @@ defmodule Rulestead.Runtime.Cache do
          disk_backup_status: Map.get(state, :disk_backup_status, :disabled),
          last_refresh_error: state.last_refresh_error
        }}
-  end
+    end
   end
 
   @spec diagnostics() :: [map()]
@@ -269,7 +283,9 @@ defmodule Rulestead.Runtime.Cache do
     }
   end
 
-  defp refresh_status_for(%{version: version}) when is_integer(version) and version > 0, do: :stale
+  defp refresh_status_for(%{version: version}) when is_integer(version) and version > 0,
+    do: :stale
+
   defp refresh_status_for(_state), do: :degraded
 
   defp source_for(%{version: version, source: source})

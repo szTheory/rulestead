@@ -18,8 +18,13 @@ defmodule Rulestead.AdminGovernancePolicyTest do
   end
 
   test "admin policy exposes optional governance hooks on the existing host seam" do
-    assert {:change_request_required?, 4} in Rulestead.Admin.Policy.behaviour_info(:optional_callbacks)
-    assert {:allow_self_approval?, 4} in Rulestead.Admin.Policy.behaviour_info(:optional_callbacks)
+    assert {:change_request_required?, 4} in Rulestead.Admin.Policy.behaviour_info(
+             :optional_callbacks
+           )
+
+    assert {:allow_self_approval?, 4} in Rulestead.Admin.Policy.behaviour_info(
+             :optional_callbacks
+           )
 
     assert __MODULE__.SelectiveGovernancePolicy.change_request_required?(
              %{id: "operator-1"},

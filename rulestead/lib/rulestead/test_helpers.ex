@@ -2,7 +2,6 @@ defmodule Rulestead.TestHelpers do
   @moduledoc false
   # Public fake-backed test helpers for host app tests.
 
-
   import ExUnit.Assertions
 
   alias Rulestead.{Fake.Control, Telemetry}
@@ -60,7 +59,7 @@ defmodule Rulestead.TestHelpers do
   end
 
   @doc false
-  @spec __assert_flag_evaluated__(String.t() | atom(), (() -> term())) :: term()
+  @spec __assert_flag_evaluated__(String.t() | atom(), (-> term())) :: term()
   def __assert_flag_evaluated__(flag_key, fun) when is_function(fun, 0) do
     test_pid = self()
     handler_id = "rulestead-test-helper-#{System.unique_integer([:positive])}"

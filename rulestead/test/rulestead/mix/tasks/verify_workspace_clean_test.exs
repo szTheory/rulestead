@@ -22,7 +22,11 @@ defmodule Rulestead.Mix.Tasks.VerifyWorkspaceCleanTest do
     """
 
     assert {:dirty, paths} = WorkspaceClean.verify_status(status_output)
-    assert paths == ["lib/rulestead.ex", "test/rulestead/mix/tasks/verify_workspace_clean_test.exs"]
+
+    assert paths == [
+             "lib/rulestead.ex",
+             "test/rulestead/mix/tasks/verify_workspace_clean_test.exs"
+           ]
   end
 
   test "rejects unknown escape-hatch flags" do

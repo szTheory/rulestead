@@ -39,13 +39,13 @@ defmodule Rulestead.Analytics.BatcherTest do
       rescue
         ArgumentError -> :ok
       end
-      
+
       stop_supervised(Batcher)
       start_supervised!({Batcher, flush_interval: 0, max_size: 2})
 
       assert :ok = Batcher.insert(%{kind: "custom", event_name: "event_1"})
       assert :ok = Batcher.insert(%{kind: "custom", event_name: "event_2"})
-      
+
       # The 3rd insert should be dropped because size >= 2
       assert :ok = Batcher.insert(%{kind: "custom", event_name: "event_3"})
 
@@ -73,11 +73,11 @@ defmodule Rulestead.Analytics.BatcherTest do
       # DB should have 2 events
       events = Repo.all(Event)
       assert length(events) == 2
-      
+
       event_names = Enum.map(events, & &1.event_name) |> Enum.sort()
       assert event_names == ["event_1", "event_2"]
     end
-    
+
     test "only flushes up to batch_size" do
       event1 = %{kind: "custom", event_name: "event_1"}
       event2 = %{kind: "custom", event_name: "event_2"}

@@ -390,6 +390,7 @@ defmodule Rulestead.Store.Command do
         value when value in [true, "true", 1, "1"] -> true
         _other -> false
       end
+
     mode = explicit_mode || if(permanent?, do: :permanent, else: :expiring)
 
     overridden? =

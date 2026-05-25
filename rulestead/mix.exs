@@ -105,16 +105,16 @@ defmodule Rulestead.MixProject do
           Rulestead.Store.Ecto,
           Rulestead.Store.Redis
         ],
-        "Extensibility": [
+        Extensibility: [
           Rulestead.Store,
           Rulestead.Runtime.Snapshot,
           Rulestead.Tenancy
         ]
       ],
       groups_for_extras: [
-        "Introduction": ~r"guides/introduction/",
-        "Flows": ~r"guides/flows/",
-        "Recipes": ~r"guides/recipes/"
+        Introduction: ~r"guides/introduction/",
+        Flows: ~r"guides/flows/",
+        Recipes: ~r"guides/recipes/"
       ],
       # Original Phase 1 shape: skip_undefined_reference_warnings_on: &String.starts_with?(&1, "lib/")
       skip_undefined_reference_warnings_on: fn ref ->

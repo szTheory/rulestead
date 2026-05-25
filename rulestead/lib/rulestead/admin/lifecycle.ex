@@ -244,7 +244,9 @@ defmodule Rulestead.Admin.Lifecycle do
     end
   end
 
-  defp recommended_next_action(:archive_candidate, _blockers, _unknowns, :strong), do: :archive_ready
+  defp recommended_next_action(:archive_candidate, _blockers, _unknowns, :strong),
+    do: :archive_ready
+
   defp recommended_next_action(:keep_active, _blockers, _unknowns, _quality), do: :keep_active
   defp recommended_next_action(_readiness, _blockers, _unknowns, :weak), do: nil
   defp recommended_next_action(_readiness, _blockers, _unknowns, _quality), do: :review_manually
@@ -293,11 +295,17 @@ defmodule Rulestead.Admin.Lifecycle do
   defp protected_flag_type?(flag_type), do: flag_type in @protected_flag_types
 
   defp review_due?(nil, _now), do: false
-  defp review_due?(%Date{} = review_by, %DateTime{} = now), do: Date.compare(review_by, DateTime.to_date(now)) != :gt
+
+  defp review_due?(%Date{} = review_by, %DateTime{} = now),
+    do: Date.compare(review_by, DateTime.to_date(now)) != :gt
+
   defp review_due?(_review_by, _now), do: false
 
   defp archive_positive?(reasons) do
-    Enum.any?(reasons, &(&1 in [:review_horizon_passed, :stale_evaluation, :no_code_refs, :never_evaluated]))
+    Enum.any?(
+      reasons,
+      &(&1 in [:review_horizon_passed, :stale_evaluation, :no_code_refs, :never_evaluated])
+    )
   end
 
   defp archive_candidate_reasons?(reasons) do

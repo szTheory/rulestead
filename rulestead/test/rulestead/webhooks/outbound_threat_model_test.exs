@@ -5,9 +5,9 @@ defmodule Rulestead.Webhooks.OutboundThreatModelTest do
 
   test "sign_payload includes deterministic timestamp and signature" do
     headers = DeliverySigner.sign_payload("{\"foo\":\"bar\"}", "secret_123")
-    
+
     assert Map.has_key?(headers, "Rulestead-Signature")
-    
+
     sig = headers["Rulestead-Signature"]
     assert sig =~ ~r/^t=\d+,v1=[a-f0-9]{64}$/
   end

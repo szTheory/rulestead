@@ -15,11 +15,11 @@ defmodule Rulestead.Oban.StaleFlagWorker do
   def perform(_job) do
     snapshot = Cache.snapshot()
     Cache.clear()
-    
+
     if snapshot != %{} do
       flush_to_db(snapshot)
     end
-    
+
     {:ok, :flushed}
   end
 
@@ -30,27 +30,30 @@ defmodule Rulestead.Oban.StaleFlagWorker do
   end
 
   defp update_flag_environment(flag_key, env_key, data) do
-    query = 
-      from fe in FlagEnvironment,
+    query =
+      from(fe in FlagEnvironment,
         join: f in assoc(fe, :flag),
         join: e in assoc(fe, :environment),
         where: f.key == ^flag_key and e.key == ^env_key,
         select: fe
+      )
 
     case Repo.one(query) do
-      nil -> :ok
+      nil ->
+        :ok
+
       fe ->
         existing_variants = fe.variants_served || %{}
         new_variants = data[:variants_served] || %{}
-        
-        merged_variants = 
+
+        merged_variants =
           Enum.reduce(new_variants, existing_variants, fn {v, count}, acc ->
             Map.update(acc, v, count, &(&1 + count))
           end)
 
         last_eval = fe.last_evaluated_at
         new_eval = data[:last_evaluated_at]
-        
+
         updated_last_eval =
           if last_eval && new_eval do
             if DateTime.compare(new_eval, last_eval) == :gt do

@@ -99,8 +99,9 @@ defmodule Rulestead.Manifest.Diff do
       changed_fields = flag[:changed_fields] || flag["changed_fields"] || []
 
       filtered_findings =
-        flag[:findings] || flag["findings"] || []
-        |> Enum.reject(&ignore_compare_finding?(&1, audiences))
+        flag[:findings] || flag["findings"] ||
+          []
+          |> Enum.reject(&ignore_compare_finding?(&1, audiences))
 
       changed_fields != [] or filtered_findings != []
     end)

@@ -42,7 +42,7 @@ defmodule Rulestead.Manifest.Render do
     |> Enum.map(fn {key, value} -> {to_string(key), encode_json(value)} end)
     |> Enum.sort_by(&elem(&1, 0))
     |> Enum.map_join(",", fn {key, value} -> Jason.encode!(key) <> ":" <> value end)
-    |> then(&"{" <> &1 <> "}")
+    |> then(&("{" <> &1 <> "}"))
   end
 
   defp encode_json(list) when is_list(list) do

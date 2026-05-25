@@ -54,7 +54,9 @@ defmodule Rulestead.Runtime.BackupTest do
     assert {:ok, true} = Runtime.enabled?(environment_key, "checkout-redesign", actor_context())
   end
 
-  test "corrupt backups are quarantined and skipped without crashing startup", %{backup_root: backup_root} do
+  test "corrupt backups are quarantined and skipped without crashing startup", %{
+    backup_root: backup_root
+  } do
     environment_key = unique_environment_key("backup-corrupt")
     File.mkdir_p!(Path.join(backup_root, environment_key))
     File.write!(Path.join([backup_root, environment_key, "snapshot.current"]), "corrupt-backup")
@@ -123,7 +125,9 @@ defmodule Rulestead.Runtime.BackupTest do
 
     start_supervised!(%{
       id: {:runtime_supervisor, environment_key, System.unique_integer([:positive])},
-      start: {Supervisor, :start_link, [[name: nil, environment_keys: [environment_key], store: store]]},
+      start:
+        {Supervisor, :start_link,
+         [[name: nil, environment_keys: [environment_key], store: store]]},
       type: :supervisor
     })
   end
@@ -138,7 +142,12 @@ defmodule Rulestead.Runtime.BackupTest do
       value_type: :boolean,
       default_value: %{value: false},
       ownership: %{owner_ref: "ops", owner_kind: :team},
-      lifecycle: %{mode: :expiring, review_by: Date.utc_today(), default_source: :flag_type, default_overridden: false},
+      lifecycle: %{
+        mode: :expiring,
+        review_by: Date.utc_today(),
+        default_source: :flag_type,
+        default_overridden: false
+      },
       environment_keys: [environment_key]
     })
 
@@ -151,14 +160,18 @@ defmodule Rulestead.Runtime.BackupTest do
               key: "beta-rollout",
               strategy: :forced_value,
               value: %{value: forced_value},
-              conditions: [%{attribute: "actor.key", operator: :equals, value: %{equals: "user-1"}}]
+              conditions: [
+                %{attribute: "actor.key", operator: :equals, value: %{equals: "user-1"}}
+              ]
             }
           ]
         })
       )
 
     {:ok, _published} =
-      Rulestead.publish_ruleset(Rulestead.Store.Command.PublishRuleset.new("checkout-redesign", environment_key))
+      Rulestead.publish_ruleset(
+        Rulestead.Store.Command.PublishRuleset.new("checkout-redesign", environment_key)
+      )
   end
 
   defp actor_context, do: Context.new(actor: %{key: "user-1"})
@@ -183,7 +196,9 @@ defmodule Rulestead.Runtime.BackupTest do
             rules: [
               %{
                 key: "beta-rollout",
-                conditions: [%{attribute: "actor.key", operator: :equals, value: %{equals: "user-1"}}],
+                conditions: [
+                  %{attribute: "actor.key", operator: :equals, value: %{equals: "user-1"}}
+                ],
                 strategy: :forced_value,
                 value: forced_value
               }
@@ -206,9 +221,9 @@ defmodule Rulestead.Runtime.BackupTest do
 
     result =
       case FileStore.load(root, environment_key) do
-      {:ok, snapshot} -> {:ok, snapshot}
-      {:error, reason} -> {:error, reason}
-    end
+        {:ok, snapshot} -> {:ok, snapshot}
+        {:error, reason} -> {:error, reason}
+      end
 
     File.rm_rf!(root)
     result
