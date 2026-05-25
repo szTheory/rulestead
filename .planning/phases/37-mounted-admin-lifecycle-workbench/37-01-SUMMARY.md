@@ -35,7 +35,7 @@ key-decisions:
 patterns-established:
   - "Pattern 1: Cross-LiveView lifecycle actions carry a canonical `return_to` path instead of reconstructing queue state from assigns."
   - "Pattern 2: Detail remains calm and links out to cleanup review instead of hosting destructive archive UI."
-requirements-completed: [LIF-03, LIF-04]
+requirements-completed: [LIF-03]
 duration: 12min
 completed: 2026-05-23
 ---

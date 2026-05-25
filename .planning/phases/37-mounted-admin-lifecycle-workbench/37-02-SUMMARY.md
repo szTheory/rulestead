@@ -31,7 +31,7 @@ key-decisions:
 patterns-established:
   - "Pattern 1: Destructive mounted-admin actions carry a preview signature from the evidence screen into the confirm screen and revalidate it before mutation."
   - "Pattern 2: Queue-return outcome tests tolerate a canonicalizing live redirect before asserting rendered inventory state."
-requirements-completed: [LIF-05]
+requirements-completed: [LIF-04]
 duration: 18min
 completed: 2026-05-23
 ---

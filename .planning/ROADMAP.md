@@ -38,6 +38,11 @@
 2. Installer and migration guidance describe the same database shape adopters actually receive.
 3. Targeted runtime tests prove lifecycle and ownership parity end to end.
 
+**Plans:** 1/3 plans executed
+- [x] 42-01-PLAN.md — Squosh 16 legacy migrations into a single GA-ready migration baseline
+- [ ] 42-02-PLAN.md — Update Rulestead.Flag and internal data stores to drop legacy columns
+- [ ] 42-03-PLAN.md — Update rulestead_admin views and sync Golden tests to squoshed installer behavior
+
 ### Phase 43: Mounted Contract & Verification Closure
 
 **Goal:** Mounted-admin lifecycle and permission behavior expose one deliberate host-facing contract and the core/admin verification surface returns to honest green or bounded truth.

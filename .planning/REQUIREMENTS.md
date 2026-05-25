@@ -12,8 +12,8 @@
 
 ### Runtime Contract Parity (`PAR`)
 
-- [ ] **PAR-01**: The `rulestead` authored flag schema, Ecto migrations, and installer-facing database story agree on lifecycle and ownership fields end to end.
-- [ ] **PAR-02**: Repo proof covers the lifecycle/ownership contract through migrations and runtime tests so adopters do not discover missing authored-state columns only after installation.
+- [x] **PAR-01**: The `rulestead` authored flag schema, Ecto migrations, and installer-facing database story agree on lifecycle and ownership fields end to end.
+- [x] **PAR-02**: Repo proof covers the lifecycle/ownership contract through migrations and runtime tests so adopters do not discover missing authored-state columns only after installation.
 
 ### Mounted Companion Proof (`ADM`)
 
@@ -78,8 +78,8 @@
 |-------------|-------|--------|
 | DOC-01 | Phase 41 | Complete |
 | DOC-02 | Phase 41 | Complete |
-| PAR-01 | Phase 42 | Pending |
-| PAR-02 | Phase 42 | Pending |
+| PAR-01 | Phase 42 | Complete |
+| PAR-02 | Phase 42 | Complete |
 | ADM-01 | Phase 43 | Pending |
 | VER-01 | Phase 43 | Pending |
 | OFE-01 | Phase 44 | Pending |
