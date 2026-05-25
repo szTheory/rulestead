@@ -37,7 +37,9 @@ defmodule Rulestead.Manifest.Validate do
   end
 
   defp decode_raw(content) when is_map(content), do: {:ok, content}
-  defp decode_raw(_content), do: {:error, Manifest.invalid("manifest content must be a JSON object")}
+
+  defp decode_raw(_content),
+    do: {:error, Manifest.invalid("manifest content must be a JSON object")}
 
   defp duplicate_flag_key_findings(raw_manifest) do
     raw_manifest
@@ -47,9 +49,11 @@ defmodule Rulestead.Manifest.Validate do
     |> Enum.frequencies()
     |> Enum.flat_map(fn
       {flag_key, count} when count > 1 ->
-        [Result.finding("duplicate_flag_key", "blocker", "manifest",
-          message: "flag #{flag_key} appears more than once"
-        )]
+        [
+          Result.finding("duplicate_flag_key", "blocker", "manifest",
+            message: "flag #{flag_key} appears more than once"
+          )
+        ]
 
       _other ->
         []

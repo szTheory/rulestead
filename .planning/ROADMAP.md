@@ -8,7 +8,7 @@
 
 ## Next Candidate
 
-- `v1.4.0 — Guarded Rollout Foundations` remains the next differentiated follow-on now that support-truth closure shipped.
+- `v1.4.0 — Mounted Companion Proof Reclosure` is the next candidate after a 2026-05-25 repo-local assessment found the named mounted companion proof bar still failing.
 
 ## Milestone Archives
 
@@ -17,4 +17,4 @@
 
 ## Next Step
 
-Run `$gsd-new-milestone` to define `v1.4.0`, write fresh requirements, and reactivate the roadmap for guarded rollout foundations.
+Run `$gsd-new-milestone` to define `v1.4.0 — Mounted Companion Proof Reclosure`, write fresh requirements, and reactivate the roadmap from the updated candidate ordering.

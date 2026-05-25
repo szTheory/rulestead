@@ -23,6 +23,7 @@ defmodule Rulestead.Mix.Tasks.RulesteadLifecycleTest do
 
     Application.put_env(:rulestead, :store, Rulestead.Fake)
     Application.put_env(:rulestead, :admin_policy, AllowPolicy)
+
     Application.put_env(:rulestead, :admin_lifecycle,
       warning_after_seconds: 1_800,
       stale_after_seconds: 3_600,
@@ -58,8 +59,19 @@ defmodule Rulestead.Mix.Tasks.RulesteadLifecycleTest do
     publish_flag!("ops-cleanup")
     publish_flag!("search-ranking")
 
-    assert {:ok, _} = Rulestead.record_evaluation("ops-cleanup", "prod", DateTime.add(now, -7_200, :second))
-    assert {:ok, _} = Rulestead.record_evaluation("search-ranking", "prod", DateTime.add(now, -2_700, :second))
+    assert {:ok, _} =
+             Rulestead.record_evaluation(
+               "ops-cleanup",
+               "prod",
+               DateTime.add(now, -7_200, :second)
+             )
+
+    assert {:ok, _} =
+             Rulestead.record_evaluation(
+               "search-ranking",
+               "prod",
+               DateTime.add(now, -2_700, :second)
+             )
 
     on_exit(fn ->
       Mix.Task.reenable("rulestead.lifecycle")
@@ -81,7 +93,14 @@ defmodule Rulestead.Mix.Tasks.RulesteadLifecycleTest do
   test "renders text by default with advisory filters aligned to mounted admin" do
     output =
       capture_io(fn ->
-        Lifecycle.run(["--env", "prod", "--readiness", "archive_candidate", "--evidence-quality", "strong"])
+        Lifecycle.run([
+          "--env",
+          "prod",
+          "--readiness",
+          "archive_candidate",
+          "--evidence-quality",
+          "strong"
+        ])
       end)
 
     assert output =~ "Lifecycle report"

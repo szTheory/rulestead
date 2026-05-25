@@ -27,31 +27,41 @@ defmodule Rulestead.ScheduledExecutionFacadeContractTest do
     assert {:ok, %{change_request: change_request}} =
              Rulestead.submit_change_request(
                Command.SubmitChangeRequest.new(
-                %{
-                  action: :publish_ruleset,
-                  environment_key: "test",
-                  resource_type: "flag",
-                  resource_key: "checkout-redesign",
-                  command: %{"version" => 2},
-                  approval_requirement:
-                    ApprovalRequirement.new(
-                      action: :publish_ruleset,
-                      environment_key: "test",
-                      required_approvals: 1,
-                      change_request_required?: true,
-                      self_approval_allowed?: true
-                    )
-                },
-                actor: %{id: "operator-1", type: "operator", display: "Operator One", roles: [:operator]},
-                reason: "Schedule reviewed publish",
-                metadata: %{request_id: "req-cr-submit", source: :admin_ui}
-              )
+                 %{
+                   action: :publish_ruleset,
+                   environment_key: "test",
+                   resource_type: "flag",
+                   resource_key: "checkout-redesign",
+                   command: %{"version" => 2},
+                   approval_requirement:
+                     ApprovalRequirement.new(
+                       action: :publish_ruleset,
+                       environment_key: "test",
+                       required_approvals: 1,
+                       change_request_required?: true,
+                       self_approval_allowed?: true
+                     )
+                 },
+                 actor: %{
+                   id: "operator-1",
+                   type: "operator",
+                   display: "Operator One",
+                   roles: [:operator]
+                 },
+                 reason: "Schedule reviewed publish",
+                 metadata: %{request_id: "req-cr-submit", source: :admin_ui}
+               )
              )
 
     assert {:ok, %{change_request: approved_change_request}} =
              Rulestead.approve_change_request(
                Command.ApproveChangeRequest.new(change_request.id,
-                 actor: %{id: "reviewer-1", type: "operator", display: "Reviewer One", roles: [:operator]},
+                 actor: %{
+                   id: "reviewer-1",
+                   type: "operator",
+                   display: "Reviewer One",
+                   roles: [:operator]
+                 },
                  reason: "Approved for scheduling",
                  metadata: %{request_id: "req-cr-approve", source: :admin_ui}
                )
@@ -61,20 +71,24 @@ defmodule Rulestead.ScheduledExecutionFacadeContractTest do
 
     assert {:ok, %{scheduled_execution: scheduled_execution, attempts: []}} =
              Rulestead.schedule_change_request(
-               Command.ScheduleChangeRequest.new(
-                 %{
-                   change_request_id: approved_change_request.id,
-                   scheduled_for: scheduled_for,
-                   actor: %{id: "scheduler-1", type: "operator", display: "Scheduler One", roles: [:operator]},
-                   reason: "Wait for launch window",
-                   metadata: %{request_id: "req-schedule-cr", source: :admin_ui}
-                 }
-               )
+               Command.ScheduleChangeRequest.new(%{
+                 change_request_id: approved_change_request.id,
+                 scheduled_for: scheduled_for,
+                 actor: %{
+                   id: "scheduler-1",
+                   type: "operator",
+                   display: "Scheduler One",
+                   roles: [:operator]
+                 },
+                 reason: "Wait for launch window",
+                 metadata: %{request_id: "req-schedule-cr", source: :admin_ui}
+               })
              )
 
     assert scheduled_execution.change_request_id == approved_change_request.id
     assert scheduled_execution.action == :publish_ruleset
     assert scheduled_execution.execution_mode == :change_request
+
     assert scheduled_execution.scheduled_by == %{
              "id" => "scheduler-1",
              "type" => "operator",
@@ -117,20 +131,18 @@ defmodule Rulestead.ScheduledExecutionFacadeContractTest do
 
     assert {:ok, %{scheduled_execution: policy_bypass}} =
              Rulestead.schedule_governed_action(
-               Command.ScheduleGovernedAction.new(
-                 %{
-                   action: :release_kill_switch,
-                   environment_key: "staging",
-                   resource_type: "flag",
-                   resource_key: "checkout-redesign",
-                   command: %{},
-                   scheduled_for: scheduled_for,
-                   execution_mode: :policy_bypass,
-                   actor: %{id: "scheduler-2", type: "operator", display: "Scheduler Two"},
-                   reason: "Clear the incident hold",
-                   metadata: %{request_id: "req-policy-bypass", source: :admin_ui}
-                 }
-               )
+               Command.ScheduleGovernedAction.new(%{
+                 action: :release_kill_switch,
+                 environment_key: "staging",
+                 resource_type: "flag",
+                 resource_key: "checkout-redesign",
+                 command: %{},
+                 scheduled_for: scheduled_for,
+                 execution_mode: :policy_bypass,
+                 actor: %{id: "scheduler-2", type: "operator", display: "Scheduler Two"},
+                 reason: "Clear the incident hold",
+                 metadata: %{request_id: "req-policy-bypass", source: :admin_ui}
+               })
              )
 
     assert policy_bypass.action == :release_kill_switch
@@ -138,60 +150,54 @@ defmodule Rulestead.ScheduledExecutionFacadeContractTest do
 
     assert {:error, %Rulestead.Error{domain: :auth, type: :unauthorized}} =
              Rulestead.schedule_governed_action(
-               Command.ScheduleGovernedAction.new(
-                 %{
-                   action: :publish_ruleset,
-                   environment_key: "production",
-                   resource_type: "flag",
-                   resource_key: "checkout-redesign",
-                   command: %{"version" => 2},
-                   scheduled_for: scheduled_for,
-                   execution_mode: :policy_bypass,
-                   actor: %{id: "scheduler-2", type: "operator", display: "Scheduler Two"},
-                   reason: "Attempt direct production publish",
-                   metadata: %{request_id: "req-policy-denied", source: :admin_ui}
-                 }
-               )
+               Command.ScheduleGovernedAction.new(%{
+                 action: :publish_ruleset,
+                 environment_key: "production",
+                 resource_type: "flag",
+                 resource_key: "checkout-redesign",
+                 command: %{"version" => 2},
+                 scheduled_for: scheduled_for,
+                 execution_mode: :policy_bypass,
+                 actor: %{id: "scheduler-2", type: "operator", display: "Scheduler Two"},
+                 reason: "Attempt direct production publish",
+                 metadata: %{request_id: "req-policy-denied", source: :admin_ui}
+               })
              )
 
     assert {:error, %Rulestead.Error{domain: :store, type: :invalid_command}} =
              Rulestead.schedule_governed_action(
-               Command.ScheduleGovernedAction.new(
-                 %{
-                   action: :engage_kill_switch,
-                   environment_key: "production",
-                   resource_type: "flag",
-                   resource_key: "checkout-redesign",
-                   command: %{},
-                   scheduled_for: scheduled_for,
-                   execution_mode: :emergency_bypass,
-                   actor: %{id: "incident-1", type: "operator", display: "Incident Commander"},
-                   reason: "Page is on fire",
-                   metadata: %{request_id: "req-emergency-missing", source: :admin_ui}
-                 }
-               )
+               Command.ScheduleGovernedAction.new(%{
+                 action: :engage_kill_switch,
+                 environment_key: "production",
+                 resource_type: "flag",
+                 resource_key: "checkout-redesign",
+                 command: %{},
+                 scheduled_for: scheduled_for,
+                 execution_mode: :emergency_bypass,
+                 actor: %{id: "incident-1", type: "operator", display: "Incident Commander"},
+                 reason: "Page is on fire",
+                 metadata: %{request_id: "req-emergency-missing", source: :admin_ui}
+               })
              )
 
     assert {:ok, %{scheduled_execution: emergency_bypass}} =
              Rulestead.schedule_governed_action(
-               Command.ScheduleGovernedAction.new(
-                 %{
-                   action: :engage_kill_switch,
-                   environment_key: "production",
-                   resource_type: "flag",
-                   resource_key: "checkout-redesign",
-                   command: %{},
-                   scheduled_for: scheduled_for,
-                   execution_mode: :emergency_bypass,
-                   actor: %{id: "incident-1", type: "operator", display: "Incident Commander"},
-                   reason: "Customer impact mitigation",
-                   metadata: %{
-                     request_id: "req-emergency-ok",
-                     source: :admin_ui,
-                     emergency_reason: "checkout outage"
-                   }
+               Command.ScheduleGovernedAction.new(%{
+                 action: :engage_kill_switch,
+                 environment_key: "production",
+                 resource_type: "flag",
+                 resource_key: "checkout-redesign",
+                 command: %{},
+                 scheduled_for: scheduled_for,
+                 execution_mode: :emergency_bypass,
+                 actor: %{id: "incident-1", type: "operator", display: "Incident Commander"},
+                 reason: "Customer impact mitigation",
+                 metadata: %{
+                   request_id: "req-emergency-ok",
+                   source: :admin_ui,
+                   emergency_reason: "checkout outage"
                  }
-               )
+               })
              )
 
     assert emergency_bypass.execution_mode == :emergency_bypass
@@ -207,7 +213,12 @@ defmodule Rulestead.ScheduledExecutionFacadeContractTest do
 
     @impl true
     def change_request_required?(_actor, action, _resource, "production")
-        when action in [:publish_ruleset, :advance_rollout, :engage_kill_switch, :release_kill_switch],
+        when action in [
+               :publish_ruleset,
+               :advance_rollout,
+               :engage_kill_switch,
+               :release_kill_switch
+             ],
         do: true
 
     def change_request_required?(_actor, _action, _resource, _environment_key), do: false

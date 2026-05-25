@@ -3,7 +3,7 @@
 ## Status
 
 - Open
-- Updated: 2026-05-24
+- Updated: 2026-05-25
 
 ## Summary
 
@@ -42,3 +42,11 @@ The repo is stronger than the planning docs suggest in product breadth, but weak
 - treat this as the first milestone wedge before new differentiated capability
 - keep scope bounded to docs, install truth, migrations/schema parity, and verification honesty
 - do not widen the work into product redesign or new operator features
+
+## 2026-05-25 Update
+
+- The OpenFeature companion proof gap is now closed enough for its bounded package contract:
+  - `RULESTEAD_TEST_SCOPE=openfeature_companion bash scripts/ci/test.sh` passes
+- The mounted companion proof gap remains open and is now the sharper blocker:
+  - `RULESTEAD_TEST_SCOPE=mounted_admin_contract bash scripts/ci/test.sh` currently fails at boot with `UndefinedFunctionError` for `Rulestead.Redis.enabled?/0`
+- Follow-on milestone selection should now center on mounted companion proof reclosure rather than treating proof posture as fully closed already

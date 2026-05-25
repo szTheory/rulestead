@@ -17,12 +17,13 @@ defmodule Rulestead.Webhooks.CodeRefsPlugTest do
   end
 
   test "accepts valid JSON payload with valid token and returns 200" do
-    payload = Jason.encode!(%{
-      references: [
-        %{file: "lib/foo.ex", line: 12, flag_key: "flag_1"},
-        %{file: "lib/bar.ex", line: 42, flag_key: "flag_2"}
-      ]
-    })
+    payload =
+      Jason.encode!(%{
+        references: [
+          %{file: "lib/foo.ex", line: 12, flag_key: "flag_1"},
+          %{file: "lib/bar.ex", line: 42, flag_key: "flag_2"}
+        ]
+      })
 
     conn =
       conn(:post, "/api/webhooks/rulestead/code_refs", payload)
@@ -71,11 +72,12 @@ defmodule Rulestead.Webhooks.CodeRefsPlugTest do
   end
 
   test "unauthorized and malformed payloads do not advance the stored scan receipt" do
-    payload = Jason.encode!(%{
-      references: [
-        %{file: "lib/foo.ex", line: 12, flag_key: "flag_1"}
-      ]
-    })
+    payload =
+      Jason.encode!(%{
+        references: [
+          %{file: "lib/foo.ex", line: 12, flag_key: "flag_1"}
+        ]
+      })
 
     conn =
       conn(:post, "/api/webhooks/rulestead/code_refs", payload)
@@ -106,12 +108,13 @@ defmodule Rulestead.Webhooks.CodeRefsPlugTest do
   end
 
   test "validates the shape of the incoming JSON to prevent malformed data insertion" do
-    payload = Jason.encode!(%{
-      references: [
-        %{file: 123, line: "not an int", flag_key: nil},
-        %{file: "lib/foo.ex", line: 12, flag_key: "flag_1"}
-      ]
-    })
+    payload =
+      Jason.encode!(%{
+        references: [
+          %{file: 123, line: "not an int", flag_key: nil},
+          %{file: "lib/foo.ex", line: 12, flag_key: "flag_1"}
+        ]
+      })
 
     conn =
       conn(:post, "/api/webhooks/rulestead/code_refs", payload)
@@ -183,16 +186,14 @@ defmodule Rulestead.Webhooks.CodeRefsPlugTest do
   end
 
   defp ensure_scan_receipts_schema! do
-    Repo.query!(
-      """
-      CREATE TABLE IF NOT EXISTS code_reference_scans (
-        id uuid PRIMARY KEY,
-        received_at timestamp(6) with time zone NOT NULL,
-        reference_count integer NOT NULL DEFAULT 0,
-        inserted_at timestamp(6) with time zone NOT NULL,
-        updated_at timestamp(6) with time zone NOT NULL
-      )
-      """
+    Repo.query!("""
+    CREATE TABLE IF NOT EXISTS code_reference_scans (
+      id uuid PRIMARY KEY,
+      received_at timestamp(6) with time zone NOT NULL,
+      reference_count integer NOT NULL DEFAULT 0,
+      inserted_at timestamp(6) with time zone NOT NULL,
+      updated_at timestamp(6) with time zone NOT NULL
     )
+    """)
   end
 end

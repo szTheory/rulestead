@@ -12,17 +12,27 @@ defmodule Rulestead.Integration.AdminLifecycleRuntimeTest do
 
     Application.put_env(:rulestead, :store, Rulestead.Fake)
     Application.delete_env(:rulestead, :admin_policy)
+
     Application.put_env(:rulestead, :admin_lifecycle,
       warning_after_seconds: 1_800,
       stale_after_seconds: 3_600,
       now: ~U[2026-04-23 16:00:00Z]
     )
+
     Rulestead.Fake.Control.reset!()
 
     on_exit(fn ->
-      if previous_store, do: Application.put_env(:rulestead, :store, previous_store), else: Application.delete_env(:rulestead, :store)
-      if previous_policy, do: Application.put_env(:rulestead, :admin_policy, previous_policy), else: Application.delete_env(:rulestead, :admin_policy)
-      if previous_lifecycle, do: Application.put_env(:rulestead, :admin_lifecycle, previous_lifecycle), else: Application.delete_env(:rulestead, :admin_lifecycle)
+      if previous_store,
+        do: Application.put_env(:rulestead, :store, previous_store),
+        else: Application.delete_env(:rulestead, :store)
+
+      if previous_policy,
+        do: Application.put_env(:rulestead, :admin_policy, previous_policy),
+        else: Application.delete_env(:rulestead, :admin_policy)
+
+      if previous_lifecycle,
+        do: Application.put_env(:rulestead, :admin_lifecycle, previous_lifecycle),
+        else: Application.delete_env(:rulestead, :admin_lifecycle)
     end)
 
     :ok
@@ -40,7 +50,11 @@ defmodule Rulestead.Integration.AdminLifecycleRuntimeTest do
                value_type: :boolean,
                default_value: %{value: false},
                ownership: %{owner_ref: "growth", owner_kind: :team},
-      lifecycle: %{mode: :expiring, default_source: :flag_type, default_overridden: false},
+               lifecycle: %{
+                 mode: :expiring,
+                 default_source: :flag_type,
+                 default_overridden: false
+               },
                expected_expiration: ~D[2026-05-01],
                environment_keys: ["test"],
                tags: ["checkout"],
@@ -80,15 +94,18 @@ defmodule Rulestead.Integration.AdminLifecycleRuntimeTest do
                  actor: %{id: "seed-operator", roles: [:operator]}
                )
              )
+
     apply_latest_snapshot!("test")
 
     stale_detail = Rulestead.fetch_flag!("checkout-redesign", "test")
     assert stale_detail.lifecycle.state == :potentially_stale
 
-    assert {:ok, true} = Runtime.enabled?("test", "checkout-redesign", Context.new(actor: %{key: "user-1"}))
+    assert {:ok, true} =
+             Runtime.enabled?("test", "checkout-redesign", Context.new(actor: %{key: "user-1"}))
 
     assert_eventually(fn ->
       refreshed_detail = Rulestead.fetch_flag!("checkout-redesign", "test")
+
       refreshed_detail.lifecycle.state == :active and
         not is_nil(refreshed_detail.lifecycle.last_evaluated_at)
     end)
@@ -99,6 +116,7 @@ defmodule Rulestead.Integration.AdminLifecycleRuntimeTest do
                  actor: %{id: "seed-operator", roles: [:operator]}
                )
              )
+
     assert archived.archived?
 
     archived_detail = Rulestead.fetch_flag!("checkout-redesign", "test")
@@ -123,7 +141,11 @@ defmodule Rulestead.Integration.AdminLifecycleRuntimeTest do
                value_type: :boolean,
                default_value: %{value: false},
                ownership: %{owner_ref: "growth", owner_kind: :team},
-      lifecycle: %{mode: :permanent, default_source: :flag_type, default_overridden: false},
+               lifecycle: %{
+                 mode: :permanent,
+                 default_source: :flag_type,
+                 default_overridden: false
+               },
                environment_keys: ["test"],
                actor: %{id: "seed-operator", roles: [:operator]}
              })
@@ -165,10 +187,14 @@ defmodule Rulestead.Integration.AdminLifecycleRuntimeTest do
     baseline_snapshot = Rulestead.Fake.Control.latest_snapshot!("test")
     apply_latest_snapshot!("test")
 
-    assert {:ok, true} = Runtime.enabled?("test", "checkout-redesign", Context.new(actor: %{key: "user-1"}))
+    assert {:ok, true} =
+             Runtime.enabled?("test", "checkout-redesign", Context.new(actor: %{key: "user-1"}))
 
     assert {:ok, _} =
-             Rulestead.engage_kill_switch("checkout-redesign", "test", %{id: "op-1", roles: [:operator]},
+             Rulestead.engage_kill_switch(
+               "checkout-redesign",
+               "test",
+               %{id: "op-1", roles: [:operator]},
                reason: "incident"
              )
 
@@ -176,10 +202,14 @@ defmodule Rulestead.Integration.AdminLifecycleRuntimeTest do
     assert kill_snapshot.version > baseline_snapshot.version
     apply_latest_snapshot!("test")
 
-    assert {:ok, false} = Runtime.enabled?("test", "checkout-redesign", Context.new(actor: %{key: "user-1"}))
+    assert {:ok, false} =
+             Runtime.enabled?("test", "checkout-redesign", Context.new(actor: %{key: "user-1"}))
 
     assert {:ok, _} =
-             Rulestead.release_kill_switch("checkout-redesign", "test", %{id: "op-1", roles: [:operator]},
+             Rulestead.release_kill_switch(
+               "checkout-redesign",
+               "test",
+               %{id: "op-1", roles: [:operator]},
                reason: "resolved"
              )
 
@@ -187,7 +217,8 @@ defmodule Rulestead.Integration.AdminLifecycleRuntimeTest do
     assert release_snapshot.version > kill_snapshot.version
     apply_latest_snapshot!("test")
 
-    assert {:ok, true} = Runtime.enabled?("test", "checkout-redesign", Context.new(actor: %{key: "user-1"}))
+    assert {:ok, true} =
+             Runtime.enabled?("test", "checkout-redesign", Context.new(actor: %{key: "user-1"}))
   end
 
   defp assert_eventually(fun, attempts \\ 20)

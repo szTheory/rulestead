@@ -55,13 +55,20 @@ defmodule Rulestead.GovernanceThreatModelTest do
   end
 
   test "production self-approval is denied by default without caller-supplied submitter metadata" do
-    actor = %{id: "prod-operator-1", type: "operator", display: "Prod Operator", roles: [:prod_operator]}
+    actor = %{
+      id: "prod-operator-1",
+      type: "operator",
+      display: "Prod Operator",
+      roles: [:prod_operator]
+    }
 
     assert {:ok, %{change_request: submitted}} =
-             Rulestead.submit_change_request(governed_publish_command(actor,
-               reason: "Self approval should fail",
-               request_id: "corr-self-approval"
-             ))
+             Rulestead.submit_change_request(
+               governed_publish_command(actor,
+                 reason: "Self approval should fail",
+                 request_id: "corr-self-approval"
+               )
+             )
 
     assert {:error, %Error{domain: :auth, type: :unauthorized} = error} =
              Rulestead.approve_change_request(
@@ -79,15 +86,23 @@ defmodule Rulestead.GovernanceThreatModelTest do
   end
 
   test "audit rows stay correlated across submit approve execute and cancellation lifecycles" do
-    submitter = %{id: "submitter-3", type: "operator", display: "Submitter", roles: [:prod_operator]}
+    submitter = %{
+      id: "submitter-3",
+      type: "operator",
+      display: "Submitter",
+      roles: [:prod_operator]
+    }
+
     reviewer = %{id: "reviewer-3", type: "operator", display: "Reviewer", roles: [:prod_operator]}
     executor = %{id: "executor-3", type: "operator", display: "Executor", roles: [:prod_operator]}
 
     assert {:ok, %{change_request: executed_request}} =
-             Rulestead.submit_change_request(governed_publish_command(submitter,
-               reason: "Execute path",
-               request_id: "corr-execute"
-             ))
+             Rulestead.submit_change_request(
+               governed_publish_command(submitter,
+                 reason: "Execute path",
+                 request_id: "corr-execute"
+               )
+             )
              |> then(fn {:ok, %{change_request: submitted}} ->
                assert {:ok, %{change_request: _approved}} =
                         Rulestead.approve_change_request(
@@ -106,10 +121,12 @@ defmodule Rulestead.GovernanceThreatModelTest do
              end)
 
     assert {:ok, %{change_request: cancelled_request}} =
-             Rulestead.submit_change_request(governed_publish_command(submitter,
-               reason: "Cancel path",
-               request_id: "corr-cancelled"
-             ))
+             Rulestead.submit_change_request(
+               governed_publish_command(submitter,
+                 reason: "Cancel path",
+                 request_id: "corr-cancelled"
+               )
+             )
 
     assert {:ok, %{change_request: cancelled_request}} =
              Rulestead.cancel_change_request(
@@ -120,7 +137,12 @@ defmodule Rulestead.GovernanceThreatModelTest do
              )
 
     correlated =
-      Repo.all(from event in AuditEvent, order_by: [asc: event.inserted_at, asc: event.event_type], select: event)
+      Repo.all(
+        from(event in AuditEvent,
+          order_by: [asc: event.inserted_at, asc: event.event_type],
+          select: event
+        )
+      )
       |> Enum.group_by(& &1.correlation_id)
 
     assert Map.has_key?(correlated, "corr-execute")
@@ -138,8 +160,15 @@ defmodule Rulestead.GovernanceThreatModelTest do
              "change_request.cancelled"
            ]
 
-    assert Enum.all?(correlated["corr-execute"], &(&1.metadata["change_request_id"] == executed_request.id))
-    assert Enum.all?(correlated["corr-cancelled"], &(&1.metadata["change_request_id"] == cancelled_request.id))
+    assert Enum.all?(
+             correlated["corr-execute"],
+             &(&1.metadata["change_request_id"] == executed_request.id)
+           )
+
+    assert Enum.all?(
+             correlated["corr-cancelled"],
+             &(&1.metadata["change_request_id"] == cancelled_request.id)
+           )
   end
 
   defp governed_publish_command(actor, opts) do
@@ -186,7 +215,9 @@ defmodule Rulestead.GovernanceThreatModelTest do
              )
 
     assert {:ok, _} =
-             adapter.publish_ruleset(StoreFixtures.publish_ruleset_command("checkout-redesign", "production"))
+             adapter.publish_ruleset(
+               StoreFixtures.publish_ruleset_command("checkout-redesign", "production")
+             )
 
     assert {:ok, _} =
              adapter.save_draft_ruleset(

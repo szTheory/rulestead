@@ -11,17 +11,18 @@ Rulestead is a batteries-included, Elixir-native feature-flag and remote-config 
 - `v1.1.0` shipped on 2026-05-23 across Phases 29-34, delivering the bounded tenancy seam, mounted-admin tenant scope, audit tenant provenance enforcement, public promotion-plan tenant-scope closure, compare preview-identity carry-through, and milestone auditability backfill without widening the product shape.
 - `v1.2.0` shipped on 2026-05-24 across Phases 35-40, delivering host-owned ownership metadata, bounded archive-readiness guidance, a governed mounted lifecycle cleanup flow, and release-facing lifecycle docs plus verification without widening the sibling-package release model.
 - `v1.3.0` shipped on 2026-05-25 across Phases 41-44, closing release-truth drift, authored-state parity, mounted companion verification, and OpenFeature companion proof without widening the linked sibling-package release model.
+- A 2026-05-25 next-milestone assessment confirmed the product is broad and credible for serious Phoenix SaaS adopters, but still found one material adopter-trust gap: the documented mounted companion proof bar remains broken in repo-local verification.
 
-## Next Milestone Candidate: v1.4.0 Guarded Rollout Foundations
+## Next Milestone Candidate: v1.4.0 Mounted Companion Proof Reclosure
 
-**Goal:** Add host-supplied guardrail signals and audited rollout hold or rollback foundations on top of the now-credible shipped support surface.
+**Goal:** Restore a fully credible mounted companion proof posture so the sibling-package admin surface is runnable, honestly bounded, and trustworthy again before new differentiating capability lands.
 
 **Target features:**
-- Host-supplied rollout signal seams with explicit threshold semantics
-- Audited hold and rollback behavior that stays deterministic and fail-closed
-- Rollout safety improvements that preserve the mounted sibling-package architecture
+- Passing mounted companion proof bar from the repo root
+- Reconciled boot/runtime coherence for the `rulestead_admin` sibling package
+- Docs and support-truth language that match the actually runnable mounted companion surface
 
-**Why now:** `v1.3.0` removed the support-truth credibility gap, so the next highest-leverage differentiator is guarded rollout safety rather than more proof closure.
+**Why now:** `v1.3.0` improved support truth materially, but repo-local verification still shows the documented mounted companion proof bar failing. Closing that last named support surface is higher leverage for serious adopters than adding the next differentiating wedge first.
 
 ## Core Value
 
@@ -45,12 +46,15 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 - **v1.3.0: Adopter Truth & Proof Closure**
   - Focus: Align docs, install truth, migrations, and verification evidence with the actual post-GA product surface.
   - Value: Removed the highest-friction trust gap for serious adopters before adding another differentiated wedge.
-- **v1.4.0: Guarded Rollout Foundations**
+- **v1.4.0: Mounted Companion Proof Reclosure**
+  - Focus: Restore the runnable mounted companion proof bar, reconcile sibling-package boot/runtime truth, and re-close the remaining support-surface gap.
+  - Value: Finish the last meaningful adopter-trust repair before adding another differentiated feature.
+- **v1.5.0: Guarded Rollout Foundations**
   - Focus: Host-supplied rollout guardrail signals, stage hold/rollback, and explicit audited health-gated rollout behavior.
-  - Value: The strongest next differentiator now that the support-truth surface is credible again.
-- **v1.5.0: Reusable Targeting Assets**
-  - Focus: Shared audiences first, with impact previews and explicit dependency visibility.
-  - Value: Reduce duplicated targeting logic only after lifecycle and rollout posture remain understandable.
+  - Value: The strongest next differentiator once the mounted companion support surface is fully credible again.
+- **v1.6.0: Reusable Targeting Deepening**
+  - Focus: Deepen the already-shipped audience reuse model with impact previews, dependency visibility, and bounded operator ergonomics.
+  - Value: Reduce duplicated targeting logic safely only after lifecycle, support truth, and rollout posture remain understandable.
 
 ## Release Posture
 
@@ -94,16 +98,17 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 
 ## Next Milestone Goals
 
-- Define `v1.4.0` as the guarded rollout follow-on without reopening the release-shape debate.
-- Preserve the newly aligned support-truth posture while introducing rollout signal seams and audited intervention behavior.
-- Keep rollout guardrails host-supplied and fail-closed instead of widening Rulestead into an observability product.
-- Preserve the sibling-package release model and avoid runtime hot-path coupling, tenant-partitioned storage, observability-product drift, or standalone admin drift.
+- Define `v1.4.0` as a bounded mounted companion proof-reclosure milestone instead of assuming support truth is fully closed already.
+- Preserve the sibling-package release model while restoring a passing mounted companion proof bar and coherent boot/runtime truth.
+- Keep the follow-on `v1.5.0` guarded rollout milestone intact after proof reclosure instead of reopening product direction.
+- Avoid runtime hot-path coupling, observability-product drift, standalone admin drift, or speculative product expansion while repairing the support surface.
 
 ### Out of Scope
 
 - Broadening `rulestead_admin` beyond the mounted sibling-package design into a standalone control-plane product — explicitly disallowed by the current release design.
 - Rulestead-owned identity or team-directory truth for lifecycle owners — host applications continue to own identity and accountability mapping.
 - Automatic archival or automated code removal based on lifecycle heuristics — archive readiness remains advisory and explicit.
+- Re-planning reusable audiences as a net-new milestone wedge — audience reuse is already part of the shipped ruleset, admin, compare, and manifest surfaces.
 
 ## Context
 
@@ -112,6 +117,7 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 - `v1.1.0` shipped across Phases 29-34 as the first deliberate post-GA milestone, proving tenancy can stay bounded inside helper seams, reviewed-artifact validation, mounted-admin scope, public promotion replay/apply, and audit provenance without changing the release shape.
 - `v1.2.0` shipped across Phases 35-40, proving ownership metadata, archive-readiness guidance, mounted cleanup preview/confirm flows, and lifecycle release surfaces can stay explicit, host-friendly, and sibling-package aligned.
 - `v1.3.0` shipped across Phases 41-44, proving release-facing support truth, authored-state parity, mounted companion verification, and bounded OpenFeature proof can align without widening the product shape.
+- A repo-local next-step assessment on 2026-05-25 found the mounted companion proof bar still broken despite the broader `v1.3.0` closure, while also confirming reusable audiences are already a shipped adoption surface.
 - The project remains a linked-version, two-package monorepo.
 
 ## Constraints
@@ -123,6 +129,7 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 - **Operator trust**: Lifecycle guidance must be advisory, explicit, and previewable; never auto-archive based on heuristics.
 - **Guarded rollout scope**: Any future rollout guardrails must stay host-supplied and must not widen Rulestead into an observability platform.
 - **Support truth**: Public docs, install guidance, migrations, and verification evidence must agree before new differentiated milestone work claims the surface is ready.
+- **Reusable targeting scope**: Future targeting work should deepen existing audience reuse safely; do not restate shipped audience support as if it were a greenfield milestone.
 
 ## Key Decisions
 
@@ -138,6 +145,7 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 | Activate tenancy as `v1.1.0`, not as a silent Phase 25 carryover | Keeps the first post-GA milestone explicit, preserves current phase numbering, and aligns the roadmap with the current JTBD gap analysis. | Validated |
 | Activate lifecycle hygiene and ownership as `v1.2.0` ahead of guarded rollout and reusable targeting | Closes the strongest everyday trust/cleanup gap first, fits the sibling-package architecture cleanly, and keeps more complex automation layered on a calmer operator foundation. | Validated |
 | Close adopter-truth and proof-posture drift before guarded rollout foundations | Current repo evidence showed public docs and runnable proof had drifted from planning truth; restoring support trust was higher leverage than adding the next differentiated control-plane feature first. | Validated |
+| Re-prioritize the next milestone to mounted companion proof reclosure after `v1.3.0` | Repo-local verification still shows the named mounted companion proof bar failing, while reusable audiences are already shipped and guarded rollout remains a better follow-on than an immediate next move. | Validated |
 
 ## Milestone Archives
 
@@ -173,4 +181,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-25 after milestone v1.3.0 completion*
+*Last updated: 2026-05-25 after next-milestone assessment refresh*

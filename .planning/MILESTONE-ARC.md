@@ -1,12 +1,12 @@
-# Milestone Arc: Post-v1.3.0
+# Milestone Arc: Post-v1.3.0 Assessment Refresh
 
-**Last updated:** 2026-05-25 during milestone v1.3.0 completion
+**Last updated:** 2026-05-25 after next-milestone assessment
 **Selection posture:** Default to the highest-priority candidate below unless the user explicitly chooses a materially different direction. Shift low-impact milestone-selection preference left inside GSD instead of re-opening the full tradeoff set every time.
 
 ## Active Milestone
 
-- **Activated now:** `v1.4.0 — Guarded Rollout Foundations` remains the next recommended milestone candidate.
-- **Why now:** `v1.3.0` shipped the support-truth closure work, so the strongest next move is to add guarded rollout safety on top of a now-credible shipped surface.
+- **Activated now:** `v1.4.0 — Mounted Companion Proof Reclosure` is the next recommended milestone candidate.
+- **Why now:** Repo-local verification still shows the documented mounted companion proof bar failing after `v1.3.0`, so the highest-leverage next move is to fully re-close that adopter-facing support surface before adding another differentiating wedge.
 
 ## Candidate Ranking
 
@@ -66,10 +66,36 @@
 - Fix proof truth, not vanity metrics
 - Keep the sibling-package release model and mounted-admin posture unchanged
 
-### 3. `v1.4.0 — Guarded Rollout Foundations`
+### 3. `v1.4.0 — Mounted Companion Proof Reclosure`
 
-**Status:** next differentiator after shipped `v1.3.0`
-**Why it remains next:**
+**Status:** next recommended milestone after assessment refresh
+**Why it won:**
+
+- The repo remains broad and credible, but the documented mounted companion proof bar still fails in repo-local verification.
+- A serious adopter is more likely to be blocked by a broken named proof path than by the absence of guardrail automation.
+- The work is narrow, support-facing, and preserves the existing sibling-package product shape instead of widening it.
+
+**Recommended shape:**
+
+- Restore a passing `mounted_admin_contract` proof bar from the repo root
+- Reconcile runtime boot/package-boundary truth for `rulestead_admin`
+- Keep root/package docs and proof posture language aligned with the actually runnable mounted companion surface
+
+**Key tradeoffs:**
+
+- Lower marketing flash than guarded rollout
+- Higher adopter trust per unit of work than another new differentiator right now
+
+**Guardrails:**
+
+- Keep the milestone bounded to proof closure, support truth, and boot/runtime coherence
+- Do not widen the work into admin redesign or unrelated feature expansion
+- Preserve the linked-version sibling-package model and mounted-admin posture
+
+### 4. `v1.5.0 — Guarded Rollout Foundations`
+
+**Status:** strongest next differentiator after mounted companion proof reclosure
+**Why it remains immediately after that:**
 
 - It still offers the strongest product differentiation once the support-truth surface is credible.
 - The work now lands on a calmer base: docs, migrations, installer truth, and bounded verification no longer fight each other.
@@ -92,19 +118,20 @@
 - Fail closed on stale, weak, or missing signal data
 - Preserve deterministic sticky rollout semantics; never use time-based gradual rollout for user-facing rollout
 
-### 4. `v1.5.0 — Reusable Targeting Assets`
+### 5. `v1.6.0 — Reusable Targeting Deepening`
 
 **Status:** top medium-term candidate after guarded rollout
 **Why it is later:**
 
+- Reusable audiences already exist in shipped runtime/admin/promotion surfaces, so the next value here is deepening ergonomics and blast-radius safety rather than introducing the concept
 - Solves scale and duplication pain, but not the biggest current trust/operability gap
 - Introduces indirection across explainability, compare, promotion, import/export, and dependency visibility
 
 **Recommended shape if activated later:**
 
-- Shared audiences first
-- Any templates remain draft-based, bounded, and non-inheriting
-- Impact previews and reference counts before edits
+- Audience impact previews and reference counts before edits
+- Stronger dependency visibility and explainability for existing audience reuse
+- Any templates remain draft-based, bounded, and non-inheriting if they are still justified at all
 
 **Key tradeoffs:**
 
@@ -131,6 +158,7 @@
 - `.planning/research/V1_2_0_LIFECYCLE_HYGIENE_OWNERSHIP_MEMO.md`
 - `.planning/research/v1.2.0-guarded-rollout-foundations-recommendation.md`
 - `.planning/research/v1.2.0-reusable-targeting-assets-memo.md`
+- `.planning/threads/2026-05-25-next-milestone-assessment.md`
 - `prompts/rulestead-admin-ux-and-operator-ia.md`
 - `prompts/rulestead-engineering-dna-from-prior-libs.md`
 - `prompts/rulestead-host-app-integration-seam.md`

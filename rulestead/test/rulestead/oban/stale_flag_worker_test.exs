@@ -18,9 +18,13 @@ defmodule Rulestead.Oban.StaleFlagWorkerTest do
     %{env: env, flag: flag, fe: fe}
   end
 
-  test "fetches snapshot from ETS cache, updates database, and clears cache", %{flag: flag, env: env, fe: fe} do
+  test "fetches snapshot from ETS cache, updates database, and clears cache", %{
+    flag: flag,
+    env: env,
+    fe: fe
+  } do
     timestamp = DateTime.utc_now()
-    
+
     # Record evaluation
     Cache.record_evaluation(flag.key, env.key, "on", timestamp)
     Cache.record_evaluation(flag.key, env.key, "on", timestamp)

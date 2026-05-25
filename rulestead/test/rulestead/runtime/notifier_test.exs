@@ -104,7 +104,7 @@ defmodule Rulestead.Runtime.NotifierTest do
       value_type: :boolean,
       default_value: %{value: false},
       ownership: %{owner_ref: "ops", owner_kind: :team},
-      lifecycle: %{mode: :permanent},
+      lifecycle: %{mode: :permanent, default_source: :flag_type, default_overridden: false},
       environment_keys: [environment_key]
     })
 

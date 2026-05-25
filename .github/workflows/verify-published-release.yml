@@ -41,9 +41,11 @@ jobs:
           requested="${INPUT_RELEASE_VERSION:-}"
 
           if [[ -n "${requested}" ]]; then
-            echo "status=ok" >> "${GITHUB_OUTPUT}"
-            echo "version=${requested}" >> "${GITHUB_OUTPUT}"
-            echo "message=Using manually supplied release version ${requested}." >> "${GITHUB_OUTPUT}"
+            {
+              echo "status=ok"
+              echo "version=${requested}"
+              echo "message=Using manually supplied release version ${requested}."
+            } >> "${GITHUB_OUTPUT}"
             exit 0
           fi
 
@@ -56,16 +58,20 @@ jobs:
           admin_status="$(curl -sS -o "${admin_json}" -w "%{http_code}" "${admin_api}" || true)"
 
           if [[ "${core_status}" == "404" || "${admin_status}" == "404" ]]; then
-            echo "status=missing" >> "${GITHUB_OUTPUT}"
-            echo "version=" >> "${GITHUB_OUTPUT}"
-            echo "message=No shared published sibling release is visible on Hex yet; skipping drift verification." >> "${GITHUB_OUTPUT}"
+            {
+              echo "status=missing"
+              echo "version="
+              echo "message=No shared published sibling release is visible on Hex yet; skipping drift verification."
+            } >> "${GITHUB_OUTPUT}"
             exit 0
           fi
 
           if [[ "${core_status}" != "200" || "${admin_status}" != "200" ]]; then
-            echo "status=error" >> "${GITHUB_OUTPUT}"
-            echo "version=" >> "${GITHUB_OUTPUT}"
-            echo "message=Hex API lookup failed (rulestead=${core_status}, rulestead_admin=${admin_status})." >> "${GITHUB_OUTPUT}"
+            {
+              echo "status=error"
+              echo "version="
+              echo "message=Hex API lookup failed (rulestead=${core_status}, rulestead_admin=${admin_status})."
+            } >> "${GITHUB_OUTPUT}"
             exit 0
           fi
 
@@ -73,22 +79,28 @@ jobs:
           admin_version="$(jq -r '.latest_stable_version // empty' "${admin_json}")"
 
           if [[ -z "${core_version}" || -z "${admin_version}" ]]; then
-            echo "status=missing" >> "${GITHUB_OUTPUT}"
-            echo "version=" >> "${GITHUB_OUTPUT}"
-            echo "message=Hex did not return a latest stable version for both sibling packages; skipping drift verification." >> "${GITHUB_OUTPUT}"
+            {
+              echo "status=missing"
+              echo "version="
+              echo "message=Hex did not return a latest stable version for both sibling packages; skipping drift verification."
+            } >> "${GITHUB_OUTPUT}"
             exit 0
           fi
 
           if [[ "${core_version}" != "${admin_version}" ]]; then
-            echo "status=mismatch" >> "${GITHUB_OUTPUT}"
-            echo "version=" >> "${GITHUB_OUTPUT}"
-            echo "message=Sibling packages disagree on latest stable Hex version (rulestead=${core_version}, rulestead_admin=${admin_version})." >> "${GITHUB_OUTPUT}"
+            {
+              echo "status=mismatch"
+              echo "version="
+              echo "message=Sibling packages disagree on latest stable Hex version (rulestead=${core_version}, rulestead_admin=${admin_version})."
+            } >> "${GITHUB_OUTPUT}"
             exit 0
           fi
 
-          echo "status=ok" >> "${GITHUB_OUTPUT}"
-          echo "version=${core_version}" >> "${GITHUB_OUTPUT}"
-          echo "message=Resolved shared latest stable release ${core_version} from Hex." >> "${GITHUB_OUTPUT}"
+          {
+            echo "status=ok"
+            echo "version=${core_version}"
+            echo "message=Resolved shared latest stable release ${core_version} from Hex."
+          } >> "${GITHUB_OUTPUT}"
       - name: Skip before the first live publish
         if: steps.resolve.outputs.status == 'missing'
         run: echo "${{ steps.resolve.outputs.message }}"

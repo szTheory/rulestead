@@ -34,7 +34,12 @@ defmodule Rulestead.Runtime.HealthTest do
   test "current-node health reports bounded freshness, latency, and adapter rows", %{
     environment_key: environment_key
   } do
-    assert %{node: current_node, topology_scope: :current_node, peer_nodes: [], environments: environments} =
+    assert %{
+             node: current_node,
+             topology_scope: :current_node,
+             peer_nodes: [],
+             environments: environments
+           } =
              Health.current()
 
     assert current_node == node()
@@ -45,7 +50,13 @@ defmodule Rulestead.Runtime.HealthTest do
     assert environment.sync_latency_ms >= 4_500
     assert environment.sync_latency_ms < 6_000
     assert environment.refresh_status == :ready
-    assert environment.refresh_worker_status == %{attempt: 0, next_backoff_ms: 0, refresh_status: :ready}
+
+    assert environment.refresh_worker_status == %{
+             attempt: 0,
+             next_backoff_ms: 0,
+             refresh_status: :ready
+           }
+
     assert environment.adapter_health.repo == %{configured?: false, status: :not_configured}
     assert environment.adapter_health.redis == %{configured?: false, status: :not_configured}
     assert environment.adapter_health.pubsub == %{configured?: false, status: :not_configured}
@@ -60,7 +71,7 @@ defmodule Rulestead.Runtime.HealthTest do
     environment_key: environment_key
   } do
     peer_snapshot = %{
-      node: :"peer@node",
+      node: :peer@node,
       topology_scope: :peer_snapshot,
       environments: [%{environment_key: environment_key, refresh_status: :ready}]
     }
@@ -74,14 +85,18 @@ defmodule Rulestead.Runtime.HealthTest do
   test "host-provided peer module feeds the public infrastructure health seam" do
     previous_runtime = Application.get_env(:rulestead, :runtime)
 
-    Application.put_env(:rulestead, :runtime,
+    Application.put_env(
+      :rulestead,
+      :runtime,
       Keyword.merge(previous_runtime || [], health_peer_provider: __MODULE__.PeerProvider)
     )
 
     on_exit(fn -> restore_env(:runtime, previous_runtime) end)
 
-    assert %{topology_scope: :host_provided, peer_nodes: [peer]} = Rulestead.infrastructure_health()
-    assert peer.node == :"peer@node"
+    assert %{topology_scope: :host_provided, peer_nodes: [peer]} =
+             Rulestead.infrastructure_health()
+
+    assert peer.node == :peer@node
     assert [%{environment_key: "health-provider", refresh_status: :ready}] = peer.environments
   end
 
@@ -108,7 +123,7 @@ defmodule Rulestead.Runtime.HealthTest do
     def peer_nodes do
       [
         %{
-          node: :"peer@node",
+          node: :peer@node,
           topology_scope: :peer_snapshot,
           environments: [%{environment_key: "health-provider", refresh_status: :ready}]
         }

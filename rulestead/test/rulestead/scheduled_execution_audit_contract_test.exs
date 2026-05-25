@@ -105,7 +105,12 @@ defmodule Rulestead.ScheduledExecutionAuditContractTest do
     assert is_binary(succeeded_event.metadata.audit_event_id)
 
     scheduled_audit =
-      Repo.all(from event in AuditEvent, order_by: [asc: event.inserted_at, asc: event.event_type], select: event)
+      Repo.all(
+        from(event in AuditEvent,
+          order_by: [asc: event.inserted_at, asc: event.event_type],
+          select: event
+        )
+      )
       |> Enum.find(fn event ->
         event.event_type == "scheduled_execution.succeeded" and
           event.metadata["scheduled_execution_id"] == scheduled_execution.id
@@ -115,15 +120,27 @@ defmodule Rulestead.ScheduledExecutionAuditContractTest do
     assert scheduled_audit.correlation_id == approved.correlation_id
     assert scheduled_audit.metadata["scheduled_execution_id"] == scheduled_execution.id
     assert scheduled_audit.metadata["attempt_count"] == 1
-    assert DateTime.compare(parse_iso8601!(scheduled_audit.metadata["scheduled_for"]), scheduled_for) == :eq
 
-    assert DateTime.compare(parse_iso8601!(scheduled_audit.metadata["executed_at"]), completed.executed_at) ==
+    assert DateTime.compare(
+             parse_iso8601!(scheduled_audit.metadata["scheduled_for"]),
+             scheduled_for
+           ) == :eq
+
+    assert DateTime.compare(
+             parse_iso8601!(scheduled_audit.metadata["executed_at"]),
+             completed.executed_at
+           ) ==
              :eq
+
     assert scheduled_audit.metadata["execution_mode"] == "change_request"
     assert scheduled_audit.metadata["failure_reason"] == nil
     assert scheduled_audit.metadata["executed_by"] == "scheduler"
     assert scheduled_audit.metadata["scheduled_by"]["id"] == "scheduler-1"
-    assert scheduled_audit.metadata["approved_by"] == [%{"id" => "reviewer-1", "type" => "operator", "display" => "Reviewer"}]
+
+    assert scheduled_audit.metadata["approved_by"] == [
+             %{"id" => "reviewer-1", "type" => "operator", "display" => "Reviewer"}
+           ]
+
     refute Map.has_key?(scheduled_audit.metadata["context"], "session_id")
     refute Map.has_key?(scheduled_audit.metadata["context"], "session_token")
     refute Map.has_key?(scheduled_audit.metadata["context"], "socket_session")
@@ -182,7 +199,9 @@ defmodule Rulestead.ScheduledExecutionAuditContractTest do
     end
 
     assert {:ok, %{scheduled_execution: quarantined}} =
-             StoreEcto.fetch_scheduled_execution(Command.FetchScheduledExecution.new(scheduled_execution.id))
+             StoreEcto.fetch_scheduled_execution(
+               Command.FetchScheduledExecution.new(scheduled_execution.id)
+             )
 
     assert quarantined.state == :quarantined
     assert quarantined.failure_reason == "ruleset_not_publishable"
@@ -199,7 +218,12 @@ defmodule Rulestead.ScheduledExecutionAuditContractTest do
     assert is_binary(quarantined_event.metadata.audit_event_id)
 
     quarantined_audit =
-      Repo.all(from event in AuditEvent, order_by: [asc: event.inserted_at, asc: event.event_type], select: event)
+      Repo.all(
+        from(event in AuditEvent,
+          order_by: [asc: event.inserted_at, asc: event.event_type],
+          select: event
+        )
+      )
       |> Enum.find(fn event ->
         event.event_type == "scheduled_execution.quarantined" and
           event.metadata["scheduled_execution_id"] == scheduled_execution.id
@@ -212,7 +236,11 @@ defmodule Rulestead.ScheduledExecutionAuditContractTest do
     assert quarantined_audit.metadata["execution_mode"] == "change_request"
     assert quarantined_audit.metadata["executed_by"] == "scheduler"
     assert quarantined_audit.metadata["scheduled_by"]["id"] == "scheduler-2"
-    assert quarantined_audit.metadata["approved_by"] == [%{"id" => "reviewer-2", "type" => "operator", "display" => "Reviewer"}]
+
+    assert quarantined_audit.metadata["approved_by"] == [
+             %{"id" => "reviewer-2", "type" => "operator", "display" => "Reviewer"}
+           ]
+
     refute Map.has_key?(quarantined_audit.metadata["context"], "session_data")
     refute Map.has_key?(quarantined_audit.metadata["context"], "session_token")
   end
@@ -256,7 +284,8 @@ defmodule Rulestead.ScheduledExecutionAuditContractTest do
     event = [:rulestead, :admin, :scheduled_execution, name]
 
     receive do
-      {:telemetry_event, ^event, measurements, metadata} -> %{measurements: measurements, metadata: metadata}
+      {:telemetry_event, ^event, measurements, metadata} ->
+        %{measurements: measurements, metadata: metadata}
     after
       1_000 -> flunk("expected telemetry event #{inspect(event)}")
     end
@@ -285,7 +314,9 @@ defmodule Rulestead.ScheduledExecutionAuditContractTest do
              )
 
     assert {:ok, _} =
-             StoreEcto.publish_ruleset(StoreFixtures.publish_ruleset_command("checkout-redesign", "test"))
+             StoreEcto.publish_ruleset(
+               StoreFixtures.publish_ruleset_command("checkout-redesign", "test")
+             )
 
     assert {:ok, _} =
              StoreEcto.save_draft_ruleset(

@@ -19,12 +19,24 @@ defmodule Rulestead.Mix.Tasks.RulesteadImportTest do
     assert {:ok, _} =
              Rulestead.create_flag(
                Command.CreateFlag.new(
-                 valid_flag_attrs(%{key: "checkout-redesign", environment_keys: ["staging", "test"]})
+                 valid_flag_attrs(%{
+                   key: "checkout-redesign",
+                   environment_keys: ["staging", "test"]
+                 })
                )
              )
 
-    publish_ruleset!("checkout-redesign", "staging", valid_ruleset_attrs(%{salt: "checkout-redesign:v2"}))
-    publish_ruleset!("checkout-redesign", "test", valid_ruleset_attrs(%{salt: "checkout-redesign:v1"}))
+    publish_ruleset!(
+      "checkout-redesign",
+      "staging",
+      valid_ruleset_attrs(%{salt: "checkout-redesign:v2"})
+    )
+
+    publish_ruleset!(
+      "checkout-redesign",
+      "test",
+      valid_ruleset_attrs(%{salt: "checkout-redesign:v1"})
+    )
 
     on_exit(fn ->
       case previous_store do
@@ -69,9 +81,7 @@ defmodule Rulestead.Mix.Tasks.RulesteadImportTest do
              )
 
     assert {:ok, _} =
-             Rulestead.publish_ruleset(
-               publish_ruleset_command(flag_key, environment_key)
-             )
+             Rulestead.publish_ruleset(publish_ruleset_command(flag_key, environment_key))
   end
 
   defp seed_audience!(key) do

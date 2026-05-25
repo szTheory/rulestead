@@ -2,8 +2,8 @@
 
 ## Status
 
-- Open
-- Updated: 2026-05-24
+- Superseded by `.planning/threads/2026-05-25-next-milestone-assessment.md`
+- Updated: 2026-05-25
 
 ## Assessment Lens
 
@@ -64,3 +64,8 @@ These belong in the next active phase `NN-LEARNINGS.md` once a milestone starts:
 - Planning truth must not outrun package README and install-guide truth after GA decisions change.
 - Lifecycle/ownership work is not complete if the repo migrations do not prove the same authored shape as the Ecto schemas and tests.
 - Admin contract tests should be treated as product-surface truth, not just UI implementation details, because they expose support-truth drift fast.
+
+## 2026-05-25 Update
+
+- This thread was validated by the shipped `v1.3.0` work, but its follow-on ordering is now outdated.
+- See `.planning/threads/2026-05-25-next-milestone-assessment.md` for the refreshed ranking after repo-local proof-bar verification.

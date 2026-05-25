@@ -1,0 +1,20 @@
+# The directory Mix will write compiled artifacts to.
+/_build/
+
+# If you run "mix test --cover", coverage assets end up here.
+/cover/
+
+# The directory Mix downloads your dependencies sources to.
+/deps/
+
+# Where generated docs are written.
+/doc/
+
+# Ignore .fetch files in case dependencies are edited locally.
+/.fetch
+
+# Also ignore archive artifacts.
+/*.ez
+
+# Ignore generated package tarballs.
+/rulestead-*.tar

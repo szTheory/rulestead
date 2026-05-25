@@ -1,1 +1,0 @@
-{application,open_feature_rulestead,[{modules,['Elixir.OpenFeatureRulestead','Elixir.OpenFeatureRulestead.ContextMapper','Elixir.OpenFeatureRulestead.Provider']},{optional_applications,[]},{applications,[kernel,stdlib,elixir,logger,open_feature,rulestead]},{description,"open_feature_rulestead"},{registered,[]},{vsn,"0.1.0"}]}.

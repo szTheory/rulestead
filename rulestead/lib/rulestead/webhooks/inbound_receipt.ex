@@ -7,22 +7,26 @@ defmodule Rulestead.Webhooks.InboundReceipt do
 
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "webhook_receipts" do
-    field :provider, :string
-    field :endpoint_key, :string
-    field :delivery_id, :string
-    field :attempt_id, :string
-    field :topic, :string
-    field :occurred_at, :utc_datetime_usec
-    field :received_at, :utc_datetime_usec
-    field :raw_body_sha256, :string
-    field :verification_metadata, :map, default: %{}
-    field :normalized_payload, :map
-    field :dedupe_key, :string
-    field :verified_state, Ecto.Enum, values: [:accepted, :rejected, :malformed, :unsigned, :stale, :replayed]
-    field :rejection_reason, :string
-    field :correlation_id, :string
-    field :change_request_id, :binary_id
-    field :scheduled_execution_id, :binary_id
+    field(:provider, :string)
+    field(:endpoint_key, :string)
+    field(:delivery_id, :string)
+    field(:attempt_id, :string)
+    field(:topic, :string)
+    field(:occurred_at, :utc_datetime_usec)
+    field(:received_at, :utc_datetime_usec)
+    field(:raw_body_sha256, :string)
+    field(:verification_metadata, :map, default: %{})
+    field(:normalized_payload, :map)
+    field(:dedupe_key, :string)
+
+    field(:verified_state, Ecto.Enum,
+      values: [:accepted, :rejected, :malformed, :unsigned, :stale, :replayed]
+    )
+
+    field(:rejection_reason, :string)
+    field(:correlation_id, :string)
+    field(:change_request_id, :binary_id)
+    field(:scheduled_execution_id, :binary_id)
 
     timestamps(type: :utc_datetime_usec)
   end

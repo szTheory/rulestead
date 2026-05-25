@@ -28,11 +28,13 @@ defmodule Rulestead.Webhooks.CodeRefsPlug do
   end
 
   defp handle_payload(conn, %{"references" => references}) when is_list(references) do
-    if Enum.all?(references, &valid_reference?/1) do
+    valid_references = Enum.filter(references, &valid_reference?/1)
+
+    if length(valid_references) == length(references) or valid_references != [] do
       now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
 
-      valid_references =
-        Enum.map(references, fn ref ->
+      rows =
+        Enum.map(valid_references, fn ref ->
           %{
             id: Ecto.UUID.generate(),
             flag_key: ref["flag_key"],
@@ -45,23 +47,22 @@ defmodule Rulestead.Webhooks.CodeRefsPlug do
 
       Ecto.Multi.new()
       |> Ecto.Multi.delete_all(:delete_old, CodeReference)
-      |> Ecto.Multi.insert_all(:insert_new, CodeReference, valid_references)
+      |> Ecto.Multi.insert_all(:insert_new, CodeReference, rows)
       |> Ecto.Multi.insert(
         :scan_receipt,
         ScanReceipt.changeset(%ScanReceipt{}, %{
           received_at: now,
-          reference_count: length(valid_references)
+          reference_count: length(rows)
         })
       )
       |> Repo.transact()
       |> case do
         {:ok, _} ->
-          send_json_resp(conn, 200, %{status: "ok", count: length(valid_references)})
+          send_json_resp(conn, 200, %{status: "ok", count: length(rows)})
 
         {:error, _, _, _} ->
           send_json_resp(conn, 500, %{error: "internal server error"})
       end
-
     else
       send_json_resp(conn, 400, %{error: "invalid reference entry"})
     end

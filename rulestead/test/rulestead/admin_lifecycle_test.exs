@@ -11,7 +11,12 @@ defmodule Rulestead.AdminLifecycleTest do
       value_type: :boolean,
       default_value: %{value: false},
       ownership: %{owner_ref: "growth", owner_kind: :team},
-      lifecycle: %{mode: :expiring, review_by: ~D[2026-05-01], default_source: :flag_type, default_overridden: false}
+      lifecycle: %{
+        mode: :expiring,
+        review_by: ~D[2026-05-01],
+        default_source: :flag_type,
+        default_overridden: false
+      }
     }
 
     assert %Ecto.Changeset{valid?: true} =
@@ -28,37 +33,50 @@ defmodule Rulestead.AdminLifecycleTest do
         %Flag{},
         %{
           valid_base
-          | lifecycle: %{mode: :expiring, review_by: nil, default_source: :flag_type, default_overridden: false}
+          | lifecycle: %{
+              mode: :expiring,
+              review_by: nil,
+              default_source: :flag_type,
+              default_overridden: false
+            }
         }
       )
 
     refute contradictory.valid?
+
     assert "reviewed expiring flags must set an expected expiration" in errors_on(contradictory).lifecycle.review_by
   end
 
   test "lifecycle classifier derives active, potentially stale, stale, and archived from persisted data" do
     now = DateTime.from_naive!(~N[2026-04-23 14:00:00], "Etc/UTC")
+
     flag = %{
       ownership: %{owner_ref: "growth", owner_kind: :team},
       lifecycle: %{mode: :permanent, default_source: :flag_type, default_overridden: false}
     }
 
     assert %{state: :active, mode: :permanent} =
-             Lifecycle.classify(flag, %{status: :active, last_evaluated_at: DateTime.add(now, -900, :second)},
+             Lifecycle.classify(
+               flag,
+               %{status: :active, last_evaluated_at: DateTime.add(now, -900, :second)},
                now: now,
                warning_after_seconds: 1_800,
                stale_after_seconds: 3_600
              )
 
     assert %{state: :potentially_stale} =
-             Lifecycle.classify(flag, %{status: :active, last_evaluated_at: DateTime.add(now, -2_400, :second)},
+             Lifecycle.classify(
+               flag,
+               %{status: :active, last_evaluated_at: DateTime.add(now, -2_400, :second)},
                now: now,
                warning_after_seconds: 1_800,
                stale_after_seconds: 3_600
              )
 
     assert %{state: :stale} =
-             Lifecycle.classify(flag, %{status: :active, last_evaluated_at: DateTime.add(now, -7_200, :second)},
+             Lifecycle.classify(
+               flag,
+               %{status: :active, last_evaluated_at: DateTime.add(now, -7_200, :second)},
                now: now,
                warning_after_seconds: 1_800,
                stale_after_seconds: 3_600
@@ -68,7 +86,9 @@ defmodule Rulestead.AdminLifecycleTest do
              Lifecycle.classify(flag, %{status: :active, last_evaluated_at: nil}, now: now)
 
     assert %{state: :archived} =
-             Lifecycle.classify(Map.put(flag, :archived_at, now), %{status: :active, last_evaluated_at: now},
+             Lifecycle.classify(
+               Map.put(flag, :archived_at, now),
+               %{status: :active, last_evaluated_at: now},
                now: now
              )
 
@@ -169,7 +189,9 @@ defmodule Rulestead.AdminLifecycleTest do
       })
 
     assert changeset.valid?
-    assert DateTime.to_unix(get_change(changeset, :last_evaluated_at)) == DateTime.to_unix(evaluated_at)
+
+    assert DateTime.to_unix(get_change(changeset, :last_evaluated_at)) ==
+             DateTime.to_unix(evaluated_at)
   end
 
   test "flag changeset accepts authored ownership metadata and rejects blank refs or invalid kinds" do
@@ -232,7 +254,10 @@ defmodule Rulestead.AdminLifecycleTest do
       )
 
     refute remote_config.valid?
-    assert "must choose permanent or expected expiration for remote config" in errors_on(remote_config).lifecycle.mode
+
+    assert "must choose permanent or expected expiration for remote config" in errors_on(
+             remote_config
+           ).lifecycle.mode
   end
 
   test "lifecycle defaults stay advisory and never persist computed stale or archive-ready states" do
