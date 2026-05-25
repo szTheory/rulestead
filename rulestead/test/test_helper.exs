@@ -1,4 +1,11 @@
-ExUnit.start()
+exunit_opts =
+  if System.get_env("RULESTEAD_RUN_INSTALL_INTEGRATION") == "1" do
+    []
+  else
+    [exclude: [install_integration: true]]
+  end
+
+ExUnit.start(exunit_opts)
 
 {:ok, _} = Application.ensure_all_started(:ecto_sql)
 {:ok, _} = Rulestead.Repo.start_link()

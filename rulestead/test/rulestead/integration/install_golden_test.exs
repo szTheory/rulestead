@@ -3,6 +3,7 @@ defmodule Rulestead.Integration.InstallGoldenTest do
 
   import Rulestead.Test.InstallFixture
 
+  @moduletag :install_integration
   @moduletag :golden
   @moduletag timeout: 300_000
 

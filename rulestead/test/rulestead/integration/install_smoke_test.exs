@@ -3,6 +3,7 @@ defmodule Rulestead.Integration.InstallSmokeTest do
 
   import Rulestead.Test.InstallFixture
 
+  @moduletag :install_integration
   @moduletag timeout: 300_000
 
   test "fresh host app installs, migrates, and boots with the phase 5 host seam" do
@@ -44,6 +45,7 @@ defmodule Rulestead.Integration.InstallSmokeTest do
         nil -> []
         hex_home -> [{"HEX_HOME", hex_home}]
       end
+      |> Kernel.++([{"MIX_ENV", "dev"}])
 
     {probe_output, probe_status} =
       System.cmd("mix", ["run", "-e", probe_script()],

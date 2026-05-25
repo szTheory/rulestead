@@ -5,6 +5,7 @@ RULESTEAD_REPO="${GITHUB_WORKSPACE:-$(pwd)}"
 MATRIX_ELIXIR="${MATRIX_ELIXIR:-}"
 MATRIX_OTP="${MATRIX_OTP:-}"
 TEST_SCOPE="${RULESTEAD_TEST_SCOPE:-${1:-all}}"
+export MIX_ENV="${MIX_ENV:-test}"
 
 run_mix() {
   local package_dir="$1"
@@ -14,6 +15,18 @@ run_mix() {
     cd "${RULESTEAD_REPO}/${package_dir}"
     mix "$@"
   )
+}
+
+prepare_rulestead_test_db() {
+  run_mix rulestead ecto.drop --force || true
+  run_mix rulestead ecto.create
+  run_mix rulestead ecto.migrate
+}
+
+ensure_phx_new() {
+  if ! (cd "${RULESTEAD_REPO}/rulestead" && mix help phx.new >/dev/null 2>&1); then
+    run_mix rulestead archive.install hex phx_new --force
+  fi
 }
 
 run_mounted_admin_contract() {
@@ -46,7 +59,10 @@ fi
 case "${TEST_SCOPE}" in
   all)
     run_mix rulestead deps.get
-    run_mix rulestead test --warnings-as-errors
+    ensure_phx_new
+    bash "${RULESTEAD_REPO}/scripts/ci/install_contract.sh"
+    prepare_rulestead_test_db
+    run_mix rulestead test --warnings-as-errors --exclude install_integration
     run_mix rulestead_admin deps.get
     run_mix rulestead_admin test --warnings-as-errors
     ;;
