@@ -77,4 +77,4 @@
 
 ## Next Step
 
-Run `$gsd-verify-work 43` to capture the mounted companion verification artifact and close the milestone proof loop, or move to `$gsd-plan-phase 44` if you want to stage the OpenFeature bridge proof work next.
+Run `$gsd-secure-phase 43` to satisfy the mounted companion security gate, or move to `$gsd-plan-phase 44` after that review if you want to stage the OpenFeature bridge proof work next.
