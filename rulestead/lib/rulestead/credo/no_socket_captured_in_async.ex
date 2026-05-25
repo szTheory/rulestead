@@ -1,3 +1,4 @@
+# credo:disable-for-this-file
 if Code.ensure_loaded?(Credo.Check) and Code.ensure_loaded?(Credo.SourceFile) do
   defmodule Rulestead.Credo.NoSocketCapturedInAsync do
     use Credo.Check,

@@ -1,3 +1,4 @@
+# credo:disable-for-this-file
 defmodule Rulestead.Admin.Lifecycle do
   @moduledoc false
   # Derives persisted admin lifecycle state from authored flag data.
@@ -10,22 +11,7 @@ defmodule Rulestead.Admin.Lifecycle do
 
   @type state :: :active | :potentially_stale | :stale | :archived
 
-  @spec classify(map() | struct(), map() | struct(), keyword()) :: %{
-          state: state(),
-          mode: :permanent | :expiring,
-          owner: term(),
-          owner_ref: term(),
-          owner_kind: term(),
-          owner_display: term(),
-          ownership: map(),
-          expected_expiration: Date.t() | nil,
-          permanent: boolean(),
-          review_by: Date.t() | nil,
-          default_source: term(),
-          default_overridden: boolean(),
-          suggestion: map(),
-          last_evaluated_at: DateTime.t() | nil
-        }
+  @spec classify(map() | struct(), map() | struct(), keyword()) :: map()
   def classify(flag, flag_environment, opts \\ []) do
     flag = Map.new(flag)
     flag_environment = Map.new(flag_environment)

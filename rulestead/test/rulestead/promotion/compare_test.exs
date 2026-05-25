@@ -56,6 +56,9 @@ defmodule Rulestead.Promotion.CompareTest do
     def list_webhook_destinations(_), do: missing()
     def list_webhook_deliveries(_), do: missing()
     def retry_webhook_delivery(_), do: missing()
+    def preview_manifest_import(_), do: missing()
+    def apply_manifest_import(_), do: missing()
+    def apply_promotion(_), do: missing()
 
     defp missing, do: raise("unexpected store callback")
   end

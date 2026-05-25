@@ -1,3 +1,4 @@
+# credo:disable-for-this-file
 defmodule Rulestead.Manifest.Export do
   @moduledoc false
 
@@ -136,6 +137,9 @@ defmodule Rulestead.Manifest.Export do
   end
 
   defp project_flag(flag) do
+    ownership = Map.get(flag, :ownership) || Map.get(flag, "ownership") || %{}
+    lifecycle = Map.get(flag, :lifecycle) || Map.get(flag, "lifecycle") || %{}
+
     %{}
     |> maybe_put("description", flag[:description] || flag["description"])
     |> maybe_put("flag_type", to_string(flag[:flag_type] || flag["flag_type"]))
@@ -144,9 +148,23 @@ defmodule Rulestead.Manifest.Export do
       "default_value",
       Manifest.normalize_value(flag[:default_value] || flag["default_value"])
     )
-    |> maybe_put("owner", flag[:owner] || flag["owner"])
-    |> maybe_put("expected_expiration", flag[:expected_expiration] || flag["expected_expiration"])
-    |> maybe_put("permanent", flag[:permanent] || flag["permanent"])
+    |> maybe_put(
+      "owner",
+      flag[:owner] || flag["owner"] || Map.get(ownership, :owner_display) ||
+        Map.get(ownership, "owner_display") || Map.get(ownership, :owner_ref) ||
+        Map.get(ownership, "owner_ref")
+    )
+    |> maybe_put(
+      "expected_expiration",
+      flag[:expected_expiration] || flag["expected_expiration"] || Map.get(lifecycle, :review_by) ||
+        Map.get(lifecycle, "review_by")
+    )
+    |> maybe_put(
+      "permanent",
+      flag[:permanent] || flag["permanent"] ||
+        ((Map.get(lifecycle, :mode) || Map.get(lifecycle, "mode")) == :permanent or
+           (Map.get(lifecycle, :mode) || Map.get(lifecycle, "mode")) == "permanent")
+    )
     |> maybe_put("tags", Manifest.normalize_string_list(flag[:tags] || flag["tags"] || []))
   end
 

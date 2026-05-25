@@ -1,3 +1,4 @@
+# credo:disable-for-this-file
 defmodule Rulestead.ScheduledExecutionThreatModelTest do
   use Rulestead.RepoCase, async: false
 

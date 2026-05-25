@@ -1,7 +1,6 @@
 defmodule Rulestead.Ruleset.RuleTest do
   use ExUnit.Case, async: true
 
-  alias Ecto.Changeset
   alias Rulestead.Ruleset.Rule
 
   describe "experiment strategy" do

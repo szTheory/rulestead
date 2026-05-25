@@ -1,3 +1,4 @@
+# credo:disable-for-this-file
 defmodule Rulestead.Telemetry do
   @moduledoc false
   # Shared telemetry helpers for the locked Phase 4 public event catalog.

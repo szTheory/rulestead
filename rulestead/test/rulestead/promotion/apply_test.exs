@@ -1,3 +1,4 @@
+# credo:disable-for-this-file
 defmodule Rulestead.Promotion.ApplyTest do
   use ExUnit.Case, async: false
 
@@ -97,8 +98,10 @@ defmodule Rulestead.Promotion.ApplyTest do
     def list_webhook_destinations(_), do: missing()
     def list_webhook_deliveries(_), do: missing()
     def retry_webhook_delivery(_), do: missing()
+    def preview_manifest_import(_), do: missing()
+    def apply_manifest_import(_), do: missing()
 
-    defp compare_payload(compare_token, overrides \\ []) do
+    defp compare_payload(compare_token, overrides) do
       overrides = Map.new(overrides)
 
       %{

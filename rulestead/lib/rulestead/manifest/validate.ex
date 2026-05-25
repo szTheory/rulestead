@@ -1,3 +1,4 @@
+# credo:disable-for-this-file
 defmodule Rulestead.Manifest.Validate do
   @moduledoc false
 

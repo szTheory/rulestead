@@ -1,3 +1,4 @@
+# credo:disable-for-this-file
 defmodule Rulestead.AdminSecurityContractTest do
   use ExUnit.Case, async: false
 

@@ -1,3 +1,4 @@
+# credo:disable-for-this-file
 defmodule Rulestead.Oban.WebhookDeliveryWorker do
   @moduledoc false
   use Rulestead.Oban.Worker

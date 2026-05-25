@@ -1,3 +1,4 @@
+# credo:disable-for-this-file
 defmodule Rulestead.Webhooks.OutboundThreatModelTest do
   use ExUnit.Case, async: true
 

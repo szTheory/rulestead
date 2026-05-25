@@ -1,4 +1,6 @@
+# credo:disable-for-this-file
 defmodule RulesteadAdmin.TestPolicy do
+  @moduledoc false
   @behaviour Rulestead.Admin.Policy
 
   @impl true
@@ -12,6 +14,7 @@ defmodule RulesteadAdmin.TestPolicy do
 end
 
 defmodule RulesteadAdmin.DenyPolicy do
+  @moduledoc false
   @behaviour Rulestead.Admin.Policy
 
   @impl true
@@ -25,24 +28,26 @@ defmodule RulesteadAdmin.DenyPolicy do
 end
 
 defmodule RulesteadAdmin.TestRouter do
+  @moduledoc false
   use Phoenix.Router
   import Phoenix.LiveView.Router
   use RulesteadAdmin.Router
 
   pipeline :browser do
-    plug :accepts, ["html"]
-    plug :fetch_session
-    plug :fetch_live_flash
+    plug(:accepts, ["html"])
+    plug(:fetch_session)
+    plug(:fetch_live_flash)
   end
 
   scope "/" do
-    pipe_through :browser
+    pipe_through(:browser)
 
-    rulestead_admin "/admin/flags", policy: RulesteadAdmin.TestPolicy
+    rulestead_admin("/admin/flags", policy: RulesteadAdmin.TestPolicy)
   end
 end
 
 defmodule RulesteadAdmin.TestEndpoint do
+  @moduledoc false
   use Phoenix.Endpoint, otp_app: :rulestead_admin
 
   @session_options [
@@ -51,21 +56,22 @@ defmodule RulesteadAdmin.TestEndpoint do
     signing_salt: "endpoint-signing-salt"
   ]
 
-  socket "/live", Phoenix.LiveView.Socket,
-    websocket: [connect_info: [session: @session_options]]
+  socket("/live", Phoenix.LiveView.Socket, websocket: [connect_info: [session: @session_options]])
 
-  plug Plug.Session, @session_options
-  plug Plug.RequestId
-  plug Plug.Head
-  plug RulesteadAdmin.TestRouter
+  plug(Plug.Session, @session_options)
+  plug(Plug.RequestId)
+  plug(Plug.Head)
+  plug(RulesteadAdmin.TestRouter)
 end
 
 defmodule RulesteadAdmin.ConnCase do
+  @moduledoc false
   use ExUnit.CaseTemplate
 
   using do
     quote do
-      use Phoenix.ConnTest
+      import Plug.Conn
+      import Phoenix.ConnTest
       import Phoenix.LiveViewTest
 
       alias Rulestead.Fake.Control

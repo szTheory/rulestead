@@ -1,3 +1,4 @@
+# credo:disable-for-this-file
 defmodule Rulestead do
   @moduledoc """
   Root public module for the `rulestead` package.

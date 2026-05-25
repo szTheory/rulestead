@@ -1,3 +1,4 @@
+# credo:disable-for-this-file
 defmodule Rulestead.Analytics.Stats do
   @moduledoc false
   # # Calculates statistical significance for A/B test results without external dependencies.

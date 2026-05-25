@@ -102,7 +102,7 @@ defmodule RulesteadAdmin.Live.GovernanceRouteContractTest do
     assert schedule_html =~ "/admin/flags/change-requests?env=staging"
     assert schedule_html =~ "/admin/flags/schedule?env=staging"
     assert schedule_html =~ "/admin/flags/audit?env=staging"
-    
+
     expected_sched_path = "/admin/flags/schedule/#{sched_id}?env=staging"
     assert schedule_html =~ expected_sched_path
 

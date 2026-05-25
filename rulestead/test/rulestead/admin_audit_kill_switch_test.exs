@@ -1,3 +1,4 @@
+# credo:disable-for-this-file
 defmodule Rulestead.AdminAuditKillSwitchFakeTest do
   use ExUnit.Case, async: false
 

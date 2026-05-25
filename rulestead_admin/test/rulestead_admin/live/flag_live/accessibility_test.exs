@@ -11,6 +11,7 @@ defmodule RulesteadAdmin.Live.FlagLive.AccessibilityTest do
 
   setup %{conn: conn} do
     Application.put_env(:rulestead, :store, Rulestead.Fake)
+
     Application.put_env(:rulestead, :admin_lifecycle,
       warning_after_seconds: 1_800,
       stale_after_seconds: 3_600,
@@ -66,7 +67,8 @@ defmodule RulesteadAdmin.Live.FlagLive.AccessibilityTest do
     assert html =~ "Open audit timeline"
   end
 
-  test "metadata forms pass the package accessibility audit in invalid and valid render states", %{conn: conn} do
+  test "metadata forms pass the package accessibility audit in invalid and valid render states",
+       %{conn: conn} do
     {:ok, view, html} = live(conn, "/admin/flags/new?env=prod")
     assert_accessible(html)
 
@@ -76,19 +78,21 @@ defmodule RulesteadAdmin.Live.FlagLive.AccessibilityTest do
         "flag" => %{
           "key" => "inventory-admin",
           "description" => "Admin inventory page",
+          "owner_ref" => "",
+          "owner_kind" => "team",
           "flag_type" => "release",
           "value_type" => "boolean",
           "default_value" => "true",
-          "owner" => "",
-          "expected_expiration" => "",
-          "permanent" => "false",
+          "lifecycle_mode" => "expiring",
+          "review_by" => "",
           "tags" => "admin, inventory"
         }
       })
       |> render_submit()
 
     assert_accessible(invalid_html)
-    assert invalid_html =~ "Owner is required"
+    assert invalid_html =~ "Owner reference is required"
+    assert invalid_html =~ "Review by is required for expiring flags"
 
     edit_conn =
       conn
@@ -178,8 +182,13 @@ defmodule RulesteadAdmin.Live.FlagLive.AccessibilityTest do
       ]
     }
 
-    assert {:ok, _draft} = Rulestead.save_draft_ruleset(Command.SaveDraftRuleset.new(flag_key, environment_key, ruleset))
-    assert {:ok, _published} = Rulestead.publish_ruleset(Command.PublishRuleset.new(flag_key, environment_key))
+    assert {:ok, _draft} =
+             Rulestead.save_draft_ruleset(
+               Command.SaveDraftRuleset.new(flag_key, environment_key, ruleset)
+             )
+
+    assert {:ok, _published} =
+             Rulestead.publish_ruleset(Command.PublishRuleset.new(flag_key, environment_key))
   end
 
   defp save_draft!(flag_key, environment_key, version, value) do
@@ -195,7 +204,10 @@ defmodule RulesteadAdmin.Live.FlagLive.AccessibilityTest do
       ]
     }
 
-    assert {:ok, _draft} = Rulestead.save_draft_ruleset(Command.SaveDraftRuleset.new(flag_key, environment_key, ruleset))
+    assert {:ok, _draft} =
+             Rulestead.save_draft_ruleset(
+               Command.SaveDraftRuleset.new(flag_key, environment_key, ruleset)
+             )
   end
 
   defp ensure_environment!(key, name) do
@@ -221,7 +233,9 @@ defmodule RulesteadAdmin.Live.FlagLive.AccessibilityTest do
       updated_at: ~U[2026-04-23 16:00:00Z]
     }
 
-    next_state = Map.put(snapshot, :audiences, Map.put(Map.get(snapshot, :audiences, %{}), key, audience))
+    next_state =
+      Map.put(snapshot, :audiences, Map.put(Map.get(snapshot, :audiences, %{}), key, audience))
+
     assert :ok = Control.restore!(next_state)
   end
 end

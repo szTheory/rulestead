@@ -39,11 +39,17 @@ defmodule Rulestead.Integration.InstallSmokeTest do
   end
 
   defp run_probe!(result) do
+    env =
+      case result.hex_home do
+        nil -> []
+        hex_home -> [{"HEX_HOME", hex_home}]
+      end
+
     {probe_output, probe_status} =
       System.cmd("mix", ["run", "-e", probe_script()],
         cd: result.app_dir,
         stderr_to_stdout: true,
-        env: [{"HEX_HOME", result.hex_home}]
+        env: env
       )
 
     assert probe_status == 0, probe_output

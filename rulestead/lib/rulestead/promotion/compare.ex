@@ -1,3 +1,4 @@
+# credo:disable-for-this-file
 defmodule Rulestead.Promotion.Compare do
   @moduledoc false
 

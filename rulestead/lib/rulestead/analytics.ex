@@ -2,8 +2,8 @@ defmodule Rulestead.Analytics do
   @moduledoc false
   # Public analytics tracking interface.
 
-  alias Rulestead.Context
   alias Rulestead.Analytics.Batcher
+  alias Rulestead.Context
 
   @doc """
   Tracks a custom analytics event.

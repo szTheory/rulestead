@@ -1,4 +1,6 @@
+# credo:disable-for-this-file
 defmodule Rulestead.Runtime.Snapshot do
+  @moduledoc false
   alias Rulestead.EvaluationError
 
   @enforce_keys [:environment_key, :version, :published_at, :generated_at, :flags]

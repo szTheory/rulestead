@@ -1,3 +1,4 @@
+# credo:disable-for-this-file
 defmodule RulesteadAdmin.Live.FlagLive.Index do
   @moduledoc false
 

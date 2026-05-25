@@ -619,7 +619,7 @@ defmodule Rulestead.Repo.Migrations.CreateRulesteadTables do
 
     create table(:environment_versions, primary_key: false) do
       add(:id, :binary_id, primary_key: true)
-      add(:tenant_key, :string, null: false)
+      add(:tenant_key, :string)
       add(:environment_key, :string, null: false)
       add(:version, :integer, null: false)
       add(:authored_snapshot, :map, null: false, default: fragment("'{}'::jsonb"))

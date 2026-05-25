@@ -1,3 +1,4 @@
+# credo:disable-for-this-file
 defmodule Rulestead.Oban.StaleFlagWorkerTest do
   use Rulestead.RepoCase, async: false
 

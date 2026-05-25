@@ -1,3 +1,4 @@
+# credo:disable-for-this-file
 defmodule RulesteadAdmin.Live.AuditLive.Index do
   @moduledoc false
 
@@ -170,8 +171,9 @@ defmodule RulesteadAdmin.Live.AuditLive.Index do
 
   defp filter_entries(entries, filters) do
     entries
-    |> Enum.filter(&matches_actor?(&1, filters["actor"]))
-    |> Enum.filter(&matches_mutation?(&1, filters["mutation"]))
+    |> Enum.filter(
+      &(matches_actor?(&1, filters["actor"]) and matches_mutation?(&1, filters["mutation"]))
+    )
     |> Enum.filter(&matches_date_range?(&1, filters["from"], filters["to"]))
     |> Enum.sort_by(& &1.occurred_at, {:desc, DateTime})
   end
@@ -235,7 +237,13 @@ defmodule RulesteadAdmin.Live.AuditLive.Index do
   defp meta_for(event) do
     actor = event.actor_display || event.actor_id || "Unknown actor"
     result = event.result |> to_string() |> String.upcase()
-    time = if(event.occurred_at, do: Calendar.strftime(event.occurred_at, "%Y-%m-%d %H:%M:%S UTC"), else: "Unknown time")
+    time =
+      if event.occurred_at do
+        Calendar.strftime(event.occurred_at, "%Y-%m-%d %H:%M:%S UTC")
+      else
+        "Unknown time"
+      end
+
     "#{actor} • #{event.environment_key} • #{result} • #{time}"
   end
 

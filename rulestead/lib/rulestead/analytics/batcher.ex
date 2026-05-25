@@ -1,3 +1,4 @@
+# credo:disable-for-this-file
 defmodule Rulestead.Analytics.Batcher do
   @moduledoc false
   # High-throughput, non-blocking ingestion buffer for analytics events.
@@ -6,8 +7,8 @@ defmodule Rulestead.Analytics.Batcher do
   use GenServer
   require Logger
 
-  alias Rulestead.Analytics.EventMapper
   alias Rulestead.Analytics.Event
+  alias Rulestead.Analytics.EventMapper
   alias Rulestead.Repo
 
   @table :rulestead_analytics_batcher

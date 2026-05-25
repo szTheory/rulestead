@@ -48,7 +48,7 @@ defmodule Rulestead.Fake.Control do
   def put_flag!(attrs) do
     ensure_started()
 
-    case Fake.put_flag(attrs) do
+    case Fake.put_flag(normalize_seed_attrs(attrs)) do
       {:ok, flag} -> flag
       {:error, error} -> raise error
     end
@@ -57,7 +57,7 @@ defmodule Rulestead.Fake.Control do
   @spec put_flag(map()) :: {:ok, map()} | {:error, Rulestead.Error.t()}
   def put_flag(attrs) do
     ensure_started()
-    Fake.put_flag(attrs)
+    Fake.put_flag(normalize_seed_attrs(attrs))
   end
 
   @spec snapshot!() :: map()
@@ -144,8 +144,13 @@ defmodule Rulestead.Fake.Control do
       flag_type: :release,
       value_type: infer_value_type(value),
       default_value: %{value: value},
-      owner: "test-suite",
-      expected_expiration: Date.utc_today(),
+      ownership: %{owner_ref: "test-suite", owner_kind: :team, owner_display: "test-suite"},
+      lifecycle: %{
+        mode: :expiring,
+        review_by: Date.utc_today(),
+        default_source: :operator_override,
+        default_overridden: true
+      },
       environment_keys: [environment_key]
     })
 
@@ -183,8 +188,13 @@ defmodule Rulestead.Fake.Control do
       flag_type: :experiment,
       value_type: :variant,
       default_value: %{value: nil},
-      owner: "test-suite",
-      expected_expiration: Date.utc_today(),
+      ownership: %{owner_ref: "test-suite", owner_kind: :team, owner_display: "test-suite"},
+      lifecycle: %{
+        mode: :expiring,
+        review_by: Date.utc_today(),
+        default_source: :operator_override,
+        default_overridden: true
+      },
       environment_keys: [environment_key]
     })
 
@@ -257,6 +267,14 @@ defmodule Rulestead.Fake.Control do
       {:error, error} -> raise error
     end
   end
+
+  defp normalize_seed_attrs(attrs) when is_map(attrs) do
+    attrs
+    |> Map.put(:ownership, Command.normalize_ownership(attrs))
+    |> Map.put(:lifecycle, Command.normalize_lifecycle(attrs))
+  end
+
+  defp normalize_seed_attrs(attrs), do: attrs
 
   defp infer_value_type(value) when is_boolean(value), do: :boolean
   defp infer_value_type(value) when is_binary(value), do: :string

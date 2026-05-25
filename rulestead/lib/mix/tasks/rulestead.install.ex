@@ -1,5 +1,7 @@
 defmodule Mix.Tasks.Rulestead.Install do
-  @moduledoc false
+  @moduledoc """
+  Installs the package-owned migrations and configuration into a host app.
+  """
 
   use Mix.Task
 

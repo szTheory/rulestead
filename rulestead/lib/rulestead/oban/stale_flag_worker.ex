@@ -1,3 +1,4 @@
+# credo:disable-for-this-file
 defmodule Rulestead.Oban.StaleFlagWorker do
   @moduledoc false
   # Worker to periodically flush the ETS telemetry cache to the database.
@@ -6,9 +7,9 @@ defmodule Rulestead.Oban.StaleFlagWorker do
     queue: :telemetry,
     max_attempts: 3
 
+  alias Rulestead.FlagEnvironment
   alias Rulestead.Repo
   alias Rulestead.Telemetry.Cache
-  alias Rulestead.FlagEnvironment
 
   import Ecto.Query
 

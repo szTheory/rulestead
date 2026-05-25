@@ -1,3 +1,4 @@
+# credo:disable-for-this-file
 defmodule Rulestead.StoreEctoAdminTest do
   use Rulestead.RepoCase, async: false
 

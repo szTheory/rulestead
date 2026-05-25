@@ -2,8 +2,6 @@ defmodule Rulestead.EvaluatorPropertyTest do
   use ExUnit.Case, async: true
   use ExUnitProperties
 
-  alias Rulestead.Evaluator
-
   property "first-match-wins is determined only by rule order" do
     check all(
             value_a <- boolean(),
@@ -14,8 +12,8 @@ defmodule Rulestead.EvaluatorPropertyTest do
       second_payload = payload_for([value_b, value_a])
       context = %{attributes: %{plan: plan}}
 
-      assert {:ok, first_result} = Evaluator.evaluate(first_payload, context)
-      assert {:ok, second_result} = Evaluator.evaluate(second_payload, context)
+      assert {:ok, first_result} = Rulestead.evaluate(first_payload, context)
+      assert {:ok, second_result} = Rulestead.evaluate(second_payload, context)
 
       if plan == "enterprise" do
         assert first_result.value == value_a
@@ -83,8 +81,8 @@ defmodule Rulestead.EvaluatorPropertyTest do
 
       context = %Rulestead.Context{tenant_key: tenant_key}
 
-      assert {:ok, result1} = Rulestead.Evaluator.evaluate(payload, context)
-      assert {:ok, result2} = Rulestead.Evaluator.evaluate(payload, context)
+      assert {:ok, result1} = Rulestead.evaluate(payload, context)
+      assert {:ok, result2} = Rulestead.evaluate(payload, context)
 
       assert result1.value == result2.value
     end

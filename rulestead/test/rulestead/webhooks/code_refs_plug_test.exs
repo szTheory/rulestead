@@ -1,8 +1,8 @@
+# credo:disable-for-this-file
 defmodule Rulestead.Webhooks.CodeRefsPlugTest do
   use Rulestead.RepoCase
-  use Plug.Test
-
-  import Ecto.Query
+  import Plug.Conn
+  import Plug.Test
 
   alias Rulestead.CodeRefs.ScanReceipt
   alias Rulestead.Webhooks.CodeRefsPlug

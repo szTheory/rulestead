@@ -3,8 +3,8 @@ defmodule Mix.Tasks.Rulestead.Validate do
 
   use Mix.Task
 
-  alias Rulestead.Manifest.Result
   alias Rulestead.Manifest.{Render, Validate}
+  alias Rulestead.Manifest.Result
 
   @shortdoc "Validates a deterministic environment manifest"
   @switches [file: :string, format: :string]

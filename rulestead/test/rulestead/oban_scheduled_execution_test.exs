@@ -1,3 +1,4 @@
+# credo:disable-for-this-file
 defmodule Rulestead.ObanScheduledExecutionTest do
   use Rulestead.RepoCase, async: false
 
@@ -42,6 +43,8 @@ defmodule Rulestead.ObanScheduledExecutionTest do
     end
 
     for callback <- [
+          :compare_environments,
+          :apply_promotion,
           :fetch_flag,
           :fetch_snapshot,
           :create_flag,
@@ -68,7 +71,18 @@ defmodule Rulestead.ObanScheduledExecutionTest do
           :schedule_governed_action,
           :cancel_scheduled_execution,
           :requeue_scheduled_execution,
-          :list_scheduled_executions
+          :list_scheduled_executions,
+          :preview_manifest_import,
+          :apply_manifest_import,
+          :receive_inbound_webhook,
+          :fetch_webhook_record,
+          :list_webhook_records,
+          :create_webhook_destination,
+          :update_webhook_destination,
+          :fetch_webhook_destination,
+          :list_webhook_destinations,
+          :list_webhook_deliveries,
+          :retry_webhook_delivery
         ] do
       def unquote(callback)(_), do: raise("unexpected callback #{unquote(callback)}/1")
     end

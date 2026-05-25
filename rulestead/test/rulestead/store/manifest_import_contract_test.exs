@@ -1,7 +1,7 @@
+# credo:disable-for-this-file
 defmodule Rulestead.Store.ManifestImportContractTest do
   use ExUnit.Case, async: false
 
-  import Ecto.Query
   import Rulestead.StoreFixtures
 
   alias Rulestead.{
@@ -18,8 +18,6 @@ defmodule Rulestead.Store.ManifestImportContractTest do
   }
 
   defmodule EctoControl do
-    import Ecto.Query
-
     alias Rulestead.{
       Audience,
       Environment,

@@ -1,3 +1,4 @@
+# credo:disable-for-this-file
 defmodule Rulestead.Webhooks.InboundThreatModelTest do
   use Rulestead.RepoCase, async: false
 

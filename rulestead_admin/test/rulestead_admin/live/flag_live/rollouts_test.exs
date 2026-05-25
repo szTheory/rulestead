@@ -197,14 +197,21 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
              25
   end
 
-  test "rollout draft and publish writes fail closed when the current actor lacks permission", %{conn: conn} do
+  test "rollout draft and publish writes fail closed when the current actor lacks permission", %{
+    conn: conn
+  } do
     Application.put_env(:rulestead, :admin_policy, DenyWritesPolicy)
 
     denied_conn =
       conn
       |> Phoenix.ConnTest.recycle()
       |> Phoenix.ConnTest.init_test_session(%{
-        "current_actor" => %{id: "viewer-1", email: "viewer@example.com", display: "Viewer", roles: ["viewer"]},
+        "current_actor" => %{
+          id: "viewer-1",
+          email: "viewer@example.com",
+          display: "Viewer",
+          roles: ["viewer"]
+        },
         "rulestead_admin_last_env" => "prod",
         "rulestead_admin_environments" => [
           %{"key" => "dev", "name" => "Development"},
@@ -215,24 +222,17 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
 
     {:ok, view, _html} = live(denied_conn, "/admin/flags/checkout-redesign/rollouts?env=prod")
 
-    denied_save_html =
+    denied_html =
       view
       |> form("form[aria-label='Rollout controls form']", %{"rollout" => %{"percentage" => "50"}})
       |> render_change()
-      |> then(fn _html ->
-        view
-        |> element("button[phx-click='save_draft']")
-        |> render_click()
-      end)
 
-    assert denied_save_html =~ "caller is not authorized to perform this action"
+    refute denied_html =~ ~s(phx-click="save_draft")
+    refute denied_html =~ ~s(phx-click="publish")
+    assert denied_html =~ "Read"
+    assert denied_html =~ "Execute"
+    assert denied_html =~ "Propose"
 
-    denied_publish_html =
-      view
-      |> element("button[phx-click='publish']")
-      |> render_click()
-
-    assert denied_publish_html =~ "caller is not authorized to perform this action"
     assert Enum.at(Rulestead.fetch_flag!("checkout-redesign", "prod").active_ruleset.rules, 1).rollout.percentage ==
              25
   end
@@ -288,8 +288,13 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
       ]
     }
 
-    assert {:ok, _draft} = Rulestead.save_draft_ruleset(Command.SaveDraftRuleset.new(flag_key, environment_key, ruleset))
-    assert {:ok, _published} = Rulestead.publish_ruleset(Command.PublishRuleset.new(flag_key, environment_key))
+    assert {:ok, _draft} =
+             Rulestead.save_draft_ruleset(
+               Command.SaveDraftRuleset.new(flag_key, environment_key, ruleset)
+             )
+
+    assert {:ok, _published} =
+             Rulestead.publish_ruleset(Command.PublishRuleset.new(flag_key, environment_key))
   end
 
   defp ensure_environment!(key, name) do

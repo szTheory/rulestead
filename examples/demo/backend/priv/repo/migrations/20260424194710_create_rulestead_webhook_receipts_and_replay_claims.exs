@@ -4,26 +4,26 @@ defmodule Rulestead.Repo.Migrations.CreateRulesteadWebhookReceiptsAndReplayClaim
   def up do
     create table(:webhook_receipts, primary_key: false) do
       add(:id, :uuid, primary_key: true, default: fragment("gen_random_uuid()"))
-      
+
       add(:provider, :text, null: false)
       add(:endpoint_key, :text, null: false)
       add(:delivery_id, :text, null: false)
       add(:attempt_id, :text)
       add(:topic, :text)
-      
+
       add(:occurred_at, :utc_datetime_usec)
       add(:received_at, :utc_datetime_usec, null: false)
-      
+
       add(:raw_body_sha256, :text, null: false)
       add(:verification_metadata, :map, null: false, default: fragment("'{}'::jsonb"))
       add(:normalized_payload, :map)
       add(:dedupe_key, :text)
-      
+
       add(:verified_state, :text, null: false)
       add(:rejection_reason, :text)
-      
+
       add(:correlation_id, :text, null: false)
-      
+
       # Optional links to governance objects
       add(:change_request_id, :uuid)
       add(:scheduled_execution_id, :uuid)
@@ -46,7 +46,7 @@ defmodule Rulestead.Repo.Migrations.CreateRulesteadWebhookReceiptsAndReplayClaim
       add(:provider, :text, primary_key: true)
       add(:delivery_id, :text, primary_key: true)
       add(:receipt_id, references(:webhook_receipts, type: :uuid, on_delete: :delete_all), null: false)
-      
+
       timestamps(type: :utc_datetime_usec, updated_at: false)
     end
 

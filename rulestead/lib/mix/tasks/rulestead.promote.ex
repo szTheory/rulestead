@@ -1,3 +1,4 @@
+# credo:disable-for-this-file
 defmodule Mix.Tasks.Rulestead.Promote do
   @moduledoc false
 

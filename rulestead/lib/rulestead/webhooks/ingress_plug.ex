@@ -1,11 +1,12 @@
+# credo:disable-for-this-file
 defmodule Rulestead.Webhooks.IngressPlug do
   @moduledoc false
   # Library-owned Plug for inbound webhook ingress.
   # Captures the raw body, verifies signatures, and records receipts.
 
   import Plug.Conn
-  alias Rulestead.Webhooks.Verifier
   alias Rulestead.Store.Command
+  alias Rulestead.Webhooks.Verifier
 
   def init(opts), do: opts
 

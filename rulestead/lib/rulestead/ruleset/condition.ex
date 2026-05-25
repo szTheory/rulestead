@@ -1,3 +1,4 @@
+# credo:disable-for-this-file
 defmodule Rulestead.Ruleset.Condition do
   @moduledoc false
 

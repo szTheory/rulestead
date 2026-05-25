@@ -1,3 +1,4 @@
+# credo:disable-for-this-file
 defmodule Rulestead.Mix.Tasks.RulesteadInstallTest do
   use ExUnit.Case, async: false
 

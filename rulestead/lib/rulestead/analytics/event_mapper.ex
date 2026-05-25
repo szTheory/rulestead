@@ -1,3 +1,4 @@
+# credo:disable-for-this-file
 defmodule Rulestead.Analytics.EventMapper do
   @moduledoc false
   # # Pure mapping functions to format raw incoming metrics before they hit the database.

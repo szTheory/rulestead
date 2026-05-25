@@ -3,8 +3,8 @@ defmodule Mix.Tasks.Rulestead.Diff do
 
   use Mix.Task
 
-  alias Rulestead.Manifest.Result
   alias Rulestead.Manifest.{Diff, Render}
+  alias Rulestead.Manifest.Result
 
   @shortdoc "Diffs a source manifest against another manifest or live authored state"
   @switches [source: :string, target: :string, environment: :string, format: :string]

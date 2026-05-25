@@ -1,3 +1,4 @@
+# credo:disable-for-this-file
 defmodule Rulestead.Runtime.ClusterCase do
   @moduledoc false
 

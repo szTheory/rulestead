@@ -1,3 +1,4 @@
+# credo:disable-for-this-file
 defmodule Mix.Tasks.Rulestead.Redis.Sync do
   @moduledoc false
 

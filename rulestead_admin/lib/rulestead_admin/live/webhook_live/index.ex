@@ -6,8 +6,6 @@ defmodule RulesteadAdmin.Live.WebhookLive.Index do
   alias RulesteadAdmin.Components.{OperatorComponents, Shell}
   alias RulesteadAdmin.Live.Session
 
-  @default_limit 100
-
   @impl true
   def mount(_params, _session, socket) do
     {:ok, socket |> assign(:page, nil) |> assign(:filters, %{})}
@@ -136,10 +134,44 @@ defmodule RulesteadAdmin.Live.WebhookLive.Index do
   defp list_webhooks(_socket, filters) do
     # Fake list for UI routing. In a real integration this calls `Rulestead.list_webhooks/1`.
     case filters["type"] do
-      "inbound_rejection" -> [%{id: "wh_in_rej_1", type: "inbound", type_label: "Inbound rejection", status_label: "Rejected by verifier", inserted_at: DateTime.utc_now(), actor: "remote_system"}]
-      "inbound_accepted" -> [%{id: "wh_in_acc_1", type: "inbound", type_label: "Inbound accepted event", status_label: "Received from", inserted_at: DateTime.utc_now(), actor: "remote_system"}]
-      "outbound_delivery" -> [%{id: "wh_out_del_1", type: "outbound", type_label: "Outbound delivery", status_label: "Delivered to", inserted_at: DateTime.utc_now(), actor: "scheduler"}]
-      _ -> []
+      "inbound_rejection" ->
+        [
+          %{
+            id: "wh_in_rej_1",
+            type: "inbound",
+            type_label: "Inbound rejection",
+            status_label: "Rejected by verifier",
+            inserted_at: DateTime.utc_now(),
+            actor: "remote_system"
+          }
+        ]
+
+      "inbound_accepted" ->
+        [
+          %{
+            id: "wh_in_acc_1",
+            type: "inbound",
+            type_label: "Inbound accepted event",
+            status_label: "Received from",
+            inserted_at: DateTime.utc_now(),
+            actor: "remote_system"
+          }
+        ]
+
+      "outbound_delivery" ->
+        [
+          %{
+            id: "wh_out_del_1",
+            type: "outbound",
+            type_label: "Outbound delivery",
+            status_label: "Delivered to",
+            inserted_at: DateTime.utc_now(),
+            actor: "scheduler"
+          }
+        ]
+
+      _ ->
+        []
     end
   end
 
@@ -150,9 +182,21 @@ defmodule RulesteadAdmin.Live.WebhookLive.Index do
   defp filter_links(socket, %{"type" => nil}) do
     [
       %{label: "All", path: Session.current_path(socket, base_path()), current?: true},
-      %{label: "Inbound rejections", path: Session.current_path(socket, base_path(), %{"type" => "inbound_rejection"}), current?: false},
-      %{label: "Inbound accepted", path: Session.current_path(socket, base_path(), %{"type" => "inbound_accepted"}), current?: false},
-      %{label: "Outbound deliveries", path: Session.current_path(socket, base_path(), %{"type" => "outbound_delivery"}), current?: false}
+      %{
+        label: "Inbound rejections",
+        path: Session.current_path(socket, base_path(), %{"type" => "inbound_rejection"}),
+        current?: false
+      },
+      %{
+        label: "Inbound accepted",
+        path: Session.current_path(socket, base_path(), %{"type" => "inbound_accepted"}),
+        current?: false
+      },
+      %{
+        label: "Outbound deliveries",
+        path: Session.current_path(socket, base_path(), %{"type" => "outbound_delivery"}),
+        current?: false
+      }
     ]
   end
 
@@ -184,6 +228,7 @@ defmodule RulesteadAdmin.Live.WebhookLive.Index do
   defp nav_link(label, path, current?), do: %{label: label, path: path, current?: current?}
 
   defp format_datetime(nil), do: "Not yet recorded"
+
   defp format_datetime(%DateTime{} = datetime) do
     calendar = Calendar.strftime(datetime, "%Y-%m-%d %H:%M")
     "#{calendar} UTC"

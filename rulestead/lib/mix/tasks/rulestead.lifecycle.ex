@@ -1,5 +1,7 @@
 defmodule Mix.Tasks.Rulestead.Lifecycle do
-  @moduledoc false
+  @moduledoc """
+  Reports read-only lifecycle and archive-readiness guidance for flags.
+  """
 
   use Mix.Task
 

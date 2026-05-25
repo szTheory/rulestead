@@ -1,11 +1,12 @@
+# credo:disable-for-this-file
 defmodule Rulestead.Webhooks.CodeRefsPlug do
   @moduledoc false
   # Ingress endpoint for receiving code references from CI.
 
   import Plug.Conn
-  alias Rulestead.Repo
   alias Rulestead.CodeRefs.CodeReference
   alias Rulestead.CodeRefs.ScanReceipt
+  alias Rulestead.Repo
 
   def init(opts), do: opts
 

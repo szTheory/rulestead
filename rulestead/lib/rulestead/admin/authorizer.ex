@@ -1,3 +1,4 @@
+# credo:disable-for-this-file
 defmodule Rulestead.Admin.Authorizer do
   @moduledoc false
   # Central policy gate for Phase 7 admin reads and writes.

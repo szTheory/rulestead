@@ -5,16 +5,9 @@ defmodule Rulestead.Test.InstallFixture do
   @normalized_timestamp "TIMESTAMP_"
   @hex_env [{"HEX_HTTP_CONCURRENCY", "1"}, {"HEX_HTTP_TIMEOUT", "120"}]
 
-  @generator_args [
-    "phx.new",
-    "host_app",
-    "--database",
-    "postgres",
-    "--no-assets",
-    "--no-dashboard",
-    "--no-mailer",
-    "--no-install"
-  ]
+  @generator_command """
+  printf '\\n' | mix phx.new host_app --no-interactive --no-version-check --database postgres --no-assets --no-dashboard --no-mailer --no-install
+  """
 
   @tracked_tree_paths [
     "config/config.exs",
@@ -33,33 +26,34 @@ defmodule Rulestead.Test.InstallFixture do
           tmp_dir: Path.t(),
           stdout: String.t(),
           rerun_stdout: String.t() | nil,
-          hex_home: Path.t()
+          hex_home: Path.t() | nil
         }
 
   @spec setup_tmp_app!(keyword()) :: result()
   def setup_tmp_app!(opts \\ []) do
     tmp_dir = create_tmp_dir!()
     app_dir = Path.join(tmp_dir, "host_app")
-    hex_home = Path.join(tmp_dir, ".hex")
-    run_env = [{"HEX_HOME", hex_home} | @hex_env]
-    File.mkdir_p!(hex_home)
+    run_env = @hex_env
+    mix_env = [{"MIX_ENV", "dev"} | run_env]
 
-    run!("mix", @generator_args, cd: tmp_dir, env: run_env)
+    run!("sh", ["-c", @generator_command], cd: tmp_dir, env: mix_env)
     configure_host_dependency!(app_dir)
     configure_host_repo!(app_dir)
-    run!("mix", ["deps.get"], cd: app_dir, env: run_env)
+    run_deps_get!(app_dir, mix_env)
 
     install_args = install_args(opts)
-    stdout = run!("mix", install_args, cd: app_dir, env: run_env)
+    stdout = run!("mix", install_args, cd: app_dir, env: mix_env)
 
     if Keyword.get(opts, :migrate?, true) do
-      run!("mix", ["ecto.create"], cd: app_dir, env: run_env)
-      run!("mix", ["ecto.migrate"], cd: app_dir, env: run_env)
+      repo_args = ecto_repo_args(opts)
+      run_ignore_failure!("mix", ["ecto.drop", "--force" | repo_args], cd: app_dir, env: mix_env)
+      run!("mix", ["ecto.create" | repo_args], cd: app_dir, env: mix_env)
+      run!("mix", ["ecto.migrate" | repo_args], cd: app_dir, env: mix_env)
     end
 
     rerun_stdout =
       if Keyword.get(opts, :rerun_install?, false) do
-        run!("mix", install_args, cd: app_dir, env: run_env)
+        run!("mix", install_args, cd: app_dir, env: mix_env)
       end
 
     %__MODULE__{
@@ -67,7 +61,7 @@ defmodule Rulestead.Test.InstallFixture do
       tmp_dir: tmp_dir,
       stdout: stdout,
       rerun_stdout: rerun_stdout,
-      hex_home: hex_home
+      hex_home: nil
     }
   end
 
@@ -157,6 +151,11 @@ defmodule Rulestead.Test.InstallFixture do
     ["rulestead.install", "--yes", "--repo", repo]
   end
 
+  defp ecto_repo_args(opts) do
+    repo = Keyword.get(opts, :repo, "HostApp.Repo")
+    ["-r", repo]
+  end
+
   defp configure_host_dependency!(app_dir) do
     mix_path = Path.join(app_dir, "mix.exs")
     mix_contents = File.read!(mix_path)
@@ -232,8 +231,20 @@ defmodule Rulestead.Test.InstallFixture do
     Regex.replace(~r/signing_salt: "[^"]+"/, contents, ~s(signing_salt: "SIGNING_SALT"))
   end
 
+  defp run_deps_get!(app_dir, mix_env) do
+    run_with_retry!(
+      fn -> run!("mix", ["deps.get"], cd: app_dir, env: mix_env) end,
+      "attempting to load configuration config/dev.exs recursively",
+      10
+    )
+  end
+
   defp run!(command, args, opts) do
-    {output, status} = System.cmd(command, args, Keyword.put(opts, :stderr_to_stdout, true))
+    {output, status} =
+      opts
+      |> Keyword.put(:env, command_env(Keyword.get(opts, :env, [])))
+      |> Keyword.put(:stderr_to_stdout, true)
+      |> then(&System.cmd(command, args, &1))
 
     if status == 0 do
       output
@@ -243,5 +254,36 @@ defmodule Rulestead.Test.InstallFixture do
       #{output}
       """
     end
+  end
+
+  defp run_ignore_failure!(command, args, opts) do
+    {_output, _status} =
+      opts
+      |> Keyword.put(:env, command_env(Keyword.get(opts, :env, [])))
+      |> Keyword.put(:stderr_to_stdout, true)
+      |> then(&System.cmd(command, args, &1))
+
+    :ok
+  end
+
+  defp run_with_retry!(fun, retry_fragment, attempts)
+
+  defp run_with_retry!(fun, _retry_fragment, 1), do: fun.()
+
+  defp run_with_retry!(fun, retry_fragment, attempts) do
+    fun.()
+  rescue
+    error in RuntimeError ->
+      if String.contains?(Exception.message(error), retry_fragment) do
+        Process.sleep(1_000)
+        run_with_retry!(fun, retry_fragment, attempts - 1)
+      else
+        reraise error, __STACKTRACE__
+      end
+  end
+
+  defp command_env(env) do
+    env
+    |> Enum.uniq_by(fn {key, _value} -> key end)
   end
 end

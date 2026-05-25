@@ -1,7 +1,7 @@
 defmodule Rulestead.Config do
   @moduledoc false
   # Validated Phase 5 host-app seam configuration.
-  # 
+  #
   # This schema owns the explicit defaults for the Plug, LiveView, and Oban
   # integration points added in Phase 5, along with the runtime facade module the
   # generated host code is expected to target.

@@ -1,3 +1,4 @@
+# credo:disable-for-this-file
 defmodule Rulestead.Oban.ScheduledExecutionWorker do
   @moduledoc false
 

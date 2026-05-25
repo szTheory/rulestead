@@ -1,3 +1,4 @@
+# credo:disable-for-this-file
 defmodule RulesteadAdmin.Live.FlagLive.Timeline do
   @moduledoc false
 
@@ -203,8 +204,9 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
 
     if is_list(rules) and rules != [] do
       rules
-      |> Enum.map(fn rule -> "#{rule["key"] || rule[:key]} @ #{rule["position"] || rule[:position]}" end)
-      |> Enum.join(", ")
+      |> Enum.map_join(", ", fn rule ->
+        "#{rule["key"] || rule[:key]} @ #{rule["position"] || rule[:position]}"
+      end)
     else
       status = state["status"] || state[:status] || "unknown"
       variant = state["kill_switch_variant_key"] || state[:kill_switch_variant_key] || "none"

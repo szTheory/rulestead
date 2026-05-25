@@ -1,10 +1,8 @@
+# credo:disable-for-this-file
 defmodule RulesteadAdmin.Live.ExperimentLiveTest do
   use RulesteadAdmin.ConnCase, async: false
 
   alias Rulestead.Fake.Control
-  alias Rulestead.Store.Command
-  alias Rulestead.Repo
-  alias Rulestead.Analytics.Event
 
   setup_all do
     start_supervised!(RulesteadAdmin.TestEndpoint)
@@ -69,12 +67,15 @@ defmodule RulesteadAdmin.Live.ExperimentLiveTest do
     refute html =~ "not-an-experiment"
   end
 
-  test "Visits a specific experiment show page and validates summary metrics are rendered", %{conn: conn} do
+  test "Visits a specific experiment show page and validates summary metrics are rendered", %{
+    conn: conn
+  } do
     # Fake analytics data for "checkout-experiment"
     Process.put({:mock_metrics, "checkout-experiment", "conversion"}, [
       %{variation: "control", exposures: 1000, conversions: 50},
       %{variation: "variant_a", exposures: 1000, conversions: 100}
     ])
+
     Process.put({:mock_metrics, "checkout-experiment", "error"}, [])
 
     conn = get(conn, "/admin/flags/experiments/checkout-experiment?env=prod")
@@ -84,7 +85,7 @@ defmodule RulesteadAdmin.Live.ExperimentLiveTest do
     assert html =~ "Experiment Results"
     assert html =~ "Variant:"
     assert html =~ "vs Control"
-    
+
     # Check that stats are present
     assert html =~ "Lift"
     assert html =~ "P-Value"
@@ -93,9 +94,11 @@ defmodule RulesteadAdmin.Live.ExperimentLiveTest do
 
   test "Simulates a guardrail failure and ensures the warning banner is visible", %{conn: conn} do
     Process.put({:mock_metrics, "search-experiment", "conversion"}, [])
+
     Process.put({:mock_metrics, "search-experiment", "error"}, [
       %{variation: "control", exposures: 1000, conversions: 10},
-      %{variation: "variant_a", exposures: 1000, conversions: 51} # 61 total errors
+      # 61 total errors
+      %{variation: "variant_a", exposures: 1000, conversions: 51}
     ])
 
     conn = get(conn, "/admin/flags/experiments/search-experiment?env=prod")

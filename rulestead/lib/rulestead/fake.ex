@@ -1,3 +1,4 @@
+# credo:disable-for-this-file
 defmodule Rulestead.Fake do
   @moduledoc false
   # Contract-faithful in-memory store adapter for tests.
@@ -1555,10 +1556,45 @@ defmodule Rulestead.Fake do
     end
   end
 
-  defp call(message) do
+  defp call(message), do: call(message, false)
+
+  defp call(message, restarted?) do
     case Process.whereis(__MODULE__) do
-      nil -> {:error, StoreError.unavailable(details: [%{message: "fake store is not started"}])}
-      _pid -> GenServer.call(__MODULE__, message)
+      nil ->
+        {:error, StoreError.unavailable(details: [%{message: "fake store is not started"}])}
+
+      _pid ->
+        try do
+          GenServer.call(__MODULE__, message)
+        catch
+          :exit, reason ->
+            maybe_retry_call(message, reason, restarted?)
+        end
+    end
+  end
+
+  defp maybe_retry_call(message, {:noproc, _details}, false) do
+    restart_for_retry()
+    call(message, true)
+  end
+
+  defp maybe_retry_call(message, {{:noproc, _details}, _stack}, false) do
+    restart_for_retry()
+    call(message, true)
+  end
+
+  defp maybe_retry_call(_message, reason, _restarted?) do
+    {:error,
+     StoreError.unavailable(
+       details: [%{message: "fake store is not started", reason: inspect(reason)}]
+     )}
+  end
+
+  defp restart_for_retry do
+    case start_link() do
+      {:ok, _pid} -> :ok
+      {:error, {:already_started, _pid}} -> :ok
+      {:error, _reason} -> :ok
     end
   end
 

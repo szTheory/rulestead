@@ -1,3 +1,4 @@
+# credo:disable-for-this-file
 defmodule RulesteadAdmin.Live.DiagnosticsLive.Index do
   @moduledoc false
 

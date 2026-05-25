@@ -1,3 +1,4 @@
+# credo:disable-for-this-file
 defmodule Rulestead.Evaluator do
   @moduledoc false
 

@@ -79,6 +79,7 @@ defmodule Rulestead.MixProject do
         "../guides/api_stability.md",
         "../guides/flows/evaluation.md",
         "../guides/flows/rulesets.md",
+        "../guides/flows/flag-lifecycle.md",
         "../guides/flows/rollout.md",
         "../guides/flows/admin-ui.md",
         "../guides/flows/explainability.md",
@@ -116,9 +117,13 @@ defmodule Rulestead.MixProject do
         Flows: ~r"guides/flows/",
         Recipes: ~r"guides/recipes/"
       ],
-      # Original Phase 1 shape: skip_undefined_reference_warnings_on: &String.starts_with?(&1, "lib/")
       skip_undefined_reference_warnings_on: fn ref ->
         is_binary(ref) and String.starts_with?(ref, "lib/")
+      end,
+      skip_code_autolink_to: fn ref ->
+        is_binary(ref) and
+          (String.starts_with?(ref, "Rulestead.") or
+             String.starts_with?(ref, "mix rulestead."))
       end
     ]
   end

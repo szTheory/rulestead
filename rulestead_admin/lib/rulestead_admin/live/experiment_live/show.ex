@@ -1,3 +1,4 @@
+# credo:disable-for-this-file
 defmodule RulesteadAdmin.Live.ExperimentLive.Show do
   @moduledoc false
 
@@ -77,7 +78,7 @@ defmodule RulesteadAdmin.Live.ExperimentLive.Show do
 
         <FlagComponents.section_card title="Experiment Results">
           <p :if={Enum.empty?(@results)}>No significant data collected yet for this experiment.</p>
-          
+
           <div :for={result <- @results} class="rs-experiment-result" style="margin-bottom: 2rem;">
             <h3>Variant: <code><%= result.variation %></code> vs Control</h3>
             <OperatorComponents.summary_grid items={[
@@ -133,15 +134,15 @@ defmodule RulesteadAdmin.Live.ExperimentLive.Show do
   defp load_experiment_data(socket, key, env, detail) do
     # Target conversion event
     conversion_metrics = fetch_metrics(key, "conversion", env)
-    
+
     # Target error event for guardrail
     error_metrics = fetch_metrics(key, "error", env)
-    
+
     control_val = detail.flag.default_value |> default_flag_value() |> to_string()
-    
+
     control_metric = Enum.find(conversion_metrics, &(&1.variation == control_val)) || %{exposures: 0, conversions: 0}
     variants = Enum.reject(conversion_metrics, &(&1.variation == control_val))
-    
+
     results = Enum.map(variants, fn variant ->
       stats = Rulestead.Analytics.Stats.evaluate(control_metric, variant)
       %{

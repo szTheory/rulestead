@@ -147,7 +147,7 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Show do
           </label>
           <button type="submit"><%= action_button_label(@scheduled_execution) %></button>
         </form>
-        
+
         <div :if={show_action_form?(@scheduled_execution) and not @rulestead_admin_policy_state.capabilities.execute? and not @rulestead_admin_policy_state.capabilities.admin?} class="rs-actions-disabled">
           <RulesteadAdmin.Components.OperatorComponents.capability_explanation
             title="Execution required"

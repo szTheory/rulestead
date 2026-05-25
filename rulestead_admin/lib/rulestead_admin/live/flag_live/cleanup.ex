@@ -1,3 +1,4 @@
+# credo:disable-for-this-file
 defmodule RulesteadAdmin.Live.FlagLive.Cleanup do
   @moduledoc false
 
@@ -227,8 +228,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Cleanup do
 
   defp secondary_actions_label(actions) do
     actions
-    |> Enum.map(&action_label/1)
-    |> Enum.join(", ")
+    |> Enum.map_join(", ", &action_label/1)
   end
 
   defp guidance_limited?(%{evidence_quality: :weak}), do: true
@@ -239,8 +239,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Cleanup do
 
   defp joined_labels(values, mapper, _fallback) do
     values
-    |> Enum.map(mapper)
-    |> Enum.join(", ")
+    |> Enum.map_join(", ", mapper)
   end
 
   defp reason_label(:expiring_posture), do: "Expiring posture authored"

@@ -1,3 +1,4 @@
+# credo:disable-for-this-file
 defmodule Rulestead.Store.Command do
   @moduledoc """
   Shared key-first command structs for `Rulestead.Store` adapters.

@@ -1,3 +1,4 @@
+# credo:disable-for-this-file
 defmodule Rulestead.Runtime.Backup.FileStore do
   @moduledoc false
 

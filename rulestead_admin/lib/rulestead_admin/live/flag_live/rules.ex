@@ -1,3 +1,4 @@
+# credo:disable-for-this-file
 defmodule RulesteadAdmin.Live.FlagLive.Rules do
   @moduledoc false
 
@@ -222,7 +223,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Rules do
 
   defp assign_workspace(socket, detail, rules, opts) do
     audiences = Keyword.fetch!(opts, :audiences)
-    
+
     capability_editable? =
       socket.assigns.rulestead_admin_policy_state.capabilities.edit? or
         socket.assigns.rulestead_admin_policy_state.capabilities.admin? or

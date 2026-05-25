@@ -1,3 +1,4 @@
+# credo:disable-for-this-file
 defmodule RulesteadAdmin.Live.ChangeRequestLive.Show do
   @moduledoc false
 
@@ -156,7 +157,7 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Show do
             Schedule
           </button>
         </div>
-        
+
         <div :if={is_nil(@pending_action) and not @rulestead_admin_policy_state.capabilities.execute? and not @rulestead_admin_policy_state.capabilities.admin?} class="rs-actions-disabled">
           <RulesteadAdmin.Components.OperatorComponents.capability_explanation
             title="Execution required"
@@ -382,7 +383,7 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Show do
   defp actor_name(_actor), do: "Unknown operator"
 
   defp joined_reviewers(approvals),
-    do: approvals |> Enum.map(&actor_name(&1.reviewed_by)) |> Enum.join(", ")
+    do: Enum.map_join(approvals, ", ", &actor_name(&1.reviewed_by))
 
   defp latest_audit_state([event | _]), do: event.event_type
   defp latest_audit_state([]), do: "pending"

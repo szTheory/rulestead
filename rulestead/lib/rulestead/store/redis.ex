@@ -1,4 +1,5 @@
 defmodule Rulestead.Store.Redis do
+  @moduledoc false
   alias Rulestead.{Redis, Store, StoreError}
   alias Rulestead.Store.Command
 
