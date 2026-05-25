@@ -1,12 +1,13 @@
-# Milestone Arc: Post-v1.3.0 Assessment Refresh
+# Milestone Arc: Active v1.4.0 Planning
 
-**Last updated:** 2026-05-25 after next-milestone assessment
+**Last updated:** 2026-05-25 after activating v1.4.0
 **Selection posture:** Default to the highest-priority candidate below unless the user explicitly chooses a materially different direction. Shift low-impact milestone-selection preference left inside GSD instead of re-opening the full tradeoff set every time.
 
 ## Active Milestone
 
-- **Activated now:** `v1.4.0 — Mounted Companion Proof Reclosure` is the next recommended milestone candidate.
-- **Why now:** Repo-local verification still shows the documented mounted companion proof bar failing after `v1.3.0`, so the highest-leverage next move is to fully re-close that adopter-facing support surface before adding another differentiating wedge.
+- **Activated now:** `v1.4.0 — Mounted Companion Proof Reclosure`
+- **Arc status:** highest-priority candidate accepted without widening scope beyond proof closure, package-boundary truth, and support-language repair.
+- **Why now:** Repo-local verification still shows the documented mounted companion proof bar failing after `v1.3.0`, so the highest-leverage next move remains re-closing that adopter-facing support surface before adding another differentiating wedge.
 
 ## Candidate Ranking
 
@@ -68,7 +69,7 @@
 
 ### 3. `v1.4.0 — Mounted Companion Proof Reclosure`
 
-**Status:** next recommended milestone after assessment refresh
+**Status:** active milestone on 2026-05-25
 **Why it won:**
 
 - The repo remains broad and credible, but the documented mounted companion proof bar still fails in repo-local verification.
@@ -94,7 +95,7 @@
 
 ### 4. `v1.5.0 — Guarded Rollout Foundations`
 
-**Status:** strongest next differentiator after mounted companion proof reclosure
+**Status:** next recommended milestone once `v1.4.0` ships
 **Why it remains immediately after that:**
 
 - It still offers the strongest product differentiation once the support-truth surface is credible.

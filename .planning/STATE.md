@@ -1,14 +1,14 @@
 ---
 gsd_state_version: 1.0
-milestone: none
-milestone_name: Awaiting next milestone
-status: ready_for_next_milestone
-last_updated: "2026-05-25T09:20:00Z"
-last_activity: 2026-05-25 -- Re-ranked the next milestone after repo-local assessment; mounted companion proof reclosure is now the next candidate
+milestone: "v1.4.0"
+milestone_name: Mounted Companion Proof Reclosure
+status: ready_for_phase_planning
+last_updated: "2026-05-25T18:52:05Z"
+last_activity: 2026-05-25 -- Activated milestone v1.4.0 and defined fresh requirements plus roadmap phases 45-48
 progress:
-  total_phases: 0
+  total_phases: 4
   completed_phases: 0
-  total_plans: 0
+  total_plans: 11
   completed_plans: 0
   percent: 0
 ---
@@ -20,19 +20,19 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-25)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
-**Current focus:** Prepare the next milestone definition after repo-local assessment refreshed the candidate ordering
-**Milestone:** none active
+**Current focus:** Plan and execute the bounded mounted companion proof-reclosure milestone
+**Milestone:** `v1.4.0 — Mounted Companion Proof Reclosure`
 
 ## Roadmap Reference
 
-See: `.planning/ROADMAP.md` for shipped milestones and the next candidate.
+See: `.planning/ROADMAP.md` for the active milestone phases and next steps.
 
 ## Current Position
 
-Phase: none
+Phase: 45
 Plan: none
-Status: Milestone archived; next candidate refreshed from runnable repo evidence
-Last activity: 2026-05-25 -- next-step assessment reprioritized `v1.4.0` to mounted companion proof reclosure
+Status: Milestone activated; ready to run `$gsd-plan-phase 45`
+Last activity: 2026-05-25 -- activated `v1.4.0` and wrote active requirements/roadmap from the assessment-backed default candidate
 
 ## Latest Shipped Focus
 
@@ -41,12 +41,12 @@ Last activity: 2026-05-25 -- next-step assessment reprioritized `v1.4.0` to moun
 - `ADM-01` / `VER-01` — restore mounted-admin and sibling-package verification truth
 - `OFE-01` — establish a runnable bounded proof path for `open_feature_rulestead`
 
-## Carryover Items
+## Active Milestone Scope
 
-- `v1.4.0 — Mounted Companion Proof Reclosure` is now the next candidate because the documented mounted companion proof bar still fails in repo-local verification.
-- `v1.5.0 — Guarded Rollout Foundations` remains the strongest differentiated follow-on once the mounted proof surface is credible again.
-- Reusable audiences are already shipped; later targeting work should deepen impact-preview and dependency-visibility ergonomics instead of treating audience reuse as net-new scope.
-- Keep the sibling-package release model, mounted-admin posture, and host-owned identity boundary unchanged while defining the next milestone.
+- Restore a passing repo-root `mounted_admin_contract` proof bar.
+- Reconcile `rulestead_admin` boot/runtime/package-boundary truth without widening the mounted companion posture.
+- Align scripts, CI, and docs to the exact mounted support surface the repo can actually prove.
+- Keep `v1.5.0 — Guarded Rollout Foundations` intact as the next differentiated follow-on after proof reclosure.
 
 ## Anchor Docs (prompts/)
 
@@ -95,15 +95,17 @@ These remain the primary source of truth and should be loaded selectively per ph
 - **44-03**: Closed milestone support truth only after root docs, demo docs, CI, and verification evidence all cited the same bounded proof commands.
 - **45-00**: Re-ranked the next milestone to mounted companion proof reclosure after repo-local verification showed the named mounted-admin proof bar still failing while the OpenFeature companion proof bar passed.
 - **45-01**: Reclassified reusable targeting from a net-new milestone concept to a later deepening pass because reusable audiences already exist across runtime, admin, compare, and manifest flows.
+- **45-02**: Activated `v1.4.0` as a bounded mounted companion proof-reclosure milestone and preserved guarded rollout as the next planned differentiator.
 
 ## Latest Activity
 
 - 2026-05-25 — Archived milestone `v1.3.0`, created shipped roadmap and requirements archives, updated the project and milestone arc, and reset planning state to await the next milestone definition.
 - 2026-05-25 — Completed a repo-local adopter-focused milestone assessment; verified the OpenFeature companion proof bar passes, confirmed the mounted companion proof bar still fails at boot, and reprioritized the next milestone accordingly.
+- 2026-05-25 — Activated `v1.4.0`, created `.planning/REQUIREMENTS.md`, rewrote `.planning/ROADMAP.md` for Phases 45-48, updated `.planning/PROJECT.md`, and reset active planning state for phase work.
 - 2026-05-25 — Milestone audit for `v1.3.0` passed with all 7 requirements satisfied and only non-blocking Nyquist process debt noted.
 - 2026-05-25 — Completed Phase 44 and closed the bounded OpenFeature companion proof path, CI scope, root/demo doc truth, and final milestone verification evidence.
 - 2026-05-25 — Captured `.planning/phases/43-mounted-contract-verification-closure/43-UAT.md` in shift-left mode with five passing checks covering the mounted companion seam, embed-based lifecycle/permission proof, scoped cross-package verification bar, and phase-local debt scan.
 
 ## Next Action
 
-Next: Run `$gsd-new-milestone` to define `v1.4.0 — Mounted Companion Proof Reclosure` and create a fresh active requirements file.
+Next: Run `$gsd-plan-phase 45` to begin `v1.4.0 — Mounted Companion Proof Reclosure`.

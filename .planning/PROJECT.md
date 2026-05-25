@@ -11,9 +11,10 @@ Rulestead is a batteries-included, Elixir-native feature-flag and remote-config 
 - `v1.1.0` shipped on 2026-05-23 across Phases 29-34, delivering the bounded tenancy seam, mounted-admin tenant scope, audit tenant provenance enforcement, public promotion-plan tenant-scope closure, compare preview-identity carry-through, and milestone auditability backfill without widening the product shape.
 - `v1.2.0` shipped on 2026-05-24 across Phases 35-40, delivering host-owned ownership metadata, bounded archive-readiness guidance, a governed mounted lifecycle cleanup flow, and release-facing lifecycle docs plus verification without widening the sibling-package release model.
 - `v1.3.0` shipped on 2026-05-25 across Phases 41-44, closing release-truth drift, authored-state parity, mounted companion verification, and OpenFeature companion proof without widening the linked sibling-package release model.
-- A 2026-05-25 next-milestone assessment confirmed the product is broad and credible for serious Phoenix SaaS adopters, but still found one material adopter-trust gap: the documented mounted companion proof bar remains broken in repo-local verification.
+- `v1.4.0` was activated on 2026-05-25 as the next bounded post-GA milestone, focused on re-closing the mounted companion proof surface without widening the sibling-package product shape.
+- The current top-level gap is narrow but important: the documented mounted companion proof bar still needs repo-root repair, explicit prerequisite behavior, and support-truth reclosure before new differentiating capability lands.
 
-## Next Milestone Candidate: v1.4.0 Mounted Companion Proof Reclosure
+## Current Milestone: v1.4.0 Mounted Companion Proof Reclosure
 
 **Goal:** Restore a fully credible mounted companion proof posture so the sibling-package admin surface is runnable, honestly bounded, and trustworthy again before new differentiating capability lands.
 
@@ -48,7 +49,7 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
   - Value: Removed the highest-friction trust gap for serious adopters before adding another differentiated wedge.
 - **v1.4.0: Mounted Companion Proof Reclosure**
   - Focus: Restore the runnable mounted companion proof bar, reconcile sibling-package boot/runtime truth, and re-close the remaining support-surface gap.
-  - Value: Finish the last meaningful adopter-trust repair before adding another differentiated feature.
+  - Value: Active milestone; finish the last meaningful adopter-trust repair before adding another differentiated feature.
 - **v1.5.0: Guarded Rollout Foundations**
   - Focus: Host-supplied rollout guardrail signals, stage hold/rollback, and explicit audited health-gated rollout behavior.
   - Value: The strongest next differentiator once the mounted companion support surface is fully credible again.
@@ -63,6 +64,12 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 - General Availability shipped in `v1.0.0` on 2026-05-21.
 
 ## Requirements
+
+### Active
+
+- [ ] Restore a passing repo-root mounted companion proof bar without changing the linked-version sibling-package release model.
+- [ ] Reconcile `rulestead_admin` boot/runtime/package-boundary truth so the mounted companion has one deliberate host-owned startup contract.
+- [ ] Make mounted companion prerequisite failures, docs, and verification claims explicitly bounded and support-truthful.
 
 ### Validated
 
@@ -96,7 +103,7 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 - ✓ Restore mounted-admin contract truth and sibling-package verification credibility (`ADM-01`, `VER-01`) — `v1.3.0`
 - ✓ Establish a runnable bounded proof path for `open_feature_rulestead` (`OFE-01`) — `v1.3.0`
 
-## Next Milestone Goals
+## Current Milestone Goals
 
 - Define `v1.4.0` as a bounded mounted companion proof-reclosure milestone instead of assuming support truth is fully closed already.
 - Preserve the sibling-package release model while restoring a passing mounted companion proof bar and coherent boot/runtime truth.
@@ -118,6 +125,7 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 - `v1.2.0` shipped across Phases 35-40, proving ownership metadata, archive-readiness guidance, mounted cleanup preview/confirm flows, and lifecycle release surfaces can stay explicit, host-friendly, and sibling-package aligned.
 - `v1.3.0` shipped across Phases 41-44, proving release-facing support truth, authored-state parity, mounted companion verification, and bounded OpenFeature proof can align without widening the product shape.
 - A repo-local next-step assessment on 2026-05-25 found the mounted companion proof bar still broken despite the broader `v1.3.0` closure, while also confirming reusable audiences are already a shipped adoption surface.
+- `v1.4.0` planning activates that assessment result directly: repair the mounted companion support surface first, then return to the guarded rollout and targeting arc.
 - The project remains a linked-version, two-package monorepo.
 
 ## Constraints
@@ -146,6 +154,7 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 | Activate lifecycle hygiene and ownership as `v1.2.0` ahead of guarded rollout and reusable targeting | Closes the strongest everyday trust/cleanup gap first, fits the sibling-package architecture cleanly, and keeps more complex automation layered on a calmer operator foundation. | Validated |
 | Close adopter-truth and proof-posture drift before guarded rollout foundations | Current repo evidence showed public docs and runnable proof had drifted from planning truth; restoring support trust was higher leverage than adding the next differentiated control-plane feature first. | Validated |
 | Re-prioritize the next milestone to mounted companion proof reclosure after `v1.3.0` | Repo-local verification still shows the named mounted companion proof bar failing, while reusable audiences are already shipped and guarded rollout remains a better follow-on than an immediate next move. | Validated |
+| Activate `v1.4.0` as a bounded proof-reclosure milestone instead of reopening feature direction | The remaining highest-leverage gap is narrow and support-facing: restore mounted companion proof credibility before layering new differentiated capability. | Validated |
 
 ## Milestone Archives
 
@@ -181,4 +190,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-25 after next-milestone assessment refresh*
+*Last updated: 2026-05-25 after activating milestone v1.4.0*
