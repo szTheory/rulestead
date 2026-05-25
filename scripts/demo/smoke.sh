@@ -12,6 +12,12 @@ cleanup() {
   docker compose down --remove-orphans >/dev/null 2>&1 || true
 }
 
+dump_failure_logs() {
+  echo "[smoke] dumping compose logs after failure" >&2
+  docker compose ps >&2 || true
+  docker compose logs --no-color backend frontend postgres redis >&2 || true
+}
+
 trap cleanup EXIT INT TERM
 
 wait_for_health() {
@@ -57,34 +63,55 @@ retry_command() {
 
 echo "[smoke] building and starting demo stack"
 docker compose down --remove-orphans --volumes >/dev/null 2>&1 || true
-docker compose up -d --build
+docker compose up -d --build || {
+  dump_failure_logs
+  exit 1
+}
 
 wait_for_health postgres 30
 wait_for_health redis 30
-wait_for_health backend 60
-wait_for_health frontend 60
+wait_for_health backend 60 || {
+  dump_failure_logs
+  exit 1
+}
+wait_for_health frontend 60 || {
+  dump_failure_logs
+  exit 1
+}
 
 cookie_jar="$(mktemp)"
 trap 'rm -f "$cookie_jar"; cleanup' EXIT INT TERM
 
 echo "[smoke] checking backend home"
-retry_command 15 sh -c 'curl -fsS http://127.0.0.1:4000/ >/dev/null'
+retry_command 15 sh -c 'curl -fsS http://127.0.0.1:4000/ >/dev/null' || {
+  dump_failure_logs
+  exit 1
+}
 
 echo "[smoke] checking seeded runtime bridge"
 retry_command 15 sh -c '
   bridge_payload="$(curl -fsS "http://127.0.0.1:4000/api/flags?env=staging&flag_key=enable-new-dashboard")" &&
     printf "%s\n" "$bridge_payload" | grep -q "\"enabled\":true"
-'
+' || {
+  dump_failure_logs
+  exit 1
+}
 
 echo "[smoke] checking deterministic admin sign-in"
 COOKIE_JAR="$cookie_jar" retry_command 15 sh -c '
   curl -fsS -c "$COOKIE_JAR" -b "$COOKIE_JAR" -L http://127.0.0.1:4000/demo/sign-in |
     grep -q "Flag inventory"
-'
+' || {
+  dump_failure_logs
+  exit 1
+}
 
 echo "[smoke] checking frontend render"
 retry_command 15 sh -c '
   curl -fsS http://127.0.0.1:3000 | grep -q "The new operator cockpit is live."
-'
+' || {
+  dump_failure_logs
+  exit 1
+}
 
 echo "[smoke] demo stack is healthy"
