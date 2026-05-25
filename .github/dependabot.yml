@@ -1,11 +1,51 @@
 version: 2
 updates:
   - package-ecosystem: "mix"
-    directory: "/"
+    directory: "/rulestead"
     schedule:
       interval: "weekly"
       day: "monday"
       time: "07:00"
+      timezone: "America/New_York"
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "build"
+      include: "scope"
+    groups:
+      patch-updates:
+        patterns:
+          - "*"
+        update-types:
+          - "patch"
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: "mix"
+    directory: "/rulestead_admin"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "07:05"
+      timezone: "America/New_York"
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "build"
+      include: "scope"
+    groups:
+      patch-updates:
+        patterns:
+          - "*"
+        update-types:
+          - "patch"
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: "mix"
+    directory: "/open_feature_rulestead"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "07:10"
       timezone: "America/New_York"
     labels:
       - "dependencies"
