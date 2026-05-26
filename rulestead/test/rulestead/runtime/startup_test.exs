@@ -2,9 +2,9 @@
 defmodule Rulestead.Runtime.StartupTest do
   use ExUnit.Case, async: false
 
-  alias Rulestead.{Context, Result, Runtime}
+  alias Rulestead.{Context, Redis, Result, Runtime}
   alias Rulestead.Fake.Control
-  alias Rulestead.Runtime.{Cache, Supervisor}
+  alias Rulestead.Runtime.{Cache, Config, Supervisor}
 
   setup do
     Control.reset!()
@@ -104,6 +104,41 @@ defmodule Rulestead.Runtime.StartupTest do
     assert environment.snapshot_version == snapshot.version
     assert environment.source == :ets
     assert environment.refresh_status == :stale
+  end
+
+  test "runtime startup options stay on the documented merge path" do
+    Application.put_env(:rulestead, :store, Rulestead.Fake)
+    Application.put_env(:rulestead, :host, runtime: [pubsub: HostApp.PubSub])
+
+    Application.put_env(:rulestead, :runtime,
+      environment_keys: [:prod, "staging"],
+      notifier: Rulestead.Runtime.Notifier.PhoenixPubSub,
+      pubsub_topic: "custom:runtime"
+    )
+
+    on_exit(fn -> Application.delete_env(:rulestead, :host) end)
+
+    assert Config.startup_options() == [
+             environment_keys: ["prod", "staging"],
+             store: Rulestead.Fake,
+             notifier: Rulestead.Runtime.Notifier.PhoenixPubSub,
+             pubsub: HostApp.PubSub,
+             pubsub_topic: "custom:runtime"
+           ]
+  end
+
+  test "redis child specs only appear when the explicit gate is enabled" do
+    assert Redis.child_specs(enabled: false) == []
+
+    assert [
+             %{id: :mounted_admin_redis, start: {Redix, :start_link, _args}},
+             Rulestead.Redis.Publisher
+           ] =
+             Redis.child_specs(
+               enabled: true,
+               name: :mounted_admin_redis,
+               url: "redis://localhost:6380"
+             )
   end
 
   defp publish_snapshot(environment_key) do

@@ -38,13 +38,21 @@ defmodule Rulestead.Mix.Tasks.VerifyReleasePublishTest do
           %{cmd: "mix", args: ["compile"]}
         ],
         contract: %{
+          package_order: [:rulestead, :rulestead_admin],
           mount_path: "/flags",
           session_keys: [
             "current_actor",
             "rulestead_admin_environments",
             "rulestead_admin_last_env"
           ],
-          env_query_param: "env"
+          env_query_param: "env",
+          runtime_config: %{
+            environment_key: "dev",
+            api: Rulestead.Runtime,
+            notifier: Rulestead.Runtime.Notifier.PhoenixPubSub,
+            pubsub: AdminConsumer.PubSub,
+            pubsub_topic: "rulestead:runtime_snapshot"
+          }
         }
       }
     end
@@ -70,6 +78,7 @@ defmodule Rulestead.Mix.Tasks.VerifyReleasePublishTest do
     assert_received {:fixture, :admin, "0.1.0"}
 
     admin = Enum.find(plan.consumers, &(&1.name == :rulestead_admin))
+    assert admin.contract.package_order == [:rulestead, :rulestead_admin]
     assert admin.contract.mount_path == "/flags"
 
     assert admin.contract.session_keys == [
@@ -79,6 +88,14 @@ defmodule Rulestead.Mix.Tasks.VerifyReleasePublishTest do
            ]
 
     assert admin.contract.env_query_param == "env"
+
+    assert admin.contract.runtime_config == %{
+             environment_key: "dev",
+             api: Rulestead.Runtime,
+             notifier: Rulestead.Runtime.Notifier.PhoenixPubSub,
+             pubsub: AdminConsumer.PubSub,
+             pubsub_topic: "rulestead:runtime_snapshot"
+           }
   end
 
   test "rejects local path dependency fallbacks and verifies HexDocs reachability" do
@@ -141,11 +158,22 @@ defmodule Rulestead.Mix.Tasks.VerifyReleasePublishTest do
     mix_exs = File.read!(Path.join(consumer.app_dir, "mix.exs"))
     router = File.read!(Path.join(consumer.app_dir, "lib/admin_consumer_web/router.ex"))
 
+    contract =
+      File.read!(Path.join(consumer.app_dir, "config/rulestead_release_publish_contract.exs"))
+
     assert mix_exs =~ ~s({:rulestead, "~> 0.1.0"})
     assert mix_exs =~ ~s({:rulestead_admin, "~> 0.1.0"})
     refute mix_exs =~ "path:"
     assert router =~ "use RulesteadAdmin.Router"
     assert router =~ ~s(rulestead_admin "/flags", policy: AdminConsumer.RulesteadPolicy)
+    assert contract =~ "package_order: [:rulestead, :rulestead_admin]"
+    assert contract =~ ~s(mount_path: "/flags")
+    assert contract =~ ~s(env_query_param: "env")
+    assert contract =~ ~s(environment_key: "dev")
+    assert contract =~ "Rulestead.Runtime.Notifier.PhoenixPubSub"
+    assert contract =~ "pubsub: AdminConsumer.PubSub"
+    assert contract =~ ~s(pubsub_topic: "rulestead:runtime_snapshot")
+    assert consumer.contract.package_order == [:rulestead, :rulestead_admin]
     assert consumer.contract.mount_path == "/flags"
 
     assert consumer.contract.session_keys == [
@@ -155,6 +183,14 @@ defmodule Rulestead.Mix.Tasks.VerifyReleasePublishTest do
            ]
 
     assert consumer.contract.env_query_param == "env"
+
+    assert consumer.contract.runtime_config == %{
+             environment_key: "dev",
+             api: Rulestead.Runtime,
+             notifier: Rulestead.Runtime.Notifier.PhoenixPubSub,
+             pubsub: AdminConsumer.PubSub,
+             pubsub_topic: "rulestead:runtime_snapshot"
+           }
   end
 
   test "verify.release_publish can plan with the shared fixture helper" do
@@ -181,8 +217,13 @@ defmodule Rulestead.Mix.Tasks.VerifyReleasePublishTest do
     admin_readme = File.read!(@admin_readme_path)
 
     assert root_readme =~ "guides/flows/flag-lifecycle.md"
+    assert root_readme =~ "RULESTEAD_TEST_SCOPE=mounted_admin_contract bash scripts/ci/test.sh"
+    refute root_readme =~ "flag_live/form_test"
+    refute root_readme =~ "admin_mount_test"
     assert runtime_readme =~ "flag-lifecycle"
     assert admin_readme =~ "mounted companion"
+    assert admin_readme =~ "fails closed"
+    assert admin_readme =~ "fallback-only convenience"
   end
 
   defp tmp_dir do

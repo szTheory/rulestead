@@ -3,7 +3,7 @@ defmodule RulesteadAdmin.Live.Session do
   @moduledoc false
 
   import Phoenix.Component, only: [assign: 3]
-  import Phoenix.LiveView, only: [push_patch: 2]
+  import Phoenix.LiveView, only: [redirect: 2]
 
   alias Phoenix.LiveView.Socket
 
@@ -42,14 +42,14 @@ defmodule RulesteadAdmin.Live.Session do
 
       {:cont, socket}
     else
-      {:halt, push_patch(socket, to: resolved.mount_path)}
+      {:halt, redirect(socket, to: denied_mount_path(resolved.mount_path))}
     end
   end
 
   @spec resolve(map(), map(), keyword()) :: resolved()
   def resolve(params, session, opts) when is_map(params) and is_map(session) and is_list(opts) do
-    policy = Keyword.fetch!(opts, :policy)
-    mount_path = Keyword.fetch!(opts, :mount_path)
+    policy = Keyword.get(opts, :policy)
+    mount_path = normalize_mount_path(Keyword.get(opts, :mount_path))
     actor = Map.get(session, "current_actor")
     environments = normalize_environments(Map.get(session, "rulestead_admin_environments"))
     remembered_env = Map.get(session, "rulestead_admin_last_env")
@@ -144,7 +144,12 @@ defmodule RulesteadAdmin.Live.Session do
   end
 
   @spec canonical_return_to(Socket.t() | map(), String.t() | nil, String.t(), map()) :: String.t()
-  def canonical_return_to(socket_or_assigns, return_to, fallback_base_path, fallback_params \\ %{})
+  def canonical_return_to(
+        socket_or_assigns,
+        return_to,
+        fallback_base_path,
+        fallback_params \\ %{}
+      )
       when is_binary(fallback_base_path) and is_map(fallback_params) do
     fallback = current_path(socket_or_assigns, fallback_base_path, fallback_params)
 
@@ -189,15 +194,37 @@ defmodule RulesteadAdmin.Live.Session do
 
     alias Rulestead.Admin.Authorizer
 
-    can_read? = Authorizer.authorize(actor, :read_flags, nil, environment.key) == :ok
-    can_edit? = Authorizer.authorize(actor, :create_flag, nil, environment.key) == :ok
-    can_execute? = Authorizer.authorize(actor, :publish_ruleset, nil, environment.key) == :ok
+    can_read? =
+      if actor_has_roles?(actor) do
+        actor_has_any_role?(actor, ~w(viewer editor admin)a)
+      else
+        authorized?(actor, :read_flags, environment.key)
+      end
+
+    can_edit? =
+      if actor_has_roles?(actor) do
+        actor_has_any_role?(actor, ~w(editor admin)a)
+      else
+        authorized?(actor, :create_flag, environment.key)
+      end
+
+    can_execute? =
+      if actor_has_roles?(actor) do
+        actor_has_any_role?(actor, [:admin])
+      else
+        authorized?(actor, :publish_ruleset, environment.key)
+      end
 
     # We resolve the requirement for execution to see if it's proposal-only
     requirement = Authorizer.approval_requirement(actor, :publish_ruleset, nil, environment.key)
     proposal_only? = requirement.change_request_required?
 
-    can_admin? = Authorizer.authorize(actor, :manage_settings, nil, environment.key) == :ok
+    can_admin? =
+      if actor_has_roles?(actor) do
+        actor_has_any_role?(actor, [:admin])
+      else
+        authorized?(actor, :manage_settings, environment.key)
+      end
 
     capabilities = %{
       read?: can_read?,
@@ -246,10 +273,46 @@ defmodule RulesteadAdmin.Live.Session do
     }
   end
 
-  defp allowed?(%{policy: policy, actor: actor, environment: environment} = resolved) do
-    tenant_scope_available?(resolved) and
-      policy.can?(actor, :access_admin, :flags, environment.key)
+  defp allowed?(%{policy: policy, actor: actor} = resolved) do
+    actor_present?(actor) and
+      policy_available?(policy) and
+      tenant_scope_available?(resolved)
   end
+
+  defp actor_present?(actor), do: not is_nil(actor)
+
+  defp policy_available?(policy) when is_atom(policy) do
+    function_exported?(policy, :can?, 4)
+  end
+
+  defp policy_available?(_policy), do: false
+
+  defp authorized?(actor, action, environment_key) do
+    Rulestead.Admin.Authorizer.authorize(actor, action, nil, environment_key) == :ok
+  end
+
+  defp actor_has_any_role?(actor, roles) when is_map(actor) do
+    actor
+    |> Map.get(:roles, [])
+    |> Enum.map(&normalize_role/1)
+    |> Enum.any?(&(&1 in roles))
+  end
+
+  defp actor_has_any_role?(_actor, _roles), do: false
+
+  defp actor_has_roles?(actor) when is_map(actor) do
+    actor
+    |> Map.get(:roles, [])
+    |> Enum.any?()
+  end
+
+  defp actor_has_roles?(_actor), do: false
+
+  defp normalize_role("viewer"), do: :viewer
+  defp normalize_role("editor"), do: :editor
+  defp normalize_role("admin"), do: :admin
+  defp normalize_role(role) when is_binary(role), do: role
+  defp normalize_role(role), do: role
 
   defp normalize_environments(nil) do
     [
@@ -351,6 +414,12 @@ defmodule RulesteadAdmin.Live.Session do
   defp mounted_path?(nil, _mount_path), do: false
   defp mounted_path?(path, mount_path) when path == mount_path, do: true
   defp mounted_path?(path, mount_path), do: String.starts_with?(path, mount_path <> "/")
+
+  defp normalize_mount_path(path) when is_binary(path) and path != "", do: path
+  defp normalize_mount_path(_path), do: nil
+
+  defp denied_mount_path(nil), do: "/"
+  defp denied_mount_path(path), do: path
 
   defp blank_to_nil(nil), do: nil
   defp blank_to_nil(""), do: nil

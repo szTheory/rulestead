@@ -7,45 +7,19 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupPreviewTest do
 
   @admin_actor %{id: 7, email: "priya@example.com", roles: [:admin]}
 
-  defmodule AllowPolicy do
-    @behaviour Rulestead.Admin.Policy
-
-    def can?(_actor, _action, _resource, _environment_key), do: true
-    def change_request_required?(_actor, _action, _resource, _environment_key), do: false
-    def allow_self_approval?(_actor, _action, _resource, _environment_key), do: true
-  end
-
-  defmodule ReadOnlyPolicy do
-    @behaviour Rulestead.Admin.Policy
-
-    def can?(_actor, :read_flags, _resource, _environment_key), do: true
-    def can?(_actor, _action, _resource, _environment_key), do: false
-    def change_request_required?(_actor, _action, _resource, _environment_key), do: false
-    def allow_self_approval?(_actor, _action, _resource, _environment_key), do: false
-  end
-
   setup_all do
     start_supervised!(RulesteadAdmin.TestEndpoint)
     :ok
   end
 
   setup %{conn: conn} do
-    previous_policy = Application.get_env(:rulestead, :admin_policy)
     Application.put_env(:rulestead, :store, Rulestead.Fake)
-    Application.put_env(:rulestead, :admin_policy, AllowPolicy)
 
     Application.put_env(:rulestead, :admin_lifecycle,
       warning_after_seconds: 1_800,
       stale_after_seconds: 3_600,
       now: ~U[2026-04-23 16:00:00Z]
     )
-
-    on_exit(fn ->
-      case previous_policy do
-        nil -> Application.delete_env(:rulestead, :admin_policy)
-        value -> Application.put_env(:rulestead, :admin_policy, value)
-      end
-    end)
 
     now = ~U[2026-04-23 16:00:00Z]
     Control.reset!(now: now)
@@ -69,7 +43,7 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupPreviewTest do
     conn =
       conn
       |> Phoenix.ConnTest.init_test_session(%{
-        "current_actor" => %{id: 7, email: "priya@example.com", roles: [:admin]},
+        "current_actor" => @admin_actor,
         "rulestead_admin_last_env" => "prod",
         "rulestead_admin_environments" => [
           %{"key" => "dev", "name" => "Development"},
@@ -106,8 +80,6 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupPreviewTest do
   end
 
   test "preview redirects unauthorized operators before destructive review UI renders", %{conn: conn} do
-    Application.put_env(:rulestead, :admin_policy, ReadOnlyPolicy)
-
     read_only_conn =
       conn
       |> Phoenix.ConnTest.recycle()
@@ -121,7 +93,7 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupPreviewTest do
         ]
       })
 
-    assert {:error, {:live_redirect, %{to: "/admin/flags"}}} =
+    assert {:error, {:redirect, %{to: "/admin/flags", flash: %{}}}} =
              live(read_only_conn, "/admin/flags/ops-cleanup/cleanup/preview?env=prod")
   end
 

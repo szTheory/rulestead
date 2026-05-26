@@ -47,6 +47,11 @@ end
 The `policy:` option is required. The host policy module owns authorization via
 the `Rulestead.Admin.Policy.can?/4` behaviour.
 
+The host must also provide the documented actor/session inputs and environment
+list that the mounted companion consumes. If the host omits required
+prerequisites or presents an unsupported combination, the mounted surface
+fails closed instead of inventing package-owned auth or environment truth.
+
 ## Canonical Role Model
 
 `rulestead_admin` maps its views and capabilities to three conceptual roles. Your `Rulestead.Admin.Policy.can?/4` implementation enforces these boundaries:
@@ -63,17 +68,24 @@ The mounted package expects the host session to provide:
 
 - `"current_actor"` for policy checks
 - `"rulestead_admin_environments"` as the environment picker source
-- `"rulestead_admin_last_env"` as the remembered fallback when the URL omits `env`
+- `"rulestead_admin_last_env"` as a remembered fallback only when the URL omits
+  `env`
 
 The host continues to own authentication, actor identity, session lifecycle,
 and policy enforcement. `rulestead_admin` consumes those seams; it does not
-replace them with a package-owned auth model.
+replace them with a package-owned auth model. The host owns auth, identity,
+policy, and session truth; `rulestead_admin` only renders that host-owned
+contract.
 
 ## URL contract
 
 The query param `?env=` is the canonical environment selector for mounted admin
 pages. Host apps should preserve it in links and redirects when they build
 adjacent tooling around the admin surface.
+
+Remembered env/session values are fallback-only convenience when URL scope is
+absent. When `?env=` is present, it wins over remembered state and should be
+treated as the supportable, shareable route contract.
 
 Lifecycle review links should also preserve `return_to` when operators move
 from the queue into cleanup, preview, confirm, and back to audit or the queue.
@@ -100,6 +112,12 @@ The bounded verification proof for this mounted companion surface lives at
 proof bar covers the mounted lifecycle/admin contract only; it should not be
 read as a claim that every admin-facing screen or future companion workflow is
 fully closed.
+
+Use the root docs at [../README.md](../README.md) for the broader release and
+proof posture. Use this package README for the exact mounted host seam:
+required `policy:`, host-owned actor/session/environment prerequisites,
+fail-closed behavior, canonical `?env=`, and fallback-only remembered env
+state.
 
 ## Next docs
 

@@ -202,6 +202,16 @@ defmodule Rulestead.ReleaseContractTest do
     assert root_readme =~ "Proof today"
     assert root_readme =~ "verify.release_publish"
     assert root_readme =~ "verify.release_parity"
+    assert root_readme =~ "RULESTEAD_TEST_SCOPE=mounted_admin_contract bash scripts/ci/test.sh"
+    assert root_readme =~ "mounted session truth"
+    assert root_readme =~ "mount behavior"
+    assert root_readme =~ "canonical `?env=` routing"
+    assert root_readme =~ "lifecycle transitions"
+    assert root_readme =~ "permission-gated cleanup behavior"
+    assert root_readme =~ "rulestead_admin/README.md"
+    refute root_readme =~ "flag_live/form_test"
+    refute root_readme =~ "cleanup_test"
+    refute root_readme =~ "admin_mount_test"
 
     assert runtime_readme =~ "0.1.0"
     assert runtime_readme =~ "shared root docs"
@@ -209,6 +219,10 @@ defmodule Rulestead.ReleaseContractTest do
     assert admin_readme =~ "0.1.0"
     assert admin_readme =~ "mounted companion"
     assert admin_readme =~ "rather than a standalone control-plane product"
+    assert admin_readme =~ "fails closed"
+    assert admin_readme =~ "host owns auth, identity,"
+    assert admin_readme =~ "fallback-only convenience"
+    assert admin_readme =~ "When `?env=` is present, it wins over remembered state"
 
     assert upgrading =~ "v1.0.0"
     assert upgrading =~ "0.1.0"
@@ -228,7 +242,9 @@ defmodule Rulestead.ReleaseContractTest do
     banned_phrases = [
       ["first public Hex release", "target is"],
       ["first public Hex release", "should happen only after"],
-      ["planned for", "`v0.6.0`"]
+      ["planned for", "`v0.6.0`"],
+      ["Phase 43", "restores"],
+      ["aggregates `lint`, `test`, and `integration-placeholder`", "from `ci.yml`"]
     ]
 
     assert maintaining =~ "v1.0.0"
@@ -238,6 +254,10 @@ defmodule Rulestead.ReleaseContractTest do
     assert maintaining =~ "examples/demo/"
     assert maintaining =~ "mix verify.release_publish <version>"
     assert maintaining =~ "mix verify.release_parity <version>"
+    assert maintaining =~ "RULESTEAD_TEST_SCOPE=mounted_admin_contract bash scripts/ci/test.sh"
+    assert maintaining =~ "mounted companion proof"
+    assert maintaining =~ "mounted-proof-relevant paths change"
+    assert maintaining =~ "integration-placeholder"
 
     for fragments <- banned_phrases do
       phrase = Enum.join(fragments, " ")

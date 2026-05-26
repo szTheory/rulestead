@@ -11,12 +11,14 @@ defmodule Rulestead.Application do
 
   @impl true
   def start(_type, _args) do
+    runtime_options = Config.startup_options()
+
     children =
       redis_children() ++
         [
           StaleTracker,
           Rulestead.Analytics.Batcher,
-          {RuntimeSupervisor, Config.runtime_options()}
+          {RuntimeSupervisor, runtime_options}
         ]
 
     opts = [strategy: :one_for_one, name: __MODULE__.Supervisor]
@@ -32,13 +34,6 @@ defmodule Rulestead.Application do
   end
 
   defp redis_children do
-    if Redis.enabled?() do
-      [
-        Supervisor.child_spec({Redix, Redis.connection_spec()}, id: Redis.name()),
-        Rulestead.Redis.Publisher
-      ]
-    else
-      []
-    end
+    Redis.child_specs()
   end
 end

@@ -1,13 +1,12 @@
-# Milestone Arc: Active v1.4.0 Planning
+# Milestone Arc: Post-v1.4.0
 
-**Last updated:** 2026-05-25 after activating v1.4.0
+**Last updated:** 2026-05-26 during milestone v1.4.0 completion
 **Selection posture:** Default to the highest-priority candidate below unless the user explicitly chooses a materially different direction. Shift low-impact milestone-selection preference left inside GSD instead of re-opening the full tradeoff set every time.
 
 ## Active Milestone
 
-- **Activated now:** `v1.4.0 — Mounted Companion Proof Reclosure`
-- **Arc status:** highest-priority candidate accepted without widening scope beyond proof closure, package-boundary truth, and support-language repair.
-- **Why now:** Repo-local verification still shows the documented mounted companion proof bar failing after `v1.3.0`, so the highest-leverage next move remains re-closing that adopter-facing support surface before adding another differentiating wedge.
+- **Activated now:** `v1.5.0 — Guarded Rollout Foundations` remains the next recommended milestone candidate.
+- **Why now:** `v1.4.0` shipped the last materially broken mounted proof surface, so the strongest next move is again to add guarded rollout safety on top of a now-credible sibling-package support posture.
 
 ## Candidate Ranking
 
@@ -69,10 +68,10 @@
 
 ### 3. `v1.4.0 — Mounted Companion Proof Reclosure`
 
-**Status:** active milestone on 2026-05-25
+**Status:** shipped on 2026-05-26
 **Why it won:**
 
-- The repo remains broad and credible, but the documented mounted companion proof bar still fails in repo-local verification.
+- The repo remained broad and credible, but the documented mounted companion proof bar had become the last materially broken adopter-facing proof surface.
 - A serious adopter is more likely to be blocked by a broken named proof path than by the absence of guardrail automation.
 - The work is narrow, support-facing, and preserves the existing sibling-package product shape instead of widening it.
 
@@ -85,7 +84,7 @@
 **Key tradeoffs:**
 
 - Lower marketing flash than guarded rollout
-- Higher adopter trust per unit of work than another new differentiator right now
+- Higher adopter trust per unit of work than another new differentiator at that point
 
 **Guardrails:**
 
@@ -95,8 +94,8 @@
 
 ### 4. `v1.5.0 — Guarded Rollout Foundations`
 
-**Status:** next recommended milestone once `v1.4.0` ships
-**Why it remains immediately after that:**
+**Status:** next recommended milestone after shipped `v1.4.0`
+**Why it remains next:**
 
 - It still offers the strongest product differentiation once the support-truth surface is credible.
 - The work now lands on a calmer base: docs, migrations, installer truth, and bounded verification no longer fight each other.

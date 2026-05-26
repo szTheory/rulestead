@@ -204,6 +204,7 @@ defmodule Rulestead.Mix.Tasks.RulesteadInstallTest do
     router = File.read!(Path.join(tmp_dir, "lib/my_app_web/router.ex"))
     assert router =~ "use RulesteadAdmin.Router"
     assert router =~ ~s(rulestead_admin "/flags", policy: MyApp.AdminPolicy)
+    refute router =~ ~s(rulestead_admin "/admin")
 
     config = File.read!(Path.join(tmp_dir, "config/config.exs"))
     assert config =~ ~s(import_config "rulestead.exs")
@@ -215,6 +216,7 @@ defmodule Rulestead.Mix.Tasks.RulesteadInstallTest do
     assert rulestead_config =~ "notifier: Rulestead.Runtime.Notifier.PhoenixPubSub"
     assert rulestead_config =~ "pubsub: MyApp.PubSub"
     assert rulestead_config =~ ~s(pubsub_topic: "rulestead:runtime_snapshot")
+    refute rulestead_config =~ "rulestead_admin:"
   end
 
   defp output_lines(output) do

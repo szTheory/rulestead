@@ -154,10 +154,9 @@ The repo's current proof posture is intentionally bounded:
   optional `open_feature_rulestead` companion package's Elixir provider contract:
   `context_mapper_test` and `provider_test`.
 - `RULESTEAD_TEST_SCOPE=mounted_admin_contract bash scripts/ci/test.sh` proves the
-  repaired mounted companion lifecycle/admin contract surface:
-  `flag_live/form_test`, `flag_live/index_test`, `cleanup_test`,
-  `cleanup_preview_test`, `cleanup_confirm_test`, `admin_mount_test`,
-  `admin_contract_test`, and `admin_lifecycle_test`.
+  repaired mounted companion contract surface around mounted session truth,
+  mount behavior, canonical `?env=` routing, lifecycle transitions, and
+  permission-gated cleanup behavior.
 - `mix verify.release_publish <version>` proves published-consumer install and
   HexDocs reachability for the shipped `0.1.0` package line.
 - `mix verify.release_parity <version>` proves the tagged release and Hex
@@ -167,6 +166,10 @@ Anything beyond those seams should be read as current guidance rather than a
 broader closed support guarantee. In particular, the OpenFeature companion bar
 proves the package-local Elixir provider only, and the mounted companion proof
 bar is intentionally narrower than "all admin behavior is green."
+For the exact mounted host-package contract, including fail-closed prerequisites
+and environment-selection rules, use
+[rulestead_admin/README.md](rulestead_admin/README.md). For the maintainer
+rerun path and CI gate semantics, use [MAINTAINING.md](MAINTAINING.md).
 
 The runnable local demo lives under `examples/demo/`:
 

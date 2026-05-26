@@ -34,8 +34,8 @@ The sibling-package publish decision is intentional:
 Document these settings exactly on `main`:
 
 - Required status checks:
-  - `release_gate` (aggregates `lint`, `test`, and `integration-placeholder`
-    from `ci.yml`)
+  - `release_gate` (aggregates `lint`, `test`, `integration-placeholder`, and
+    the path-gated mounted companion proof result from `ci.yml`)
   - `Validate PR title`
   - `dependency-review`
 - `actionlint` is not a required status check because it is path-filtered
@@ -83,7 +83,7 @@ The expected release path for the current shipped `0.1.0` line is:
 1. Merge the Release Please PR for the intended version.
 2. Let `release-please.yml` create the linked tags and dispatch
    `publish-hex.yml`.
-3. Let the publish preflight re-run the release gate and the fresh Phase 7
+3. Let the publish preflight re-run the release gate and the fresh
    sibling-package admin slice from `rulestead_admin`.
 4. Review the `preflight` job output and approve the protected
    `hex-publish` environment.
@@ -157,10 +157,9 @@ proof seams for published artifacts.
 
 ## Mounted Companion Contract Proof
 
-Phase 43 restores a narrow mounted companion proof bar for lifecycle/admin
-truth. Use it when the work changes the mounted cleanup flow, host-facing route
-conventions, or the authored ownership/lifecycle contract that the companion
-surfaces.
+Use this narrow mounted companion proof bar when the work changes the mounted
+cleanup flow, host-facing route conventions, or the authored ownership and
+lifecycle contract that the companion surfaces.
 
 Run the same wrapper locally or in CI:
 
@@ -179,10 +178,15 @@ That scope is intentionally bounded to:
 - `rulestead/test/rulestead/admin_contract_test.exs`
 - `rulestead/test/rulestead/admin_lifecycle_test.exs`
 
-Treat this proof bar as merge-blocking for Phase 43-style mounted lifecycle and
+CI exposes the same command through the path-gated `mounted companion proof`
+job in `.github/workflows/ci.yml`. It is visible by name so maintainers can
+cite it directly, and `release_gate` treats that job as required whenever
+mounted-proof-relevant paths change.
+
+Treat this proof bar as merge-blocking for mounted lifecycle and
 admin-contract changes. It is sufficient to claim the mounted lifecycle/admin
 surface is green again. It is not sufficient to claim the entire admin package,
-every repo verification surface, or future Phase 44 proof paths are closed.
+every repo verification surface, or future companion proof paths are closed.
 
 ## OpenFeature Companion Proof
 

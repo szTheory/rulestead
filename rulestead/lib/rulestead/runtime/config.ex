@@ -27,6 +27,19 @@ defmodule Rulestead.Runtime.Config do
     |> Keyword.merge(overrides)
   end
 
+  @spec startup_options(keyword()) :: keyword()
+  def startup_options(overrides \\ []) do
+    runtime = runtime_options(overrides)
+
+    [
+      environment_keys: environment_keys(runtime),
+      store: store(runtime),
+      notifier: notifier(runtime),
+      pubsub: pubsub(runtime),
+      pubsub_topic: pubsub_topic(runtime)
+    ]
+  end
+
   @spec environment_keys(keyword()) :: [String.t()]
   def environment_keys(opts \\ []) do
     opts

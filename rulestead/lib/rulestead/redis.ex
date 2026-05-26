@@ -63,6 +63,20 @@ defmodule Rulestead.Redis do
     {url(cfg), options}
   end
 
+  @spec child_specs(keyword()) :: [Supervisor.child_spec() | module()]
+  def child_specs(overrides \\ []) do
+    if enabled?(overrides) do
+      [
+        Supervisor.child_spec({client(overrides), connection_spec(overrides)},
+          id: name(overrides)
+        ),
+        Rulestead.Redis.Publisher
+      ]
+    else
+      []
+    end
+  end
+
   @spec config(keyword()) :: keyword()
   def config(overrides \\ []) do
     :rulestead

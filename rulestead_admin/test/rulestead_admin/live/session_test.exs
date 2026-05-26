@@ -3,6 +3,7 @@ defmodule RulesteadAdmin.Live.SessionTest do
 
   import Phoenix.LiveViewTest
 
+  alias Phoenix.LiveView.Socket
   alias RulesteadAdmin.Components.Shell
   alias RulesteadAdmin.Live.Session
 
@@ -131,6 +132,35 @@ defmodule RulesteadAdmin.Live.SessionTest do
     assert resolved_from_default.tenant_source == :default
   end
 
+  test "on_mount/4 fails closed when mounted prerequisites are missing" do
+    {:halt, socket} =
+      Session.on_mount(
+        :default,
+        %{"env" => "prod"},
+        %{
+          "policy" => RulesteadAdmin.TestPolicy,
+          "mount_path" => "/admin/flags",
+          "rulestead_admin_environments" => [%{"key" => "prod", "name" => "Production"}]
+        },
+        %Socket{}
+      )
+
+    assert socket.redirected == {:redirect, %{to: "/admin/flags", status: 302}}
+
+    {:halt, socket} =
+      Session.on_mount(
+        :default,
+        %{"env" => "prod"},
+        %{
+          "current_actor" => %{id: 7},
+          "rulestead_admin_environments" => [%{"key" => "prod", "name" => "Production"}]
+        },
+        %Socket{}
+      )
+
+    assert socket.redirected == {:redirect, %{to: "/", status: 302}}
+  end
+
   test "shared route helpers build canonical env paths and policy state for phase 7 screens" do
     assigns = %{
       current_environment: %{key: "prod", name: "Production"},
@@ -191,10 +221,11 @@ defmodule RulesteadAdmin.Live.SessionTest do
     assert Session.current_path(assigns, "/ops/flags/checkout-redesign/rollouts") ==
              "/ops/flags/checkout-redesign/rollouts?env=staging&tenant=acme"
 
-    assert Session.env_links(assigns, "/ops/flags/audit", %{"mutation" => "ruleset.publish"}) == %{
-             "prod" => "/ops/flags/audit?env=prod&mutation=ruleset.publish&tenant=acme",
-             "staging" => "/ops/flags/audit?env=staging&mutation=ruleset.publish&tenant=acme"
-           }
+    assert Session.env_links(assigns, "/ops/flags/audit", %{"mutation" => "ruleset.publish"}) ==
+             %{
+               "prod" => "/ops/flags/audit?env=prod&mutation=ruleset.publish&tenant=acme",
+               "staging" => "/ops/flags/audit?env=staging&mutation=ruleset.publish&tenant=acme"
+             }
   end
 
   test "shell renders separate tenant scope chrome without implying an environment switcher" do

@@ -26,7 +26,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Cleanup do
     capabilities = socket.assigns.rulestead_admin_policy_state.capabilities
 
     if not capabilities.read? do
-      {:noreply, push_navigate(socket, to: socket.assigns.rulestead_admin_mount_path)}
+      {:noreply, redirect(socket, to: socket.assigns.rulestead_admin_mount_path)}
     else
       query = query_params(uri)
       env = query["env"] || socket.assigns.current_environment.key
