@@ -49,6 +49,35 @@ When a phase has meaningful design surface area, do the research work first, the
 - preserve explicit uncertainty in the recommendation instead of using fake precision
 - only escalate a choice to the user when it would materially change public API/wire contract, security/governance posture, release/package shape, or milestone scope
 
+## Architect-Default Discuss Lens
+
+### Intent
+
+Treat discuss workflows as recommendation synthesis by default for this repo. The user should not need to manually sort routine tradeoffs when the codebase, prompt anchors, and ecosystem evidence already point to a clear winner.
+
+### Use this lens when
+
+- a discuss-phase touches architecture, operator UX, proof posture, CI, public contract, or package-boundary-adjacent behavior
+- multiple gray areas are connected enough that isolated answers would produce a weaker overall design
+- prompt anchors and prior phase context already provide enough signal to narrow the option set substantially before asking anything
+
+### What this lens recommends
+
+- research all major gray areas together before returning to the user so the recommendation set is cohesive across architecture, UX, testing, CI, and docs
+- default to prompt-first and codebase-first analysis instead of question-first analysis
+- when delegation is permitted, use subagents for bounded gray-area research and then synthesize one recommendation set locally
+- treat relevant `prompts/` docs as required design inputs and pull them into the recommendation before asking the user anything
+- for each gray area, resolve the routine tradeoff work in-agent: compare the viable shapes, weigh pros/cons, check ecosystem norms, and discard weaker options before surfacing the winner
+- prefer one-shot recommendation sets that already include Elixir/Phoenix/Ecto/Plug idioms, adjacent-ecosystem lessons, DX implications, and likely footguns
+- emphasize idiomatic Elixir / Plug / Phoenix / Ecto patterns, least surprise, explicit failure modes, maintainability, and strong maintainer/adopter DX
+- use adjacent successful libraries and products as evidence, but adapt them to Rulestead's bounded mounted-companion posture rather than copying broader product shapes blindly
+- write context and plans as if the audience were a senior/staff architect: tradeoffs should be real, concise, and justified, with the recommended path clearly favored
+- escalate only the rare decisions that a staff-level architect would reasonably expect to personally confirm because the consequence is materially user-facing or structurally hard to reverse
+- if no such high-impact decision remains after research, do not ask; lock the recommendation directly into CONTEXT.md and downstream plans
+- treat prompt anchors under `prompts/` as first-class evidence, not optional flavor text, whenever they cover the current phase surface
+- prefer one-shot recommendation sets that already account for pros/cons, ecosystem lessons, DX, support truth, and operator UX so the user does not need to manually reconcile local tradeoffs
+- when the repo already has enough evidence to produce a clear winner, do not present a menu for its own sake; present the winner, note the discarded alternatives briefly, and move on
+
 ### High-impact exception
 
 Do **not** auto-lock choices that materially change:
