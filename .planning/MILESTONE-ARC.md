@@ -1,12 +1,13 @@
-# Milestone Arc: Post-v1.4.0
+# Milestone Arc: Post-v1.5.0 Activation
 
-**Last updated:** 2026-05-26 during milestone v1.4.0 completion
+**Last updated:** 2026-05-26 during milestone v1.5.0 activation
 **Selection posture:** Default to the highest-priority candidate below unless the user explicitly chooses a materially different direction. Shift low-impact milestone-selection preference left inside GSD instead of re-opening the full tradeoff set every time.
 
 ## Active Milestone
 
-- **Activated now:** `v1.5.0 — Guarded Rollout Foundations` remains the next recommended milestone candidate.
-- **Why now:** `v1.4.0` shipped the last materially broken mounted proof surface, so the strongest next move is again to add guarded rollout safety on top of a now-credible sibling-package support posture.
+- **Activated now:** `v1.5.0 - Guarded Rollout Foundations` is active as of 2026-05-26.
+- **Why now:** `v1.4.0` shipped the last materially broken mounted proof surface, so the strongest next move is to add bounded guarded-rollout safety on top of a now-credible sibling-package support posture.
+- **Next queued candidate:** `v1.6.0 - Reusable Targeting Deepening`
 
 ## Candidate Ranking
 
@@ -92,16 +93,16 @@
 - Do not widen the work into admin redesign or unrelated feature expansion
 - Preserve the linked-version sibling-package model and mounted-admin posture
 
-### 4. `v1.5.0 — Guarded Rollout Foundations`
+### 4. `v1.5.0 - Guarded Rollout Foundations`
 
-**Status:** next recommended milestone after shipped `v1.4.0`
-**Why it remains next:**
+**Status:** active on 2026-05-26 after shipped `v1.4.0`
+**Why it was activated next:**
 
-- It still offers the strongest product differentiation once the support-truth surface is credible.
+- It offers the strongest product differentiation once the support-truth surface is credible.
 - The work now lands on a calmer base: docs, migrations, installer truth, and bounded verification no longer fight each other.
 - Its main risk remains scope drift into observability or control-plane expansion, so the guardrails stay essential.
 
-**Recommended shape if activated next:**
+**Activated shape:**
 
 - Host-supplied rollout-signal behaviour seam
 - Stage-level monitoring windows with explicit `hold` / `roll back`
@@ -118,9 +119,9 @@
 - Fail closed on stale, weak, or missing signal data
 - Preserve deterministic sticky rollout semantics; never use time-based gradual rollout for user-facing rollout
 
-### 5. `v1.6.0 — Reusable Targeting Deepening`
+### 5. `v1.6.0 - Reusable Targeting Deepening`
 
-**Status:** top medium-term candidate after guarded rollout
+**Status:** next queued candidate after active `v1.5.0`
 **Why it is later:**
 
 - Reusable audiences already exist in shipped runtime/admin/promotion surfaces, so the next value here is deepening ergonomics and blast-radius safety rather than introducing the concept

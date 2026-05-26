@@ -12,8 +12,9 @@ Rulestead is a batteries-included, Elixir-native feature-flag and remote-config 
 - `v1.2.0` shipped on 2026-05-24 across Phases 35-40, delivering host-owned ownership metadata, bounded archive-readiness guidance, a governed mounted lifecycle cleanup flow, and release-facing lifecycle docs plus verification without widening the sibling-package release model.
 - `v1.3.0` shipped on 2026-05-25 across Phases 41-44, closing release-truth drift, authored-state parity, mounted companion verification, and OpenFeature companion proof without widening the linked sibling-package release model.
 - `v1.4.0` shipped on 2026-05-26 across Phases 45-48, restoring the mounted companion boot/runtime contract, the repo-root `mounted_admin_contract` proof bar, and the release/support-truth chain without widening the sibling-package product shape.
+- `v1.5.0` was activated on 2026-05-26 across planned Phases 49-52 to add bounded guarded-rollout safety without turning Rulestead into an observability product.
 
-## Next Milestone Candidate: v1.5.0 Guarded Rollout Foundations
+## Current Milestone: v1.5.0 Guarded Rollout Foundations
 
 **Goal:** Add host-supplied guardrail signals and audited rollout hold or rollback foundations on top of the now-credible mounted companion support surface.
 
@@ -66,7 +67,13 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 
 ### Active
 
-- No new active milestone requirements are open. `v1.4.0` is archived and `v1.5.0` has not started execution.
+- [ ] `ROL-01` - Add a host-supplied rollout signal seam with explicit threshold, freshness, sample-size, environment, and tenant semantics.
+- [ ] `ROL-02` - Evaluate guarded rollout monitoring windows into fail-closed decision states instead of assuming health from weak or stale signals.
+- [ ] `ROL-03` - Preserve deterministic sticky rollout behavior and stage snapshots during automatic hold or rollback.
+- [ ] `AUD-01` - Keep automatic guardrail interventions inside the existing governed mutation and audit envelope.
+- [ ] `AUD-02` - Distinguish automatic guardrail actions from manual rollout actions with bounded remediation guidance.
+- [ ] `ADM-01` - Surface per-stage guardrail status and intervention reasons inside the mounted rollout workflow only.
+- [ ] `VER-01` - Reclose proof and docs for the bounded guarded-rollout support surface.
 
 ### Validated
 
@@ -101,12 +108,13 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 - ✓ Establish a runnable bounded proof path for `open_feature_rulestead` (`OFE-01`) — `v1.3.0`
 - ✓ Re-close the mounted companion boot/runtime seam, bounded proof bar, CI/release semantics, and support-truth chain (`PKG-01`, `PKG-02`, `ADM-01`, `VER-01`, `DOC-01`) — `v1.4.0`
 
-## Next Milestone Goals
+## Current Milestone Goals
 
 - Define `v1.5.0` as the guarded rollout follow-on without reopening the release-shape debate.
 - Preserve the newly repaired mounted proof and support-truth posture while introducing rollout signal seams and audited intervention behavior.
 - Keep rollout guardrails host-supplied and fail-closed instead of widening Rulestead into an observability product.
 - Preserve the sibling-package release model and avoid runtime hot-path coupling, tenant-partitioned storage, observability-product drift, or standalone admin drift.
+- Keep `v1.6.0` queued behind this work instead of reframing already-shipped audience support as a new concept.
 
 ### Out of Scope
 
@@ -153,6 +161,7 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 | Re-prioritize the next milestone to mounted companion proof reclosure after `v1.3.0` | Repo-local verification still showed the named mounted companion proof bar failing, while reusable audiences were already shipped and guarded rollout remained a better follow-on than an immediate next move. | Validated |
 | Activate `v1.4.0` as a bounded proof-reclosure milestone instead of reopening feature direction | The remaining highest-leverage gap was narrow and support-facing: restore mounted companion proof credibility before layering new differentiated capability. | Validated |
 | Keep `v1.5.0` as the next candidate after shipping `v1.4.0` | With the mounted companion proof surface repaired, guarded rollout again becomes the strongest differentiated follow-on while reusable targeting stays a later deepening pass. | Validated |
+| Activate `v1.5.0` as a bounded guarded-rollout milestone instead of reopening milestone selection | The milestone arc, repo state, and prior research all point to guarded rollout as the next highest-leverage differentiator as long as host-owned observability and mounted companion boundaries stay explicit. | Validated |
 
 ## Milestone Archives
 
@@ -188,4 +197,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-26 after milestone v1.4.0 completion*
+*Last updated: 2026-05-26 after milestone v1.5.0 initialization*

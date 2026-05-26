@@ -1,12 +1,12 @@
 ---
 gsd_state_version: 1.0
-milestone: none
-milestone_name: Awaiting next milestone
-status: ready_for_next_milestone
-last_updated: "2026-05-26T13:15:00Z"
-last_activity: 2026-05-26 -- Archived milestone v1.4.0 and prepared v1.5.0 as the next candidate
+milestone: v1.5.0
+milestone_name: v1.5.0 - Guarded Rollout Foundations
+status: ready_for_phase_work
+last_updated: "2026-05-26T13:11:16Z"
+last_activity: 2026-05-26 -- Activated milestone v1.5.0 and wrote fresh requirements and roadmap docs
 progress:
-  total_phases: 0
+  total_phases: 4
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,31 +20,32 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-26)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
-**Current focus:** Prepare the next milestone definition after `v1.4.0` shipped
-**Milestone:** none active
+**Current focus:** Define and execute the bounded guarded-rollout foundations milestone without widening the sibling-package release model
+**Milestone:** `v1.5.0 - Guarded Rollout Foundations`
 
 ## Roadmap Reference
 
-See: `.planning/ROADMAP.md` for shipped milestones and the next candidate.
+See: `.planning/ROADMAP.md` for the active milestone phases and traceability map.
 
 ## Current Position
 
-Phase: none
+Phase: 49
 Plan: none
-Status: Milestone archived; awaiting `$gsd-new-milestone`
-Last activity: 2026-05-26 -- milestone v1.4.0 archived after audit pass
+Status: Ready for phase discussion and planning
+Last activity: 2026-05-26 -- activated milestone `v1.5.0` and defined Phases 49-52
 
-## Latest Shipped Focus
+## Current Milestone Focus
 
-- `PKG-01` / `PKG-02` — make the mounted companion boot/runtime seam and prerequisite posture explicit, bounded, and fail-closed
-- `ADM-01` / `VER-01` — restore the repo-root mounted proof bar and keep its CI/release semantics explicit
-- `DOC-01` — align root, package, and maintainer support truth to the bounded mounted companion surface
+- `ROL-01` — add the host-supplied rollout signal seam with explicit threshold, freshness, sample-size, environment, and tenant semantics
+- `ROL-02` / `ROL-03` — make stage monitoring windows, fail-closed decision states, and rollback behavior deterministic and sticky
+- `AUD-01` / `AUD-02` — keep automatic guardrail actions inside the existing governed mutation and audit envelope
+- `ADM-01` / `VER-01` — surface bounded guardrail status in the mounted rollout workflow and prove the support surface end to end
 
 ## Carryover Items
 
-- `v1.5.0 — Guarded Rollout Foundations` is the next candidate after mounted proof reclosure shipped.
-- `v1.6.0 — Reusable Targeting Deepening` remains queued behind guarded rollout.
-- Keep the sibling-package release model, mounted-admin posture, and host-owned identity boundary unchanged while defining the next milestone.
+- `v1.6.0 - Reusable Targeting Deepening` remains queued behind guarded rollout.
+- Keep the sibling-package release model, mounted-admin posture, host-owned identity boundary, and host-owned observability boundary unchanged.
+- Do not widen guarded rollout into auto-advance, dashboards, or standalone-admin posture during Phase 49 planning.
 
 ## Anchor Docs (prompts/)
 
@@ -95,16 +96,17 @@ These remain the primary source of truth and should be loaded selectively per ph
 - **45-01**: Reclassified reusable targeting from a net-new milestone concept to a later deepening pass because reusable audiences already exist across runtime, admin, compare, and manifest flows.
 - **45-02**: Activated `v1.4.0` as a bounded mounted companion proof-reclosure milestone and preserved guarded rollout as the next planned differentiator.
 - **48-03**: Archived `v1.4.0` after the milestone audit passed and restored `v1.5.0` as the next recommended candidate.
+- **49-00**: Activated `v1.5.0` as a bounded guarded-rollout milestone and kept host-owned observability, mounted-admin, and linked-version package boundaries explicit from the start.
 
 ## Latest Activity
 
+- 2026-05-26 — Activated milestone `v1.5.0`, created `.planning/REQUIREMENTS.md`, rewrote `.planning/ROADMAP.md` for Phases 49-52, updated `.planning/PROJECT.md`, and reset active planning state for phase work.
 - 2026-05-26 — Archived milestone `v1.4.0`, created shipped roadmap and requirements archives, updated the project and milestone arc, and reset planning state to await the next milestone definition.
 - 2026-05-26 — Milestone audit for `v1.4.0` passed with all 5 requirements satisfied and no blocking integration or flow gaps.
 - 2026-05-26 — Executed Phase 48, reran the bounded mounted proof bundle plus release-contract suites, created `48-VERIFICATION.md`, and reconciled active planning truth plus the milestone audit to `ready_for_closeout`.
 - 2026-05-26 — Executed Phase 47 and reclosed root, package, and maintainer-facing support truth around the bounded mounted companion proof command, fail-closed host seam, and release-contract drift guards.
 - 2026-05-25 — Executed Phase 46 and restored the repo-root mounted proof bar, repaired mounted cleanup/preview/confirm permission proof, and added a named mounted-proof CI lane wired into `release_gate`.
-- 2026-05-25 — Activated `v1.4.0`, created `.planning/REQUIREMENTS.md`, rewrote `.planning/ROADMAP.md` for Phases 45-48, updated `.planning/PROJECT.md`, and reset active planning state for phase work.
 
 ## Next Action
 
-Next: Run `$gsd-new-milestone` to define `v1.5.0` and create a fresh active requirements file.
+Next: Run `$gsd-discuss-phase 49` to tighten the guardrail signal seam and fail-closed decision boundaries, or `$gsd-plan-phase 49` to plan directly.

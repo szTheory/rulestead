@@ -1,15 +1,85 @@
 # Roadmap
 
+## Current Milestone
+
+- **v1.5.0 - Guarded Rollout Foundations**: activated on 2026-05-26 across Phases 49-52.
+
+## Overview
+
+`v1.5.0` adds bounded guarded-rollout safety on top of the repaired sibling-package support surface: host apps provide normalized rollout signals, `rulestead` evaluates explicit hold and rollback decisions fail closed, and `rulestead_admin` explains those decisions inside the existing mounted rollout workflow without becoming an observability product.
+
+## Phases
+
+### Phase 49: Guardrail Signal Contract
+
+**Goal**: Define the host-owned rollout-signal seam, authored-state contract, and explicit threshold semantics without widening package boundaries.
+**Depends on**: Phase 48
+**Plans**: TBD
+**Requirements**: `ROL-01`
+
+Success criteria:
+1. Rollout stages can attach one or more host-supplied guardrail definitions with explicit threshold, freshness, and sample-size semantics.
+2. The runtime and authored-state contracts preserve explicit environment and tenant scope for every signal query.
+3. Missing or unsupported signal providers fail closed with bounded operator-facing reasons instead of implied health.
+
+### Phase 50: Guarded Decision Engine & Audit
+
+**Goal**: Evaluate staged monitoring windows and trigger deterministic hold or rollback behavior through the existing governed mutation and audit envelope.
+**Depends on**: Phase 49
+**Plans**: TBD
+**Requirements**: `ROL-02`, `ROL-03`, `AUD-01`, `AUD-02`
+
+Success criteria:
+1. Stage advancement and monitoring windows evaluate normalized signal facts into explicit decision states such as `healthy`, `pending_data`, `held`, and `rollback_triggered`.
+2. Weak, stale, or insufficient signal data blocks automation rather than assuming healthy rollout progression.
+3. Automatic hold and rollback actions preserve sticky rollout semantics and restore a stable prior state without introducing time-based user routing.
+4. Audit history records the breached signals, thresholds, evidence snapshot, actor or source, and resulting action for every guardrail decision.
+
+### Phase 51: Mounted Guardrail Workflow
+
+**Goal**: Surface guardrail health, thresholds, and intervention reasons inside the mounted rollout experience without implying standalone-admin or fleet-observability scope.
+**Depends on**: Phase 50
+**Plans**: TBD
+**Requirements**: `ADM-01`
+
+Success criteria:
+1. Mounted rollout screens show per-stage guardrail status, freshness, and threshold summaries in the existing workflow.
+2. Operators can distinguish manual actions from automatic hold or rollback events from the same timeline and stage detail surfaces.
+3. Missing-data and fail-closed states explain what prerequisite or host signal is absent without pretending the stage is healthy.
+
+### Phase 52: Proof, Docs & Milestone Closure
+
+**Goal**: Reclose support truth for guarded rollout foundations with bounded proof, docs, and traceability before wider rollout automation is considered.
+**Depends on**: Phase 51
+**Plans**: TBD
+**Requirements**: `VER-01`
+
+Success criteria:
+1. Repo-local verification covers stale-signal, insufficient-sample, hold, rollback, and bounded host-seam behavior.
+2. Root and package docs describe the host-owned metrics seam, fail-closed behavior, and current support limits consistently.
+3. Requirement traceability, planning truth, and milestone verification agree on the bounded guarded-rollout support surface.
+
+## Requirement Coverage
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| ROL-01 | Phase 49 | Pending |
+| ROL-02 | Phase 50 | Pending |
+| ROL-03 | Phase 50 | Pending |
+| AUD-01 | Phase 50 | Pending |
+| AUD-02 | Phase 50 | Pending |
+| ADM-01 | Phase 51 | Pending |
+| VER-01 | Phase 52 | Pending |
+
+**Coverage:**
+- Milestone requirements: 7 total
+- Mapped to phases: 7
+- Unmapped: 0
+
 ## Current Status
 
-- [x] **v1.1.0 — Tenancy Helpers & Validation**: shipped on 2026-05-23 across Phases 29-34. Archive: [.planning/milestones/v1.1.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.1.0-ROADMAP.md).
-- [x] **v1.2.0 — Lifecycle Hygiene & Ownership**: shipped on 2026-05-24 across Phases 35-40. Archive: [.planning/milestones/v1.2.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.2.0-ROADMAP.md).
-- [x] **v1.3.0 — Adopter Truth & Proof Closure**: shipped on 2026-05-25 across Phases 41-44. Archive: [.planning/milestones/v1.3.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.3.0-ROADMAP.md).
-- [x] **v1.4.0 — Mounted Companion Proof Reclosure**: shipped on 2026-05-26 across Phases 45-48. Archive: [.planning/milestones/v1.4.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.4.0-ROADMAP.md).
-
-## Next Candidate
-
-- `v1.5.0 — Guarded Rollout Foundations` remains the next differentiated follow-on now that the mounted companion proof surface shipped cleanly.
+- Ready for `Phase 49` discussion and planning.
+- `v1.6.0 - Reusable Targeting Deepening` remains the next queued candidate after guarded rollout foundations.
 
 ## Milestone Archives
 
@@ -18,4 +88,4 @@
 
 ## Next Step
 
-Run `$gsd-new-milestone` to define `v1.5.0`, write fresh requirements, and reactivate the roadmap for guarded rollout foundations.
+Run `$gsd-discuss-phase 49` to tighten the guardrail seam and fail-closed decision boundaries, or `$gsd-plan-phase 49` to plan directly.
