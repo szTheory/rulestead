@@ -14,8 +14,13 @@
 
 **Goal**: Define the host-owned rollout-signal seam, authored-state contract, and explicit threshold semantics without widening package boundaries.
 **Depends on**: Phase 48
-**Plans**: TBD
+**Plans**: 3 plans
 **Requirements**: `ROL-01`
+
+Plans:
+- [ ] `49-01-PLAN.md` - Freeze the host-owned signal seam and normalized fail-closed vocabulary
+- [ ] `49-02-PLAN.md` - Attach typed guardrail definitions to authored rollout state
+- [ ] `49-03-PLAN.md` - Reclose scope, audit, compare, and export proof for the guardrail contract
 
 Success criteria:
 1. Rollout stages can attach one or more host-supplied guardrail definitions with explicit threshold, freshness, and sample-size semantics.
