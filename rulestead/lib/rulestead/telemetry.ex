@@ -7,7 +7,7 @@ defmodule Rulestead.Telemetry do
 
   @handler_table :rulestead_telemetry_handlers
   @shared_keys ~w(flag_key flag_type environment snapshot_version cache_age_ms reason has_targeting_key? matched_rule_count)a
-  @optional_keys ~w(operation source refresh_status audit_action error_kind change_request_id correlation_id audit_event_id resource_key governance_action environment_key attempt_count execution_mode executed_by webhook_provider webhook_delivery_id webhook_receipt_id rejection_reason experiment_bucket)a
+  @optional_keys ~w(operation source refresh_status audit_action error_kind change_request_id correlation_id audit_event_id resource_key governance_action environment_key attempt_count execution_mode executed_by webhook_provider webhook_delivery_id webhook_receipt_id rejection_reason experiment_bucket signal_key guardrail_status guardrail_reason scope_source environment_scope tenant_scope threshold_operator threshold_value observed_value freshness_window_seconds sample_size min_sample_size tenant evidence)a
   @scheduled_execution_events %{
     scheduled: [:rulestead, :admin, :scheduled_execution, :scheduled],
     started: [:rulestead, :admin, :scheduled_execution, :started],
@@ -302,6 +302,33 @@ defmodule Rulestead.Telemetry do
     |> Map.put_new(:reason, Map.get(attrs, :reason))
   end
 
+  @spec guardrail_metadata(map(), map()) :: map()
+  def guardrail_metadata(guardrail, attrs \\ %{}) when is_map(guardrail) and is_map(attrs) do
+    normalized = Rulestead.Store.Command.GovernanceSupport.normalize_guardrail_metadata(guardrail)
+    evidence = Map.get(normalized, "evidence", %{})
+
+    attrs
+    |> Map.new()
+    |> Map.put_new(:operation, "guardrail_signal")
+    |> Map.put_new(:signal_key, Map.get(normalized, "signal_key"))
+    |> Map.put_new(:environment, Map.get(normalized, "environment_key"))
+    |> Map.put_new(:environment_key, Map.get(normalized, "environment_key"))
+    |> Map.put_new(:scope_source, Map.get(normalized, "scope_source"))
+    |> Map.put_new(:environment_scope, Map.get(normalized, "environment_scope"))
+    |> Map.put_new(:tenant_scope, Map.get(normalized, "tenant_scope"))
+    |> Map.put_new(:tenant, Map.get(normalized, "tenant"))
+    |> Map.put_new(:evidence, evidence)
+    |> Map.put_new(:guardrail_status, Map.get(evidence, "status"))
+    |> Map.put_new(:guardrail_reason, Map.get(evidence, "reason"))
+    |> Map.put_new(:threshold_operator, Map.get(evidence, "threshold_operator"))
+    |> Map.put_new(:threshold_value, Map.get(evidence, "threshold_value"))
+    |> Map.put_new(:observed_value, Map.get(evidence, "observed_value"))
+    |> Map.put_new(:freshness_window_seconds, Map.get(evidence, "freshness_window_seconds"))
+    |> Map.put_new(:sample_size, Map.get(evidence, "sample_size"))
+    |> Map.put_new(:min_sample_size, Map.get(evidence, "min_sample_size"))
+    |> metadata()
+  end
+
   @spec dispatch(event_name(), map(), metadata(), event_name()) :: :ok
   def dispatch(event, measurements, metadata, registered_event) do
     ensure_handler_table()
@@ -370,6 +397,16 @@ defmodule Rulestead.Telemetry do
   defp sanitize_value(:cache_age_ms, value) when is_integer(value) and value >= 0, do: value
   defp sanitize_value(:snapshot_version, value) when is_integer(value) and value > 0, do: value
   defp sanitize_value(:attempt_count, value) when is_integer(value) and value >= 0, do: value
+  defp sanitize_value(:sample_size, value) when is_integer(value) and value >= 0, do: value
+  defp sanitize_value(:min_sample_size, value) when is_integer(value) and value >= 0, do: value
+
+  defp sanitize_value(:freshness_window_seconds, value) when is_integer(value) and value >= 0,
+    do: value
+
+  defp sanitize_value(:threshold_value, value) when is_integer(value) or is_float(value),
+    do: value
+
+  defp sanitize_value(:observed_value, value) when is_integer(value) or is_float(value), do: value
 
   defp sanitize_value(key, value) when key in [:has_targeting_key?] and is_boolean(value),
     do: value
@@ -397,13 +434,35 @@ defmodule Rulestead.Telemetry do
               :webhook_provider,
               :webhook_delivery_id,
               :webhook_receipt_id,
-              :rejection_reason
+              :rejection_reason,
+              :signal_key,
+              :scope_source
             ],
        do: stringify(value)
 
   defp sanitize_value(key, value)
-       when key in [:flag_type, :reason, :source, :refresh_status, :error_kind],
+       when key in [
+              :flag_type,
+              :reason,
+              :source,
+              :refresh_status,
+              :error_kind,
+              :guardrail_status,
+              :guardrail_reason,
+              :environment_scope,
+              :tenant_scope,
+              :threshold_operator
+            ],
        do: normalize_atom(value)
+
+  defp sanitize_value(:tenant, value) when is_map(value),
+    do: Rulestead.Store.Command.GovernanceSupport.normalize_tenant_provenance(value)
+
+  defp sanitize_value(:evidence, value) when is_map(value),
+    do:
+      value
+      |> Rulestead.Store.Command.GovernanceSupport.normalize_guardrail_metadata()
+      |> Map.get("evidence")
 
   defp sanitize_value(_key, _value), do: nil
 

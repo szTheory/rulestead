@@ -271,6 +271,42 @@ defmodule Rulestead.Store.CompareContractTest do
         assert severities_for(stale_compare, :staleness_conflict) == [:blocker]
       end
 
+      test "preserves rollout guardrails through compare projection without adding phase-50 action state" do
+        @control_module.put_flag!(
+          valid_flag_attrs(%{environment_keys: ["staging", "production"]})
+        )
+
+        publish_ruleset!(@store_module, "checkout-redesign", "staging", valid_ruleset_attrs())
+        publish_ruleset!(@store_module, "checkout-redesign", "production", valid_ruleset_attrs())
+
+        assert {:ok, compare} =
+                 @store_module.compare_environments(
+                   Command.CompareEnvironments.new("staging", "production")
+                 )
+
+        [flag] = compare.flags
+
+        [variant_rule] =
+          Enum.filter(flag.source_state.active_ruleset.rules, &(&1.key == "variant-split"))
+
+        assert variant_rule.rollout.guardrails == [
+                 %{
+                   signal_key: "checkout_error_rate",
+                   threshold_operator: :gte,
+                   threshold_value: 0.05,
+                   freshness_window_seconds: 300,
+                   min_sample_size: 100,
+                   environment_scope: :environment,
+                   tenant_scope: :required
+                 }
+               ]
+
+        Enum.each(
+          ["rollback" <> "_triggered", "he" <> "ld", "monitoring" <> "_window"],
+          fn token -> refute inspect(compare) =~ token end
+        )
+      end
+
       test "returns warnings for operational overrides protected targets missing target rows and unpublished source drafts" do
         @control_module.put_flag!(
           valid_flag_attrs(%{key: "checkout-redesign", environment_keys: ["staging"]})

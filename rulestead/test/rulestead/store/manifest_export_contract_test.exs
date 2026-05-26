@@ -190,6 +190,17 @@ defmodule Rulestead.Store.ManifestExportContractTest do
                 ],
                 "rollout" => %{
                   "bucket_by" => "subject",
+                  "guardrails" => [
+                    %{
+                      "environment_scope" => "environment",
+                      "freshness_window_seconds" => 300,
+                      "min_sample_size" => 100,
+                      "signal_key" => "checkout_error_rate",
+                      "tenant_scope" => "required",
+                      "threshold_operator" => "gte",
+                      "threshold_value" => 0.05
+                    }
+                  ],
                   "percentage" => 100,
                   "salt" => "checkout-rollout"
                 }

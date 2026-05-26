@@ -38,6 +38,39 @@ defmodule Rulestead.RulesetValidationTest do
     assert error_on(changeset, :rules) =~ "weights must sum to 100"
   end
 
+  test "accepts explicit rollout guardrails as authored state" do
+    changeset = Ruleset.changeset(%Ruleset{}, ruleset_attrs(valid_ruleset_attrs()))
+
+    assert changeset.valid?
+
+    [variant_rule] =
+      changeset
+      |> Ecto.Changeset.apply_action!(:insert)
+      |> Map.fetch!(:rules)
+      |> Enum.filter(&(&1.key == "variant-split"))
+
+    assert variant_rule.rollout.guardrails == [
+             %Rulestead.Ruleset.Guardrail{
+               signal_key: "checkout_error_rate",
+               threshold_operator: :gte,
+               threshold_value: 0.05,
+               freshness_window_seconds: 300,
+               min_sample_size: 100,
+               environment_scope: :environment,
+               tenant_scope: :required
+             }
+           ]
+  end
+
+  test "rejects malformed guardrail threshold freshness and sample contracts" do
+    changeset = Ruleset.changeset(%Ruleset{}, ruleset_attrs(invalid_guardrail_ruleset_attrs()))
+
+    refute changeset.valid?
+    assert error_on(changeset, :rules) =~ "freshness_window_seconds"
+    assert error_on(changeset, :rules) =~ "threshold_value"
+    assert error_on(changeset, :rules) =~ "min_sample_size"
+  end
+
   defp ruleset_attrs(attrs) do
     Map.merge(attrs, %{flag_environment_id: Ecto.UUID.generate(), version: 1, status: :draft})
   end

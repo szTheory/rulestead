@@ -57,6 +57,21 @@ defmodule Rulestead.Manifest.ExportTest do
     assert checkout["active_ruleset"]["metadata"] == %{"source" => "contract"}
     assert Enum.any?(checkout["active_ruleset"]["rules"], &(&1["audience_key"] == "vip-users"))
 
+    assert Enum.any?(
+             checkout["active_ruleset"]["rules"],
+             &(&1["rollout"]["guardrails"] == [
+                 %{
+                   "environment_scope" => "environment",
+                   "freshness_window_seconds" => 300,
+                   "min_sample_size" => 100,
+                   "signal_key" => "checkout_error_rate",
+                   "tenant_scope" => "required",
+                   "threshold_operator" => "gte",
+                   "threshold_value" => 0.05
+                 }
+               ])
+           )
+
     refute manifest_json(manifest) =~ "draft_rulesets"
     refute manifest_json(manifest) =~ "inserted_at"
     refute manifest_json(manifest) =~ "updated_at"

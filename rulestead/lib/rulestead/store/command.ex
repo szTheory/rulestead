@@ -17,6 +17,20 @@ defmodule Rulestead.Store.Command do
     @tenant_scope_sources ["explicit", "host_resolved", "single_tenant"]
     @tenant_validation_evidence ["same_tenant_guard", "single_tenant", "not_applicable"]
     @tenant_validation_status ["passed", "bypassed"]
+    @guardrail_statuses ["healthy", "breached", "failed_closed"]
+    @guardrail_reasons [
+      "healthy",
+      "breached",
+      "provider_missing",
+      "unsupported_scope",
+      "unsupported_signal",
+      "stale",
+      "insufficient_sample",
+      "invalid_provider_response"
+    ]
+    @guardrail_threshold_operators ["lt", "lte", "gt", "gte"]
+    @guardrail_environment_scopes ["environment"]
+    @guardrail_tenant_scopes ["required", "not_applicable"]
 
     def fetch_required!(attrs, key) do
       case fetch(attrs, key) do
@@ -151,12 +165,69 @@ defmodule Rulestead.Store.Command do
 
     def normalize_approval_requirement(_requirement), do: %{}
 
+    def normalize_guardrail_metadata(nil), do: %{}
+
+    def normalize_guardrail_metadata(value) when is_list(value) or is_map(value) do
+      value = normalize_map(value)
+      tenant_key = normalize_string(Map.get(value, "tenant_key"))
+
+      tenant =
+        tenant_provenance(
+          %{"tenant_key" => tenant_key},
+          metadata: value,
+          fallback: Map.get(value, "tenant") || Map.get(value, "tenant_provenance")
+        )
+
+      evidence =
+        %{}
+        |> maybe_put("status", normalize_enum(Map.get(value, "status"), @guardrail_statuses))
+        |> maybe_put("reason", normalize_enum(Map.get(value, "reason"), @guardrail_reasons))
+        |> maybe_put(
+          "threshold_operator",
+          normalize_enum(Map.get(value, "threshold_operator"), @guardrail_threshold_operators)
+        )
+        |> maybe_put("threshold_value", normalize_numeric(Map.get(value, "threshold_value")))
+        |> maybe_put("observed_value", normalize_numeric(Map.get(value, "observed_value")))
+        |> maybe_put(
+          "freshness_window_seconds",
+          normalize_non_negative_integer(Map.get(value, "freshness_window_seconds"))
+        )
+        |> maybe_put("sample_size", normalize_non_negative_integer(Map.get(value, "sample_size")))
+        |> maybe_put(
+          "min_sample_size",
+          normalize_non_negative_integer(Map.get(value, "min_sample_size"))
+        )
+        |> maybe_put("captured_at", normalize_datetime_string(Map.get(value, "captured_at")))
+        |> maybe_put("evaluated_at", normalize_datetime_string(Map.get(value, "evaluated_at")))
+        |> maybe_put("metadata", normalize_metadata(Map.get(value, "metadata")))
+
+      %{}
+      |> maybe_put("signal_key", normalize_string(Map.get(value, "signal_key")))
+      |> maybe_put("environment_key", normalize_string(Map.get(value, "environment_key")))
+      |> maybe_put("tenant_key", tenant_key)
+      |> maybe_put(
+        "environment_scope",
+        normalize_enum(Map.get(value, "environment_scope"), @guardrail_environment_scopes)
+      )
+      |> maybe_put(
+        "tenant_scope",
+        normalize_enum(Map.get(value, "tenant_scope"), @guardrail_tenant_scopes)
+      )
+      |> maybe_put(
+        "scope_source",
+        normalize_enum(Map.get(value, "scope_source"), @tenant_scope_sources)
+      )
+      |> maybe_put("tenant", tenant)
+      |> maybe_put("evidence", if(map_size(evidence) == 0, do: nil, else: evidence))
+    end
+
+    def normalize_guardrail_metadata(_value), do: %{}
+
     def normalize_map(nil), do: %{}
     def normalize_map(value) when is_list(value), do: value |> Map.new() |> normalize_map()
 
     def normalize_map(map) when is_map(map) do
       Map.new(map, fn
-        {key, value} when is_map(value) -> {to_string(key), normalize_map(value)}
         {key, value} when is_list(value) -> {to_string(key), Enum.map(value, &normalize_value/1)}
         {key, value} -> {to_string(key), normalize_value(value)}
       end)
@@ -164,6 +235,9 @@ defmodule Rulestead.Store.Command do
 
     def normalize_map(_value), do: %{}
 
+    def normalize_value(%DateTime{} = value), do: DateTime.to_iso8601(value)
+    def normalize_value(%NaiveDateTime{} = value), do: NaiveDateTime.to_iso8601(value)
+    def normalize_value(%Date{} = value), do: Date.to_iso8601(value)
     def normalize_value(value) when is_map(value), do: normalize_map(value)
     def normalize_value(value) when is_list(value), do: Enum.map(value, &normalize_value/1)
     def normalize_value(value) when is_boolean(value), do: value
@@ -281,6 +355,48 @@ defmodule Rulestead.Store.Command do
       value = normalize_string(value)
       if value in allowed, do: value, else: nil
     end
+
+    defp normalize_numeric(value) when is_integer(value) or is_float(value), do: value
+
+    defp normalize_numeric(value) when is_binary(value) do
+      value = String.trim(value)
+
+      cond do
+        value == "" ->
+          nil
+
+        String.contains?(value, ".") ->
+          case Float.parse(value) do
+            {parsed, ""} -> parsed
+            _other -> nil
+          end
+
+        true ->
+          case Integer.parse(value) do
+            {parsed, ""} -> parsed
+            _other -> nil
+          end
+      end
+    end
+
+    defp normalize_numeric(_value), do: nil
+
+    defp normalize_non_negative_integer(value) when is_integer(value) and value >= 0, do: value
+
+    defp normalize_non_negative_integer(value) when is_float(value) and value >= 0,
+      do: trunc(value)
+
+    defp normalize_non_negative_integer(value) when is_binary(value) do
+      case Integer.parse(String.trim(value)) do
+        {parsed, ""} when parsed >= 0 -> parsed
+        _other -> nil
+      end
+    end
+
+    defp normalize_non_negative_integer(_value), do: nil
+
+    defp normalize_datetime_string(%DateTime{} = value), do: DateTime.to_iso8601(value)
+    defp normalize_datetime_string(value), do: normalize_string(value)
 
     defp drop_sensitive_keys(map) do
       map
@@ -1203,6 +1319,194 @@ defmodule Rulestead.Store.Command do
         flag_key: flag_key,
         environment_key: environment_key,
         last_evaluated_at: last_evaluated_at
+      }
+    end
+  end
+
+  defmodule AdvanceRollout do
+    @moduledoc false
+
+    alias Rulestead.Store.Command.GovernanceSupport
+
+    @enforce_keys [:flag_key, :environment_key, :stage]
+    defstruct [
+      :flag_key,
+      :environment_key,
+      :rule_key,
+      :stage,
+      :percentage,
+      :monitoring_window_started_at,
+      :monitoring_window_ends_at,
+      signal_facts: [],
+      actor: nil,
+      reason: nil,
+      metadata: %{}
+    ]
+
+    @type t :: %__MODULE__{
+            flag_key: String.t() | atom(),
+            environment_key: String.t() | atom(),
+            rule_key: nil | String.t(),
+            stage: String.t(),
+            percentage: nil | non_neg_integer(),
+            monitoring_window_started_at: nil | DateTime.t(),
+            monitoring_window_ends_at: nil | DateTime.t(),
+            signal_facts: [map()],
+            actor: nil | map(),
+            reason: nil | String.t(),
+            metadata: map()
+          }
+
+    @spec new(String.t() | atom(), String.t() | atom(), map() | keyword(), keyword()) :: t()
+    def new(flag_key, environment_key, attrs, opts \\ []) when is_map(attrs) or is_list(attrs) do
+      attrs = Map.new(attrs)
+
+      %__MODULE__{
+        flag_key: GovernanceSupport.normalize_string(flag_key),
+        environment_key: GovernanceSupport.normalize_string(environment_key),
+        rule_key: attrs |> GovernanceSupport.fetch(:rule_key) |> GovernanceSupport.normalize_string(),
+        stage:
+          attrs
+          |> GovernanceSupport.fetch_required!(:stage)
+          |> GovernanceSupport.normalize_string(),
+        percentage: normalize_percentage(GovernanceSupport.fetch(attrs, :percentage)),
+        monitoring_window_started_at: GovernanceSupport.fetch(attrs, :monitoring_window_started_at),
+        monitoring_window_ends_at: GovernanceSupport.fetch(attrs, :monitoring_window_ends_at),
+        signal_facts: normalize_signal_facts(GovernanceSupport.fetch(attrs, :signal_facts)),
+        actor:
+          opts
+          |> Keyword.get(:actor, GovernanceSupport.fetch(attrs, :actor))
+          |> GovernanceSupport.normalize_actor(),
+        reason:
+          opts
+          |> Keyword.get(:reason, GovernanceSupport.fetch(attrs, :reason))
+          |> GovernanceSupport.normalize_string(),
+        metadata:
+          opts
+          |> Keyword.get(:metadata, GovernanceSupport.fetch(attrs, :metadata))
+          |> GovernanceSupport.normalize_metadata()
+      }
+    end
+
+    defp normalize_signal_facts(nil), do: []
+
+    defp normalize_signal_facts(values) when is_list(values) do
+      Enum.map(values, &GovernanceSupport.normalize_map/1)
+    end
+
+    defp normalize_signal_facts(value), do: [GovernanceSupport.normalize_map(value)]
+
+    defp normalize_percentage(nil), do: nil
+    defp normalize_percentage(value) when is_integer(value) and value >= 0 and value <= 100, do: value
+
+    defp normalize_percentage(value) when is_binary(value) do
+      case Integer.parse(String.trim(value)) do
+        {parsed, ""} when parsed >= 0 and parsed <= 100 -> parsed
+        _other -> nil
+      end
+    end
+
+    defp normalize_percentage(_value), do: nil
+  end
+
+  defmodule EvaluateGuardedRollout do
+    @moduledoc false
+
+    alias Rulestead.Store.Command.GovernanceSupport
+
+    @enforce_keys [:flag_key, :environment_key, :stage]
+    defstruct [
+      :flag_key,
+      :environment_key,
+      :rule_key,
+      :stage,
+      :monitoring_window_started_at,
+      :monitoring_window_ends_at,
+      signal_facts: [],
+      actor: nil,
+      reason: nil,
+      metadata: %{}
+    ]
+
+    @type t :: %__MODULE__{
+            flag_key: String.t() | atom(),
+            environment_key: String.t() | atom(),
+            rule_key: nil | String.t(),
+            stage: String.t(),
+            monitoring_window_started_at: nil | DateTime.t(),
+            monitoring_window_ends_at: nil | DateTime.t(),
+            signal_facts: [map()],
+            actor: nil | map(),
+            reason: nil | String.t(),
+            metadata: map()
+          }
+
+    @spec new(String.t() | atom(), String.t() | atom(), map() | keyword(), keyword()) :: t()
+    def new(flag_key, environment_key, attrs, opts \\ []) when is_map(attrs) or is_list(attrs) do
+      attrs = Map.new(attrs)
+
+      %__MODULE__{
+        flag_key: GovernanceSupport.normalize_string(flag_key),
+        environment_key: GovernanceSupport.normalize_string(environment_key),
+        rule_key: attrs |> GovernanceSupport.fetch(:rule_key) |> GovernanceSupport.normalize_string(),
+        stage:
+          attrs
+          |> GovernanceSupport.fetch_required!(:stage)
+          |> GovernanceSupport.normalize_string(),
+        monitoring_window_started_at: GovernanceSupport.fetch(attrs, :monitoring_window_started_at),
+        monitoring_window_ends_at: GovernanceSupport.fetch(attrs, :monitoring_window_ends_at),
+        signal_facts:
+          attrs
+          |> GovernanceSupport.fetch(:signal_facts)
+          |> normalize_signal_facts(),
+        actor:
+          opts
+          |> Keyword.get(:actor, GovernanceSupport.fetch(attrs, :actor))
+          |> GovernanceSupport.normalize_actor(),
+        reason:
+          opts
+          |> Keyword.get(:reason, GovernanceSupport.fetch(attrs, :reason))
+          |> GovernanceSupport.normalize_string(),
+        metadata:
+          opts
+          |> Keyword.get(:metadata, GovernanceSupport.fetch(attrs, :metadata))
+          |> GovernanceSupport.normalize_metadata()
+      }
+    end
+
+    defp normalize_signal_facts(nil), do: []
+
+    defp normalize_signal_facts(values) when is_list(values) do
+      Enum.map(values, &GovernanceSupport.normalize_map/1)
+    end
+
+    defp normalize_signal_facts(value), do: [GovernanceSupport.normalize_map(value)]
+  end
+
+  defmodule FetchGuardrailStatus do
+    @moduledoc false
+
+    alias Rulestead.Store.Command.GovernanceSupport
+
+    @enforce_keys [:flag_key, :environment_key]
+    defstruct [:flag_key, :environment_key, :rule_key, :stage, actor: nil]
+
+    @type t :: %__MODULE__{
+            flag_key: String.t() | atom(),
+            environment_key: String.t() | atom(),
+            rule_key: nil | String.t(),
+            stage: nil | String.t(),
+            actor: nil | map()
+          }
+
+    @spec new(String.t() | atom(), String.t() | atom(), keyword()) :: t()
+    def new(flag_key, environment_key, opts \\ []) do
+      %__MODULE__{
+        flag_key: GovernanceSupport.normalize_string(flag_key),
+        environment_key: GovernanceSupport.normalize_string(environment_key),
+        rule_key: Keyword.get(opts, :rule_key) |> GovernanceSupport.normalize_string(),
+        stage: Keyword.get(opts, :stage) |> GovernanceSupport.normalize_string(),
+        actor: Keyword.get(opts, :actor) |> GovernanceSupport.normalize_actor()
       }
     end
   end

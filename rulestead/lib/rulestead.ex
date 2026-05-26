@@ -914,6 +914,69 @@ defmodule Rulestead do
   end
 
   @doc """
+  Publishes a bounded rollout stage advancement through the configured store adapter.
+  """
+  @spec advance_rollout(Command.AdvanceRollout.t()) :: Store.result(map())
+  def advance_rollout(%Command.AdvanceRollout{} = command) do
+    admin_write(:advance_rollout, command)
+  end
+
+  @doc """
+  Builds and executes a bounded rollout stage advancement from root-level arguments.
+  """
+  @spec advance_rollout(String.t() | atom(), String.t() | atom(), map() | keyword(), keyword()) ::
+          Store.result(map())
+  def advance_rollout(flag_key, environment_key, attrs, opts \\ [])
+      when is_map(attrs) or is_list(attrs) do
+    flag_key
+    |> Command.AdvanceRollout.new(environment_key, attrs, opts)
+    |> advance_rollout()
+  end
+
+  @doc """
+  Evaluates guardrail facts for an active rollout stage and records the resulting operational state.
+  """
+  @spec evaluate_guarded_rollout(Command.EvaluateGuardedRollout.t()) :: Store.result(map())
+  def evaluate_guarded_rollout(%Command.EvaluateGuardedRollout{} = command) do
+    run_store(:evaluate_guarded_rollout, [command], command)
+  end
+
+  @doc """
+  Builds and executes a guarded rollout evaluation from root-level arguments.
+  """
+  @spec evaluate_guarded_rollout(
+          String.t() | atom(),
+          String.t() | atom(),
+          map() | keyword(),
+          keyword()
+        ) :: Store.result(map())
+  def evaluate_guarded_rollout(flag_key, environment_key, attrs, opts \\ [])
+      when is_map(attrs) or is_list(attrs) do
+    flag_key
+    |> Command.EvaluateGuardedRollout.new(environment_key, attrs, opts)
+    |> evaluate_guarded_rollout()
+  end
+
+  @doc """
+  Fetches the latest derived guardrail status for one rollout rule or stage.
+  """
+  @spec fetch_guardrail_status(Command.FetchGuardrailStatus.t()) :: Store.result(map())
+  def fetch_guardrail_status(%Command.FetchGuardrailStatus{} = command) do
+    admin_read(:fetch_guardrail_status, command)
+  end
+
+  @doc """
+  Builds a guardrail-status query from root-level arguments.
+  """
+  @spec fetch_guardrail_status(String.t() | atom(), String.t() | atom(), keyword()) ::
+          Store.result(map())
+  def fetch_guardrail_status(flag_key, environment_key, opts \\ []) do
+    flag_key
+    |> Command.FetchGuardrailStatus.new(environment_key, opts)
+    |> fetch_guardrail_status()
+  end
+
+  @doc """
   Evaluates an authored in-memory flag payload against an explicit context.
   """
   @spec evaluate(map(), Context.t() | keyword() | map(), keyword()) ::
@@ -1473,6 +1536,7 @@ defmodule Rulestead do
 
   defp command_action(:engage_kill_switch, _command), do: :engage_kill_switch
   defp command_action(:release_kill_switch, _command), do: :release_kill_switch
+  defp command_action(:fetch_guardrail_status, _command), do: :read_rollouts
   defp command_action(:rollback_audit_event, _command), do: :rollback_audit_event
   defp command_action(:list_audit_events, _command), do: :list_audit_events
   defp command_action(:apply_promotion, _command), do: :promote_environment
@@ -1488,6 +1552,7 @@ defmodule Rulestead do
        when operation in [
               :save_draft_ruleset,
               :publish_ruleset,
+              :advance_rollout,
               :archive_flag,
               :engage_kill_switch,
               :release_kill_switch,

@@ -21,6 +21,9 @@ defmodule Rulestead.Store.Ecto do
     EnvironmentVersion,
     Flag,
     FlagEnvironment,
+    GuardrailDecision,
+    Guardrails.Decision,
+    Guardrails.SignalFact,
     Manifest.Import,
     Oban,
     Promotion.Apply,
@@ -577,6 +580,120 @@ defmodule Rulestead.Store.Ecto do
         {:error, %Changeset{} = changeset} ->
           {:error, store_changeset_error(changeset, command.flag_key, command.environment_key)}
       end
+    end
+  end
+
+  @impl Store
+  def advance_rollout(%Command.AdvanceRollout{} = command) do
+    with {:ok, environment} <- fetch_environment(command.environment_key),
+         {:ok, flag, flag_environment} <- fetch_flag_environment(command.flag_key, environment.key),
+         :ok <- ensure_not_archived(command.flag_key, flag),
+         {:ok, active_ruleset} <- ensure_active_ruleset(flag_environment, command),
+         {:ok, rollout_rule} <- resolve_rollout_rule(active_ruleset, command.rule_key),
+         {:ok, percentage} <- ensure_rollout_percentage(command.percentage),
+         {:ok, next_ruleset_attrs} <- advanced_ruleset_attrs(active_ruleset, rollout_rule.key, percentage) do
+      published_at = now()
+      previous_ruleset = active_ruleset
+
+      Multi.new()
+      |> Multi.insert(:ruleset, Ruleset.changeset(%Ruleset{}, %{
+        flag_environment_id: flag_environment.id,
+        version: next_ruleset_version(flag_environment.id),
+        status: :published,
+        salt: next_ruleset_attrs.salt,
+        published_at: published_at,
+        metadata: next_ruleset_attrs.metadata,
+        rules: next_ruleset_attrs.rules
+      }))
+      |> Multi.run(:flag_environment, fn repo, %{ruleset: ruleset} ->
+        flag_environment
+        |> FlagEnvironment.changeset(%{
+          active_ruleset_id: ruleset.id,
+          status: :active,
+          last_published_at: published_at
+        })
+        |> repo.update()
+      end)
+      |> Multi.update(:flag, Changeset.change(flag, updated_at: published_at))
+      |> Multi.run(:runtime_snapshot, fn repo, _changes ->
+        insert_runtime_snapshot(repo, environment, published_at)
+      end)
+      |> Multi.run(:decision, fn repo, %{ruleset: ruleset} ->
+        repo.insert(
+          GuardrailDecision.changeset(%GuardrailDecision{}, advance_decision_attrs(command, ruleset, rollout_rule, published_at))
+        )
+      end)
+      |> Multi.run(:audit_event, fn repo, %{ruleset: ruleset, decision: decision} ->
+        repo.insert(
+          audit_event_changeset(%AuditEvent{}, command, "rollout.advance", :ok, %{
+            environment_key: environment.key,
+            before: ruleset_audit_state(previous_ruleset),
+            after: ruleset_audit_state(ruleset),
+            diff: ruleset_position_diff(previous_ruleset, ruleset),
+            links: %{"guardrail_decision_id" => decision.id}
+          })
+        )
+      end)
+      |> Repo.transact()
+      |> case do
+        {:ok, %{decision: decision, ruleset: ruleset}} ->
+          {:ok, guardrail_status_payload(decision, ruleset.version)}
+
+        {:error, :ruleset, %Changeset{} = changeset, _changes} ->
+          {:error, ruleset_error(changeset, command.flag_key, command.environment_key)}
+
+        {:error, :flag_environment, %Changeset{} = changeset, _changes} ->
+          {:error, store_changeset_error(changeset, command.flag_key, command.environment_key)}
+
+        {:error, :decision, %Changeset{} = changeset, _changes} ->
+          {:error, store_changeset_error(changeset, command.flag_key, command.environment_key)}
+
+        {:error, _operation, reason, _changes} ->
+          {:error, StoreError.unavailable(cause: reason)}
+      end
+    end
+  end
+
+  @impl Store
+  def evaluate_guarded_rollout(%Command.EvaluateGuardedRollout{} = command) do
+    with {:ok, environment} <- fetch_environment(command.environment_key),
+         {:ok, flag, flag_environment} <- fetch_flag_environment(command.flag_key, environment.key),
+         :ok <- ensure_not_archived(command.flag_key, flag),
+         {:ok, active_ruleset} <- ensure_active_ruleset(flag_environment, command),
+         {:ok, rollout_rule} <- resolve_rollout_rule(active_ruleset, command.rule_key) do
+      signal_facts = Enum.map(command.signal_facts, &SignalFact.new/1)
+
+      evaluated =
+        Decision.evaluate(signal_facts,
+          evaluated_at: now(),
+          monitoring_window_ends_at: command.monitoring_window_ends_at
+        )
+
+      execute_guardrail_decision(
+        command,
+        environment,
+        flag,
+        flag_environment,
+        active_ruleset,
+        rollout_rule,
+        evaluated
+      )
+    end
+  end
+
+  @impl Store
+  def fetch_guardrail_status(%Command.FetchGuardrailStatus{} = command) do
+    with {:ok, _environment} <- fetch_environment(command.environment_key),
+         {:ok, _flag, flag_environment} <-
+           fetch_flag_environment(command.flag_key, command.environment_key),
+         %GuardrailDecision{} = decision <- latest_guardrail_decision(command) do
+      {:ok, guardrail_status_payload(decision, active_ruleset_version(flag_environment))}
+    else
+      nil ->
+        {:error, StoreError.invalid_command("guardrail status was not found")}
+
+      {:error, error} ->
+        {:error, error}
     end
   end
 
@@ -2419,7 +2536,20 @@ defmodule Rulestead.Store.Ecto do
     %{
       bucket_by: rollout.bucket_by,
       percentage: rollout.percentage,
-      salt: rollout.salt
+      salt: rollout.salt,
+      guardrails: Enum.map(rollout.guardrails || [], &serialize_guardrail/1)
+    }
+  end
+
+  defp serialize_guardrail(guardrail) when is_map(guardrail) do
+    %{
+      signal_key: guardrail.signal_key,
+      threshold_operator: guardrail.threshold_operator,
+      threshold_value: guardrail.threshold_value,
+      freshness_window_seconds: guardrail.freshness_window_seconds,
+      min_sample_size: guardrail.min_sample_size,
+      environment_scope: guardrail.environment_scope,
+      tenant_scope: guardrail.tenant_scope
     }
   end
 
@@ -3255,14 +3385,28 @@ defmodule Rulestead.Store.Ecto do
     end
   end
 
-  defp execute_bounded_governed_action("advance_rollout", change_request, _command) do
-    with {:ok, _environment, _flag, flag_environment} <-
-           fetch_schedulable_flag_context(
-             change_request.resource_key,
-             change_request.environment_key
-           ) do
-      ensure_rollout_stage_available(flag_environment, change_request.command_snapshot)
-    end
+  defp execute_bounded_governed_action("advance_rollout", change_request, command) do
+    advance_rollout(
+      Command.AdvanceRollout.new(
+        change_request.resource_key,
+        change_request.environment_key,
+        Map.merge(
+          change_request.command_snapshot["rollout"] || change_request.command_snapshot,
+          %{"signal_facts" => change_request.command_snapshot["signal_facts"]}
+        ),
+        actor: command.actor,
+        reason: command.reason,
+        metadata: %{
+          request_id: change_request.correlation_id,
+          source: change_request.metadata["source"],
+          change_request_id: change_request.id,
+          governance_action: change_request.governed_action,
+          execution_stage: "execute",
+          tenant: change_request.command_snapshot["tenant"],
+          signal_facts: change_request.command_snapshot["signal_facts"]
+        }
+      )
+    )
   end
 
   defp execute_bounded_governed_action("promote_environment", change_request, command) do
@@ -3372,14 +3516,27 @@ defmodule Rulestead.Store.Ecto do
     end
   end
 
-  defp execute_direct_scheduled_action("advance_rollout", scheduled_execution, _command) do
-    with {:ok, _environment, _flag, flag_environment} <-
-           fetch_schedulable_flag_context(
-             scheduled_execution.resource_key,
-             scheduled_execution.environment_key
-           ) do
-      ensure_rollout_stage_available(flag_environment, scheduled_execution.command_snapshot)
-    end
+  defp execute_direct_scheduled_action("advance_rollout", scheduled_execution, command) do
+    advance_rollout(
+      Command.AdvanceRollout.new(
+        scheduled_execution.resource_key,
+        scheduled_execution.environment_key,
+        Map.merge(
+          scheduled_execution.command_snapshot["rollout"] || scheduled_execution.command_snapshot,
+          %{"signal_facts" => scheduled_execution.command_snapshot["signal_facts"]}
+        ),
+        actor: command.actor,
+        reason: command.reason,
+        metadata: %{
+          request_id: scheduled_execution.correlation_id,
+          source: scheduled_execution.metadata["source"],
+          scheduled_execution_id: scheduled_execution.id,
+          execution_stage: "scheduled_execution",
+          tenant: scheduled_execution.command_snapshot["tenant"],
+          signal_facts: scheduled_execution.command_snapshot["signal_facts"]
+        }
+      )
+    )
   end
 
   defp execute_direct_scheduled_action("promote_environment", scheduled_execution, command) do
@@ -3453,8 +3610,376 @@ defmodule Rulestead.Store.Ecto do
     end
   end
 
-  defp ensure_rollout_stage_available(_flag_environment, _command_snapshot) do
-    {:error, StoreError.invalid_command("rollout_stage_conflict")}
+  defp ensure_active_ruleset(%FlagEnvironment{} = flag_environment, _command) do
+    case active_ruleset(flag_environment) do
+      %Ruleset{} = ruleset -> {:ok, ruleset}
+      nil -> {:error, StoreError.invalid_command("rollout_stage_conflict")}
+    end
+  end
+
+  defp resolve_rollout_rule(%Ruleset{} = ruleset, nil) do
+    rollout_rules = Enum.filter(ruleset.rules, &match?(%{rollout: %_{}}, &1))
+
+    case rollout_rules do
+      [rule] -> {:ok, rule}
+      _other -> {:error, StoreError.invalid_command("rollout_stage_conflict")}
+    end
+  end
+
+  defp resolve_rollout_rule(%Ruleset{} = ruleset, rule_key) do
+    case Enum.find(ruleset.rules, &(&1.key == rule_key and not is_nil(&1.rollout))) do
+      nil -> {:error, StoreError.invalid_command("rollout_stage_conflict")}
+      rule -> {:ok, rule}
+    end
+  end
+
+  defp ensure_rollout_percentage(nil),
+    do: {:error, StoreError.invalid_command("rollout_stage_conflict")}
+
+  defp ensure_rollout_percentage(percentage) when is_integer(percentage) and percentage >= 0 and percentage <= 100,
+    do: {:ok, percentage}
+
+  defp ensure_rollout_percentage(_percentage),
+    do: {:error, StoreError.invalid_command("rollout_stage_conflict")}
+
+  defp advanced_ruleset_attrs(%Ruleset{} = ruleset, rule_key, percentage) do
+    rules =
+      Enum.map(ruleset.rules, fn rule ->
+        if rule.key == rule_key and rule.rollout do
+          Map.put(rule, :rollout, %{rule.rollout | percentage: percentage})
+        else
+          rule
+        end
+      end)
+      |> Enum.map(&serialize_rule/1)
+
+    {:ok, %{salt: ruleset.salt, metadata: ruleset.metadata, rules: rules}}
+  end
+
+  defp advance_decision_attrs(command, ruleset, rollout_rule, occurred_at) do
+    %{
+      flag_key: command.flag_key,
+      environment_key: command.environment_key,
+      rule_key: rollout_rule.key,
+      stage: command.stage,
+      tenant_key: command.metadata["tenant_key"] || get_in(command.metadata, ["tenant", "tenant_key"]),
+      decision_state: :pending_data,
+      action_type: :advance,
+      decision_reason: "monitoring_window_active",
+      effective_percentage: command.percentage,
+      rollout_salt: rollout_rule.rollout.salt,
+      variant_fingerprint: variant_fingerprint(rollout_rule),
+      monitoring_window_started_at: command.monitoring_window_started_at || occurred_at,
+      monitoring_window_ends_at: command.monitoring_window_ends_at,
+      occurred_at: occurred_at,
+      signal_facts: Enum.map(command.signal_facts, &SignalFact.metadata/1),
+      guardrail_evidence: first_guardrail_evidence(command.signal_facts),
+      authored_snapshot: serialize_ruleset(ruleset),
+      correlation_id: correlation_id(command),
+      metadata: command.metadata
+    }
+  end
+
+  defp execute_guardrail_decision(
+         command,
+         environment,
+         flag,
+         flag_environment,
+         active_ruleset,
+         rollout_rule,
+         evaluated
+       ) do
+    stable_target =
+      if evaluated.state == :rollback_triggered do
+        latest_stable_guardrail_snapshot(
+          command.flag_key,
+          environment.key,
+          rollout_rule.key,
+          rollout_rule.rollout.salt,
+          variant_fingerprint(rollout_rule),
+          correlation_id(command)
+        )
+      end
+
+    case evaluated.state do
+      :rollback_triggered when is_nil(stable_target) ->
+        persist_guardrail_decision_without_mutation(
+          command,
+          environment,
+          flag_environment,
+          active_ruleset,
+          rollout_rule,
+          %{evaluated | state: :held, reason: "stable_target_missing"},
+          :hold,
+          "rollout.guardrail_held"
+        )
+
+      :rollback_triggered ->
+        rollback_from_stable_snapshot(
+          command,
+          environment,
+          flag,
+          flag_environment,
+          active_ruleset,
+          rollout_rule,
+          evaluated,
+          stable_target
+        )
+
+      :held ->
+        persist_guardrail_decision_without_mutation(
+          command,
+          environment,
+          flag_environment,
+          active_ruleset,
+          rollout_rule,
+          evaluated,
+          :hold,
+          "rollout.guardrail_held"
+        )
+
+      _other ->
+        persist_guardrail_decision_without_mutation(
+          command,
+          environment,
+          flag_environment,
+          active_ruleset,
+          rollout_rule,
+          evaluated,
+          :evaluate,
+          "rollout.guardrail_evaluated"
+        )
+    end
+  end
+
+  defp persist_guardrail_decision_without_mutation(
+         command,
+         environment,
+         flag_environment,
+         active_ruleset,
+         rollout_rule,
+         evaluated,
+         action_type,
+         event_type
+       ) do
+    occurred_at = evaluated.evaluated_at |> DateTime.truncate(:microsecond)
+
+    authored_snapshot =
+      if evaluated.state == :healthy and evaluated.monitoring_window_closed? do
+        serialize_ruleset(active_ruleset)
+      end
+
+    Multi.new()
+    |> Multi.insert(
+      :decision,
+      GuardrailDecision.changeset(%GuardrailDecision{}, %{
+        flag_key: command.flag_key,
+        environment_key: environment.key,
+        rule_key: rollout_rule.key,
+        stage: command.stage,
+        tenant_key: command.metadata["tenant_key"] || get_in(command.metadata, ["tenant", "tenant_key"]),
+        decision_state: evaluated.state,
+        action_type: action_type,
+        decision_reason: evaluated.reason,
+        effective_percentage: rollout_rule.rollout.percentage,
+        rollout_salt: rollout_rule.rollout.salt,
+        variant_fingerprint: variant_fingerprint(rollout_rule),
+        monitoring_window_started_at: command.monitoring_window_started_at,
+        monitoring_window_ends_at: command.monitoring_window_ends_at,
+        occurred_at: occurred_at,
+        signal_facts: Enum.map(evaluated.signal_facts, &SignalFact.metadata/1),
+        guardrail_evidence: first_guardrail_evidence(evaluated.signal_facts),
+        authored_snapshot: authored_snapshot,
+        correlation_id: correlation_id(command),
+        metadata: command.metadata
+      })
+    )
+    |> Multi.run(:audit_event, fn repo, %{decision: decision} ->
+      repo.insert(
+        audit_event_changeset(%AuditEvent{}, command, event_type, :ok, %{
+          environment_key: environment.key,
+          links: %{"guardrail_decision_id" => decision.id},
+          guardrail: first_guardrail_evidence(evaluated.signal_facts)
+        })
+      )
+    end)
+    |> Repo.transact()
+    |> case do
+      {:ok, %{decision: decision}} ->
+        {:ok, guardrail_status_payload(decision, active_ruleset_version(flag_environment))}
+
+      {:error, :decision, %Changeset{} = changeset, _changes} ->
+        {:error, store_changeset_error(changeset, command.flag_key, command.environment_key)}
+
+      {:error, _operation, reason, _changes} ->
+        {:error, StoreError.unavailable(cause: reason)}
+    end
+  end
+
+  defp rollback_from_stable_snapshot(
+         command,
+         environment,
+         flag,
+         flag_environment,
+         active_ruleset,
+         rollout_rule,
+         evaluated,
+         stable_target
+       ) do
+    published_at = now()
+    snapshot = stable_target.authored_snapshot || %{}
+
+    Multi.new()
+    |> Multi.insert(:ruleset, Ruleset.changeset(%Ruleset{}, %{
+      flag_environment_id: flag_environment.id,
+      version: next_ruleset_version(flag_environment.id),
+      status: :published,
+      salt: snapshot["salt"] || snapshot[:salt] || active_ruleset.salt,
+      published_at: published_at,
+      metadata: snapshot["metadata"] || snapshot[:metadata] || %{},
+      rules: snapshot["rules"] || snapshot[:rules] || []
+    }))
+    |> Multi.run(:flag_environment, fn repo, %{ruleset: ruleset} ->
+      flag_environment
+      |> FlagEnvironment.changeset(%{
+        active_ruleset_id: ruleset.id,
+        status: :active,
+        last_published_at: published_at
+      })
+      |> repo.update()
+    end)
+    |> Multi.update(:flag, Changeset.change(flag, updated_at: published_at))
+    |> Multi.run(:runtime_snapshot, fn repo, _changes ->
+      insert_runtime_snapshot(repo, environment, published_at)
+    end)
+    |> Multi.insert(
+      :decision,
+      GuardrailDecision.changeset(%GuardrailDecision{}, %{
+        flag_key: command.flag_key,
+        environment_key: environment.key,
+        rule_key: rollout_rule.key,
+        stage: command.stage,
+        tenant_key: command.metadata["tenant_key"] || get_in(command.metadata, ["tenant", "tenant_key"]),
+        decision_state: :rollback_triggered,
+        action_type: :rollback,
+        decision_reason: evaluated.reason,
+        effective_percentage: rollout_rule.rollout.percentage,
+        rollout_salt: rollout_rule.rollout.salt,
+        variant_fingerprint: variant_fingerprint(rollout_rule),
+        monitoring_window_started_at: command.monitoring_window_started_at,
+        monitoring_window_ends_at: command.monitoring_window_ends_at,
+        occurred_at: published_at,
+        signal_facts: Enum.map(evaluated.signal_facts, &SignalFact.metadata/1),
+        guardrail_evidence: first_guardrail_evidence(evaluated.signal_facts),
+        authored_snapshot: serialize_ruleset(active_ruleset),
+        rollback_target_snapshot: stable_target.authored_snapshot,
+        correlation_id: correlation_id(command),
+        metadata: command.metadata
+      })
+    )
+    |> Multi.run(:audit_event, fn repo, %{decision: decision, ruleset: ruleset} ->
+      repo.insert(
+        audit_event_changeset(%AuditEvent{}, command, "rollout.guardrail_rollback", :ok, %{
+          environment_key: environment.key,
+          before: ruleset_audit_state(active_ruleset),
+          after: ruleset_audit_state(ruleset),
+          diff: ruleset_position_diff(active_ruleset, ruleset),
+          links: %{
+            "guardrail_decision_id" => decision.id,
+            "stable_guardrail_decision_id" => stable_target.id
+          },
+          guardrail: first_guardrail_evidence(evaluated.signal_facts)
+        })
+      )
+    end)
+    |> Repo.transact()
+    |> case do
+      {:ok, %{decision: decision, ruleset: ruleset}} ->
+        {:ok, guardrail_status_payload(decision, ruleset.version)}
+
+      {:error, :ruleset, %Changeset{} = changeset, _changes} ->
+        {:error, ruleset_error(changeset, command.flag_key, command.environment_key)}
+
+      {:error, :flag_environment, %Changeset{} = changeset, _changes} ->
+        {:error, store_changeset_error(changeset, command.flag_key, command.environment_key)}
+
+      {:error, :decision, %Changeset{} = changeset, _changes} ->
+        {:error, store_changeset_error(changeset, command.flag_key, command.environment_key)}
+
+      {:error, _operation, reason, _changes} ->
+        {:error, StoreError.unavailable(cause: reason)}
+    end
+  end
+
+  defp latest_guardrail_decision(%Command.FetchGuardrailStatus{} = command) do
+    GuardrailDecision
+    |> where(
+      [decision],
+      decision.flag_key == ^to_string(command.flag_key) and
+        decision.environment_key == ^to_string(command.environment_key)
+    )
+    |> maybe_filter_guardrail_decision_rule(command.rule_key)
+    |> maybe_filter_guardrail_decision_stage(command.stage)
+    |> order_by([decision], desc: decision.occurred_at, desc: decision.inserted_at)
+    |> limit(1)
+    |> Repo.one()
+  end
+
+  defp latest_stable_guardrail_snapshot(
+         flag_key,
+         environment_key,
+         rule_key,
+         rollout_salt,
+         variant_fingerprint,
+         correlation_id
+       ) do
+    GuardrailDecision
+    |> where(
+      [decision],
+      decision.flag_key == ^to_string(flag_key) and
+        decision.environment_key == ^to_string(environment_key) and
+        decision.rule_key == ^to_string(rule_key) and
+        decision.decision_state == :healthy and
+        decision.rollout_salt == ^rollout_salt and
+        decision.variant_fingerprint == ^variant_fingerprint and
+        not is_nil(decision.authored_snapshot) and
+        decision.correlation_id != ^correlation_id
+    )
+    |> order_by([decision], desc: decision.occurred_at, desc: decision.inserted_at)
+    |> limit(1)
+    |> Repo.one()
+  end
+
+  defp maybe_filter_guardrail_decision_rule(query, nil), do: query
+  defp maybe_filter_guardrail_decision_rule(query, rule_key), do: where(query, [decision], decision.rule_key == ^to_string(rule_key))
+
+  defp maybe_filter_guardrail_decision_stage(query, nil), do: query
+  defp maybe_filter_guardrail_decision_stage(query, stage), do: where(query, [decision], decision.stage == ^to_string(stage))
+
+  defp guardrail_status_payload(%GuardrailDecision{} = decision, active_ruleset_version) do
+    %{
+      flag_key: decision.flag_key,
+      environment_key: decision.environment_key,
+      rule_key: decision.rule_key,
+      stage: decision.stage,
+      active_ruleset_version: active_ruleset_version,
+      decision: GuardrailDecision.serialize(decision)
+    }
+  end
+
+  defp first_guardrail_evidence([]), do: %{}
+  defp first_guardrail_evidence([fact | _rest]), do: SignalFact.metadata(fact)
+
+  defp variant_fingerprint(rule) do
+    rule.variants
+    |> Enum.map(fn variant ->
+      %{
+        key: variant.key,
+        weight: variant.weight,
+        value: variant.value
+      }
+    end)
+    |> Jason.encode!()
   end
 
   defp finalize_scheduled_execution_success(
@@ -4143,6 +4668,9 @@ defmodule Rulestead.Store.Ecto do
   defp active_ruleset(%{active_ruleset_id: active_ruleset_id}) do
     Repo.get(Ruleset, active_ruleset_id)
   end
+
+  defp active_ruleset_version(%FlagEnvironment{active_ruleset: %Ruleset{version: version}}), do: version
+  defp active_ruleset_version(%FlagEnvironment{}), do: nil
 
   defp ruleset_audit_metadata(previous_ruleset, ruleset) do
     before = ruleset_audit_state(previous_ruleset)

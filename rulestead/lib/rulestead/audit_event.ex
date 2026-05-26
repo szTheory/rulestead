@@ -47,6 +47,12 @@ defmodule Rulestead.AuditEvent do
       |> Kernel.||(Map.get(attrs, :tenant_provenance) || Map.get(attrs, "tenant_provenance"))
       |> Command.GovernanceSupport.normalize_tenant_provenance()
 
+    guardrail =
+      attrs
+      |> Map.get(:guardrail, Map.get(attrs, "guardrail"))
+      |> Kernel.||(Map.get(attrs, :guardrail_evidence) || Map.get(attrs, "guardrail_evidence"))
+      |> Command.GovernanceSupport.normalize_guardrail_metadata()
+
     %{
       "before" => before,
       "after" => after_map,
@@ -57,6 +63,7 @@ defmodule Rulestead.AuditEvent do
     |> maybe_put("ownership_transition", ownership_transition(before, after_map, diff))
     |> maybe_put("lifecycle_transition", lifecycle_transition(before, after_map, diff))
     |> maybe_put("tenant", tenant)
+    |> maybe_put("guardrail", if(map_size(guardrail) == 0, do: nil, else: guardrail))
     |> maybe_put("request_id", Map.get(attrs, :request_id) || Map.get(attrs, "request_id"))
     |> maybe_put("source", Map.get(attrs, :source) || Map.get(attrs, "source"))
     |> maybe_put(

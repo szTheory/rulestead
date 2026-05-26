@@ -466,7 +466,29 @@ defmodule Rulestead.Promotion.Compare do
     %{
       bucket_by: Map.get(rollout, :bucket_by) || Map.get(rollout, "bucket_by"),
       percentage: Map.get(rollout, :percentage) || Map.get(rollout, "percentage"),
-      salt: Map.get(rollout, :salt) || Map.get(rollout, "salt")
+      salt: Map.get(rollout, :salt) || Map.get(rollout, "salt"),
+      guardrails:
+        rollout
+        |> Map.get(:guardrails, Map.get(rollout, "guardrails", []))
+        |> Enum.map(&canonical_guardrail/1)
+    }
+  end
+
+  defp canonical_guardrail(guardrail) do
+    %{
+      signal_key: Map.get(guardrail, :signal_key) || Map.get(guardrail, "signal_key"),
+      threshold_operator:
+        Map.get(guardrail, :threshold_operator) || Map.get(guardrail, "threshold_operator"),
+      threshold_value:
+        Map.get(guardrail, :threshold_value) || Map.get(guardrail, "threshold_value"),
+      freshness_window_seconds:
+        Map.get(guardrail, :freshness_window_seconds) ||
+          Map.get(guardrail, "freshness_window_seconds"),
+      min_sample_size:
+        Map.get(guardrail, :min_sample_size) || Map.get(guardrail, "min_sample_size"),
+      environment_scope:
+        Map.get(guardrail, :environment_scope) || Map.get(guardrail, "environment_scope"),
+      tenant_scope: Map.get(guardrail, :tenant_scope) || Map.get(guardrail, "tenant_scope")
     }
   end
 

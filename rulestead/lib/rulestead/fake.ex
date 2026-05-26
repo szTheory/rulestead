@@ -17,6 +17,8 @@ defmodule Rulestead.Fake do
     Environment,
     EnvironmentVersion,
     Flag,
+    Guardrails.Decision,
+    Guardrails.SignalFact,
     Governance.Approval,
     Governance.ChangeRequest,
     Governance.ExecutionAttempt,
@@ -48,6 +50,7 @@ defmodule Rulestead.Fake do
           approvals: %{required(String.t()) => [map()]},
           scheduled_executions: %{required(String.t()) => map()},
           execution_attempts: %{required(String.t()) => [map()]},
+          guardrail_decisions: [map()],
           audit_events: [map()],
           environment_versions: %{required(String.t()) => %{required(pos_integer()) => map()}},
           snapshots: %{required(String.t()) => %{required(pos_integer()) => map()}},
@@ -148,6 +151,21 @@ defmodule Rulestead.Fake do
   @impl Store
   def record_evaluation(%Command.RecordEvaluation{} = command) do
     call({:record_evaluation, command})
+  end
+
+  @impl Store
+  def advance_rollout(%Command.AdvanceRollout{} = command) do
+    call({:advance_rollout, command})
+  end
+
+  @impl Store
+  def evaluate_guarded_rollout(%Command.EvaluateGuardedRollout{} = command) do
+    call({:evaluate_guarded_rollout, command})
+  end
+
+  @impl Store
+  def fetch_guardrail_status(%Command.FetchGuardrailStatus{} = command) do
+    call({:fetch_guardrail_status, command})
   end
 
   @impl Store
@@ -733,6 +751,139 @@ defmodule Rulestead.Fake do
     case reply do
       {:ok, payload, next_state} -> {:reply, {:ok, payload}, next_state}
       {:error, error} -> {:reply, {:error, error}, state}
+    end
+  end
+
+  def handle_call({:advance_rollout, command}, _from, state) do
+    case with_mutable_context(state, command.flag_key, command.environment_key, fn flag,
+                                                                                   environment,
+                                                                                   flag_environment ->
+           with {:ok, active_ruleset} <- ensure_active_ruleset_in_state(flag_environment, flag, environment.key),
+                {:ok, rollout_rule} <- resolve_rollout_rule_in_state(active_ruleset, command.rule_key),
+                {:ok, percentage} <- ensure_rollout_percentage_in_state(command.percentage),
+                {:ok, next_ruleset_attrs} <- advanced_ruleset_attrs_in_state(active_ruleset, rollout_rule.key, percentage) do
+             version = next_ruleset_version(state, command.flag_key, environment.key)
+
+             ruleset = %{
+               id: Ecto.UUID.generate(),
+               version: version,
+               status: :published,
+               salt: next_ruleset_attrs.salt,
+               published_at: state.now,
+               metadata: next_ruleset_attrs.metadata,
+               rules: next_ruleset_attrs.rules,
+               inserted_at: state.now,
+               updated_at: state.now
+             }
+
+             next_state =
+               state
+               |> put_ruleset(command.flag_key, environment.key, ruleset)
+               |> put_in(
+                 [:flags, to_string(command.flag_key), :environments, environment.key],
+                 %{
+                   flag_environment
+                   | active_ruleset_version: version,
+                     status: :active,
+                     last_published_at: state.now,
+                     updated_at: state.now
+                 }
+               )
+               |> put_runtime_snapshot(environment.key)
+
+             decision =
+               build_guardrail_decision(%{
+                 flag_key: command.flag_key,
+                 environment_key: environment.key,
+                 rule_key: rollout_rule.key,
+                 stage: command.stage,
+                 decision_state: :pending_data,
+                 action_type: :advance,
+                 decision_reason: "monitoring_window_active",
+                 effective_percentage: percentage,
+                 rollout_salt: rollout_rule.rollout.salt,
+                 variant_fingerprint: variant_fingerprint_in_state(rollout_rule),
+                 monitoring_window_started_at: command.monitoring_window_started_at || state.now,
+                 monitoring_window_ends_at: command.monitoring_window_ends_at,
+                 occurred_at: state.now,
+                 signal_facts: Enum.map(command.signal_facts, &SignalFact.metadata/1),
+                 guardrail_evidence: first_guardrail_evidence_in_state(command.signal_facts),
+                 authored_snapshot: ruleset,
+                 correlation_id: command.metadata["request_id"] || Ecto.UUID.generate(),
+                 metadata: command.metadata
+               })
+
+             {audit_event, next_state} =
+               append_audit_event(next_state, command, "rollout.advance", :ok,
+                 before: ruleset_audit_state(active_ruleset),
+                 after: ruleset_audit_state(ruleset),
+                 diff: ruleset_position_diff(active_ruleset, ruleset),
+                 links: %{"guardrail_decision_id" => decision.id}
+               )
+
+             next_state = %{
+               next_state
+               | guardrail_decisions: [decision | next_state.guardrail_decisions],
+                 audit_events: [audit_event | next_state.audit_events]
+             }
+
+             {:ok, guardrail_status_payload_in_state(decision, version), next_state}
+           end
+         end) do
+      {:ok, payload, next_state} -> {:reply, {:ok, payload}, next_state}
+      {:error, error} -> {:reply, {:error, error}, state}
+    end
+  end
+
+  def handle_call({:evaluate_guarded_rollout, command}, _from, state) do
+    case with_mutable_context(state, command.flag_key, command.environment_key, fn flag,
+                                                                                   environment,
+                                                                                   flag_environment ->
+           with {:ok, active_ruleset} <- ensure_active_ruleset_in_state(flag_environment, flag, environment.key),
+                {:ok, rollout_rule} <- resolve_rollout_rule_in_state(active_ruleset, command.rule_key) do
+             evaluated =
+               Decision.evaluate(command.signal_facts,
+                 evaluated_at: state.now,
+                 monitoring_window_ends_at: command.monitoring_window_ends_at
+               )
+
+             persist_guardrail_evaluation_in_state(
+               state,
+               command,
+               environment,
+               flag_environment,
+               active_ruleset,
+               rollout_rule,
+               evaluated
+             )
+           end
+         end) do
+      {:ok, payload, next_state} -> {:reply, {:ok, payload}, next_state}
+      {:error, error} -> {:reply, {:error, error}, state}
+    end
+  end
+
+  def handle_call({:fetch_guardrail_status, command}, _from, state) do
+    decision =
+      state.guardrail_decisions
+      |> Enum.filter(fn entry ->
+        entry.flag_key == to_string(command.flag_key) and
+          entry.environment_key == to_string(command.environment_key) and
+          (is_nil(command.rule_key) or entry.rule_key == command.rule_key) and
+          (is_nil(command.stage) or entry.stage == command.stage)
+      end)
+      |> Enum.sort_by(& &1.occurred_at, {:desc, DateTime})
+      |> List.first()
+
+    case decision do
+      nil ->
+        {:reply, {:error, StoreError.invalid_command("guardrail status was not found")}, state}
+
+      decision ->
+        active_ruleset_version =
+          state.flags[to_string(command.flag_key)].environments[to_string(command.environment_key)].active_ruleset_version
+
+        {:reply, {:ok, guardrail_status_payload_in_state(decision, active_ruleset_version)}, state}
     end
   end
 
@@ -1607,6 +1758,7 @@ defmodule Rulestead.Fake do
       approvals: %{},
       scheduled_executions: %{},
       execution_attempts: %{},
+      guardrail_decisions: [],
       audit_events: [],
       environment_versions: %{},
       flags: %{},
@@ -2492,15 +2644,30 @@ defmodule Rulestead.Fake do
     end
   end
 
-  defp execute_bounded_governed_change(state, "advance_rollout", change_request, _command) do
-    with {:ok, _environment, _flag, flag_environment} <-
-           fetch_schedulable_flag_context(
-             state,
+  defp execute_bounded_governed_change(state, "advance_rollout", change_request, command) do
+    case handle_advance_rollout_in_state(
+           state,
+           Command.AdvanceRollout.new(
              change_request.resource_key,
-             change_request.environment_key
-           ),
-         :ok <- ensure_rollout_stage_available(flag_environment, change_request.command_snapshot) do
-      {:error, "rollout_stage_conflict", state}
+             change_request.environment_key,
+             Map.merge(
+               change_request.command_snapshot["rollout"] || change_request.command_snapshot,
+               %{"signal_facts" => change_request.command_snapshot["signal_facts"]}
+             ),
+             actor: command.actor,
+             reason: command.reason,
+             metadata: %{
+               request_id: change_request.correlation_id,
+               source: change_request.metadata["source"],
+               change_request_id: change_request.id,
+               governance_action: change_request.governed_action,
+               execution_stage: "execute",
+               tenant: change_request.command_snapshot["tenant"]
+             }
+           )
+         ) do
+      {:ok, payload, next_state} -> {:ok, payload, next_state}
+      {:error, error} -> {:error, error, state}
     end
   end
 
@@ -2648,17 +2815,28 @@ defmodule Rulestead.Fake do
     end
   end
 
-  defp execute_direct_scheduled_action(state, "advance_rollout", scheduled_execution, _command) do
-    with {:ok, _environment, _flag, flag_environment} <-
-           fetch_schedulable_flag_context(
-             state,
+  defp execute_direct_scheduled_action(state, "advance_rollout", scheduled_execution, command) do
+    case handle_advance_rollout_in_state(
+           state,
+           Command.AdvanceRollout.new(
              scheduled_execution.resource_key,
-             scheduled_execution.environment_key
-           ),
-         :ok <-
-           ensure_rollout_stage_available(flag_environment, scheduled_execution.command_snapshot) do
-      {:error, "rollout_stage_conflict", state}
-    else
+             scheduled_execution.environment_key,
+             Map.merge(
+               scheduled_execution.command_snapshot["rollout"] || scheduled_execution.command_snapshot,
+               %{"signal_facts" => scheduled_execution.command_snapshot["signal_facts"]}
+             ),
+             actor: command.actor,
+             reason: command.reason,
+             metadata: %{
+               request_id: scheduled_execution.correlation_id,
+               source: scheduled_execution.metadata["source"],
+               scheduled_execution_id: scheduled_execution.id,
+               execution_stage: "scheduled_execution",
+               tenant: scheduled_execution.command_snapshot["tenant"]
+             }
+           )
+         ) do
+      {:ok, payload, next_state} -> {:ok, payload, next_state}
       {:error, error} -> {:error, error, state}
     end
   end
@@ -2777,8 +2955,413 @@ defmodule Rulestead.Fake do
     end
   end
 
-  defp ensure_rollout_stage_available(_flag_environment, _command_snapshot),
-    do: {:error, "rollout_stage_conflict"}
+  defp handle_advance_rollout_in_state(state, %Command.AdvanceRollout{} = command) do
+    with_mutable_context(state, command.flag_key, command.environment_key, fn flag,
+                                                                             environment,
+                                                                             flag_environment ->
+      with {:ok, active_ruleset} <- ensure_active_ruleset_in_state(flag_environment, flag, environment.key),
+           {:ok, rollout_rule} <- resolve_rollout_rule_in_state(active_ruleset, command.rule_key),
+           {:ok, percentage} <- ensure_rollout_percentage_in_state(command.percentage),
+           {:ok, next_ruleset_attrs} <- advanced_ruleset_attrs_in_state(active_ruleset, rollout_rule.key, percentage) do
+        version = next_ruleset_version(state, command.flag_key, environment.key)
+
+        ruleset = %{
+          id: Ecto.UUID.generate(),
+          version: version,
+          status: :published,
+          salt: next_ruleset_attrs.salt,
+          published_at: state.now,
+          metadata: next_ruleset_attrs.metadata,
+          rules: next_ruleset_attrs.rules,
+          inserted_at: state.now,
+          updated_at: state.now
+        }
+
+        next_state =
+          state
+          |> put_ruleset(command.flag_key, environment.key, ruleset)
+          |> put_in(
+            [:flags, to_string(command.flag_key), :environments, environment.key],
+            %{
+              flag_environment
+              | active_ruleset_version: version,
+                status: :active,
+                last_published_at: state.now,
+                updated_at: state.now
+            }
+          )
+          |> put_runtime_snapshot(environment.key)
+
+        decision =
+          build_guardrail_decision(%{
+            flag_key: command.flag_key,
+            environment_key: environment.key,
+            rule_key: rollout_rule.key,
+            stage: command.stage,
+            decision_state: :pending_data,
+            action_type: :advance,
+            decision_reason: "monitoring_window_active",
+            effective_percentage: percentage,
+            rollout_salt: rollout_rule.rollout.salt,
+            variant_fingerprint: variant_fingerprint_in_state(rollout_rule),
+            monitoring_window_started_at: command.monitoring_window_started_at || state.now,
+            monitoring_window_ends_at: command.monitoring_window_ends_at,
+            occurred_at: state.now,
+            signal_facts: Enum.map(command.signal_facts, &SignalFact.metadata/1),
+            guardrail_evidence: first_guardrail_evidence_in_state(command.signal_facts),
+            authored_snapshot: ruleset,
+            correlation_id: command.metadata["request_id"] || Ecto.UUID.generate(),
+            metadata: command.metadata
+          })
+
+        {audit_event, next_state} =
+          append_audit_event(next_state, command, "rollout.advance", :ok,
+            before: ruleset_audit_state(active_ruleset),
+            after: ruleset_audit_state(ruleset),
+            diff: ruleset_position_diff(active_ruleset, ruleset),
+            links: %{"guardrail_decision_id" => decision.id}
+          )
+
+        next_state = %{
+          next_state
+          | guardrail_decisions: [decision | next_state.guardrail_decisions],
+            audit_events: [audit_event | next_state.audit_events]
+        }
+
+        {:ok, guardrail_status_payload_in_state(decision, version), next_state}
+      end
+    end)
+  end
+
+  defp persist_guardrail_evaluation_in_state(
+         state,
+         command,
+         environment,
+         flag_environment,
+         active_ruleset,
+         rollout_rule,
+         evaluated
+       ) do
+    stable_target =
+      if evaluated.state == :rollback_triggered do
+        latest_stable_guardrail_snapshot_in_state(
+          state,
+          command.flag_key,
+          environment.key,
+          rollout_rule.key,
+          rollout_rule.rollout.salt,
+          variant_fingerprint_in_state(rollout_rule),
+          command.metadata["request_id"]
+        )
+      end
+
+    cond do
+      evaluated.state == :rollback_triggered and stable_target ->
+        rollback_guardrail_in_state(
+          state,
+          command,
+          environment,
+          flag_environment,
+          active_ruleset,
+          rollout_rule,
+          evaluated,
+          stable_target
+        )
+
+      evaluated.state == :rollback_triggered ->
+        persist_guardrail_decision_in_state(
+          state,
+          command,
+          environment,
+          flag_environment,
+          active_ruleset,
+          rollout_rule,
+          %{evaluated | state: :held, reason: "stable_target_missing"},
+          :hold,
+          "rollout.guardrail_held"
+        )
+
+      evaluated.state == :held ->
+        persist_guardrail_decision_in_state(
+          state,
+          command,
+          environment,
+          flag_environment,
+          active_ruleset,
+          rollout_rule,
+          evaluated,
+          :hold,
+          "rollout.guardrail_held"
+        )
+
+      true ->
+        persist_guardrail_decision_in_state(
+          state,
+          command,
+          environment,
+          flag_environment,
+          active_ruleset,
+          rollout_rule,
+          evaluated,
+          :evaluate,
+          "rollout.guardrail_evaluated"
+        )
+    end
+  end
+
+  defp persist_guardrail_decision_in_state(
+         state,
+         command,
+         environment,
+         flag_environment,
+         active_ruleset,
+         rollout_rule,
+         evaluated,
+         action_type,
+         event_type
+       ) do
+    authored_snapshot =
+      if evaluated.state == :healthy and evaluated.monitoring_window_closed? do
+        active_ruleset
+      end
+
+    decision =
+      build_guardrail_decision(%{
+        flag_key: command.flag_key,
+        environment_key: environment.key,
+        rule_key: rollout_rule.key,
+        stage: command.stage,
+        decision_state: evaluated.state,
+        action_type: action_type,
+        decision_reason: evaluated.reason,
+        effective_percentage: rollout_rule.rollout.percentage,
+        rollout_salt: rollout_rule.rollout.salt,
+        variant_fingerprint: variant_fingerprint_in_state(rollout_rule),
+        monitoring_window_started_at: command.monitoring_window_started_at,
+        monitoring_window_ends_at: command.monitoring_window_ends_at,
+        occurred_at: state.now,
+        signal_facts: Enum.map(evaluated.signal_facts, &SignalFact.metadata/1),
+        guardrail_evidence: first_guardrail_evidence_in_state(evaluated.signal_facts),
+        authored_snapshot: authored_snapshot,
+        correlation_id: command.metadata["request_id"] || Ecto.UUID.generate(),
+        metadata: command.metadata
+      })
+
+    {audit_event, next_state} =
+      append_audit_event(state, command, event_type, :ok,
+        links: %{"guardrail_decision_id" => decision.id},
+        guardrail: first_guardrail_evidence_in_state(evaluated.signal_facts)
+      )
+
+    next_state = %{
+      next_state
+      | guardrail_decisions: [decision | next_state.guardrail_decisions],
+        audit_events: [audit_event | next_state.audit_events]
+    }
+
+    {:ok,
+     guardrail_status_payload_in_state(decision, flag_environment.active_ruleset_version),
+     next_state}
+  end
+
+  defp rollback_guardrail_in_state(
+         state,
+         command,
+         environment,
+         flag_environment,
+         active_ruleset,
+         rollout_rule,
+         evaluated,
+         stable_target
+       ) do
+    version = next_ruleset_version(state, command.flag_key, environment.key)
+
+    ruleset =
+      stable_target.authored_snapshot
+      |> Map.put(:id, Ecto.UUID.generate())
+      |> Map.put(:version, version)
+      |> Map.put(:status, :published)
+      |> Map.put(:published_at, state.now)
+      |> Map.put(:updated_at, state.now)
+      |> Map.put(:inserted_at, state.now)
+
+    next_state =
+      state
+      |> put_ruleset(command.flag_key, environment.key, ruleset)
+      |> put_in(
+        [:flags, to_string(command.flag_key), :environments, environment.key],
+        %{
+          flag_environment
+          | active_ruleset_version: version,
+            status: :active,
+            last_published_at: state.now,
+            updated_at: state.now
+        }
+      )
+      |> put_runtime_snapshot(environment.key)
+
+    decision =
+      build_guardrail_decision(%{
+        flag_key: command.flag_key,
+        environment_key: environment.key,
+        rule_key: rollout_rule.key,
+        stage: command.stage,
+        decision_state: :rollback_triggered,
+        action_type: :rollback,
+        decision_reason: evaluated.reason,
+        effective_percentage: rollout_rule.rollout.percentage,
+        rollout_salt: rollout_rule.rollout.salt,
+        variant_fingerprint: variant_fingerprint_in_state(rollout_rule),
+        monitoring_window_started_at: command.monitoring_window_started_at,
+        monitoring_window_ends_at: command.monitoring_window_ends_at,
+        occurred_at: state.now,
+        signal_facts: Enum.map(evaluated.signal_facts, &SignalFact.metadata/1),
+        guardrail_evidence: first_guardrail_evidence_in_state(evaluated.signal_facts),
+        authored_snapshot: active_ruleset,
+        rollback_target_snapshot: stable_target.authored_snapshot,
+        correlation_id: command.metadata["request_id"] || Ecto.UUID.generate(),
+        metadata: command.metadata
+      })
+
+    {audit_event, next_state} =
+      append_audit_event(next_state, command, "rollout.guardrail_rollback", :ok,
+        before: ruleset_audit_state(active_ruleset),
+        after: ruleset_audit_state(ruleset),
+        diff: ruleset_position_diff(active_ruleset, ruleset),
+        links: %{
+          "guardrail_decision_id" => decision.id,
+          "stable_guardrail_decision_id" => stable_target.id
+        },
+        guardrail: first_guardrail_evidence_in_state(evaluated.signal_facts)
+      )
+
+    next_state = %{
+      next_state
+      | guardrail_decisions: [decision | next_state.guardrail_decisions],
+        audit_events: [audit_event | next_state.audit_events]
+    }
+
+    {:ok, guardrail_status_payload_in_state(decision, version), next_state}
+  end
+
+  defp ensure_active_ruleset_in_state(%{active_ruleset_version: nil}, _flag, _environment_key),
+    do: {:error, StoreError.invalid_command("rollout_stage_conflict")}
+
+  defp ensure_active_ruleset_in_state(flag_environment, flag, environment_key) do
+    case active_ruleset_payload(flag, environment_key, flag_environment.active_ruleset_version) do
+      nil -> {:error, StoreError.invalid_command("rollout_stage_conflict")}
+      ruleset -> {:ok, ruleset}
+    end
+  end
+
+  defp resolve_rollout_rule_in_state(ruleset, nil) do
+    rollout_rules = Enum.filter(ruleset.rules, &(not is_nil(&1.rollout)))
+
+    case rollout_rules do
+      [rule] -> {:ok, rule}
+      _other -> {:error, StoreError.invalid_command("rollout_stage_conflict")}
+    end
+  end
+
+  defp resolve_rollout_rule_in_state(ruleset, rule_key) do
+    case Enum.find(ruleset.rules, &(&1.key == rule_key and not is_nil(&1.rollout))) do
+      nil -> {:error, StoreError.invalid_command("rollout_stage_conflict")}
+      rule -> {:ok, rule}
+    end
+  end
+
+  defp ensure_rollout_percentage_in_state(percentage)
+       when is_integer(percentage) and percentage >= 0 and percentage <= 100,
+       do: {:ok, percentage}
+
+  defp ensure_rollout_percentage_in_state(_percentage),
+    do: {:error, StoreError.invalid_command("rollout_stage_conflict")}
+
+  defp advanced_ruleset_attrs_in_state(ruleset, rule_key, percentage) do
+    rules =
+      Enum.map(ruleset.rules, fn rule ->
+        if rule.key == rule_key and rule.rollout do
+          put_in(rule.rollout.percentage, percentage)
+        else
+          rule
+        end
+      end)
+
+    {:ok, %{salt: ruleset.salt, metadata: ruleset.metadata, rules: rules}}
+  end
+
+  defp latest_stable_guardrail_snapshot_in_state(
+         state,
+         flag_key,
+         environment_key,
+         rule_key,
+         rollout_salt,
+         variant_fingerprint,
+         correlation_id
+       ) do
+    state.guardrail_decisions
+    |> Enum.filter(fn decision ->
+      decision.flag_key == to_string(flag_key) and
+        decision.environment_key == to_string(environment_key) and
+        decision.rule_key == to_string(rule_key) and
+        decision.decision_state == :healthy and
+        not is_nil(decision.authored_snapshot) and
+        decision.rollout_salt == rollout_salt and
+        decision.variant_fingerprint == variant_fingerprint and
+        decision.correlation_id != correlation_id
+    end)
+    |> Enum.sort_by(& &1.occurred_at, {:desc, DateTime})
+    |> List.first()
+  end
+
+  defp build_guardrail_decision(attrs) do
+    %{
+      id: Ecto.UUID.generate(),
+      flag_key: to_string(attrs.flag_key),
+      environment_key: to_string(attrs.environment_key),
+      rule_key: to_string(attrs.rule_key),
+      stage: to_string(attrs.stage),
+      tenant_key: attrs[:tenant_key],
+      decision_state: attrs.decision_state,
+      action_type: attrs.action_type,
+      decision_reason: attrs.decision_reason,
+      effective_percentage: attrs[:effective_percentage],
+      rollout_salt: attrs[:rollout_salt],
+      variant_fingerprint: attrs[:variant_fingerprint],
+      monitoring_window_started_at: attrs[:monitoring_window_started_at],
+      monitoring_window_ends_at: attrs[:monitoring_window_ends_at],
+      occurred_at: attrs.occurred_at,
+      signal_facts: attrs[:signal_facts] || [],
+      guardrail_evidence: attrs[:guardrail_evidence] || %{},
+      authored_snapshot: attrs[:authored_snapshot],
+      rollback_target_snapshot: attrs[:rollback_target_snapshot],
+      correlation_id: attrs[:correlation_id],
+      metadata: attrs[:metadata] || %{},
+      inserted_at: attrs.occurred_at
+    }
+  end
+
+  defp guardrail_status_payload_in_state(decision, active_ruleset_version) do
+    %{
+      flag_key: decision.flag_key,
+      environment_key: decision.environment_key,
+      rule_key: decision.rule_key,
+      stage: decision.stage,
+      active_ruleset_version: active_ruleset_version,
+      decision: decision
+    }
+  end
+
+  defp first_guardrail_evidence_in_state([]), do: %{}
+  defp first_guardrail_evidence_in_state([fact | _rest]), do: SignalFact.metadata(fact)
+
+  defp variant_fingerprint_in_state(rule) do
+    rule.variants
+    |> Enum.map(fn variant ->
+      %{key: variant.key, weight: variant.weight, value: variant.value}
+    end)
+    |> Jason.encode!()
+  end
 
   defp execute_kill_switch_transition(
          state,
@@ -4192,7 +4775,20 @@ defmodule Rulestead.Fake do
     %{
       bucket_by: rollout.bucket_by,
       percentage: rollout.percentage,
-      salt: rollout.salt
+      salt: rollout.salt,
+      guardrails: Enum.map(rollout.guardrails || [], &serialize_guardrail/1)
+    }
+  end
+
+  defp serialize_guardrail(guardrail) do
+    %{
+      signal_key: guardrail.signal_key,
+      threshold_operator: guardrail.threshold_operator,
+      threshold_value: guardrail.threshold_value,
+      freshness_window_seconds: guardrail.freshness_window_seconds,
+      min_sample_size: guardrail.min_sample_size,
+      environment_scope: guardrail.environment_scope,
+      tenant_scope: guardrail.tenant_scope
     }
   end
 
