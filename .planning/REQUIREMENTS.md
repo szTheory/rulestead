@@ -14,10 +14,10 @@
 
 ### Dependency Truth And Promotion Safety (`DEP`)
 
-- [ ] **DEP-01**: Operators and support tooling can query core-owned audience reference inventory with stable reference counts, affected flag/ruleset/rule metadata, lifecycle/rollout hints, and authorization-safe redaction for resources they cannot view.
-- [ ] **DEP-02**: Audience archive/delete and ruleset publish validation block unresolved, archived, incompatible, stale, or tenant-mismatched audience references before they can create broken runtime snapshots.
-- [ ] **DEP-03**: Environment compare, promotion preview/apply, replay/re-apply, manifest export, manifest import, and manifest validation surface readable audience dependency findings and fail closed on missing or incompatible reusable targeting assets.
-- [ ] **DEP-04**: Dependency and impact outputs sort by stable semantic keys and carry environment/tenant scope explicitly so same-name or cross-scope audience definitions cannot be mistaken for equivalent dependencies.
+- [x] **DEP-01**: Operators and support tooling can query core-owned audience reference inventory with stable reference counts, affected flag/ruleset/rule metadata, lifecycle/rollout hints, and authorization-safe redaction for resources they cannot view.
+- [x] **DEP-02**: Audience archive/delete and ruleset publish validation block unresolved, archived, incompatible, stale, or tenant-mismatched audience references before they can create broken runtime snapshots.
+- [x] **DEP-03**: Environment compare, promotion preview/apply, replay/re-apply, manifest export, manifest import, and manifest validation surface readable audience dependency findings and fail closed on missing or incompatible reusable targeting assets.
+- [x] **DEP-04**: Dependency and impact outputs sort by stable semantic keys and carry environment/tenant scope explicitly so same-name or cross-scope audience definitions cannot be mistaken for equivalent dependencies.
 
 ### Explainability And Mounted Operator Workflows (`ADM`)
 
@@ -104,10 +104,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | IMP-02 | Phase 53 | Complete |
 | IMP-03 | Phase 53 | Complete |
 | IMP-04 | Phase 53 | Complete |
-| DEP-01 | Phase 54 | Pending |
-| DEP-02 | Phase 54 | Pending |
-| DEP-03 | Phase 54 | Pending |
-| DEP-04 | Phase 54 | Pending |
+| DEP-01 | Phase 54 | Complete |
+| DEP-02 | Phase 54 | Complete |
+| DEP-03 | Phase 54 | Complete |
+| DEP-04 | Phase 54 | Complete |
 | ADM-01 | Phase 55 | Pending |
 | ADM-02 | Phase 55 | Pending |
 | ADM-03 | Phase 55 | Pending |
@@ -117,6 +117,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | VER-03 | Phase 56 | Pending |
 
 **Coverage:**
+
 - v1.6.0 requirements: 15 total
 - Mapped to phases: 15
 - Unmapped: 0
