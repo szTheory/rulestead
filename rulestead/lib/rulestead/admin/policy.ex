@@ -25,12 +25,14 @@ defmodule Rulestead.Admin.Policy do
           | :fetch_webhook_record
           | :read_diagnostics
           | :compare_environments
+          | :preview_audience_impact
 
   @type editor_action ::
           :create_flag
           | :update_flag
           | :archive_flag
           | :save_draft
+          | :apply_audience_mutation
           | :submit_change_request
           | :cancel_own_change_request
           | :create_schedule
@@ -74,7 +76,8 @@ defmodule Rulestead.Admin.Policy do
     :list_webhook_records,
     :fetch_webhook_record,
     :read_diagnostics,
-    :compare_environments
+    :compare_environments,
+    :preview_audience_impact
   ]
 
   @editor_actions [
@@ -82,6 +85,7 @@ defmodule Rulestead.Admin.Policy do
     :update_flag,
     :archive_flag,
     :save_draft,
+    :apply_audience_mutation,
     :submit_change_request,
     :cancel_own_change_request,
     :create_schedule

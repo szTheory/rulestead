@@ -28,6 +28,7 @@ defmodule Rulestead do
     Runtime,
     Store,
     StoreError,
+    Targeting.ImpactPreview,
     Telemetry
   }
 
@@ -895,6 +896,41 @@ defmodule Rulestead do
   end
 
   @doc """
+  Previews the bounded impact of a reusable audience mutation.
+  """
+  @spec preview_audience_impact(String.t() | atom(), String.t() | atom(), keyword()) ::
+          Store.result(map())
+  def preview_audience_impact(audience_key, operation, opts \\ []) do
+    audience_key
+    |> Command.PreviewAudienceImpact.new(operation, opts)
+    |> preview_audience_impact()
+  end
+
+  @spec preview_audience_impact(Command.PreviewAudienceImpact.t()) :: Store.result(map())
+  def preview_audience_impact(%Command.PreviewAudienceImpact{} = command) do
+    admin_read(:preview_audience_impact, command)
+  end
+
+  @doc """
+  Applies a reusable audience mutation after validating fresh preview evidence.
+  """
+  @spec apply_audience_mutation(Command.ApplyAudienceMutation.t() | map() | keyword(), keyword()) ::
+          Store.result(map())
+  def apply_audience_mutation(command_or_attrs, opts \\ [])
+
+  def apply_audience_mutation(%Command.ApplyAudienceMutation{} = command, _opts) do
+    with :ok <- validate_audience_mutation_confirmation(command) do
+      admin_write(:apply_audience_mutation, command)
+    end
+  end
+
+  def apply_audience_mutation(attrs, opts) when is_map(attrs) or is_list(attrs) do
+    attrs
+    |> Command.ApplyAudienceMutation.new(opts)
+    |> apply_audience_mutation()
+  end
+
+  @doc """
   Records bounded evaluation freshness for one flag/environment pair.
   """
   @spec record_evaluation(Command.RecordEvaluation.t()) :: Store.result(map())
@@ -1491,6 +1527,14 @@ defmodule Rulestead do
     Map.put(command, :metadata, redacted_metadata.audit)
   end
 
+  defp command_resource(%Command.PreviewAudienceImpact{audience_key: audience_key}) do
+    %{resource_type: :audience, resource_key: audience_key}
+  end
+
+  defp command_resource(%Command.ApplyAudienceMutation{audience_key: audience_key}) do
+    %{resource_type: :audience, resource_key: audience_key}
+  end
+
   defp command_resource(%Command.SubmitChangeRequest{
          resource_type: resource_type,
          resource_key: resource_key
@@ -1540,6 +1584,8 @@ defmodule Rulestead do
   defp command_action(:rollback_audit_event, _command), do: :rollback_audit_event
   defp command_action(:list_audit_events, _command), do: :list_audit_events
   defp command_action(:apply_promotion, _command), do: :promote_environment
+  defp command_action(:preview_audience_impact, _command), do: :preview_audience_impact
+  defp command_action(:apply_audience_mutation, _command), do: :apply_audience_mutation
   defp command_action(:create_webhook_destination, _command), do: :manage_webhooks
   defp command_action(:update_webhook_destination, _command), do: :manage_webhooks
   defp command_action(:list_webhook_destinations, _command), do: :manage_webhooks
@@ -1554,6 +1600,7 @@ defmodule Rulestead do
               :publish_ruleset,
               :advance_rollout,
               :archive_flag,
+              :apply_audience_mutation,
               :engage_kill_switch,
               :release_kill_switch,
               :rollback_audit_event
@@ -1575,6 +1622,43 @@ defmodule Rulestead do
   end
 
   defp maybe_persist_denied_mutation(_operation, _command, _denied_audit), do: :ok
+
+  defp validate_audience_mutation_confirmation(%Command.ApplyAudienceMutation{} = command) do
+    cond do
+      blank?(command.preview_fingerprint) ->
+        {:error,
+         StoreError.invalid_command(
+           "audience mutation requires preview_fingerprint",
+           metadata: %{audience_key: command.audience_key, operation: command.operation}
+         )}
+
+      command.preview_schema_version != ImpactPreview.schema_version() ->
+        {:error,
+         StoreError.invalid_command(
+           "audience mutation requires current preview_schema_version",
+           metadata: %{
+             audience_key: command.audience_key,
+             operation: command.operation,
+             expected_preview_schema_version: ImpactPreview.schema_version(),
+             preview_schema_version: command.preview_schema_version
+           }
+         )}
+
+      command.operation in ["update", "archive", "delete_attempt"] and blank?(command.reason) ->
+        {:error,
+         StoreError.invalid_command(
+           "audience mutation requires reason",
+           metadata: %{audience_key: command.audience_key, operation: command.operation}
+         )}
+
+      true ->
+        :ok
+    end
+  end
+
+  defp blank?(nil), do: true
+  defp blank?(value) when is_binary(value), do: String.trim(value) == ""
+  defp blank?(_value), do: false
 
   defp store_stop_metadata({:ok, value}, operation) do
     value

@@ -44,7 +44,10 @@ defmodule Rulestead.Store.AudienceImpactContractTest do
 
     assert_received {:authorized, :preview_audience_impact,
                      %{resource_type: :audience, resource_key: "vip-users"}, "production",
-                     ^actor}
+                     authorized_actor}
+
+    assert authorized_actor.id == "reader-1"
+    assert authorized_actor.roles == [:viewer]
 
     assert_received {:store_preview, ^command}
   end
@@ -91,7 +94,10 @@ defmodule Rulestead.Store.AudienceImpactContractTest do
 
     assert_received {:authorized, :apply_audience_mutation,
                      %{resource_type: :audience, resource_key: "vip-users"}, "production",
-                     ^actor}
+                     authorized_actor}
+
+    assert authorized_actor.id == "editor-1"
+    assert authorized_actor.roles == [:admin]
 
     assert_received {:store_apply, ^command}
   end

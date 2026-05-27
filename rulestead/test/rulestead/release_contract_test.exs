@@ -18,6 +18,8 @@ defmodule Rulestead.ReleaseContractTest do
   @root_exports [
     archive_flag: 1,
     archive_flag!: 1,
+    apply_audience_mutation: 1,
+    apply_audience_mutation: 2,
     create_flag: 1,
     create_flag: 2,
     diagnostics: 0,
@@ -49,6 +51,9 @@ defmodule Rulestead.ReleaseContractTest do
     list_flags: 1,
     list_flags!: 0,
     list_flags!: 1,
+    preview_audience_impact: 1,
+    preview_audience_impact: 2,
+    preview_audience_impact: 3,
     publish_ruleset: 1,
     publish_ruleset!: 1,
     record_evaluation: 1,
