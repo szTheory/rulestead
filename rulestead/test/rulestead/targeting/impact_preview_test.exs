@@ -1,6 +1,7 @@
 defmodule Rulestead.Targeting.ImpactPreviewTest do
   use ExUnit.Case, async: true
 
+  alias Rulestead.Targeting.AudienceDependencies
   alias Rulestead.Targeting.ImpactPreview
 
   describe "impact preview contract" do
@@ -96,6 +97,81 @@ defmodule Rulestead.Targeting.ImpactPreviewTest do
     end
   end
 
+  describe "audience dependency summaries" do
+    test "summarize finds segment_match rules for the target audience and sorts references" do
+      references =
+        AudienceDependencies.summarize("vip-users", [
+          authored_flag("pricing", "production", "acme", 3, [
+            %{
+              "key" => "vip-pricing",
+              "strategy" => "segment_match",
+              "audience_key" => "vip-users",
+              "rollout" => %{"percentage" => 50}
+            }
+          ]),
+          authored_flag("checkout", "production", "acme", 7, [
+            %{
+              key: "vip-checkout",
+              strategy: :segment_match,
+              audience_key: "vip-users",
+              lifecycle: %{state: "active"}
+            },
+            %{key: "trial-checkout", strategy: :segment_match, audience_key: "trial-users"}
+          ]),
+          authored_flag("docs", "staging", nil, 1, [
+            %{key: "vip-docs", strategy: :forced_value, audience_key: "vip-users"}
+          ])
+        ])
+
+      assert Enum.map(references, & &1.reference_key) == [
+               "flag:checkout:ruleset:7:rule:vip-checkout",
+               "flag:pricing:ruleset:3:rule:vip-pricing"
+             ]
+
+      assert [
+               %{
+                 flag_key: "checkout",
+                 ruleset_version: 7,
+                 ruleset_status: "active",
+                 rule_key: "vip-checkout",
+                 rule_strategy: "segment_match",
+                 rollout_context: %{available?: false},
+                 lifecycle_context: %{state: "active"},
+                 environment_key: "production",
+                 tenant_key: "acme"
+               },
+               %{
+                 flag_key: "pricing",
+                 ruleset_version: 3,
+                 ruleset_status: "active",
+                 rule_key: "vip-pricing",
+                 rule_strategy: "segment_match",
+                 rollout_context: %{"percentage" => 50},
+                 lifecycle_context: %{available?: false},
+                 environment_key: "production",
+                 tenant_key: "acme"
+               }
+             ] = references
+
+      refute inspect(references) =~ "actor_key"
+      refute inspect(references) =~ "sample"
+
+      preview =
+        ImpactPreview.build(
+          preview_attrs(%{
+            affected_references: references,
+            samples: [%{actor_key: "user-1", traits: %{plan: "pro"}}]
+          })
+        )
+
+      assert preview.affected_references == references
+      assert AudienceDependencies.reference_keys(references) == [
+               "flag:checkout:ruleset:7:rule:vip-checkout",
+               "flag:pricing:ruleset:3:rule:vip-pricing"
+             ]
+    end
+  end
+
   defp preview_attrs(overrides \\ %{}) do
     Map.merge(
       %{
@@ -112,5 +188,14 @@ defmodule Rulestead.Targeting.ImpactPreviewTest do
       },
       overrides
     )
+  end
+
+  defp authored_flag(flag_key, environment_key, tenant_key, version, rules) do
+    %{
+      flag: %{key: flag_key},
+      active_ruleset: %{version: version, status: "active", rules: rules},
+      environment_key: environment_key,
+      tenant_key: tenant_key
+    }
   end
 end
