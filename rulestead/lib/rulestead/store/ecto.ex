@@ -15,6 +15,7 @@ defmodule Rulestead.Store.Ecto do
     Governance.BlastRadiusThreshold,
     Governance.ChangeRequest,
     Governance.ExecutionAttempt,
+    Governance.RolloutAutoAdvance.Schedule,
     Governance.ScheduledExecution,
     AuditEvent,
     CodeRefs.CodeReference,
@@ -3822,110 +3823,40 @@ defmodule Rulestead.Store.Ecto do
         command.rule_key
       )
 
-    with {:ok, %{policy: policy}} <- fetch_rollout_auto_advance_policy(fetch_command),
-         true <- auto_advance_policy_enabled?(policy),
-         true <- auto_advance_policy_complete?(policy),
-         %DateTime{} = window_ends <- command.monitoring_window_ends_at do
-      idempotency_key = auto_advance_tick_idempotency_key(command, window_ends)
+    try do
+      with {:ok, %{policy: policy}} <- fetch_rollout_auto_advance_policy(fetch_command),
+           true <- Schedule.schedulable?(command, policy) do
+        idempotency_key = Schedule.idempotency_key(command)
 
-      command_snapshot = auto_advance_tick_command_snapshot(command, policy)
+        :ok =
+          cancel_superseded_auto_advance_ticks!(
+            command.flag_key,
+            command.environment_key,
+            command.rule_key,
+            Schedule.scheduler_actor()
+          )
 
-      :ok =
-        cancel_superseded_auto_advance_ticks!(
-          command.flag_key,
-          command.environment_key,
-          command.rule_key,
-          auto_advance_scheduler_actor()
-        )
+        schedule_command = Schedule.schedule_command(command, policy)
 
-      schedule_command =
-        Command.ScheduleGovernedAction.new(
-          %{
-            action: :advance_rollout,
-            environment_key: command.environment_key,
-            resource_type: "flag",
-            resource_key: command.flag_key,
-            command: command_snapshot,
-            scheduled_for: window_ends,
-            execution_mode: :policy_bypass,
-            idempotency_key: idempotency_key
-          },
-          actor: auto_advance_scheduler_actor(),
-          reason: "auto_advance observation window close",
-          metadata: auto_advance_tick_schedule_metadata()
-        )
+        case schedule_governed_action(schedule_command) do
+          {:ok, _payload} ->
+            :ok
 
-      case schedule_governed_action(schedule_command) do
-        {:ok, _payload} ->
-          :ok
-
-        {:error, error} ->
-          emit_auto_advance_schedule_failure(command, idempotency_key, error)
-          :ok
+          {:error, error} ->
+            emit_auto_advance_schedule_failure(command, idempotency_key, error)
+            :ok
+        end
+      else
+        _ -> :ok
       end
-    else
-      _ -> :ok
+    rescue
+      error ->
+        emit_auto_advance_schedule_failure_rescue(command, error)
+        :ok
     end
 
     :ok
   end
-
-  defp auto_advance_scheduler_actor do
-    %{"id" => "system:scheduler", "type" => "system", "display" => "Scheduler"}
-  end
-
-  defp auto_advance_tick_schedule_metadata do
-    %{
-      "source" => "guardrail_automation",
-      "automation_phase" => "evaluate_and_advance"
-    }
-  end
-
-  defp auto_advance_tick_idempotency_key(command, window_ends) do
-    "scheduled_execution:auto_advance:#{command.flag_key}:#{command.environment_key}:#{command.rule_key}:#{command.stage}:#{DateTime.to_iso8601(window_ends)}"
-  end
-
-  defp auto_advance_tick_command_snapshot(command, policy) do
-    %{
-      "rollout" => %{
-        "rule_key" => command.rule_key,
-        "stage" => command.stage,
-        "percentage" => command.percentage,
-        "monitoring_window_started_at" => command.monitoring_window_started_at,
-        "monitoring_window_ends_at" => command.monitoring_window_ends_at
-      },
-      "auto_advance" => %{
-        "policy_next_stage" => Map.get(policy, :next_stage) || Map.get(policy, "next_stage"),
-        "policy_next_percentage" =>
-          Map.get(policy, :next_percentage) || Map.get(policy, "next_percentage"),
-        "observation_window_seconds" =>
-          Map.get(policy, :observation_window_seconds) ||
-            Map.get(policy, "observation_window_seconds")
-      },
-      "signal_facts" => []
-    }
-  end
-
-  defp auto_advance_policy_enabled?(policy) do
-    Map.get(policy, :enabled, Map.get(policy, "enabled")) == true
-  end
-
-  defp auto_advance_policy_complete?(policy) do
-    observation_window_seconds =
-      Map.get(policy, :observation_window_seconds) ||
-        Map.get(policy, "observation_window_seconds")
-
-    next_stage = Map.get(policy, :next_stage) || Map.get(policy, "next_stage")
-    next_percentage = Map.get(policy, :next_percentage) || Map.get(policy, "next_percentage")
-
-    not blank_auto_advance_field?(observation_window_seconds) and
-      not blank_auto_advance_field?(next_stage) and
-      not blank_auto_advance_field?(next_percentage)
-  end
-
-  defp blank_auto_advance_field?(nil), do: true
-  defp blank_auto_advance_field?(value) when is_binary(value), do: String.trim(value) == ""
-  defp blank_auto_advance_field?(_value), do: false
 
   defp cancel_superseded_auto_advance_ticks!(flag_key, environment_key, rule_key, actor) do
     flag_key = to_string(flag_key)
@@ -3977,11 +3908,33 @@ defmodule Rulestead.Store.Ecto do
           idempotency_key: idempotency_key,
           source: "guardrail_automation",
           phase: "schedule_auto_advance_tick",
-          error_type: error.type
+          error_type: auto_advance_schedule_error_type(error)
         }
       )
     )
   end
+
+  defp emit_auto_advance_schedule_failure_rescue(command, error) do
+    idempotency_key =
+      if match?(%DateTime{}, command.monitoring_window_ends_at) do
+        Schedule.idempotency_key(command)
+      else
+        nil
+      end
+
+    normalized_error =
+      if is_struct(error, Rulestead.Error) do
+        error
+      else
+        StoreError.unavailable(cause: error)
+      end
+
+    emit_auto_advance_schedule_failure(command, idempotency_key, normalized_error)
+  end
+
+  defp auto_advance_schedule_error_type(%Rulestead.Error{type: type}), do: type
+  defp auto_advance_schedule_error_type(error) when is_exception(error), do: error.__struct__
+  defp auto_advance_schedule_error_type(_error), do: :unknown
 
   defp collect_changeset_details(%Changeset{} = changeset, path \\ nil) do
     own_details =

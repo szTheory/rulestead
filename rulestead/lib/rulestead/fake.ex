@@ -27,6 +27,7 @@ defmodule Rulestead.Fake do
     Governance.BlastRadiusThreshold,
     Governance.ChangeRequest,
     Governance.ExecutionAttempt,
+    Governance.RolloutAutoAdvance.Schedule,
     Governance.ScheduledExecution,
     Manifest.Import,
     Promotion.Apply,
@@ -1566,54 +1567,8 @@ defmodule Rulestead.Fake do
   end
 
   def handle_call({:schedule_governed_action, command}, _from, state) do
-    correlation_id = governance_correlation_id(command)
-
-    idempotency_key =
-      command.idempotency_key ||
-        "scheduled_execution:#{correlation_id}"
-
-    case fetch_idempotent_scheduled_execution_in_state(state, idempotency_key) do
-      {:ok, existing} ->
-        {:reply,
-         {:ok,
-          %{
-            scheduled_execution: serialize_scheduled_execution(existing),
-            attempts:
-              list_execution_attempts(state, existing.id)
-              |> Enum.map(&serialize_execution_attempt/1)
-          }}, state}
-
-      :not_found ->
-        scheduled_execution =
-          new_scheduled_execution_record(state, %{
-            change_request_id: nil,
-            governed_action: Atom.to_string(command.action),
-            environment_key: command.environment_key,
-            resource_type: command.resource_type,
-            resource_key: command.resource_key,
-            execution_mode: Atom.to_string(command.execution_mode),
-            scheduled_by_id: actor_value(command.actor, "id"),
-            scheduled_by_type: actor_value(command.actor, "type") || "operator",
-            scheduled_by_display: actor_value(command.actor, "display"),
-            approved_by_snapshot: [],
-            scheduled_for: command.scheduled_for,
-            command_snapshot: Command.GovernanceSupport.with_tenant_provenance(command.command),
-            approval_requirement_snapshot: command.approval_requirement,
-            metadata:
-              Command.GovernanceSupport.with_tenant_provenance(command.metadata, command.command),
-            correlation_id: correlation_id,
-            idempotency_key: idempotency_key
-          })
-
-        next_state = put_in(state.scheduled_executions[scheduled_execution.id], scheduled_execution)
-
-        {:reply,
-         {:ok,
-          %{
-            scheduled_execution: serialize_scheduled_execution(scheduled_execution),
-            attempts: []
-          }}, next_state}
-    end
+    {:ok, payload, next_state} = schedule_governed_action_in_state(state, command)
+    {:reply, {:ok, payload}, next_state}
   end
 
   def handle_call({:cancel_scheduled_execution, command}, _from, state) do
@@ -4185,6 +4140,8 @@ defmodule Rulestead.Fake do
             audit_events: [audit_event | next_state.audit_events]
         }
 
+        next_state = maybe_schedule_auto_advance_tick_in_state(next_state, command)
+
         {:ok, guardrail_status_payload_in_state(decision, version), next_state}
       end
     end)
@@ -4667,6 +4624,155 @@ defmodule Rulestead.Fake do
         "display" => approval.reviewer_display
       }
     end)
+  end
+
+  defp maybe_schedule_auto_advance_tick_in_state(state, %Command.AdvanceRollout{} = command) do
+    fetch_command =
+      Command.FetchRolloutAutoAdvancePolicy.new(
+        command.flag_key,
+        command.environment_key,
+        command.rule_key
+      )
+
+    with {:ok, policy} <- fetch_rollout_auto_advance_policy_in_state(state, fetch_command),
+         true <- Schedule.schedulable?(command, policy) do
+      state =
+        cancel_superseded_auto_advance_ticks_in_state(
+          state,
+          command.flag_key,
+          command.environment_key,
+          command.rule_key,
+          Schedule.scheduler_actor()
+        )
+
+      schedule_command = Schedule.schedule_command(command, policy)
+
+      {:ok, _payload, next_state} = schedule_governed_action_in_state(state, schedule_command)
+      next_state
+    else
+      _ -> state
+    end
+  end
+
+  defp schedule_governed_action_in_state(state, %Command.ScheduleGovernedAction{} = command) do
+    correlation_id = governance_correlation_id(command)
+
+    idempotency_key =
+      command.idempotency_key ||
+        "scheduled_execution:#{correlation_id}"
+
+    case fetch_idempotent_scheduled_execution_in_state(state, idempotency_key) do
+      {:ok, existing} ->
+        {:ok,
+         %{
+           scheduled_execution: serialize_scheduled_execution(existing),
+           attempts:
+             list_execution_attempts(state, existing.id)
+             |> Enum.map(&serialize_execution_attempt/1)
+         }, state}
+
+      :not_found ->
+        scheduled_execution =
+          new_scheduled_execution_record(state, %{
+            change_request_id: nil,
+            governed_action: Atom.to_string(command.action),
+            environment_key: command.environment_key,
+            resource_type: command.resource_type,
+            resource_key: command.resource_key,
+            execution_mode: Atom.to_string(command.execution_mode),
+            scheduled_by_id: actor_value(command.actor, "id"),
+            scheduled_by_type: actor_value(command.actor, "type") || "operator",
+            scheduled_by_display: actor_value(command.actor, "display"),
+            approved_by_snapshot: [],
+            scheduled_for: command.scheduled_for,
+            command_snapshot: Command.GovernanceSupport.with_tenant_provenance(command.command),
+            approval_requirement_snapshot: command.approval_requirement,
+            metadata:
+              Command.GovernanceSupport.with_tenant_provenance(command.metadata, command.command),
+            correlation_id: correlation_id,
+            idempotency_key: idempotency_key
+          })
+
+        next_state = put_in(state.scheduled_executions[scheduled_execution.id], scheduled_execution)
+
+        {:ok,
+         %{
+           scheduled_execution: serialize_scheduled_execution(scheduled_execution),
+           attempts: []
+         }, next_state}
+    end
+  end
+
+  defp cancel_superseded_auto_advance_ticks_in_state(
+         state,
+         flag_key,
+         environment_key,
+         rule_key,
+         actor
+       ) do
+    flag_key = to_string(flag_key)
+    environment_key = to_string(environment_key)
+    rule_key = to_string(rule_key)
+
+    pending_auto_advance_scheduled_executions_in_state(state, flag_key, environment_key, rule_key)
+    |> Enum.reduce(state, fn scheduled_execution, acc_state ->
+      case cancel_scheduled_execution_in_state(acc_state, %Command.CancelScheduledExecution{
+             scheduled_execution_id: scheduled_execution.id,
+             actor: actor,
+             reason: "superseded by new auto-advance stage advance",
+             metadata: %{"source" => "guardrail_automation"}
+           }) do
+        {:ok, _payload, next_state} -> next_state
+        {:error, _error, unchanged_state} -> unchanged_state
+      end
+    end)
+  end
+
+  defp pending_auto_advance_scheduled_executions_in_state(
+         state,
+         flag_key,
+         environment_key,
+         rule_key
+       ) do
+    state.scheduled_executions
+    |> Map.values()
+    |> Enum.filter(fn scheduled_execution ->
+      scheduled_execution.state == "scheduled" and
+        scheduled_execution.governed_action == "advance_rollout" and
+        to_string(scheduled_execution.resource_key) == flag_key and
+        to_string(scheduled_execution.environment_key) == environment_key and
+        get_in(scheduled_execution.metadata, ["source"]) == "guardrail_automation" and
+        to_string(get_in(scheduled_execution.command_snapshot, ["rollout", "rule_key"]) || "") ==
+          rule_key
+    end)
+  end
+
+  defp cancel_scheduled_execution_in_state(state, %Command.CancelScheduledExecution{} = command) do
+    with {:ok, scheduled_execution} <-
+           fetch_scheduled_execution_record(state, command.scheduled_execution_id),
+         :ok <- ensure_scheduled_transition(scheduled_execution.state, ["scheduled", "running"]) do
+      updated =
+        scheduled_execution
+        |> Map.put(:state, "cancelled")
+        |> Map.put(:failure_reason, command.reason)
+        |> Map.put(
+          :execution_metadata,
+          scheduled_transition_metadata(
+            scheduled_execution.execution_metadata,
+            "cancelled",
+            command,
+            state.now
+          )
+        )
+        |> Map.put(:updated_at, state.now)
+
+      next_state = put_in(state.scheduled_executions[updated.id], updated)
+
+      {:ok, %{scheduled_execution: serialize_scheduled_execution(updated), attempts: []},
+       next_state}
+    else
+      {:error, error} -> {:error, error, state}
+    end
   end
 
   defp fetch_idempotent_scheduled_execution_in_state(_state, nil), do: :not_found
