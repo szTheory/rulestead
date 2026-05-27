@@ -192,7 +192,8 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
                      freshness_window_seconds: 300,
                      sample_size: 42,
                      min_sample_size: 100,
-                     evaluated_at: ~U[2026-04-23 15:59:00Z]
+                     evaluated_at: ~U[2026-04-23 15:59:00Z],
+                     metadata: %{raw_provider_payload: "provider-secret-rollouts"}
                    }
                  ]
                },
@@ -212,7 +213,8 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
     assert html =~ "0.07"
     assert html =~ "42"
     assert html =~ "100"
-    refute html =~ "raw" <> "_provider_payload"
+    assert html =~ "[REDACTED]"
+    refute html =~ "provider-secret-rollouts"
   end
 
   test "rollout page shows guardrail intervention excerpt with automatic labels", %{conn: conn} do
@@ -477,7 +479,8 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
                      freshness_window_seconds: 300,
                      sample_size: 42,
                      min_sample_size: 100,
-                     evaluated_at: ~U[2026-04-23 15:49:00Z]
+                     evaluated_at: ~U[2026-04-23 15:49:00Z],
+                     metadata: %{raw_provider_payload: "provider-secret-rollout-hold"}
                    }
                  ]
                },

@@ -119,7 +119,8 @@ defmodule RulesteadAdmin.Live.FlagLive.TimelineTest do
     assert html =~ "source guardrail_automation"
     assert html =~ "Manual rollout action"
     assert html =~ "Show raw detail"
-    refute html =~ "raw" <> "_provider_payload"
+    assert html =~ "[REDACTED]"
+    refute html =~ "provider-secret-timeline"
   end
 
   defp seed_flag! do
@@ -211,7 +212,8 @@ defmodule RulesteadAdmin.Live.FlagLive.TimelineTest do
                      observed_value: 0.01,
                      sample_size: 500,
                      min_sample_size: 100,
-                     evaluated_at: ~U[2026-04-23 15:51:00Z]
+                     evaluated_at: ~U[2026-04-23 15:51:00Z],
+                     metadata: %{raw_provider_payload: "provider-secret-timeline"}
                    }
                  ]
                },
