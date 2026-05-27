@@ -1,13 +1,18 @@
 # credo:disable-for-this-file
 defmodule Rulestead.Store.AudienceImpactContractTest do
-  use ExUnit.Case, async: false
+  use Rulestead.RepoCase, async: false
 
+  import Ecto.Query
   import Rulestead.StoreFixtures
 
+  alias Rulestead.{Audience, Environment, Repo}
   alias Rulestead.Error
   alias Rulestead.Runtime.Snapshot
   alias Rulestead.Store.Command
+  alias Rulestead.Store.Ecto, as: StoreEcto
   alias Rulestead.Targeting.{AudienceDependencies, ImpactPreview}
+
+  @adapters [Rulestead.Fake, StoreEcto]
 
   setup do
     previous_store = Application.get_env(:rulestead, :store)
@@ -133,6 +138,71 @@ defmodule Rulestead.Store.AudienceImpactContractTest do
 
     assert [%{actor_key: "actor-1", traits: %{plan: "pro"}}] = preview.sample_evidence
     refute inspect(preview.sample_evidence) =~ "secret@example.com"
+  end
+
+  describe "preview evidence resolver wiring" do
+    setup do
+      ensure_phase9_schema!()
+      previous_resolver = Application.get_env(:rulestead, :preview_evidence_resolver)
+
+      Application.put_env(
+        :rulestead,
+        :preview_evidence_resolver,
+        Rulestead.Fake.PreviewEvidenceResolver
+      )
+
+      on_exit(fn ->
+        case previous_resolver do
+          nil -> Application.delete_env(:rulestead, :preview_evidence_resolver)
+          value -> Application.put_env(:rulestead, :preview_evidence_resolver, value)
+        end
+      end)
+
+      :ok
+    end
+
+    test "configured resolver enriches preview across adapters" do
+      Enum.each(@adapters, fn adapter ->
+        reset_adapter!(adapter)
+        seed_audience_reference!(adapter)
+
+        assert {:ok, preview} =
+                 preview_audience_impact(adapter,
+                   environment_key: "test",
+                   tenant_key: "tenant-a",
+                   after_definition: %{
+                     conditions: [%{attribute: "plan", operator: "eq", value: "pro"}]
+                   }
+                 )
+
+        assert preview.preview_schema_version == 2
+        assert preview.preview_basis == "authored_state_with_host_evidence"
+        assert preview.impression_evidence.window_label == "last_24h"
+        assert Enum.any?(preview.sample_evidence, &String.starts_with?(&1.actor_key, "fake-vip-users"))
+      end)
+    end
+
+    test "nil resolver keeps explicit-only preview basis across adapters" do
+      Application.delete_env(:rulestead, :preview_evidence_resolver)
+
+      Enum.each(@adapters, fn adapter ->
+        reset_adapter!(adapter)
+        seed_audience_reference!(adapter)
+
+        assert {:ok, preview} =
+                 preview_audience_impact(adapter,
+                   environment_key: "test",
+                   tenant_key: "tenant-a",
+                   after_definition: %{
+                     conditions: [%{attribute: "plan", operator: "eq", value: "pro"}]
+                   }
+                 )
+
+        assert preview.preview_schema_version == ImpactPreview.schema_version()
+        assert preview.preview_basis == "authored_state_and_explicit_samples"
+        refute Enum.any?(preview.sample_evidence, &String.starts_with?(&1.actor_key, "fake-"))
+      end)
+    end
   end
 
   test "Fake apply mutates only with a fresh matching fingerprint and fails closed for stale or protected changes" do
@@ -574,15 +644,30 @@ defmodule Rulestead.Store.AudienceImpactContractTest do
   defp restore_env(key, nil), do: Application.delete_env(:rulestead, key)
   defp restore_env(key, value), do: Application.put_env(:rulestead, key, value)
 
-  defp setup_fake! do
-    Rulestead.Fake.Control.ensure_started()
-    Rulestead.Fake.Control.reset!()
-    Application.put_env(:rulestead, :store, Rulestead.Fake)
-    Application.put_env(:rulestead, :admin_policy, __MODULE__.CapturePolicy)
-    Application.put_env(:rulestead, :policy_test_pid, self())
+  defp preview_audience_impact(Rulestead.Fake, attrs) do
+    Rulestead.Fake.preview_audience_impact(
+      Command.PreviewAudienceImpact.new("vip-users", :update, attrs)
+    )
   end
 
-  defp seed_audience_reference! do
+  defp preview_audience_impact(StoreEcto, attrs) do
+    StoreEcto.preview_audience_impact(
+      Command.PreviewAudienceImpact.new("vip-users", :update, attrs)
+    )
+  end
+
+  defp reset_adapter!(Rulestead.Fake) do
+    Rulestead.Fake.Control.ensure_started()
+    Rulestead.Fake.Control.reset!()
+  end
+
+  defp reset_adapter!(StoreEcto), do: reset_repo!()
+
+  defp seed_audience_reference!(Rulestead.Fake), do: seed_fake_audience_reference!()
+  defp seed_audience_reference!(StoreEcto), do: seed_ecto_audience_reference!()
+  defp seed_audience_reference!, do: seed_fake_audience_reference!()
+
+  defp seed_fake_audience_reference! do
     Rulestead.Fake.Control.put_audience!(%{
       key: "vip-users",
       tenant_key: "tenant-a",
@@ -619,6 +704,111 @@ defmodule Rulestead.Store.AudienceImpactContractTest do
              Rulestead.Fake.publish_ruleset(
                Command.PublishRuleset.new("checkout-redesign", "test")
              )
+  end
+
+  defp seed_ecto_audience_reference! do
+    reset_repo!()
+
+    %Audience{}
+    |> Audience.changeset(%{
+      key: "vip-users",
+      tenant_key: "tenant-a",
+      description: "VIP Users",
+      definition: %{conditions: [%{attribute: "plan", operator: "eq", value: "enterprise"}]}
+    })
+    |> Repo.insert!()
+
+    assert {:ok, _flag} =
+             StoreEcto.create_flag(
+               Command.CreateFlag.new(
+                 valid_flag_attrs(%{
+                   key: "checkout-redesign",
+                   environment_keys: ["test"]
+                 })
+               )
+             )
+
+    ruleset =
+      valid_ruleset_attrs(%{
+        rules: [
+          %{
+            key: "vip-rule",
+            name: "VIP audience",
+            strategy: :segment_match,
+            audience_key: "vip-users",
+            conditions: []
+          }
+        ]
+      })
+
+    assert {:ok, _draft} =
+             StoreEcto.save_draft_ruleset(
+               Command.SaveDraftRuleset.new("checkout-redesign", "test", ruleset)
+             )
+
+    assert {:ok, _published} =
+             StoreEcto.publish_ruleset(Command.PublishRuleset.new("checkout-redesign", "test"))
+  end
+
+  defp setup_fake! do
+    Rulestead.Fake.Control.ensure_started()
+    Rulestead.Fake.Control.reset!()
+    Application.put_env(:rulestead, :store, Rulestead.Fake)
+    Application.put_env(:rulestead, :admin_policy, __MODULE__.CapturePolicy)
+    Application.put_env(:rulestead, :policy_test_pid, self())
+  end
+
+  defp reset_repo! do
+    Repo.delete_all(from(a in Rulestead.AuditEvent))
+    Repo.delete_all(from(a in Audience))
+    Repo.delete_all(from(f in Rulestead.Flag))
+    Repo.delete_all(from(fe in Rulestead.FlagEnvironment))
+    Repo.delete_all(from(r in Rulestead.Ruleset))
+    Repo.delete_all(from(e in Environment))
+
+    for attrs <- default_environments() do
+      %Environment{} |> Environment.changeset(attrs) |> Repo.insert!()
+    end
+  end
+
+  defp default_environments do
+    [
+      %{key: "development", name: "Development", description: "Local environments"},
+      %{key: "staging", name: "Staging", description: "Pre-production environments"},
+      %{key: "production", name: "Production", description: "Live environments"},
+      %{key: "test", name: "Test", description: "Test environments"}
+    ]
+  end
+
+  defp ensure_phase9_schema! do
+    Rulestead.Repo.query!(
+      "ALTER TABLE flags ADD COLUMN IF NOT EXISTS permanent boolean DEFAULT false"
+    )
+
+    Rulestead.Repo.query!(
+      "ALTER TABLE flag_environments ADD COLUMN IF NOT EXISTS last_evaluated_at timestamp(6) with time zone"
+    )
+
+    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS change_requests (
+      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+      status text NOT NULL DEFAULT 'submitted',
+      governed_action text NOT NULL,
+      environment_key text NOT NULL,
+      resource_type text NOT NULL,
+      resource_key text NOT NULL,
+      submitter_id text NOT NULL,
+      submitter_type text NOT NULL,
+      submitter_display text,
+      reason text,
+      approval_requirement_snapshot jsonb NOT NULL DEFAULT '{}'::jsonb,
+      command_snapshot jsonb NOT NULL DEFAULT '{}'::jsonb,
+      metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
+      correlation_id text NOT NULL,
+      submitted_at timestamp(6) with time zone NOT NULL,
+      resolved_at timestamp(6) with time zone,
+      inserted_at timestamp(6) with time zone NOT NULL,
+      updated_at timestamp(6) with time zone NOT NULL
+    )")
   end
 
   defp seed_production_audience_references!(count) do

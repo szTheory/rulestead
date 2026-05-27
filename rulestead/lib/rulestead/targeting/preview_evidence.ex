@@ -21,10 +21,11 @@ defmodule Rulestead.Targeting.PreviewEvidence do
         {:ok, %{}}
 
       resolver when is_atom(resolver) ->
-        if function_exported?(resolver, :resolve, 1) do
+        with {:module, ^resolver} <- Code.ensure_loaded(resolver),
+             true <- function_exported?(resolver, :resolve, 1) do
           normalize_resolver_result(apply(resolver, :resolve, [query]), opts)
         else
-          resolver_failed(:invalid_resolver)
+          _ -> resolver_failed(:invalid_resolver)
         end
     end
   rescue
