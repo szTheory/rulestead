@@ -275,6 +275,17 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
     assert html =~ "Open full timeline"
   end
 
+  @tag :auto_advance_label
+  test "rollout intervention excerpt labels automatic rollout advance", %{conn: conn} do
+    seed_auto_advance_intervention!()
+
+    {:ok, _view, html} = live(conn, "/admin/flags/checkout-redesign/rollouts?env=prod")
+
+    assert html =~ "Guardrail interventions"
+    assert html =~ "Automatic rollout advance"
+    assert html =~ "Automatic"
+  end
+
   @tag :auto_advance_panel
   @tag :auto_advance_load
   test "rollout page renders auto-advance panel with unavailable mode when no guardrails", %{
@@ -775,6 +786,48 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
                },
                metadata: %{request_id: "req-rollouts-healthy", source: :guardrail_automation}
              )
+  end
+
+  defp seed_auto_advance_intervention! do
+    assert {:ok, _manual} =
+             Rulestead.advance_rollout(
+               "checkout-redesign",
+               "prod",
+               %{
+                 rule_key: "checkout-canary",
+                 stage: "canary-25",
+                 percentage: 25,
+                 monitoring_window_started_at: ~U[2026-04-23 15:40:00Z],
+                 monitoring_window_ends_at: ~U[2026-04-23 15:45:00Z]
+               },
+               metadata: %{request_id: "req-manual-advance-rollouts", source: :admin_ui}
+             )
+
+    auto_command =
+      Command.AdvanceRollout.new(
+        "checkout-redesign",
+        "prod",
+        %{
+          rule_key: "checkout-canary",
+          stage: "canary-40",
+          percentage: 40,
+          monitoring_window_started_at: ~U[2026-04-23 15:46:00Z],
+          monitoring_window_ends_at: ~U[2026-04-23 15:51:00Z]
+        },
+        metadata: %{
+          source: :guardrail_automation,
+          request_id: "req-auto-advance-rollouts",
+          eligibility: %{
+            policy_snapshot: %{
+              next_stage: "canary-40",
+              next_percentage: 40,
+              observation_window_seconds: 300
+            }
+          }
+        }
+      )
+
+    assert {:ok, _} = Rulestead.Fake.advance_rollout(auto_command)
   end
 
   defp seed_guardrail_hold! do

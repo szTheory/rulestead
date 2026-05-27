@@ -118,6 +118,20 @@ defmodule RulesteadAdmin.Live.FlagLive.TimelineTest do
     assert html =~ "observation window closed"
   end
 
+  @tag :auto_advance_label
+  test "timeline distinguishes automatic rollout advance from manual rollout actions", %{
+    conn: conn
+  } do
+    seed_guardrail_interventions!()
+
+    {:ok, _view, html} = live(conn, "/admin/flags/checkout-redesign/timeline?env=prod")
+
+    assert html =~ "Automatic rollout advance"
+    assert html =~ "Automatic"
+    assert html =~ "source guardrail_automation"
+    assert html =~ "Manual rollout action"
+  end
+
   test "timeline distinguishes automatic guardrail events from manual rollout actions", %{
     conn: conn
   } do
@@ -285,6 +299,32 @@ defmodule RulesteadAdmin.Live.FlagLive.TimelineTest do
                },
                metadata: %{request_id: "req-guardrail-evaluated", source: :guardrail_automation}
              )
+
+    auto_advance_command =
+      Command.AdvanceRollout.new(
+        "checkout-redesign",
+        "prod",
+        %{
+          rule_key: "checkout-canary",
+          stage: "canary-55",
+          percentage: 55,
+          monitoring_window_started_at: ~U[2026-04-23 15:51:00Z],
+          monitoring_window_ends_at: ~U[2026-04-23 15:56:00Z]
+        },
+        metadata: %{
+          source: :guardrail_automation,
+          request_id: "req-auto-advance-timeline",
+          eligibility: %{
+            policy_snapshot: %{
+              next_stage: "canary-55",
+              next_percentage: 55,
+              observation_window_seconds: 300
+            }
+          }
+        }
+      )
+
+    assert {:ok, _} = Rulestead.Fake.advance_rollout(auto_advance_command)
 
     assert {:ok, _advanced} =
              Rulestead.advance_rollout(
