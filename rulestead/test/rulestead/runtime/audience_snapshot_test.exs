@@ -12,11 +12,22 @@ defmodule Rulestead.Runtime.AudienceSnapshotTest do
       assert {:ok, snapshot} =
                Snapshot.compile(
                  runtime_snapshot(%{
+                   flags: %{
+                     "checkout-redesign" => %{
+                       flag: %{key: "checkout-redesign", default_value: %{value: false}},
+                       environment: %{key: "production"},
+                       active_ruleset: %{version: 1, rules: []}
+                     }
+                   },
                    audiences: %{
                      "vip-users" => %{
                        definition: %{
                          clauses: [
-                           %{attribute: "attributes.plan", operator: "equals", value: %{equals: "vip"}}
+                           %{
+                             attribute: "attributes.plan",
+                             op: "eq",
+                             value: "vip"
+                           }
                          ]
                        },
                        archived_at: nil
@@ -31,11 +42,13 @@ defmodule Rulestead.Runtime.AudienceSnapshotTest do
                audience_key: "vip-users",
                definition: %{
                  clauses: [
-                   %{attribute: "attributes.plan", operator: "equals", value: %{equals: "vip"}}
+                   %{attribute: "attributes.plan", op: "eq", value: "vip"}
                  ]
                },
                archived_at: nil
              }
+
+      assert snapshot.flags["checkout-redesign"].flag_payload.audiences == snapshot.audiences
     end
 
     test "compile rejects malformed audience definitions through runtime data errors" do
@@ -147,7 +160,7 @@ defmodule Rulestead.Runtime.AudienceSnapshotTest do
           audience_key: "vip-users",
           definition: %{
             clauses: [
-              %{attribute: "attributes.plan", operator: "equals", value: %{equals: "vip"}}
+              %{attribute: "plan", op: "eq", value: "vip"}
             ]
           },
           archived_at: nil

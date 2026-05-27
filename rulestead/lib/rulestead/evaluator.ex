@@ -83,7 +83,12 @@ defmodule Rulestead.Evaluator do
          {:ok, result} <-
            build_result(rule, flag, active_ruleset, rule_key, condition_trace, rollout_trace) do
       {:match, result,
-       %{rule_key: rule_key, conditions: condition_trace, rollout: result.debug_trace.rollout}}
+       %{
+         rule_key: rule_key,
+         conditions: condition_trace,
+         rollout: result.debug_trace.rollout
+       }
+       |> maybe_put_audience_trace(rollout_trace[:audience_trace])}
     else
       {:skip, reason, detail} ->
         {:skip,
@@ -93,7 +98,8 @@ defmodule Rulestead.Evaluator do
            conditions: detail[:conditions] || [],
            rollout: detail[:rollout],
            warnings: detail[:warnings] || []
-         }}
+         }
+         |> maybe_put_audience_trace(get_in(detail, [:rollout, :audience_trace]))}
 
       {:error, %Rulestead.Error{} = error} ->
         {:error, error}
@@ -137,8 +143,11 @@ defmodule Rulestead.Evaluator do
     experiment = rule[:experiment] || rule["experiment"]
 
     cond do
-      strategy in [:forced_value, :segment_match, "forced_value", "segment_match"] ->
+      strategy in [:forced_value, "forced_value"] ->
         {:ok, %{matched?: true}}
+
+      strategy in [:segment_match, "segment_match"] ->
+        evaluate_segment_match(rule, flag_payload, context)
 
       strategy in [:experiment, "experiment"] and is_nil(experiment) ->
         {:skip, :missing_experiment, %{experiment: %{matched?: false}}}
@@ -471,7 +480,7 @@ defmodule Rulestead.Evaluator do
             "session_id" => context.session_id
           },
           single
-        )
+        ) || resolve_nested_map(context.attributes, [single])
 
       _other ->
         nil
@@ -501,9 +510,19 @@ defmodule Rulestead.Evaluator do
 
   defp compare(:equals, actual, value), do: same_lane?(actual, fetch_value(value, :equals))
   defp compare("equals", actual, value), do: compare(:equals, actual, value)
-  defp compare(:in, actual, value), do: compare_list(actual, fetch_value(value, :in))
+  defp compare(:eq, actual, value), do: same_lane?(actual, fetch_comparable_value(value, :eq))
+  defp compare("eq", actual, value), do: compare(:eq, actual, value)
+
+  defp compare(:neq, actual, value),
+    do: not same_lane?(actual, fetch_comparable_value(value, :neq))
+
+  defp compare("neq", actual, value), do: compare(:neq, actual, value)
+  defp compare(:in, actual, value), do: compare_list(actual, fetch_comparable_list(value, :in))
   defp compare("in", actual, value), do: compare(:in, actual, value)
-  defp compare(:not_in, actual, value), do: not compare_list(actual, fetch_value(value, :not_in))
+
+  defp compare(:not_in, actual, value),
+    do: not compare_list(actual, fetch_comparable_list(value, :not_in))
+
   defp compare("not_in", actual, value), do: compare(:not_in, actual, value)
 
   defp compare(:gt, actual, value),
@@ -586,6 +605,18 @@ defmodule Rulestead.Evaluator do
   defp fetch_value(map, key) when is_map(map), do: map[key] || map[Atom.to_string(key)]
   defp fetch_value(_map, _key), do: nil
 
+  defp fetch_comparable_value(map, key) when is_map(map) do
+    fetch_value(map, key) || fetch_value(map, :equals) || fetch_value(map, :value)
+  end
+
+  defp fetch_comparable_value(value, _key), do: value
+
+  defp fetch_comparable_list(map, key) when is_map(map) do
+    fetch_value(map, key) || fetch_value(map, :value)
+  end
+
+  defp fetch_comparable_list(value, _key), do: value
+
   defp extract_value(%{value: value}), do: value
   defp extract_value(%{"value" => value}), do: value
   defp extract_value(value), do: value
@@ -599,15 +630,96 @@ defmodule Rulestead.Evaluator do
   defp stringify(value) when is_atom(value), do: Atom.to_string(value)
   defp stringify(value), do: to_string(value)
 
+  defp evaluate_segment_match(rule, flag_payload, context) do
+    audience_key = stringify(rule[:audience_key] || rule["audience_key"])
+    audiences = flag_payload[:audiences] || flag_payload["audiences"] || %{}
+    audience = if is_map(audiences), do: Map.get(audiences, audience_key), else: nil
+
+    cond do
+      is_nil(audience_key) or audience_key == "" ->
+        audience_skip(audience_key, :missing, :audience_missing)
+
+      is_nil(audience) ->
+        audience_skip(audience_key, :missing, :audience_missing)
+
+      not is_nil(audience[:archived_at] || audience["archived_at"]) ->
+        audience_skip(audience_key, :archived, :audience_archived)
+
+      audience_matches?(audience[:definition] || audience["definition"], context) ->
+        {:ok,
+         %{
+           matched?: true,
+           audience_trace: %{
+             audience_key: audience_key,
+             matched?: true,
+             reason: :matched
+           }
+         }}
+
+      true ->
+        {:skip, :audience_missed,
+         %{
+           rollout: %{
+             matched?: false,
+             audience_trace: %{
+               audience_key: audience_key,
+               matched?: false,
+               reason: :missed
+             }
+           }
+         }}
+    end
+  end
+
+  defp audience_skip(audience_key, reason, warning_type) do
+    {:skip, warning_type,
+     %{
+       rollout: %{
+         matched?: false,
+         audience_trace: %{
+           audience_key: audience_key,
+           matched?: false,
+           reason: reason
+         }
+       },
+       warnings: [%{type: warning_type, audience_key: audience_key}]
+     }}
+  end
+
+  defp audience_matches?(definition, context) when is_map(definition) do
+    clauses = fetch_list(definition, :clauses)
+
+    Enum.all?(clauses, fn clause ->
+      attribute = clause[:attribute] || clause["attribute"]
+      operator = clause[:operator] || clause["operator"] || clause[:op] || clause["op"]
+      value = clause[:value] || clause["value"] || %{}
+
+      compare(operator, resolve_attribute(context, attribute), value)
+    end)
+  end
+
+  defp audience_matches?(_definition, _context), do: false
+
   defp append_rule_trace(trace, rule_trace) do
     trace
     |> Map.update!(:rule_traces, &(&1 ++ [rule_trace]))
     |> Map.update!(:warnings, fn warnings -> warnings ++ Map.get(rule_trace, :warnings, []) end)
     |> maybe_put_matched_rule(rule_trace)
+    |> maybe_put_matched_rule_trace(rule_trace)
   end
 
   defp maybe_put_matched_rule(trace, %{matched?: true, rule_key: rule_key}),
     do: Map.put(trace, :matched_rule, rule_key)
 
   defp maybe_put_matched_rule(trace, _rule_trace), do: trace
+
+  defp maybe_put_matched_rule_trace(trace, %{matched?: true} = rule_trace),
+    do: Map.put(trace, :matched_rule_trace, rule_trace)
+
+  defp maybe_put_matched_rule_trace(trace, _rule_trace), do: trace
+
+  defp maybe_put_audience_trace(trace, nil), do: trace
+
+  defp maybe_put_audience_trace(trace, audience_trace),
+    do: Map.put(trace, :audience_trace, audience_trace)
 end

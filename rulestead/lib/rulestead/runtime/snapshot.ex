@@ -40,7 +40,8 @@ defmodule Rulestead.Runtime.Snapshot do
          {:ok, published_at} <- fetch_datetime(snapshot, :published_at),
          {:ok, payload} <- fetch_binary(snapshot, :payload),
          {:ok, decoded_payload} <- decode_payload(payload),
-         {:ok, flags, audiences, generated_at} <- compile_payload(decoded_payload, environment_key) do
+         {:ok, flags, audiences, generated_at} <-
+           compile_payload(decoded_payload, environment_key) do
       flag_keys = flags |> Map.keys() |> Enum.sort()
       audience_keys = audiences |> Map.keys() |> Enum.sort()
 
@@ -81,7 +82,12 @@ defmodule Rulestead.Runtime.Snapshot do
         flags
         |> Enum.map(fn {flag_key, flag_payload} ->
           normalized_flag_key = normalize_string(flag_key)
-          {normalized_flag_key, %{flag_key: normalized_flag_key, flag_payload: flag_payload}}
+
+          {normalized_flag_key,
+           %{
+             flag_key: normalized_flag_key,
+             flag_payload: put_audiences(flag_payload, compiled_audiences)
+           }}
         end)
         |> Map.new()
 
@@ -106,6 +112,11 @@ defmodule Rulestead.Runtime.Snapshot do
   end
 
   defp compile_audiences(_audiences), do: {:error, EvaluationError.malformed_runtime_data()}
+
+  defp put_audiences(flag_payload, audiences) when is_map(flag_payload),
+    do: Map.put(flag_payload, :audiences, audiences)
+
+  defp put_audiences(flag_payload, _audiences), do: flag_payload
 
   defp compile_audience(audience_key, audience_payload) when is_map(audience_payload) do
     with {:ok, normalized_key} <- normalize_audience_key(audience_key),
