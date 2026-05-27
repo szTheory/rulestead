@@ -14,9 +14,14 @@ Rulestead is a batteries-included, Elixir-native feature-flag and remote-config 
 - `v1.4.0` shipped on 2026-05-26 across Phases 45-48, restoring the mounted companion boot/runtime contract, the repo-root `mounted_admin_contract` proof bar, and the release/support-truth chain without widening the sibling-package product shape.
 - `v1.5.0` shipped on 2026-05-27 across Phases 49-52, adding host-owned guardrail signal contracts, fail-closed guarded rollout decisions, governed/audited hold or rollback behavior, mounted guardrail explanation surfaces, and bounded proof/docs truth without turning Rulestead into an observability product.
 - `v1.6.0` shipped on 2026-05-27 across Phases 53-56, deepening reusable audience targeting with impact previews, dependency inventory and fail-closed validation, mounted preview-confirm-audit workflows, explain trace carry-through, and bounded proof/docs/support truth without widening the sibling-package release model.
-- `v1.7.0` in progress (Phases 57-60): blast-radius threshold contract, change-request integration, and mounted governance workflows. **Phase 59 complete** — mounted admin detects threshold breaches, routes governed audience mutations through proposal/review, and preserves policy-aware fallbacks (ADM-01–03).
+- `v1.7.0` shipped on 2026-05-27 across Phases 57-60: blast-radius threshold contract, change-request integration, mounted governance workflows, and proof/docs/support-truth closure (`mix verify.phase60`, release-contract drift guards, payload-first quickstart parity).
 
-## Current Milestone: v1.7.0 Blast-Radius Governance
+## Current Milestone
+
+**v1.7.0 Blast-Radius Governance** shipped 2026-05-27. Next milestone selection is open (see Deferred Items in STATE.md — `v1.8.0` guarded rollout auto-advance is the primary queued item).
+
+<details>
+<summary>v1.7.0 Blast-Radius Governance (shipped 2026-05-27)</summary>
 
 **Goal:** Close the reusable-targeting safety arc by routing high-blast-radius protected-environment audience edits through governed change requests after v1.6 preview and dependency truth are proven.
 
@@ -27,6 +32,8 @@ Rulestead is a batteries-included, Elixir-native feature-flag and remote-config 
 - Quickstart/doc support truth bundled in verification (payload-first evaluation API)
 
 **Queued after v1.7:** `v1.8.0` guarded rollout auto-advance (ROL-04); defer `ADM-05` presets.
+
+</details>
 
 <details>
 <summary>Assessment: 2026-05-27 next-milestone review (87% done band)</summary>
