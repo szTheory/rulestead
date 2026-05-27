@@ -480,6 +480,68 @@ All workers have `:rulestead` queue prefix so hosts can isolate concurrency.
 
 ---
 
+## Guarded rollout auto-advance (host seam)
+
+Guarded rollout auto-advance is **opt-in per rollout** and **host-owned end to end**.
+Rulestead evaluates normalized guardrail facts and schedules governed ticks; it does
+not ingest metrics, run observability pipelines, or ship dashboards.
+
+### Host-owned signal provider
+
+The host implements the configured guardrails provider seam (typically
+`Rulestead.Guardrails.fetch_signal/2` against your metrics or health service).
+That provider returns **normalized signal facts** for the rollout rule at tick
+time. Rulestead never owns metric storage, fleet views, or time-series backends.
+
+### Observation window and authored next-stage plan
+
+When auto-advance policy is enabled for a rollout rule, each successful manual or
+automated advance opens an **observation window** (`monitoring_window_started_at` /
+`monitoring_window_ends_at`). After the window elapses, `Rulestead.Oban.ScheduledExecutionWorker`
+delivers a single governed tick.
+
+Automation may execute only when the operator has authored an explicit
+**next-stage plan** on the policy (`next_stage`, `next_percentage`,
+`observation_window_seconds`). There is no implicit progression from ladder
+presets or percentage-of-time rollouts.
+
+### Protected-environment governance
+
+At tick execute, protected environments resolve `change_request_required?` for
+`:advance_rollout` the same way manual advances do. When a change request is
+required, the tick **submits** a change request with guardrail evidence — it does
+**not** auto-approve or bypass human approval. Direct governed advance applies
+only where manual advance would also be direct.
+
+### Fail-closed evaluator
+
+`evaluate_rollout_auto_advance/1` in core is pure: weak, stale, or missing signal
+facts block advance. Holds, rollbacks, superseded ticks, and incomplete policy
+also fail closed with bounded reasons. The hot path does not read the database
+for eligibility; orchestration loads policy + fresh facts, then calls the pure
+evaluator.
+
+### Audit correlation
+
+Successful automation persists audit evidence with `metadata.source:
+:guardrail_automation` (and related observation-window bounds) so operators can
+distinguish automation from manual hold, advance, and rollback actions on the
+timeline.
+
+### Explicit non-claims
+
+Rulestead does **not** provide:
+
+- built-in metrics dashboards or fleet health views
+- observability pipelines or signal ingestion
+- time-based percentage rollout as a first-class type
+- self-healing rollouts that advance without an authored next-stage plan
+
+Hosts own signals, dashboards, and metric backends; Rulestead owns bounded policy,
+orchestration, and audit correlation only.
+
+---
+
 ## 8. Admin UI mount
 
 ```elixir
