@@ -1,5 +1,28 @@
 # Milestones
 
+## v1.8.0 Guarded Rollout Auto-Advance (Shipped: 2026-05-27)
+
+**Phases completed:** 4 phases, 16 plans, 32 tasks
+
+**Key accomplishments:**
+
+- Observation-window close ticks register via schedule_governed_action after advance_rollout with deterministic idempotency, supersession, and fail-open scheduling across Ecto and Fake adapters.
+- Automation ticks validate live rollout snapshots, resolve fresh guardrail signals, evaluate eligibility, and either complete blocked without mutation or build governed AdvanceRollout commands with guardrail_automation metadata.
+- Protected environments auto-submit advance_rollout change requests at observation-window ticks; non-protected environments direct-advance through the orchestrator with Fake/Ecto finalize parity and audit CR links.
+- Fake and Ecto pass identical orchestration contract tests proving schedule→execute auto-advance, guardrail_automation audit evidence, blocked non-advance, protected-env CR submit, replay safety, manual-advance races, and idempotent tick scheduling.
+- Mounted rollouts page exposes a read-only auto-advance panel with fail-closed mode derivation from guardrails, policy, and scheduled ticks—no core package changes.
+- Rollouts page saves auto-advance policy through direct upsert gated on `:advance_rollout`, with prerequisite-disabled modes and protected-env callout that does not block save.
+- Timeline and intervention excerpts label guardrail_automation rollout.advance as Automatic rollout advance with explicit redaction paths and LiveView tests distinguishing automation from manual actions.
+- ADM-04 and AUD-04 contract matrices are green: rollouts panel modes, timeline automation labeling, and Phase 62 orchestration regression verified with nyquist sign-off.
+- v1.8 merge gate runs phase60 regression plus auto-advance contract and admin rollouts/timeline tests in one `mix verify.phase64` command without delegating to sub-tasks.
+- v1.8 auto-advance support truth is enforced by release_contract_test.exs and reflected in root, package, and maintainer docs without removing verify.phase56 or verify.phase60 proof entries.
+- Bounded auto-advance documentation added to the host integration seam and in-place flow guides — host-owned signals, observation windows, and guardrail_automation audit labeling without new standalone docs.
+- Bounded auto-advance proof reruns via `RULESTEAD_TEST_SCOPE=guarded_rollout_auto_advance`, with phase verification artifact and v1.8.0 milestone traceability closed.
+
+Known deferred items at close: 3 (see STATE.md Deferred Items)
+
+---
+
 ## v1.7.0 Blast-Radius Governance (Shipped: 2026-05-27)
 
 **Phases completed:** 4 phases, 16 plans, 8 tasks

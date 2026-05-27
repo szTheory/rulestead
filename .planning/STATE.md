@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.8.0
 milestone_name: milestone
-status: milestone_complete
-stopped_at: Completed 64-04-PLAN.md
-last_updated: "2026-05-27T17:45:00Z"
-last_activity: 2026-05-27
+status: Awaiting next milestone
+stopped_at: Completed 64-01-PLAN.md
+last_updated: "2026-05-27T21:42:10.153Z"
+last_activity: 2026-05-27 — Milestone v1.8.0 completed and archived
 progress:
   total_phases: 4
   completed_phases: 4
@@ -21,21 +21,21 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-27)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions - booleans, variants, and remote config - with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
-**Current focus:** v1.8.0 milestone complete — ready for archive or release handoff
-**Milestone:** `v1.8.0 - Guarded Rollout Auto-Advance` (shipped 2026-05-27)
+**Current focus:** Planning next milestone (`/gsd-new-milestone`)
+**Milestone:** `v1.8.0 - Guarded Rollout Auto-Advance` (archived 2026-05-27)
 
 ## Current Position
 
-Phase: 64 (proof-docs-and-support-truth) — COMPLETE
-Plan: 4 of 4
-Status: Milestone complete
-Last activity: 2026-05-27
+Phase: Milestone v1.8.0 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-05-27 — Milestone v1.8.0 completed and archived
 
 ## Performance Metrics
 
 **Velocity (v1.7.0 reference):**
 
-- Total plans completed: 28
+- Total plans completed: 32
 - Milestone duration: same-day execution (2026-05-27)
 
 ## Accumulated Context
@@ -83,5 +83,5 @@ Resume: Phase 64 proof, docs, and support truth
 
 ## Operator Next Steps
 
-- Run `/gsd-verify-work 63` then plan/execute Phase 64
-- Assessment thread: `.planning/threads/2026-05-27-post-v1.7-milestone-assessment.md`
+- Run `/gsd-new-milestone` to define v1.9+ scope (candidates: IMP-05, ADM-05, ROL-05 baseline — see Deferred Items)
+- Optional: `/gsd-audit-milestone` retroactively for v1.8.0 formal gap check before release handoff

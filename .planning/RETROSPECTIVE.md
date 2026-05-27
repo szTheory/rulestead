@@ -2,6 +2,48 @@
 
 *A living document updated after each milestone. Lessons feed forward into future planning.*
 
+## Milestone: v1.8.0 — Guarded Rollout Auto-Advance
+
+**Shipped:** 2026-05-27
+**Phases:** 4 | **Plans:** 16 | **Tasks:** 32
+
+### What Was Built
+
+- Authored auto-advance policy with observation window, explicit next-stage plan, and fail-closed eligibility on v1.5 guardrails.
+- `ScheduledExecution` observation-window ticks orchestrating governed `advance_rollout` with idempotency, protected-env change-request routing, and `guardrail_automation` audit evidence.
+- Mounted rollouts auto-advance panel (six fail-closed modes), policy save gated on `:advance_rollout`, and timeline distinction for automation vs manual actions.
+- `mix verify.phase64` merge gate, release-contract drift guards, host seam + flow guides, and optional `guarded_rollout_auto_advance` CI scope.
+
+### What Worked
+
+- Reusing `ScheduledExecution` and the existing governed-action envelope avoided a parallel mutation path and kept v1.5 hold/rollback semantics intact.
+- The four-phase split (authored contract → orchestration → mounted UX → proof/docs) matched v1.5–v1.7 rhythm and preserved core-vs-companion boundaries.
+- Fail-open schedule hook on `advance_rollout` plus fail-closed eligibility at tick execute balanced operator progress with safety.
+
+### What Was Inefficient
+
+- No formal `v1.8.0-MILESTONE-AUDIT.md` before close (third consecutive milestone without audit artifact).
+- `gsd-sdk milestone.complete` warned about a missing STATE.md field — planning doc formats should stay aligned with gsd-tools expectations.
+
+### Patterns Established
+
+- `RolloutAutoAdvance.Schedule` as the shared idempotency and command-snapshot contract across Ecto and Fake.
+- Fresh guardrail signals fetched at tick execute; schedule snapshot intentionally empty for signal facts.
+- Protected-env auto-advance submits change requests at execute time without auto-approve; non-protected paths direct-advance through the orchestrator.
+
+### Key Lessons
+
+1. Completing a multi-milestone arc (v1.5 foundations → v1.7 governance → v1.8 auto-advance) is faster when each layer reuses the prior envelope instead of inventing parallel workflows.
+2. Mounted UX should derive fail-closed modes from core truth (guardrails, policy, scheduled ticks) rather than inferring healthy fleet state.
+3. Support-truth phases remain non-negotiable — `mix verify.phase64` and release-contract guards prevent auto-advance from feeling experimental.
+
+### Cost Observations
+
+- Milestone executed in a single day with 16 plans across 4 phases.
+- Known deferred items at close: 3 (see STATE.md Deferred Items).
+
+---
+
 ## Milestone: v1.7.0 — Blast-Radius Governance
 
 **Shipped:** 2026-05-27
