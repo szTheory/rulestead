@@ -63,8 +63,12 @@ Success criteria:
 
 **Goal**: Reclose support truth for guarded rollout foundations with bounded proof, docs, and traceability before wider rollout automation is considered.
 **Depends on**: Phase 51
-**Plans**: TBD
+**Plans**: 2 plans
 **Requirements**: `VER-01`
+
+Plans:
+- [ ] `52-01-PLAN.md` - Build bounded guarded rollout proof bar and support-truth docs
+- [ ] `52-02-PLAN.md` - Write verification artifact and reconcile planning truth
 
 Success criteria:
 1. Repo-local verification covers stale-signal, insufficient-sample, hold, rollback, and bounded host-seam behavior.
