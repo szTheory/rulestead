@@ -769,28 +769,28 @@ defmodule Rulestead.Store.Ecto do
            audit_event: AuditEvent.serialize(audit_event)
          }}
 
-      {:error, _operation, %Rulestead.Error{} = error, _changes} ->
+      {:error, _operation, %Rulestead.Error{} = error, changes} ->
         if Keyword.get(opts, :audit_blocked?, true) do
-          _ = insert_blocked_audience_event(command, error)
+          _ = insert_blocked_audience_event(command, error, preview: Map.get(changes, :preview))
         end
 
         {:error, error}
 
-      {:error, _operation, %Changeset{} = changeset, _changes} ->
+      {:error, _operation, %Changeset{} = changeset, changes} ->
         error =
           StoreError.invalid_command("audience mutation could not be persisted", cause: changeset)
 
         if Keyword.get(opts, :audit_blocked?, true) do
-          _ = insert_blocked_audience_event(command, error)
+          _ = insert_blocked_audience_event(command, error, preview: Map.get(changes, :preview))
         end
 
         {:error, error}
 
-      {:error, _operation, reason, _changes} ->
+      {:error, _operation, reason, changes} ->
         error = StoreError.unavailable(cause: reason)
 
         if Keyword.get(opts, :audit_blocked?, true) do
-          _ = insert_blocked_audience_event(command, error)
+          _ = insert_blocked_audience_event(command, error, preview: Map.get(changes, :preview))
         end
 
         {:error, error}
@@ -3471,6 +3471,9 @@ defmodule Rulestead.Store.Ecto do
   end
 
   defp audience_audit_event_changeset(audit_event, command, event_type, result, opts) do
+    preview = Map.get(opts, :preview) || %{}
+    evidence_summary = ImpactPreview.audit_evidence_summary(preview)
+
     metadata =
       AuditEvent.metadata(%{
         before: Map.get(opts, :before, %{}),
@@ -3484,10 +3487,12 @@ defmodule Rulestead.Store.Ecto do
         preview_basis: command.preview_basis,
         blockers: Map.get(opts, :blockers),
         dependency_findings: Map.get(opts, :dependency_findings, []),
-        affected_references: Map.get(opts, :preview, %{}) |> Map.get(:affected_references),
-        uncertainty: Map.get(opts, :preview, %{}) |> Map.get(:uncertainty),
-        sample_evidence: Map.get(opts, :preview, %{}) |> Map.get(:sample_evidence)
+        affected_references: Map.get(preview, :affected_references),
+        uncertainty: Map.get(preview, :uncertainty),
+        sample_evidence: Map.get(preview, :sample_evidence),
+        impression_evidence: Map.get(preview, :impression_evidence)
       })
+      |> Map.merge(evidence_summary)
       |> Map.merge(Map.new(Map.get(opts, :metadata, %{})))
 
     AuditEvent.changeset(audit_event, %{
@@ -3522,7 +3527,7 @@ defmodule Rulestead.Store.Ecto do
     end
   end
 
-  defp insert_blocked_audience_event(command, %Rulestead.Error{} = error) do
+  defp insert_blocked_audience_event(command, %Rulestead.Error{} = error, opts) do
     event_type =
       if command.operation == "delete_attempt" do
         "audience.delete_blocked"
@@ -3530,13 +3535,38 @@ defmodule Rulestead.Store.Ecto do
         "audience.mutation_blocked"
       end
 
+    preview =
+      case Keyword.get(opts, :preview) do
+        preview when is_map(preview) and map_size(preview) > 0 -> preview
+        _ -> preview_for_blocked_audience_audit(command, error)
+      end
+
     %AuditEvent{}
     |> audience_audit_event_changeset(command, event_type, :error, %{
       blockers: audience_blockers(command, :error, error),
+      preview: preview,
       metadata: blocked_audience_metadata(error)
     })
     |> Repo.insert()
   end
+
+  defp preview_for_blocked_audience_audit(command, %Rulestead.Error{metadata: metadata}) do
+    verdict = Map.get(metadata, :verdict) || Map.get(metadata, "verdict")
+
+    if verdict in ["above_threshold", "indeterminate"] do
+      with {:ok, environment} <- fetch_environment(command.environment_key),
+           {:ok, audience} <- fetch_audience_for_mutation(command.audience_key),
+           {:ok, preview} <- audience_preview_payload(Repo, environment.key, audience, command) do
+        preview
+      else
+        _ -> %{}
+      end
+    else
+      %{}
+    end
+  end
+
+  defp preview_for_blocked_audience_audit(_command, _error), do: %{}
 
   defp blocked_audience_metadata(%Rulestead.Error{metadata: %{verdict: verdict}} = error)
        when verdict in ["above_threshold", "indeterminate"] do
@@ -3567,9 +3597,15 @@ defmodule Rulestead.Store.Ecto do
   defp blast_radius_breach_reasons(_error), do: []
 
   defp audience_audit_reference_keys(command, opts) do
-    case Map.fetch(opts, :preview) do
-      {:ok, preview} -> preview_reference_keys(preview)
-      :error -> command.affected_reference_keys
+    case Map.get(opts, :preview) do
+      preview when is_map(preview) and map_size(preview) > 0 ->
+        case preview_reference_keys(preview) do
+          [] -> command.affected_reference_keys || []
+          keys -> keys
+        end
+
+      _ ->
+        command.affected_reference_keys || []
     end
   end
 
@@ -4556,6 +4592,7 @@ defmodule Rulestead.Store.Ecto do
     %{
       "blast_radius_assessment" => Map.get(metadata, "blast_radius_assessment"),
       "affected_reference_summary" => Map.get(metadata, "affected_reference_summary"),
+      "preview_evidence_summary" => Map.get(metadata, "preview_evidence_summary"),
       "terminal_reason" => reason
     }
   end

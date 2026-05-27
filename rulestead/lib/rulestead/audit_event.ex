@@ -280,6 +280,7 @@ defmodule Rulestead.AuditEvent do
       "preview_basis",
       "uncertainty",
       "sample_evidence",
+      "impression_evidence",
       "blockers"
     ]
     |> Enum.reduce(%{}, fn key, acc ->

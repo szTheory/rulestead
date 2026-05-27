@@ -6,6 +6,7 @@ defmodule Rulestead.Governance.AudienceMutationChangeRequest do
   alias Rulestead.Store.Command
   alias Rulestead.StoreError
   alias Rulestead.Targeting.AudienceDependencies
+  alias Rulestead.Targeting.ImpactPreview
 
   @required_command_keys ~w(audience_key operation preview_schema_version preview_fingerprint)
 
@@ -44,7 +45,8 @@ defmodule Rulestead.Governance.AudienceMutationChangeRequest do
         "reference_keys" => AudienceDependencies.reference_keys(references),
         "rollout_hints" => rollout_hints(references),
         "lifecycle_hints" => lifecycle_hints(references)
-      }
+      },
+      "preview_evidence_summary" => ImpactPreview.audit_evidence_summary(current_preview)
     }
   end
 

@@ -271,6 +271,47 @@ defmodule Rulestead.Governance.BlastRadiusThresholdTest do
                  dependency_entries: []
                )
     end
+
+    test "validate_protected_apply verdict unchanged with impression and sample evidence on preview" do
+      preview_base = %{affected_references: three_references()}
+
+      preview_enriched =
+        Map.merge(preview_base, %{
+          impression_evidence: %{"window_label" => "last_7d", "matched_impressions" => 50_000_000},
+          sample_evidence: for(i <- 1..25, do: %{"actor_key" => "actor-#{i}"})
+        })
+
+      command = apply_command("production")
+
+      assert {:error, base_error} =
+               BlastRadiusThreshold.validate_protected_apply(command, preview_base,
+                 dependency_entries: []
+               )
+
+      assert {:error, enriched_error} =
+               BlastRadiusThreshold.validate_protected_apply(command, preview_enriched,
+                 dependency_entries: []
+               )
+
+      assert base_error.metadata[:verdict] == enriched_error.metadata[:verdict]
+      assert base_error.metadata[:reference_count] == enriched_error.metadata[:reference_count]
+    end
+
+    test "governed_apply bypass unchanged with enriched preview" do
+      preview_enriched = %{
+        affected_references: three_references(),
+        impression_evidence: %{"window_label" => "last_7d", "matched_impressions" => 50_000_000},
+        sample_evidence: for(i <- 1..25, do: %{"actor_key" => "actor-#{i}"})
+      }
+
+      command = apply_command("production")
+
+      assert :ok =
+               BlastRadiusThreshold.validate_protected_apply(command, preview_enriched,
+                 dependency_entries: [],
+                 governed_apply?: true
+               )
+    end
   end
 
   describe "Rulestead.assess_audience_blast_radius/2" do

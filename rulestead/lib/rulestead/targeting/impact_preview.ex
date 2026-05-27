@@ -36,6 +36,16 @@ defmodule Rulestead.Targeting.ImpactPreview do
     "tier" => :tier
   }
 
+  @audit_summary_keys ~w(
+    preview_basis
+    preview_schema_version
+    preview_fingerprint
+    uncertainty
+    sample_evidence
+    impression_evidence
+    affected_reference_keys
+  )
+
   @sample_allowlist [
     "actor_key",
     "targeting_key",
@@ -81,6 +91,31 @@ defmodule Rulestead.Targeting.ImpactPreview do
     }
 
     "audprev_" <> hash_term(token_payload)
+  end
+
+  @spec audit_evidence_summary(map()) :: map()
+  def audit_evidence_summary(preview) when is_map(preview) do
+    preview = normalize_preview_map(preview)
+
+    base = %{
+      "preview_basis" => fetch_string(preview, :preview_basis),
+      "preview_schema_version" => fetch(preview, :preview_schema_version),
+      "preview_fingerprint" => fetch_string(preview, :preview_fingerprint),
+      "uncertainty" => normalize_uncertainty_summary(fetch(preview, :uncertainty)),
+      "sample_evidence" => normalize_evidence_list(fetch(preview, :sample_evidence)),
+      "impression_evidence" => normalize_impression_evidence_summary(fetch(preview, :impression_evidence)),
+      "affected_reference_keys" => affected_reference_keys(fetch(preview, :affected_references) || [])
+    }
+
+    Enum.reduce(@audit_summary_keys, %{}, fn key, acc ->
+      case Map.get(base, key) do
+        nil -> acc
+        [] -> acc
+        %{} = map when map_size(map) == 0 -> acc
+        value -> Map.put(acc, key, value)
+      end
+    end)
+    |> stringify_map_keys()
   end
 
   @spec build(map()) :: map()
@@ -181,6 +216,78 @@ defmodule Rulestead.Targeting.ImpactPreview do
   def normalize_term(term) when is_list(term), do: Enum.map(term, &normalize_term/1)
   def normalize_term(term) when is_atom(term), do: Atom.to_string(term)
   def normalize_term(term), do: term
+
+  defp normalize_preview_map(preview) when is_map(preview) do
+    Map.new(preview, fn {key, value} ->
+      {if(is_atom(key), do: key, else: String.to_existing_atom(key)), value}
+    end)
+  rescue
+    ArgumentError ->
+      Map.new(preview, fn {key, value} -> {normalize_output_key(key), value} end)
+  end
+
+  defp normalize_uncertainty_summary(nil),
+    do: %{
+      "basis" => @default_preview_basis,
+      "authoritative_population_count?" => false,
+      "message" => uncertainty_message(@default_preview_basis)
+    }
+
+  defp normalize_uncertainty_summary(uncertainty) when is_map(uncertainty) do
+    uncertainty = Map.new(uncertainty, fn {key, value} -> {to_string(key), value} end)
+    basis = Map.get(uncertainty, "basis") || @default_preview_basis
+
+    %{
+      "basis" => basis,
+      "authoritative_population_count?" => false,
+      "message" => Map.get(uncertainty, "message") || uncertainty_message(basis)
+    }
+  end
+
+  defp normalize_evidence_list(nil), do: []
+  defp normalize_evidence_list([]), do: []
+
+  defp normalize_evidence_list(samples) when is_list(samples) do
+    samples
+    |> Enum.map(fn sample ->
+      sample
+      |> stringify_map_keys()
+    end)
+    |> Enum.reject(&(map_size(&1) == 0))
+  end
+
+  defp normalize_evidence_list(_samples), do: []
+
+  defp normalize_impression_evidence_summary(nil), do: %{}
+  defp normalize_impression_evidence_summary(%{} = evidence), do: redacted_impression_summary(evidence) |> stringify_map_keys()
+
+  defp normalize_impression_evidence_summary(_evidence), do: %{}
+
+  defp stringify_map_keys(map) when is_map(map) do
+    Map.new(map, fn {key, value} ->
+      key = if is_atom(key), do: Atom.to_string(key), else: key
+      {key, stringify_map_value(value)}
+    end)
+  end
+
+  defp stringify_map_value(value) when is_map(value), do: stringify_map_keys(value)
+
+  defp stringify_map_value(value) when is_list(value),
+    do: Enum.map(value, &stringify_map_value/1)
+
+  defp stringify_map_value(value) when is_boolean(value), do: value
+
+  defp stringify_map_value(value) when is_atom(value),
+    do: Atom.to_string(value)
+
+  defp stringify_map_value(value), do: value
+
+  defp fetch_string(preview, key) do
+    case fetch(preview, key) do
+      nil -> nil
+      value -> normalize_string(value)
+    end
+  end
 
   defp derive_preview_basis(attrs) do
     impression = redacted_impression_summary(fetch(attrs, :impression_summary))

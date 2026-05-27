@@ -38,6 +38,7 @@ defmodule Rulestead.Governance.AudienceMutationChangeRequestContractTest do
 
       assert submitted.state == :submitted
       assert submitted.metadata["blast_radius_assessment"]["verdict"] == "above_threshold"
+      assert submitted.metadata["preview_evidence_summary"]["preview_fingerprint"] == preview.preview_fingerprint
 
       assert {:ok, %{change_request: approved}} =
                adapter.approve_change_request(
@@ -128,6 +129,34 @@ defmodule Rulestead.Governance.AudienceMutationChangeRequestContractTest do
 
       assert get_in(audit_context_metadata(rejected_event), ["blast_radius_assessment", "verdict"]) ==
                "above_threshold"
+
+      assert get_in(audit_context_metadata(rejected_event), ["preview_evidence_summary", "preview_fingerprint"]) ==
+               preview.preview_fingerprint
+    end)
+  end
+
+  test "submit embeds frozen preview_evidence_summary across adapters" do
+    Enum.each(@adapters, fn adapter ->
+      reset_adapter!(adapter)
+      seed_production_audience_references!(adapter, 3)
+
+      {:ok, preview} = preview_audience_impact(adapter, production_preview_attrs())
+
+      assert {:ok, %{change_request: submitted}} =
+               adapter.submit_change_request(
+                 audience_submit_command(preview,
+                   correlation_id: "corr-audience-evidence-#{adapter_label(adapter)}"
+                 )
+               )
+
+      summary = submitted.metadata["preview_evidence_summary"]
+      assert summary["preview_fingerprint"] == preview.preview_fingerprint
+      assert summary["uncertainty"]["authoritative_population_count?"] == false
+
+      assert {:ok, %{change_request: fetched}} =
+               adapter.fetch_change_request(Command.FetchChangeRequest.new(submitted.id))
+
+      assert fetched.metadata["preview_evidence_summary"] == summary
     end)
   end
 
@@ -159,7 +188,11 @@ defmodule Rulestead.Governance.AudienceMutationChangeRequestContractTest do
                adapter.fetch_change_request(Command.FetchChangeRequest.new(submitted.id))
 
       cancelled_event = Enum.find(audit_events, &(&1.event_type == "change_request.cancelled"))
+
       assert Map.has_key?(audit_context_metadata(cancelled_event), "blast_radius_assessment")
+
+      assert get_in(audit_context_metadata(cancelled_event), ["preview_evidence_summary", "preview_fingerprint"]) ==
+               preview.preview_fingerprint
     end)
   end
 

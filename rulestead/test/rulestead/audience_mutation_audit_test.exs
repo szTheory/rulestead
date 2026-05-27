@@ -15,6 +15,7 @@ defmodule Rulestead.AudienceMutationAuditTest do
     Ruleset,
     RuntimeSnapshot,
     Store.Command,
+    Targeting.AudienceDependencies,
     Targeting.ImpactPreview
   }
 
@@ -106,6 +107,51 @@ defmodule Rulestead.AudienceMutationAuditTest do
     refute inspect(event.metadata) =~ "+1-555-1111"
   end
 
+  test "accepted audience update carries impression_evidence when resolver configured" do
+    previous_resolver = Application.get_env(:rulestead, :preview_evidence_resolver)
+    Application.put_env(:rulestead, :preview_evidence_resolver, Rulestead.Fake.PreviewEvidenceResolver)
+    on_exit(fn -> restore_env(:preview_evidence_resolver, previous_resolver) end)
+
+    {:ok, preview} = update_preview()
+    command = apply_command(preview, metadata: %{request_id: "req-impression"})
+
+    assert {:ok, result} = EctoStore.apply_audience_mutation(command)
+    metadata = result.audit_event.metadata
+
+    assert metadata["impression_evidence"]["window_label"] == "last_24h"
+    assert metadata["impression_evidence"]["matched_impressions"] == 12
+    refute inspect(metadata) =~ "email"
+  end
+
+  test "blocked blast-radius audit carries preview evidence summary" do
+    previous_resolver = Application.get_env(:rulestead, :preview_evidence_resolver)
+    Application.put_env(:rulestead, :preview_evidence_resolver, Rulestead.Fake.PreviewEvidenceResolver)
+    on_exit(fn -> restore_env(:preview_evidence_resolver, previous_resolver) end)
+
+    seed_production_audience_references!(3)
+
+    {:ok, preview} =
+      EctoStore.preview_audience_impact(
+        Command.PreviewAudienceImpact.new("vip-users", :update,
+          environment_key: "production",
+          tenant_key: "tenant-a",
+          after_definition: %{conditions: [%{attribute: "plan", operator: "eq", value: "pro"}]}
+        )
+      )
+
+    command = apply_command(preview, environment_key: "production")
+
+    assert {:error, %Rulestead.Error{metadata: %{verdict: verdict}}} =
+             EctoStore.apply_audience_mutation(command)
+
+    assert verdict == "above_threshold"
+
+    event = latest_audience_event!("audience.mutation_blocked")
+    assert event.metadata["blast_radius_verdict"] == "above_threshold"
+    assert event.metadata["impression_evidence"]["window_label"] == "last_24h"
+    assert is_list(event.metadata["sample_evidence"])
+  end
+
   test "denied authorization records denied audience audit without raw PII" do
     {:ok, preview} = update_preview()
     Application.put_env(:rulestead, :admin_policy, __MODULE__.DenyAllPolicy)
@@ -142,28 +188,71 @@ defmodule Rulestead.AudienceMutationAuditTest do
   end
 
   defp update_preview do
-    EctoStore.preview_audience_impact(
-      Command.PreviewAudienceImpact.new("vip-users", :update,
-        environment_key: "test",
-        tenant_key: "tenant-a",
-        after_definition: %{conditions: [%{attribute: "plan", operator: "eq", value: "pro"}]},
-        samples: [%{actor_key: "actor-1", traits: %{plan: "pro"}, email: "sample@example.com"}]
-      )
-    )
+    attrs = [
+      environment_key: "test",
+      tenant_key: "tenant-a",
+      after_definition: %{conditions: [%{attribute: "plan", operator: "eq", value: "pro"}]}
+    ]
+
+    attrs =
+      if Application.get_env(:rulestead, :preview_evidence_resolver) do
+        attrs
+      else
+        Keyword.put(attrs, :samples, [
+          %{actor_key: "actor-1", traits: %{plan: "pro"}, email: "sample@example.com"}
+        ])
+      end
+
+    EctoStore.preview_audience_impact(Command.PreviewAudienceImpact.new("vip-users", :update, attrs))
   end
 
-  defp apply_command(preview, overrides) do
+  defp seed_production_audience_references!(count) do
+    for index <- 1..count do
+      flag_key = "checkout-redesign-#{index}"
+
+      assert {:ok, _flag} =
+               EctoStore.create_flag(
+                 Command.CreateFlag.new(
+                   valid_flag_attrs(%{key: flag_key, environment_keys: ["production"]})
+                 )
+               )
+
+      ruleset =
+        valid_ruleset_attrs(%{
+          rules: [
+            %{
+              key: "vip-rule-#{index}",
+              name: "VIP audience #{index}",
+              strategy: :segment_match,
+              audience_key: "vip-users",
+              conditions: []
+            }
+          ]
+        })
+
+      assert {:ok, _draft} =
+               EctoStore.save_draft_ruleset(Command.SaveDraftRuleset.new(flag_key, "production", ruleset))
+
+      assert {:ok, _published} =
+               EctoStore.publish_ruleset(Command.PublishRuleset.new(flag_key, "production"))
+    end
+  end
+
+  defp apply_command(preview, overrides \\ []) do
+    overrides = List.wrap(overrides)
+    environment_key = Keyword.get(overrides, :environment_key, "test")
+
     attrs =
       %{
-        environment_key: "test",
+        environment_key: environment_key,
         tenant_key: "tenant-a",
         audience_key: "vip-users",
         operation: :update,
         preview_schema_version: preview.preview_schema_version,
         preview_fingerprint: preview.preview_fingerprint,
         preview_basis: preview.preview_basis,
-        affected_reference_keys: ["flag:checkout-redesign:ruleset:1:rule:vip-rule"],
-        samples: [%{actor_key: "actor-1", traits: %{plan: "pro"}, email: "sample@example.com"}],
+        affected_reference_keys: AudienceDependencies.reference_keys(preview.affected_references),
+        samples: command_samples(preview, overrides),
         after_definition: %{conditions: [%{attribute: "plan", operator: "eq", value: "pro"}]},
         actor: %{id: "editor-1", type: "operator", display: "Editor One"},
         reason: "apply confirmed update"
@@ -250,6 +339,20 @@ defmodule Rulestead.AudienceMutationAuditTest do
 
   defp restore_env(key, nil), do: Application.delete_env(:rulestead, key)
   defp restore_env(key, value), do: Application.put_env(:rulestead, key, value)
+
+  defp command_samples(preview, overrides) do
+    case Keyword.get(overrides, :samples) do
+      nil ->
+        if Application.get_env(:rulestead, :preview_evidence_resolver) do
+          []
+        else
+          [%{actor_key: "actor-1", traits: %{plan: "pro"}, email: "sample@example.com"}]
+        end
+
+      samples ->
+        samples
+    end
+  end
 
   defmodule DenyAllPolicy do
     @behaviour Rulestead.Admin.Policy

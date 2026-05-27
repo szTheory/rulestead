@@ -68,6 +68,8 @@ defmodule Rulestead.Governance.AudienceMutationChangeRequestTest do
       assert Map.has_key?(metadata, "affected_reference_summary")
       assert metadata["blast_radius_assessment"]["verdict"] == "above_threshold"
       assert metadata["affected_reference_summary"]["reference_count"] == 3
+      assert metadata["preview_evidence_summary"]["preview_fingerprint"] == preview.preview_fingerprint
+      assert metadata["preview_evidence_summary"]["uncertainty"]["authoritative_population_count?"] == false
     end
   end
 

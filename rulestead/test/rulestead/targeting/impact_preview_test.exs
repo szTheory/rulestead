@@ -1,8 +1,69 @@
 defmodule Rulestead.Targeting.ImpactPreviewTest do
   use ExUnit.Case, async: true
 
+  alias Rulestead.AuditEvent
   alias Rulestead.Targeting.AudienceDependencies
   alias Rulestead.Targeting.ImpactPreview
+
+  describe "audit_evidence_summary/1" do
+    test "returns bounded summary from built preview" do
+      preview =
+        ImpactPreview.build(
+          preview_attrs(%{
+            impression_summary: %{
+              "window_label" => "last_7d",
+              "matched_impressions" => 120
+            }
+          })
+        )
+
+      summary = ImpactPreview.audit_evidence_summary(preview)
+
+      assert summary["preview_fingerprint"] == preview.preview_fingerprint
+      assert is_list(summary["sample_evidence"])
+      assert summary["impression_evidence"]["window_label"] == "last_7d"
+      assert summary["affected_reference_keys"] == ["flag:checkout:ruleset:7:rule:vip"]
+      refute Map.has_key?(summary, "affected_references")
+    end
+
+    test "uncertainty remains non-authoritative" do
+      preview = ImpactPreview.build(preview_attrs())
+
+      summary = ImpactPreview.audit_evidence_summary(preview)
+
+      assert summary["uncertainty"]["authoritative_population_count?"] == false
+    end
+
+    test "empty impression omits impression_evidence key" do
+      preview = ImpactPreview.build(preview_attrs())
+
+      summary = ImpactPreview.audit_evidence_summary(preview)
+
+      refute Map.has_key?(summary, "impression_evidence")
+    end
+
+    test "accepts atom-key preview map" do
+      preview = ImpactPreview.build(preview_attrs(%{impression_summary: %{"window_label" => "last_24h"}}))
+      string_summary = ImpactPreview.audit_evidence_summary(preview)
+
+      atom_preview =
+        preview
+        |> Map.new(fn {key, value} -> {if(is_binary(key), do: String.to_existing_atom(key), else: key), value} end)
+
+      assert ImpactPreview.audit_evidence_summary(atom_preview) == string_summary
+    end
+
+    test "AuditEvent.metadata carries impression_evidence through allowlist" do
+      metadata =
+        AuditEvent.metadata(%{
+          preview_fingerprint: "audprev_abc",
+          impression_evidence: %{"window_label" => "last_24h", "matched_impressions" => 42}
+        })
+
+      assert metadata["impression_evidence"]["window_label"] == "last_24h"
+      refute Map.has_key?(metadata, "email")
+    end
+  end
 
   describe "impact preview contract" do
     test "preview fingerprints are stable across map key order and change with scoped basis" do

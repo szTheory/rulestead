@@ -3194,9 +3194,12 @@ defmodule Rulestead.Fake do
   end
 
   defp audience_mutation_terminal_metadata(%{governed_action: "apply_audience_mutation"} = change_request, reason) do
+    metadata = change_request.metadata || %{}
+
     %{
-      "blast_radius_assessment" => get_in(change_request, [:metadata, "blast_radius_assessment"]),
-      "affected_reference_summary" => get_in(change_request, [:metadata, "affected_reference_summary"]),
+      "blast_radius_assessment" => Map.get(metadata, "blast_radius_assessment"),
+      "affected_reference_summary" => Map.get(metadata, "affected_reference_summary"),
+      "preview_evidence_summary" => Map.get(metadata, "preview_evidence_summary"),
       "terminal_reason" => reason
     }
   end
@@ -3873,14 +3876,11 @@ defmodule Rulestead.Fake do
           append_audit_event(state, command, blocked_audience_event_type(command), :error,
             resource_type: "audience",
             resource_key: command.audience_key,
-            metadata: %{
-              "preview_fingerprint" => command.preview_fingerprint,
-              "preview_schema_version" => command.preview_schema_version,
-              "preview_basis" => command.preview_basis,
-              "affected_reference_keys" => preview_reference_keys(current_preview),
-              "blockers" => dependency_blockers(dependency_findings),
-              "dependency_findings" => serialize_dependency_findings(dependency_findings)
-            }
+            metadata:
+              audience_preview_audit_metadata(current_preview, command, %{
+                "blockers" => dependency_blockers(dependency_findings),
+                "dependency_findings" => serialize_dependency_findings(dependency_findings)
+              })
           )
 
         {:dependency_blocked, error,
@@ -3899,13 +3899,10 @@ defmodule Rulestead.Fake do
               resource_key: audience.key,
               before: audience_audit_state(audience),
               after: audience_audit_state(updated_audience),
-              metadata: %{
-                "preview_fingerprint" => command.preview_fingerprint,
-                "preview_schema_version" => command.preview_schema_version,
-                "preview_basis" => command.preview_basis,
-                "affected_reference_keys" => preview_reference_keys(current_preview),
-                "dependency_findings" => []
-              }
+              metadata:
+                audience_preview_audit_metadata(current_preview, command, %{
+                  "dependency_findings" => []
+                })
             )
 
           {:ok,
@@ -3922,11 +3919,13 @@ defmodule Rulestead.Fake do
       {:error, %Rulestead.Error{} = error} ->
         case blast_radius_blocked?(error) do
           true ->
+            blocked_preview = preview_for_blocked_audience_audit(state, command)
+
             {audit_event, blocked_state} =
               append_audit_event(state, command, blocked_audience_event_type(command), :error,
                 resource_type: "audience",
                 resource_key: command.audience_key,
-                metadata: blast_radius_blocked_metadata(command, error)
+                metadata: blast_radius_blocked_metadata(command, error, blocked_preview)
               )
 
             {:blast_radius_blocked, error,
@@ -4112,12 +4111,6 @@ defmodule Rulestead.Fake do
     end
   end
 
-  defp preview_reference_keys(%{affected_references: affected_references}) do
-    AudienceDependencies.reference_keys(affected_references)
-  end
-
-  defp preview_reference_keys(_preview), do: []
-
   defp audience_dependency_entries(preview, command) do
     preview
     |> Map.get(:affected_references, [])
@@ -4163,16 +4156,33 @@ defmodule Rulestead.Fake do
 
   defp blast_radius_blocked?(_error), do: false
 
-  defp blast_radius_blocked_metadata(command, error) do
-    %{
+  defp preview_for_blocked_audience_audit(state, command) do
+    with {:ok, environment} <- fetch_environment_from_state(state, command.environment_key),
+         {:ok, audience} <- fetch_audience_for_mutation(state, command.audience_key),
+         {:ok, preview} <- audience_preview_payload(state, environment.key, audience, command) do
+      preview
+    else
+      _ -> %{}
+    end
+  end
+
+  defp audience_preview_audit_metadata(current_preview, command, extra) do
+    ImpactPreview.audit_evidence_summary(current_preview)
+    |> Map.merge(%{
       "preview_fingerprint" => command.preview_fingerprint,
       "preview_schema_version" => command.preview_schema_version,
-      "preview_basis" => command.preview_basis,
+      "preview_basis" => command.preview_basis
+    })
+    |> Map.merge(extra)
+  end
+
+  defp blast_radius_blocked_metadata(command, error, current_preview) do
+    audience_preview_audit_metadata(current_preview, command, %{
       "blast_radius_verdict" => Map.get(error.metadata, :verdict),
       "blast_radius_reference_count" => Map.get(error.metadata, :reference_count),
       "blast_radius_breach_reasons" => serialize_blast_radius_breach_reasons(error),
       "blockers" => blast_radius_blockers(error)
-    }
+    })
   end
 
   defp serialize_blast_radius_breach_reasons(%Rulestead.Error{cause: %{breach_reasons: reasons}})
