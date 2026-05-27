@@ -15,6 +15,7 @@ defmodule Rulestead.Store.Ecto do
     Governance.BlastRadiusThreshold,
     Governance.ChangeRequest,
     Governance.ExecutionAttempt,
+    Governance.RolloutAutoAdvance,
     Governance.RolloutAutoAdvance.Schedule,
     Governance.ScheduledExecution,
     AuditEvent,
@@ -4928,26 +4929,43 @@ defmodule Rulestead.Store.Ecto do
   end
 
   defp execute_direct_scheduled_action("advance_rollout", scheduled_execution, command) do
-    advance_rollout(
-      Command.AdvanceRollout.new(
-        scheduled_execution.resource_key,
-        scheduled_execution.environment_key,
-        Map.merge(
-          scheduled_execution.command_snapshot["rollout"] || scheduled_execution.command_snapshot,
-          %{"signal_facts" => scheduled_execution.command_snapshot["signal_facts"]}
-        ),
-        actor: command.actor,
-        reason: command.reason,
-        metadata: %{
-          request_id: scheduled_execution.correlation_id,
-          source: scheduled_execution.metadata["source"],
-          scheduled_execution_id: scheduled_execution.id,
-          execution_stage: "scheduled_execution",
-          tenant: scheduled_execution.command_snapshot["tenant"],
-          signal_facts: scheduled_execution.command_snapshot["signal_facts"]
-        }
+    if RolloutAutoAdvance.automation_tick?(scheduled_execution.metadata) do
+      case RolloutAutoAdvance.execute_scheduled_tick(__MODULE__, scheduled_execution, command) do
+        {:ok, %{outcome: :blocked} = blocked_result} ->
+          {:ok, blocked_result}
+
+        {:ok, %{outcome: :change_request_submitted} = cr_result} ->
+          {:ok, cr_result}
+
+        {:ok, %Command.AdvanceRollout{} = advance_command} ->
+          advance_rollout(advance_command)
+
+        {:error, reason} ->
+          {:error, reason}
+      end
+    else
+      advance_rollout(
+        Command.AdvanceRollout.new(
+          scheduled_execution.resource_key,
+          scheduled_execution.environment_key,
+          Map.merge(
+            scheduled_execution.command_snapshot["rollout"] ||
+              scheduled_execution.command_snapshot,
+            %{"signal_facts" => scheduled_execution.command_snapshot["signal_facts"]}
+          ),
+          actor: command.actor,
+          reason: command.reason,
+          metadata: %{
+            request_id: scheduled_execution.correlation_id,
+            source: scheduled_execution.metadata["source"],
+            scheduled_execution_id: scheduled_execution.id,
+            execution_stage: "scheduled_execution",
+            tenant: scheduled_execution.command_snapshot["tenant"],
+            signal_facts: scheduled_execution.command_snapshot["signal_facts"]
+          }
+        )
       )
-    )
+    end
   end
 
   defp execute_direct_scheduled_action("promote_environment", scheduled_execution, command) do
