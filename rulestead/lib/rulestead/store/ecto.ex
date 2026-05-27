@@ -34,6 +34,8 @@ defmodule Rulestead.Store.Ecto do
     RulesetError,
     Store,
     StoreError,
+    Targeting.AudienceDependencies,
+    Targeting.ImpactPreview,
     Telemetry,
     Webhooks.Destination,
     Webhooks.Delivery
@@ -544,6 +546,75 @@ defmodule Rulestead.Store.Ecto do
       |> Enum.map(&audience_summary/1)
 
     {:ok, audiences}
+  end
+
+  @impl Store
+  def preview_audience_impact(%Command.PreviewAudienceImpact{} = command) do
+    with {:ok, environment} <- fetch_environment(command.environment_key || "test"),
+         {:ok, audience} <- fetch_audience_for_mutation(command.audience_key),
+         :ok <- ensure_audience_active(audience) do
+      {:ok, audience_preview_payload(Repo, environment.key, audience, command)}
+    end
+  end
+
+  @impl Store
+  def apply_audience_mutation(%Command.ApplyAudienceMutation{} = command) do
+    published_at = now()
+
+    Multi.new()
+    |> Multi.run(:environment, fn _repo, _changes -> fetch_environment(command.environment_key) end)
+    |> Multi.run(:audience, fn _repo, _changes -> fetch_audience_for_mutation(command.audience_key) end)
+    |> Multi.run(:preview, fn repo, %{environment: environment, audience: audience} ->
+      with :ok <- ensure_audience_active(audience),
+           :ok <- ensure_supported_audience_operation(command),
+           :ok <- ensure_audience_preview_schema(command),
+           preview <- audience_preview_payload(repo, environment.key, audience, command),
+           :ok <- ensure_fresh_audience_preview(command, preview),
+           :ok <- ensure_protected_audience_confirmation(command) do
+        {:ok, preview}
+      end
+    end)
+    |> Multi.run(:audience_mutation, fn repo, %{audience: audience} ->
+      apply_audience_operation(repo, audience, command, published_at)
+    end)
+    |> Multi.run(:runtime_snapshot, fn repo, %{environment: environment} ->
+      insert_runtime_snapshot(repo, environment, published_at)
+    end)
+    |> Multi.run(:audit_event, fn repo, %{audience: audience, audience_mutation: updated_audience, environment: environment, preview: preview} ->
+      repo.insert(
+        audience_audit_event_changeset(%AuditEvent{}, command, audience_event_type(command.operation), :ok, %{
+          environment_key: environment.key,
+          before: audience_audit_state(audience),
+          after: audience_audit_state(updated_audience),
+          preview: preview
+        })
+      )
+    end)
+    |> Repo.transact()
+    |> case do
+      {:ok, %{audience_mutation: audience, preview: preview, runtime_snapshot: snapshot, audit_event: audit_event}} ->
+        {:ok,
+         %{
+           result: :ok,
+           operation: command.operation,
+           audience: audience_summary(audience),
+           preview: preview,
+           snapshot_version: snapshot.version,
+           audit_event: AuditEvent.serialize(audit_event)
+         }}
+
+      {:error, _operation, %Rulestead.Error{} = error, _changes} ->
+        {:error, error}
+
+      {:error, _operation, %Changeset{} = changeset, _changes} ->
+        {:error, StoreError.invalid_command("audience mutation could not be persisted", cause: changeset)}
+
+      {:error, _operation, reason, _changes} ->
+        {:error, StoreError.unavailable(cause: reason)}
+    end
+  rescue
+    error in [ConstraintError] ->
+      {:error, StoreError.unavailable(cause: error)}
   end
 
   @impl Store
@@ -2457,6 +2528,173 @@ defmodule Rulestead.Store.Ecto do
       :inserted_at,
       :updated_at
     ])
+  end
+
+  defp audience_preview_payload(repo, environment_key, audience, command) do
+    affected_references =
+      AudienceDependencies.summarize(
+        audience.key,
+        audience_reference_payloads(repo, environment_key)
+      )
+
+    before_definition = command.before_definition || audience.definition
+
+    after_definition =
+      case command.operation do
+        "update" -> command.after_definition || audience.definition
+        _other -> command.after_definition
+      end
+
+    ImpactPreview.build(%{
+      environment_key: environment_key,
+      tenant_key: command.tenant_key,
+      audience_key: audience.key,
+      operation: command.operation,
+      before_definition: before_definition,
+      after_definition: after_definition,
+      samples: Map.get(command, :samples, []),
+      affected_references: affected_references,
+      preview_basis: Map.get(command, :preview_basis)
+    })
+  end
+
+  defp audience_reference_payloads(repo, environment_key) do
+    environment_snapshot_flags_query(environment_key)
+    |> repo.all()
+    |> Enum.map(fn flag ->
+      [flag_environment] = flag.flag_environments
+      environment = flag_environment.environment
+
+      %{
+        flag: flag_summary(flag),
+        environment_key: environment.key,
+        tenant_key: nil,
+        active_ruleset: active_ruleset_payload(flag_environment),
+        lifecycle: plain_struct_map(flag.lifecycle)
+      }
+    end)
+  end
+
+  defp plain_struct_map(%_{} = value), do: value |> Map.from_struct() |> plain_struct_map()
+
+  defp plain_struct_map(value) when is_map(value) do
+    Map.new(value, fn {key, nested} -> {key, plain_struct_map(nested)} end)
+  end
+
+  defp plain_struct_map(value) when is_list(value), do: Enum.map(value, &plain_struct_map/1)
+  defp plain_struct_map(value), do: value
+
+  defp fetch_audience_for_mutation(audience_key) do
+    case Repo.get_by(Audience, key: to_string(audience_key)) do
+      nil -> {:error, StoreError.invalid_command("audience was not found")}
+      audience -> {:ok, audience}
+    end
+  end
+
+  defp ensure_audience_active(%Audience{archived_at: nil}), do: :ok
+  defp ensure_audience_active(%Audience{}), do: {:error, StoreError.invalid_command("audience is archived")}
+
+  defp ensure_supported_audience_operation(%Command.ApplyAudienceMutation{operation: "delete_attempt"}) do
+    {:error, StoreError.invalid_command("audience_delete_unsupported")}
+  end
+
+  defp ensure_supported_audience_operation(%Command.ApplyAudienceMutation{operation: operation})
+       when operation in ["update", "archive"],
+       do: :ok
+
+  defp ensure_supported_audience_operation(%Command.ApplyAudienceMutation{} = command),
+    do: {:error, StoreError.invalid_command("unsupported audience operation: #{command.operation}")}
+
+  defp ensure_audience_preview_schema(%Command.ApplyAudienceMutation{preview_schema_version: version}) do
+    if version == ImpactPreview.schema_version() do
+      :ok
+    else
+      {:error, StoreError.invalid_command("audience preview schema version is incompatible")}
+    end
+  end
+
+  defp ensure_fresh_audience_preview(command, current_preview) do
+    if command.preview_fingerprint == current_preview.preview_fingerprint do
+      :ok
+    else
+      {:error,
+       StoreError.invalid_command(
+         "audience preview is stale",
+         metadata: %{
+           audience_key: command.audience_key,
+           expected_preview_fingerprint: current_preview.preview_fingerprint,
+           preview_fingerprint: command.preview_fingerprint
+         }
+       )}
+    end
+  end
+
+  defp ensure_protected_audience_confirmation(%Command.ApplyAudienceMutation{
+         protected_shared_targeting?: true
+       }) do
+    {:error, StoreError.invalid_command("protected shared targeting mutation requires confirmation")}
+  end
+
+  defp ensure_protected_audience_confirmation(%Command.ApplyAudienceMutation{}), do: :ok
+
+  defp apply_audience_operation(repo, %Audience{} = audience, %Command.ApplyAudienceMutation{operation: "update"} = command, published_at) do
+    audience
+    |> Audience.changeset(%{
+      definition: command.after_definition || audience.definition,
+      description: command.metadata["description"] || audience.description
+    })
+    |> Changeset.change(updated_at: published_at)
+    |> repo.update()
+  end
+
+  defp apply_audience_operation(repo, %Audience{} = audience, %Command.ApplyAudienceMutation{operation: "archive"}, published_at) do
+    audience
+    |> Audience.changeset(%{archived_at: published_at})
+    |> Changeset.change(updated_at: published_at)
+    |> repo.update()
+  end
+
+  defp audience_event_type("archive"), do: "audience.archived"
+  defp audience_event_type("delete_attempt"), do: "audience.delete_blocked"
+  defp audience_event_type(_operation), do: "audience.updated"
+
+  defp audience_audit_state(%Audience{} = audience) do
+    %{
+      "key" => audience.key,
+      "definition" => audience.definition,
+      "archived_at" => audience.archived_at && DateTime.to_iso8601(audience.archived_at)
+    }
+  end
+
+  defp audience_audit_event_changeset(audit_event, command, event_type, result, opts) do
+    AuditEvent.changeset(audit_event, %{
+      event_type: event_type,
+      resource_type: "audience",
+      resource_key: command.audience_key,
+      environment_key: Map.get(opts, :environment_key, command.environment_key),
+      actor_id: actor_value(command.actor, "id"),
+      actor_type: to_string(actor_value(command.actor, "type") || "operator"),
+      actor_display: actor_value(command.actor, "display"),
+      reason: command.reason,
+      result: result,
+      metadata:
+        AuditEvent.metadata(%{
+          before: Map.get(opts, :before, %{}),
+          after: Map.get(opts, :after, %{}),
+          tenant: Command.GovernanceSupport.tenant_provenance(command),
+          context: Map.get(command, :metadata, %{}),
+          request_id: correlation_id(command),
+          preview_fingerprint: command.preview_fingerprint,
+          preview_schema_version: command.preview_schema_version,
+          affected_reference_keys: command.affected_reference_keys,
+          preview_basis: command.preview_basis,
+          affected_references: Map.get(opts, :preview, %{}) |> Map.get(:affected_references),
+          uncertainty: Map.get(opts, :preview, %{}) |> Map.get(:uncertainty),
+          sample_evidence: Map.get(opts, :preview, %{}) |> Map.get(:sample_evidence)
+        }),
+      correlation_id: correlation_id(command),
+      occurred_at: now()
+    })
   end
 
   defp flag_environment_summary(flag_environment) do
