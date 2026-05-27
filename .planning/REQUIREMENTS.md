@@ -7,10 +7,10 @@
 
 ### Blast-Radius Threshold Contract (`GOV`)
 
-- [ ] **GOV-01**: Protected-environment audience edits that exceed configurable blast-radius thresholds require governed approval through the existing change-request envelope instead of direct apply.
-- [ ] **GOV-02**: Blast-radius evaluation consumes v1.6 preview fingerprints, dependency reference counts, affected flag/ruleset metadata, and active rollout or lifecycle hints without claiming observability-backed population counts.
-- [ ] **GOV-03**: Below-threshold audience mutations in protected environments may still direct-apply with fresh preview confirmation; above-threshold mutations fail closed until a change request is approved and executed.
-- [ ] **GOV-04**: Threshold evaluation fails closed when preview data is stale, dependency truth is unresolved, protected-environment policy is ambiguous, or required threshold inputs are missing.
+- [x] **GOV-01**: Protected-environment audience edits that exceed configurable blast-radius thresholds require governed approval through the existing change-request envelope instead of direct apply.
+- [x] **GOV-02**: Blast-radius evaluation consumes v1.6 preview fingerprints, dependency reference counts, affected flag/ruleset metadata, and active rollout or lifecycle hints without claiming observability-backed population counts.
+- [x] **GOV-03**: Below-threshold audience mutations in protected environments may still direct-apply with fresh preview confirmation; above-threshold mutations fail closed until a change request is approved and executed.
+- [x] **GOV-04**: Threshold evaluation fails closed when preview data is stale, dependency truth is unresolved, protected-environment policy is ambiguous, or required threshold inputs are missing.
 
 ### Change Request Integration (`CRQ`)
 
@@ -90,10 +90,10 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| GOV-01 | Phase 57 | Pending |
-| GOV-02 | Phase 57 | Pending |
-| GOV-03 | Phase 57 | Pending |
-| GOV-04 | Phase 57 | Pending |
+| GOV-01 | Phase 57 | Complete |
+| GOV-02 | Phase 57 | Complete |
+| GOV-03 | Phase 57 | Complete |
+| GOV-04 | Phase 57 | Complete |
 | CRQ-01 | Phase 58 | Pending |
 | CRQ-02 | Phase 58 | Pending |
 | CRQ-03 | Phase 58 | Pending |
