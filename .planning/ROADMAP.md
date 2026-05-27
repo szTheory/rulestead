@@ -47,8 +47,12 @@ Success criteria:
 
 **Goal**: Surface guardrail health, thresholds, and intervention reasons inside the mounted rollout experience without implying standalone-admin or fleet-observability scope.
 **Depends on**: Phase 50
-**Plans**: TBD
+**Plans**: 2 plans
 **Requirements**: `ADM-01`
+
+Plans:
+- [ ] `51-01-PLAN.md` - Add mounted rollout guardrail status and preserve authored guardrails
+- [ ] `51-02-PLAN.md` - Distinguish automatic guardrail interventions in timeline surfaces
 
 Success criteria:
 1. Mounted rollout screens show per-stage guardrail status, freshness, and threshold summaries in the existing workflow.
