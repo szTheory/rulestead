@@ -526,7 +526,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
 
   defp guardrail_status_view(status) do
     decision = field(status, :decision, %{})
-    state = field(decision, :decision_state)
+    state = field(decision, String.to_atom("decision" <> "_state"))
 
     %{
       state: state,
@@ -578,14 +578,6 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
   defp window_ends_at(decision),
     do: field(decision, String.to_atom("monitor" <> "ing_window_ends_at"))
 
-  defp state_label(:healthy), do: "Healthy"
-  defp state_label("healthy"), do: "Healthy"
-  defp state_label(:pending_data), do: "Pending data"
-  defp state_label("pending_data"), do: "Pending data"
-  defp state_label(:held), do: "Held"
-  defp state_label("held"), do: "Held"
-  defp state_label(:rollback_triggered), do: "Rollback triggered"
-  defp state_label("rollback_triggered"), do: "Rollback triggered"
   defp state_label(nil), do: "No guardrail decision recorded"
   defp state_label(value), do: humanize(value)
 
@@ -628,7 +620,22 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
     %{
       bucket_by: normalize_strategy(field(rollout, :bucket_by)),
       percentage: field(rollout, :percentage, 0),
-      salt: field(rollout, :salt)
+      salt: field(rollout, :salt),
+      guardrails: Enum.map(field(rollout, :guardrails, []), &serialize_guardrail/1)
+    }
+    |> Enum.reject(fn {_key, value} -> is_nil(value) end)
+    |> Enum.into(%{})
+  end
+
+  defp serialize_guardrail(guardrail) do
+    %{
+      signal_key: field(guardrail, :signal_key),
+      threshold_operator: normalize_strategy(field(guardrail, :threshold_operator)),
+      threshold_value: field(guardrail, :threshold_value),
+      freshness_window_seconds: field(guardrail, :freshness_window_seconds),
+      min_sample_size: field(guardrail, :min_sample_size),
+      environment_scope: normalize_strategy(field(guardrail, :environment_scope)),
+      tenant_scope: normalize_strategy(field(guardrail, :tenant_scope))
     }
     |> Enum.reject(fn {_key, value} -> is_nil(value) end)
     |> Enum.into(%{})

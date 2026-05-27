@@ -156,9 +156,10 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
     assert html =~ "Current rollout rule"
   end
 
-  test "page shows authored guardrails and latest operational status without raw provider payloads", %{
-    conn: conn
-  } do
+  test "page shows authored guardrails and latest operational status without raw provider payloads",
+       %{
+         conn: conn
+       } do
     assert {:ok, _status} =
              Rulestead.evaluate_guarded_rollout(
                "checkout-redesign",
@@ -225,17 +226,14 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
     [draft | _rest] = detail.draft_rulesets
     rollout_rule = Enum.at(draft.rules, 1)
 
-    assert [
-             %Rulestead.Ruleset.Guardrail{
-               signal_key: "checkout_error_rate",
-               threshold_operator: :gte,
-               threshold_value: 0.05,
-               freshness_window_seconds: 300,
-               min_sample_size: 100,
-               environment_scope: :environment,
-               tenant_scope: :required
-             }
-           ] = rollout_rule.rollout.guardrails
+    assert [guardrail] = rollout_rule.rollout.guardrails
+    assert guardrail.signal_key == "checkout_error_rate"
+    assert guardrail.threshold_operator == :gte
+    assert guardrail.threshold_value == 0.05
+    assert guardrail.freshness_window_seconds == 300
+    assert guardrail.min_sample_size == 100
+    assert guardrail.environment_scope == :environment
+    assert guardrail.tenant_scope == :required
   end
 
   test "safe next-step publish stays direct and explicit", %{conn: conn} do
