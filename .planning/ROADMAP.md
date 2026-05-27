@@ -68,7 +68,7 @@
 3. Operators without full dependency visibility see redacted or partial evidence without raw predicate leakage or unauthorized resource detail.
 4. Mounted workflows do not introduce standalone-admin claims or bulk automation paths.
 
-**Plans**: 4 plans (TBD via `/gsd-plan-phase 59`)
+**Plans**: 4 plans — `59-01` governance components + loader; `59-02` preview UX; `59-03` confirm apply/submit; `59-04` CR show evidence + proof
 
 ### Phase 60: Proof, Docs, And Support Truth
 
