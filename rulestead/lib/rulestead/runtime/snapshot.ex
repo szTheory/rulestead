@@ -10,8 +10,10 @@ defmodule Rulestead.Runtime.Snapshot do
     :published_at,
     :generated_at,
     :flags,
+    audiences: %{},
     metadata: %{},
-    flag_keys: []
+    flag_keys: [],
+    audience_keys: []
   ]
 
   @type flag_entry :: %{
@@ -25,8 +27,10 @@ defmodule Rulestead.Runtime.Snapshot do
           published_at: DateTime.t(),
           generated_at: DateTime.t() | nil,
           flags: %{required(String.t()) => flag_entry()},
+          audiences: %{required(String.t()) => map()},
           metadata: map(),
-          flag_keys: [String.t()]
+          flag_keys: [String.t()],
+          audience_keys: [String.t()]
         }
 
   @spec compile(map()) :: {:ok, t()} | {:error, Rulestead.Error.t()}
@@ -36,8 +40,9 @@ defmodule Rulestead.Runtime.Snapshot do
          {:ok, published_at} <- fetch_datetime(snapshot, :published_at),
          {:ok, payload} <- fetch_binary(snapshot, :payload),
          {:ok, decoded_payload} <- decode_payload(payload),
-         {:ok, flags, generated_at} <- compile_payload(decoded_payload, environment_key) do
+         {:ok, flags, audiences, generated_at} <- compile_payload(decoded_payload, environment_key) do
       flag_keys = flags |> Map.keys() |> Enum.sort()
+      audience_keys = audiences |> Map.keys() |> Enum.sort()
 
       {:ok,
        %__MODULE__{
@@ -46,8 +51,10 @@ defmodule Rulestead.Runtime.Snapshot do
          published_at: published_at,
          generated_at: generated_at,
          flags: flags,
+         audiences: audiences,
          metadata: Map.get(snapshot, :metadata, %{}),
-         flag_keys: flag_keys
+         flag_keys: flag_keys,
+         audience_keys: audience_keys
        }}
     end
   end
@@ -68,7 +75,8 @@ defmodule Rulestead.Runtime.Snapshot do
   defp compile_payload(payload, environment_key) do
     with {:ok, payload_environment_key} <- fetch_string(payload, :environment_key),
          true <- payload_environment_key == environment_key,
-         flags when is_map(flags) <- fetch(payload, :flags) do
+         flags when is_map(flags) <- fetch(payload, :flags),
+         {:ok, compiled_audiences} <- compile_audiences(fetch(payload, :audiences)) do
       compiled_flags =
         flags
         |> Enum.map(fn {flag_key, flag_payload} ->
@@ -77,10 +85,49 @@ defmodule Rulestead.Runtime.Snapshot do
         end)
         |> Map.new()
 
-      {:ok, compiled_flags, fetch(payload, :generated_at)}
+      {:ok, compiled_flags, compiled_audiences, fetch(payload, :generated_at)}
     else
       false -> {:error, EvaluationError.malformed_runtime_data()}
       _other -> {:error, EvaluationError.malformed_runtime_data()}
+    end
+  end
+
+  defp compile_audiences(nil), do: {:ok, %{}}
+
+  defp compile_audiences(audiences) when is_map(audiences) do
+    audiences
+    |> Enum.reduce_while({:ok, %{}}, fn {audience_key, audience_payload}, {:ok, acc} ->
+      with {:ok, compiled} <- compile_audience(audience_key, audience_payload) do
+        {:cont, {:ok, Map.put(acc, compiled.audience_key, compiled)}}
+      else
+        {:error, %Rulestead.Error{} = error} -> {:halt, {:error, error}}
+      end
+    end)
+  end
+
+  defp compile_audiences(_audiences), do: {:error, EvaluationError.malformed_runtime_data()}
+
+  defp compile_audience(audience_key, audience_payload) when is_map(audience_payload) do
+    with {:ok, normalized_key} <- normalize_audience_key(audience_key),
+         definition when is_map(definition) <- fetch(audience_payload, :definition) do
+      {:ok,
+       %{
+         audience_key: normalized_key,
+         definition: definition,
+         archived_at: fetch(audience_payload, :archived_at)
+       }}
+    else
+      _other -> {:error, EvaluationError.malformed_runtime_data()}
+    end
+  end
+
+  defp compile_audience(_audience_key, _audience_payload),
+    do: {:error, EvaluationError.malformed_runtime_data()}
+
+  defp normalize_audience_key(audience_key) do
+    case normalize_string(audience_key) do
+      nil -> {:error, EvaluationError.malformed_runtime_data()}
+      normalized_key -> {:ok, normalized_key}
     end
   end
 
