@@ -1568,33 +1568,52 @@ defmodule Rulestead.Fake do
   def handle_call({:schedule_governed_action, command}, _from, state) do
     correlation_id = governance_correlation_id(command)
 
-    scheduled_execution =
-      new_scheduled_execution_record(state, %{
-        change_request_id: nil,
-        governed_action: Atom.to_string(command.action),
-        environment_key: command.environment_key,
-        resource_type: command.resource_type,
-        resource_key: command.resource_key,
-        execution_mode: Atom.to_string(command.execution_mode),
-        scheduled_by_id: actor_value(command.actor, "id"),
-        scheduled_by_type: actor_value(command.actor, "type") || "operator",
-        scheduled_by_display: actor_value(command.actor, "display"),
-        approved_by_snapshot: [],
-        scheduled_for: command.scheduled_for,
-        command_snapshot: Command.GovernanceSupport.with_tenant_provenance(command.command),
-        approval_requirement_snapshot: command.approval_requirement,
-        metadata:
-          Command.GovernanceSupport.with_tenant_provenance(command.metadata, command.command),
-        correlation_id: correlation_id,
-        idempotency_key: "scheduled_execution:#{correlation_id}"
-      })
+    idempotency_key =
+      command.idempotency_key ||
+        "scheduled_execution:#{correlation_id}"
 
-    next_state = put_in(state.scheduled_executions[scheduled_execution.id], scheduled_execution)
+    case fetch_idempotent_scheduled_execution_in_state(state, idempotency_key) do
+      {:ok, existing} ->
+        {:reply,
+         {:ok,
+          %{
+            scheduled_execution: serialize_scheduled_execution(existing),
+            attempts:
+              list_execution_attempts(state, existing.id)
+              |> Enum.map(&serialize_execution_attempt/1)
+          }}, state}
 
-    {:reply,
-     {:ok,
-      %{scheduled_execution: serialize_scheduled_execution(scheduled_execution), attempts: []}},
-     next_state}
+      :not_found ->
+        scheduled_execution =
+          new_scheduled_execution_record(state, %{
+            change_request_id: nil,
+            governed_action: Atom.to_string(command.action),
+            environment_key: command.environment_key,
+            resource_type: command.resource_type,
+            resource_key: command.resource_key,
+            execution_mode: Atom.to_string(command.execution_mode),
+            scheduled_by_id: actor_value(command.actor, "id"),
+            scheduled_by_type: actor_value(command.actor, "type") || "operator",
+            scheduled_by_display: actor_value(command.actor, "display"),
+            approved_by_snapshot: [],
+            scheduled_for: command.scheduled_for,
+            command_snapshot: Command.GovernanceSupport.with_tenant_provenance(command.command),
+            approval_requirement_snapshot: command.approval_requirement,
+            metadata:
+              Command.GovernanceSupport.with_tenant_provenance(command.metadata, command.command),
+            correlation_id: correlation_id,
+            idempotency_key: idempotency_key
+          })
+
+        next_state = put_in(state.scheduled_executions[scheduled_execution.id], scheduled_execution)
+
+        {:reply,
+         {:ok,
+          %{
+            scheduled_execution: serialize_scheduled_execution(scheduled_execution),
+            attempts: []
+          }}, next_state}
+    end
   end
 
   def handle_call({:cancel_scheduled_execution, command}, _from, state) do
@@ -4648,6 +4667,20 @@ defmodule Rulestead.Fake do
         "display" => approval.reviewer_display
       }
     end)
+  end
+
+  defp fetch_idempotent_scheduled_execution_in_state(_state, nil), do: :not_found
+
+  defp fetch_idempotent_scheduled_execution_in_state(state, idempotency_key) do
+    state.scheduled_executions
+    |> Map.values()
+    |> Enum.find(fn row ->
+      row.idempotency_key == idempotency_key and row.state in ["scheduled", "running", "completed"]
+    end)
+    |> case do
+      nil -> :not_found
+      existing -> {:ok, existing}
+    end
   end
 
   defp new_scheduled_execution_record(state, attrs) do

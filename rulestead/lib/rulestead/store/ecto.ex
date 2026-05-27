@@ -1575,6 +1575,10 @@ defmodule Rulestead.Store.Ecto do
     correlation_id = governance_correlation_id(command)
     inserted_at = now()
 
+    idempotency_key =
+      command.idempotency_key ||
+        "scheduled_execution:#{correlation_id}"
+
     attrs = %{
       state: "scheduled",
       change_request_id: nil,
@@ -1598,7 +1602,7 @@ defmodule Rulestead.Store.Ecto do
       metadata:
         Command.GovernanceSupport.with_tenant_provenance(command.metadata, command.command),
       correlation_id: correlation_id,
-      idempotency_key: "scheduled_execution:#{correlation_id}",
+      idempotency_key: idempotency_key,
       inserted_at: inserted_at,
       updated_at: inserted_at
     }
@@ -4379,6 +4383,22 @@ defmodule Rulestead.Store.Ecto do
   end
 
   defp insert_scheduled_execution(attrs, command) do
+    case fetch_idempotent_scheduled_execution(attrs.idempotency_key) do
+      {:ok, existing} ->
+        {:ok,
+         %{
+           scheduled_execution: serialize_scheduled_execution_row(existing),
+           attempts:
+             list_execution_attempt_rows(existing.id)
+             |> Enum.map(&serialize_execution_attempt_row/1)
+         }}
+
+      :not_found ->
+        do_insert_scheduled_execution(attrs, command)
+    end
+  end
+
+  defp do_insert_scheduled_execution(attrs, command) do
     Multi.new()
     |> Multi.run(:scheduled_execution, fn repo, _changes ->
       case repo.insert_all("scheduled_executions", [attrs],
@@ -5472,6 +5492,28 @@ defmodule Rulestead.Store.Ecto do
          |> Repo.one() do
       nil -> {:error, StoreError.invalid_command("scheduled execution was not found")}
       row -> {:ok, normalize_scheduled_execution_row(row)}
+    end
+  end
+
+  defp fetch_idempotent_scheduled_execution(nil), do: :not_found
+
+  defp fetch_idempotent_scheduled_execution(idempotency_key) do
+    case from(se in "scheduled_executions",
+           where: field(se, :idempotency_key) == ^idempotency_key,
+           select: map(se, ^scheduled_execution_fields())
+         )
+         |> Repo.one() do
+      nil ->
+        :not_found
+
+      row ->
+        existing = normalize_scheduled_execution_row(row)
+
+        if existing.state in ["scheduled", "running", "completed"] do
+          {:ok, existing}
+        else
+          :not_found
+        end
     end
   end
 

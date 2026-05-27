@@ -2503,7 +2503,8 @@ defmodule Rulestead.Store.Command do
       actor: nil,
       reason: nil,
       approval_requirement: %{},
-      metadata: %{}
+      metadata: %{},
+      idempotency_key: nil
     ]
 
     @type t :: %__MODULE__{
@@ -2517,7 +2518,8 @@ defmodule Rulestead.Store.Command do
             actor: nil | map(),
             reason: nil | String.t(),
             approval_requirement: map(),
-            metadata: map()
+            metadata: map(),
+            idempotency_key: String.t() | nil
           }
 
     @spec new(map() | keyword(), keyword()) :: t()
@@ -2565,7 +2567,11 @@ defmodule Rulestead.Store.Command do
         metadata:
           opts
           |> Keyword.get(:metadata, GovernanceSupport.fetch(attrs, :metadata))
-          |> GovernanceSupport.normalize_metadata()
+          |> GovernanceSupport.normalize_metadata(),
+        idempotency_key:
+          opts
+          |> Keyword.get(:idempotency_key, GovernanceSupport.fetch(attrs, :idempotency_key))
+          |> GovernanceSupport.normalize_string()
       }
     end
 
