@@ -275,6 +275,44 @@ Upstream boundary contracts for this milestone:
 - `.planning/phases/54-dependency-truth-and-promotion-safety/54-HANDOFF-CHECKLIST.md`
 - `.planning/phases/55-mounted-operator-workflows/55-HANDOFF-CHECKLIST.md`
 
+## Blast Radius Governance Proof
+
+Use the blast radius governance proof when work touches protected-environment
+audience mutations, threshold evaluation, change-request proposal/execute, or
+the root/package docs that describe v1.7 support truth (VER-01 for this
+milestone).
+
+Run the primary maintainer command:
+
+```bash
+cd rulestead && mix verify.phase60
+```
+
+Or rerun through the CI wrapper:
+
+```bash
+RULESTEAD_TEST_SCOPE=blast_radius_governance bash scripts/ci/test.sh
+```
+
+That scope is intentionally bounded. It proves:
+
+- threshold evaluation and breach reasons in protected environments
+- change-request proposal and execute for high-blast-radius audience mutations
+- stale-preview rejection and fail-closed behavior on missing inputs
+- audit evidence for governed mutations
+- mounted admin governance UX and route contract (no standalone governance app)
+
+It does **not** prove observability-backed population counts, parallel governance
+workflows, standalone admin products, or automatic progressive delivery beyond
+deferred roadmap items. Previews use **preview basis** (authored references and
+**explicit samples** only).
+
+Upstream boundary contracts for this milestone:
+
+- `.planning/phases/57-blast-radius-threshold-contract/`
+- `.planning/phases/58-change-request-integration/`
+- `.planning/phases/59-mounted-governance-workflows/`
+
 ## Lifecycle Release Surface
 
 Phase 38 adds a lifecycle release surface that maintainers must verify

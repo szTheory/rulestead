@@ -60,6 +60,16 @@ identity — observability and tenant catalogs remain **host-owned**.
 Run `cd rulestead && mix verify.phase56` before changing audience dependency,
 preview, promotion, or support-truth docs in this milestone.
 
+## Blast radius governance contract
+
+`rulestead` owns **domain**, **validation**, and **contracts** for blast-radius
+threshold evaluation, change-request proposal/execute envelopes, and
+fail-closed protected-environment behavior. Host apps own policy authorization
+and observability — this package does not ingest metrics or resolve identity.
+
+Run `cd rulestead && mix verify.phase60` before changing governance threshold,
+change-request, or support-truth docs in the v1.7 milestone.
+
 ## Next docs
 
 - Root front door: [../README.md](../README.md)

@@ -40,15 +40,30 @@ mix rulestead.install
 mix ecto.migrate
 ```
 
-Gate a code path:
+Gate a code path (payload-first — see [evaluation.md](guides/flows/evaluation.md)):
 
 ```elixir
-if Rulestead.enabled?("checkout_v2", conn) do
-  render_v2(conn)
-else
-  render_v1(conn)
+context =
+  Rulestead.Context.new(
+    environment: "production",
+    targeting_key: "user-123",
+    traits: %{plan: :pro}
+  )
+
+flag_payload = ... # from snapshot or store
+
+with {:ok, result} <- Rulestead.evaluate(flag_payload, context) do
+  if result.enabled? do
+    render_v2(conn)
+  else
+    render_v1(conn)
+  end
 end
 ```
+
+When using Phoenix with the snapshot cache, `Rulestead.enabled?("checkout_v2", conn)`
+and `Rulestead.get_variant/2` on `%Plug.Conn{}` are convenience wrappers — the
+explicit contract is flag payload + `%Rulestead.Context{}`.
 
 If your Phoenix app also needs the mounted companion admin, add
 `rulestead_admin` immediately after the runtime dependency:
@@ -171,6 +186,18 @@ The repo's current proof posture is intentionally bounded:
   admin product.
 - `RULESTEAD_TEST_SCOPE=reusable_targeting_deepening bash scripts/ci/test.sh`
   reruns the v1.6 reusable targeting deepening proof bar in CI.
+- **Blast radius governance (v1.7):** `cd rulestead && mix verify.phase60`
+  proves threshold evaluation in protected environments, change-request
+  proposal and execute for high-blast-radius audience mutations, stale-preview
+  rejection, fail-closed behavior on missing or indeterminate inputs, and audit
+  evidence. Previews use **preview basis** (authored references and **explicit
+  samples** only) — they do not claim affected-user or population counts.
+  Protected-environment mutations above threshold route through **change request**
+  review; below-threshold mutations remain eligible for direct apply with fresh
+  preview confirmation. **Host-owned policy** governs authorization; the mounted
+  companion presents core truth — not a standalone admin product.
+- `RULESTEAD_TEST_SCOPE=blast_radius_governance bash scripts/ci/test.sh`
+  reruns the v1.7 blast radius governance proof bar in CI.
 - `RULESTEAD_TEST_SCOPE=openfeature_companion bash scripts/ci/test.sh` proves the
   optional `open_feature_rulestead` companion package's Elixir provider contract:
   `context_mapper_test` and `provider_test`.

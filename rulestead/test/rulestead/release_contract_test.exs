@@ -407,6 +407,77 @@ defmodule Rulestead.ReleaseContractTest do
     end
   end
 
+  test "blast radius governance support truth stays bounded across root package and maintainer docs" do
+    root_readme = File.read!(@root_readme_path)
+    runtime_readme = File.read!(@runtime_readme_path)
+    admin_readme = File.read!(@admin_readme_path)
+    maintaining = File.read!(@maintaining_path)
+
+    assert root_readme =~ "mix verify.phase60"
+    assert root_readme =~ ~r/blast radius/i
+    assert root_readme =~ "threshold"
+    assert root_readme =~ ~r/protected[- ]environment/i
+    assert root_readme =~ "change request"
+    assert root_readme =~ "fail closed"
+    assert root_readme =~ "host-owned"
+    assert root_readme =~ "preview basis"
+    assert root_readme =~ "explicit samples"
+    assert root_readme =~ "mix verify.phase56"
+
+    assert root_readme =~
+             "RULESTEAD_TEST_SCOPE=blast_radius_governance bash scripts/ci/test.sh"
+
+    assert runtime_readme =~ "mix verify.phase60"
+    assert runtime_readme =~ "domain"
+    assert runtime_readme =~ "validation"
+    assert runtime_readme =~ "contracts"
+    assert runtime_readme =~ "fail closed"
+    assert runtime_readme =~ "host-owned"
+
+    assert admin_readme =~ "mounted companion"
+    assert admin_readme =~ "mounted presentation"
+    assert admin_readme =~ "not a standalone"
+    assert admin_readme =~ ~r/change request|governance/i
+
+    assert maintaining =~ "Blast Radius Governance Proof"
+    assert maintaining =~ "mix verify.phase60"
+    assert maintaining =~ "VER-01"
+    assert maintaining =~ "57-blast-radius-threshold-contract"
+
+    assert maintaining =~
+             "RULESTEAD_TEST_SCOPE=blast_radius_governance bash scripts/ci/test.sh"
+
+    forbidden_phrases = [
+      "standalone rulestead_admin",
+      "standalone control plane",
+      "parallel governance workflow",
+      "authoritative affected-user",
+      "real user population",
+      "built-in observability",
+      "Rulestead dashboard",
+      "metrics ingestion",
+      "automatic progressive delivery platform",
+      "auto-advance guarded rollouts"
+    ]
+
+    operator_docs = [root_readme, admin_readme, maintaining]
+
+    for phrase <- forbidden_phrases, doc <- operator_docs do
+      refute doc =~ phrase
+    end
+  end
+
+  test "quickstart teaches payload-first evaluation" do
+    root_readme = File.read!(@root_readme_path)
+    getting_started = File.read!(Path.expand("../../../guides/introduction/getting-started.md", __DIR__))
+
+    for doc <- [root_readme, getting_started] do
+      assert doc =~ "Rulestead.evaluate"
+      assert doc =~ ~r/Rulestead\.Context\.new|%Rulestead\.Context\{\}/
+      assert doc =~ ~r/payload|flag_payload/i
+    end
+  end
+
   test "the root module exposes the locked v0.1.0 public function catalog" do
     expected = MapSet.new(@root_exports)
     actual = MapSet.new(Rulestead.__info__(:functions))

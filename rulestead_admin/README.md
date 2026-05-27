@@ -36,6 +36,14 @@ preview and confirm paths, and read-only compare **dependency findings**.
 Audience mutations follow **preview → confirm → audit** with core-issued
 preview fingerprints; the mounted surface does not invent domain validation.
 
+## Blast radius governance mounted presentation
+
+The **mounted companion** presents blast-radius threshold verdicts, breach
+reasons, and change-request review/execute workflows for protected-environment
+audience mutations. Core owns domain validation and threshold contracts;
+`rulestead_admin` renders bounded operator UX — **not a standalone** governance
+product. Authorization remains **host-owned** through `Rulestead.Admin.Policy`.
+
 ## Install
 
 Add `rulestead_admin` only when a Phoenix host app needs the mounted companion
