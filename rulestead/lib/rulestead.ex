@@ -1031,6 +1031,91 @@ defmodule Rulestead do
   end
 
   @doc """
+  Upserts opt-in auto-advance policy for one staged rollout rule.
+
+  Phase 61 persists the authored policy contract only; enabling policy does not
+  schedule observation ticks or advance rollout stages.
+  """
+  @spec upsert_rollout_auto_advance_policy(Command.UpsertRolloutAutoAdvancePolicy.t()) ::
+          Store.result(map())
+  def upsert_rollout_auto_advance_policy(%Command.UpsertRolloutAutoAdvancePolicy{} = command) do
+    admin_write(:upsert_rollout_auto_advance_policy, command)
+  end
+
+  @doc """
+  Builds and upserts an auto-advance policy from root-level arguments.
+  """
+  @spec upsert_rollout_auto_advance_policy(
+          String.t() | atom(),
+          String.t() | atom(),
+          map() | keyword(),
+          keyword()
+        ) :: Store.result(map())
+  def upsert_rollout_auto_advance_policy(flag_key, environment_key, attrs, opts \\ [])
+      when is_map(attrs) or is_list(attrs) do
+    attrs = Map.new(attrs)
+    rule_key = Map.fetch!(attrs, :rule_key)
+
+    flag_key
+    |> Command.UpsertRolloutAutoAdvancePolicy.new(environment_key, rule_key, attrs, opts)
+    |> upsert_rollout_auto_advance_policy()
+  end
+
+  @doc """
+  Fetches the durable auto-advance policy for one staged rollout rule.
+  """
+  @spec fetch_rollout_auto_advance_policy(Command.FetchRolloutAutoAdvancePolicy.t()) ::
+          Store.result(map())
+  def fetch_rollout_auto_advance_policy(%Command.FetchRolloutAutoAdvancePolicy{} = command) do
+    run_store(:fetch_rollout_auto_advance_policy, [command], command)
+  end
+
+  @doc """
+  Builds and executes an auto-advance policy fetch from root-level arguments.
+  """
+  @spec fetch_rollout_auto_advance_policy(
+          String.t() | atom(),
+          String.t() | atom(),
+          String.t() | atom(),
+          keyword()
+        ) :: Store.result(map())
+  def fetch_rollout_auto_advance_policy(flag_key, environment_key, rule_key, _opts \\ []) do
+    flag_key
+    |> Command.FetchRolloutAutoAdvancePolicy.new(environment_key, rule_key)
+    |> fetch_rollout_auto_advance_policy()
+  end
+
+  @doc """
+  Evaluates auto-advance eligibility for one staged rollout rule.
+
+  Evaluation-only in Phase 61: returns eligibility without mutating rollout
+  stage, guardrail decisions, or scheduling governed `advance_rollout`.
+  """
+  @spec evaluate_rollout_auto_advance(Command.EvaluateRolloutAutoAdvance.t()) :: Store.result(map())
+  def evaluate_rollout_auto_advance(%Command.EvaluateRolloutAutoAdvance{} = command) do
+    run_store(:evaluate_rollout_auto_advance, [command], command)
+  end
+
+  @doc """
+  Builds and executes an auto-advance eligibility evaluation from root-level arguments.
+  """
+  @spec evaluate_rollout_auto_advance(
+          String.t() | atom(),
+          String.t() | atom(),
+          map() | keyword(),
+          keyword()
+        ) :: Store.result(map())
+  def evaluate_rollout_auto_advance(flag_key, environment_key, attrs, opts \\ [])
+      when is_map(attrs) or is_list(attrs) do
+    attrs = Map.new(attrs)
+    rule_key = Map.fetch!(attrs, :rule_key)
+
+    flag_key
+    |> Command.EvaluateRolloutAutoAdvance.new(environment_key, rule_key, attrs, opts)
+    |> evaluate_rollout_auto_advance()
+  end
+
+  @doc """
   Fetches the latest derived guardrail status for one rollout rule or stage.
   """
   @spec fetch_guardrail_status(Command.FetchGuardrailStatus.t()) :: Store.result(map())
@@ -1621,6 +1706,7 @@ defmodule Rulestead do
 
   defp command_action(:engage_kill_switch, _command), do: :engage_kill_switch
   defp command_action(:release_kill_switch, _command), do: :release_kill_switch
+  defp command_action(:upsert_rollout_auto_advance_policy, _command), do: :advance_rollout
   defp command_action(:fetch_guardrail_status, _command), do: :read_rollouts
   defp command_action(:rollback_audit_event, _command), do: :rollback_audit_event
   defp command_action(:list_audit_events, _command), do: :list_audit_events
