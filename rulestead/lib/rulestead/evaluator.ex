@@ -687,7 +687,7 @@ defmodule Rulestead.Evaluator do
   end
 
   defp audience_matches?(definition, context) when is_map(definition) do
-    clauses = fetch_list(definition, :clauses)
+    clauses = fetch_list(definition, :clauses) ++ fetch_list(definition, :conditions)
 
     Enum.all?(clauses, fn clause ->
       attribute = clause[:attribute] || clause["attribute"]

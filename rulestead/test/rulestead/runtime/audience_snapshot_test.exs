@@ -92,6 +92,40 @@ defmodule Rulestead.Runtime.AudienceSnapshotTest do
                first_rule_trace(result).audience_trace
     end
 
+    test "segment_match evaluates store-shaped audience conditions from compiled snapshots" do
+      assert {:ok, snapshot} =
+               Snapshot.compile(
+                 runtime_snapshot(%{
+                   flags: %{
+                     "checkout-redesign" => segment_payload()
+                   },
+                   audiences: %{
+                     "vip-users" => %{
+                       definition: %{
+                         conditions: [
+                           %{attribute: "plan", operator: "eq", value: "vip"}
+                         ]
+                       },
+                       archived_at: nil
+                     }
+                   }
+                 })
+               )
+
+      payload = snapshot.flags["checkout-redesign"].flag_payload
+
+      assert {:ok, matched} = Rulestead.Evaluator.evaluate(payload, %{attributes: %{plan: "vip"}})
+      assert matched.reason == :rule_match
+
+      assert {:ok, missed} =
+               Rulestead.Evaluator.evaluate(payload, %{attributes: %{plan: "starter"}})
+
+      assert missed.reason == :default
+
+      assert %{audience_key: "vip-users", matched?: false, reason: :missed} =
+               first_rule_trace(missed).audience_trace
+    end
+
     test "segment_match skips and warns when the compiled audience is missing" do
       payload = put_in(segment_payload(), [:audiences], %{})
 
