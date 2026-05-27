@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.5.0
 milestone_name: v1.5.0 - Guarded Rollout Foundations
-status: executing
-last_updated: "2026-05-27T06:42:00.855Z"
+status: verifying
+last_updated: "2026-05-27T06:51:30.976Z"
 last_activity: 2026-05-27
 progress:
   total_phases: 4
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 6
-  completed_plans: 5
-  percent: 83
+  completed_plans: 6
+  percent: 75
 ---
 
 # State: Rulestead
@@ -29,9 +29,9 @@ See: `.planning/ROADMAP.md` for the active milestone phases and traceability map
 
 ## Current Position
 
-Phase: 51 (mounted-guardrail-workflow) — EXECUTING
+Phase: 51 (mounted-guardrail-workflow) — COMPLETE
 Plan: 2 of 2
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-05-27
 
 ## Current Milestone Focus
@@ -39,7 +39,7 @@ Last activity: 2026-05-27
 - `ROL-01` — completed by Phase 49 through the host-supplied rollout signal seam, authored guardrail schema, and compare/export durability proof
 - `ROL-02` / `ROL-03` — completed by Phase 50 through explicit guarded decision states, sticky hold behavior, and exact stable-snapshot rollback
 - `AUD-01` / `AUD-02` — completed by Phase 50 through durable guardrail decisions, governed mutation execution, and bounded audit evidence
-- `ADM-01` — completed by Phase 51 Plan 01 for mounted rollout status and guardrail preservation; Plan 02 continues the same mounted workflow with timeline distinction
+- `ADM-01` — completed by Phase 51 through mounted rollout status, guardrail preservation, and automatic/manual intervention timeline distinction
 - `VER-01` — remains active for Phase 52 docs and proof closure
 
 ## Carryover Items
@@ -103,9 +103,13 @@ These remain the primary source of truth and should be loaded selectively per ph
 - [Phase 51-mounted-guardrail-workflow]: Mounted rollout guardrail status reads only through Rulestead.fetch_guardrail_status/3 with the current actor. — Keeps the mounted admin UI inside the core admin read and policy envelope.
 - [Phase 51-mounted-guardrail-workflow]: Missing guardrail decisions render prerequisite copy, not healthy or empty state. — Prevents operators from mistaking absent operational truth for a safe rollout stage.
 - [Phase 51-mounted-guardrail-workflow]: Rollout percentage serialization preserves authored guardrails and excludes operational decision state. — Keeps authored rollout configuration durable while preventing Phase 50 operational fields from leaking into config.
+- [Phase 51-mounted-guardrail-workflow]: Guardrail intervention excerpts read through Rulestead.list_audit_events/1 with the current actor and render empty on authorization errors. — Keeps intervention reasons inside the existing mounted audit policy envelope.
+- [Phase 51-mounted-guardrail-workflow]: rollout.guardrail_* timeline rows are labeled Automatic with source wording, while manual rollout rows receive Manual rollout action copy. — Preserves operator distinction between system automation and human rollout actions.
+- [Phase 51-mounted-guardrail-workflow]: Raw audit metadata remains behind the existing details disclosure with only bounded guardrail/source/link fields allowlisted. — Keeps intervention context useful without leaking raw provider payloads.
 
 ## Latest Activity
 
+- 2026-05-27 — Executed Phase 51 Plan 02 in commits `134d5bd` and `c8dc863`, adding automatic guardrail timeline wording, rollout-page intervention excerpts, and denied audit-read behavior.
 - 2026-05-27 — Executed Phase 51 Plan 01 in commits `13aa023`, `bac53c6`, and `53bc654`, adding mounted rollout guardrail status, missing-prerequisite copy, and guardrail-preserving percentage saves.
 - 2026-05-27 — Reconciled GSD planning truth after terminal interruption: `main` and `origin/main` both point at `c4dd3fb`, Phase 49 and Phase 50 code is pushed, and the active next step is Phase 51 planning.
 - 2026-05-26 — Implemented and pushed Phase 50 guarded rollout decision engine in commit `c4dd3fb`, adding durable guardrail decisions, `advance_rollout`, `evaluate_guarded_rollout`, `fetch_guardrail_status`, hold behavior, rollback-to-stable-snapshot behavior, and Ecto/fake adapter proof.
@@ -119,4 +123,4 @@ These remain the primary source of truth and should be loaded selectively per ph
 
 ## Next Action
 
-Next: Execute Phase 51 Plan 02 to distinguish automatic guardrail interventions in mounted timeline surfaces.
+Next: Verify Phase 51 or execute Phase 52 for guarded-rollout proof, docs, and milestone closure.

@@ -52,7 +52,7 @@ Success criteria:
 
 Plans:
 - [x] `51-01-PLAN.md` - Add mounted rollout guardrail status and preserve authored guardrails
-- [ ] `51-02-PLAN.md` - Distinguish automatic guardrail interventions in timeline surfaces
+- [x] `51-02-PLAN.md` - Distinguish automatic guardrail interventions in timeline surfaces
 
 Success criteria:
 1. Mounted rollout screens show per-stage guardrail status, freshness, and threshold summaries in the existing workflow.
@@ -92,7 +92,7 @@ Success criteria:
 
 - Phase 49 guardrail signal contract is complete.
 - Phase 50 guarded decision engine and audit path is complete in commit `c4dd3fb`.
-- Phase 51 Plan 01 mounted rollout guardrail status is complete; Plan 02 timeline distinction remains.
+- Phase 51 mounted rollout guardrail status and timeline intervention distinction are complete.
 - `v1.6.0 - Reusable Targeting Deepening` remains the next queued candidate after guarded rollout foundations.
 
 ## Milestone Archives
@@ -102,4 +102,4 @@ Success criteria:
 
 ## Next Step
 
-Run `$gsd-execute-phase 51` or execute `51-02-PLAN.md` to finish mounted timeline distinction.
+Next: Execute Phase 52 to close guarded-rollout proof, docs, and milestone traceability.
