@@ -5,6 +5,7 @@ defmodule Rulestead.Store.AudienceImpactContractTest do
   import Rulestead.StoreFixtures
 
   alias Rulestead.Error
+  alias Rulestead.Runtime.Snapshot
   alias Rulestead.Store.Command
   alias Rulestead.Targeting.ImpactPreview
 
@@ -186,6 +187,13 @@ defmodule Rulestead.Store.AudienceImpactContractTest do
     assert applied.result == :ok
 
     assert applied.audience.definition == %{
+             "conditions" => [%{"attribute" => "plan", "operator" => "eq", "value" => "pro"}]
+           }
+
+    assert {:ok, compiled} = Snapshot.compile(Rulestead.Fake.Control.latest_snapshot!("test"))
+    assert compiled.audience_keys == ["vip-users"]
+
+    assert compiled.audiences["vip-users"].definition == %{
              "conditions" => [%{"attribute" => "plan", "operator" => "eq", "value" => "pro"}]
            }
 

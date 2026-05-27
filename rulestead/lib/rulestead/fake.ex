@@ -4651,8 +4651,24 @@ defmodule Rulestead.Fake do
       schema_version: @snapshot_schema_version,
       environment_key: environment_key,
       generated_at: state.now,
-      flags: flags
+      flags: flags,
+      audiences: compiled_audience_definitions(state)
     }
+  end
+
+  defp compiled_audience_definitions(state) do
+    state.audiences
+    |> Map.values()
+    |> Enum.reject(&Map.get(&1, :archived_at))
+    |> Enum.filter(&(Map.get(&1, :definition) |> is_map()))
+    |> Enum.sort_by(& &1.key)
+    |> Map.new(fn audience ->
+      {audience.key,
+       %{
+         definition: audience.definition,
+         archived_at: Map.get(audience, :archived_at)
+       }}
+    end)
   end
 
   defp next_snapshot_version(state, environment_key) do
