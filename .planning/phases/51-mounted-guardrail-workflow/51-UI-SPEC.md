@@ -43,12 +43,13 @@ Declared values (must be multiples of 4):
 | 2xl | 48px | Major break between status summary and intervention timeline |
 | 3xl | 64px | Page-level vertical spacing only; avoid inside cards |
 
-Exceptions: action targets must be at least 44px tall; compact badges may use 6px vertical padding only when paired with 8px horizontal padding; existing `rs-card` radius remains max 8px.
+Exceptions: action targets must be at least 44px tall; compact badges may use 4px vertical padding only when paired with 8px horizontal padding; existing `rs-card` radius remains max 8px.
 
 Layout contract:
 - Keep the current two-column `rs-rollouts__layout`: primary workflow left, guardrail/status context right or directly below the rollout percentage card on narrow screens.
 - Add guardrail status as one `rs-card` or dedicated `RolloutComponents.guardrail_status/1` section, not nested cards.
 - Timeline excerpt rows remain separate repeated items using the existing audit row/card pattern.
+- Primary focal point is the guardrail status panel state label and evidence summary; secondary priority is the intervention timeline excerpt.
 
 ---
 
