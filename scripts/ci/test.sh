@@ -227,8 +227,8 @@ run_blast_radius_governance() {
 
   if run_mix_logged rulestead "${log_file}" deps.get; then
     prepare_rulestead_test_db
-    if run_mix_logged rulestead "${log_file}" verify.phase60; then
-      if run_mix_logged rulestead_admin "${log_file}" deps.get; then
+    if run_mix_logged rulestead_admin "${log_file}" deps.get; then
+      if run_mix_logged rulestead "${log_file}" verify.phase60; then
         :
       else
         status=$?
@@ -298,8 +298,8 @@ run_guarded_rollout_auto_advance() {
 
   if run_mix_logged rulestead "${log_file}" deps.get; then
     prepare_rulestead_test_db
-    if run_mix_logged rulestead "${log_file}" verify.phase64; then
-      if run_mix_logged rulestead_admin "${log_file}" deps.get; then
+    if run_mix_logged rulestead_admin "${log_file}" deps.get; then
+      if run_mix_logged rulestead "${log_file}" verify.phase64; then
         :
       else
         status=$?
@@ -327,8 +327,8 @@ run_reusable_targeting_deepening() {
 
   if run_mix_logged rulestead "${log_file}" deps.get; then
     prepare_rulestead_test_db
-    if run_mix_logged rulestead "${log_file}" verify.phase56; then
-      if run_mix_logged rulestead_admin "${log_file}" deps.get; then
+    if run_mix_logged rulestead_admin "${log_file}" deps.get; then
+      if run_mix_logged rulestead "${log_file}" verify.phase56; then
         :
       else
         status=$?
