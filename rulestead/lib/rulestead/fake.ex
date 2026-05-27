@@ -19,6 +19,7 @@ defmodule Rulestead.Fake do
     Environment,
     EnvironmentVersion,
     Flag,
+    Guardrails.AutoAdvance,
     Guardrails.Decision,
     Guardrails.SignalFact,
     Governance.Approval,
@@ -30,6 +31,7 @@ defmodule Rulestead.Fake do
     Manifest.Import,
     Promotion.Apply,
     Promotion.Compare,
+    RolloutAutoAdvancePolicy,
     Ruleset,
     RulesetError,
     Store,
@@ -59,6 +61,7 @@ defmodule Rulestead.Fake do
           scheduled_executions: %{required(String.t()) => map()},
           execution_attempts: %{required(String.t()) => [map()]},
           guardrail_decisions: [map()],
+          auto_advance_policies: %{required(tuple()) => map()},
           audit_events: [map()],
           environment_versions: %{required(String.t()) => %{required(pos_integer()) => map()}},
           snapshots: %{required(String.t()) => %{required(pos_integer()) => map()}},
@@ -209,6 +212,18 @@ defmodule Rulestead.Fake do
   @impl Store
   def evaluate_guarded_rollout(%Command.EvaluateGuardedRollout{} = command) do
     call({:evaluate_guarded_rollout, command})
+  end
+
+  def upsert_rollout_auto_advance_policy(%Command.UpsertRolloutAutoAdvancePolicy{} = command) do
+    call({:upsert_rollout_auto_advance_policy, command})
+  end
+
+  def fetch_rollout_auto_advance_policy(%Command.FetchRolloutAutoAdvancePolicy{} = command) do
+    call({:fetch_rollout_auto_advance_policy, command})
+  end
+
+  def evaluate_rollout_auto_advance(%Command.EvaluateRolloutAutoAdvance{} = command) do
+    call({:evaluate_rollout_auto_advance, command})
   end
 
   @impl Store
@@ -1012,6 +1027,27 @@ defmodule Rulestead.Fake do
            end
          end) do
       {:ok, payload, next_state} -> {:reply, {:ok, payload}, next_state}
+      {:error, error} -> {:reply, {:error, error}, state}
+    end
+  end
+
+  def handle_call({:upsert_rollout_auto_advance_policy, command}, _from, state) do
+    case upsert_rollout_auto_advance_policy_in_state(state, command) do
+      {:ok, policy, next_state} -> {:reply, {:ok, %{policy: policy}}, next_state}
+      {:error, error} -> {:reply, {:error, error}, state}
+    end
+  end
+
+  def handle_call({:fetch_rollout_auto_advance_policy, command}, _from, state) do
+    case fetch_rollout_auto_advance_policy_in_state(state, command) do
+      {:ok, policy} -> {:reply, {:ok, %{policy: policy}}, state}
+      {:error, error} -> {:reply, {:error, error}, state}
+    end
+  end
+
+  def handle_call({:evaluate_rollout_auto_advance, command}, _from, state) do
+    case evaluate_rollout_auto_advance_in_state(state, command) do
+      {:ok, eligibility} -> {:reply, {:ok, %{eligibility: eligibility}}, state}
       {:error, error} -> {:reply, {:error, error}, state}
     end
   end
@@ -1926,6 +1962,7 @@ defmodule Rulestead.Fake do
       scheduled_executions: %{},
       execution_attempts: %{},
       guardrail_decisions: [],
+      auto_advance_policies: %{},
       audit_events: [],
       environment_versions: %{},
       flags: %{},
@@ -2087,7 +2124,135 @@ defmodule Rulestead.Fake do
   end
 
   defp ensure_projection_state(state) do
-    Map.put_new(state, :audience_reference_projection, %{})
+    state
+    |> Map.put_new(:audience_reference_projection, %{})
+    |> Map.put_new(:auto_advance_policies, %{})
+  end
+
+  defp auto_advance_policy_key(flag_key, environment_key, rule_key) do
+    {to_string(flag_key), to_string(environment_key), to_string(rule_key)}
+  end
+
+  defp upsert_rollout_auto_advance_policy_in_state(state, command) do
+    with :ok <- Command.UpsertRolloutAutoAdvancePolicy.validate_required_fields(command),
+         {:ok, policy} <- validate_auto_advance_policy_changeset(command) do
+      key = auto_advance_policy_key(command.flag_key, command.environment_key, command.rule_key)
+      existing = Map.get(state.auto_advance_policies, key)
+      now = state.now
+
+      policy_map =
+        policy
+        |> Map.from_struct()
+        |> Map.take([
+          :flag_key,
+          :environment_key,
+          :rule_key,
+          :enabled,
+          :observation_window_seconds,
+          :next_stage,
+          :next_percentage,
+          :metadata
+        ])
+        |> Map.merge(%{
+          id: get_in(existing, [:id]) || Ecto.UUID.generate(),
+          inserted_at: get_in(existing, [:inserted_at]) || now,
+          updated_at: now
+        })
+
+      next_state = put_in(state.auto_advance_policies[key], policy_map)
+      {:ok, policy_map, next_state}
+    else
+      {:error, %Changeset{} = changeset} ->
+        {:error, auto_advance_policy_changeset_error(changeset, command)}
+
+      {:error, errors} when is_map(errors) ->
+        {:error,
+         StoreError.invalid_command("rollout auto-advance policy is invalid",
+           details: auto_advance_policy_field_errors(errors)
+         )}
+    end
+  end
+
+  defp fetch_rollout_auto_advance_policy_in_state(state, command) do
+    key = auto_advance_policy_key(command.flag_key, command.environment_key, command.rule_key)
+
+    case Map.get(state.auto_advance_policies, key) do
+      nil -> {:error, rollout_auto_advance_policy_not_found_error(command)}
+      policy -> {:ok, policy}
+    end
+  end
+
+  defp evaluate_rollout_auto_advance_in_state(state, command) do
+    with {:ok, policy} <- fetch_rollout_auto_advance_policy_in_state(state, command) do
+      evaluated_at =
+        command.evaluated_at ||
+          state.now
+          |> DateTime.truncate(:second)
+
+      AutoAdvance.evaluate_eligibility(policy, %{
+        signal_facts: command.signal_facts,
+        monitoring_window_ends_at: command.monitoring_window_ends_at,
+        evaluated_at: evaluated_at
+      })
+      |> case do
+        {:ok, eligibility} -> {:ok, eligibility}
+      end
+    end
+  end
+
+  defp validate_auto_advance_policy_changeset(command) do
+    %RolloutAutoAdvancePolicy{}
+    |> RolloutAutoAdvancePolicy.changeset(auto_advance_policy_attrs(command))
+    |> Changeset.apply_action(:insert)
+  end
+
+  defp auto_advance_policy_attrs(%Command.UpsertRolloutAutoAdvancePolicy{} = command) do
+    %{
+      flag_key: command.flag_key,
+      environment_key: command.environment_key,
+      rule_key: command.rule_key,
+      enabled: command.enabled,
+      observation_window_seconds: command.observation_window_seconds,
+      next_stage: command.next_stage,
+      next_percentage: command.next_percentage,
+      metadata: command.metadata
+    }
+  end
+
+  defp auto_advance_policy_changeset_error(changeset, command) do
+    StoreError.invalid_command("rollout auto-advance policy is invalid",
+      metadata: %{
+        flag_key: command.flag_key,
+        environment_key: command.environment_key,
+        rule_key: command.rule_key
+      },
+      details: changeset_errors_to_details(changeset)
+    )
+  end
+
+  defp auto_advance_policy_field_errors(errors) do
+    Enum.map(errors, fn {field, message} ->
+      %{field: to_string(field), message: message}
+    end)
+  end
+
+  defp rollout_auto_advance_policy_not_found_error(command) do
+    StoreError.invalid_command("rollout_auto_advance_policy_not_found",
+      metadata: %{
+        flag_key: command.flag_key,
+        environment_key: command.environment_key,
+        rule_key: command.rule_key
+      }
+    )
+  end
+
+  defp changeset_errors_to_details(changeset) do
+    Changeset.traverse_errors(changeset, fn {message, _opts} -> message end)
+    |> Enum.flat_map(fn {field, messages} ->
+      Enum.map(messages, fn message ->
+        %{field: to_string(field), message: message}
+      end)
+    end)
   end
 
   defp rebuild_audience_reference_projection_state(state) do
