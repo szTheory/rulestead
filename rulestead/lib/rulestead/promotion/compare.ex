@@ -3,6 +3,7 @@ defmodule Rulestead.Promotion.Compare do
   @moduledoc false
 
   alias Rulestead.Store.Command
+  alias Rulestead.Targeting.{DependencyInventory, DependencyValidator}
 
   @schema_version 1
   @severity_rank %{blocker: 0, warning: 1, info: 2, in_sync: 3}
@@ -40,6 +41,10 @@ defmodule Rulestead.Promotion.Compare do
         normalize_string_list(attrs[:compared_flag_keys] || attrs["compared_flag_keys"]),
       dependency_closure_keys:
         normalize_string_list(attrs[:dependency_closure_keys] || attrs["dependency_closure_keys"]),
+      dependency_findings_fingerprint:
+        normalize_string(
+          attrs[:dependency_findings_fingerprint] || attrs["dependency_findings_fingerprint"]
+        ),
       source_fingerprint: attrs[:source_fingerprint] || attrs["source_fingerprint"],
       target_fingerprint: attrs[:target_fingerprint] || attrs["target_fingerprint"]
     }
@@ -67,9 +72,10 @@ defmodule Rulestead.Promotion.Compare do
   def new_result(attrs) when is_map(attrs) do
     flags = attrs[:flags] || attrs["flags"] || []
     findings = attrs[:findings] || attrs["findings"] || []
+    dependency_findings = attrs[:dependency_findings] || attrs["dependency_findings"] || []
 
     all_findings =
-      findings ++
+      findings ++ dependency_findings ++
         Enum.flat_map(flags, fn flag ->
           Map.get(flag, :findings, Map.get(flag, "findings", []))
         end)
@@ -94,6 +100,7 @@ defmodule Rulestead.Promotion.Compare do
       source_fingerprint: attrs[:source_fingerprint] || attrs["source_fingerprint"],
       target_fingerprint: attrs[:target_fingerprint] || attrs["target_fingerprint"],
       findings: sort_findings(findings),
+      dependency_findings: sort_dependency_findings(dependency_findings),
       flags: sort_flags(flags)
     }
   end
@@ -122,6 +129,9 @@ defmodule Rulestead.Promotion.Compare do
   def compare_projected(attrs) when is_map(attrs) do
     source_flags = attrs[:source_flags] || %{}
     target_flags = attrs[:target_flags] || %{}
+    source_environment_key = get_environment_key(attrs[:source_environment] || attrs["source_environment"])
+    target_environment_key = get_environment_key(attrs[:target_environment] || attrs["target_environment"])
+    tenant_key = normalize_string(attrs[:tenant_key] || attrs["tenant_key"])
 
     requested_flag_keys =
       normalize_string_list(attrs[:requested_flag_keys] || attrs["requested_flag_keys"])
@@ -179,18 +189,27 @@ defmodule Rulestead.Promotion.Compare do
       end)
 
     dependency_closure_keys = dependency_keys |> MapSet.to_list() |> Enum.sort()
+    dependency_findings =
+      compare_dependency_findings(
+        scope_keys,
+        source_flags,
+        audiences,
+        source_environment_key,
+        target_environment_key,
+        tenant_key
+      )
+
     source_fingerprint = fingerprint(fingerprint_basis(scope_keys, source_flags))
     target_fingerprint = fingerprint(fingerprint_basis(scope_keys, target_flags))
 
     compare_token =
       compare_token(%{
-        source_environment_key:
-          get_environment_key(attrs[:source_environment] || attrs["source_environment"]),
-        target_environment_key:
-          get_environment_key(attrs[:target_environment] || attrs["target_environment"]),
-        tenant_key: attrs[:tenant_key] || attrs["tenant_key"],
+        source_environment_key: source_environment_key,
+        target_environment_key: target_environment_key,
+        tenant_key: tenant_key,
         compared_flag_keys: scope_keys,
         dependency_closure_keys: dependency_closure_keys,
+        dependency_findings_fingerprint: dependency_findings_fingerprint(dependency_findings),
         source_fingerprint: source_fingerprint,
         target_fingerprint: target_fingerprint
       })
@@ -217,11 +236,12 @@ defmodule Rulestead.Promotion.Compare do
     new_result(%{
       source_environment: attrs[:source_environment] || attrs["source_environment"],
       target_environment: attrs[:target_environment] || attrs["target_environment"],
-      tenant_key: attrs[:tenant_key] || attrs["tenant_key"],
+      tenant_key: tenant_key,
       requested_flag_keys: requested_flag_keys,
       compare_token: compare_token,
       flags: Enum.reverse(flags),
       findings: findings,
+      dependency_findings: dependency_findings,
       dependency_closure_keys: dependency_closure_keys,
       source_fingerprint: source_fingerprint,
       target_fingerprint: target_fingerprint
@@ -354,6 +374,23 @@ defmodule Rulestead.Promotion.Compare do
     Enum.sort_by(findings, fn finding ->
       {Map.fetch!(@severity_rank, Map.get(finding, :severity, :info)),
        Map.get(finding, :code, "")}
+    end)
+  end
+
+  # stable order for compare/promotion dependency findings
+  defp sort_dependency_findings(findings) do
+    Enum.sort_by(findings, fn finding ->
+      {
+        Map.get(@severity_rank, Map.get(finding, :severity, :info), 99),
+        Map.get(finding, :code, ""),
+        Map.get(finding, :source_environment_key, ""),
+        Map.get(finding, :target_environment_key, ""),
+        Map.get(finding, :tenant_key, ""),
+        Map.get(finding, :flag_key, ""),
+        Map.get(finding, :ruleset_version, 0),
+        Map.get(finding, :rule_key, ""),
+        Map.get(finding, :audience_key, "")
+      }
     end)
   end
 
@@ -686,6 +723,134 @@ defmodule Rulestead.Promotion.Compare do
 
   defp get_environment_key(environment),
     do: Map.get(environment, :key) || Map.get(environment, "key")
+
+  defp compare_dependency_findings(
+         scope_keys,
+         source_flags,
+         audiences,
+         source_environment_key,
+         target_environment_key,
+         tenant_key
+       ) do
+    entries =
+      scope_keys
+      |> Enum.flat_map(fn flag_key ->
+        source_payload = Map.get(source_flags, flag_key)
+        dependency_entries_for_flag(flag_key, source_payload, source_environment_key, tenant_key)
+      end)
+      |> DependencyInventory.sort_entries()
+
+    findings =
+      DependencyValidator.validate(
+        %{
+          tenant_key: tenant_key,
+          audiences: normalize_compare_audiences(audiences)
+        },
+        entries
+      )
+
+    findings
+    |> DependencyValidator.sort_findings()
+    |> Enum.map(fn finding ->
+      %{
+        severity: Map.get(finding, :severity),
+        code: Map.get(finding, :code),
+        message: Map.get(finding, :message),
+        source_environment_key: source_environment_key,
+        target_environment_key: target_environment_key,
+        environment_key: Map.get(finding, :environment_key),
+        tenant_key: Map.get(finding, :tenant_key) || tenant_key,
+        audience_key: Map.get(finding, :audience_key),
+        flag_key: Map.get(finding, :flag_key),
+        ruleset_version: Map.get(finding, :ruleset_version),
+        rule_key: Map.get(finding, :rule_key)
+      }
+    end)
+    |> sort_dependency_findings()
+  end
+
+  defp dependency_entries_for_flag(flag_key, source_payload, source_environment_key, tenant_key) do
+    source_state = authored_state(source_payload)
+
+    case source_state && Map.get(source_state, :active_ruleset) do
+      nil ->
+        []
+
+      ruleset ->
+        rules =
+          ruleset
+          |> Map.get(:rules, Map.get(ruleset, "rules", []))
+
+        rules
+        |> Enum.flat_map(fn rule ->
+          if normalize_string(Map.get(rule, :strategy) || Map.get(rule, "strategy")) == "segment_match" do
+            [
+              DependencyInventory.normalize_entry(%{
+                environment_key: source_environment_key,
+                tenant_key: tenant_key || "global",
+                audience_key: Map.get(rule, :audience_key) || Map.get(rule, "audience_key"),
+                flag_key: flag_key,
+                ruleset_version: Map.get(ruleset, :version) || Map.get(ruleset, "version"),
+                rule_key: Map.get(rule, :key) || Map.get(rule, "key"),
+                ruleset_status: Map.get(ruleset, :status) || Map.get(ruleset, "status"),
+                rollout_context: Map.get(rule, :rollout) || Map.get(rule, "rollout") || %{},
+                lifecycle_context: %{available?: false},
+                visibility: %{status: "visible"},
+                reference_count: 1,
+                hidden_reference_count: 0,
+                audience_schema_version:
+                  Map.get(rule, :audience_schema_version) || Map.get(rule, "audience_schema_version"),
+                audience_version_hash:
+                  Map.get(rule, :audience_version_hash) || Map.get(rule, "audience_version_hash")
+              })
+            ]
+          else
+            []
+          end
+        end)
+        |> Enum.reject(&(&1.malformed? or is_nil(&1.audience_key)))
+    end
+  end
+
+  defp normalize_compare_audiences(audiences) when is_map(audiences) do
+    Map.new(audiences, fn {key, audience} ->
+      normalized_audience = audience || %{}
+
+      {normalize_string(key),
+       %{
+         key: normalize_string(key),
+         tenant_key:
+           normalize_string(
+             Map.get(normalized_audience, :tenant_key) || Map.get(normalized_audience, "tenant_key")
+           ),
+         archived_at:
+           Map.get(normalized_audience, :archived_at) || Map.get(normalized_audience, "archived_at"),
+         definition:
+           Map.get(normalized_audience, :definition) || Map.get(normalized_audience, "definition")
+       }}
+    end)
+  end
+
+  defp normalize_compare_audiences(_audiences), do: %{}
+
+  defp dependency_findings_fingerprint(findings) do
+    findings
+    |> Enum.map(fn finding ->
+      %{
+        severity: Map.get(finding, :severity),
+        code: Map.get(finding, :code),
+        source_environment_key: Map.get(finding, :source_environment_key),
+        target_environment_key: Map.get(finding, :target_environment_key),
+        tenant_key: Map.get(finding, :tenant_key),
+        audience_key: Map.get(finding, :audience_key),
+        flag_key: Map.get(finding, :flag_key),
+        ruleset_version: Map.get(finding, :ruleset_version),
+        rule_key: Map.get(finding, :rule_key)
+      }
+    end)
+    |> hash_term()
+    |> then(&"dep_" <> &1)
+  end
 
   defp normalize_string(nil), do: nil
 

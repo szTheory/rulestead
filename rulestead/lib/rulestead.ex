@@ -1843,6 +1843,27 @@ defmodule Rulestead do
         )
       end)
 
+    dependency_findings =
+      compare
+      |> Map.get(:dependency_findings, [])
+      |> Enum.map(fn finding ->
+        scope =
+          [
+            "source=#{finding.source_environment_key}",
+            "target=#{finding.target_environment_key}",
+            "tenant=#{finding.tenant_key || "global"}",
+            "flag=#{finding.flag_key}",
+            "ruleset=#{finding.ruleset_version}",
+            "rule=#{finding.rule_key}",
+            "audience=#{finding.audience_key}"
+          ]
+          |> Enum.join("|")
+
+        ManifestResult.finding(finding.code, finding.severity, scope,
+          message: finding[:message]
+        )
+      end)
+
     per_flag =
       Enum.flat_map(compare.flags, fn flag ->
         Enum.map(flag.findings, fn finding ->
@@ -1852,7 +1873,7 @@ defmodule Rulestead do
         end)
       end)
 
-    ManifestResult.sort_findings(top_level ++ per_flag)
+    ManifestResult.sort_findings(top_level ++ dependency_findings ++ per_flag)
   end
 
   defp validate_promotion_plan_mode(plan) do

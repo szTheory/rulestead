@@ -76,6 +76,13 @@ defmodule Rulestead.Store.CompareContractTest do
       |> Repo.insert!()
     end
 
+    def delete_audience!(audience_key) do
+      case Repo.get_by(Audience, key: audience_key) do
+        nil -> :ok
+        audience -> Repo.delete!(audience)
+      end
+    end
+
     def update_flag_environment!(flag_key, environment_key, attrs) do
       flag = Repo.get_by!(Flag, key: flag_key)
       environment = Repo.get_by!(Environment, key: environment_key)
@@ -180,6 +187,11 @@ defmodule Rulestead.Store.CompareContractTest do
       |> put_in([:flags, flag_key, :environments, environment_key], updated)
       |> Rulestead.Fake.Control.restore!()
     end
+
+    def delete_audience!(audience_key) do
+      snapshot = Rulestead.Fake.Control.snapshot!()
+      Rulestead.Fake.Control.restore!(%{snapshot | audiences: Map.delete(snapshot.audiences, audience_key)})
+    end
   end
 
   for {label, store_module, control_module} <- [
@@ -211,6 +223,11 @@ defmodule Rulestead.Store.CompareContractTest do
           valid_flag_attrs(%{environment_keys: ["staging", "production"]})
         )
 
+        @control_module.seed_audience!(%{
+          key: "vip-users",
+          definition: %{clauses: [%{attribute: "plan", op: "eq", value: "vip"}]}
+        })
+
         publish_ruleset!(
           @store_module,
           "checkout-redesign",
@@ -229,6 +246,7 @@ defmodule Rulestead.Store.CompareContractTest do
         )
 
         publish_ruleset!(@store_module, "checkout-redesign", "production")
+        @control_module.delete_audience!("vip-users")
 
         @control_module.update_flag_environment!("checkout-redesign", "production", %{
           status: :archived
@@ -242,6 +260,20 @@ defmodule Rulestead.Store.CompareContractTest do
         assert initial_compare.overall_status == :blocker
         assert severities_for(initial_compare, :missing_dependency) == [:blocker]
         assert severities_for(initial_compare, :lifecycle_conflict) == [:blocker]
+        assert initial_compare.dependency_findings != []
+
+        assert Enum.all?(initial_compare.dependency_findings, fn finding ->
+                 finding.source_environment_key == "staging" and
+                   finding.target_environment_key == "production" and
+                   finding.tenant_key == "global" and
+                   finding.environment_key == "staging"
+               end)
+
+        assert initial_compare.dependency_findings ==
+                 Enum.sort_by(initial_compare.dependency_findings, fn finding ->
+                   {finding.severity, finding.code, finding.flag_key, finding.ruleset_version,
+                    finding.rule_key, finding.audience_key}
+                 end)
 
         publish_ruleset!(
           @store_module,
@@ -275,6 +307,11 @@ defmodule Rulestead.Store.CompareContractTest do
         @control_module.put_flag!(
           valid_flag_attrs(%{environment_keys: ["staging", "production"]})
         )
+
+        @control_module.seed_audience!(%{
+          key: "vip-users",
+          definition: %{clauses: [%{attribute: "plan", op: "eq", value: "vip"}]}
+        })
 
         publish_ruleset!(@store_module, "checkout-redesign", "staging", valid_ruleset_attrs())
         publish_ruleset!(@store_module, "checkout-redesign", "production", valid_ruleset_attrs())
@@ -399,6 +436,8 @@ defmodule Rulestead.Store.CompareContractTest do
     assert is_binary(ecto_payload.target_fingerprint)
     assert is_binary(fake_payload.target_fingerprint)
     assert normalize_findings(ecto_payload.findings) == normalize_findings(fake_payload.findings)
+    assert normalize_dependency_findings(ecto_payload.dependency_findings) ==
+             normalize_dependency_findings(fake_payload.dependency_findings)
 
     assert normalize_flag_contracts(ecto_payload.flags) ==
              normalize_flag_contracts(fake_payload.flags)
@@ -493,5 +532,29 @@ defmodule Rulestead.Store.CompareContractTest do
       |> Map.update(:metadata, nil, &Compare.normalize_term/1)
     end)
     |> Enum.sort_by(&{&1.severity, &1.class, &1.code, inspect(&1.metadata)})
+  end
+
+  defp normalize_dependency_findings(findings) do
+    findings
+    |> Enum.map(fn finding ->
+      Map.take(finding, [
+        :severity,
+        :code,
+        :message,
+        :source_environment_key,
+        :target_environment_key,
+        :environment_key,
+        :tenant_key,
+        :flag_key,
+        :ruleset_version,
+        :rule_key,
+        :audience_key
+      ])
+    end)
+    |> Enum.sort_by(fn finding ->
+      {finding.severity, finding.code, finding.source_environment_key, finding.target_environment_key,
+       finding.tenant_key, finding.flag_key, finding.ruleset_version, finding.rule_key,
+       finding.audience_key}
+    end)
   end
 end
