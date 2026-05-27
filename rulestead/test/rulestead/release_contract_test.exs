@@ -523,6 +523,61 @@ defmodule Rulestead.ReleaseContractTest do
     end
   end
 
+  test "host preview evidence support truth stays bounded across root package and maintainer docs" do
+    root_readme = File.read!(@root_readme_path)
+    runtime_readme = File.read!(@runtime_readme_path)
+    admin_readme = File.read!(@admin_readme_path)
+    maintaining = File.read!(@maintaining_path)
+
+    assert root_readme =~ "mix verify.phase68"
+    assert root_readme =~ ~r/preview_evidence_resolver|PreviewEvidence/i
+    assert root_readme =~ ~r/host-supplied|host supplied/i
+    assert root_readme =~ ~r/sample cohort|Sample cohort/i
+    assert root_readme =~ ~r/impression summary|Impression summary/i
+    assert root_readme =~ ~r/authoritative_population_count|authoritative population/i
+    assert root_readme =~ "fail closed"
+    assert root_readme =~ "mix verify.phase64"
+    assert root_readme =~ "mix verify.phase60"
+    assert root_readme =~ "mix verify.phase56"
+
+    assert root_readme =~
+             "RULESTEAD_TEST_SCOPE=host_preview_evidence bash scripts/ci/test.sh"
+
+    assert runtime_readme =~ "mix verify.phase68"
+    assert runtime_readme =~ ~r/preview_evidence_resolver|PreviewEvidence/i
+    assert runtime_readme =~ "fail closed"
+    assert runtime_readme =~ ~r/host-supplied|host supplied/i
+
+    assert admin_readme =~ ~r/mounted companion|mounted presentation/i
+    assert admin_readme =~ "not a standalone"
+    assert admin_readme =~ ~r/preview evidence|preview-evidence|host-supplied evidence/i
+
+    assert maintaining =~ "Host Preview Evidence Proof"
+    assert maintaining =~ "mix verify.phase68"
+    assert maintaining =~ "VER-01"
+    assert maintaining =~ ~r/65-|65-host-preview-evidence/
+
+    assert maintaining =~
+             "RULESTEAD_TEST_SCOPE=host_preview_evidence bash scripts/ci/test.sh"
+
+    forbidden_phrases = [
+      "authoritative population counts",
+      "fleet-wide population",
+      "built-in observability",
+      "Rulestead dashboard",
+      "metrics ingestion",
+      "fleet dashboard",
+      "impression analytics platform",
+      "population analytics product"
+    ]
+
+    operator_docs = [root_readme, admin_readme, maintaining]
+
+    for phrase <- forbidden_phrases, doc <- operator_docs do
+      refute doc =~ phrase
+    end
+  end
+
   test "quickstart teaches payload-first evaluation" do
     root_readme = File.read!(@root_readme_path)
     getting_started = File.read!(Path.expand("../../../guides/introduction/getting-started.md", __DIR__))
