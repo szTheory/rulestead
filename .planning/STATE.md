@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.9.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 66 context gathered (assumptions mode)
-last_updated: "2026-05-27T22:25:27.265Z"
+stopped_at: Phase 67 context gathered (assumptions mode)
+last_updated: "2026-05-27T22:28:30.252Z"
 last_activity: 2026-05-27
 progress:
   total_phases: 4
@@ -74,9 +74,9 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-27T22:11:34.917Z
-Stopped at: Phase 66 context gathered (assumptions mode)
-Resume file: .planning/phases/66-evidence-carry-through-and-governance-boundary/66-CONTEXT.md
+Last session: 2026-05-27T22:28:30.248Z
+Stopped at: Phase 67 context gathered (assumptions mode)
+Resume file: .planning/phases/67-mounted-preview-evidence-workflows/67-CONTEXT.md
 
 ## Operator Next Steps
 
