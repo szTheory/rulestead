@@ -5,9 +5,9 @@
 
 ## Active Milestone
 
-- **Active:** `v1.8.0 — Guarded Rollout Auto-Advance` (`ROL-04`) — Phases 61-64 (initialized 2026-05-27)
-- **Last shipped:** `v1.7.0 — Blast-Radius Governance` on 2026-05-27 (Phases 57-60)
-- **After v1.8:** `IMP-05` (v1.9 or defer) / defer `ADM-05`
+- **Active:** `v1.9.0 — Host-Supplied Preview Evidence` (`IMP-05`) — Phases 65-68 (initialized 2026-05-27)
+- **Last shipped:** `v1.8.0 — Guarded Rollout Auto-Advance` on 2026-05-27 (Phases 61-64)
+- **After v1.9:** defer `ADM-06` presets / `ROL-08` baseline comparison
 
 ## Candidate Ranking
 

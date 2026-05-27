@@ -17,15 +17,24 @@ Rulestead is a batteries-included, Elixir-native feature-flag and remote-config 
 - `v1.7.0` shipped on 2026-05-27 across Phases 57-60: blast-radius threshold contract, change-request integration, mounted governance workflows, and proof/docs/support-truth closure (`mix verify.phase60`, release-contract drift guards, payload-first quickstart parity).
 - `v1.8.0` shipped on 2026-05-27 across Phases 61-64: authored auto-advance policy contract, scheduled orchestration with fail-closed eligibility and protected-env governance, mounted rollouts auto-advance panel and timeline labeling, and proof/docs/support-truth closure (`mix verify.phase64`, release-contract drift guards, host seam + flow guides, `guarded_rollout_auto_advance` CI scope).
 
-## Next Milestone Goals
+## Current Milestone: v1.9.0 Host-Supplied Preview Evidence
 
-Planning not started. Candidate follow-ons from post-v1.8 assessment (see `.planning/threads/2026-05-27-post-v1.7-milestone-assessment.md` and STATE.md Deferred Items):
+**Goal:** Close the last reusable-targeting preview gap by letting hosts supply bounded, redacted sample cohorts and impression summaries through an explicit seam—wired through mounted admin preview flows—without claiming authoritative population counts or widening blast-radius governance semantics.
 
-- Richer host-supplied audience preview evidence (`IMP-05`) — v1.9 or defer
-- Draft-only targeting presets (`ADM-05`) — defer
-- Guardrail baseline comparison (`ROL-05` v1.5 memo) — future
+**Target features:**
+- Host-owned preview evidence resolver behavior with bounded sample cohort and impression-summary payloads
+- Core preview contract, fingerprints, and audit/change-request carry-through for richer evidence basis
+- Mounted audience preview flows that request and render host-supplied evidence when configured
+- Proof, docs, and release-contract support truth (`mix verify.phase68`) including small MAINTAINING drift fixes
 
-Start scoping with `/gsd-new-milestone`.
+<details>
+<summary>Previous: Next milestone candidates (pre-v1.9)</summary>
+
+- Richer host-supplied audience preview evidence (`IMP-05`) — **activated as v1.9.0**
+- Draft-only targeting presets — defer to v1.10+
+- Guardrail baseline comparison (v1.5 memo) — future
+
+</details>
 
 <details>
 <summary>Latest shipped: v1.8.0 Guarded Rollout Auto-Advance (2026-05-27)</summary>
@@ -114,7 +123,7 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 
 ### Active
 
-(None — define requirements for the next milestone via `/gsd-new-milestone`.)
+- **IMP-05** through **IMP-07**, **GOV-05**, **ADM-05**, **VER-01** through **VER-03** — host-supplied preview evidence (`v1.9.0`, Phases 65-68)
 
 ### Validated
 
@@ -222,6 +231,7 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 | Activate `v1.7.0` as blast-radius governance after v1.6 reusable targeting deepening | v1.6 made blast radius visible; protected-environment audience edits still need threshold-based change-request routing before auto-advance rollouts or preset ergonomics. | Validated |
 | Post-v1.7 assessment: activate `v1.8.0` ROL-04 next; defer IMP-05 and ADM-05 | GOV-01 and quickstart parity shipped in v1.7; largest remaining differentiated gap is guarded rollout auto-advance (hold/rollback already shipped). | Validated |
 | Activate `v1.8.0` as guarded rollout auto-advance after v1.7 blast-radius governance | Completes v1.5 hold/rollback story; reuses `ScheduledExecution` and governed `advance_rollout`; fail-closed on weak signals; no observability product widening. | Validated |
+| Activate `v1.9.0` as host-supplied preview evidence after v1.8 auto-advance | Core accepts samples but mounted does not wire host evidence; closes last reusable-targeting preview gap without changing GOV thresholds or claiming population counts. | Validated |
 
 ## Milestone Archives
 
@@ -257,4 +267,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-27 — v1.8.0 milestone archived; planning next milestone*
+*Last updated: 2026-05-27 — v1.9.0 milestone initialized (Host-Supplied Preview Evidence)*
