@@ -26,6 +26,8 @@ defmodule Rulestead.Store do
   @callback list_flags(Command.ListFlags.t()) :: result(Command.Page.t(map()))
   @callback list_environments(Command.ListEnvironments.t()) :: result([map()])
   @callback list_audiences(Command.ListAudiences.t()) :: result([map()])
+  @callback preview_audience_impact(Command.PreviewAudienceImpact.t()) :: result(map())
+  @callback apply_audience_mutation(Command.ApplyAudienceMutation.t()) :: result(map())
   @callback record_evaluation(Command.RecordEvaluation.t()) :: result(map())
   @callback advance_rollout(Command.AdvanceRollout.t()) :: result(map())
   @callback evaluate_guarded_rollout(Command.EvaluateGuardedRollout.t()) :: result(map())

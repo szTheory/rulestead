@@ -1301,6 +1301,239 @@ defmodule Rulestead.Store.Command do
     end
   end
 
+  defmodule PreviewAudienceImpact do
+    @moduledoc false
+
+    alias Rulestead.Store.Command.GovernanceSupport
+
+    @enforce_keys [:audience_key, :operation]
+    defstruct [
+      :environment_key,
+      :tenant_key,
+      :audience_key,
+      :operation,
+      :before_definition,
+      :after_definition,
+      :preview_fingerprint,
+      samples: [],
+      actor: nil,
+      reason: nil,
+      metadata: %{}
+    ]
+
+    @type t :: %__MODULE__{
+            environment_key: nil | String.t(),
+            tenant_key: nil | String.t(),
+            audience_key: String.t(),
+            operation: String.t(),
+            before_definition: nil | map(),
+            after_definition: nil | map(),
+            preview_fingerprint: nil | String.t(),
+            samples: [map()],
+            actor: nil | map(),
+            reason: nil | String.t(),
+            metadata: map()
+          }
+
+    @spec new(String.t() | atom(), String.t() | atom(), keyword()) :: t()
+    def new(audience_key, operation, opts \\ []) do
+      %__MODULE__{
+        environment_key:
+          opts
+          |> Keyword.get(:environment_key)
+          |> GovernanceSupport.normalize_string(),
+        tenant_key:
+          opts
+          |> Keyword.get(:tenant_key)
+          |> GovernanceSupport.normalize_string(),
+        audience_key: GovernanceSupport.normalize_string(audience_key),
+        operation: GovernanceSupport.normalize_string(operation),
+        before_definition:
+          opts
+          |> Keyword.get(:before_definition)
+          |> normalize_optional_map(),
+        after_definition:
+          opts
+          |> Keyword.get(:after_definition)
+          |> normalize_optional_map(),
+        preview_fingerprint:
+          opts
+          |> Keyword.get(:preview_fingerprint)
+          |> GovernanceSupport.normalize_string(),
+        samples:
+          opts
+          |> Keyword.get(:samples, [])
+          |> normalize_samples(),
+        actor:
+          opts
+          |> Keyword.get(:actor)
+          |> GovernanceSupport.normalize_actor(),
+        reason:
+          opts
+          |> Keyword.get(:reason)
+          |> GovernanceSupport.normalize_string(),
+        metadata:
+          opts
+          |> Keyword.get(:metadata)
+          |> GovernanceSupport.normalize_metadata()
+      }
+    end
+
+    defp normalize_optional_map(nil), do: nil
+    defp normalize_optional_map(value), do: GovernanceSupport.normalize_map(value)
+
+    defp normalize_samples(nil), do: []
+
+    defp normalize_samples(samples) when is_list(samples) do
+      Enum.map(samples, &GovernanceSupport.normalize_map/1)
+    end
+
+    defp normalize_samples(sample), do: normalize_samples([sample])
+  end
+
+  defmodule ApplyAudienceMutation do
+    @moduledoc false
+
+    alias Rulestead.Store.Command.GovernanceSupport
+
+    @enforce_keys [
+      :environment_key,
+      :audience_key,
+      :operation,
+      :preview_schema_version,
+      :preview_fingerprint
+    ]
+    defstruct [
+      :environment_key,
+      :tenant_key,
+      :audience_key,
+      :operation,
+      :preview_schema_version,
+      :preview_fingerprint,
+      :preview_basis,
+      :before_definition,
+      :after_definition,
+      affected_reference_keys: [],
+      actor: nil,
+      reason: nil,
+      metadata: %{},
+      protected_shared_targeting?: false
+    ]
+
+    @type t :: %__MODULE__{
+            environment_key: String.t(),
+            tenant_key: nil | String.t(),
+            audience_key: String.t(),
+            operation: String.t(),
+            preview_schema_version: pos_integer() | term(),
+            preview_fingerprint: String.t(),
+            preview_basis: nil | map(),
+            affected_reference_keys: [String.t()],
+            before_definition: nil | map(),
+            after_definition: nil | map(),
+            actor: nil | map(),
+            reason: nil | String.t(),
+            metadata: map(),
+            protected_shared_targeting?: boolean()
+          }
+
+    @spec new(map() | keyword(), keyword()) :: t()
+    def new(attrs, opts \\ []) when is_map(attrs) or is_list(attrs) do
+      attrs = Map.new(attrs)
+
+      %__MODULE__{
+        environment_key:
+          attrs
+          |> GovernanceSupport.fetch_required!(:environment_key)
+          |> GovernanceSupport.normalize_string(),
+        tenant_key:
+          attrs
+          |> GovernanceSupport.fetch(:tenant_key)
+          |> GovernanceSupport.normalize_string(),
+        audience_key:
+          attrs
+          |> GovernanceSupport.fetch_required!(:audience_key)
+          |> GovernanceSupport.normalize_string(),
+        operation:
+          attrs
+          |> GovernanceSupport.fetch_required!(:operation)
+          |> GovernanceSupport.normalize_string(),
+        preview_schema_version:
+          attrs
+          |> GovernanceSupport.fetch_required!(:preview_schema_version)
+          |> normalize_schema_version(),
+        preview_fingerprint:
+          attrs
+          |> GovernanceSupport.fetch_required!(:preview_fingerprint)
+          |> GovernanceSupport.normalize_string(),
+        preview_basis:
+          attrs
+          |> GovernanceSupport.fetch(:preview_basis)
+          |> normalize_optional_map(),
+        affected_reference_keys:
+          attrs
+          |> GovernanceSupport.fetch(:affected_reference_keys)
+          |> normalize_reference_keys(),
+        before_definition:
+          attrs
+          |> GovernanceSupport.fetch(:before_definition)
+          |> normalize_optional_map(),
+        after_definition:
+          attrs
+          |> GovernanceSupport.fetch(:after_definition)
+          |> normalize_optional_map(),
+        actor:
+          opts
+          |> Keyword.get(:actor, GovernanceSupport.fetch(attrs, :actor))
+          |> GovernanceSupport.normalize_actor(),
+        reason:
+          opts
+          |> Keyword.get(:reason, GovernanceSupport.fetch(attrs, :reason))
+          |> GovernanceSupport.normalize_string(),
+        metadata:
+          opts
+          |> Keyword.get(:metadata, GovernanceSupport.fetch(attrs, :metadata))
+          |> GovernanceSupport.normalize_metadata(),
+        protected_shared_targeting?:
+          attrs
+          |> GovernanceSupport.fetch(:protected_shared_targeting?)
+          |> normalize_boolean(false)
+      }
+    end
+
+    defp normalize_schema_version(version) when is_integer(version) and version > 0, do: version
+
+    defp normalize_schema_version(version) when is_binary(version) do
+      case Integer.parse(version) do
+        {parsed, ""} when parsed > 0 -> parsed
+        _other -> version
+      end
+    end
+
+    defp normalize_schema_version(version), do: version
+
+    defp normalize_optional_map(nil), do: nil
+    defp normalize_optional_map(value), do: GovernanceSupport.normalize_map(value)
+
+    defp normalize_reference_keys(nil), do: []
+
+    defp normalize_reference_keys(values) when is_list(values) do
+      values
+      |> Enum.map(&GovernanceSupport.normalize_string/1)
+      |> Enum.reject(&is_nil/1)
+      |> Enum.uniq()
+      |> Enum.sort()
+    end
+
+    defp normalize_reference_keys(value), do: normalize_reference_keys([value])
+
+    defp normalize_boolean(value, _default) when is_boolean(value), do: value
+    defp normalize_boolean(nil, default), do: default
+    defp normalize_boolean("true", _default), do: true
+    defp normalize_boolean("false", _default), do: false
+    defp normalize_boolean(_value, default), do: default
+  end
+
   defmodule RecordEvaluation do
     @moduledoc false
 
@@ -1364,13 +1597,15 @@ defmodule Rulestead.Store.Command do
       %__MODULE__{
         flag_key: GovernanceSupport.normalize_string(flag_key),
         environment_key: GovernanceSupport.normalize_string(environment_key),
-        rule_key: attrs |> GovernanceSupport.fetch(:rule_key) |> GovernanceSupport.normalize_string(),
+        rule_key:
+          attrs |> GovernanceSupport.fetch(:rule_key) |> GovernanceSupport.normalize_string(),
         stage:
           attrs
           |> GovernanceSupport.fetch_required!(:stage)
           |> GovernanceSupport.normalize_string(),
         percentage: normalize_percentage(GovernanceSupport.fetch(attrs, :percentage)),
-        monitoring_window_started_at: GovernanceSupport.fetch(attrs, :monitoring_window_started_at),
+        monitoring_window_started_at:
+          GovernanceSupport.fetch(attrs, :monitoring_window_started_at),
         monitoring_window_ends_at: GovernanceSupport.fetch(attrs, :monitoring_window_ends_at),
         signal_facts: normalize_signal_facts(GovernanceSupport.fetch(attrs, :signal_facts)),
         actor:
@@ -1397,7 +1632,9 @@ defmodule Rulestead.Store.Command do
     defp normalize_signal_facts(value), do: [GovernanceSupport.normalize_map(value)]
 
     defp normalize_percentage(nil), do: nil
-    defp normalize_percentage(value) when is_integer(value) and value >= 0 and value <= 100, do: value
+
+    defp normalize_percentage(value) when is_integer(value) and value >= 0 and value <= 100,
+      do: value
 
     defp normalize_percentage(value) when is_binary(value) do
       case Integer.parse(String.trim(value)) do
@@ -1448,12 +1685,14 @@ defmodule Rulestead.Store.Command do
       %__MODULE__{
         flag_key: GovernanceSupport.normalize_string(flag_key),
         environment_key: GovernanceSupport.normalize_string(environment_key),
-        rule_key: attrs |> GovernanceSupport.fetch(:rule_key) |> GovernanceSupport.normalize_string(),
+        rule_key:
+          attrs |> GovernanceSupport.fetch(:rule_key) |> GovernanceSupport.normalize_string(),
         stage:
           attrs
           |> GovernanceSupport.fetch_required!(:stage)
           |> GovernanceSupport.normalize_string(),
-        monitoring_window_started_at: GovernanceSupport.fetch(attrs, :monitoring_window_started_at),
+        monitoring_window_started_at:
+          GovernanceSupport.fetch(attrs, :monitoring_window_started_at),
         monitoring_window_ends_at: GovernanceSupport.fetch(attrs, :monitoring_window_ends_at),
         signal_facts:
           attrs

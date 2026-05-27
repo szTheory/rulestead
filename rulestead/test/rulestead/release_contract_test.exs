@@ -413,24 +413,22 @@ defmodule Rulestead.ReleaseContractTest do
            } = preview
 
     apply =
-      Command.ApplyAudienceMutation.new(
-        %{
-          environment_key: :production,
-          tenant_key: 123,
-          audience_key: :vip_users,
-          operation: :archive,
-          preview_schema_version: "1",
-          preview_fingerprint: "audprev_abc",
-          preview_basis: %{scope: :authored_state},
-          affected_reference_keys: [:beta_flag, "checkout-redesign"],
-          before_definition: %{rules: [%{attribute: :plan}]},
-          after_definition: nil,
-          protected_shared_targeting?: true,
-          actor: %{id: 42},
-          reason: "retire shared targeting",
-          metadata: %{trace_id: "trace-1", token: "drop"}
-        }
-      )
+      Command.ApplyAudienceMutation.new(%{
+        environment_key: :production,
+        tenant_key: 123,
+        audience_key: :vip_users,
+        operation: :archive,
+        preview_schema_version: "1",
+        preview_fingerprint: "audprev_abc",
+        preview_basis: %{scope: :authored_state},
+        affected_reference_keys: [:beta_flag, "checkout-redesign"],
+        before_definition: %{rules: [%{attribute: :plan}]},
+        after_definition: nil,
+        protected_shared_targeting?: true,
+        actor: %{id: 42},
+        reason: "retire shared targeting",
+        metadata: %{trace_id: "trace-1", token: "drop"}
+      })
 
     assert %Command.ApplyAudienceMutation{
              environment_key: "production",
