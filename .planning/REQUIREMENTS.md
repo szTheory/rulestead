@@ -7,10 +7,10 @@
 
 ### Impact Preview Contract (`IMP`)
 
-- [ ] **IMP-01**: Operators can request a reusable audience impact preview that reports environment scope, tenant scope, referenced flags/rulesets, active rollout or lifecycle context, preview basis, uncertainty, and redacted sample evidence without claiming Rulestead owns identity or observability truth.
-- [ ] **IMP-02**: Audience definition edits, archive/delete attempts, and protected shared-targeting mutations require a stale-resistant preview token or fingerprint before apply, and stale, missing, archived, incompatible, or tenant-mismatched references fail closed with actionable reasons.
-- [ ] **IMP-03**: Runtime snapshots continue to compile reusable audience definitions for local deterministic evaluation, and runtime evaluation never performs live database, mounted-admin, host identity, or observability lookups to resolve audience references.
-- [ ] **IMP-04**: Audit events for accepted, blocked, or denied audience mutations include the preview fingerprint, affected-reference summary, actor, reason, environment scope, tenant scope, and support-safe evidence needed to reconstruct the decision.
+- [x] **IMP-01**: Operators can request a reusable audience impact preview that reports environment scope, tenant scope, referenced flags/rulesets, active rollout or lifecycle context, preview basis, uncertainty, and redacted sample evidence without claiming Rulestead owns identity or observability truth.
+- [x] **IMP-02**: Audience definition edits, archive/delete attempts, and protected shared-targeting mutations require a stale-resistant preview token or fingerprint before apply, and stale, missing, archived, incompatible, or tenant-mismatched references fail closed with actionable reasons.
+- [x] **IMP-03**: Runtime snapshots continue to compile reusable audience definitions for local deterministic evaluation, and runtime evaluation never performs live database, mounted-admin, host identity, or observability lookups to resolve audience references.
+- [x] **IMP-04**: Audit events for accepted, blocked, or denied audience mutations include the preview fingerprint, affected-reference summary, actor, reason, environment scope, tenant scope, and support-safe evidence needed to reconstruct the decision.
 
 ### Dependency Truth And Promotion Safety (`DEP`)
 
@@ -100,10 +100,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| IMP-01 | Phase 53 | Pending |
-| IMP-02 | Phase 53 | Pending |
-| IMP-03 | Phase 53 | Pending |
-| IMP-04 | Phase 53 | Pending |
+| IMP-01 | Phase 53 | Complete |
+| IMP-02 | Phase 53 | Complete |
+| IMP-03 | Phase 53 | Complete |
+| IMP-04 | Phase 53 | Complete |
 | DEP-01 | Phase 54 | Pending |
 | DEP-02 | Phase 54 | Pending |
 | DEP-03 | Phase 54 | Pending |
