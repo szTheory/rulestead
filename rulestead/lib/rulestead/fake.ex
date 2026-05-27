@@ -854,6 +854,7 @@ defmodule Rulestead.Fake do
       :continue ->
         case do_apply_audience_mutation(state, command) do
           {:ok, payload, next_state} -> {:reply, {:ok, payload}, next_state}
+          {:dependency_blocked, error, next_state} -> {:reply, {:error, error}, next_state}
           {:error, error} -> {:reply, {:error, error}, state}
         end
     end
@@ -3457,37 +3458,69 @@ defmodule Rulestead.Fake do
          :ok <- ensure_audience_preview_schema(command),
          current_preview <- audience_preview_payload(state, environment.key, audience, command),
          :ok <- ensure_fresh_audience_preview(command, current_preview),
-         :ok <- ensure_audience_reference_keys(command, current_preview),
-         :ok <- ensure_protected_audience_confirmation(command),
-         {:ok, updated_audience} <-
-           apply_audience_operation(audience, command, state.now) do
-      next_state =
-        state
-        |> put_in([:audiences, audience.key], updated_audience)
-        |> put_runtime_snapshot(environment.key)
+         :ok <- ensure_protected_audience_confirmation(command) do
+      dependency_entries = audience_dependency_entries(current_preview, command)
 
-      {audit_event, next_state} =
-        append_audit_event(next_state, command, audience_event_type(command.operation), :ok,
-          resource_type: "audience",
-          resource_key: audience.key,
-          before: audience_audit_state(audience),
-          after: audience_audit_state(updated_audience),
-          metadata: %{
-            "preview_fingerprint" => command.preview_fingerprint,
-            "preview_schema_version" => command.preview_schema_version,
-            "preview_basis" => command.preview_basis,
-            "affected_reference_keys" => preview_reference_keys(current_preview)
-          }
+      dependency_findings =
+        validate_dependency_entries(state, command, dependency_entries,
+          expected_reference_keys: command.affected_reference_keys
         )
 
-      {:ok,
-       %{
-         result: :ok,
-         operation: command.operation,
-         audience: audience_summary(updated_audience),
-         preview: current_preview,
-         audit_event: audit_event
-       }, %{next_state | audit_events: [audit_event | next_state.audit_events]}}
+      if DependencyValidator.blockers?(dependency_findings) do
+        error =
+          DependencyValidator.to_error(dependency_findings,
+            message: "audience mutation blocked by dependency validation"
+          )
+
+        {audit_event, blocked_state} =
+          append_audit_event(state, command, blocked_audience_event_type(command), :error,
+            resource_type: "audience",
+            resource_key: command.audience_key,
+            metadata: %{
+              "preview_fingerprint" => command.preview_fingerprint,
+              "preview_schema_version" => command.preview_schema_version,
+              "preview_basis" => command.preview_basis,
+              "affected_reference_keys" => preview_reference_keys(current_preview),
+              "blockers" => dependency_blockers(dependency_findings),
+              "dependency_findings" => serialize_dependency_findings(dependency_findings)
+            }
+          )
+
+        {:dependency_blocked, error,
+         %{blocked_state | audit_events: [audit_event | blocked_state.audit_events]}}
+      else
+        with {:ok, updated_audience} <-
+               apply_audience_operation(audience, command, state.now) do
+          next_state =
+            state
+            |> put_in([:audiences, audience.key], updated_audience)
+            |> put_runtime_snapshot(environment.key)
+
+          {audit_event, next_state} =
+            append_audit_event(next_state, command, audience_event_type(command.operation), :ok,
+              resource_type: "audience",
+              resource_key: audience.key,
+              before: audience_audit_state(audience),
+              after: audience_audit_state(updated_audience),
+              metadata: %{
+                "preview_fingerprint" => command.preview_fingerprint,
+                "preview_schema_version" => command.preview_schema_version,
+                "preview_basis" => command.preview_basis,
+                "affected_reference_keys" => preview_reference_keys(current_preview),
+                "dependency_findings" => []
+              }
+            )
+
+          {:ok,
+           %{
+             result: :ok,
+             operation: command.operation,
+             audience: audience_summary(updated_audience),
+             preview: current_preview,
+             audit_event: audit_event
+           }, %{next_state | audit_events: [audit_event | next_state.audit_events]}}
+        end
+      end
     end
   end
 
@@ -3596,6 +3629,35 @@ defmodule Rulestead.Fake do
 
   defp preview_reference_keys(_preview), do: []
 
+  defp audience_dependency_entries(preview, command) do
+    preview
+    |> Map.get(:affected_references, [])
+    |> Enum.map(fn reference ->
+      DependencyInventory.normalize_entry(%{
+        environment_key: reference_value(reference, :environment_key) || command.environment_key,
+        tenant_key: command.tenant_key || reference_value(reference, :tenant_key) || "global",
+        audience_key: command.audience_key,
+        flag_key: reference_value(reference, :flag_key),
+        ruleset_version: reference_value(reference, :ruleset_version),
+        rule_key: reference_value(reference, :rule_key),
+        ruleset_status: reference_value(reference, :ruleset_status),
+        rollout_context: reference_value(reference, :rollout_context),
+        lifecycle_context: reference_value(reference, :lifecycle_context),
+        visibility: %{status: "visible"},
+        reference_count: 1,
+        hidden_reference_count: 0
+      })
+    end)
+    |> Enum.reject(&(&1.malformed? or is_nil(&1.audience_key)))
+    |> DependencyInventory.sort_entries()
+  end
+
+  defp reference_value(reference, key) when is_map(reference) do
+    Map.get(reference, key) || Map.get(reference, Atom.to_string(key))
+  end
+
+  defp reference_value(_reference, _key), do: nil
+
   defp ensure_protected_audience_confirmation(%Command.ApplyAudienceMutation{
          protected_shared_targeting?: true
        }) do
@@ -3641,6 +3703,11 @@ defmodule Rulestead.Fake do
   defp audience_event_type("archive"), do: "audience.archived"
   defp audience_event_type("delete_attempt"), do: "audience.deleted"
   defp audience_event_type(_operation), do: "audience.updated"
+
+  defp blocked_audience_event_type(%Command.ApplyAudienceMutation{operation: "delete_attempt"}),
+    do: "audience.delete_blocked"
+
+  defp blocked_audience_event_type(_command), do: "audience.mutation_blocked"
 
   defp audience_audit_state(audience) do
     %{

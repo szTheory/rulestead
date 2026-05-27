@@ -309,16 +309,48 @@ defmodule Rulestead.Targeting.DependencyValidator do
     if MapSet.size(all_stale_reference_keys) == 0 do
       []
     else
-      entries
-      |> Enum.filter(&(reference_key(&1) in all_stale_reference_keys))
-      |> Enum.map(fn entry ->
-        new_finding(
-          "stale_reference",
-          entry,
-          "dependency preview is stale for referenced audience"
-        )
-      end)
+      stale_keys = MapSet.to_list(all_stale_reference_keys)
+      entry_by_reference_key = Map.new(entries, &{reference_key(&1), &1})
+
+      present_findings =
+        stale_keys
+        |> Enum.map(&Map.get(entry_by_reference_key, &1))
+        |> Enum.reject(&is_nil/1)
+        |> Enum.map(fn entry ->
+          new_finding(
+            "stale_reference",
+            entry,
+            "dependency preview is stale for referenced audience"
+          )
+        end)
+
+      missing_findings =
+        stale_keys
+        |> Enum.reject(&Map.has_key?(entry_by_reference_key, &1))
+        |> Enum.map(fn reference ->
+          new_finding(
+            "stale_reference",
+            stale_reference_entry(reference, entries, scope),
+            "dependency preview is stale for referenced audience"
+          )
+        end)
+
+      present_findings ++ missing_findings
     end
+  end
+
+  defp stale_reference_entry(reference_key, entries, _scope) do
+    parsed = parse_reference_key(reference_key)
+    fallback = List.first(entries) || %{}
+
+    %{
+      environment_key: Map.get(fallback, :environment_key),
+      tenant_key: Map.get(fallback, :tenant_key),
+      audience_key: Map.get(fallback, :audience_key),
+      flag_key: parsed.flag_key || Map.get(fallback, :flag_key),
+      ruleset_version: parsed.ruleset_version || Map.get(fallback, :ruleset_version),
+      rule_key: parsed.rule_key || Map.get(fallback, :rule_key)
+    }
   end
 
   defp tenant_findings(entries, scope) do
@@ -495,4 +527,20 @@ defmodule Rulestead.Targeting.DependencyValidator do
   defp reference_key(entry) do
     "flag:#{entry.flag_key}:ruleset:#{entry.ruleset_version}:rule:#{entry.rule_key}"
   end
+
+  defp parse_reference_key(reference_key) when is_binary(reference_key) do
+    case Regex.run(~r/^flag:(.+):ruleset:(\d+):rule:(.+)$/, String.trim(reference_key)) do
+      [_, flag_key, ruleset_version, rule_key] ->
+        %{
+          flag_key: normalize_string(flag_key),
+          ruleset_version: normalize_integer(ruleset_version),
+          rule_key: normalize_string(rule_key)
+        }
+
+      _other ->
+        %{flag_key: nil, ruleset_version: nil, rule_key: nil}
+    end
+  end
+
+  defp parse_reference_key(_reference_key), do: %{flag_key: nil, ruleset_version: nil, rule_key: nil}
 end

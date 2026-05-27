@@ -190,7 +190,7 @@ defmodule Rulestead.Store.EctoAudienceImpactContractTest do
 
     mismatched_references = %{apply_command(preview) | affected_reference_keys: []}
     assert {:error, error} = EctoStore.apply_audience_mutation(mismatched_references)
-    assert error.message =~ "affected references"
+    assert Enum.any?(error.details, &dependency_code?(&1, "stale_reference"))
 
     tenant_mismatch = %{apply_command(preview) | tenant_key: "tenant-b"}
     assert {:error, error} = EctoStore.apply_audience_mutation(tenant_mismatch)
@@ -205,6 +205,31 @@ defmodule Rulestead.Store.EctoAudienceImpactContractTest do
     assert error.message =~ "audience_delete_unsupported"
 
     assert Repo.get_by!(Audience, key: "vip-users").definition == original
+  end
+
+  test "apply emits incompatible_reference blockers and persists dependency findings in audit metadata" do
+    Repo.get_by!(Audience, key: "vip-users")
+    |> Audience.changeset(%{
+      definition: %{
+        conditions: [%{attribute: "plan", operator: "unsupported_operator", value: "enterprise"}]
+      }
+    })
+    |> Repo.update!()
+
+    {:ok, preview} =
+      EctoStore.preview_audience_impact(
+        Command.PreviewAudienceImpact.new("vip-users", :update,
+          environment_key: "test",
+          tenant_key: "tenant-a",
+          after_definition: %{conditions: [%{attribute: "plan", operator: "eq", value: "pro"}]}
+        )
+      )
+
+    assert {:error, error} = EctoStore.apply_audience_mutation(apply_command(preview))
+    assert Enum.any?(error.details, &dependency_code?(&1, "incompatible_reference"))
+
+    assert %{metadata: %{"dependency_findings" => findings}} = latest_blocked_audience_event!()
+    assert Enum.any?(findings, &dependency_code?(&1, "incompatible_reference"))
   end
 
   defp apply_command(preview, overrides \\ []) do
@@ -286,6 +311,19 @@ defmodule Rulestead.Store.EctoAudienceImpactContractTest do
     |> limit(1)
     |> Repo.one!()
     |> Map.from_struct()
+  end
+
+  defp latest_blocked_audience_event! do
+    AuditEvent
+    |> where([event], event.event_type in ["audience.mutation_blocked", "audience.delete_blocked"])
+    |> order_by([event], desc: event.inserted_at)
+    |> limit(1)
+    |> Repo.one!()
+    |> AuditEvent.serialize()
+  end
+
+  defp dependency_code?(entry, code) do
+    Map.get(entry, :code) == code or Map.get(entry, "code") == code
   end
 
   defp checkout_repo do

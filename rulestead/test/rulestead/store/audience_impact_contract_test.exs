@@ -188,7 +188,7 @@ defmodule Rulestead.Store.AudienceImpactContractTest do
 
     assert schema_message =~ "schema"
 
-    assert {:error, %Error{message: affected_message}} =
+    assert {:error, %Error{} = affected_error} =
              Rulestead.Fake.apply_audience_mutation(
                Command.ApplyAudienceMutation.new(%{
                  environment_key: "test",
@@ -207,7 +207,7 @@ defmodule Rulestead.Store.AudienceImpactContractTest do
                })
              )
 
-    assert affected_message =~ "affected references"
+    assert Enum.any?(affected_error.details, &dependency_code?(&1, "stale_reference"))
 
     assert {:ok, applied} =
              Rulestead.apply_audience_mutation(%{
@@ -263,6 +263,56 @@ defmodule Rulestead.Store.AudienceImpactContractTest do
              })
 
     assert protected_error.type == :invalid_command
+  end
+
+  test "Fake apply blocks incompatible dependencies and records dependency_findings audit metadata" do
+    setup_fake!()
+    seed_audience_reference!()
+
+    snapshot = Rulestead.Fake.Control.snapshot!()
+
+    updated_snapshot =
+      put_in(snapshot, [:audiences, "vip-users", :definition], %{
+        conditions: [%{attribute: "plan", operator: "unsupported_operator", value: "enterprise"}]
+      })
+
+    Rulestead.Fake.Control.restore!(updated_snapshot)
+
+    {:ok, preview} =
+      Rulestead.preview_audience_impact("vip-users", :update,
+        environment_key: "test",
+        tenant_key: "tenant-a",
+        after_definition: %{conditions: [%{attribute: "plan", operator: "eq", value: "pro"}]},
+        actor: %{id: "reader-1", roles: [:viewer]},
+        reason: "incompatible preview"
+      )
+
+    assert {:error, %Error{} = error} =
+             Rulestead.apply_audience_mutation(%{
+               environment_key: "test",
+               tenant_key: "tenant-a",
+               audience_key: "vip-users",
+               operation: :update,
+               preview_schema_version: preview.preview_schema_version,
+               preview_fingerprint: preview.preview_fingerprint,
+               preview_basis: preview.preview_basis,
+               affected_reference_keys: ["flag:checkout-redesign:ruleset:1:rule:vip-rule"],
+               after_definition: %{
+                 conditions: [%{attribute: "plan", operator: "eq", value: "pro"}]
+               },
+               actor: %{id: "editor-1", roles: [:editor]},
+               reason: "apply incompatible dependency"
+             })
+
+    assert Enum.any?(error.details, &dependency_code?(&1, "incompatible_reference"))
+
+    latest_event =
+      Rulestead.Fake.Control.snapshot!()
+      |> Map.get(:audit_events, [])
+      |> List.first()
+
+    assert latest_event.event_type == "audience.mutation_blocked"
+    assert Enum.any?(latest_event.metadata["dependency_findings"], &dependency_code?(&1, "incompatible_reference"))
   end
 
   test "Fake blocks archived audiences tenant mismatch delete attempts and Redis rejects new callbacks" do
@@ -382,6 +432,10 @@ defmodule Rulestead.Store.AudienceImpactContractTest do
              Rulestead.Fake.publish_ruleset(
                Command.PublishRuleset.new("checkout-redesign", "test")
              )
+  end
+
+  defp dependency_code?(entry, code) do
+    Map.get(entry, :code) == code or Map.get(entry, "code") == code
   end
 
   defmodule CapturePolicy do

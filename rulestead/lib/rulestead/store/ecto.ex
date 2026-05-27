@@ -669,9 +669,25 @@ defmodule Rulestead.Store.Ecto do
            :ok <- ensure_audience_preview_schema(command),
            preview <- audience_preview_payload(repo, environment.key, audience, command),
            :ok <- ensure_fresh_audience_preview(command, preview),
-           :ok <- ensure_audience_reference_keys(command, preview),
            :ok <- ensure_protected_audience_confirmation(command) do
         {:ok, preview}
+      end
+    end)
+    |> Multi.run(:dependency_validation, fn _repo, %{preview: preview} ->
+      dependency_entries = audience_dependency_entries(preview, command)
+
+      dependency_findings =
+        validate_dependency_entries(command, dependency_entries,
+          expected_reference_keys: command.affected_reference_keys
+        )
+
+      if DependencyValidator.blockers?(dependency_findings) do
+        {:error,
+         DependencyValidator.to_error(dependency_findings,
+           message: "audience mutation blocked by dependency validation"
+         )}
+      else
+        {:ok, dependency_findings}
       end
     end)
     |> Multi.run(:audience_mutation, fn repo, %{audience: audience} ->
@@ -697,7 +713,8 @@ defmodule Rulestead.Store.Ecto do
             environment_key: environment.key,
             before: audience_audit_state(audience),
             after: audience_audit_state(updated_audience),
-            preview: preview
+            preview: preview,
+            dependency_findings: []
           }
         )
       )
@@ -3241,6 +3258,25 @@ defmodule Rulestead.Store.Ecto do
   end
 
   defp audience_audit_event_changeset(audit_event, command, event_type, result, opts) do
+    metadata =
+      AuditEvent.metadata(%{
+        before: Map.get(opts, :before, %{}),
+        after: Map.get(opts, :after, %{}),
+        tenant: Command.GovernanceSupport.tenant_provenance(command),
+        context: Map.get(command, :metadata, %{}),
+        request_id: correlation_id(command),
+        preview_fingerprint: command.preview_fingerprint,
+        preview_schema_version: command.preview_schema_version,
+        affected_reference_keys: audience_audit_reference_keys(command, opts),
+        preview_basis: command.preview_basis,
+        blockers: Map.get(opts, :blockers),
+        dependency_findings: Map.get(opts, :dependency_findings, []),
+        affected_references: Map.get(opts, :preview, %{}) |> Map.get(:affected_references),
+        uncertainty: Map.get(opts, :preview, %{}) |> Map.get(:uncertainty),
+        sample_evidence: Map.get(opts, :preview, %{}) |> Map.get(:sample_evidence)
+      })
+      |> Map.merge(Map.new(Map.get(opts, :metadata, %{})))
+
     AuditEvent.changeset(audit_event, %{
       event_type: event_type,
       resource_type: "audience",
@@ -3251,22 +3287,7 @@ defmodule Rulestead.Store.Ecto do
       actor_display: actor_value(command.actor, "display"),
       reason: command.reason,
       result: result,
-      metadata:
-        AuditEvent.metadata(%{
-          before: Map.get(opts, :before, %{}),
-          after: Map.get(opts, :after, %{}),
-          tenant: Command.GovernanceSupport.tenant_provenance(command),
-          context: Map.get(command, :metadata, %{}),
-          request_id: correlation_id(command),
-          preview_fingerprint: command.preview_fingerprint,
-          preview_schema_version: command.preview_schema_version,
-          affected_reference_keys: audience_audit_reference_keys(command, opts),
-          preview_basis: command.preview_basis,
-          blockers: Map.get(opts, :blockers),
-          affected_references: Map.get(opts, :preview, %{}) |> Map.get(:affected_references),
-          uncertainty: Map.get(opts, :preview, %{}) |> Map.get(:uncertainty),
-          sample_evidence: Map.get(opts, :preview, %{}) |> Map.get(:sample_evidence)
-        }),
+      metadata: metadata,
       correlation_id: correlation_id(command),
       occurred_at: now()
     })
@@ -3298,7 +3319,8 @@ defmodule Rulestead.Store.Ecto do
 
     %AuditEvent{}
     |> audience_audit_event_changeset(command, event_type, :error, %{
-      blockers: audience_blockers(command, :error, error)
+      blockers: audience_blockers(command, :error, error),
+      metadata: %{"dependency_findings" => serialize_dependency_findings(error.details)}
     })
     |> Repo.insert()
   end
@@ -3316,11 +3338,54 @@ defmodule Rulestead.Store.Ecto do
 
   defp preview_reference_keys(_preview), do: []
 
+  defp audience_dependency_entries(preview, command) do
+    preview
+    |> Map.get(:affected_references, [])
+    |> Enum.map(fn reference ->
+      DependencyInventory.normalize_entry(%{
+        environment_key: reference_value(reference, :environment_key) || command.environment_key,
+        tenant_key: command.tenant_key || reference_value(reference, :tenant_key) || "global",
+        audience_key: command.audience_key,
+        flag_key: reference_value(reference, :flag_key),
+        ruleset_version: reference_value(reference, :ruleset_version),
+        rule_key: reference_value(reference, :rule_key),
+        ruleset_status: reference_value(reference, :ruleset_status),
+        rollout_context: reference_value(reference, :rollout_context),
+        lifecycle_context: reference_value(reference, :lifecycle_context),
+        visibility: %{status: "visible"},
+        reference_count: 1,
+        hidden_reference_count: 0
+      })
+    end)
+    |> Enum.reject(&(&1.malformed? or is_nil(&1.audience_key)))
+    |> DependencyInventory.sort_entries()
+  end
+
+  defp reference_value(reference, key) when is_map(reference) do
+    Map.get(reference, key) || Map.get(reference, Atom.to_string(key))
+  end
+
+  defp reference_value(_reference, _key), do: nil
+
   defp audience_blockers(command, :denied),
     do: [%{"code" => "audience_mutation_denied", "operation" => command.operation}]
 
   defp audience_blockers(command, _result),
     do: [%{"code" => "audience_mutation_#{command.operation}_blocked"}]
+
+  defp audience_blockers(_command, :error, %Rulestead.Error{details: details})
+       when is_list(details) do
+    dependency_codes =
+      details
+      |> Enum.map(fn detail -> Map.get(detail, :code) || Map.get(detail, "code") end)
+      |> Enum.reject(&is_nil/1)
+
+    if dependency_codes == [] do
+      []
+    else
+      serialize_dependency_findings(details)
+    end
+  end
 
   defp audience_blockers(_command, :error, %Rulestead.Error{message: message}) do
     [%{"code" => audience_blocker_code(message)}]
