@@ -5,8 +5,11 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
   use Phoenix.LiveView
 
   alias Rulestead.Context
-  alias Rulestead.Store.Command
+  alias Rulestead.Admin.Authorizer
   alias Rulestead.Admin.Redaction
+  alias Rulestead.Governance.RolloutAutoAdvance
+  alias Rulestead.Promotion.Compare
+  alias Rulestead.Store.Command
 
   alias RulesteadAdmin.Components.{
     AuditComponents,
@@ -55,6 +58,13 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
      |> assign(:guardrail_status_error, nil)
      |> assign(:guardrail_definitions, [])
      |> assign(:guardrail_interventions, [])
+     |> assign(:auto_advance_policy, nil)
+     |> assign(:auto_advance_scheduled_tick, nil)
+     |> assign(:auto_advance_mode, :unavailable)
+     |> assign(:auto_advance_protected_callout?, false)
+     |> assign(:auto_advance_approval_requirement, nil)
+     |> assign(:auto_advance_can_save?, false)
+     |> assign(:auto_advance_capability_denied_reason, nil)
      |> assign(:confirm_reason, "")
      |> assign(:confirmation_required?, false)
      |> assign(:editable?, false)
@@ -250,6 +260,19 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
               timeline_path={path_for(assigns, "/#{@flag_key}/timeline")}
             />
 
+            <RolloutComponents.auto_advance_panel
+              mode={@auto_advance_mode}
+              policy={@auto_advance_policy}
+              guardrail_status={@guardrail_status}
+              guardrail_definitions={@guardrail_definitions}
+              scheduled_tick={@auto_advance_scheduled_tick}
+              protected_callout?={@auto_advance_protected_callout?}
+              approval_requirement={@auto_advance_approval_requirement}
+              can_save?={@auto_advance_can_save?}
+              capability_denied_reason={@auto_advance_capability_denied_reason}
+              ladder_steps={@ladder_steps}
+            />
+
             <section class="rs-card" aria-label="Guardrail interventions">
               <h2>Guardrail interventions</h2>
               <p :if={@guardrail_interventions == []}>
@@ -362,28 +385,38 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
         guardrail_interventions =
           load_guardrail_interventions(flag_key, env, socket.assigns.current_actor)
 
-        socket
-        |> assign(:detail, detail)
-        |> assign(:published_percentage, active_rollout_percentage(detail))
-        |> assign(:source_ruleset, ruleset)
-        |> assign(:rollout_rule_key, field(rollout_rule, :key))
-        |> assign(:rollout_rule_index, rollout_rule_index)
-        |> assign(:percentage, current_percentage(rollout_rule))
-        |> assign(:preview, nil)
-        |> assign(:guardrail_status, guardrail_status)
-        |> assign(:guardrail_status_error, guardrail_status_error)
-        |> assign(:guardrail_definitions, guardrail_definitions)
-        |> assign(:guardrail_interventions, guardrail_interventions)
-        |> assign(:confirm_reason, "")
-        |> assign(:confirmation_required?, false)
-        |> assign(:editable?, is_nil(detail.flag.archived_at) and not is_nil(rollout_rule))
-        |> assign(
-          :error_message,
-          if(is_nil(rollout_rule),
-            do: "No rollout rule is available for this environment.",
-            else: nil
+        socket =
+          socket
+          |> assign(:detail, detail)
+          |> assign(:published_percentage, active_rollout_percentage(detail))
+          |> assign(:source_ruleset, ruleset)
+          |> assign(:rollout_rule_key, field(rollout_rule, :key))
+          |> assign(:rollout_rule_index, rollout_rule_index)
+          |> assign(:percentage, current_percentage(rollout_rule))
+          |> assign(:preview, nil)
+          |> assign(:guardrail_status, guardrail_status)
+          |> assign(:guardrail_status_error, guardrail_status_error)
+          |> assign(:guardrail_definitions, guardrail_definitions)
+          |> assign(:guardrail_interventions, guardrail_interventions)
+          |> assign(:confirm_reason, "")
+          |> assign(:confirmation_required?, false)
+          |> assign(:editable?, is_nil(detail.flag.archived_at) and not is_nil(rollout_rule))
+          |> assign(
+            :error_message,
+            if(is_nil(rollout_rule),
+              do: "No rollout rule is available for this environment.",
+              else: nil
+            )
           )
-        )
+          |> assign_auto_advance_load(
+            flag_key,
+            env,
+            field(rollout_rule, :key),
+            guardrail_definitions,
+            guardrail_status
+          )
+
+        socket
 
       {:error, error} ->
         socket
@@ -398,10 +431,157 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
         |> assign(:guardrail_status_error, nil)
         |> assign(:guardrail_definitions, [])
         |> assign(:guardrail_interventions, [])
+        |> assign_auto_advance_defaults()
         |> assign(:confirm_reason, "")
         |> assign(:confirmation_required?, false)
         |> assign(:editable?, false)
         |> assign(:error_message, error.message)
+    end
+  end
+
+  defp assign_auto_advance_defaults(socket) do
+    socket
+    |> assign(:auto_advance_policy, nil)
+    |> assign(:auto_advance_scheduled_tick, nil)
+    |> assign(:auto_advance_mode, :unavailable)
+    |> assign(:auto_advance_protected_callout?, false)
+    |> assign(:auto_advance_approval_requirement, nil)
+    |> assign(:auto_advance_can_save?, false)
+    |> assign(:auto_advance_capability_denied_reason, nil)
+  end
+
+  defp assign_auto_advance_load(socket, flag_key, env, rollout_rule_key, definitions, guardrail_status) do
+    if is_nil(rollout_rule_key) do
+      assign_auto_advance_defaults(socket)
+    else
+      actor = socket.assigns.current_actor
+      resource = %{resource_type: "flag", resource_key: flag_key}
+      policy = fetch_auto_advance_policy(flag_key, env, rollout_rule_key)
+      scheduled_tick = fetch_auto_advance_scheduled_tick(flag_key, env, rollout_rule_key)
+      now = auto_advance_now()
+
+      approval_requirement =
+        Authorizer.approval_requirement(actor, :advance_rollout, resource, env)
+
+      protected_callout? =
+        Compare.protected_target?(env) or approval_requirement.change_request_required?
+
+      {can_save?, capability_denied_reason} =
+        case Authorizer.authorize(actor, :advance_rollout, resource, env) do
+          :ok -> {true, nil}
+          {:error, error, _} -> {false, format_capability_denied_reason(error)}
+        end
+
+      socket
+      |> assign(:auto_advance_policy, policy)
+      |> assign(:auto_advance_scheduled_tick, scheduled_tick)
+      |> assign(
+        :auto_advance_mode,
+        derive_auto_advance_mode(definitions, guardrail_status, policy, scheduled_tick, now)
+      )
+      |> assign(:auto_advance_protected_callout?, protected_callout?)
+      |> assign(:auto_advance_approval_requirement, approval_requirement)
+      |> assign(:auto_advance_can_save?, can_save?)
+      |> assign(:auto_advance_capability_denied_reason, capability_denied_reason)
+    end
+  end
+
+  defp fetch_auto_advance_policy(flag_key, env, rollout_rule_key) do
+    case Rulestead.fetch_rollout_auto_advance_policy(flag_key, env, rollout_rule_key) do
+      {:ok, %{policy: policy}} -> policy
+      {:ok, policy} when is_map(policy) -> policy
+      {:error, error} -> if auto_advance_policy_not_found?(error), do: nil, else: nil
+    end
+  end
+
+  defp auto_advance_policy_not_found?(%{message: "rollout_auto_advance_policy_not_found"}), do: true
+  defp auto_advance_policy_not_found?(_), do: false
+
+  defp fetch_auto_advance_scheduled_tick(flag_key, env, rollout_rule_key) do
+    case Rulestead.list_scheduled_executions(
+           resource_key: flag_key,
+           environment_key: env,
+           action: :advance_rollout,
+           state: "scheduled",
+           limit: 10
+         ) do
+      {:ok, page} ->
+        page.entries
+        |> Enum.filter(fn tick ->
+          RolloutAutoAdvance.automation_tick?(Map.get(tick, :metadata) || %{})
+        end)
+        |> Enum.find(fn tick ->
+          get_in(tick.command_snapshot, ["rollout", "rule_key"]) == rollout_rule_key or
+            get_in(tick.command_snapshot, [:rollout, :rule_key]) == rollout_rule_key
+        end)
+
+      _ ->
+        nil
+    end
+  end
+
+  defp derive_auto_advance_mode(definitions, guardrail_status, policy, scheduled_tick, now) do
+    cond do
+      definitions == [] ->
+        :unavailable
+
+      guardrail_status &&
+          guardrail_status.state in [:held, :pending_data, :rollback_triggered] ->
+        :blocked_health
+
+      policy_enabled?(policy) && policy_incomplete?(policy) ->
+        :config_incomplete
+
+      not is_nil(scheduled_tick) ->
+        :scheduled
+
+      policy_enabled?(policy) && window_open?(guardrail_status, now) ->
+        :pending_observation
+
+      true ->
+        :ready
+    end
+  end
+
+  defp policy_enabled?(nil), do: false
+
+  defp policy_enabled?(policy) do
+    field(policy, :enabled) == true
+  end
+
+  defp policy_incomplete?(policy) do
+    policy_enabled?(policy) and
+      (blank_policy_field?(policy, :observation_window_seconds) or
+         blank_policy_field?(policy, :next_stage) or
+         blank_policy_field?(policy, :next_percentage))
+  end
+
+  defp blank_policy_field?(policy, key) do
+    case field(policy, key) do
+      nil -> true
+      "" -> true
+      0 when key in [:observation_window_seconds, :next_percentage] -> true
+      _ -> false
+    end
+  end
+
+  defp window_open?(%{window_ends_at: %DateTime{} = window_ends_at}, %DateTime{} = now) do
+    DateTime.compare(window_ends_at, now) == :gt
+  end
+
+  defp window_open?(_, _), do: false
+
+  defp auto_advance_now do
+    case Application.get_env(:rulestead, :admin_lifecycle) do
+      %{now: %DateTime{} = now} -> now
+      _ -> DateTime.utc_now()
+    end
+  end
+
+  defp format_capability_denied_reason(error) do
+    case error do
+      %{message: message} when is_binary(message) -> message
+      _ -> "Advance rollout is not permitted for this actor in this environment."
     end
   end
 
