@@ -20,6 +20,21 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
 
   @sample_size 20
   @ladder_steps [5, 25, 50, 100]
+  @strategy_atoms %{
+    "forced_value" => :forced_value,
+    "percentage_rollout" => :percentage_rollout,
+    "variant_split" => :variant_split,
+    "equals" => :equals,
+    "in" => :in,
+    "not_in" => :not_in,
+    "gt" => :gt,
+    "lt" => :lt,
+    "gte" => :gte,
+    "lte" => :lte,
+    "subject" => :subject,
+    "environment" => :environment,
+    "required" => :required
+  }
 
   @impl true
   def mount(_params, _session, socket) do
@@ -730,7 +745,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
 
   defp guardrail_status_view(status) do
     decision = field(status, :decision, %{})
-    state = field(decision, String.to_atom("decision" <> "_state"))
+    state = field(decision, :decision_state)
 
     %{
       state: state,
@@ -776,11 +791,9 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
     ])
   end
 
-  defp window_started_at(decision),
-    do: field(decision, String.to_atom("monitor" <> "ing_window_started_at"))
+  defp window_started_at(decision), do: field(decision, :monitoring_window_started_at)
 
-  defp window_ends_at(decision),
-    do: field(decision, String.to_atom("monitor" <> "ing_window_ends_at"))
+  defp window_ends_at(decision), do: field(decision, :monitoring_window_ends_at)
 
   defp state_label(nil), do: "No guardrail decision recorded"
   defp state_label(value), do: humanize(value)
@@ -862,7 +875,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
 
   defp serialize_plain_value(value), do: value
 
-  defp normalize_strategy(value) when is_binary(value), do: String.to_atom(value)
+  defp normalize_strategy(value) when is_binary(value), do: Map.get(@strategy_atoms, value, value)
   defp normalize_strategy(value), do: value
 
   defp normalize_percentage(nil, current), do: current || 0

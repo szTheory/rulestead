@@ -337,6 +337,15 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
     assert guardrail.tenant_scope == :required
   end
 
+  test "rollout serializer does not intern dynamic enum strings" do
+    source =
+      Path.expand("../../../../lib/rulestead_admin/live/flag_live/rollouts.ex", __DIR__)
+      |> File.read!()
+
+    refute source =~ "String.to_atom"
+    assert source =~ "Map.get(@strategy_atoms, value, value)"
+  end
+
   test "safe next-step publish stays direct and explicit", %{conn: conn} do
     {:ok, view, _html} = live(conn, "/admin/flags/checkout-redesign/rollouts?env=prod")
 
