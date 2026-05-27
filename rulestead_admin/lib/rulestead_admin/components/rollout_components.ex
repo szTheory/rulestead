@@ -82,6 +82,76 @@ defmodule RulesteadAdmin.Components.RolloutComponents do
     """
   end
 
+  attr(:status, :map, default: nil)
+  attr(:missing_reason, :string, default: nil)
+  attr(:definitions, :list, default: [])
+  attr(:timeline_path, :string, required: true)
+
+  def guardrail_status(assigns) do
+    ~H"""
+    <section class="rs-card" aria-label="Guardrail status">
+      <h2>Guardrail status</h2>
+
+      <div :if={@definitions != []}>
+        <p>Authored guardrail definitions for this rollout stage.</p>
+        <ul>
+          <li :for={definition <- @definitions}>
+            <code><%= definition.signal_key %></code>
+            <span><%= definition.threshold_operator %> <%= definition.threshold_value %></span>
+            <span>Freshness: <%= definition.freshness_window_seconds %>s</span>
+            <span>Sample: <%= definition.min_sample_size %> minimum</span>
+            <span><%= definition.environment_scope %> / <%= definition.tenant_scope %></span>
+          </li>
+        </ul>
+      </div>
+
+      <div :if={@definitions == []}>
+        <p>No guardrail definitions are authored for this rollout stage.</p>
+      </div>
+
+      <div :if={@status}>
+        <p role="status"><strong><%= @status.state_label %></strong></p>
+        <p><%= state_body(@status.state) %></p>
+        <p :if={@status.reason}>Reason: <code><%= @status.reason %></code></p>
+        <p :if={@status.effective_percentage}>Effective exposure: <strong><%= @status.effective_percentage %>%</strong></p>
+
+        <h3>Thresholds and evidence</h3>
+        <dl>
+          <dt>Signal</dt>
+          <dd><code><%= evidence_value(@status.evidence, :signal_key) %></code></dd>
+          <dt>Threshold</dt>
+          <dd><%= evidence_value(@status.evidence, :threshold_operator) %> <%= evidence_value(@status.evidence, :threshold_value) %></dd>
+          <dt>Observed</dt>
+          <dd><%= evidence_value(@status.evidence, :observed_value) %></dd>
+          <dt>Freshness</dt>
+          <dd><%= evidence_value(@status.evidence, :freshness_window_seconds) %>s</dd>
+          <dt>Sample</dt>
+          <dd><%= evidence_value(@status.evidence, :sample_size) %> / <%= evidence_value(@status.evidence, :min_sample_size) %></dd>
+          <dt>Evidence reason</dt>
+          <dd><code><%= evidence_value(@status.evidence, :reason) %></code></dd>
+          <dt>Evaluated at</dt>
+          <dd><%= evidence_value(@status.evidence, :evaluated_at) %></dd>
+          <dt>Window</dt>
+          <dd><%= @status.window_started_at %> to <%= @status.window_ends_at %></dd>
+          <dt>Recorded at</dt>
+          <dd><%= @status.occurred_at %></dd>
+          <dt :if={@status.correlation_id}>Correlation</dt>
+          <dd :if={@status.correlation_id}><code><%= @status.correlation_id %></code></dd>
+        </dl>
+      </div>
+
+      <div :if={is_nil(@status) and @definitions != []}>
+        <h3>No guardrail decision recorded</h3>
+        <p role="alert">
+          <%= missing_status_body(@missing_reason) %>
+        </p>
+      </div>
+
+      <a href={@timeline_path}>Open full timeline</a>
+    </section>
+    """
+  end
+
   attr(:current, :integer, required: true)
   attr(:target, :integer, required: true)
   attr(:reason, :string, default: "")
@@ -107,5 +177,41 @@ defmodule RulesteadAdmin.Components.RolloutComponents do
       </div>
     </section>
     """
+  end
+
+  defp state_body(:healthy),
+    do: "Valid guardrail evidence is inside threshold for this rollout stage."
+
+  defp state_body("healthy"), do: state_body(:healthy)
+
+  defp state_body(:pending_data),
+    do:
+      "Automation is waiting for valid guardrail evidence and will not assume the stage is healthy."
+
+  defp state_body("pending_data"), do: state_body(:pending_data)
+
+  defp state_body(:held),
+    do:
+      "Guardrail automation held this rollout fail-closed. Review the missing or stale signal before advancing."
+
+  defp state_body("held"), do: state_body(:held)
+
+  defp state_body(:rollback_triggered),
+    do: "A confirmed threshold breach triggered rollback to the last stable rollout snapshot."
+
+  defp state_body("rollback_triggered"), do: state_body(:rollback_triggered)
+
+  defp state_body(_state),
+    do:
+      "Guardrail status could not be loaded. Keep the rollout unchanged, then retry from this mounted page or review the per-flag audit timeline."
+
+  defp evidence_value(evidence, key) when is_map(evidence) do
+    Map.get(evidence, key, Map.get(evidence, to_string(key), "n/a"))
+  end
+
+  defp evidence_value(_evidence, _key), do: "n/a"
+
+  defp missing_status_body(_reason) do
+    "This rollout stage has guardrail definitions, but no evaluated decision has been recorded for this environment yet. Wire the host signal provider or run the guarded evaluation before treating the stage as healthy."
   end
 end

@@ -14,10 +14,7 @@ defmodule RulesteadAdmin.Router do
 
       scope path, as: :rulestead_admin do
         live_session live_session_name,
-          session: %{
-            "policy" => policy,
-            "mount_path" => path
-          },
+          session: {RulesteadAdmin.Router, :live_session, [path, policy]},
           on_mount: [{RulesteadAdmin.Live.Session, :default}] do
           live("/", RulesteadAdmin.Live.FlagLive.Index, :index)
           live("/new", RulesteadAdmin.Live.FlagLive.Form, :new)
@@ -46,5 +43,14 @@ defmodule RulesteadAdmin.Router do
         end
       end
     end
+  end
+
+  def live_session(conn, path, policy) do
+    conn
+    |> Plug.Conn.get_session()
+    |> Map.merge(%{
+      "policy" => policy,
+      "mount_path" => path
+    })
   end
 end

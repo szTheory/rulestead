@@ -282,7 +282,7 @@ defmodule RulesteadAdmin.Live.Session do
   defp actor_present?(actor), do: not is_nil(actor)
 
   defp policy_available?(policy) when is_atom(policy) do
-    function_exported?(policy, :can?, 4)
+    Code.ensure_loaded?(policy) and function_exported?(policy, :can?, 4)
   end
 
   defp policy_available?(_policy), do: false

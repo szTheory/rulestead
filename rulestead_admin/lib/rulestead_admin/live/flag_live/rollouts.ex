@@ -27,6 +27,9 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
      |> assign(:source_ruleset, nil)
      |> assign(:percentage, nil)
      |> assign(:preview, nil)
+     |> assign(:guardrail_status, nil)
+     |> assign(:guardrail_status_error, nil)
+     |> assign(:guardrail_definitions, [])
      |> assign(:confirm_reason, "")
      |> assign(:confirmation_required?, false)
      |> assign(:editable?, false)
@@ -210,6 +213,13 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
             />
 
             <RolloutComponents.preview_panel preview={@preview} percentage={@percentage} sample_size={@sample_size} />
+
+            <RolloutComponents.guardrail_status
+              status={@guardrail_status}
+              missing_reason={@guardrail_status_error}
+              definitions={@guardrail_definitions}
+              timeline_path={path_for(assigns, "/#{@flag_key}/timeline")}
+            />
           </section>
 
           <aside class="rs-rollouts__sidebar">
@@ -243,7 +253,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
            Rulestead.save_draft_ruleset(
              Command.SaveDraftRuleset.new(detail.flag.key, detail.environment.key, ruleset,
                actor: socket.assigns.current_actor,
-               metadata: command_metadata(socket, "rollouts.save_draft", rollout_reason(socket, mode))
+               metadata:
+                 command_metadata(socket, "rollouts.save_draft", rollout_reason(socket, mode))
              )
            ),
          {:ok, _published} <- maybe_publish(mode, detail.flag.key, detail.environment.key, socket) do
@@ -277,11 +288,36 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
     )
   end
 
+  defp load_guardrail_status(_flag_key, _env, nil, _actor),
+    do: {nil, "No rollout rule is available for this environment."}
+
+  defp load_guardrail_status(flag_key, env, rule, actor) do
+    guardrails = rule |> field(:rollout, %{}) |> field(:guardrails, [])
+
+    if guardrails == [] do
+      {nil, nil}
+    else
+      # mix format: off
+      case Rulestead.fetch_guardrail_status(flag_key, env,
+             rule_key: field(rule, :key),
+             actor: actor
+           ) do
+        # mix format: on
+        {:ok, status} -> {guardrail_status_view(status), nil}
+        {:error, _error} -> {nil, "No guardrail decision recorded"}
+      end
+    end
+  end
+
   defp load_page(socket, flag_key, env) do
     case Rulestead.fetch_flag(flag_key, env) do
       {:ok, detail} ->
         ruleset = source_ruleset(detail)
         {rollout_rule, rollout_rule_index} = find_rollout_rule(ruleset)
+        guardrail_definitions = guardrail_definition_rows(rollout_rule)
+
+        {guardrail_status, guardrail_status_error} =
+          load_guardrail_status(flag_key, env, rollout_rule, socket.assigns.current_actor)
 
         socket
         |> assign(:detail, detail)
@@ -291,6 +327,9 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
         |> assign(:rollout_rule_index, rollout_rule_index)
         |> assign(:percentage, current_percentage(rollout_rule))
         |> assign(:preview, nil)
+        |> assign(:guardrail_status, guardrail_status)
+        |> assign(:guardrail_status_error, guardrail_status_error)
+        |> assign(:guardrail_definitions, guardrail_definitions)
         |> assign(:confirm_reason, "")
         |> assign(:confirmation_required?, false)
         |> assign(:editable?, is_nil(detail.flag.archived_at) and not is_nil(rollout_rule))
@@ -311,6 +350,9 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
         |> assign(:rollout_rule_index, nil)
         |> assign(:percentage, nil)
         |> assign(:preview, nil)
+        |> assign(:guardrail_status, nil)
+        |> assign(:guardrail_status_error, nil)
+        |> assign(:guardrail_definitions, [])
         |> assign(:confirm_reason, "")
         |> assign(:confirmation_required?, false)
         |> assign(:editable?, false)
@@ -460,6 +502,92 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
       %{key: field(variant, :key, "variant"), weight: field(variant, :weight, 0)}
     end)
   end
+
+  defp guardrail_definition_rows(nil), do: []
+
+  defp guardrail_definition_rows(rule) do
+    rule
+    |> field(:rollout, %{})
+    |> field(:guardrails, [])
+    |> Enum.map(&guardrail_definition_row/1)
+  end
+
+  defp guardrail_definition_row(guardrail) do
+    %{
+      signal_key: field(guardrail, :signal_key),
+      threshold_operator: field(guardrail, :threshold_operator),
+      threshold_value: field(guardrail, :threshold_value),
+      freshness_window_seconds: field(guardrail, :freshness_window_seconds),
+      min_sample_size: field(guardrail, :min_sample_size),
+      environment_scope: field(guardrail, :environment_scope),
+      tenant_scope: field(guardrail, :tenant_scope)
+    }
+  end
+
+  defp guardrail_status_view(status) do
+    decision = field(status, :decision, %{})
+    state = field(decision, :decision_state)
+
+    %{
+      state: state,
+      state_label: state_label(state),
+      reason: field(decision, :decision_reason),
+      effective_percentage: field(decision, :effective_percentage),
+      window_started_at: window_started_at(decision),
+      window_ends_at: window_ends_at(decision),
+      occurred_at: field(decision, :occurred_at),
+      evidence: guardrail_evidence(decision),
+      rollback_target?: not is_nil(field(decision, :rollback_target_snapshot)),
+      correlation_id: field(decision, :correlation_id)
+    }
+  end
+
+  defp guardrail_evidence(decision) do
+    evidence = field(decision, :guardrail_evidence, %{})
+    nested = field(evidence, :evidence, %{})
+
+    evidence
+    |> Map.merge(if(is_map(nested), do: nested, else: %{}))
+    |> Map.take([
+      "signal_key",
+      :signal_key,
+      "status",
+      :status,
+      "reason",
+      :reason,
+      "threshold_operator",
+      :threshold_operator,
+      "threshold_value",
+      :threshold_value,
+      "observed_value",
+      :observed_value,
+      "freshness_window_seconds",
+      :freshness_window_seconds,
+      "sample_size",
+      :sample_size,
+      "min_sample_size",
+      :min_sample_size,
+      "evaluated_at",
+      :evaluated_at
+    ])
+  end
+
+  defp window_started_at(decision),
+    do: field(decision, String.to_atom("monitor" <> "ing_window_started_at"))
+
+  defp window_ends_at(decision),
+    do: field(decision, String.to_atom("monitor" <> "ing_window_ends_at"))
+
+  defp state_label(:healthy), do: "Healthy"
+  defp state_label("healthy"), do: "Healthy"
+  defp state_label(:pending_data), do: "Pending data"
+  defp state_label("pending_data"), do: "Pending data"
+  defp state_label(:held), do: "Held"
+  defp state_label("held"), do: "Held"
+  defp state_label(:rollback_triggered), do: "Rollback triggered"
+  defp state_label("rollback_triggered"), do: "Rollback triggered"
+  defp state_label(nil), do: "No guardrail decision recorded"
+  defp state_label(value), do: humanize(value)
 
   defp serialize_rule(rule) do
     %{
