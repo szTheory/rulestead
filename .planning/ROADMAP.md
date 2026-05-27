@@ -34,7 +34,7 @@
 Plans:
 - [x] 53-01-PLAN.md — Pure impact preview contract and affected-reference summaries
 - [x] 53-02-PLAN.md — Snapshot-local audience runtime evaluation
-- [ ] 53-03-PLAN.md — Public/store command surface and Fake adapter contract
+- [x] 53-03-PLAN.md — Public/store command surface and Fake adapter contract
 - [ ] 53-04-PLAN.md — Ecto enforcement, audit evidence, and snapshot publication
 
 ### Phase 54: Dependency Truth And Promotion Safety
@@ -77,7 +77,7 @@ Phases execute in numeric order: 53 -> 54 -> 55 -> 56
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 53. Impact Preview Contract | v1.6.0 | 2/4 | In Progress|  |
+| 53. Impact Preview Contract | v1.6.0 | 3/4 | In Progress|  |
 | 54. Dependency Truth And Promotion Safety | v1.6.0 | 0/TBD | Not started | - |
 | 55. Mounted Operator Workflows | v1.6.0 | 0/TBD | Not started | - |
 | 56. Proof, Docs, And Support Truth | v1.6.0 | 0/TBD | Not started | - |
