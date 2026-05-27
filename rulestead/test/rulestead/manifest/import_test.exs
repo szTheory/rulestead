@@ -33,6 +33,7 @@ defmodule Rulestead.Manifest.ImportTest do
 
     assert result["status"] == "changes"
     assert result["summary"]["target_environment_key"] == "test"
+    assert result["dependency_findings"] == []
 
     plan = result["details"]["plan"]
     assert plan["mode"] == "import"
@@ -77,6 +78,21 @@ defmodule Rulestead.Manifest.ImportTest do
 
     assert {:ok, payload} = Rulestead.fetch_flag("checkout-redesign", "test")
     assert payload.active_ruleset.salt == "checkout-redesign:v2"
+  end
+
+  test "apply does not apply when dependency findings are blockers" do
+    assert {:ok, manifest} = Rulestead.export_manifest("staging")
+    assert {:ok, planned} = Import.plan(manifest, target_environment: "test")
+    plan = planned["details"]["plan"]
+
+    delete_fake_audience!("vip-users")
+
+    assert {:ok, blocked} = Import.apply(plan, reason: "dependencies drifted")
+    assert blocked["status"] == "blocked"
+    assert Enum.any?(blocked["dependency_findings"], &(&1["code"] == "missing_reference"))
+
+    assert {:ok, payload} = Rulestead.fetch_flag("checkout-redesign", "test")
+    assert payload.active_ruleset.salt == "checkout-redesign:v1"
   end
 
   test "import preview emits tenant-sensitive findings on mismatch and widening" do
@@ -142,12 +158,18 @@ defmodule Rulestead.Manifest.ImportTest do
           key: key,
           name: "Audience #{key}",
           description: "Seeded audience",
+          definition: %{clauses: [%{attribute: "plan", op: "eq", value: "vip"}]},
           inserted_at: now,
           updated_at: now,
           archived_at: nil
         })
       end)
     )
+  end
+
+  defp delete_fake_audience!(key) do
+    snapshot = Rulestead.Fake.Control.snapshot!()
+    Rulestead.Fake.Control.restore!(%{snapshot | audiences: Map.delete(snapshot.audiences, key)})
   end
 
   defp publish_ruleset!(flag_key, environment_key, ruleset_attrs) do

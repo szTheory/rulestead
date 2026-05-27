@@ -12,11 +12,17 @@ defmodule Rulestead.Manifest.Result do
       |> Map.get(:findings, Map.get(attrs, "findings", []))
       |> sort_findings()
 
+    dependency_findings =
+      attrs
+      |> Map.get(:dependency_findings, Map.get(attrs, "dependency_findings", []))
+      |> sort_dependency_findings()
+
     %{
       "status" => normalize_status(Map.get(attrs, :status, Map.get(attrs, "status"))),
       "command" => to_string(Map.get(attrs, :command, Map.get(attrs, "command"))),
       "summary" => normalize_map(Map.get(attrs, :summary, Map.get(attrs, "summary", %{}))),
       "findings" => findings,
+      "dependency_findings" => dependency_findings,
       "details" => normalize_map(Map.get(attrs, :details, Map.get(attrs, "details", %{})))
     }
   end
@@ -61,6 +67,24 @@ defmodule Rulestead.Manifest.Result do
   defp normalize_status(status) when status in @statuses, do: status
   defp normalize_status(status) when is_atom(status), do: normalize_status(Atom.to_string(status))
   defp normalize_status(_status), do: "error"
+
+  @spec sort_dependency_findings([map()]) :: [map()]
+  defp sort_dependency_findings(findings) when is_list(findings) do
+    Enum.sort_by(findings, fn finding ->
+      {
+        Map.get(@severity_rank, finding["severity"] || to_string(finding[:severity]), 99),
+        finding["code"] || to_string(finding[:code]),
+        finding["environment_key"] || to_string(finding[:environment_key]),
+        finding["tenant_key"] || to_string(finding[:tenant_key]),
+        finding["flag_key"] || to_string(finding[:flag_key]),
+        finding["ruleset_version"] || finding[:ruleset_version] || 0,
+        finding["rule_key"] || to_string(finding[:rule_key]),
+        finding["audience_key"] || to_string(finding[:audience_key])
+      }
+    end)
+  end
+
+  defp sort_dependency_findings(_findings), do: []
 
   defp normalize_map(value), do: Rulestead.Manifest.normalize_map(value)
 

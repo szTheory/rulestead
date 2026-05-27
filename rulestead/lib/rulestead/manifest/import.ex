@@ -7,6 +7,7 @@ defmodule Rulestead.Manifest.Import do
   alias Rulestead.Promotion.Compare
   alias Rulestead.Store.Command
   alias Rulestead.StoreError
+  alias Rulestead.Targeting.{DependencyInventory, DependencyValidator}
 
   @spec plan(binary() | map(), keyword()) :: {:ok, map()} | {:error, Rulestead.Error.t()}
   def plan(content, opts \\ []) do
@@ -24,6 +25,7 @@ defmodule Rulestead.Manifest.Import do
            "plan_token" => plan["plan_token"]
          },
          findings: preview.findings,
+         dependency_findings: preview.dependency_findings,
          details: %{"plan" => plan}
        })}
     end
@@ -40,7 +42,7 @@ defmodule Rulestead.Manifest.Import do
            Rulestead.export_manifest(plan["target_environment_key"], opts),
          :ok <- validate_target_fingerprint(plan, current_manifest),
          :ok <- validate_target_lifecycle(plan, current_manifest),
-         :ok <- validate_referenced_audiences(plan),
+         {:ok, dependency_findings} <- revalidate_dependency_findings(plan),
          :ok <- validate_governance_posture(plan),
          {:ok, result} <- dispatch_apply(plan, reason, opts) do
       {:ok,
@@ -52,6 +54,7 @@ defmodule Rulestead.Manifest.Import do
            "flag_count" => length(plan["flag_keys"]),
            "plan_token" => plan["plan_token"]
          },
+         dependency_findings: dependency_findings,
          details: %{"apply" => Manifest.normalize_map(result), "plan" => plan}
        })}
     else
@@ -72,6 +75,8 @@ defmodule Rulestead.Manifest.Import do
 
     proposed_target_bundle = to_proposed_target_bundle(source_manifest, target_environment_key)
     dependency_closure_keys = Plan.dependency_closure_from_bundle(proposed_target_bundle)
+    dependency_findings =
+      dependency_findings(proposed_target_bundle, target_environment_key, tenant_key || "global")
 
     diff_result =
       case Rulestead.Manifest.Diff.diff(source_manifest, target_manifest: target_manifest) do
@@ -82,7 +87,7 @@ defmodule Rulestead.Manifest.Import do
     findings =
       diff_result["findings"] ++
         additive_findings(source_manifest, target_manifest, proposed_target_bundle) ++
-        dependency_findings(dependency_closure_keys) ++
+        dependency_summary_findings(dependency_findings) ++
         governance_findings(target_environment_key, diff_result["status"]) ++
         tenant_findings(tenant_key, source_manifest, target_manifest)
 
@@ -95,6 +100,7 @@ defmodule Rulestead.Manifest.Import do
       target_fingerprint: Plan.fingerprint(target_manifest),
       dependency_closure_keys: dependency_closure_keys,
       proposed_target_bundle: proposed_target_bundle,
+      dependency_findings: dependency_findings,
       tenant_key: tenant_key
     }
   end
@@ -170,37 +176,35 @@ defmodule Rulestead.Manifest.Import do
     end)
   end
 
-  defp dependency_findings(dependency_closure_keys) do
-    audience_map =
-      case Rulestead.list_audiences(include_archived?: true, limit: 10_000) do
-        {:ok, audiences} -> Map.new(audiences, &{"audience:" <> &1.key, &1})
-        {:error, _error} -> %{}
-      end
+  defp dependency_findings(proposed_target_bundle, target_environment_key, tenant_key) do
+    findings =
+      DependencyValidator.validate(
+        %{
+          tenant_key: tenant_key,
+          audiences: dependency_validation_audiences()
+        },
+        dependency_entries(proposed_target_bundle, target_environment_key, tenant_key)
+      )
+      |> DependencyValidator.sort_findings()
 
-    dependency_closure_keys
-    |> Enum.flat_map(fn key ->
-      case Map.get(audience_map, key) do
-        nil ->
-          [
-            Result.finding("missing_dependency", "blocker", key,
-              message: "referenced audience was not found"
-            )
-          ]
+    Enum.map(findings, fn finding ->
+      environment_key = finding.environment_key || target_environment_key
+      scoped_tenant_key = finding.tenant_key || tenant_key || "global"
 
-        audience ->
-          archived_at = Map.get(audience, :archived_at) || Map.get(audience, "archived_at")
-
-          if is_nil(archived_at) do
-            []
-          else
-            [
-              Result.finding("archived_dependency", "blocker", key,
-                message: "referenced audience is archived"
-              )
-            ]
-          end
-      end
+      %{
+        "code" => to_string(finding.code),
+        "severity" => to_string(finding.severity),
+        "message" => finding.message,
+        "environment_key" => environment_key,
+        "tenant_key" => scoped_tenant_key,
+        "flag_key" => finding.flag_key,
+        "ruleset_version" => finding.ruleset_version,
+        "rule_key" => finding.rule_key,
+        "audience_key" => finding.audience_key,
+        "scope" => dependency_scope(environment_key, scoped_tenant_key, finding)
+      }
     end)
+    |> Result.sort_findings()
   end
 
   defp governance_findings(_target_environment_key, "no_changes"), do: []
@@ -263,6 +267,83 @@ defmodule Rulestead.Manifest.Import do
       _other ->
         findings
     end
+  end
+
+  defp dependency_summary_findings(dependency_findings) do
+    Enum.map(dependency_findings, fn finding ->
+      Result.finding(finding["code"], finding["severity"], finding["scope"],
+        message: finding["message"]
+      )
+    end)
+  end
+
+  defp dependency_validation_audiences do
+    case Rulestead.list_audiences(include_archived?: true, limit: 10_000) do
+      {:ok, audiences} ->
+        Map.new(audiences, fn audience ->
+          {audience.key,
+           %{
+             key: audience.key,
+             tenant_key: Map.get(audience, :tenant_key),
+             archived_at: Map.get(audience, :archived_at),
+             definition: Map.get(audience, :definition)
+           }}
+        end)
+
+      {:error, _error} ->
+        %{}
+    end
+  end
+
+  defp dependency_entries(proposed_target_bundle, target_environment_key, tenant_key)
+       when is_map(proposed_target_bundle) do
+    proposed_target_bundle
+    |> Enum.flat_map(fn {flag_key, state} ->
+      active_ruleset = state["active_ruleset"] || %{}
+      ruleset_version = active_ruleset["version"]
+
+      Map.get(active_ruleset, "rules", [])
+      |> Enum.flat_map(fn rule ->
+        if Manifest.normalize_string(rule["strategy"]) == "segment_match" do
+          [
+            DependencyInventory.normalize_entry(%{
+              environment_key: rule["environment_key"] || target_environment_key,
+              tenant_key: rule["tenant_key"] || tenant_key,
+              audience_key: rule["audience_key"],
+              flag_key: flag_key,
+              ruleset_version: ruleset_version,
+              rule_key: rule["key"],
+              ruleset_status: "published",
+              rollout_context: rule["rollout"] || %{},
+              lifecycle_context: %{available?: false},
+              visibility: %{status: "visible"},
+              reference_count: 1,
+              hidden_reference_count: 0,
+              audience_schema_version: rule["audience_schema_version"],
+              audience_version_hash: rule["audience_version_hash"]
+            })
+          ]
+        else
+          []
+        end
+      end)
+    end)
+    |> Enum.reject(&(&1.malformed? or is_nil(&1.audience_key)))
+    |> DependencyInventory.sort_entries()
+  end
+
+  defp dependency_entries(_proposed_target_bundle, _target_environment_key, _tenant_key), do: []
+
+  defp dependency_scope(environment_key, tenant_key, finding) do
+    [
+      "env=#{environment_key}",
+      "tenant=#{tenant_key}",
+      "flag=#{finding.flag_key}",
+      "ruleset=#{finding.ruleset_version}",
+      "rule=#{finding.rule_key}",
+      "audience=#{finding.audience_key}"
+    ]
+    |> Enum.join("|")
   end
 
   defp validate_import_mode(plan) do
@@ -354,14 +435,49 @@ defmodule Rulestead.Manifest.Import do
     end
   end
 
-  defp validate_referenced_audiences(plan) do
-    findings = dependency_findings(plan["dependency_closure_keys"])
+  defp revalidate_dependency_findings(plan) do
+    findings =
+      dependency_findings(
+        plan["proposed_target_bundle"],
+        plan["target_environment_key"],
+        plan["tenant_key"] || "global"
+      )
 
-    if blocker_findings?(findings),
-      do:
-        {:error,
-         StoreError.invalid_command("manifest import has unresolved audience dependencies")},
-      else: :ok
+    if blocker_findings?(dependency_summary_findings(findings)) do
+      validator_findings =
+        Enum.map(findings, fn finding ->
+          %{
+            code: finding["code"],
+            severity: severity_atom(finding["severity"]),
+            message: finding["message"],
+            environment_key: finding["environment_key"],
+            tenant_key: finding["tenant_key"],
+            audience_key: finding["audience_key"],
+            flag_key: finding["flag_key"],
+            ruleset_version: finding["ruleset_version"],
+            rule_key: finding["rule_key"]
+          }
+        end)
+
+      error =
+        DependencyValidator.to_error(validator_findings,
+          message: "manifest import blocked by dependency validation"
+        )
+
+      {:error,
+       %{
+         error
+         | metadata:
+             Map.merge(error.metadata || %{}, %{
+               fail_closed: true,
+               target_environment_key: plan["target_environment_key"],
+               tenant_key: plan["tenant_key"],
+               dependency_findings: findings
+             })
+       }}
+    else
+      {:ok, findings}
+    end
   end
 
   defp validate_governance_posture(plan) do
@@ -411,6 +527,7 @@ defmodule Rulestead.Manifest.Import do
              message: "saved import plan no longer matches live target state"
            )
          ],
+         dependency_findings: [],
          details: %{"plan" => plan}
        })}
     end
@@ -433,6 +550,14 @@ defmodule Rulestead.Manifest.Import do
       end
 
     with {:ok, plan} <- Plan.load(plan_content) do
+      metadata = error.metadata || %{}
+
+      dependency_findings =
+        case metadata[:dependency_findings] || metadata["dependency_findings"] do
+          findings when is_list(findings) -> findings
+          _other -> []
+        end
+
       {:ok,
        Result.new(%{
          status: status,
@@ -446,6 +571,7 @@ defmodule Rulestead.Manifest.Import do
              message: message
            )
          ],
+         dependency_findings: dependency_findings,
          details: %{
            "plan" => plan,
            "error" => Manifest.normalize_map(%{message: error.message, type: error.type})
@@ -458,4 +584,8 @@ defmodule Rulestead.Manifest.Import do
   defp status_code("stale"), do: "stale_plan"
   defp status_code("blocked"), do: "blocked_import"
   defp status_code(_status), do: "invalid_import"
+
+  defp severity_atom("warning"), do: :warning
+  defp severity_atom("info"), do: :info
+  defp severity_atom(_severity), do: :blocker
 end

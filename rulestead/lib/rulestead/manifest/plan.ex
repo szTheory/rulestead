@@ -7,7 +7,7 @@ defmodule Rulestead.Manifest.Plan do
   @schema_version 1
   @kind "rulestead_apply_plan"
   @modes ~w(import promote)
-  @statuses ~w(no_changes changes governance_required)
+  @statuses ~w(no_changes changes blocked governance_required)
 
   @spec schema_version() :: pos_integer()
   def schema_version, do: @schema_version

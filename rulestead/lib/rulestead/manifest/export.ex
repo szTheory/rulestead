@@ -22,7 +22,8 @@ defmodule Rulestead.Manifest.Export do
              sort: :flag_key
            ),
          :ok <- validate_requested_flag_keys(page.entries, requested_flag_keys),
-         {:ok, flags} <- export_flags(page.entries, environment.key, requested_flag_keys) do
+         {:ok, flags} <-
+           export_flags(page.entries, environment.key, requested_flag_keys, tenant_key || "global") do
       {:ok,
        %{
          "schema_version" => Manifest.schema_version(),
@@ -37,7 +38,7 @@ defmodule Rulestead.Manifest.Export do
   defp maybe_put(map, _key, nil), do: map
   defp maybe_put(map, key, value), do: Map.put(map, key, value)
 
-  defp export_flags(entries, environment_key, requested_flag_keys) do
+  defp export_flags(entries, environment_key, requested_flag_keys, tenant_key) do
     entries
     |> Enum.map(& &1.flag.key)
     |> Enum.uniq()
@@ -46,7 +47,7 @@ defmodule Rulestead.Manifest.Export do
     |> Enum.reduce_while({:ok, []}, fn flag_key, {:ok, acc} ->
       case Rulestead.fetch_flag(flag_key, environment_key) do
         {:ok, payload} ->
-          case export_entry(payload) do
+          case export_entry(payload, environment_key, tenant_key) do
             nil -> {:cont, {:ok, acc}}
             entry -> {:cont, {:ok, [entry | acc]}}
           end
@@ -118,8 +119,9 @@ defmodule Rulestead.Manifest.Export do
   defp maybe_filter_requested_flag_keys(flag_keys, []), do: flag_keys
   defp maybe_filter_requested_flag_keys(_flag_keys, requested_flag_keys), do: requested_flag_keys
 
-  defp export_entry(payload) do
-    active_ruleset = project_ruleset(payload[:active_ruleset] || payload["active_ruleset"])
+  defp export_entry(payload, environment_key, tenant_key) do
+    active_ruleset =
+      project_ruleset(payload[:active_ruleset] || payload["active_ruleset"], environment_key, tenant_key)
 
     if is_nil(active_ruleset) do
       nil
@@ -177,9 +179,9 @@ defmodule Rulestead.Manifest.Export do
     )
   end
 
-  defp project_ruleset(nil), do: nil
+  defp project_ruleset(nil, _environment_key, _tenant_key), do: nil
 
-  defp project_ruleset(ruleset) do
+  defp project_ruleset(ruleset, environment_key, tenant_key) do
     %{}
     |> maybe_put("version", ruleset[:version] || ruleset["version"])
     |> maybe_put("salt", ruleset[:salt] || ruleset["salt"])
@@ -191,39 +193,61 @@ defmodule Rulestead.Manifest.Export do
       "rules",
       ruleset
       |> Map.get(:rules, Map.get(ruleset, "rules", []))
-      |> Enum.map(&project_rule/1)
+      |> Enum.map(&project_rule(&1, environment_key, tenant_key))
     )
   end
 
-  defp project_rule(rule) do
-    %{}
-    |> maybe_put("key", rule[:key] || rule["key"])
-    |> maybe_put("name", rule[:name] || rule["name"])
-    |> maybe_put("description", rule[:description] || rule["description"])
-    |> maybe_put("strategy", to_string(rule[:strategy] || rule["strategy"]))
-    |> maybe_put("value", Manifest.normalize_map(rule[:value] || rule["value"] || %{}))
-    |> maybe_put("audience_key", rule[:audience_key] || rule["audience_key"])
-    |> maybe_put(
-      "conditions",
-      rule
-      |> Map.get(:conditions, Map.get(rule, "conditions", []))
-      |> Enum.map(&project_condition/1)
-    )
-    |> maybe_put(
-      "variants",
-      rule
-      |> Map.get(:variants, Map.get(rule, "variants", []))
-      |> Enum.map(&project_variant/1)
-    )
-    |> maybe_put(
-      "rollout",
-      rule
-      |> Map.get(:rollout, Map.get(rule, "rollout"))
-      |> case do
-        nil -> nil
-        rollout -> Manifest.normalize_map(rollout)
-      end
-    )
+  defp project_rule(rule, environment_key, tenant_key) do
+    strategy = to_string(rule[:strategy] || rule["strategy"])
+    metadata = rule[:metadata] || rule["metadata"] || %{}
+
+    base_rule =
+      %{}
+      |> maybe_put("key", rule[:key] || rule["key"])
+      |> maybe_put("name", rule[:name] || rule["name"])
+      |> maybe_put("description", rule[:description] || rule["description"])
+      |> maybe_put("strategy", strategy)
+      |> maybe_put("value", Manifest.normalize_map(rule[:value] || rule["value"] || %{}))
+      |> maybe_put("audience_key", rule[:audience_key] || rule["audience_key"])
+      |> maybe_put(
+        "conditions",
+        rule
+        |> Map.get(:conditions, Map.get(rule, "conditions", []))
+        |> Enum.map(&project_condition/1)
+      )
+      |> maybe_put(
+        "variants",
+        rule
+        |> Map.get(:variants, Map.get(rule, "variants", []))
+        |> Enum.map(&project_variant/1)
+      )
+      |> maybe_put(
+        "rollout",
+        rule
+        |> Map.get(:rollout, Map.get(rule, "rollout"))
+        |> case do
+          nil -> nil
+          rollout -> Manifest.normalize_map(rollout)
+        end
+      )
+
+    if strategy == "segment_match" do
+      base_rule
+      |> maybe_put("environment_key", environment_key)
+      |> maybe_put("tenant_key", tenant_key)
+      |> maybe_put(
+        "audience_schema_version",
+        rule[:audience_schema_version] || rule["audience_schema_version"] ||
+          metadata[:audience_schema_version] || metadata["audience_schema_version"]
+      )
+      |> maybe_put(
+        "audience_version_hash",
+        rule[:audience_version_hash] || rule["audience_version_hash"] ||
+          metadata[:audience_version_hash] || metadata["audience_version_hash"]
+      )
+    else
+      base_rule
+    end
   end
 
   defp project_condition(condition) do

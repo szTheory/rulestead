@@ -55,7 +55,22 @@ defmodule Rulestead.Store.ManifestImportContractTest do
     end
 
     def seed_audience!(attrs) do
+      attrs =
+        Map.merge(
+          %{
+            definition: %{clauses: [%{attribute: "plan", op: "eq", value: "vip"}]}
+          },
+          attrs
+        )
+
       %Audience{} |> Audience.changeset(attrs) |> Repo.insert!()
+    end
+
+    def delete_audience!(audience_key) do
+      case Repo.get_by(Audience, key: audience_key) do
+        nil -> :ok
+        audience -> Repo.delete!(audience)
+      end
     end
 
     defp checkout_repo do
@@ -116,6 +131,13 @@ defmodule Rulestead.Store.ManifestImportContractTest do
 
     def seed_audience!(attrs) do
       now = Rulestead.Fake.Control.now!()
+      attrs =
+        Map.merge(
+          %{
+            definition: %{clauses: [%{attribute: "plan", op: "eq", value: "vip"}]}
+          },
+          attrs
+        )
 
       Rulestead.Fake.Control.restore!(
         Rulestead.Fake.Control.snapshot!()
@@ -125,12 +147,18 @@ defmodule Rulestead.Store.ManifestImportContractTest do
             key: attrs.key,
             name: attrs.name,
             description: attrs.description,
+            definition: attrs.definition,
             inserted_at: now,
             updated_at: now,
             archived_at: Map.get(attrs, :archived_at)
           })
         end)
       )
+    end
+
+    def delete_audience!(audience_key) do
+      snapshot = Rulestead.Fake.Control.snapshot!()
+      Rulestead.Fake.Control.restore!(%{snapshot | audiences: Map.delete(snapshot.audiences, audience_key)})
     end
   end
 
@@ -192,6 +220,36 @@ defmodule Rulestead.Store.ManifestImportContractTest do
 
       assert {:ok, apply_result} = Import.apply(plan, reason: "should not bypass governance")
       assert apply_result["status"] == "governance_required"
+    end)
+  end
+
+  test "fake and ecto do not apply when dependency findings are blockers" do
+    Enum.each(@adapters, fn {_label, adapter, control} ->
+      control.ensure_started()
+      control.reset!()
+      Application.put_env(:rulestead, :store, adapter)
+      control.seed_audience!(%{
+        key: "vip-users",
+        name: "VIP Users",
+        description: "VIP cohort",
+        definition: %{clauses: [%{attribute: "plan", op: "eq", value: "vip"}]}
+      })
+
+      seed_importable_flag!(adapter)
+
+      assert {:ok, manifest} = Rulestead.export_manifest("staging")
+      assert {:ok, planned} = Import.plan(manifest, target_environment: "test")
+      plan = planned["details"]["plan"]
+
+      control.delete_audience!("vip-users")
+
+      # archived_reference / incompatible_reference / tenant_mismatch are covered by the same contract.
+      assert {:ok, apply_result} = Import.apply(plan, reason: "dependencies drifted")
+      assert apply_result["status"] == "blocked"
+      assert Enum.any?(apply_result["dependency_findings"], &(&1["code"] == "missing_reference"))
+
+      assert {:error, %Rulestead.Error{type: :flag_not_found}} =
+               Rulestead.fetch_flag("checkout-redesign", "test")
     end)
   end
 
