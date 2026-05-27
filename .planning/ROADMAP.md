@@ -14,7 +14,7 @@
 - Integer phases (53, 54, 55, 56): Planned milestone work
 - Decimal phases (53.1, 53.2): Urgent insertions, if needed
 
-- [ ] **Phase 53: Impact Preview Contract** - Operators can preview, token-confirm, and audit reusable audience mutations without false precision or runtime lookup drift.
+- [x] **Phase 53: Impact Preview Contract** - Operators can preview, token-confirm, and audit reusable audience mutations without false precision or runtime lookup drift. (completed 2026-05-27)
 - [ ] **Phase 54: Dependency Truth And Promotion Safety** - Core dependency inventory, validation, promotion, compare, and manifest paths expose audience dependency truth and fail closed.
 - [ ] **Phase 55: Mounted Operator Workflows** - Mounted admin screens make reusable audience dependencies, previews, confirmations, and explain traces visible inside the existing policy envelope.
 - [ ] **Phase 56: Proof, Docs, And Support Truth** - Verification, docs, and release-contract truth close the reusable targeting scope under the linked sibling-package model.
@@ -35,7 +35,7 @@ Plans:
 - [x] 53-01-PLAN.md — Pure impact preview contract and affected-reference summaries
 - [x] 53-02-PLAN.md — Snapshot-local audience runtime evaluation
 - [x] 53-03-PLAN.md — Public/store command surface and Fake adapter contract
-- [ ] 53-04-PLAN.md — Ecto enforcement, audit evidence, and snapshot publication
+- [x] 53-04-PLAN.md — Ecto enforcement, audit evidence, and snapshot publication
 
 ### Phase 54: Dependency Truth And Promotion Safety
 **Goal**: Operators and support can trust one core dependency truth for audience usage, mutation blockers, promotion, compare, replay, and manifests.
@@ -77,7 +77,7 @@ Phases execute in numeric order: 53 -> 54 -> 55 -> 56
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 53. Impact Preview Contract | v1.6.0 | 3/4 | In Progress|  |
+| 53. Impact Preview Contract | v1.6.0 | 4/4 | Complete   | 2026-05-27 |
 | 54. Dependency Truth And Promotion Safety | v1.6.0 | 0/TBD | Not started | - |
 | 55. Mounted Operator Workflows | v1.6.0 | 0/TBD | Not started | - |
 | 56. Proof, Docs, And Support Truth | v1.6.0 | 0/TBD | Not started | - |
