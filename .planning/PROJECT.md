@@ -18,7 +18,7 @@ Rulestead is a batteries-included, Elixir-native feature-flag and remote-config 
 
 ## Current Milestone: v1.8.0 Guarded Rollout Auto-Advance
 
-**Progress:** Phase 62 complete (2026-05-27) — observation-window ticks schedule via `ScheduledExecution`, `RolloutAutoAdvance` execute orchestration with fresh signals, protected-environment change-request routing, and Fake/Ecto orchestration contract tests. Mounted auto-advance workflows (Phase 63) is next.
+**Progress:** Phase 63 complete (2026-05-27) — mounted rollouts page exposes auto-advance panel (six fail-closed modes), inline policy save via `:advance_rollout`, protected-env CR callout, and timeline/intervention labeling that distinguishes `guardrail_automation` from manual actions. Proof, docs, and support truth (Phase 64) is next.
 
 **Goal:** Complete the guarded rollout story by letting staged rollouts automatically advance when host-supplied guardrails remain healthy for a configured observation window—without turning Rulestead into an observability product.
 
@@ -245,4 +245,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-27 — Phase 62 complete (orchestration and governed execution)*
+*Last updated: 2026-05-27 — Phase 63 complete (mounted auto-advance workflows)*
