@@ -7,14 +7,14 @@
 
 ### Guardrail Signal Contract (`ROL`)
 
-- [ ] **ROL-01**: Operators can attach one or more host-supplied guardrail signals to a staged rollout with explicit threshold, freshness, sample-size, environment, and tenant semantics without making Rulestead fetch or own observability data directly.
-- [ ] **ROL-02**: Each rollout stage evaluates guardrail facts inside an explicit monitoring window and resolves to fail-closed decision states such as `healthy`, `pending_data`, `held`, or `rollback_triggered` instead of assuming health from weak or stale signals.
-- [ ] **ROL-03**: Guarded rollout automation preserves deterministic sticky rollout semantics and restores the last stable stage snapshot rather than introducing time-based or non-sticky user-routing behavior.
+- [x] **ROL-01**: Operators can attach one or more host-supplied guardrail signals to a staged rollout with explicit threshold, freshness, sample-size, environment, and tenant semantics without making Rulestead fetch or own observability data directly.
+- [x] **ROL-02**: Each rollout stage evaluates guardrail facts inside an explicit monitoring window and resolves to fail-closed decision states such as `healthy`, `pending_data`, `held`, or `rollback_triggered` instead of assuming health from weak or stale signals.
+- [x] **ROL-03**: Guarded rollout automation preserves deterministic sticky rollout semantics and restores the last stable stage snapshot rather than introducing time-based or non-sticky user-routing behavior.
 
 ### Audited Intervention Workflow (`AUD`)
 
-- [ ] **AUD-01**: Automatic hold and rollback actions execute through the existing governed mutation and audit envelope with exact breached-signal evidence, triggering source, and replayable stage history.
-- [ ] **AUD-02**: Operators can distinguish automatic guardrail actions from manual rollout actions with clear remediation guidance while preserving environment and tenant scope in every audit and timeline entry.
+- [x] **AUD-01**: Automatic hold and rollback actions execute through the existing governed mutation and audit envelope with exact breached-signal evidence, triggering source, and replayable stage history.
+- [x] **AUD-02**: Operators can distinguish automatic guardrail actions from manual rollout actions with clear remediation guidance while preserving environment and tenant scope in every audit and timeline entry.
 
 ### Mounted Rollout Status (`ADM`)
 
@@ -83,11 +83,11 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ROL-01 | Phase 49 | Pending |
-| ROL-02 | Phase 50 | Pending |
-| ROL-03 | Phase 50 | Pending |
-| AUD-01 | Phase 50 | Pending |
-| AUD-02 | Phase 50 | Pending |
+| ROL-01 | Phase 49 | Complete |
+| ROL-02 | Phase 50 | Complete |
+| ROL-03 | Phase 50 | Complete |
+| AUD-01 | Phase 50 | Complete |
+| AUD-02 | Phase 50 | Complete |
 | ADM-01 | Phase 51 | Pending |
 | VER-01 | Phase 52 | Pending |
 
@@ -98,4 +98,4 @@
 
 ---
 *Requirements defined: 2026-05-26*
-*Last updated: 2026-05-26 after milestone initialization*
+*Last updated: 2026-05-27 after Phase 49/50 reconciliation*

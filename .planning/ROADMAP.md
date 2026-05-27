@@ -18,9 +18,9 @@
 **Requirements**: `ROL-01`
 
 Plans:
-- [ ] `49-01-PLAN.md` - Freeze the host-owned signal seam and normalized fail-closed vocabulary
-- [ ] `49-02-PLAN.md` - Attach typed guardrail definitions to authored rollout state
-- [ ] `49-03-PLAN.md` - Reclose scope, audit, compare, and export proof for the guardrail contract
+- [x] `49-01-PLAN.md` - Freeze the host-owned signal seam and normalized fail-closed vocabulary
+- [x] `49-02-PLAN.md` - Attach typed guardrail definitions to authored rollout state
+- [x] `49-03-PLAN.md` - Reclose scope, audit, compare, and export proof for the guardrail contract
 
 Success criteria:
 1. Rollout stages can attach one or more host-supplied guardrail definitions with explicit threshold, freshness, and sample-size semantics.
@@ -31,8 +31,11 @@ Success criteria:
 
 **Goal**: Evaluate staged monitoring windows and trigger deterministic hold or rollback behavior through the existing governed mutation and audit envelope.
 **Depends on**: Phase 49
-**Plans**: TBD
+**Plans**: 1 plan
 **Requirements**: `ROL-02`, `ROL-03`, `AUD-01`, `AUD-02`
+
+Plans:
+- [x] `50-01-PLAN.md` - Implement guarded rollout decision engine and audit-backed hold/rollback actions
 
 Success criteria:
 1. Stage advancement and monitoring windows evaluate normalized signal facts into explicit decision states such as `healthy`, `pending_data`, `held`, and `rollback_triggered`.
@@ -68,11 +71,11 @@ Success criteria:
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ROL-01 | Phase 49 | Pending |
-| ROL-02 | Phase 50 | Pending |
-| ROL-03 | Phase 50 | Pending |
-| AUD-01 | Phase 50 | Pending |
-| AUD-02 | Phase 50 | Pending |
+| ROL-01 | Phase 49 | Complete |
+| ROL-02 | Phase 50 | Complete |
+| ROL-03 | Phase 50 | Complete |
+| AUD-01 | Phase 50 | Complete |
+| AUD-02 | Phase 50 | Complete |
 | ADM-01 | Phase 51 | Pending |
 | VER-01 | Phase 52 | Pending |
 
@@ -83,7 +86,9 @@ Success criteria:
 
 ## Current Status
 
-- Ready for `Phase 49` discussion and planning.
+- Phase 49 guardrail signal contract is complete.
+- Phase 50 guarded decision engine and audit path is complete in commit `c4dd3fb`.
+- Ready for `Phase 51` mounted workflow planning.
 - `v1.6.0 - Reusable Targeting Deepening` remains the next queued candidate after guarded rollout foundations.
 
 ## Milestone Archives
@@ -93,4 +98,4 @@ Success criteria:
 
 ## Next Step
 
-Run `$gsd-discuss-phase 49` to tighten the guardrail seam and fail-closed decision boundaries, or `$gsd-plan-phase 49` to plan directly.
+Run `$gsd-plan-phase 51` to plan the mounted guardrail workflow against the existing Phase 50 core/status surface.

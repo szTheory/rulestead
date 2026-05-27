@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.5.0
 milestone_name: v1.5.0 - Guarded Rollout Foundations
-status: ready_for_phase_work
-last_updated: "2026-05-26T13:11:16Z"
-last_activity: 2026-05-26 -- Activated milestone v1.5.0 and wrote fresh requirements and roadmap docs
+status: executing
+last_updated: "2026-05-27T00:00:00Z"
+last_activity: 2026-05-27 -- Reconciled pushed Phase 49 and Phase 50 implementation evidence; next phase is Phase 51 planning
 progress:
   total_phases: 4
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  completed_phases: 2
+  total_plans: 4
+  completed_plans: 4
+  percent: 50
 ---
 
 # State: Rulestead
@@ -20,7 +20,7 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-26)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
-**Current focus:** Define and execute the bounded guarded-rollout foundations milestone without widening the sibling-package release model
+**Current focus:** Phase 51 — mounted-guardrail-workflow
 **Milestone:** `v1.5.0 - Guarded Rollout Foundations`
 
 ## Roadmap Reference
@@ -29,17 +29,17 @@ See: `.planning/ROADMAP.md` for the active milestone phases and traceability map
 
 ## Current Position
 
-Phase: 49
+Phase: 51 (mounted-guardrail-workflow) — READY TO PLAN
 Plan: none
-Status: Ready for phase discussion and planning
-Last activity: 2026-05-26 -- activated milestone `v1.5.0` and defined Phases 49-52
+Status: Phase 49 and Phase 50 are implemented and need mounted workflow planning next
+Last activity: 2026-05-27 -- reconciled the pushed Phase 50 guarded decision engine commit and local GSD artifacts
 
 ## Current Milestone Focus
 
-- `ROL-01` — add the host-supplied rollout signal seam with explicit threshold, freshness, sample-size, environment, and tenant semantics
-- `ROL-02` / `ROL-03` — make stage monitoring windows, fail-closed decision states, and rollback behavior deterministic and sticky
-- `AUD-01` / `AUD-02` — keep automatic guardrail actions inside the existing governed mutation and audit envelope
-- `ADM-01` / `VER-01` — surface bounded guardrail status in the mounted rollout workflow and prove the support surface end to end
+- `ROL-01` — completed by Phase 49 through the host-supplied rollout signal seam, authored guardrail schema, and compare/export durability proof
+- `ROL-02` / `ROL-03` — completed by Phase 50 through explicit guarded decision states, sticky hold behavior, and exact stable-snapshot rollback
+- `AUD-01` / `AUD-02` — completed by Phase 50 through durable guardrail decisions, governed mutation execution, and bounded audit evidence
+- `ADM-01` / `VER-01` — remain active for Phase 51 and Phase 52 mounted workflow, docs, and proof closure
 
 ## Carryover Items
 
@@ -97,9 +97,14 @@ These remain the primary source of truth and should be loaded selectively per ph
 - **45-02**: Activated `v1.4.0` as a bounded mounted companion proof-reclosure milestone and preserved guarded rollout as the next planned differentiator.
 - **48-03**: Archived `v1.4.0` after the milestone audit passed and restored `v1.5.0` as the next recommended candidate.
 - **49-00**: Activated `v1.5.0` as a bounded guarded-rollout milestone and kept host-owned observability, mounted-admin, and linked-version package boundaries explicit from the start.
+- **49-01**: Completed the bounded guardrail signal contract as a host-owned provider seam with explicit scope, threshold, freshness, sample-size, compare, and export semantics.
+- **50-01**: Completed the guarded decision engine and audit path in `rulestead`, keeping automatic hold and rollback inside the existing store/governance/audit spine.
 
 ## Latest Activity
 
+- 2026-05-27 — Reconciled GSD planning truth after terminal interruption: `main` and `origin/main` both point at `c4dd3fb`, Phase 49 and Phase 50 code is pushed, and the active next step is Phase 51 planning.
+- 2026-05-26 — Implemented and pushed Phase 50 guarded rollout decision engine in commit `c4dd3fb`, adding durable guardrail decisions, `advance_rollout`, `evaluate_guarded_rollout`, `fetch_guardrail_status`, hold behavior, rollback-to-stable-snapshot behavior, and Ecto/fake adapter proof.
+- 2026-05-26 — Executed Phase 49 guardrail signal contract across three plans: host-owned signal seam, authored rollout guardrail definitions, and compare/export durability proof.
 - 2026-05-26 — Activated milestone `v1.5.0`, created `.planning/REQUIREMENTS.md`, rewrote `.planning/ROADMAP.md` for Phases 49-52, updated `.planning/PROJECT.md`, and reset active planning state for phase work.
 - 2026-05-26 — Archived milestone `v1.4.0`, created shipped roadmap and requirements archives, updated the project and milestone arc, and reset planning state to await the next milestone definition.
 - 2026-05-26 — Milestone audit for `v1.4.0` passed with all 5 requirements satisfied and no blocking integration or flow gaps.
@@ -109,4 +114,4 @@ These remain the primary source of truth and should be loaded selectively per ph
 
 ## Next Action
 
-Next: Run `$gsd-discuss-phase 49` to tighten the guardrail signal seam and fail-closed decision boundaries, or `$gsd-plan-phase 49` to plan directly.
+Next: Run `$gsd-plan-phase 51` to plan the mounted guardrail workflow against the pushed Phase 50 core/status surface.

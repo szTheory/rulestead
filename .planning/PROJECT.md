@@ -12,7 +12,8 @@ Rulestead is a batteries-included, Elixir-native feature-flag and remote-config 
 - `v1.2.0` shipped on 2026-05-24 across Phases 35-40, delivering host-owned ownership metadata, bounded archive-readiness guidance, a governed mounted lifecycle cleanup flow, and release-facing lifecycle docs plus verification without widening the sibling-package release model.
 - `v1.3.0` shipped on 2026-05-25 across Phases 41-44, closing release-truth drift, authored-state parity, mounted companion verification, and OpenFeature companion proof without widening the linked sibling-package release model.
 - `v1.4.0` shipped on 2026-05-26 across Phases 45-48, restoring the mounted companion boot/runtime contract, the repo-root `mounted_admin_contract` proof bar, and the release/support-truth chain without widening the sibling-package product shape.
-- `v1.5.0` was activated on 2026-05-26 across planned Phases 49-52 to add bounded guarded-rollout safety without turning Rulestead into an observability product.
+- `v1.5.0` was activated on 2026-05-26 across Phases 49-52 to add bounded guarded-rollout safety without turning Rulestead into an observability product.
+- Phase 49 and Phase 50 are implemented as of 2026-05-27 planning reconciliation: guardrail signal contracts, authored guardrail definitions, compare/export durability, guarded decision evaluation, durable decisions, and governed/audited hold or rollback behavior are in `main` at `c4dd3fb`.
 
 ## Current Milestone: v1.5.0 Guarded Rollout Foundations
 
@@ -67,11 +68,11 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 
 ### Active
 
-- [ ] `ROL-01` - Add a host-supplied rollout signal seam with explicit threshold, freshness, sample-size, environment, and tenant semantics.
-- [ ] `ROL-02` - Evaluate guarded rollout monitoring windows into fail-closed decision states instead of assuming health from weak or stale signals.
-- [ ] `ROL-03` - Preserve deterministic sticky rollout behavior and stage snapshots during automatic hold or rollback.
-- [ ] `AUD-01` - Keep automatic guardrail interventions inside the existing governed mutation and audit envelope.
-- [ ] `AUD-02` - Distinguish automatic guardrail actions from manual rollout actions with bounded remediation guidance.
+- [x] `ROL-01` - Add a host-supplied rollout signal seam with explicit threshold, freshness, sample-size, environment, and tenant semantics.
+- [x] `ROL-02` - Evaluate guarded rollout monitoring windows into fail-closed decision states instead of assuming health from weak or stale signals.
+- [x] `ROL-03` - Preserve deterministic sticky rollout behavior and stage snapshots during automatic hold or rollback.
+- [x] `AUD-01` - Keep automatic guardrail interventions inside the existing governed mutation and audit envelope.
+- [x] `AUD-02` - Distinguish automatic guardrail actions from manual rollout actions with bounded remediation guidance.
 - [ ] `ADM-01` - Surface per-stage guardrail status and intervention reasons inside the mounted rollout workflow only.
 - [ ] `VER-01` - Reclose proof and docs for the bounded guarded-rollout support surface.
 
@@ -107,6 +108,8 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 - ✓ Restore mounted-admin contract truth and sibling-package verification credibility (`ADM-01`, `VER-01`) — `v1.3.0`
 - ✓ Establish a runnable bounded proof path for `open_feature_rulestead` (`OFE-01`) — `v1.3.0`
 - ✓ Re-close the mounted companion boot/runtime seam, bounded proof bar, CI/release semantics, and support-truth chain (`PKG-01`, `PKG-02`, `ADM-01`, `VER-01`, `DOC-01`) — `v1.4.0`
+- ✓ Establish the host-owned guardrail signal contract and authored rollout guardrail schema (`ROL-01`) — `v1.5.0` Phase 49
+- ✓ Implement fail-closed guarded rollout decision states, stable-snapshot rollback, and governed/audited automatic interventions (`ROL-02`, `ROL-03`, `AUD-01`, `AUD-02`) — `v1.5.0` Phase 50
 
 ## Current Milestone Goals
 
@@ -197,4 +200,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-26 after milestone v1.5.0 initialization*
+*Last updated: 2026-05-27 after Phase 49/50 reconciliation*
