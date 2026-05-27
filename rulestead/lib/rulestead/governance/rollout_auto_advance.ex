@@ -1,6 +1,8 @@
 defmodule Rulestead.Governance.RolloutAutoAdvance do
   @moduledoc false
 
+  alias Rulestead.Admin.Authorizer
+  alias Rulestead.Governance.ApprovalRequirement
   alias Rulestead.Governance.RolloutAutoAdvance.Schedule
   alias Rulestead.Guardrails.AutoAdvance.Eligibility
   alias Rulestead.Guardrails.SignalFact
@@ -15,6 +17,34 @@ defmodule Rulestead.Governance.RolloutAutoAdvance do
   end
 
   def automation_tick?(_metadata), do: false
+
+  @spec automation_execution_metadata(map()) :: map()
+  def automation_execution_metadata(%{outcome: :blocked, reasons: reasons}) do
+    %{"outcome" => "blocked", "reasons" => reasons}
+  end
+
+  def automation_execution_metadata(%{outcome: :change_request_submitted, change_request: cr}) do
+    %{
+      "outcome" => "change_request_submitted",
+      "change_request_id" => change_request_id(cr)
+    }
+  end
+
+  def automation_execution_metadata(_execution_result), do: %{}
+
+  @spec automation_audit_metadata(map()) :: map()
+  def automation_audit_metadata(%{outcome: :change_request_submitted, change_request: cr}) do
+    %{
+      "outcome" => "change_request_submitted",
+      "change_request_id" => change_request_id(cr)
+    }
+  end
+
+  def automation_audit_metadata(%{outcome: :blocked, reasons: reasons}) do
+    %{"outcome" => "blocked", "reasons" => reasons}
+  end
+
+  def automation_audit_metadata(_execution_result), do: %{}
 
   @spec execute_scheduled_tick(module(), map(), Command.ExecuteScheduledExecution.t()) ::
           {:ok, map() | Command.AdvanceRollout.t()}
@@ -235,30 +265,56 @@ defmodule Rulestead.Governance.RolloutAutoAdvance do
     with :ok <- validate_next_stage_in_ruleset(store, scheduled_execution, rule_key, next_stage),
          %DateTime{} = window_ends_at <-
            DateTime.add(evaluated_at, observation_window_seconds, :second) do
-      advance_command =
-        Command.AdvanceRollout.new(
-          scheduled_execution.resource_key,
-          scheduled_execution.environment_key,
-          %{
-            rule_key: rule_key,
-            stage: next_stage,
-            percentage: next_percentage,
-            monitoring_window_started_at: evaluated_at,
-            monitoring_window_ends_at: window_ends_at,
-            signal_facts: signal_facts
-          },
-          actor: execute_command.actor || Schedule.scheduler_actor(),
-          reason: execute_command.reason || "auto-advance observation window close",
-          metadata: %{
-            "source" => "guardrail_automation",
-            "scheduled_execution_id" => scheduled_execution.id,
-            "eligibility" => eligibility_snapshot(eligibility),
-            "request_id" =>
-              execute_command.metadata["request_id"] || execute_command.metadata[:request_id]
-          }
+      resource = %{"type" => "flag", "key" => scheduled_execution.resource_key}
+
+      approval_requirement =
+        Authorizer.approval_requirement(
+          Schedule.scheduler_actor(),
+          :advance_rollout,
+          resource,
+          scheduled_execution.environment_key
         )
 
-      {:ok, advance_command}
+      if approval_requirement.change_request_required? do
+        submit_protected_change_request(
+          store,
+          scheduled_execution,
+          execute_command,
+          rule_key,
+          next_stage,
+          next_percentage,
+          evaluated_at,
+          window_ends_at,
+          signal_facts,
+          eligibility,
+          approval_requirement
+        )
+      else
+        advance_command =
+          Command.AdvanceRollout.new(
+            scheduled_execution.resource_key,
+            scheduled_execution.environment_key,
+            %{
+              rule_key: rule_key,
+              stage: next_stage,
+              percentage: next_percentage,
+              monitoring_window_started_at: evaluated_at,
+              monitoring_window_ends_at: window_ends_at,
+              signal_facts: signal_facts
+            },
+            actor: execute_command.actor || Schedule.scheduler_actor(),
+            reason: execute_command.reason || "auto-advance observation window close",
+            metadata: %{
+              "source" => "guardrail_automation",
+              "scheduled_execution_id" => scheduled_execution.id,
+              "eligibility" => eligibility_snapshot(eligibility),
+              "request_id" =>
+                execute_command.metadata["request_id"] || execute_command.metadata[:request_id]
+            }
+          )
+
+        {:ok, advance_command}
+      end
     else
       {:error, reason} ->
         {:error, reason}
@@ -284,6 +340,65 @@ defmodule Rulestead.Governance.RolloutAutoAdvance do
       true -> {:error, StoreError.invalid_command("auto_advance_ruleset_conflict")}
       {:error, error} -> {:error, error}
     end
+  end
+
+  defp submit_protected_change_request(
+         store,
+         scheduled_execution,
+         execute_command,
+         rule_key,
+         next_stage,
+         next_percentage,
+         evaluated_at,
+         window_ends_at,
+         signal_facts,
+         eligibility,
+         approval_requirement
+       ) do
+    submit_command =
+      Command.SubmitChangeRequest.new(
+        %{
+          action: :advance_rollout,
+          environment_key: scheduled_execution.environment_key,
+          resource_type: "flag",
+          resource_key: scheduled_execution.resource_key,
+          command: %{
+            "rollout" => %{
+              "rule_key" => rule_key,
+              "stage" => next_stage,
+              "percentage" => next_percentage,
+              "monitoring_window_started_at" => DateTime.to_iso8601(evaluated_at),
+              "monitoring_window_ends_at" => DateTime.to_iso8601(window_ends_at)
+            },
+            "signal_facts" => signal_facts
+          },
+          approval_requirement: ApprovalRequirement.serialize(approval_requirement)
+        },
+        actor: execute_command.actor || Schedule.scheduler_actor(),
+        reason:
+          execute_command.reason ||
+            "auto_advance eligible; change request required in protected environment",
+        metadata: %{
+          "source" => "guardrail_automation",
+          "scheduled_execution_id" => scheduled_execution.id,
+          "observation_window_ends_at" => DateTime.to_iso8601(window_ends_at),
+          "eligibility" => eligibility_snapshot(eligibility),
+          "request_id" =>
+            execute_command.metadata["request_id"] || execute_command.metadata[:request_id]
+        }
+      )
+
+    case store.submit_change_request(submit_command) do
+      {:ok, %{change_request: change_request}} ->
+        {:ok, %{outcome: :change_request_submitted, change_request: change_request}}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  defp change_request_id(change_request) when is_map(change_request) do
+    Map.get(change_request, :id) || Map.get(change_request, "id")
   end
 
   defp blocked_result(%Eligibility{} = eligibility) do
