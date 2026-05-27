@@ -18,7 +18,7 @@
 
 ### Mounted Rollout Status (`ADM`)
 
-- [ ] **ADM-01**: Mounted rollout screens show per-stage guardrail status, thresholds, freshness, and intervention reasons inside the existing workflow without implying standalone admin support or a built-in observability dashboard.
+- [x] **ADM-01**: Mounted rollout screens show per-stage guardrail status, thresholds, freshness, and intervention reasons inside the existing workflow without implying standalone admin support or a built-in observability dashboard.
 
 ### Verification & Support Truth (`VER`)
 
@@ -88,7 +88,7 @@
 | ROL-03 | Phase 50 | Complete |
 | AUD-01 | Phase 50 | Complete |
 | AUD-02 | Phase 50 | Complete |
-| ADM-01 | Phase 51 | Pending |
+| ADM-01 | Phase 51 | Complete |
 | VER-01 | Phase 52 | Pending |
 
 **Coverage:**
