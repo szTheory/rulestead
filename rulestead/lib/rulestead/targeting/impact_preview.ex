@@ -9,6 +9,25 @@ defmodule Rulestead.Targeting.ImpactPreview do
   @severity_rank %{blocker: 0, warning: 1, info: 2, in_sync: 3}
   @default_preview_basis "authored_state_and_explicit_samples"
   @uncertainty_message "authored-state and explicit-sample preview only"
+  @output_atom_keys %{
+    "actor_key" => :actor_key,
+    "targeting_key" => :targeting_key,
+    "key" => :key,
+    "type" => :type,
+    "environment_key" => :environment_key,
+    "tenant_key" => :tenant_key,
+    "matched?" => :matched?,
+    "reason" => :reason,
+    "result" => :result,
+    "traits" => :traits,
+    "reference_key" => :reference_key,
+    "plan" => :plan,
+    "country" => :country,
+    "region" => :region,
+    "locale" => :locale,
+    "account_type" => :account_type,
+    "tier" => :tier
+  }
 
   @sample_allowlist [
     "actor_key",
@@ -200,7 +219,7 @@ defmodule Rulestead.Targeting.ImpactPreview do
   end
 
   defp normalize_output_key(key) when is_atom(key), do: key
-  defp normalize_output_key(key) when is_binary(key), do: String.to_atom(key)
+  defp normalize_output_key(key) when is_binary(key), do: Map.get(@output_atom_keys, key, key)
 
   defp fetch(attrs, key), do: Map.get(attrs, key) || Map.get(attrs, Atom.to_string(key))
 

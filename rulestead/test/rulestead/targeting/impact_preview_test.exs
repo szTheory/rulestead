@@ -95,6 +95,27 @@ defmodule Rulestead.Targeting.ImpactPreviewTest do
                %{reference_key: "flag:checkout:ruleset:7:rule:vip"}
              ]
     end
+
+    test "build does not atomize caller-controlled output keys" do
+      preview =
+        ImpactPreview.build(
+          preview_attrs(%{
+            affected_references: [
+              %{
+                "reference_key" => "flag:checkout:ruleset:7:rule:vip",
+                "caller_supplied_unique_key_53" => "kept as string"
+              }
+            ]
+          })
+        )
+
+      assert [
+               %{
+                 :reference_key => "flag:checkout:ruleset:7:rule:vip",
+                 "caller_supplied_unique_key_53" => "kept as string"
+               }
+             ] = preview.affected_references
+    end
   end
 
   describe "audience dependency summaries" do

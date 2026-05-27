@@ -126,6 +126,25 @@ defmodule Rulestead.Runtime.AudienceSnapshotTest do
                first_rule_trace(missed).audience_trace
     end
 
+    test "segment_match can evaluate literal false audience condition values" do
+      payload =
+        put_in(segment_payload(), [:audiences, "vip-users", :definition], %{
+          conditions: [
+            %{attribute: "beta_opted_out", operator: "eq", value: false}
+          ]
+        })
+
+      assert {:ok, matched} =
+               Rulestead.Evaluator.evaluate(payload, %{attributes: %{beta_opted_out: false}})
+
+      assert matched.reason == :rule_match
+
+      assert {:ok, missed} =
+               Rulestead.Evaluator.evaluate(payload, %{attributes: %{beta_opted_out: true}})
+
+      assert missed.reason == :default
+    end
+
     test "segment_match skips and warns when the compiled audience is missing" do
       payload = put_in(segment_payload(), [:audiences], %{})
 

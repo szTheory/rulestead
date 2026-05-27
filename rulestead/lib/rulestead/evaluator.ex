@@ -497,13 +497,15 @@ defmodule Rulestead.Evaluator do
 
   defp resolve_nested_map(map, [segment | rest]) when is_map(map) do
     next =
-      Map.get(map, segment) ||
-        Map.get(map, String.to_atom(segment))
+      case Map.fetch(map, segment) do
+        {:ok, value} ->
+          value
+
+        :error ->
+          fetch_existing_atom_key(map, segment)
+      end
 
     resolve_nested_map(next, rest)
-  rescue
-    ArgumentError ->
-      resolve_nested_map(Map.get(map, segment), rest)
   end
 
   defp resolve_nested_map(_value, _path), do: nil
@@ -589,30 +591,50 @@ defmodule Rulestead.Evaluator do
   defp lane(_value), do: :other
 
   defp fetch_map(map, key) when is_map(map) do
-    case map[key] || map[Atom.to_string(key)] do
+    case fetch_value(map, key) do
       value when is_map(value) -> {:ok, value}
       _ -> {:error, EvaluationError.malformed_runtime_data()}
     end
   end
 
   defp fetch_list(map, key) when is_map(map) do
-    case map[key] || map[Atom.to_string(key)] do
+    case fetch_value(map, key) do
       value when is_list(value) -> value
       _ -> []
     end
   end
 
-  defp fetch_value(map, key) when is_map(map), do: map[key] || map[Atom.to_string(key)]
+  defp fetch_value(map, key) when is_map(map) do
+    with :error <- Map.fetch(map, key),
+         :error <- Map.fetch(map, Atom.to_string(key)) do
+      nil
+    else
+      {:ok, value} -> value
+    end
+  end
+
   defp fetch_value(_map, _key), do: nil
 
   defp fetch_comparable_value(map, key) when is_map(map) do
-    fetch_value(map, key) || fetch_value(map, :equals) || fetch_value(map, :value)
+    case fetch_value(map, key) do
+      nil ->
+        case fetch_value(map, :equals) do
+          nil -> fetch_value(map, :value)
+          value -> value
+        end
+
+      value ->
+        value
+    end
   end
 
   defp fetch_comparable_value(value, _key), do: value
 
   defp fetch_comparable_list(map, key) when is_map(map) do
-    fetch_value(map, key) || fetch_value(map, :value)
+    case fetch_value(map, key) do
+      nil -> fetch_value(map, :value)
+      value -> value
+    end
   end
 
   defp fetch_comparable_list(value, _key), do: value
@@ -686,13 +708,22 @@ defmodule Rulestead.Evaluator do
      }}
   end
 
+  defp fetch_existing_atom_key(map, segment) when is_binary(segment) do
+    Map.get(map, String.to_existing_atom(segment))
+  rescue
+    ArgumentError -> nil
+  end
+
+  defp fetch_existing_atom_key(_map, _segment), do: nil
+
   defp audience_matches?(definition, context) when is_map(definition) do
     clauses = fetch_list(definition, :clauses) ++ fetch_list(definition, :conditions)
 
     Enum.all?(clauses, fn clause ->
       attribute = clause[:attribute] || clause["attribute"]
       operator = clause[:operator] || clause["operator"] || clause[:op] || clause["op"]
-      value = clause[:value] || clause["value"] || %{}
+      value = fetch_value(clause, :value)
+      value = if is_nil(value), do: %{}, else: value
 
       compare(operator, resolve_attribute(context, attribute), value)
     end)
