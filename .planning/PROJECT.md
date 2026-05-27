@@ -18,6 +18,8 @@ Rulestead is a batteries-included, Elixir-native feature-flag and remote-config 
 
 ## Current Milestone: v1.8.0 Guarded Rollout Auto-Advance
 
+**Progress:** Phase 61 complete (2026-05-27) — authored auto-advance policy contract, pure fail-closed eligibility evaluation, Fake/Ecto store parity, and contract tests. Orchestration and governed execution (Phase 62) is next.
+
 **Goal:** Complete the guarded rollout story by letting staged rollouts automatically advance when host-supplied guardrails remain healthy for a configured observation window—without turning Rulestead into an observability product.
 
 **Target features:**
@@ -101,7 +103,9 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 
 ### Active
 
-- **ROL-04** through **ROL-07**: Opt-in auto-advance policy, fail-closed guardrail semantics, protected-env governance parity, preserved hold/rollback
+- **ROL-04** (execution slice): Governed auto-advance execution via scheduled ticks and `advance_rollout` when eligibility passes
+- **ROL-06**: Protected-environment auto-advance respects change-request envelope
+- **ROL-07** (governance slice): Protected-env parity for auto-advance mutations
 - **ORC-01**, **ORC-02**: Scheduled evaluation ticks and idempotent execution through existing governed envelope
 - **AUD-03**, **AUD-04**: Audited auto-advance evidence and automation vs manual distinction
 - **ADM-04**: Mounted auto-advance toggle, pending observation, bounded prerequisite copy
@@ -145,6 +149,9 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 - ✓ Audience mutation change-request integration reusing the governed envelope (`CRQ-01` to `CRQ-03`) — `v1.7.0`
 - ✓ Mounted governance workflows for blast-radius proposal, review, and policy-aware visibility (`ADM-01` to `ADM-03`) — `v1.7.0`
 - ✓ Blast-radius governance proof, docs, quickstart parity, and release-contract truth (`VER-01` to `VER-03`) — `v1.7.0`
+- ✓ Authored auto-advance policy persistence with observation window and next-stage plan (`ROL-04` contract slice) — Phase 61
+- ✓ Pure fail-closed auto-advance eligibility evaluation composing existing guardrail decisions (`ROL-05`) — Phase 61
+- ✓ v1.5 guarded rollout hold/rollback preserved when auto-advance policy enabled (`ROL-07` contract slice) — Phase 61
 
 ### Out of Scope
 
@@ -164,6 +171,7 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 - `v1.5.0` shipped across Phases 49-52, proving bounded guarded rollout foundations can stay host-supplied, fail-closed, governed, audited, mounted-workflow-friendly, and explicitly documented without broadening into observability or standalone-admin scope.
 - `v1.6.0` shipped across Phases 53-56, proving reusable audience targeting can be deepened with snapshot-local evaluation, impact previews, one core dependency truth, mounted preview-confirm-audit workflows, and aligned proof/docs without widening the sibling-package product shape.
 - `v1.7.0` shipped across Phases 57-60, proving blast-radius governance can route high-impact protected-environment audience edits through the existing change-request envelope with threshold evaluation, mounted proposal/review UX, and aligned proof/docs without observability-backed counts or a parallel governance workflow.
+- Phase 61 (v1.8.0) delivered the authored auto-advance policy contract, pure eligibility evaluation, Fake/Ecto store integration, and adapter parity contract tests — without scheduling ticks or executing `advance_rollout`.
 - The project remains a linked-version, two-package monorepo.
 
 ## Constraints
@@ -237,4 +245,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-27 — milestone v1.8.0 initialized*
+*Last updated: 2026-05-27 — Phase 61 complete (auto-advance authored contract)*

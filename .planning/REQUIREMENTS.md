@@ -7,10 +7,10 @@
 
 ### Auto-Advance Contract (`ROL`)
 
-- [ ] **ROL-04**: Operators can enable opt-in auto-advance on a staged rollout with a configured observation window and explicit authored next-stage plan; advancement occurs only when all guardrails resolve `:healthy` after the window closes.
-- [ ] **ROL-05**: Auto-advance evaluation preserves v1.5 fail-closed guardrail semantics and never assumes healthy on `:pending_data`, `:held`, stale, weak, or missing host signals.
+- [x] **ROL-04**: Operators can enable opt-in auto-advance on a staged rollout with a configured observation window and explicit authored next-stage plan; advancement occurs only when all guardrails resolve `:healthy` after the window closes.
+- [x] **ROL-05**: Auto-advance evaluation preserves v1.5 fail-closed guardrail semantics and never assumes healthy on `:pending_data`, `:held`, stale, weak, or missing host signals.
 - [ ] **ROL-06**: Protected-environment auto-advance uses the same change-request and approval envelope as manual `advance_rollout` when policy requires governed advancement.
-- [ ] **ROL-07**: Automatic hold and rollback from v1.5 remain unchanged; auto-advance does not bypass, weaken, or race them.
+- [x] **ROL-07**: Automatic hold and rollback from v1.5 remain unchanged; auto-advance does not bypass, weaken, or race them.
 
 ### Orchestration (`ORC`)
 
@@ -93,9 +93,9 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ROL-04 | Phase 61 | Pending |
-| ROL-05 | Phase 61 | Pending |
-| ROL-07 | Phase 61 | Pending |
+| ROL-04 | Phase 61 | Complete |
+| ROL-05 | Phase 61 | Complete |
+| ROL-07 | Phase 61 | Complete |
 | ROL-06 | Phase 62 | Pending |
 | ORC-01 | Phase 62 | Pending |
 | ORC-02 | Phase 62 | Pending |
@@ -107,6 +107,7 @@
 | VER-03 | Phase 64 | Pending |
 
 **Coverage:**
+
 - v1.8.0 requirements: 12 total
 - Mapped to phases: 12
 - Unmapped: 0
