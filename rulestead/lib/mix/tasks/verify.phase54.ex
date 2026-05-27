@@ -9,11 +9,14 @@ defmodule Mix.Tasks.Verify.Phase54 do
   @phase54_tests [
     "test/rulestead/targeting/dependency_sort_property_test.exs",
     "test/rulestead/store/audience_dependency_inventory_contract_test.exs",
+    "test/rulestead/store/compare_contract_test.exs",
     "test/rulestead/store/publish_ruleset_dependency_contract_test.exs",
     "test/rulestead/store/promotion_apply_contract_test.exs",
     "test/rulestead/store/manifest_import_contract_test.exs",
     "test/rulestead/store/audience_impact_contract_test.exs",
     "test/rulestead/store/ecto_audience_impact_contract_test.exs",
+    "test/rulestead/manifest/export_test.exs",
+    "test/rulestead/manifest/import_test.exs",
     "test/rulestead/manifest/validate_test.exs",
     "test/rulestead/runtime/audience_snapshot_test.exs",
     "test/rulestead/release_contract_test.exs"

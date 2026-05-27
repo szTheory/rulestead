@@ -3393,7 +3393,7 @@ defmodule Rulestead.Store.Ecto do
   defp audience_blockers(command, _result),
     do: [%{"code" => "audience_mutation_#{command.operation}_blocked"}]
 
-  defp audience_blockers(_command, :error, %Rulestead.Error{details: details})
+  defp audience_blockers(_command, :error, %Rulestead.Error{details: details, message: message})
        when is_list(details) do
     dependency_codes =
       details
@@ -3401,7 +3401,7 @@ defmodule Rulestead.Store.Ecto do
       |> Enum.reject(&is_nil/1)
 
     if dependency_codes == [] do
-      []
+      [%{"code" => audience_blocker_code(message)}]
     else
       serialize_dependency_findings(details)
     end
