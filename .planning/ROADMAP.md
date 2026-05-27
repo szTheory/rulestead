@@ -90,7 +90,7 @@
 |-------|-----------|----------------|--------|-----------|
 | 57. Blast-Radius Threshold Contract | v1.7.0 | 4/4 | Complete    | 2026-05-27 |
 | 58. Change Request Integration | v1.7.0 | 0/4 | Complete    | 2026-05-27 |
-| 59. Mounted Governance Workflows | v1.7.0 | 0/4 | Not started | — |
+| 59. Mounted Governance Workflows | v1.7.0 | 1/4 | In Progress | — |
 | 60. Proof, Docs, And Support Truth | v1.7.0 | 0/4 | Not started | — |
 
 <details>
