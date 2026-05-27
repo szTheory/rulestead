@@ -16,12 +16,13 @@ Rulestead is a batteries-included, Elixir-native feature-flag and remote-config 
 - `v1.6.0` shipped on 2026-05-27 across Phases 53-56, deepening reusable audience targeting with impact previews, dependency inventory and fail-closed validation, mounted preview-confirm-audit workflows, explain trace carry-through, and bounded proof/docs/support truth without widening the sibling-package release model.
 - `v1.7.0` shipped on 2026-05-27 across Phases 57-60: blast-radius threshold contract, change-request integration, mounted governance workflows, and proof/docs/support-truth closure (`mix verify.phase60`, release-contract drift guards, payload-first quickstart parity).
 - `v1.8.0` shipped on 2026-05-27 across Phases 61-64: authored auto-advance policy contract, scheduled orchestration with fail-closed eligibility and protected-env governance, mounted rollouts auto-advance panel and timeline labeling, and proof/docs/support-truth closure (`mix verify.phase64`, release-contract drift guards, host seam + flow guides, `guarded_rollout_auto_advance` CI scope).
+- `v1.9.0` shipped on 2026-05-27 across Phases 65-68: host-supplied preview evidence resolver seam, evidence carry-through and GOV-05 boundary, mounted sample cohort and impression summary UX, and proof/docs/support-truth closure (`mix verify.phase68`, release-contract drift guards, host seam + flow guides, `host_preview_evidence` CI scope).
 
-## Current Milestone: v1.9.0 Host-Supplied Preview Evidence
+## Current Milestone: v1.9.0 Host-Supplied Preview Evidence — SHIPPED 2026-05-27
 
 **Goal:** Close the last reusable-targeting preview gap by letting hosts supply bounded, redacted sample cohorts and impression summaries through an explicit seam—wired through mounted admin preview flows—without claiming authoritative population counts or widening blast-radius governance semantics.
 
-**Progress:** Phase 65 complete (2026-05-27) — `PreviewEvidence` behaviour seam, fail-closed limits, `ImpactPreview` schema v2 with impression fingerprints, Fake/Ecto store wiring, and contract tests (IMP-05, IMP-06). Next: Phase 66 evidence carry-through and governance boundary.
+**Progress:** All phases complete (65-68). Milestone delivered.
 
 **Target features:**
 - Host-owned preview evidence resolver behavior with bounded sample cohort and impression-summary payloads
@@ -129,6 +130,7 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 
 ### Validated
 
+- ✓ **VER-01** through **VER-03** — `mix verify.phase68`, release-contract preview-evidence support truth, host seam + flow guides, `host_preview_evidence` CI scope — Phase 68 (`v1.9.0`, 2026-05-27)
 - ✓ **IMP-05**, **IMP-06** — host preview evidence resolver seam, ImpactPreview v2, store wiring, stale fingerprint contract tests — Phase 65 (`v1.9.0`, 2026-05-27)
 - ✓ **ROL-04** through **ROL-07**, **ORC-01**, **ORC-02**, **AUD-03**, **AUD-04**, **ADM-04**, **VER-01** through **VER-03** — guarded rollout auto-advance (`v1.8.0`, Phases 61-64)
 - ✓ **ROL-07** (governance slice): Protected-env parity for auto-advance mutations — Phase 63
@@ -270,4 +272,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-27 — Phase 65 complete (Host Preview Evidence Contract, IMP-05/IMP-06)*
+*Last updated: 2026-05-27 — v1.9.0 milestone complete (Phases 65-68, IMP-05/IMP-06, VER-01–VER-03)*
