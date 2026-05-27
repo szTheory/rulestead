@@ -57,6 +57,68 @@ defmodule Rulestead.Runtime.AudienceSnapshotTest do
     end
   end
 
+  describe "snapshot-local segment_match evaluation" do
+    test "segment_match resolves a matching audience from compiled snapshot data" do
+      assert {:ok, result} =
+               Rulestead.Evaluator.evaluate(segment_payload(), %{attributes: %{plan: "vip"}})
+
+      assert result.value == true
+      assert result.matched_rule == "vip-audience"
+
+      assert %{audience_key: "vip-users", matched?: true, reason: :matched} =
+               result.debug_trace.matched_rule_trace.audience_trace
+    end
+
+    test "segment_match skips when the compiled audience definition misses" do
+      assert {:ok, result} =
+               Rulestead.Evaluator.evaluate(segment_payload(), %{attributes: %{plan: "starter"}})
+
+      assert result.reason == :default
+
+      assert %{audience_key: "vip-users", matched?: false, reason: :missed} =
+               first_rule_trace(result).audience_trace
+    end
+
+    test "segment_match skips and warns when the compiled audience is missing" do
+      payload = put_in(segment_payload(), [:audiences], %{})
+
+      assert {:ok, result} =
+               Rulestead.Evaluator.evaluate(payload, %{attributes: %{plan: "vip"}})
+
+      assert result.reason == :default
+
+      assert first_rule_trace(result).warnings == [
+               %{type: :audience_missing, audience_key: "vip-users"}
+             ]
+
+      assert %{audience_key: "vip-users", matched?: false, reason: :missing} =
+               first_rule_trace(result).audience_trace
+    end
+
+    test "segment_match skips and warns when the compiled audience is archived" do
+      payload = put_in(segment_payload(), [:audiences, "vip-users", :archived_at], @published_at)
+
+      assert {:ok, result} =
+               Rulestead.Evaluator.evaluate(payload, %{attributes: %{plan: "vip"}})
+
+      assert result.reason == :default
+
+      assert first_rule_trace(result).warnings == [
+               %{type: :audience_archived, audience_key: "vip-users"}
+             ]
+
+      assert %{audience_key: "vip-users", matched?: false, reason: :archived} =
+               first_rule_trace(result).audience_trace
+    end
+
+    test "segment_match runtime evaluation does not call live lookup dependencies" do
+      evaluator_source = File.read!("lib/rulestead/evaluator.ex")
+
+      refute evaluator_source =~ ~r/Rulestead\.(Store|Repo|Admin|Audit|Observability)/
+      refute evaluator_source =~ ~r/:telemetry|Telemetry/
+    end
+  end
+
   defp runtime_snapshot(payload_overrides) do
     payload =
       %{
@@ -75,4 +137,37 @@ defmodule Rulestead.Runtime.AudienceSnapshotTest do
       metadata: %{}
     }
   end
+
+  defp segment_payload do
+    %{
+      flag: %{key: "checkout-redesign", default_value: %{value: false}},
+      environment: %{key: "production"},
+      audiences: %{
+        "vip-users" => %{
+          audience_key: "vip-users",
+          definition: %{
+            clauses: [
+              %{attribute: "attributes.plan", operator: "equals", value: %{equals: "vip"}}
+            ]
+          },
+          archived_at: nil
+        }
+      },
+      active_ruleset: %{
+        version: 1,
+        salt: "checkout:v1",
+        rules: [
+          %{
+            key: "vip-audience",
+            strategy: :segment_match,
+            audience_key: "vip-users",
+            value: %{value: true},
+            conditions: []
+          }
+        ]
+      }
+    }
+  end
+
+  defp first_rule_trace(result), do: List.first(result.debug_trace.rule_traces)
 end
