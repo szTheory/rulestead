@@ -5429,6 +5429,7 @@ defmodule Rulestead.Store.Ecto do
          execution_result
        ) do
     finished_at = now()
+    automation_metadata = RolloutAutoAdvance.automation_execution_metadata(execution_result || %{})
 
     Multi.new()
     |> Multi.run(:attempt, fn repo, _changes ->
@@ -5452,11 +5453,9 @@ defmodule Rulestead.Store.Ecto do
           executed_at: finished_at,
           failure_reason: nil,
           execution_metadata:
-            scheduled_transition_metadata(
-              scheduled_execution.execution_metadata,
-              "completed",
-              command
-            ),
+            scheduled_execution.execution_metadata
+            |> scheduled_transition_metadata("completed", command)
+            |> Map.merge(automation_metadata),
           updated_at: finished_at
         ]
       )
@@ -5469,7 +5468,8 @@ defmodule Rulestead.Store.Ecto do
         updated,
         command,
         "scheduled_execution.succeeded",
-        :ok
+        :ok,
+        execution_result
       )
     end)
     |> Repo.transact()
@@ -5713,10 +5713,17 @@ defmodule Rulestead.Store.Ecto do
          scheduled_execution,
          command,
          event_type,
-         result
+         result,
+         execution_result \\ %{}
        ) do
     %AuditEvent{}
-    |> scheduled_execution_audit_changeset(scheduled_execution, command, event_type, result)
+    |> scheduled_execution_audit_changeset(
+      scheduled_execution,
+      command,
+      event_type,
+      result,
+      execution_result
+    )
     |> repo.insert()
   end
 
@@ -5725,8 +5732,14 @@ defmodule Rulestead.Store.Ecto do
          scheduled_execution,
          command,
          event_type,
-         result
+         result,
+         execution_result
        ) do
+    automation_meta = RolloutAutoAdvance.automation_audit_metadata(execution_result || %{})
+
+    change_request_id =
+      scheduled_execution.change_request_id || Map.get(automation_meta, "change_request_id")
+
     AuditEvent.changeset(audit_event, %{
       event_type: event_type,
       resource_type: scheduled_execution.resource_type || "flag",
@@ -5744,10 +5757,12 @@ defmodule Rulestead.Store.Ecto do
               command,
               fallback: scheduled_execution.command_snapshot
             ),
-          context: scheduled_execution_audit_context(scheduled_execution, command),
+          context:
+            scheduled_execution_audit_context(scheduled_execution, command)
+            |> Map.merge(automation_meta),
           request_id: scheduled_execution.correlation_id,
           source: scheduled_execution_source(scheduled_execution, command),
-          change_request_id: scheduled_execution.change_request_id,
+          change_request_id: change_request_id,
           governance_action: scheduled_execution.governed_action,
           execution_stage: scheduled_execution_stage(event_type),
           scheduled_execution_id: scheduled_execution.id,

@@ -3174,6 +3174,9 @@ defmodule Rulestead.Fake do
           |> Map.put(:state, "completed")
           |> Map.put(:finished_at, execution_state.now)
 
+        automation_metadata =
+          RolloutAutoAdvance.automation_execution_metadata(execution_result || %{})
+
         updated_scheduled_execution =
           execution_state.scheduled_executions[scheduled_execution.id]
           |> Map.put(:state, "completed")
@@ -3182,12 +3185,13 @@ defmodule Rulestead.Fake do
           |> Map.put(:failure_reason, nil)
           |> Map.put(
             :execution_metadata,
-            scheduled_transition_metadata(
-              scheduled_execution.execution_metadata,
+            scheduled_execution.execution_metadata
+            |> scheduled_transition_metadata(
               "completed",
               command,
               execution_state.now
             )
+            |> Map.merge(automation_metadata)
           )
           |> Map.put(:updated_at, execution_state.now)
 
