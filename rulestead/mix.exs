@@ -19,6 +19,10 @@ defmodule Rulestead.MixProject do
     ]
   end
 
+  def cli do
+    [preferred_envs: [{:"verify.phase54", :test}]]
+  end
+
   def application do
     [
       extra_applications: [:logger, :inets, :ssl],

@@ -3,6 +3,7 @@ defmodule Rulestead.ReleaseContractTest do
 
   alias Rulestead.{Admin.Policy, Config, Context, Error, Result, Store, Telemetry}
   alias Rulestead.Store.Command
+  alias Rulestead.Targeting.DependencyValidator
 
   @api_stability_path Path.expand("../../../guides/api_stability.md", __DIR__)
   @root_readme_path Path.expand("../../../README.md", __DIR__)
@@ -394,6 +395,22 @@ defmodule Rulestead.ReleaseContractTest do
              can?: 4,
              change_request_required?: 4
            ]
+  end
+
+  test "dependency truth for promotion and manifest stays core-owned without rulestead_admin leakage" do
+    assert {:list_audience_dependencies, 0} in Rulestead.__info__(:functions)
+    assert {:list_audience_dependencies, 1} in Rulestead.__info__(:functions)
+    assert Code.ensure_loaded?(DependencyValidator)
+    assert {:validate, 2} in DependencyValidator.__info__(:functions)
+    assert {:blockers?, 1} in DependencyValidator.__info__(:functions)
+
+    core_mix_project = File.read!(Path.expand("../../mix.exs", __DIR__))
+    core_public_api = File.read!(Path.expand("../../lib/rulestead.ex", __DIR__))
+
+    # promotion + manifest dependency safety must remain in core; rulestead_admin is presentation-only.
+    refute core_mix_project =~ "{:rulestead_admin"
+    refute core_public_api =~ "RulesteadAdmin"
+    assert File.read!(@admin_readme_path) =~ "rulestead_admin"
   end
 
   test "audience impact commands normalize preview and guarded mutation evidence" do
