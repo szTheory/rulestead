@@ -26,6 +26,7 @@ defmodule Rulestead.Admin.Policy do
           | :read_diagnostics
           | :compare_environments
           | :preview_audience_impact
+          | :list_audience_dependencies
 
   @type editor_action ::
           :create_flag
@@ -77,7 +78,8 @@ defmodule Rulestead.Admin.Policy do
     :fetch_webhook_record,
     :read_diagnostics,
     :compare_environments,
-    :preview_audience_impact
+    :preview_audience_impact,
+    :list_audience_dependencies
   ]
 
   @editor_actions [

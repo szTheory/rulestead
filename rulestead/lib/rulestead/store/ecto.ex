@@ -7,6 +7,7 @@ defmodule Rulestead.Store.Ecto do
   alias Ecto.Multi
 
   alias Rulestead.{
+    Admin.Redaction,
     Admin.Lifecycle,
     Audience,
     Governance.Approval,
@@ -137,8 +138,8 @@ defmodule Rulestead.Store.Ecto do
     end
   end
 
-  @doc false
-  @spec list_audience_dependencies(map()) ::
+  @impl Store
+  @spec list_audience_dependencies(Command.ListAudienceDependencies.t()) ::
           {:ok,
            %{
              entries: [DependencyInventory.entry()],
@@ -148,30 +149,41 @@ defmodule Rulestead.Store.Ecto do
              total_count: non_neg_integer()
            }}
           | {:error, Rulestead.Error.t()}
-  def list_audience_dependencies(command) when is_map(command) do
+  def list_audience_dependencies(%Command.ListAudienceDependencies{} = command) do
     limit = command_limit(command)
     offset = command_offset(command)
 
-    entries =
+    all_entries =
       AudienceReferenceProjection
       |> maybe_filter_projection_scope(command)
       |> Repo.all()
       |> Enum.map(&projection_row_to_entry/1)
       |> DependencyInventory.sort_entries()
 
-    page_entries = entries |> Enum.drop(offset) |> Enum.take(limit)
+    page_entries = all_entries |> Enum.drop(offset) |> Enum.take(limit)
+    redacted = Redaction.redact_dependency_inventory(page_entries, redaction_options(command))
 
     {:ok,
      %{
-       entries: page_entries,
+       entries: redacted.entries,
+       reference_count: redacted.reference_count,
+       hidden_reference_count: redacted.hidden_reference_count,
+       redacted: redacted.redacted,
+       redacted_entries: redacted.redacted_entries,
        limit: limit,
        offset: offset,
-       returned: length(page_entries),
-       total_count: length(entries)
+       returned: length(redacted.entries),
+       total_count: length(all_entries)
      }}
   rescue
     error in [ConstraintError] ->
       {:error, StoreError.unavailable(cause: error)}
+  end
+
+  def list_audience_dependencies(command) when is_map(command) do
+    command
+    |> list_audience_dependencies_command()
+    |> list_audience_dependencies()
   end
 
   defp run_promotion_apply(%Command.ApplyPromotion{} = command, opts) do
@@ -2913,6 +2925,31 @@ defmodule Rulestead.Store.Ecto do
 
   defp normalize_projection_audience_key(nil), do: nil
   defp normalize_projection_audience_key(audience_key), do: to_string(audience_key)
+
+  defp list_audience_dependencies_command(%Command.ListAudienceDependencies{} = command), do: command
+
+  defp list_audience_dependencies_command(command) do
+    Command.ListAudienceDependencies.new(
+      environment_key: Map.get(command, :environment_key) || Map.get(command, "environment_key"),
+      tenant_key: Map.get(command, :tenant_key) || Map.get(command, "tenant_key"),
+      audience_key: Map.get(command, :audience_key) || Map.get(command, "audience_key"),
+      limit: Map.get(command, :limit) || Map.get(command, "limit"),
+      offset: Map.get(command, :offset) || Map.get(command, "offset"),
+      actor: Map.get(command, :actor) || Map.get(command, "actor"),
+      include_redacted_placeholders?:
+        Map.get(command, :include_redacted_placeholders?) ||
+          Map.get(command, "include_redacted_placeholders?"),
+      visible_audience_keys:
+        Map.get(command, :visible_audience_keys) || Map.get(command, "visible_audience_keys")
+    )
+  end
+
+  defp redaction_options(command) do
+    [
+      visible_audience_keys: Map.get(command, :visible_audience_keys),
+      include_redacted_placeholders?: Map.get(command, :include_redacted_placeholders?, false)
+    ]
+  end
 
   defp plain_struct_map(%_{} = value), do: value |> Map.from_struct() |> plain_struct_map()
 

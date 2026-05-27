@@ -2,6 +2,8 @@ defmodule Rulestead.Admin.Redaction do
   @moduledoc false
   # Allowlist-driven redaction for admin telemetry and audit metadata.
 
+  alias Rulestead.Targeting.DependencyInventory
+
   @redacted "[REDACTED]"
 
   @spec redact_metadata(map(), keyword()) :: %{audit: map(), telemetry: map()}
@@ -48,6 +50,19 @@ defmodule Rulestead.Admin.Redaction do
 
   defp normalize_path(path) when is_binary(path), do: String.split(path, ".", trim: true)
   defp normalize_path(path) when is_list(path), do: Enum.map(path, &to_string/1)
+
+  @spec redact_dependency_inventory([map()], keyword()) :: map()
+  def redact_dependency_inventory(entries, opts \\ [])
+
+  def redact_dependency_inventory(entries, opts) when is_list(entries) do
+    DependencyInventory.redacted_result(entries,
+      visible_audience_keys: Keyword.get(opts, :visible_audience_keys),
+      include_redacted_placeholders?: Keyword.get(opts, :include_redacted_placeholders?, false)
+    )
+  end
+
+  def redact_dependency_inventory(_entries, _opts),
+    do: %{entries: [], reference_count: 0, hidden_reference_count: 0, redacted: false, redacted_entries: []}
 
   defp direct_match?(path, allowed),
     do: path == allowed || Enum.take(path, length(allowed)) == allowed

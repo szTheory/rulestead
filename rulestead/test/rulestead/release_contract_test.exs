@@ -15,6 +15,7 @@ defmodule Rulestead.ReleaseContractTest do
   @root_changelog_path Path.expand("../../CHANGELOG.md", __DIR__)
   @admin_changelog_path Path.expand("../../../rulestead_admin/CHANGELOG.md", __DIR__)
 
+  # public API exports
   @root_exports [
     archive_flag: 1,
     archive_flag!: 1,
@@ -45,6 +46,8 @@ defmodule Rulestead.ReleaseContractTest do
     list_audiences: 1,
     list_audit_events: 0,
     list_audit_events: 1,
+    list_audience_dependencies: 0,
+    list_audience_dependencies: 1,
     list_environments: 0,
     list_environments: 1,
     list_flags: 0,
@@ -89,6 +92,7 @@ defmodule Rulestead.ReleaseContractTest do
     span: 3
   ]
 
+  # Store callbacks
   @store_callbacks [
     apply_audience_mutation: 1,
     archive_flag: 1,
@@ -98,6 +102,7 @@ defmodule Rulestead.ReleaseContractTest do
     fetch_snapshot: 1,
     list_audiences: 1,
     list_audit_events: 1,
+    list_audience_dependencies: 1,
     list_environments: 1,
     list_flags: 1,
     preview_audience_impact: 1,
@@ -451,6 +456,27 @@ defmodule Rulestead.ReleaseContractTest do
              metadata: %{"trace_id" => "trace-1"},
              protected_shared_targeting?: true
            } = apply
+
+    assert %Command.ListAudienceDependencies{
+             environment_key: "production",
+             tenant_key: "123",
+             audience_key: "vip_users",
+             limit: 25,
+             offset: 2,
+             actor: %{"id" => "42"},
+             visible_audience_keys: ["beta_users", "vip_users"],
+             include_redacted_placeholders?: true
+           } =
+             Command.ListAudienceDependencies.new(
+               environment_key: :production,
+               tenant_key: 123,
+               audience_key: :vip_users,
+               limit: 25,
+               offset: 2,
+               actor: %{id: 42},
+               visible_audience_keys: [:vip_users, "beta_users"],
+               include_redacted_placeholders?: true
+             )
   end
 
   test "public structs keep the documented fields and closed atom sets" do

@@ -896,6 +896,26 @@ defmodule Rulestead do
   end
 
   @doc """
+  Lists audience dependency inventory rows with deterministic scoped ordering.
+  """
+  @spec list_audience_dependencies() :: Store.result(map())
+  def list_audience_dependencies do
+    list_audience_dependencies(Command.ListAudienceDependencies.new())
+  end
+
+  @spec list_audience_dependencies(keyword()) :: Store.result(map())
+  def list_audience_dependencies(opts) when is_list(opts) do
+    opts
+    |> Command.ListAudienceDependencies.new()
+    |> list_audience_dependencies()
+  end
+
+  @spec list_audience_dependencies(Command.ListAudienceDependencies.t()) :: Store.result(map())
+  def list_audience_dependencies(%Command.ListAudienceDependencies{} = command) do
+    admin_read(:list_audience_dependencies, command)
+  end
+
+  @doc """
   Previews the bounded impact of a reusable audience mutation.
   """
   @spec preview_audience_impact(String.t() | atom(), String.t() | atom(), keyword()) ::
@@ -1535,6 +1555,10 @@ defmodule Rulestead do
     %{resource_type: :audience, resource_key: audience_key}
   end
 
+  defp command_resource(%Command.ListAudienceDependencies{audience_key: audience_key}) do
+    %{resource_type: :dependency_inventory, resource_key: audience_key || "*"}
+  end
+
   defp command_resource(%Command.SubmitChangeRequest{
          resource_type: resource_type,
          resource_key: resource_key
@@ -1585,6 +1609,7 @@ defmodule Rulestead do
   defp command_action(:list_audit_events, _command), do: :list_audit_events
   defp command_action(:apply_promotion, _command), do: :promote_environment
   defp command_action(:preview_audience_impact, _command), do: :preview_audience_impact
+  defp command_action(:list_audience_dependencies, _command), do: :list_audience_dependencies
   defp command_action(:apply_audience_mutation, _command), do: :apply_audience_mutation
   defp command_action(:create_webhook_destination, _command), do: :manage_webhooks
   defp command_action(:update_webhook_destination, _command), do: :manage_webhooks
@@ -1690,7 +1715,15 @@ defmodule Rulestead do
 
   defp result_like_metadata(_value), do: %{}
 
-  defp store_event_kind(operation) when operation in [:fetch_flag, :fetch_snapshot, :list_flags],
+  defp store_event_kind(operation)
+       when operation in [
+              :fetch_flag,
+              :fetch_snapshot,
+              :list_flags,
+              :list_environments,
+              :list_audiences,
+              :list_audience_dependencies
+            ],
     do: :read
 
   defp store_event_kind(_operation), do: :write
@@ -1698,6 +1731,7 @@ defmodule Rulestead do
   defp store_success_reason(:fetch_snapshot), do: :fetched
   defp store_success_reason(:fetch_flag), do: :fetched
   defp store_success_reason(:list_flags), do: :listed
+  defp store_success_reason(:list_audience_dependencies), do: :listed
   defp store_success_reason(_operation), do: :stored
 
   defp governance_environment(command, metadata) do

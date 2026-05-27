@@ -39,6 +39,7 @@ defmodule Rulestead.Store.Redis do
         :list_flags,
         :list_environments,
         :list_audiences,
+        :list_audience_dependencies,
         :preview_audience_impact,
         :apply_audience_mutation,
         :record_evaluation,

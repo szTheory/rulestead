@@ -12,6 +12,7 @@ defmodule Rulestead.Fake do
   alias Ecto.Changeset
 
   alias Rulestead.{
+    Admin.Redaction,
     Admin.Lifecycle,
     Audience,
     AuditEvent,
@@ -153,8 +154,8 @@ defmodule Rulestead.Fake do
     call({:list_audiences, command})
   end
 
-  @doc false
-  @spec list_audience_dependencies(map()) ::
+  @impl Store
+  @spec list_audience_dependencies(Command.ListAudienceDependencies.t()) ::
           {:ok,
            %{
              entries: [DependencyInventory.entry()],
@@ -164,8 +165,14 @@ defmodule Rulestead.Fake do
              total_count: non_neg_integer()
            }}
           | {:error, Rulestead.Error.t()}
-  def list_audience_dependencies(command) when is_map(command) do
+  def list_audience_dependencies(%Command.ListAudienceDependencies{} = command) do
     call({:list_audience_dependencies, command})
+  end
+
+  def list_audience_dependencies(command) when is_map(command) do
+    command
+    |> list_audience_dependencies_command()
+    |> list_audience_dependencies()
   end
 
   @doc false
@@ -771,7 +778,7 @@ defmodule Rulestead.Fake do
   end
 
   def handle_call({:list_audience_dependencies, command}, _from, state) do
-    entries =
+    all_entries =
       state.audience_reference_projection
       |> Map.values()
       |> maybe_filter_projection_scope(command)
@@ -779,16 +786,21 @@ defmodule Rulestead.Fake do
 
     limit = command_limit(command)
     offset = command_offset(command)
-    page_entries = entries |> Enum.drop(offset) |> Enum.take(limit)
+    page_entries = all_entries |> Enum.drop(offset) |> Enum.take(limit)
+    redacted = Redaction.redact_dependency_inventory(page_entries, redaction_options(command))
 
     {:reply,
      {:ok,
       %{
-        entries: page_entries,
+        entries: redacted.entries,
+        reference_count: redacted.reference_count,
+        hidden_reference_count: redacted.hidden_reference_count,
+        redacted: redacted.redacted,
+        redacted_entries: redacted.redacted_entries,
         limit: limit,
         offset: offset,
-        returned: length(page_entries),
-        total_count: length(entries)
+        returned: length(redacted.entries),
+        total_count: length(all_entries)
       }}, state}
   end
 
@@ -2216,6 +2228,31 @@ defmodule Rulestead.Fake do
       value when is_integer(value) and value >= 0 -> value
       _other -> 0
     end
+  end
+
+  defp list_audience_dependencies_command(%Command.ListAudienceDependencies{} = command), do: command
+
+  defp list_audience_dependencies_command(command) do
+    Command.ListAudienceDependencies.new(
+      environment_key: Map.get(command, :environment_key) || Map.get(command, "environment_key"),
+      tenant_key: Map.get(command, :tenant_key) || Map.get(command, "tenant_key"),
+      audience_key: Map.get(command, :audience_key) || Map.get(command, "audience_key"),
+      limit: Map.get(command, :limit) || Map.get(command, "limit"),
+      offset: Map.get(command, :offset) || Map.get(command, "offset"),
+      actor: Map.get(command, :actor) || Map.get(command, "actor"),
+      include_redacted_placeholders?:
+        Map.get(command, :include_redacted_placeholders?) ||
+          Map.get(command, "include_redacted_placeholders?"),
+      visible_audience_keys:
+        Map.get(command, :visible_audience_keys) || Map.get(command, "visible_audience_keys")
+    )
+  end
+
+  defp redaction_options(command) do
+    [
+      visible_audience_keys: Map.get(command, :visible_audience_keys),
+      include_redacted_placeholders?: Map.get(command, :include_redacted_placeholders?, false)
+    ]
   end
 
   defp normalize_projection_environment_key(environment_key), do: to_string(environment_key)

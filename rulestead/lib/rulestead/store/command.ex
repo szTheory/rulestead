@@ -1301,6 +1301,85 @@ defmodule Rulestead.Store.Command do
     end
   end
 
+  defmodule ListAudienceDependencies do
+    @moduledoc false
+
+    alias Rulestead.Store.Command.GovernanceSupport
+
+    defstruct environment_key: nil,
+              tenant_key: nil,
+              audience_key: nil,
+              limit: 50,
+              offset: 0,
+              actor: nil,
+              include_redacted_placeholders?: false,
+              visible_audience_keys: nil
+
+    @type t :: %__MODULE__{
+            environment_key: nil | String.t(),
+            tenant_key: nil | String.t(),
+            audience_key: nil | String.t(),
+            limit: pos_integer(),
+            offset: non_neg_integer(),
+            actor: nil | map(),
+            include_redacted_placeholders?: boolean(),
+            visible_audience_keys: nil | [String.t()]
+          }
+
+    @spec new(keyword()) :: t()
+    def new(opts \\ []) do
+      %__MODULE__{
+        environment_key:
+          opts
+          |> Keyword.get(:environment_key)
+          |> GovernanceSupport.normalize_string(),
+        tenant_key:
+          opts
+          |> Keyword.get(:tenant_key)
+          |> GovernanceSupport.normalize_string(),
+        audience_key:
+          opts
+          |> Keyword.get(:audience_key)
+          |> GovernanceSupport.normalize_string(),
+        limit:
+          opts
+          |> Keyword.get(:limit, 50)
+          |> normalize_limit(),
+        offset:
+          opts
+          |> Keyword.get(:offset, 0)
+          |> normalize_offset(),
+        actor:
+          opts
+          |> Keyword.get(:actor)
+          |> GovernanceSupport.normalize_actor(),
+        include_redacted_placeholders?: Keyword.get(opts, :include_redacted_placeholders?, false),
+        visible_audience_keys:
+          opts
+          |> Keyword.get(:visible_audience_keys)
+          |> normalize_visible_audience_keys()
+      }
+    end
+
+    defp normalize_limit(limit) when is_integer(limit) and limit > 0, do: limit
+    defp normalize_limit(_limit), do: 50
+
+    defp normalize_offset(offset) when is_integer(offset) and offset >= 0, do: offset
+    defp normalize_offset(_offset), do: 0
+
+    defp normalize_visible_audience_keys(nil), do: nil
+
+    defp normalize_visible_audience_keys(keys) when is_list(keys) do
+      keys
+      |> Enum.map(&GovernanceSupport.normalize_string/1)
+      |> Enum.reject(&is_nil/1)
+      |> Enum.uniq()
+      |> Enum.sort()
+    end
+
+    defp normalize_visible_audience_keys(_keys), do: nil
+  end
+
   defmodule PreviewAudienceImpact do
     @moduledoc false
 

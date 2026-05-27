@@ -38,6 +38,8 @@ defmodule Rulestead.AdminSecurityContractTest do
     assert function_exported?(Rulestead, :release_kill_switch, 4)
     assert function_exported?(Rulestead, :list_audit_events, 0)
     assert function_exported?(Rulestead, :list_audit_events, 1)
+    assert function_exported?(Rulestead, :list_audience_dependencies, 0)
+    assert function_exported?(Rulestead, :list_audience_dependencies, 1)
     assert function_exported?(Rulestead, :rollback_audit_event, 1)
     assert function_exported?(Rulestead, :rollback_audit_event, 2)
     assert function_exported?(Rulestead, :simulate_flag, 3)
@@ -82,6 +84,21 @@ defmodule Rulestead.AdminSecurityContractTest do
              Command.RollbackAuditEvent.new("evt-123",
                actor: %{id: "operator-1"},
                metadata: %{reason: "revert"}
+             )
+
+    assert %Command.ListAudienceDependencies{
+             environment_key: "production",
+             tenant_key: "tenant-a",
+             audience_key: "vip-users",
+             visible_audience_keys: ["vip_users"],
+             include_redacted_placeholders?: true
+           } =
+             Command.ListAudienceDependencies.new(
+               environment_key: "production",
+               tenant_key: "tenant-a",
+               audience_key: "vip-users",
+               visible_audience_keys: [:vip_users],
+               include_redacted_placeholders?: true
              )
   end
 
@@ -131,6 +148,59 @@ defmodule Rulestead.AdminSecurityContractTest do
     refute Map.has_key?(telemetry.traits, :email)
     refute Map.has_key?(telemetry.traits, :ip)
     refute Map.has_key?(telemetry.traits.nested, :secret_token)
+  end
+
+  test "list_audience_dependencies returns policy-safe hidden_reference_count and redacted placeholders" do
+    Application.put_env(:rulestead, :admin_policy, __MODULE__.AllowInventoryPolicy)
+
+    Rulestead.Fake.Control.put_flag!(StoreFixtures.valid_flag_attrs(%{environment_keys: ["test"]}))
+
+    ruleset = %{
+      salt: "checkout-redesign:v2",
+      rules: [
+        %{
+          key: "visible-segment",
+          strategy: :segment_match,
+          audience_key: "vip-users",
+          conditions: []
+        },
+        %{
+          key: "hidden-segment",
+          strategy: :segment_match,
+          audience_key: "secret-users",
+          conditions: []
+        }
+      ]
+    }
+
+    assert {:ok, _} =
+             Rulestead.Fake.save_draft_ruleset(
+               Command.SaveDraftRuleset.new("checkout-redesign", "test", ruleset)
+             )
+
+    assert {:ok, _} =
+             Rulestead.Fake.publish_ruleset(
+               Command.PublishRuleset.new("checkout-redesign", "test")
+             )
+
+    assert {:ok, result} =
+             Rulestead.list_audience_dependencies(
+               Command.ListAudienceDependencies.new(
+                 environment_key: "test",
+                 actor: %{id: "viewer-1", roles: [:viewer]},
+                 visible_audience_keys: ["vip-users"],
+                 include_redacted_placeholders?: true,
+                 limit: 10
+               )
+             )
+
+    assert result.reference_count == 2
+    assert result.hidden_reference_count == 1
+    assert result.redacted
+    assert length(result.entries) == 1
+    assert length(result.redacted_entries) == 1
+    assert Enum.at(result.entries, 0).audience_key == "vip-users"
+    assert Enum.at(result.redacted_entries, 0).audience_key == "[REDACTED]"
   end
 
   test "configured host policy denials are final for draft, publish, and archive writes" do
@@ -278,6 +348,15 @@ defmodule Rulestead.AdminSecurityContractTest do
     @behaviour Rulestead.Admin.Policy
 
     @impl true
+    def can?(_actor, _action, _resource, _environment_key), do: false
+  end
+
+  defmodule AllowInventoryPolicy do
+    @behaviour Rulestead.Admin.Policy
+
+    @impl true
+    def can?(_actor, :list_audience_dependencies, _resource, _environment_key), do: true
+
     def can?(_actor, _action, _resource, _environment_key), do: false
   end
 end
