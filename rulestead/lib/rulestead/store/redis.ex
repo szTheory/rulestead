@@ -39,6 +39,8 @@ defmodule Rulestead.Store.Redis do
         :list_flags,
         :list_environments,
         :list_audiences,
+        :preview_audience_impact,
+        :apply_audience_mutation,
         :record_evaluation,
         :advance_rollout,
         :evaluate_guarded_rollout,

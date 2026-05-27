@@ -13,6 +13,7 @@ defmodule Rulestead.Fake do
 
   alias Rulestead.{
     Admin.Lifecycle,
+    Audience,
     AuditEvent,
     Environment,
     EnvironmentVersion,
@@ -30,6 +31,8 @@ defmodule Rulestead.Fake do
     RulesetError,
     Store,
     StoreError,
+    Targeting.AudienceDependencies,
+    Targeting.ImpactPreview,
     Telemetry
   }
 
@@ -146,6 +149,16 @@ defmodule Rulestead.Fake do
   @impl Store
   def list_audiences(%Command.ListAudiences{} = command) do
     call({:list_audiences, command})
+  end
+
+  @impl Store
+  def preview_audience_impact(%Command.PreviewAudienceImpact{} = command) do
+    call({:preview_audience_impact, command})
+  end
+
+  @impl Store
+  def apply_audience_mutation(%Command.ApplyAudienceMutation{} = command) do
+    call({:apply_audience_mutation, command})
   end
 
   @impl Store
@@ -319,6 +332,11 @@ defmodule Rulestead.Fake do
   end
 
   @doc false
+  def put_audience(attrs) when is_map(attrs) do
+    call({:control, :put_audience, attrs})
+  end
+
+  @doc false
   def snapshot do
     call({:control, :snapshot})
   end
@@ -359,6 +377,13 @@ defmodule Rulestead.Fake do
   def handle_call({:control, :put_flag, attrs}, _from, state) do
     case do_put_flag(state, attrs) do
       {:ok, flag_state, next_state} -> {:reply, {:ok, flag_state}, next_state}
+      {:error, error} -> {:reply, {:error, error}, state}
+    end
+  end
+
+  def handle_call({:control, :put_audience, attrs}, _from, state) do
+    case do_put_audience(state, attrs) do
+      {:ok, audience, next_state} -> {:reply, {:ok, audience}, next_state}
       {:error, error} -> {:reply, {:error, error}, state}
     end
   end
@@ -715,6 +740,23 @@ defmodule Rulestead.Fake do
     {:reply, {:ok, audiences}, state}
   end
 
+  def handle_call({:preview_audience_impact, command}, _from, state) do
+    {:reply, build_audience_preview(state, command), state}
+  end
+
+  def handle_call({:apply_audience_mutation, command}, _from, state) do
+    case audit_only_result(state, command, audience_event_type(command.operation)) do
+      {:ok, result, next_state} ->
+        {:reply, result, next_state}
+
+      :continue ->
+        case do_apply_audience_mutation(state, command) do
+          {:ok, payload, next_state} -> {:reply, {:ok, payload}, next_state}
+          {:error, error} -> {:reply, {:error, error}, state}
+        end
+    end
+  end
+
   def handle_call({:record_evaluation, command}, _from, state) do
     reply =
       with {:ok, environment} <- fetch_environment(state, command.environment_key),
@@ -758,10 +800,13 @@ defmodule Rulestead.Fake do
     case with_mutable_context(state, command.flag_key, command.environment_key, fn flag,
                                                                                    environment,
                                                                                    flag_environment ->
-           with {:ok, active_ruleset} <- ensure_active_ruleset_in_state(flag_environment, flag, environment.key),
-                {:ok, rollout_rule} <- resolve_rollout_rule_in_state(active_ruleset, command.rule_key),
+           with {:ok, active_ruleset} <-
+                  ensure_active_ruleset_in_state(flag_environment, flag, environment.key),
+                {:ok, rollout_rule} <-
+                  resolve_rollout_rule_in_state(active_ruleset, command.rule_key),
                 {:ok, percentage} <- ensure_rollout_percentage_in_state(command.percentage),
-                {:ok, next_ruleset_attrs} <- advanced_ruleset_attrs_in_state(active_ruleset, rollout_rule.key, percentage) do
+                {:ok, next_ruleset_attrs} <-
+                  advanced_ruleset_attrs_in_state(active_ruleset, rollout_rule.key, percentage) do
              version = next_ruleset_version(state, command.flag_key, environment.key)
 
              ruleset = %{
@@ -839,8 +884,10 @@ defmodule Rulestead.Fake do
     case with_mutable_context(state, command.flag_key, command.environment_key, fn flag,
                                                                                    environment,
                                                                                    flag_environment ->
-           with {:ok, active_ruleset} <- ensure_active_ruleset_in_state(flag_environment, flag, environment.key),
-                {:ok, rollout_rule} <- resolve_rollout_rule_in_state(active_ruleset, command.rule_key) do
+           with {:ok, active_ruleset} <-
+                  ensure_active_ruleset_in_state(flag_environment, flag, environment.key),
+                {:ok, rollout_rule} <-
+                  resolve_rollout_rule_in_state(active_ruleset, command.rule_key) do
              evaluated =
                Decision.evaluate(command.signal_facts,
                  evaluated_at: state.now,
@@ -881,9 +928,12 @@ defmodule Rulestead.Fake do
 
       decision ->
         active_ruleset_version =
-          state.flags[to_string(command.flag_key)].environments[to_string(command.environment_key)].active_ruleset_version
+          state.flags[to_string(command.flag_key)].environments[
+            to_string(command.environment_key)
+          ].active_ruleset_version
 
-        {:reply, {:ok, guardrail_status_payload_in_state(decision, active_ruleset_version)}, state}
+        {:reply, {:ok, guardrail_status_payload_in_state(decision, active_ruleset_version)},
+         state}
     end
   end
 
@@ -1859,6 +1909,39 @@ defmodule Rulestead.Fake do
     end
   end
 
+  defp do_put_audience(state, attrs) do
+    normalized_attrs =
+      attrs
+      |> Map.new(fn {key, value} -> {to_string(key), value} end)
+      |> Map.update("key", nil, &Command.GovernanceSupport.normalize_string/1)
+      |> Map.update("definition", %{}, &Command.GovernanceSupport.normalize_map/1)
+
+    changeset = Audience.changeset(%Audience{}, normalized_attrs)
+
+    with {:ok, audience} <- Changeset.apply_action(changeset, :insert) do
+      record = %{
+        id: Ecto.UUID.generate(),
+        key: audience.key,
+        tenant_key: Command.GovernanceSupport.normalize_string(normalized_attrs["tenant_key"]),
+        description: audience.description,
+        definition: audience.definition,
+        archived_at: audience.archived_at,
+        inserted_at: state.now,
+        updated_at: state.now
+      }
+
+      {:ok, record, put_in(state.audiences[audience.key], record)}
+    else
+      {:error, changeset_error} ->
+        {:error,
+         StoreError.invalid_command(
+           "audience seed is invalid",
+           details: collect_changeset_details(changeset_error),
+           cause: changeset_error
+         )}
+    end
+  end
+
   defp fetch_environment_from_state(state, environment_key) do
     case Map.get(state.environments, to_string(environment_key)) do
       nil -> {:error, StoreError.environment_not_found(environment_key)}
@@ -2116,7 +2199,7 @@ defmodule Rulestead.Fake do
     %AuditEvent{
       id: Ecto.UUID.generate(),
       event_type: event_type,
-      resource_type: "flag",
+      resource_type: Keyword.get(opts, :resource_type, "flag"),
       resource_key:
         Keyword.get(opts, :resource_key) ||
           Map.get(command_metadata, "resource_key") ||
@@ -2822,7 +2905,8 @@ defmodule Rulestead.Fake do
              scheduled_execution.resource_key,
              scheduled_execution.environment_key,
              Map.merge(
-               scheduled_execution.command_snapshot["rollout"] || scheduled_execution.command_snapshot,
+               scheduled_execution.command_snapshot["rollout"] ||
+                 scheduled_execution.command_snapshot,
                %{"signal_facts" => scheduled_execution.command_snapshot["signal_facts"]}
              ),
              actor: command.actor,
@@ -2914,6 +2998,191 @@ defmodule Rulestead.Fake do
     end
   end
 
+  defp build_audience_preview(state, %Command.PreviewAudienceImpact{} = command) do
+    with {:ok, environment} <-
+           fetch_environment_from_state(state, command.environment_key || "test"),
+         {:ok, audience} <- fetch_audience_for_mutation(state, command.audience_key),
+         :ok <- ensure_audience_tenant(audience, command.tenant_key),
+         :ok <- ensure_audience_active(audience) do
+      {:ok, audience_preview_payload(state, environment.key, audience, command)}
+    end
+  end
+
+  defp do_apply_audience_mutation(state, %Command.ApplyAudienceMutation{} = command) do
+    with {:ok, environment} <- fetch_environment_from_state(state, command.environment_key),
+         {:ok, audience} <- fetch_audience_for_mutation(state, command.audience_key),
+         :ok <- ensure_audience_tenant(audience, command.tenant_key),
+         :ok <- ensure_audience_active(audience),
+         :ok <- ensure_supported_audience_operation(command),
+         current_preview <- audience_preview_payload(state, environment.key, audience, command),
+         :ok <- ensure_fresh_audience_preview(command, current_preview),
+         :ok <- ensure_protected_audience_confirmation(command),
+         {:ok, updated_audience} <-
+           apply_audience_operation(audience, command, state.now) do
+      next_state =
+        state
+        |> put_in([:audiences, audience.key], updated_audience)
+        |> put_runtime_snapshot(environment.key)
+
+      {audit_event, next_state} =
+        append_audit_event(next_state, command, audience_event_type(command.operation), :ok,
+          resource_type: "audience",
+          resource_key: audience.key,
+          before: audience_audit_state(audience),
+          after: audience_audit_state(updated_audience),
+          metadata: %{
+            "preview_fingerprint" => command.preview_fingerprint,
+            "preview_schema_version" => command.preview_schema_version,
+            "preview_basis" => command.preview_basis,
+            "affected_reference_keys" => command.affected_reference_keys
+          }
+        )
+
+      {:ok,
+       %{
+         result: :ok,
+         operation: command.operation,
+         audience: audience_summary(updated_audience),
+         preview: current_preview,
+         audit_event: audit_event
+       }, %{next_state | audit_events: [audit_event | next_state.audit_events]}}
+    end
+  end
+
+  defp audience_preview_payload(state, environment_key, audience, command) do
+    affected_references =
+      state
+      |> compare_payloads_for_environment(environment_key)
+      |> Map.values()
+      |> then(&AudienceDependencies.summarize(audience.key, &1))
+
+    before_definition = command.before_definition || audience.definition
+
+    after_definition =
+      case command.operation do
+        "update" -> command.after_definition || audience.definition
+        _other -> command.after_definition
+      end
+
+    ImpactPreview.build(%{
+      environment_key: environment_key,
+      tenant_key: command.tenant_key || Map.get(audience, :tenant_key),
+      audience_key: audience.key,
+      operation: command.operation,
+      before_definition: before_definition,
+      after_definition: after_definition,
+      samples: Map.get(command, :samples, []),
+      affected_references: affected_references,
+      preview_basis: Map.get(command, :preview_basis)
+    })
+  end
+
+  defp fetch_audience_for_mutation(state, audience_key) do
+    case Map.get(state.audiences, to_string(audience_key)) do
+      nil -> {:error, StoreError.invalid_command("audience was not found")}
+      audience -> {:ok, audience}
+    end
+  end
+
+  defp ensure_audience_tenant(_audience, nil), do: :ok
+
+  defp ensure_audience_tenant(audience, tenant_key) do
+    audience_tenant = Map.get(audience, :tenant_key)
+
+    if is_nil(audience_tenant) or audience_tenant == tenant_key do
+      :ok
+    else
+      {:error, StoreError.invalid_command("audience tenant mismatch")}
+    end
+  end
+
+  defp ensure_audience_active(audience) do
+    if Map.get(audience, :archived_at) do
+      {:error, StoreError.invalid_command("audience is archived")}
+    else
+      :ok
+    end
+  end
+
+  defp ensure_supported_audience_operation(%Command.ApplyAudienceMutation{
+         operation: "delete_attempt"
+       }) do
+    {:error, StoreError.invalid_command("audience_delete_unsupported")}
+  end
+
+  defp ensure_supported_audience_operation(_command), do: :ok
+
+  defp ensure_fresh_audience_preview(command, current_preview) do
+    if command.preview_fingerprint == current_preview.preview_fingerprint do
+      :ok
+    else
+      {:error,
+       StoreError.invalid_command(
+         "audience preview is stale",
+         metadata: %{
+           audience_key: command.audience_key,
+           expected_preview_fingerprint: current_preview.preview_fingerprint,
+           preview_fingerprint: command.preview_fingerprint
+         }
+       )}
+    end
+  end
+
+  defp ensure_protected_audience_confirmation(%Command.ApplyAudienceMutation{
+         protected_shared_targeting?: true
+       }) do
+    {:error,
+     StoreError.invalid_command("protected shared targeting mutation requires confirmation")}
+  end
+
+  defp ensure_protected_audience_confirmation(_command), do: :ok
+
+  defp apply_audience_operation(
+         audience,
+         %Command.ApplyAudienceMutation{operation: "update"} = command,
+         now
+       ) do
+    updated =
+      audience
+      |> Map.put(:definition, command.after_definition || audience.definition)
+      |> maybe_update_audience_description(command.metadata)
+      |> Map.put(:updated_at, now)
+
+    {:ok, updated}
+  end
+
+  defp apply_audience_operation(
+         audience,
+         %Command.ApplyAudienceMutation{operation: "archive"},
+         now
+       ) do
+    {:ok, audience |> Map.put(:archived_at, now) |> Map.put(:updated_at, now)}
+  end
+
+  defp apply_audience_operation(_audience, command, _now) do
+    {:error, StoreError.invalid_command("unsupported audience operation: #{command.operation}")}
+  end
+
+  defp maybe_update_audience_description(audience, metadata) do
+    case Map.get(metadata, "description") || Map.get(metadata, :description) do
+      nil -> audience
+      description -> Map.put(audience, :description, description)
+    end
+  end
+
+  defp audience_event_type("archive"), do: "audience.archived"
+  defp audience_event_type("delete_attempt"), do: "audience.deleted"
+  defp audience_event_type(_operation), do: "audience.updated"
+
+  defp audience_audit_state(audience) do
+    %{
+      "key" => audience.key,
+      "tenant_key" => Map.get(audience, :tenant_key),
+      "definition" => audience.definition,
+      "archived_at" => Map.get(audience, :archived_at)
+    }
+  end
+
   defp fetch_schedulable_flag_context(state, flag_key, environment_key) do
     with {:ok, environment} <- fetch_environment(state, environment_key),
          {:ok, flag, flag_environment} <- fetch_flag_environment(state, flag_key, environment.key),
@@ -2957,12 +3226,14 @@ defmodule Rulestead.Fake do
 
   defp handle_advance_rollout_in_state(state, %Command.AdvanceRollout{} = command) do
     with_mutable_context(state, command.flag_key, command.environment_key, fn flag,
-                                                                             environment,
-                                                                             flag_environment ->
-      with {:ok, active_ruleset} <- ensure_active_ruleset_in_state(flag_environment, flag, environment.key),
+                                                                              environment,
+                                                                              flag_environment ->
+      with {:ok, active_ruleset} <-
+             ensure_active_ruleset_in_state(flag_environment, flag, environment.key),
            {:ok, rollout_rule} <- resolve_rollout_rule_in_state(active_ruleset, command.rule_key),
            {:ok, percentage} <- ensure_rollout_percentage_in_state(command.percentage),
-           {:ok, next_ruleset_attrs} <- advanced_ruleset_attrs_in_state(active_ruleset, rollout_rule.key, percentage) do
+           {:ok, next_ruleset_attrs} <-
+             advanced_ruleset_attrs_in_state(active_ruleset, rollout_rule.key, percentage) do
         version = next_ruleset_version(state, command.flag_key, environment.key)
 
         ruleset = %{
@@ -3159,8 +3430,7 @@ defmodule Rulestead.Fake do
         audit_events: [audit_event | next_state.audit_events]
     }
 
-    {:ok,
-     guardrail_status_payload_in_state(decision, flag_environment.active_ruleset_version),
+    {:ok, guardrail_status_payload_in_state(decision, flag_environment.active_ruleset_version),
      next_state}
   end
 

@@ -1427,7 +1427,7 @@ defmodule Rulestead.Store.Command do
             operation: String.t(),
             preview_schema_version: pos_integer() | term(),
             preview_fingerprint: String.t(),
-            preview_basis: nil | map(),
+            preview_basis: nil | map() | String.t(),
             affected_reference_keys: [String.t()],
             before_definition: nil | map(),
             after_definition: nil | map(),
@@ -1469,7 +1469,7 @@ defmodule Rulestead.Store.Command do
         preview_basis:
           attrs
           |> GovernanceSupport.fetch(:preview_basis)
-          |> normalize_optional_map(),
+          |> normalize_preview_basis(),
         affected_reference_keys:
           attrs
           |> GovernanceSupport.fetch(:affected_reference_keys)
@@ -1514,6 +1514,13 @@ defmodule Rulestead.Store.Command do
 
     defp normalize_optional_map(nil), do: nil
     defp normalize_optional_map(value), do: GovernanceSupport.normalize_map(value)
+
+    defp normalize_preview_basis(nil), do: nil
+
+    defp normalize_preview_basis(value) when is_list(value) or is_map(value),
+      do: normalize_optional_map(value)
+
+    defp normalize_preview_basis(value), do: GovernanceSupport.normalize_string(value)
 
     defp normalize_reference_keys(nil), do: []
 

@@ -60,6 +60,16 @@ defmodule Rulestead.Fake.Control do
     Fake.put_flag(normalize_seed_attrs(attrs))
   end
 
+  @spec put_audience!(map()) :: map()
+  def put_audience!(attrs) do
+    ensure_started()
+
+    case Fake.put_audience(attrs) do
+      {:ok, audience} -> audience
+      {:error, error} -> raise error
+    end
+  end
+
   @spec snapshot!() :: map()
   def snapshot! do
     ensure_started()
