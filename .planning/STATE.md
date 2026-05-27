@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.5.0
 milestone_name: v1.5.0 - Guarded Rollout Foundations
-status: executing
-last_updated: "2026-05-27T00:00:00Z"
-last_activity: 2026-05-27 -- Reconciled pushed Phase 49 and Phase 50 implementation evidence; next phase is Phase 51 planning
+status: planning
+last_updated: "2026-05-27T06:00:16.745Z"
+last_activity: 2026-05-27 -- reconciled the pushed Phase 50 guarded decision engine commit and local GSD artifacts
 progress:
   total_phases: 4
   completed_phases: 2
