@@ -27,7 +27,7 @@ See: `.planning/PROJECT.md` (updated 2026-05-27)
 ## Current Position
 
 Phase: 65 — Host Preview Evidence Contract
-Plan: —
+Plan: 4 plans (65-01..65-04)
 Status: Ready to execute
 Last activity: 2026-05-27 -- Phase 65 planning complete
 
@@ -73,5 +73,5 @@ Resume file: .planning/phases/65-host-preview-evidence-contract/65-CONTEXT.md
 
 ## Operator Next Steps
 
-- `/gsd-plan-phase 65` — create phase plans from context
-- `/gsd-plan-phase 65 --skip-research` — plan without research pass
+- `/gsd-execute-phase 65` — run plans 65-01 through 65-04
+- `cat .planning/phases/65-host-preview-evidence-contract/*-PLAN.md` — review plans

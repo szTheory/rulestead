@@ -40,7 +40,14 @@ Close the reusable-targeting preview gap: hosts supply bounded sample cohorts an
 3. Preview fingerprints change deterministically when host evidence changes and stale-token validation rejects drifted evidence the same way as authored-state drift.
 4. Invalid, oversized, or policy-denied host evidence fails closed with actionable errors; Fake and Ecto paths share one contract.
 
-**Plans**: 4 plans (typical)
+**Plans**: 4 plans
+
+| Plan | Wave | Deliverable |
+|------|------|-------------|
+| [65-01](phases/65-host-preview-evidence-contract/65-01-PLAN.md) | 1 | `PreviewEvidence` behaviour, limits validator, unit tests |
+| [65-02](phases/65-host-preview-evidence-contract/65-02-PLAN.md) | 2 | `ImpactPreview` schema v2, impression fingerprint |
+| [65-03](phases/65-host-preview-evidence-contract/65-03-PLAN.md) | 3 | Fake/Ecto `audience_preview_payload` wiring + test resolver |
+| [65-04](phases/65-host-preview-evidence-contract/65-04-PLAN.md) | 4 | Contract tests: stale, fail-closed, adapter parity, GOV boundary |
 
 ### Phase 66: Evidence Carry-Through And Governance Boundary
 
