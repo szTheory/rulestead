@@ -96,7 +96,14 @@ Plans:
   2. Public docs, package docs, release-contract checks, and mounted companion proof all describe the same supported reusable-targeting scope, preview-basis limits, tenant/environment semantics, and host-owned identity/observability responsibilities.
   3. Release evidence confirms `rulestead` owns domain contracts and validation, `rulestead_admin` owns mounted presentation, and no Phase 8-only docs or standalone `rulestead_admin` publish prep were introduced.
 
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+
+- [ ] 56-01-PLAN.md — `mix verify.phase56` v1.6 merge gate (VER-01)
+- [ ] 56-02-PLAN.md — release_contract drift guards + README/MAINTAINING/package READMEs (VER-02)
+- [ ] 56-03-PLAN.md — in-place flow guide updates (VER-02)
+- [ ] 56-04-PLAN.md — CI scope, handoff checklist, verification artifact (VER-03)
 
 ## Progress
 
