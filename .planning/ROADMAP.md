@@ -30,7 +30,12 @@
   2. Audience edits, archive/delete attempts, and protected shared-targeting mutations fail closed unless the operator applies with a fresh preview token or fingerprint.
   3. Runtime evaluation uses compiled snapshot audience definitions only and never performs live database, mounted-admin, host identity, or observability lookups to resolve audience references.
   4. Support can reconstruct accepted, blocked, or denied audience mutations from audit evidence that includes preview fingerprint, affected-reference summary, actor, reason, and explicit scope.
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+- [ ] 53-01-PLAN.md — Pure impact preview contract and affected-reference summaries
+- [ ] 53-02-PLAN.md — Snapshot-local audience runtime evaluation
+- [ ] 53-03-PLAN.md — Public/store command surface and Fake adapter contract
+- [ ] 53-04-PLAN.md — Ecto enforcement, audit evidence, and snapshot publication
 
 ### Phase 54: Dependency Truth And Promotion Safety
 **Goal**: Operators and support can trust one core dependency truth for audience usage, mutation blockers, promotion, compare, replay, and manifests.
