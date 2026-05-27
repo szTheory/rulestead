@@ -9,11 +9,11 @@
 
 - [x] **IMP-05**: Audience impact previews accept bounded, host-supplied sample cohorts and impression summaries through an explicit resolver seam; payloads declare preview basis, uncertainty, and redacted evidence without claiming Rulestead-owned identity or observability truth.
 - [x] **IMP-06**: Preview fingerprints, stale-token validation, and apply paths incorporate host evidence metadata deterministically so richer evidence cannot bypass stale preview rejection or drift checks.
-- [ ] **IMP-07**: Audit events and change-request payloads for audience mutations carry support-safe preview evidence summaries (basis, bounded sample/impression metadata, redaction posture) needed to reconstruct the operator decision.
+- [x] **IMP-07**: Audit events and change-request payloads for audience mutations carry support-safe preview evidence summaries (basis, bounded sample/impression metadata, redaction posture) needed to reconstruct the operator decision.
 
 ### Governance Boundary (`GOV`)
 
-- [ ] **GOV-05**: Blast-radius threshold evaluation for protected-environment audience mutations remains reference-count based and does not consume impression summaries or host cohort evidence for governance routing decisions.
+- [x] **GOV-05**: Blast-radius threshold evaluation for protected-environment audience mutations remains reference-count based and does not consume impression summaries or host cohort evidence for governance routing decisions.
 
 ### Mounted Preview Evidence Workflows (`ADM`)
 
@@ -78,8 +78,8 @@
 |-------------|-------|--------|
 | IMP-05 | Phase 65 | Complete |
 | IMP-06 | Phase 65 | Complete |
-| IMP-07 | Phase 66 | Pending |
-| GOV-05 | Phase 66 | Pending |
+| IMP-07 | Phase 66 | Complete |
+| GOV-05 | Phase 66 | Complete |
 | ADM-05 | Phase 67 | Pending |
 | VER-01 | Phase 68 | Pending |
 | VER-02 | Phase 68 | Pending |
