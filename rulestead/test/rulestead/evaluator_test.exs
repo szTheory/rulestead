@@ -36,6 +36,40 @@ defmodule Rulestead.EvaluatorTest do
     assert result.reason == :rule_match
   end
 
+  test "literal false condition and result values are preserved" do
+    payload = %{
+      flag: %{key: "boolean-flag", default_value: %{value: true}},
+      environment: %{key: "test"},
+      active_ruleset: %{
+        version: 1,
+        salt: "boolean:v1",
+        rules: [
+          %{
+            key: "false-match",
+            strategy: :forced_value,
+            value: %{value: false},
+            conditions: [
+              %{attribute: "attributes.beta_opted_out", operator: :eq, value: false}
+            ]
+          }
+        ]
+      }
+    }
+
+    assert {:ok, matched} =
+             Evaluator.evaluate(payload, %{attributes: %{beta_opted_out: false}})
+
+    assert matched.reason == :rule_match
+    assert matched.value == false
+    assert matched.enabled? == false
+
+    assert {:ok, missed} =
+             Evaluator.evaluate(payload, %{attributes: %{beta_opted_out: true}})
+
+    assert missed.reason == :default
+    assert missed.value == true
+  end
+
   test "strict and permissive sticky identity behavior is deterministic" do
     payload = %{
       flag: %{key: "pricing-test", default_value: %{value: false}},

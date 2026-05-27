@@ -117,9 +117,9 @@ defmodule Rulestead.Evaluator do
   end
 
   defp evaluate_condition(condition, context) do
-    attribute = condition[:attribute] || condition["attribute"]
-    operator = condition[:operator] || condition["operator"]
-    value = condition[:value] || condition["value"] || %{}
+    attribute = fetch_value(condition, :attribute)
+    operator = fetch_value(condition, :operator)
+    value = fetch_value(condition, :value) |> default_if_nil(%{})
     actual = resolve_attribute(context, attribute)
     passed? = compare(operator, actual, value)
 
@@ -296,15 +296,15 @@ defmodule Rulestead.Evaluator do
     case strategy do
       strategy
       when strategy in [:forced_value, :segment_match, "forced_value", "segment_match"] ->
-        value = extract_value(rule[:value] || rule["value"])
+        value = extract_value(fetch_value(rule, :value))
         {:ok, result(flag, active_ruleset, rule_key, value, nil, condition_trace, rollout_trace)}
 
       strategy when strategy in [:percentage_rollout, "percentage_rollout"] ->
-        rule_value = extract_value(rule[:value] || rule["value"])
+        rule_value = extract_value(fetch_value(rule, :value))
 
         value =
           if(is_nil(rule_value),
-            do: extract_value(flag[:default_value] || flag["default_value"]),
+            do: extract_value(fetch_value(flag, :default_value)),
             else: rule_value
           )
 
@@ -313,7 +313,7 @@ defmodule Rulestead.Evaluator do
       strategy when strategy in [:variant_split, "variant_split"] ->
         case choose_variant(fetch_list(rule, :variants), rollout_trace[:variant_bucket]) do
           {:ok, variant} ->
-            value = extract_value(variant[:value] || variant["value"])
+            value = extract_value(fetch_value(variant, :value))
             variant_key = stringify(variant[:key] || variant["key"])
 
             {:ok,
@@ -340,7 +340,7 @@ defmodule Rulestead.Evaluator do
           control_variant = List.first(variants)
 
           if control_variant do
-            value = extract_value(control_variant[:value] || control_variant["value"])
+            value = extract_value(fetch_value(control_variant, :value))
             variant_key = stringify(control_variant[:key] || control_variant["key"])
 
             {:ok,
@@ -359,7 +359,7 @@ defmodule Rulestead.Evaluator do
         else
           case choose_variant(fetch_list(rule, :variants), rollout_trace[:variant_bucket]) do
             {:ok, variant} ->
-              value = extract_value(variant[:value] || variant["value"])
+              value = extract_value(fetch_value(variant, :value))
               variant_key = stringify(variant[:key] || variant["key"])
 
               {:ok,
@@ -638,6 +638,9 @@ defmodule Rulestead.Evaluator do
   end
 
   defp fetch_comparable_list(value, _key), do: value
+
+  defp default_if_nil(nil, default), do: default
+  defp default_if_nil(value, _default), do: value
 
   defp extract_value(%{value: value}), do: value
   defp extract_value(%{"value" => value}), do: value
