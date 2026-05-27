@@ -26,9 +26,9 @@
 
 ### Verification And Support Truth (`VER`)
 
-- [ ] **VER-01**: Repo-local proof covers threshold evaluation, change-request proposal and execution, stale-preview rejection, fail-closed missing-input behavior, and audit evidence for governed audience mutations.
-- [ ] **VER-02**: Public docs, package docs, and release-contract checks describe blast-radius governance scope, threshold semantics, protected-environment behavior, and host-owned policy responsibilities.
-- [ ] **VER-03**: README and getting-started quickstart teach payload-first evaluation (`Rulestead.evaluate/3`, explicit context) consistent with `guides/flows/evaluation.md`; linked-version sibling-package release model unchanged.
+- [x] **VER-01**: Repo-local proof covers threshold evaluation, change-request proposal and execution, stale-preview rejection, fail-closed missing-input behavior, and audit evidence for governed audience mutations.
+- [x] **VER-02**: Public docs, package docs, and release-contract checks describe blast-radius governance scope, threshold semantics, protected-environment behavior, and host-owned policy responsibilities.
+- [x] **VER-03**: README and getting-started quickstart teach payload-first evaluation (`Rulestead.evaluate/3`, explicit context) consistent with `guides/flows/evaluation.md`; linked-version sibling-package release model unchanged.
 
 ## Future Requirements
 
@@ -100,9 +100,9 @@
 | ADM-01 | Phase 59 | Complete |
 | ADM-02 | Phase 59 | Complete |
 | ADM-03 | Phase 59 | Complete |
-| VER-01 | Phase 60 | Pending |
-| VER-02 | Phase 60 | Pending |
-| VER-03 | Phase 60 | Pending |
+| VER-01 | Phase 60 | Complete |
+| VER-02 | Phase 60 | Complete |
+| VER-03 | Phase 60 | Complete |
 
 **Coverage:**
 
