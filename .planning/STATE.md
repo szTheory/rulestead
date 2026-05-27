@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.8.0
 milestone_name: Guarded Rollout Auto-Advance
-status: Defining requirements
-stopped_at: Milestone initialized — ready for Phase 61 discuss/plan
-last_updated: "2026-05-27T21:00:00.000Z"
-last_activity: 2026-05-27 — Milestone v1.8.0 initialized (ROL-04)
+status: Ready for planning
+stopped_at: Phase 61 context gathered (assumptions mode)
+last_updated: "2026-05-27T22:00:00.000Z"
+last_activity: 2026-05-27 — Phase 61 context captured (auto-advance authored contract)
 progress:
   total_phases: 4
   completed_phases: 0
@@ -26,10 +26,10 @@ See: `.planning/PROJECT.md` (updated 2026-05-27)
 
 ## Current Position
 
-Phase: Not started (defining requirements complete; ready for Phase 61)
+Phase: 61 — Auto-Advance Authored Contract
 Plan: —
-Status: Ready for `/gsd-discuss-phase 61` or `/gsd-plan-phase 61`
-Last activity: 2026-05-27 — Milestone v1.8.0 started
+Status: Ready for `/gsd-plan-phase 61`
+Last activity: 2026-05-27 — `/gsd-discuss-phase 61` (assumptions mode)
 
 ## Performance Metrics
 
@@ -68,10 +68,10 @@ None.
 ## Session Continuity
 
 Last session: 2026-05-27 — `/gsd-new-milestone v1.8.0`
-Resume: `/gsd-discuss-phase 61` or `/gsd-plan-phase 61`
+Resume: `/gsd-plan-phase 61`
 
 ## Operator Next Steps
 
-- `/gsd-discuss-phase 61` — gather Phase 61 context (auto-advance authored contract)
-- `/gsd-plan-phase 61` — skip discussion, plan directly
+- `/gsd-plan-phase 61` — plan Phase 61 from captured context
+- Review `.planning/phases/61-auto-advance-authored-contract/61-CONTEXT.md` before planning if needed
 - Assessment thread: `.planning/threads/2026-05-27-post-v1.7-milestone-assessment.md`
