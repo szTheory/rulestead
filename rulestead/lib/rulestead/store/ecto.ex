@@ -2407,8 +2407,23 @@ defmodule Rulestead.Store.Ecto do
       schema_version: @snapshot_schema_version,
       environment_key: environment.key,
       generated_at: now(),
-      flags: flags
+      flags: flags,
+      audiences: compiled_audience_definitions(repo, environment)
     }
+  end
+
+  defp compiled_audience_definitions(repo, _environment) do
+    Audience
+    |> where([audience], is_nil(audience.archived_at))
+    |> order_by([audience], asc: audience.key)
+    |> repo.all()
+    |> Map.new(fn audience ->
+      {audience.key,
+       %{
+         definition: audience.definition,
+         archived_at: audience.archived_at
+       }}
+    end)
   end
 
   defp next_snapshot_version(repo, environment_key) do
