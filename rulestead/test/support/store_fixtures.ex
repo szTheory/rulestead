@@ -131,6 +131,40 @@ defmodule Rulestead.StoreFixtures do
     }
   end
 
+  @spec guarded_rollout_ruleset_attrs(map()) :: map()
+  def guarded_rollout_ruleset_attrs(overrides \\ %{}) do
+    valid_ruleset_attrs(%{
+      rules: [
+        %{
+          key: "variant-split",
+          name: "Checkout split",
+          strategy: :variant_split,
+          rollout: %{
+            bucket_by: :subject,
+            percentage: 100,
+            salt: "checkout-rollout",
+            guardrails: [
+              %{
+                signal_key: "checkout_error_rate",
+                threshold_operator: :gte,
+                threshold_value: 0.05,
+                freshness_window_seconds: 300,
+                min_sample_size: 100,
+                environment_scope: :environment,
+                tenant_scope: :required
+              }
+            ]
+          },
+          variants: [
+            %{key: "control", weight: 50, value: %{value: "control"}},
+            %{key: "treatment", weight: 50, value: %{value: "treatment"}}
+          ]
+        }
+      ]
+    })
+    |> Map.merge(overrides)
+  end
+
   @spec invalid_guardrail_ruleset_attrs() :: map()
   def invalid_guardrail_ruleset_attrs do
     valid_ruleset_attrs(%{
