@@ -74,7 +74,14 @@ Plans:
   3. Flag rule editing, simulation, and explanation screens show reusable audience summaries, matched/missed audience trace steps, missing-reference copy, and support-safe explain permalinks.
   4. Mounted compare, promotion, and manifest screens render reusable audience dependency blockers and links without adding graph visualization, bulk automation, or standalone `rulestead_admin` behavior.
 
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 55-01-PLAN.md — Audience library routes, detail, policy-aware used-by tables (ADM-01)
+- [ ] 55-02-PLAN.md — Preview → confirm → audit mutation flows and fail-closed delete (ADM-02)
+- [ ] 55-03-PLAN.md — Flag explain, rules, simulate audience traces (ADM-03)
+- [ ] 55-04-PLAN.md — Compare dependency findings, verify.phase55, handoff (ADM-04)
+
 **UI hint**: yes
 
 ### Phase 56: Proof, Docs, And Support Truth
