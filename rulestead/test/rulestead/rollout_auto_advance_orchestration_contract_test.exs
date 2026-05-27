@@ -17,7 +17,10 @@ defmodule Rulestead.RolloutAutoAdvanceOrchestrationContractTest do
     ensure_auto_advance_schema!()
 
     previous_provider = Application.get_env(:rulestead, :guardrails_provider)
+    previous_policy = Application.get_env(:rulestead, :admin_policy)
+
     Application.put_env(:rulestead, :guardrails_provider, OrchestrationStubProvider)
+    Application.delete_env(:rulestead, :admin_policy)
     OrchestrationStubProvider.reset!()
 
     on_exit(fn ->
@@ -27,6 +30,12 @@ defmodule Rulestead.RolloutAutoAdvanceOrchestrationContractTest do
         Application.put_env(:rulestead, :guardrails_provider, previous_provider)
       else
         Application.delete_env(:rulestead, :guardrails_provider)
+      end
+
+      if previous_policy do
+        Application.put_env(:rulestead, :admin_policy, previous_policy)
+      else
+        Application.delete_env(:rulestead, :admin_policy)
       end
     end)
 
@@ -183,7 +192,15 @@ defmodule Rulestead.RolloutAutoAdvanceOrchestrationContractTest do
   end
 
   defp reset_adapter!(Rulestead.Fake), do: Rulestead.Fake.Control.reset!()
-  defp reset_adapter!(StoreEcto), do: :ok
+
+  defp reset_adapter!(StoreEcto) do
+    for table <- ~w(
+         execution_attempts approvals change_requests scheduled_executions
+         rollout_auto_advance_policies audit_events rulesets flag_environments flags
+       ) do
+      Repo.query!("DELETE FROM #{table}")
+    end
+  end
 
   defp adapter_suffix(Rulestead.Fake), do: "fake"
   defp adapter_suffix(StoreEcto), do: "ecto"
