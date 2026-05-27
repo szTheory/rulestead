@@ -17,7 +17,7 @@
 
 ### Mounted Preview Evidence Workflows (`ADM`)
 
-- [ ] **ADM-05**: Mounted audience edit, archive, and delete preview flows resolve host-supplied preview evidence when a host configures the resolver seam, render sample/impression evidence with honest uncertainty copy, and fail closed with actionable guidance when evidence is missing, invalid, or policy-denied.
+- [x] **ADM-05**: Mounted audience edit, archive, and delete preview flows resolve host-supplied preview evidence when a host configures the resolver seam, render sample/impression evidence with honest uncertainty copy, and fail closed with actionable guidance when evidence is missing, invalid, or policy-denied.
 
 ### Verification And Support Truth (`VER`)
 
@@ -80,7 +80,7 @@
 | IMP-06 | Phase 65 | Complete |
 | IMP-07 | Phase 66 | Complete |
 | GOV-05 | Phase 66 | Complete |
-| ADM-05 | Phase 67 | Pending |
+| ADM-05 | Phase 67 | Complete |
 | VER-01 | Phase 68 | Pending |
 | VER-02 | Phase 68 | Pending |
 | VER-03 | Phase 68 | Pending |

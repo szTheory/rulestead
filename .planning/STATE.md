@@ -4,14 +4,14 @@ milestone: v1.9.0
 milestone_name: milestone
 status: executing
 stopped_at: Phase 67 context gathered (assumptions mode)
-last_updated: "2026-05-27T22:31:26.637Z"
-last_activity: 2026-05-27 -- Phase 67 planning complete
+last_updated: "2026-05-27T22:41:10.301Z"
+last_activity: 2026-05-27
 progress:
   total_phases: 4
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 12
-  completed_plans: 8
-  percent: 50
+  completed_plans: 12
+  percent: 75
 ---
 
 # State: Rulestead
@@ -21,15 +21,15 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-27)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions - booleans, variants, and remote config - with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
-**Current focus:** Phase 66 — evidence-carry-through-and-governance-boundary
+**Current focus:** Phase 67 — mounted-preview-evidence-workflows
 **Milestone:** `v1.9.0 - Host-Supplied Preview Evidence` (initialized 2026-05-27)
 
 ## Current Position
 
-Phase: 67
+Phase: 68
 Plan: Not started
-Status: Ready to execute
-Last activity: 2026-05-27 -- Phase 67 planning complete
+Status: Executing Phase 67
+Last activity: 2026-05-27
 
 ## Performance Metrics
 

@@ -23,7 +23,7 @@ Close the reusable-targeting preview gap: hosts supply bounded sample cohorts an
 
 - [x] **Phase 65: Host Preview Evidence Contract** — Core defines host-owned resolver seam, bounded sample/impression payloads, redaction, and deterministic fingerprinting with evidence present. (completed 2026-05-27)
 - [x] **Phase 66: Evidence Carry-Through And Governance Boundary** — Audit and change-request payloads carry support-safe evidence summaries; blast-radius thresholds remain reference-count based. (completed 2026-05-27)
-- [ ] **Phase 67: Mounted Preview Evidence Workflows** — Mounted audience preview flows resolve, render, and fail closed on host-supplied evidence inside the existing preview-confirm-audit envelope.
+- [x] **Phase 67: Mounted Preview Evidence Workflows** — Mounted audience preview flows resolve, render, and fail closed on host-supplied evidence inside the existing preview-confirm-audit envelope. (completed 2026-05-27)
 - [ ] **Phase 68: Proof, Docs, And Support Truth** — Verification, host seam docs, release-contract truth, and MAINTAINING drift fixes close bounded preview-evidence support claims.
 
 ## Phase Details
@@ -97,7 +97,7 @@ Close the reusable-targeting preview gap: hosts supply bounded sample cohorts an
 |-------|-----------|----------------|--------|-----------|
 | 65. Host Preview Evidence Contract | v1.9.0 | 4/4 | Complete    | 2026-05-27 |
 | 66. Evidence Carry-Through And Governance Boundary | v1.9.0 | 4/4 | Complete    | 2026-05-27 |
-| 67. Mounted Preview Evidence Workflows | v1.9.0 | 0/4 | Not started | — |
+| 67. Mounted Preview Evidence Workflows | v1.9.0 | 4/4 | Complete    | 2026-05-27 |
 | 68. Proof, Docs, And Support Truth | v1.9.0 | 0/4 | Not started | — |
 
 <details>
