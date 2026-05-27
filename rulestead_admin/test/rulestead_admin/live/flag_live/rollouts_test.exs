@@ -31,6 +31,27 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
     def change_request_required?(_, _, _, _), do: false
   end
 
+  defmodule DenyAdvanceRolloutPolicy do
+    @behaviour Rulestead.Admin.Policy
+
+    def can?(_actor, :access_admin, _resource, _environment_key), do: true
+    def can?(_actor, :list_audit_events, _resource, _environment_key), do: true
+    def can?(_actor, :read_flags, _resource, _environment_key), do: true
+    def can?(_actor, :read_rollouts, _resource, _environment_key), do: true
+    def can?(_actor, :advance_rollout, _resource, _environment_key), do: false
+    def can?(_actor, _action, _resource, _environment_key), do: true
+    def change_request_required?(_, _, _, _), do: false
+  end
+
+  defmodule ProtectedAdvancePolicy do
+    @behaviour Rulestead.Admin.Policy
+
+    def can?(_actor, _action, _resource, _environment_key), do: true
+
+    def change_request_required?(_actor, :advance_rollout, _resource, "prod"), do: true
+    def change_request_required?(_, _, _, _), do: false
+  end
+
   setup_all do
     start_supervised!(RulesteadAdmin.TestEndpoint)
     :ok
@@ -267,6 +288,109 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
     assert html =~ "Wire guardrails on this rollout rule before enabling auto-advance."
     refute html =~ "fleet healthy"
     refute html =~ "metrics dashboard"
+  end
+
+  @tag :auto_advance_capability
+  test "rollout page hides auto-advance save form when advance_rollout is denied", %{conn: conn} do
+    Application.put_env(:rulestead, :admin_policy, DenyAdvanceRolloutPolicy)
+
+    denied_conn =
+      conn
+      |> Phoenix.ConnTest.recycle()
+      |> Phoenix.ConnTest.init_test_session(%{
+        "current_actor" => %{
+          id: "viewer-1",
+          email: "viewer@example.com",
+          display: "Viewer",
+          roles: ["viewer"]
+        },
+        "rulestead_admin_last_env" => "prod",
+        "rulestead_admin_environments" => [
+          %{"key" => "prod", "name" => "Production"}
+        ]
+      })
+
+    {:ok, _view, html} = live(denied_conn, "/admin/flags/checkout-redesign/rollouts?env=prod")
+
+    assert html =~ "Auto-advance configuration requires advance permission"
+    refute html =~ ~r/phx-submit="save_auto_advance_policy"/
+  end
+
+  @tag :auto_advance_protected
+  test "protected environment shows change-request callout and still saves auto-advance policy",
+       %{conn: conn} do
+    Application.put_env(:rulestead, :admin_policy, ProtectedAdvancePolicy)
+    seed_healthy_guardrail!()
+
+    {:ok, view, html} = live(conn, "/admin/flags/checkout-redesign/rollouts?env=prod")
+
+    assert html =~ "submits a change request for approval"
+    assert html =~ "will not auto-apply"
+
+    saved_html =
+      view
+      |> form("#auto-advance-form", %{
+        "auto_advance" => %{
+          "enabled" => "true",
+          "observation_window_seconds" => "300",
+          "next_stage" => "canary-50",
+          "next_percentage" => "50",
+          "rule_key" => "checkout-canary"
+        }
+      })
+      |> render_submit()
+
+    assert saved_html =~ "Auto-advance policy saved."
+
+    assert {:ok, %{policy: policy}} =
+             Rulestead.fetch_rollout_auto_advance_policy(
+               "checkout-redesign",
+               "prod",
+               "checkout-canary"
+             )
+
+    assert policy.enabled == true
+    assert policy.observation_window_seconds == 300
+    assert policy.next_stage == "canary-50"
+    assert policy.next_percentage == 50
+  end
+
+  @tag :auto_advance_save
+  test "rollout page saves auto-advance policy via direct upsert", %{conn: conn} do
+    seed_healthy_guardrail!()
+    seed_auto_advance_policy!(false, %{observation_window_seconds: nil, next_stage: nil, next_percentage: nil})
+
+    {:ok, view, html} = live(conn, "/admin/flags/checkout-redesign/rollouts?env=prod")
+
+    assert html =~ "Observation window (seconds)"
+
+    saved_html =
+      view
+      |> form("#auto-advance-form", %{
+        "auto_advance" => %{
+          "enabled" => "true",
+          "observation_window_seconds" => "300",
+          "next_stage" => "canary-50",
+          "next_percentage" => "50",
+          "rule_key" => "checkout-canary"
+        }
+      })
+      |> render_submit()
+
+    assert saved_html =~ "Auto-advance policy saved."
+    assert saved_html =~ "300"
+
+    assert {:ok, %{policy: policy}} =
+             Rulestead.fetch_rollout_auto_advance_policy(
+               "checkout-redesign",
+               "prod",
+               "checkout-canary"
+             )
+
+    assert policy.enabled == true
+    assert policy.observation_window_seconds == 300
+    assert policy.next_stage == "canary-50"
+    assert policy.next_percentage == 50
   end
 
   @tag :auto_advance_load
@@ -604,6 +728,53 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
 
     assert {:ok, _published} =
              Rulestead.publish_ruleset(Command.PublishRuleset.new(flag_key, environment_key))
+  end
+
+  defp seed_auto_advance_policy!(enabled \\ true, overrides \\ []) do
+    attrs =
+      Map.merge(
+        %{
+          rule_key: "checkout-canary",
+          enabled: enabled,
+          observation_window_seconds: 300,
+          next_stage: "canary-50",
+          next_percentage: 50
+        },
+        Map.new(overrides)
+      )
+
+    assert {:ok, _} =
+             Rulestead.upsert_rollout_auto_advance_policy("checkout-redesign", "prod", attrs)
+  end
+
+  defp seed_healthy_guardrail! do
+    assert {:ok, _status} =
+             Rulestead.evaluate_guarded_rollout(
+               "checkout-redesign",
+               "prod",
+               %{
+                 rule_key: "checkout-canary",
+                 stage: "canary-25",
+                 monitoring_window_started_at: ~U[2026-04-23 15:50:00Z],
+                 monitoring_window_ends_at: ~U[2026-04-23 16:00:00Z],
+                 signal_facts: [
+                   %{
+                     signal_key: "checkout_error_rate",
+                     status: :healthy,
+                     reason: :healthy,
+                     threshold_operator: :gte,
+                     threshold_value: 0.05,
+                     observed_value: 0.01,
+                     freshness_window_seconds: 300,
+                     sample_size: 100,
+                     min_sample_size: 100,
+                     evaluated_at: ~U[2026-04-23 15:59:00Z],
+                     metadata: %{}
+                   }
+                 ]
+               },
+               metadata: %{request_id: "req-rollouts-healthy", source: :guardrail_automation}
+             )
   end
 
   defp seed_guardrail_hold! do
