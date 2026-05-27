@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.9.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 65-02-PLAN.md
-last_updated: "2026-05-27T21:57:02Z"
+stopped_at: Completed 65-03-PLAN.md
+last_updated: "2026-05-27T21:59:53Z"
 last_activity: 2026-05-27
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 4
-  completed_plans: 2
-  percent: 50
+  completed_plans: 3
+  percent: 75
 ---
 
 # State: Rulestead
@@ -27,9 +27,9 @@ See: `.planning/PROJECT.md` (updated 2026-05-27)
 ## Current Position
 
 Phase: 65 (host-preview-evidence-contract) — EXECUTING
-Plan: 3 of 4 (65-03 next)
+Plan: 4 of 4 (65-04 next)
 Status: Ready to execute
-Last activity: 2026-05-27 — Completed 65-02-PLAN.md
+Last activity: 2026-05-27 — Completed 65-03-PLAN.md
 
 ## Performance Metrics
 
@@ -37,7 +37,8 @@ Last activity: 2026-05-27 — Completed 65-02-PLAN.md
 
 - 65-01: 12 min, 3 tasks, 4 files
 - 65-02: 15 min, 2 tasks, 2 files
-- Milestone plans completed: 2/4 (Phase 65)
+- 65-03: 18 min, 2 tasks, 5 files
+- Milestone plans completed: 3/4 (Phase 65)
 
 ## Accumulated Context
 
@@ -51,6 +52,7 @@ Last activity: 2026-05-27 — Completed 65-02-PLAN.md
 - Phase 65: `PreviewEvidence` behaviour mirrors `Guardrails.Provider`; `ImpactPreview` schema v2; union sample merge cap 25; impression summary allowlist; GOV unchanged.
 - 65-01: Opt-in resolver returns `{:ok, %{}}` when unconfigured; unknown impression keys fail-closed; merge dedupe uses actor_key+targeting_key with command rows first.
 - 65-02: ImpactPreview schema v2 adds impression_evidence and impression_fingerprint; basis-specific uncertainty messages; derive with_host_evidence when impression summary non-empty.
+- 65-03: Store invokes PreviewEvidence before ImpactPreview.build in Fake/Ecto; union merge via Limits; Fake.PreviewEvidenceResolver for tests; ensure_loaded before resolver export check.
 
 ### Pending Todos
 
@@ -70,8 +72,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-27T21:57:02Z
-Stopped at: Completed 65-02-PLAN.md
+Last session: 2026-05-27T21:59:53Z
+Stopped at: Completed 65-03-PLAN.md
 Resume file: None
 
 ## Operator Next Steps

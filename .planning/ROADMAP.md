@@ -95,7 +95,7 @@ Close the reusable-targeting preview gap: hosts supply bounded sample cohorts an
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 65. Host Preview Evidence Contract | v1.9.0 | 2/4 | In Progress | — |
+| 65. Host Preview Evidence Contract | v1.9.0 | 3/4 | In Progress | — |
 | 66. Evidence Carry-Through And Governance Boundary | v1.9.0 | 0/4 | Not started | — |
 | 67. Mounted Preview Evidence Workflows | v1.9.0 | 0/4 | Not started | — |
 | 68. Proof, Docs, And Support Truth | v1.9.0 | 0/4 | Not started | — |
