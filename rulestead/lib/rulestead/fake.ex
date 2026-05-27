@@ -214,14 +214,17 @@ defmodule Rulestead.Fake do
     call({:evaluate_guarded_rollout, command})
   end
 
+  @impl Store
   def upsert_rollout_auto_advance_policy(%Command.UpsertRolloutAutoAdvancePolicy{} = command) do
     call({:upsert_rollout_auto_advance_policy, command})
   end
 
+  @impl Store
   def fetch_rollout_auto_advance_policy(%Command.FetchRolloutAutoAdvancePolicy{} = command) do
     call({:fetch_rollout_auto_advance_policy, command})
   end
 
+  @impl Store
   def evaluate_rollout_auto_advance(%Command.EvaluateRolloutAutoAdvance{} = command) do
     call({:evaluate_rollout_auto_advance, command})
   end

@@ -32,6 +32,12 @@ defmodule Rulestead.Store do
   @callback record_evaluation(Command.RecordEvaluation.t()) :: result(map())
   @callback advance_rollout(Command.AdvanceRollout.t()) :: result(map())
   @callback evaluate_guarded_rollout(Command.EvaluateGuardedRollout.t()) :: result(map())
+  @callback upsert_rollout_auto_advance_policy(Command.UpsertRolloutAutoAdvancePolicy.t()) ::
+              result(map())
+  @callback fetch_rollout_auto_advance_policy(Command.FetchRolloutAutoAdvancePolicy.t()) ::
+              result(map())
+  @callback evaluate_rollout_auto_advance(Command.EvaluateRolloutAutoAdvance.t()) ::
+              result(map())
   @callback fetch_guardrail_status(Command.FetchGuardrailStatus.t()) :: result(map())
   @callback engage_kill_switch(Command.EngageKillSwitch.t()) :: result(map())
   @callback release_kill_switch(Command.ReleaseKillSwitch.t()) :: result(map())

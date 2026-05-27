@@ -25,6 +25,7 @@ defmodule Rulestead.Store.Ecto do
     Flag,
     FlagEnvironment,
     GuardrailDecision,
+    Guardrails.AutoAdvance,
     Guardrails.Decision,
     Guardrails.SignalFact,
     Manifest.Import,
@@ -32,6 +33,7 @@ defmodule Rulestead.Store.Ecto do
     Promotion.Apply,
     Promotion.Compare,
     Repo,
+    RolloutAutoAdvancePolicy,
     RuntimeSnapshot,
     Ruleset,
     RulesetError,
@@ -932,6 +934,79 @@ defmodule Rulestead.Store.Ecto do
         rollout_rule,
         evaluated
       )
+    end
+  end
+
+  @impl Store
+  def upsert_rollout_auto_advance_policy(%Command.UpsertRolloutAutoAdvancePolicy{} = command) do
+    with :ok <- Command.UpsertRolloutAutoAdvancePolicy.validate_required_fields(command) do
+      attrs = auto_advance_policy_attrs(command)
+
+      %RolloutAutoAdvancePolicy{}
+      |> RolloutAutoAdvancePolicy.changeset(attrs)
+      |> Repo.insert(
+        on_conflict: {:replace_all_except, [:id, :inserted_at]},
+        conflict_target: [:flag_key, :environment_key, :rule_key]
+      )
+      |> case do
+        {:ok, policy} ->
+          {:ok, %{policy: serialize_rollout_auto_advance_policy(policy)}}
+
+        {:error, %Changeset{} = changeset} ->
+          {:error, auto_advance_policy_changeset_error(changeset, command)}
+      end
+    else
+      {:error, errors} when is_map(errors) ->
+        {:error,
+         StoreError.invalid_command("rollout auto-advance policy is invalid",
+           metadata: %{
+             flag_key: command.flag_key,
+             environment_key: command.environment_key,
+             rule_key: command.rule_key
+           },
+           details: auto_advance_policy_field_errors(errors)
+         )}
+    end
+  end
+
+  @impl Store
+  def fetch_rollout_auto_advance_policy(%Command.FetchRolloutAutoAdvancePolicy{} = command) do
+    case Repo.get_by(RolloutAutoAdvancePolicy,
+           flag_key: command.flag_key,
+           environment_key: command.environment_key,
+           rule_key: command.rule_key
+         ) do
+      nil ->
+        {:error, rollout_auto_advance_policy_not_found_error(command)}
+
+      policy ->
+        {:ok, %{policy: serialize_rollout_auto_advance_policy(policy)}}
+    end
+  end
+
+  @impl Store
+  def evaluate_rollout_auto_advance(%Command.EvaluateRolloutAutoAdvance{} = command) do
+    fetch_command =
+      Command.FetchRolloutAutoAdvancePolicy.new(
+        command.flag_key,
+        command.environment_key,
+        command.rule_key
+      )
+
+    with {:ok, %{policy: policy}} <- fetch_rollout_auto_advance_policy(fetch_command) do
+      evaluated_at =
+        command.evaluated_at ||
+          now()
+          |> DateTime.truncate(:second)
+
+      AutoAdvance.evaluate_eligibility(policy, %{
+        signal_facts: command.signal_facts,
+        monitoring_window_ends_at: command.monitoring_window_ends_at,
+        evaluated_at: evaluated_at
+      })
+      |> case do
+        {:ok, eligibility} -> {:ok, %{eligibility: eligibility}}
+      end
     end
   end
 
@@ -3674,6 +3749,63 @@ defmodule Rulestead.Store.Ecto do
       metadata: %{flag_key: to_string(flag_key), environment_key: to_string(environment_key)},
       details: collect_changeset_details(changeset),
       cause: changeset
+    )
+  end
+
+  defp auto_advance_policy_attrs(%Command.UpsertRolloutAutoAdvancePolicy{} = command) do
+    %{
+      flag_key: command.flag_key,
+      environment_key: command.environment_key,
+      rule_key: command.rule_key,
+      enabled: command.enabled,
+      observation_window_seconds: command.observation_window_seconds,
+      next_stage: command.next_stage,
+      next_percentage: command.next_percentage,
+      metadata: command.metadata
+    }
+  end
+
+  defp serialize_rollout_auto_advance_policy(%RolloutAutoAdvancePolicy{} = policy) do
+    %{
+      id: policy.id,
+      flag_key: policy.flag_key,
+      environment_key: policy.environment_key,
+      rule_key: policy.rule_key,
+      enabled: policy.enabled,
+      observation_window_seconds: policy.observation_window_seconds,
+      next_stage: policy.next_stage,
+      next_percentage: policy.next_percentage,
+      metadata: policy.metadata,
+      inserted_at: policy.inserted_at,
+      updated_at: policy.updated_at
+    }
+  end
+
+  defp auto_advance_policy_changeset_error(changeset, command) do
+    StoreError.invalid_command("rollout auto-advance policy is invalid",
+      metadata: %{
+        flag_key: command.flag_key,
+        environment_key: command.environment_key,
+        rule_key: command.rule_key
+      },
+      details: collect_changeset_details(changeset),
+      cause: changeset
+    )
+  end
+
+  defp auto_advance_policy_field_errors(errors) do
+    Enum.map(errors, fn {field, message} ->
+      %{field: to_string(field), message: message}
+    end)
+  end
+
+  defp rollout_auto_advance_policy_not_found_error(command) do
+    StoreError.invalid_command("rollout_auto_advance_policy_not_found",
+      metadata: %{
+        flag_key: command.flag_key,
+        environment_key: command.environment_key,
+        rule_key: command.rule_key
+      }
     )
   end
 
