@@ -18,6 +18,13 @@ part of the public package promise.
 
 ## Mount seam
 
+The guarded rollout mounted companion status contract reads core guardrail status and audit truth. It displays thresholds, freshness, and reasons from the runtime package, and fails closed on missing prerequisites rather than inventing package-owned metrics, auth, or environment state.
+
+This is not a standalone admin. It remains a mounted Phoenix host app
+companion: the host owns routing, policy, session, actor identity, and the
+metrics provider seam while `rulestead_admin` renders the bounded status and
+timeline explanation.
+
 ## Install
 
 Add `rulestead_admin` only when a Phoenix host app needs the mounted companion

@@ -150,6 +150,12 @@ itself or integrating it into a larger release process.
 The repo's current proof posture is intentionally bounded:
 
 - `examples/demo/` is the primary runnable end-to-end proof path.
+- `RULESTEAD_TEST_SCOPE=guarded_rollout_foundations bash scripts/ci/test.sh`
+  proves guarded rollout foundations: host-supplied normalized guardrail facts
+  with explicit threshold, freshness, and sample-size semantics; fail closed
+  outcomes for `pending_data`, `held`, and `rollback_triggered`; audited hold
+  and rollback decisions; mounted status inside the existing workflow; and
+  drift guards for the support truth in these docs.
 - `RULESTEAD_TEST_SCOPE=openfeature_companion bash scripts/ci/test.sh` proves the
   optional `open_feature_rulestead` companion package's Elixir provider contract:
   `context_mapper_test` and `provider_test`.
@@ -170,6 +176,25 @@ For the exact mounted host-package contract, including fail-closed prerequisites
 and environment-selection rules, use
 [rulestead_admin/README.md](rulestead_admin/README.md). For the maintainer
 rerun path and CI gate semantics, use [MAINTAINING.md](MAINTAINING.md).
+
+## Guarded rollout foundations
+
+Guarded rollout support is intentionally host-owned and bounded. Hosts supply
+normalized guardrail facts; Rulestead records deterministic decisions from
+those facts using explicit threshold, freshness, and sample-size semantics.
+Missing, stale, unsupported, or undersampled facts fail closed into
+`pending_data` or `held`, while breached facts can produce
+`rollback_triggered` only when a recorded stable rollback target exists.
+
+The current support promise covers audited hold and rollback behavior plus
+mounted status inside the existing workflow. It does not make Rulestead a
+metrics collector, dashboard system, provider-integration catalog, experiment
+analysis engine, or package-owned rollout operator. Maintainers can rerun the
+bounded proof with:
+
+```bash
+RULESTEAD_TEST_SCOPE=guarded_rollout_foundations bash scripts/ci/test.sh
+```
 
 The runnable local demo lives under `examples/demo/`:
 

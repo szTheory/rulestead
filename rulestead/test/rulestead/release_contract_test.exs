@@ -265,6 +265,62 @@ defmodule Rulestead.ReleaseContractTest do
     end
   end
 
+  test "guarded rollout support truth stays bounded across root package and maintainer docs" do
+    root_readme = File.read!(@root_readme_path)
+    runtime_readme = File.read!(@runtime_readme_path)
+    admin_readme = File.read!(@admin_readme_path)
+    maintaining = File.read!(@maintaining_path)
+
+    assert root_readme =~ "guarded rollout foundations"
+    assert root_readme =~ "host-supplied normalized guardrail facts"
+    assert root_readme =~ "fail closed"
+    assert root_readme =~ "pending_data"
+    assert root_readme =~ "held"
+    assert root_readme =~ "rollback_triggered"
+    assert root_readme =~ "audited hold and rollback"
+
+    assert root_readme =~
+             "RULESTEAD_TEST_SCOPE=guarded_rollout_foundations bash scripts/ci/test.sh"
+
+    assert runtime_readme =~ "host-owned metrics provider seam"
+    assert runtime_readme =~ "deterministic sticky rollout decisions"
+    assert runtime_readme =~ "audited hold and rollback"
+    assert runtime_readme =~ "no metrics ingestion"
+    assert runtime_readme =~ "no dashboards"
+    assert runtime_readme =~ "no statistics engine"
+    assert runtime_readme =~ "no built-in provider adapters"
+
+    assert admin_readme =~ "mounted companion status contract"
+    assert admin_readme =~ "reads core guardrail status and audit truth"
+    assert admin_readme =~ "thresholds, freshness, and reasons"
+    assert admin_readme =~ "fails closed on missing prerequisites"
+    assert admin_readme =~ "not a standalone admin"
+
+    assert maintaining =~ "guarded rollout foundations proof"
+
+    assert maintaining =~
+             "RULESTEAD_TEST_SCOPE=guarded_rollout_foundations bash scripts/ci/test.sh"
+
+    assert maintaining =~ "VER-01"
+
+    forbidden_phrases = [
+      "automatic progressive delivery platform",
+      "built-in observability",
+      "real-time dashboards",
+      "self-healing rollouts",
+      "vendor metrics integrations",
+      "experiment statistics",
+      "standalone rulestead_admin",
+      "auto-advance"
+    ]
+
+    docs = [root_readme, runtime_readme, admin_readme, maintaining]
+
+    for phrase <- forbidden_phrases, doc <- docs do
+      refute doc =~ phrase
+    end
+  end
+
   test "the root module exposes the locked v0.1.0 public function catalog" do
     expected = MapSet.new(@root_exports)
     actual = MapSet.new(Rulestead.__info__(:functions))

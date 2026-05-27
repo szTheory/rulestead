@@ -226,6 +226,41 @@ defmodule Rulestead.Mix.Tasks.VerifyReleasePublishTest do
     assert admin_readme =~ "fallback-only convenience"
   end
 
+  test "published release verification keeps guarded rollout support truth bounded" do
+    root_readme = File.read!(@root_readme_path)
+    runtime_readme = File.read!(@runtime_readme_path)
+    admin_readme = File.read!(@admin_readme_path)
+
+    assert root_readme =~ "guarded rollout foundations"
+    assert root_readme =~ "host-supplied normalized guardrail facts"
+    assert root_readme =~ "fail closed"
+    assert root_readme =~ "pending_data"
+    assert root_readme =~ "held"
+    assert root_readme =~ "rollback_triggered"
+    assert root_readme =~ "audited hold and rollback"
+
+    assert root_readme =~
+             "RULESTEAD_TEST_SCOPE=guarded_rollout_foundations bash scripts/ci/test.sh"
+
+    assert runtime_readme =~ "host-owned metrics provider seam"
+    assert runtime_readme =~ "deterministic sticky rollout decisions"
+    assert runtime_readme =~ "audited hold and rollback"
+    assert runtime_readme =~ "no metrics ingestion"
+    assert runtime_readme =~ "no dashboards"
+    assert runtime_readme =~ "no statistics engine"
+    assert runtime_readme =~ "no built-in provider adapters"
+
+    assert admin_readme =~ "mounted companion status contract"
+    assert admin_readme =~ "reads core guardrail status and audit truth"
+    assert admin_readme =~ "thresholds, freshness, and reasons"
+    assert admin_readme =~ "fails closed on missing prerequisites"
+    assert admin_readme =~ "not a standalone admin"
+
+    refute root_readme =~ "built-in observability"
+    refute runtime_readme =~ "real-time dashboards"
+    refute admin_readme =~ "standalone rulestead_admin"
+  end
+
   defp tmp_dir do
     path =
       Path.join(

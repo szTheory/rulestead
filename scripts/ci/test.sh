@@ -121,6 +121,21 @@ run_openfeature_companion() {
     test/open_feature_rulestead/provider_test.exs
 }
 
+run_guarded_rollout_foundations() {
+  run_mix rulestead deps.get
+  prepare_rulestead_test_db
+  run_mix rulestead test \
+    test/rulestead/guardrails/contract_test.exs \
+    test/rulestead/guardrails/decision_test.exs \
+    test/rulestead/guarded_rollout_test.exs \
+    test/rulestead/release_contract_test.exs \
+    test/rulestead/mix/tasks/verify_release_publish_test.exs
+  run_mix rulestead_admin deps.get
+  run_mix rulestead_admin test \
+    test/rulestead_admin/live/flag_live/rollouts_test.exs \
+    test/rulestead_admin/live/flag_live/timeline_test.exs
+}
+
 if [[ -n "${MATRIX_ELIXIR}" || -n "${MATRIX_OTP}" ]]; then
   echo "Running test lane for Elixir ${MATRIX_ELIXIR:-unknown} / OTP ${MATRIX_OTP:-unknown}"
 fi
@@ -143,9 +158,13 @@ case "${TEST_SCOPE}" in
     echo "Running OpenFeature companion provider proof bar"
     run_openfeature_companion
     ;;
+  guarded_rollout_foundations)
+    echo "Running guarded rollout foundations proof bar"
+    run_guarded_rollout_foundations
+    ;;
   *)
     echo "Unknown test scope: ${TEST_SCOPE}" >&2
-    echo "Supported scopes: all, mounted_admin_contract, openfeature_companion" >&2
+    echo "Supported scopes: all, mounted_admin_contract, openfeature_companion, guarded_rollout_foundations" >&2
     exit 64
     ;;
 esac

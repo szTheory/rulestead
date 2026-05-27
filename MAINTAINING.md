@@ -217,6 +217,27 @@ runnable and documented. It is not sufficient to claim browser/demo glue,
 publish choreography, or unrelated repo surfaces are now part of the same
 contract.
 
+## Guarded Rollout Foundations Proof
+
+Use the guarded rollout foundations proof when work touches VER-01 support
+truth, guardrail decision semantics, mounted rollout status explanation, or the
+root/package docs that describe guarded rollout support.
+
+Run the same wrapper locally:
+
+```bash
+RULESTEAD_TEST_SCOPE=guarded_rollout_foundations bash scripts/ci/test.sh
+```
+
+That scope is intentionally bounded to stale signals, insufficient samples,
+automatic hold, automatic rollback, mounted explanation, and support-truth
+drift guards. It proves VER-01 only across the current host-owned fact seam and
+mounted companion explanation path.
+
+It does not prove metrics ingestion, dashboards, provider adapters, browser
+demo flows, or automated rollout advancement. Keep those as separate future
+support claims unless a later phase adds explicit code, docs, and proof.
+
 ## Lifecycle Release Surface
 
 Phase 38 adds a lifecycle release surface that maintainers must verify

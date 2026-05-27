@@ -40,6 +40,15 @@ mix ecto.migrate
 - `Rulestead.evaluate/3`
 - `Rulestead.explain/2`
 
+## Guarded rollout runtime contract
+
+The guarded rollout runtime uses a host-owned metrics provider seam. Host apps
+submit normalized guardrail facts; `rulestead` keeps authored guardrail
+definitions, deterministic sticky rollout decisions, and audited hold and rollback
+records inside the runtime store.
+
+This package intentionally provides no metrics ingestion, no dashboards, no statistics engine, and no built-in provider adapters. Hosts own provider selection, collection, aggregation, and normalization before facts reach the runtime command boundary.
+
 ## Next docs
 
 - Root front door: [../README.md](../README.md)
