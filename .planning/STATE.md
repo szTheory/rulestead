@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.9.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 65-01-PLAN.md
-last_updated: "2026-05-27T21:55:43.557Z"
+stopped_at: Completed 65-02-PLAN.md
+last_updated: "2026-05-27T21:57:02Z"
 last_activity: 2026-05-27
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 4
-  completed_plans: 1
-  percent: 25
+  completed_plans: 2
+  percent: 50
 ---
 
 # State: Rulestead
@@ -27,16 +27,17 @@ See: `.planning/PROJECT.md` (updated 2026-05-27)
 ## Current Position
 
 Phase: 65 (host-preview-evidence-contract) — EXECUTING
-Plan: 2 of 4 (65-02 next)
+Plan: 3 of 4 (65-03 next)
 Status: Ready to execute
-Last activity: 2026-05-27 — Completed 65-01-PLAN.md
+Last activity: 2026-05-27 — Completed 65-02-PLAN.md
 
 ## Performance Metrics
 
 **Velocity (v1.9.0):**
 
 - 65-01: 12 min, 3 tasks, 4 files
-- Milestone plans completed: 1/4 (Phase 65)
+- 65-02: 15 min, 2 tasks, 2 files
+- Milestone plans completed: 2/4 (Phase 65)
 
 ## Accumulated Context
 
@@ -49,6 +50,7 @@ Last activity: 2026-05-27 — Completed 65-01-PLAN.md
 - v1.8 phase directories archived to `.planning/milestones/v1.8.0-phases/`.
 - Phase 65: `PreviewEvidence` behaviour mirrors `Guardrails.Provider`; `ImpactPreview` schema v2; union sample merge cap 25; impression summary allowlist; GOV unchanged.
 - 65-01: Opt-in resolver returns `{:ok, %{}}` when unconfigured; unknown impression keys fail-closed; merge dedupe uses actor_key+targeting_key with command rows first.
+- 65-02: ImpactPreview schema v2 adds impression_evidence and impression_fingerprint; basis-specific uncertainty messages; derive with_host_evidence when impression summary non-empty.
 
 ### Pending Todos
 
@@ -68,8 +70,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-27T21:55:43.554Z
-Stopped at: Completed 65-01-PLAN.md
+Last session: 2026-05-27T21:57:02Z
+Stopped at: Completed 65-02-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
