@@ -20,7 +20,7 @@
 
 ### Mounted Governance Workflows (`ADM`)
 
-- [ ] **ADM-01**: Mounted audience edit and archive flows detect threshold breaches in protected environments and route operators to proposal or change-request review instead of silent direct apply.
+- [x] **ADM-01**: Mounted audience edit and archive flows detect threshold breaches in protected environments and route operators to proposal or change-request review instead of silent direct apply.
 - [x] **ADM-02**: Change-request detail and audience mutation surfaces show blast-radius summary, threshold breach reasons, preview basis limits, and remediation copy inside the existing mounted policy envelope.
 - [x] **ADM-03**: Operators with insufficient permission see policy-aware partial visibility for dependency and blast-radius evidence without leaking raw predicates or unauthorized resource detail.
 
@@ -97,7 +97,7 @@
 | CRQ-01 | Phase 58 | Complete |
 | CRQ-02 | Phase 58 | Complete |
 | CRQ-03 | Phase 58 | Complete |
-| ADM-01 | Phase 59 | Pending |
+| ADM-01 | Phase 59 | Complete |
 | ADM-02 | Phase 59 | Complete |
 | ADM-03 | Phase 59 | Complete |
 | VER-01 | Phase 60 | Pending |
