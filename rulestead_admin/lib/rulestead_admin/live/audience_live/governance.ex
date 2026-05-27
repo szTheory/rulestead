@@ -6,6 +6,7 @@ defmodule RulesteadAdmin.Live.AudienceLive.Governance do
 
   alias Phoenix.LiveView.Socket
   alias Rulestead.Admin.Authorizer
+  alias Rulestead.Governance.ApprovalRequirement
   alias Rulestead.Promotion.Compare
   alias RulesteadAdmin.Live.AudienceLive.Shared
 
@@ -80,6 +81,53 @@ defmodule RulesteadAdmin.Live.AudienceLive.Governance do
     do: :partial
 
   def visibility_tier(_inventory), do: :full
+
+  @spec merge_approval_expectations(Socket.t(), String.t()) :: Socket.t()
+  def merge_approval_expectations(socket, audience_key) when is_binary(audience_key) do
+    approval_expectation_assigns(socket, audience_key)
+    |> Enum.reduce(socket, fn {key, value}, acc -> assign(acc, key, value) end)
+  end
+
+  @spec build_approval_requirement(Socket.t(), atom(), String.t()) :: ApprovalRequirement.t()
+  def build_approval_requirement(socket, action, audience_key)
+      when is_binary(audience_key) and is_atom(action) do
+    Authorizer.approval_requirement(
+      socket.assigns.current_actor,
+      action,
+      %{resource_type: "audience", resource_key: audience_key},
+      socket.assigns.current_environment.key
+    )
+  end
+
+  @spec audience_mutation_command_map(Socket.t(), map(), map() | nil, :update | :archive) :: map()
+  def audience_mutation_command_map(socket, preview, audience, operation)
+      when is_map(preview) and operation in [:update, :archive] do
+    base = %{
+      "audience_key" => socket.assigns.audience_key,
+      "environment_key" => socket.assigns.current_environment.key,
+      "tenant_key" => tenant_key(socket),
+      "operation" => normalize_operation(operation),
+      "preview_schema_version" => fetch(preview, :preview_schema_version),
+      "preview_fingerprint" => fetch(preview, :preview_fingerprint),
+      "preview_basis" => fetch(preview, :preview_basis),
+      "affected_reference_keys" => affected_reference_keys(preview)
+    }
+
+    case operation do
+      :update when is_map(audience) ->
+        Map.put(base, "after_definition", fetch(audience, :definition))
+
+      _ ->
+        base
+    end
+  end
+
+  @spec ensure_governance_mode(Socket.t(), governance_mode()) :: :ok | {:error, String.t()}
+  def ensure_governance_mode(%{assigns: %{governance_mode: mode}}, expected) when mode == expected,
+    do: :ok
+
+  def ensure_governance_mode(_socket, _expected),
+    do: {:error, "This action is not available for the current governance state."}
 
   @spec approval_expectation_assigns(Socket.t(), String.t()) :: map()
   def approval_expectation_assigns(socket, audience_key) when is_binary(audience_key) do
@@ -181,6 +229,10 @@ defmodule RulesteadAdmin.Live.AudienceLive.Governance do
 
   defp preview_audience_key(preview, socket) do
     fetch(preview, :audience_key) || socket.assigns[:audience_key]
+  end
+
+  defp tenant_key(socket) do
+    socket.assigns.current_tenant && socket.assigns.current_tenant.key
   end
 
   defp tenant_key_from_preview(preview) do
