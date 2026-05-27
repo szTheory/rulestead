@@ -2,7 +2,7 @@
 phase: 66
 slug: evidence-carry-through-and-governance-boundary
 status: draft
-nyquist_compliant: false
+nyquist_compliant: true
 wave_0_complete: true
 created: 2026-05-27
 ---
