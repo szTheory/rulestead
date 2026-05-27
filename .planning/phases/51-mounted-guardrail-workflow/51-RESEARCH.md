@@ -316,17 +316,17 @@ assert [%{signal_key: "checkout_error_rate"}] = rollout_rule.rollout.guardrails
 | A2 | One-off inline HEEx would make consistency harder than component extension. [ASSUMED] | Alternatives | If the team prefers inline code for tiny panels, component extraction could be deferred, but repeated status/timeline copy would need careful test coverage. |
 | A3 | Provider-specific branches or charting dependencies are warning signs of scope drift. [ASSUMED] | Common Pitfalls | If a future decision explicitly permits provider-specific UI, this warning would need revision, but current Phase 51 excludes it. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should `fetch_guardrail_status` be called for only the current rollout rule or for every stage-like audit/status record?**
    - What we know: `FetchGuardrailStatus` accepts optional `rule_key` and `stage`, and current rollout UI resolves one rollout rule. [VERIFIED: rulestead/lib/rulestead/store/command.ex, rulestead_admin/lib/rulestead_admin/live/flag_live/rollouts.ex]
    - What's unclear: The mounted page does not currently model multiple named rollout stages; Phase 50 status records have a `stage` string. [VERIFIED: rulestead/lib/rulestead/guardrail_decision.ex]
-   - Recommendation: Plan first for the current rollout rule plus latest status, and render stage when present; do not invent a stage-management UI. [VERIFIED: ROADMAP.md]
+   - RESOLVED: Plan for the current rollout rule only, using `rule_key: field(rollout_rule, :key)` and rendering the returned `stage` when present. Do not fetch every stage-like audit/status record and do not invent a stage-management UI in Phase 51. [VERIFIED: ROADMAP.md, 51-CONTEXT.md]
 
 2. **Should global audit filters add guardrail event options in Phase 51 or only per-flag surfaces?**
    - What we know: ADM-01 says mounted rollout screens and the same timeline/stage detail surfaces, not a global audit dashboard expansion. [VERIFIED: REQUIREMENTS.md]
    - What's unclear: Operators may expect global audit mutation dropdown to include automatic guardrail rows once per-flag rows exist. [ASSUMED]
-   - Recommendation: Add per-flag timeline wording and only add global filter options if needed for consistency; do not build a broader observability view. [VERIFIED: ROADMAP.md]
+   - RESOLVED: Add guardrail event wording to per-flag rollout and per-flag timeline surfaces only. Do not add global audit filter options in Phase 51; that would broaden the mounted workflow beyond ADM-01 and can be reconsidered in a later audit UX phase if operator evidence warrants it. [VERIFIED: ROADMAP.md, REQUIREMENTS.md, 51-CONTEXT.md]
 
 ## Environment Availability
 
