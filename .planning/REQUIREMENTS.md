@@ -21,10 +21,10 @@
 
 ### Explainability And Mounted Operator Workflows (`ADM`)
 
-- [ ] **ADM-01**: Mounted audience list and detail screens show policy-aware reference counts, "used by" tables, lifecycle/owner context, and affected rollout indicators inside the existing mounted admin envelope.
-- [ ] **ADM-02**: Mounted audience edit and archive/delete flows use a preview -> confirm -> audit workflow with fallback copy for missing preview data, stale preview tokens, denied dependency reads, and protected-environment governance requirements.
-- [ ] **ADM-03**: Flag rule editing, simulation, and explanation surfaces carry reusable audience context through selected-audience summaries, matched/missed audience trace steps, missing-reference copy, and support-safe explain permalinks.
-- [ ] **ADM-04**: Mounted compare, promotion, and manifest screens render reusable audience dependency findings with actionable blockers and links without introducing a standalone admin control plane, graph visualizer, or bulk automation path.
+- [x] **ADM-01**: Mounted audience list and detail screens show policy-aware reference counts, "used by" tables, lifecycle/owner context, and affected rollout indicators inside the existing mounted admin envelope.
+- [x] **ADM-02**: Mounted audience edit and archive/delete flows use a preview -> confirm -> audit workflow with fallback copy for missing preview data, stale preview tokens, denied dependency reads, and protected-environment governance requirements.
+- [x] **ADM-03**: Flag rule editing, simulation, and explanation surfaces carry reusable audience context through selected-audience summaries, matched/missed audience trace steps, missing-reference copy, and support-safe explain permalinks.
+- [x] **ADM-04**: Mounted compare, promotion, and manifest screens render reusable audience dependency findings with actionable blockers and links without introducing a standalone admin control plane, graph visualizer, or bulk automation path.
 
 ### Verification And Support Truth (`VER`)
 
@@ -108,10 +108,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DEP-02 | Phase 54 | Complete |
 | DEP-03 | Phase 54 | Complete |
 | DEP-04 | Phase 54 | Complete |
-| ADM-01 | Phase 55 | Pending |
-| ADM-02 | Phase 55 | Pending |
-| ADM-03 | Phase 55 | Pending |
-| ADM-04 | Phase 55 | Pending |
+| ADM-01 | Phase 55 | Complete |
+| ADM-02 | Phase 55 | Complete |
+| ADM-03 | Phase 55 | Complete |
+| ADM-04 | Phase 55 | Complete |
 | VER-01 | Phase 56 | Pending |
 | VER-02 | Phase 56 | Pending |
 | VER-03 | Phase 56 | Pending |

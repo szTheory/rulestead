@@ -17,7 +17,7 @@
 
 - [x] **Phase 53: Impact Preview Contract** - Operators can preview, token-confirm, and audit reusable audience mutations without false precision or runtime lookup drift. (completed 2026-05-27)
 - [x] **Phase 54: Dependency Truth And Promotion Safety** - Core dependency inventory, validation, promotion, compare, and manifest paths expose audience dependency truth and fail closed. (completed 2026-05-27)
-- [ ] **Phase 55: Mounted Operator Workflows** - Mounted admin screens make reusable audience dependencies, previews, confirmations, and explain traces visible inside the existing policy envelope.
+- [x] **Phase 55: Mounted Operator Workflows** - Mounted admin screens make reusable audience dependencies, previews, confirmations, and explain traces visible inside the existing policy envelope. (completed 2026-05-27)
 - [ ] **Phase 56: Proof, Docs, And Support Truth** - Verification, docs, and release-contract truth close the reusable targeting scope under the linked sibling-package model.
 
 ## Phase Details
@@ -77,10 +77,11 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 55-01-PLAN.md — Audience library routes, detail, policy-aware used-by tables (ADM-01)
-- [ ] 55-02-PLAN.md — Preview → confirm → audit mutation flows and fail-closed delete (ADM-02)
-- [ ] 55-03-PLAN.md — Flag explain, rules, simulate audience traces (ADM-03)
-- [ ] 55-04-PLAN.md — Compare dependency findings, verify.phase55, handoff (ADM-04)
+
+- [x] 55-01-PLAN.md — Audience library routes, detail, policy-aware used-by tables (ADM-01)
+- [x] 55-02-PLAN.md — Preview → confirm → audit mutation flows and fail-closed delete (ADM-02)
+- [x] 55-03-PLAN.md — Flag explain, rules, simulate audience traces (ADM-03)
+- [x] 55-04-PLAN.md — Compare dependency findings, verify.phase55, handoff (ADM-04)
 
 **UI hint**: yes
 
@@ -106,7 +107,7 @@ Phases execute in numeric order: 53 -> 54 -> 55 -> 56
 |-------|-----------|----------------|--------|-----------|
 | 53. Impact Preview Contract | v1.6.0 | 4/4 | Complete    | 2026-05-27 |
 | 54. Dependency Truth And Promotion Safety | v1.6.0 | 4/4 | Complete    | 2026-05-27 |
-| 55. Mounted Operator Workflows | v1.6.0 | 0/TBD | Not started | - |
+| 55. Mounted Operator Workflows | v1.6.0 | 4/4 | Complete    | 2026-05-27 |
 | 56. Proof, Docs, And Support Truth | v1.6.0 | 0/TBD | Not started | - |
 
 ## Requirement Coverage
