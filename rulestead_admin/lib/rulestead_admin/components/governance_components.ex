@@ -72,7 +72,7 @@ defmodule RulesteadAdmin.Components.GovernanceComponents do
 
   defp verdict(assessment) do
     assessment
-    |> Map.get(:verdict)
+    |> Map.get(:verdict, Map.get(assessment, "verdict"))
     |> normalize_verdict()
   end
 

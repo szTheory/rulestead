@@ -5,7 +5,11 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Show do
   use Phoenix.LiveView
 
   alias Rulestead.Store.Command
+  alias RulesteadAdmin.Components.GovernanceComponents
+  alias RulesteadAdmin.Components.OperatorComponents
   alias RulesteadAdmin.Components.Shell
+  alias RulesteadAdmin.Live.AudienceLive.Governance
+  alias RulesteadAdmin.Live.AudienceLive.Shared
   alias RulesteadAdmin.Live.Session
 
   @impl true
@@ -19,7 +23,10 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Show do
      |> assign(:audit_events, [])
      |> assign(:pending_action, nil)
      |> assign(:action_notice, nil)
-     |> assign(:action_error, nil)}
+     |> assign(:action_error, nil)
+     |> assign(:governance_metadata, %{})
+     |> assign(:blast_radius_assessment, nil)
+     |> assign(:approve_blocked_reason, nil)}
   end
 
   @impl true
@@ -47,6 +54,7 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Show do
        |> assign(:pending_action, nil)
        |> assign(:action_notice, nil)
        |> assign(:action_error, nil)
+       |> assign_governance_review(change_request)
        |> assign(:page, page)}
     end
   end
@@ -100,6 +108,15 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Show do
         <p><%= diff_summary(@change_request) %></p>
       </section>
 
+      <section :if={@blast_radius_assessment}>
+        <GovernanceComponents.blast_radius_panel
+          assessment={@blast_radius_assessment}
+          variant={:reviewer}
+          visibility={:full}
+          frozen?={true}
+        />
+      </section>
+
       <section :if={@change_request}>
         <h2>Review context</h2>
         <p>Status: <%= humanize(@change_request.state) %></p>
@@ -123,9 +140,19 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Show do
         <p :if={@action_notice} role="status"><%= @action_notice %></p>
         <p :if={@action_error} role="alert"><%= @action_error %></p>
 
+        <OperatorComponents.capability_explanation
+          :if={
+            @change_request.state == :submitted and not is_nil(@approve_blocked_reason) and
+              (@rulestead_admin_policy_state.capabilities.execute? or
+                 @rulestead_admin_policy_state.capabilities.admin?)
+          }
+          title="Broader flag read access required to approve this change."
+          reason={@approve_blocked_reason}
+        />
+
         <div :if={is_nil(@pending_action) and (@rulestead_admin_policy_state.capabilities.execute? or @rulestead_admin_policy_state.capabilities.admin?)} class="rs-detail__actions">
           <button
-            :if={@change_request.state == :submitted}
+            :if={@change_request.state == :submitted and is_nil(@approve_blocked_reason)}
             type="button"
             phx-click="start_action"
             phx-value-action="approve"
@@ -369,13 +396,89 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Show do
     end
   end
 
+  defp diff_title(%{action: :apply_audience_mutation} = change_request) do
+    operation = command_field(change_request.command, "operation")
+    audience_key = command_field(change_request.command, "audience_key")
+
+    "Audience #{humanize(operation)} · #{audience_key || change_request.resource_key}"
+  end
+
   defp diff_title(change_request) do
     get_in(change_request.command, ["diff", "title"]) || "Governed mutation preview"
+  end
+
+  defp diff_summary(%{action: :apply_audience_mutation} = change_request) do
+    operation = command_field(change_request.command, "operation")
+    audience_key = command_field(change_request.command, "audience_key")
+    environment = change_request.environment_key
+
+    "Proposed #{humanize(operation)} for audience #{audience_key || change_request.resource_key} in #{environment}."
   end
 
   defp diff_summary(change_request) do
     get_in(change_request.command, ["diff", "summary"]) || "No diff summary was recorded."
   end
+
+  defp assign_governance_review(socket, %{action: :apply_audience_mutation} = change_request) do
+    metadata = change_request.metadata || %{}
+    assessment = Map.get(metadata, "blast_radius_assessment")
+    tier = audience_visibility_tier(socket, change_request.resource_key)
+
+    approve_blocked_reason =
+      if tier != :full do
+        "At least one affected reference is hidden by your permissions. Broader flag read access is required to approve this change."
+      end
+
+    socket
+    |> assign(:governance_metadata, metadata)
+    |> assign(:blast_radius_assessment, assessment)
+    |> assign(:approve_blocked_reason, approve_blocked_reason)
+  end
+
+  defp assign_governance_review(socket, _change_request) do
+    socket
+    |> assign(:governance_metadata, %{})
+    |> assign(:blast_radius_assessment, nil)
+    |> assign(:approve_blocked_reason, nil)
+  end
+
+  defp audience_visibility_tier(socket, audience_key) when is_binary(audience_key) do
+    deps_result =
+      Rulestead.list_audience_dependencies(Shared.dependency_command(socket, audience_key))
+
+    inventory = normalize_dependency_inventory(deps_result)
+    Governance.visibility_tier(inventory)
+  end
+
+  defp audience_visibility_tier(_socket, _audience_key), do: :full
+
+  defp normalize_dependency_inventory({:ok, result}) do
+    %{
+      summary: Shared.dependency_summary(result),
+      entries: Map.get(result, :entries, []),
+      redacted_entries: Map.get(result, :redacted_entries, []),
+      hidden_count: Map.get(result, :hidden_reference_count, 0),
+      denied?: false
+    }
+  end
+
+  defp normalize_dependency_inventory({:error, error}) do
+    if auth_error?(error) do
+      %{summary: "Dependency list unavailable", entries: [], redacted_entries: [], hidden_count: 0, denied?: true}
+    else
+      %{summary: "Dependency list unavailable", entries: [], redacted_entries: [], hidden_count: 0, denied?: false}
+    end
+  end
+
+  defp auth_error?(%{domain: :auth}), do: true
+  defp auth_error?(%{domain: "auth"}), do: true
+  defp auth_error?(_), do: false
+
+  defp command_field(command, key) when is_map(command) do
+    Map.get(command, key) || Map.get(command, String.to_atom(key))
+  end
+
+  defp command_field(_command, _key), do: nil
 
   defp actor_name(actor) when is_map(actor),
     do: actor[:display] || actor["display"] || actor[:id] || actor["id"] || "Unknown operator"
