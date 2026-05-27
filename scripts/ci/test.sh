@@ -249,6 +249,77 @@ run_blast_radius_governance() {
   rm -f "${log_file}"
 }
 
+print_guarded_rollout_auto_advance_failure_guidance() {
+  local category="${1:-unknown}"
+
+  {
+    echo
+    echo "guarded_rollout_auto_advance failure category: ${category}"
+    echo "Expected support boundary: core owns policy + orchestration; mounted companion presents bounded auto-advance UX."
+    echo "Rerun: RULESTEAD_TEST_SCOPE=guarded_rollout_auto_advance bash scripts/ci/test.sh"
+    echo "Remediation: cd rulestead && mix verify.phase64"
+
+    if [[ "${category}" == "docs drift" ]]; then
+      echo "Docs drift hint: release_contract_test.exs guarded rollout auto-advance support truth block failed — sync README/MAINTAINING/package READMEs with asserts."
+    elif [[ "${category}" == "setup/prerequisite failure" ]]; then
+      echo "Setup expectation: install repo deps and prepare the rulestead test database before rerunning."
+      echo "Suggested setup:"
+      echo "  - cd rulestead && mix deps.get"
+      echo "  - cd rulestead && mix ecto.create && mix ecto.migrate"
+      echo "  - cd ../rulestead_admin && mix deps.get"
+    else
+      echo "Remediation focus: inspect contract regression output above for auto-advance policy, orchestration, or mounted workflow failures."
+    fi
+
+    echo "Runbook: ${MOUNTED_PROOF_RUNBOOK}"
+  } >&2
+}
+
+guarded_rollout_auto_advance_failure_category() {
+  local log_file="$1"
+
+  if rg -q "guarded rollout auto-advance support truth stays bounded" "${log_file}" 2>/dev/null; then
+    echo "docs drift"
+  elif rg -q \
+    "Unchecked dependencies|Could not find Hex|Could not compile dependency|mix local\\.hex|mix deps\\.get|The database for" \
+    "${log_file}"; then
+    echo "setup/prerequisite failure"
+  elif rg -q "test failed|failures|ExUnit\\.AssertionError" "${log_file}"; then
+    echo "contract regression"
+  else
+    echo "unknown guarded-rollout-auto-advance failure"
+  fi
+}
+
+run_guarded_rollout_auto_advance() {
+  local log_file
+  local status=0
+  log_file="$(mktemp)"
+
+  if run_mix_logged rulestead "${log_file}" deps.get; then
+    prepare_rulestead_test_db
+    if run_mix_logged rulestead "${log_file}" verify.phase64; then
+      if run_mix_logged rulestead_admin "${log_file}" deps.get; then
+        :
+      else
+        status=$?
+      fi
+    else
+      status=$?
+    fi
+  else
+    status=$?
+  fi
+
+  if [[ "${status}" -ne 0 ]]; then
+    print_guarded_rollout_auto_advance_failure_guidance "$(guarded_rollout_auto_advance_failure_category "${log_file}")"
+    rm -f "${log_file}"
+    return "${status}"
+  fi
+
+  rm -f "${log_file}"
+}
+
 run_reusable_targeting_deepening() {
   local log_file
   local status=0
@@ -312,9 +383,13 @@ case "${TEST_SCOPE}" in
     echo "Running blast radius governance proof bar"
     run_blast_radius_governance
     ;;
+  guarded_rollout_auto_advance)
+    echo "Running guarded rollout auto-advance proof bar"
+    run_guarded_rollout_auto_advance
+    ;;
   *)
     echo "Unknown test scope: ${TEST_SCOPE}" >&2
-    echo "Supported scopes: all, mounted_admin_contract, openfeature_companion, guarded_rollout_foundations, reusable_targeting_deepening, blast_radius_governance" >&2
+    echo "Supported scopes: all, mounted_admin_contract, openfeature_companion, guarded_rollout_foundations, reusable_targeting_deepening, blast_radius_governance, guarded_rollout_auto_advance" >&2
     exit 64
     ;;
 esac
