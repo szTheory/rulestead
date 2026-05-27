@@ -353,22 +353,19 @@ Phase 53 should bump the snapshot schema if it adds compiled audience definition
 | A3 | Audience mutation should be implemented in Phase 53 rather than deferred to a later UI phase. | Summary, State of the Art | If user intended only a contract document, implementation plan would be too broad. |
 | A4 | An indexed audience reference table is probably needed for scalable dependency queries, but Phase 53 may use a pure derived query if planning keeps scope smaller. | Standard Stack, Don't Hand-Roll | Over-planning a migration could exceed smallest coherent change. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Should Phase 53 include a database migration for audience reference inventory, or defer normalized inventory to Phase 54?** [ASSUMED]
-   - What we know: Phase 54 explicitly owns dependency truth and promotion safety, while Phase 53 needs affected-reference summaries for preview/audit. [VERIFIED: .planning/ROADMAP.md]
-   - What's unclear: Whether Phase 53 should persist reference rows or compute summaries from authored state. [ASSUMED]
-   - Recommendation: Plan Phase 53 with a pure dependency helper first; add a migration only if needed to satisfy token/audit correctness without duplicating Phase 54. [ASSUMED]
+1. **Should Phase 53 include a database migration for audience reference inventory, or defer normalized inventory to Phase 54?** [RESOLVED]
+   - Decision: Phase 53 does not include a reference-index migration unless implementation later proves one is essential for correctness. Plans assume affected references are derived from authored flag/ruleset state with pure helpers and adapter-local queries. [VERIFIED: 53-01-PLAN.md; 53-04-PLAN.md]
+   - Rationale: Phase 54 explicitly owns dependency truth and promotion safety, while Phase 53 needs a preview/audit contract over current authored state. This avoids duplicating Phase 54 normalized inventory work. [VERIFIED: .planning/ROADMAP.md]
 
-2. **What exact audience mutation operations are in scope: edit, archive, delete, or all three?** [VERIFIED: .planning/REQUIREMENTS.md]
-   - What we know: Requirements name edits, archive/delete attempts, and protected shared-targeting mutations. [VERIFIED: .planning/REQUIREMENTS.md]
-   - What's unclear: Existing schema has `archived_at` but no public delete command. [VERIFIED: rulestead/lib/rulestead/audience.ex; rulestead/lib/rulestead/store.ex]
-   - Recommendation: Plan edit and archive as implemented operations; make delete fail closed or return unsupported unless a delete command is explicitly required. [ASSUMED]
+2. **What exact audience mutation operations are in scope: edit, archive, delete, or all three?** [RESOLVED]
+   - Decision: Edit and archive are implemented operations. Delete attempts are represented in the command/preview contract but fail closed with an unsupported/actionable error unless existing product code already exposes a delete primitive. [VERIFIED: 53-03-PLAN.md; 53-04-PLAN.md]
+   - Rationale: Requirements name archive/delete attempts, but the current audience schema has `archived_at` and no public delete command. Fail-closed unsupported delete behavior satisfies the safety contract without inventing destructive semantics. [VERIFIED: rulestead/lib/rulestead/audience.ex; rulestead/lib/rulestead/store.ex]
 
-3. **How should explicit sample evidence be supplied?** [ASSUMED]
-   - What we know: Rulestead must not own identity or observability truth and should use explicit samples only. [VERIFIED: .planning/STATE.md; .planning/REQUIREMENTS.md]
-   - What's unclear: The existing public API has no audience preview sample command. [VERIFIED: rulestead/lib/rulestead.ex; rulestead/lib/rulestead/store/command.ex]
-   - Recommendation: Add an optional `samples` field to preview command, redact it, and label absence as authored-reference-only uncertainty. [ASSUMED]
+3. **How should explicit sample evidence be supplied?** [RESOLVED]
+   - Decision: Sample evidence is caller-supplied through explicit `samples` fields on preview commands only. Samples are redacted with existing `Rulestead.Admin.Redaction` and/or `Rulestead.AuditEvent.metadata/1` scrubbing patterns before appearing in preview or audit payloads. [VERIFIED: 53-01-PLAN.md; 53-03-PLAN.md; 53-04-PLAN.md]
+   - Rationale: Rulestead must not own identity or observability truth. Missing samples degrade to authored-reference-only uncertainty rather than zero-impact claims. [VERIFIED: .planning/STATE.md; .planning/REQUIREMENTS.md]
 
 ## Environment Availability
 
