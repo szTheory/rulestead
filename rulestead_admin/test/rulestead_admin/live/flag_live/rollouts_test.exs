@@ -254,6 +254,35 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
     assert html =~ "Open full timeline"
   end
 
+  @tag :auto_advance_panel
+  @tag :auto_advance_load
+  test "rollout page renders auto-advance panel with unavailable mode when no guardrails", %{
+    conn: conn
+  } do
+    publish_ruleset_without_guardrails!("checkout-redesign", "prod")
+
+    {:ok, _view, html} = live(conn, "/admin/flags/checkout-redesign/rollouts?env=prod")
+
+    assert html =~ "Auto-advance"
+    assert html =~ "Wire guardrails on this rollout rule before enabling auto-advance."
+    refute html =~ "fleet healthy"
+    refute html =~ "metrics dashboard"
+  end
+
+  @tag :auto_advance_load
+  test "rollout page renders auto-advance panel with blocked health copy when guardrails held", %{
+    conn: conn
+  } do
+    seed_guardrail_hold!()
+
+    {:ok, _view, html} = live(conn, "/admin/flags/checkout-redesign/rollouts?env=prod")
+
+    assert html =~ "Auto-advance"
+    assert html =~ "Guardrail automation held this rollout fail-closed"
+    refute html =~ "fleet healthy"
+    refute html =~ "metrics dashboard"
+  end
+
   test "rollout page hides guardrail intervention excerpt when audit reads are denied", %{
     conn: conn
   } do
@@ -438,6 +467,58 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
       |> Map.put_new(:tags, [])
 
     assert %{flag: %{key: _key}} = Control.put_flag!(attrs)
+  end
+
+  defp publish_ruleset_without_guardrails!(flag_key, environment_key) do
+    ruleset = %{
+      salt: "#{flag_key}:#{environment_key}:no-guardrails",
+      rules: [
+        %{
+          key: "vip-allowlist",
+          name: "VIP allowlist",
+          strategy: :forced_value,
+          value: %{value: true},
+          conditions: [
+            %{
+              attribute: "attributes.segment",
+              operator: :equals,
+              value: %{equals: "vip"}
+            }
+          ]
+        },
+        %{
+          key: "checkout-canary",
+          name: "Checkout canary",
+          strategy: :variant_split,
+          conditions: [],
+          rollout: %{
+            bucket_by: :subject,
+            percentage: 25,
+            salt: "checkout-canary",
+            guardrails: []
+          },
+          variants: [
+            %{key: "control", value: %{value: false}, weight: 80},
+            %{key: "treatment", value: %{value: true}, weight: 20}
+          ]
+        },
+        %{
+          key: "fallback-disabled",
+          name: "Fallback disabled",
+          strategy: :forced_value,
+          value: %{value: false},
+          conditions: []
+        }
+      ]
+    }
+
+    assert {:ok, _draft} =
+             Rulestead.save_draft_ruleset(
+               Command.SaveDraftRuleset.new(flag_key, environment_key, ruleset)
+             )
+
+    assert {:ok, _published} =
+             Rulestead.publish_ruleset(Command.PublishRuleset.new(flag_key, environment_key))
   end
 
   defp publish_ruleset!(flag_key, environment_key) do
