@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.8.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-05-27T19:45:42.558Z"
-last_activity: 2026-05-27 -- Completed 62-01 schedule hook and idempotency contract
+last_updated: "2026-05-27T19:49:37Z"
+last_activity: 2026-05-27 -- Completed 62-02 execute orchestration module
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 8
-  completed_plans: 5
-  percent: 31
+  completed_plans: 6
+  percent: 38
 ---
 
 # State: Rulestead
@@ -26,9 +26,9 @@ See: `.planning/PROJECT.md` (updated 2026-05-27)
 ## Current Position
 
 Phase: 62 (orchestration-and-governed-execution) — EXECUTING
-Plan: 2 of 4 (62-01 complete)
-Status: Ready for 62-02 execute orchestration
-Last activity: 2026-05-27 -- Completed 62-01 schedule hook and idempotency contract
+Plan: 3 of 4 (62-02 complete)
+Status: Ready for 62-03 protected-env routing
+Last activity: 2026-05-27 -- Completed 62-02 execute orchestration module
 
 ## Performance Metrics
 
@@ -49,6 +49,8 @@ Last activity: 2026-05-27 -- Completed 62-01 schedule hook and idempotency contr
 - Phase numbering continues at 61 (no reset).
 - Extract RolloutAutoAdvance.Schedule for shared schedule contract across Ecto/Fake — avoids >40 lines duplication; single source for idempotency key and command snapshot shape.
 - Auto-advance schedule hook is fail-open on errors — advance_rollout must succeed even when Oban/scheduled_executions unavailable (D-02, Phase 61 regression schemas).
+- RolloutAutoAdvance orchestrator validates snapshot against live GuardrailDecision before evaluate; blocked ticks complete via success finalize without mutation.
+- Fresh signal_facts at tick execute via Guardrails.fetch_signal/2 — schedule snapshot intentionally empty (D-05).
 
 ### Pending Todos
 
@@ -68,10 +70,10 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-27T19:45:25.412Z
-Resume: Execute 62-02-PLAN.md (execute orchestration module)
+Last session: 2026-05-27T19:49:37Z
+Resume: Execute 62-03-PLAN.md (protected-env routing and store integration)
 
 ## Operator Next Steps
 
-- Execute plan 62-02 — tick execute orchestration (signal fetch, evaluate, advance/CR submit)
+- Execute plan 62-03 — protected-environment change-request routing at tick execute
 - Assessment thread: `.planning/threads/2026-05-27-post-v1.7-milestone-assessment.md`
