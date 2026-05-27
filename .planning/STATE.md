@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.9.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 65 context gathered (assumptions mode)
-last_updated: "2026-05-27T21:53:04.314Z"
-last_activity: 2026-05-27 -- Phase 65 planning complete
+stopped_at: Completed 65-01-PLAN.md
+last_updated: "2026-05-27T21:55:43.557Z"
+last_activity: 2026-05-27
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 4
-  completed_plans: 0
-  percent: 0
+  completed_plans: 1
+  percent: 25
 ---
 
 # State: Rulestead
@@ -21,22 +21,22 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-27)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions - booleans, variants, and remote config - with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
-**Current focus:** v1.9.0 Host-Supplied Preview Evidence — Phase 65 next
+**Current focus:** Phase 65 — host-preview-evidence-contract
 **Milestone:** `v1.9.0 - Host-Supplied Preview Evidence` (initialized 2026-05-27)
 
 ## Current Position
 
-Phase: 65 — Host Preview Evidence Contract
-Plan: 4 plans (65-01..65-04)
+Phase: 65 (host-preview-evidence-contract) — EXECUTING
+Plan: 2 of 4 (65-02 next)
 Status: Ready to execute
-Last activity: 2026-05-27 -- Phase 65 planning complete
+Last activity: 2026-05-27 — Completed 65-01-PLAN.md
 
 ## Performance Metrics
 
-**Velocity (v1.8.0 reference):**
+**Velocity (v1.9.0):**
 
-- Total plans completed: 16
-- Milestone duration: same-day execution (2026-05-27)
+- 65-01: 12 min, 3 tasks, 4 files
+- Milestone plans completed: 1/4 (Phase 65)
 
 ## Accumulated Context
 
@@ -48,6 +48,7 @@ Last activity: 2026-05-27 -- Phase 65 planning complete
 - Phase numbering continues at 65 (no reset).
 - v1.8 phase directories archived to `.planning/milestones/v1.8.0-phases/`.
 - Phase 65: `PreviewEvidence` behaviour mirrors `Guardrails.Provider`; `ImpactPreview` schema v2; union sample merge cap 25; impression summary allowlist; GOV unchanged.
+- 65-01: Opt-in resolver returns `{:ok, %{}}` when unconfigured; unknown impression keys fail-closed; merge dedupe uses actor_key+targeting_key with command rows first.
 
 ### Pending Todos
 
@@ -67,9 +68,9 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-27T21:49:29.604Z
-Stopped at: Phase 65 context gathered (assumptions mode)
-Resume file: .planning/phases/65-host-preview-evidence-contract/65-CONTEXT.md
+Last session: 2026-05-27T21:55:43.554Z
+Stopped at: Completed 65-01-PLAN.md
+Resume file: None
 
 ## Operator Next Steps
 
