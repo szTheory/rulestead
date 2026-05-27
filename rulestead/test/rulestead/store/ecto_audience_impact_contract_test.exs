@@ -92,6 +92,7 @@ defmodule Rulestead.Store.EctoAudienceImpactContractTest do
     assert {:ok, compiled} = Snapshot.compile(latest_snapshot!("test"))
     assert compiled.version == 2
     assert compiled.audience_keys == ["vip-users"]
+
     assert compiled.audiences["vip-users"].definition == %{
              "conditions" => [%{"attribute" => "plan", "operator" => "eq", "value" => "pro"}]
            }
@@ -133,8 +134,11 @@ defmodule Rulestead.Store.EctoAudienceImpactContractTest do
     payload = :erlang.binary_to_term(snapshot.payload)
 
     assert Map.has_key?(payload, :audiences)
+
     assert payload.audiences["vip-users"].definition == %{
-             "conditions" => [%{"attribute" => "plan", "operator" => "eq", "value" => "enterprise"}]
+             "conditions" => [
+               %{"attribute" => "plan", "operator" => "eq", "value" => "enterprise"}
+             ]
            }
 
     assert {:ok, compiled} = Snapshot.compile(snapshot)
@@ -168,6 +172,7 @@ defmodule Rulestead.Store.EctoAudienceImpactContractTest do
     assert error.message =~ "audience was not found"
 
     archived_at = DateTime.utc_now() |> DateTime.truncate(:microsecond)
+
     Repo.get_by!(Audience, key: "vip-users")
     |> Audience.changeset(%{archived_at: archived_at})
     |> Repo.update!()
@@ -182,6 +187,10 @@ defmodule Rulestead.Store.EctoAudienceImpactContractTest do
     bad_schema = %{apply_command(preview) | preview_schema_version: 999}
     assert {:error, error} = EctoStore.apply_audience_mutation(bad_schema)
     assert error.message =~ "schema"
+
+    mismatched_references = %{apply_command(preview) | affected_reference_keys: []}
+    assert {:error, error} = EctoStore.apply_audience_mutation(mismatched_references)
+    assert error.message =~ "affected references"
 
     tenant_mismatch = %{apply_command(preview) | tenant_key: "tenant-b"}
     assert {:error, error} = EctoStore.apply_audience_mutation(tenant_mismatch)
@@ -248,7 +257,9 @@ defmodule Rulestead.Store.EctoAudienceImpactContractTest do
       })
 
     assert {:ok, _draft} =
-             EctoStore.save_draft_ruleset(Command.SaveDraftRuleset.new("checkout-redesign", "test", ruleset))
+             EctoStore.save_draft_ruleset(
+               Command.SaveDraftRuleset.new("checkout-redesign", "test", ruleset)
+             )
 
     assert {:ok, _published} =
              EctoStore.publish_ruleset(Command.PublishRuleset.new("checkout-redesign", "test"))
@@ -287,7 +298,11 @@ defmodule Rulestead.Store.EctoAudienceImpactContractTest do
 
   defp default_environments do
     [
-      %{key: "development", name: "Development", description: "Local and developer-owned environments"},
+      %{
+        key: "development",
+        name: "Development",
+        description: "Local and developer-owned environments"
+      },
       %{key: "staging", name: "Staging", description: "Pre-production validation environments"},
       %{key: "production", name: "Production", description: "Live customer-facing environments"},
       %{key: "test", name: "Test", description: "Automated and ephemeral test environments"}

@@ -573,14 +573,19 @@ defmodule Rulestead.Store.Ecto do
     published_at = now()
 
     Multi.new()
-    |> Multi.run(:environment, fn _repo, _changes -> fetch_environment(command.environment_key) end)
-    |> Multi.run(:audience, fn _repo, _changes -> fetch_audience_for_mutation(command.audience_key) end)
+    |> Multi.run(:environment, fn _repo, _changes ->
+      fetch_environment(command.environment_key)
+    end)
+    |> Multi.run(:audience, fn _repo, _changes ->
+      fetch_audience_for_mutation(command.audience_key)
+    end)
     |> Multi.run(:preview, fn repo, %{environment: environment, audience: audience} ->
       with :ok <- ensure_audience_active(audience),
            :ok <- ensure_supported_audience_operation(command),
            :ok <- ensure_audience_preview_schema(command),
            preview <- audience_preview_payload(repo, environment.key, audience, command),
            :ok <- ensure_fresh_audience_preview(command, preview),
+           :ok <- ensure_audience_reference_keys(command, preview),
            :ok <- ensure_protected_audience_confirmation(command) do
         {:ok, preview}
       end
@@ -591,19 +596,37 @@ defmodule Rulestead.Store.Ecto do
     |> Multi.run(:runtime_snapshot, fn repo, %{environment: environment} ->
       insert_runtime_snapshot(repo, environment, published_at)
     end)
-    |> Multi.run(:audit_event, fn repo, %{audience: audience, audience_mutation: updated_audience, environment: environment, preview: preview} ->
+    |> Multi.run(:audit_event, fn repo,
+                                  %{
+                                    audience: audience,
+                                    audience_mutation: updated_audience,
+                                    environment: environment,
+                                    preview: preview
+                                  } ->
       repo.insert(
-        audience_audit_event_changeset(%AuditEvent{}, command, audience_event_type(command.operation), :ok, %{
-          environment_key: environment.key,
-          before: audience_audit_state(audience),
-          after: audience_audit_state(updated_audience),
-          preview: preview
-        })
+        audience_audit_event_changeset(
+          %AuditEvent{},
+          command,
+          audience_event_type(command.operation),
+          :ok,
+          %{
+            environment_key: environment.key,
+            before: audience_audit_state(audience),
+            after: audience_audit_state(updated_audience),
+            preview: preview
+          }
+        )
       )
     end)
     |> Repo.transact()
     |> case do
-      {:ok, %{audience_mutation: audience, preview: preview, runtime_snapshot: snapshot, audit_event: audit_event}} ->
+      {:ok,
+       %{
+         audience_mutation: audience,
+         preview: preview,
+         runtime_snapshot: snapshot,
+         audit_event: audit_event
+       }} ->
         {:ok,
          %{
            result: :ok,
@@ -619,7 +642,9 @@ defmodule Rulestead.Store.Ecto do
         {:error, error}
 
       {:error, _operation, %Changeset{} = changeset, _changes} ->
-        error = StoreError.invalid_command("audience mutation could not be persisted", cause: changeset)
+        error =
+          StoreError.invalid_command("audience mutation could not be persisted", cause: changeset)
+
         _ = insert_blocked_audience_event(command, error)
         {:error, error}
 
@@ -670,25 +695,30 @@ defmodule Rulestead.Store.Ecto do
   @impl Store
   def advance_rollout(%Command.AdvanceRollout{} = command) do
     with {:ok, environment} <- fetch_environment(command.environment_key),
-         {:ok, flag, flag_environment} <- fetch_flag_environment(command.flag_key, environment.key),
+         {:ok, flag, flag_environment} <-
+           fetch_flag_environment(command.flag_key, environment.key),
          :ok <- ensure_not_archived(command.flag_key, flag),
          {:ok, active_ruleset} <- ensure_active_ruleset(flag_environment, command),
          {:ok, rollout_rule} <- resolve_rollout_rule(active_ruleset, command.rule_key),
          {:ok, percentage} <- ensure_rollout_percentage(command.percentage),
-         {:ok, next_ruleset_attrs} <- advanced_ruleset_attrs(active_ruleset, rollout_rule.key, percentage) do
+         {:ok, next_ruleset_attrs} <-
+           advanced_ruleset_attrs(active_ruleset, rollout_rule.key, percentage) do
       published_at = now()
       previous_ruleset = active_ruleset
 
       Multi.new()
-      |> Multi.insert(:ruleset, Ruleset.changeset(%Ruleset{}, %{
-        flag_environment_id: flag_environment.id,
-        version: next_ruleset_version(flag_environment.id),
-        status: :published,
-        salt: next_ruleset_attrs.salt,
-        published_at: published_at,
-        metadata: next_ruleset_attrs.metadata,
-        rules: next_ruleset_attrs.rules
-      }))
+      |> Multi.insert(
+        :ruleset,
+        Ruleset.changeset(%Ruleset{}, %{
+          flag_environment_id: flag_environment.id,
+          version: next_ruleset_version(flag_environment.id),
+          status: :published,
+          salt: next_ruleset_attrs.salt,
+          published_at: published_at,
+          metadata: next_ruleset_attrs.metadata,
+          rules: next_ruleset_attrs.rules
+        })
+      )
       |> Multi.run(:flag_environment, fn repo, %{ruleset: ruleset} ->
         flag_environment
         |> FlagEnvironment.changeset(%{
@@ -704,7 +734,10 @@ defmodule Rulestead.Store.Ecto do
       end)
       |> Multi.run(:decision, fn repo, %{ruleset: ruleset} ->
         repo.insert(
-          GuardrailDecision.changeset(%GuardrailDecision{}, advance_decision_attrs(command, ruleset, rollout_rule, published_at))
+          GuardrailDecision.changeset(
+            %GuardrailDecision{},
+            advance_decision_attrs(command, ruleset, rollout_rule, published_at)
+          )
         )
       end)
       |> Multi.run(:audit_event, fn repo, %{ruleset: ruleset, decision: decision} ->
@@ -741,7 +774,8 @@ defmodule Rulestead.Store.Ecto do
   @impl Store
   def evaluate_guarded_rollout(%Command.EvaluateGuardedRollout{} = command) do
     with {:ok, environment} <- fetch_environment(command.environment_key),
-         {:ok, flag, flag_environment} <- fetch_flag_environment(command.flag_key, environment.key),
+         {:ok, flag, flag_environment} <-
+           fetch_flag_environment(command.flag_key, environment.key),
          :ok <- ensure_not_archived(command.flag_key, flag),
          {:ok, active_ruleset} <- ensure_active_ruleset(flag_environment, command),
          {:ok, rollout_rule} <- resolve_rollout_rule(active_ruleset, command.rule_key) do
@@ -2620,9 +2654,13 @@ defmodule Rulestead.Store.Ecto do
   end
 
   defp ensure_audience_active(%Audience{archived_at: nil}), do: :ok
-  defp ensure_audience_active(%Audience{}), do: {:error, StoreError.invalid_command("audience is archived")}
 
-  defp ensure_supported_audience_operation(%Command.ApplyAudienceMutation{operation: "delete_attempt"}) do
+  defp ensure_audience_active(%Audience{}),
+    do: {:error, StoreError.invalid_command("audience is archived")}
+
+  defp ensure_supported_audience_operation(%Command.ApplyAudienceMutation{
+         operation: "delete_attempt"
+       }) do
     {:error, StoreError.invalid_command("audience_delete_unsupported")}
   end
 
@@ -2631,9 +2669,12 @@ defmodule Rulestead.Store.Ecto do
        do: :ok
 
   defp ensure_supported_audience_operation(%Command.ApplyAudienceMutation{} = command),
-    do: {:error, StoreError.invalid_command("unsupported audience operation: #{command.operation}")}
+    do:
+      {:error, StoreError.invalid_command("unsupported audience operation: #{command.operation}")}
 
-  defp ensure_audience_preview_schema(%Command.ApplyAudienceMutation{preview_schema_version: version}) do
+  defp ensure_audience_preview_schema(%Command.ApplyAudienceMutation{
+         preview_schema_version: version
+       }) do
     if version == ImpactPreview.schema_version() do
       :ok
     else
@@ -2657,15 +2698,31 @@ defmodule Rulestead.Store.Ecto do
     end
   end
 
+  defp ensure_audience_reference_keys(command, current_preview) do
+    expected_keys = preview_reference_keys(current_preview)
+
+    if command.affected_reference_keys == expected_keys do
+      :ok
+    else
+      {:error, StoreError.invalid_command("audience preview affected references do not match")}
+    end
+  end
+
   defp ensure_protected_audience_confirmation(%Command.ApplyAudienceMutation{
          protected_shared_targeting?: true
        }) do
-    {:error, StoreError.invalid_command("protected shared targeting mutation requires confirmation")}
+    {:error,
+     StoreError.invalid_command("protected shared targeting mutation requires confirmation")}
   end
 
   defp ensure_protected_audience_confirmation(%Command.ApplyAudienceMutation{}), do: :ok
 
-  defp apply_audience_operation(repo, %Audience{} = audience, %Command.ApplyAudienceMutation{operation: "update"} = command, published_at) do
+  defp apply_audience_operation(
+         repo,
+         %Audience{} = audience,
+         %Command.ApplyAudienceMutation{operation: "update"} = command,
+         published_at
+       ) do
     audience
     |> Audience.changeset(%{
       definition: command.after_definition || audience.definition,
@@ -2675,7 +2732,12 @@ defmodule Rulestead.Store.Ecto do
     |> repo.update()
   end
 
-  defp apply_audience_operation(repo, %Audience{} = audience, %Command.ApplyAudienceMutation{operation: "archive"}, published_at) do
+  defp apply_audience_operation(
+         repo,
+         %Audience{} = audience,
+         %Command.ApplyAudienceMutation{operation: "archive"},
+         published_at
+       ) do
     audience
     |> Audience.changeset(%{archived_at: published_at})
     |> Changeset.change(updated_at: published_at)
@@ -2714,7 +2776,7 @@ defmodule Rulestead.Store.Ecto do
           request_id: correlation_id(command),
           preview_fingerprint: command.preview_fingerprint,
           preview_schema_version: command.preview_schema_version,
-          affected_reference_keys: command.affected_reference_keys,
+          affected_reference_keys: audience_audit_reference_keys(command, opts),
           preview_basis: command.preview_basis,
           blockers: Map.get(opts, :blockers),
           affected_references: Map.get(opts, :preview, %{}) |> Map.get(:affected_references),
@@ -2733,8 +2795,12 @@ defmodule Rulestead.Store.Ecto do
     })
     |> Repo.insert()
     |> case do
-      {:ok, audit_event} -> {:ok, %{audit_event: AuditEvent.serialize(audit_event)}}
-      {:error, %Changeset{} = changeset} -> {:error, StoreError.invalid_command("audience audit could not be persisted", cause: changeset)}
+      {:ok, audit_event} ->
+        {:ok, %{audit_event: AuditEvent.serialize(audit_event)}}
+
+      {:error, %Changeset{} = changeset} ->
+        {:error,
+         StoreError.invalid_command("audience audit could not be persisted", cause: changeset)}
     end
   end
 
@@ -2753,8 +2819,24 @@ defmodule Rulestead.Store.Ecto do
     |> Repo.insert()
   end
 
-  defp audience_blockers(command, :denied), do: [%{"code" => "audience_mutation_denied", "operation" => command.operation}]
-  defp audience_blockers(command, _result), do: [%{"code" => "audience_mutation_#{command.operation}_blocked"}]
+  defp audience_audit_reference_keys(command, opts) do
+    case Map.fetch(opts, :preview) do
+      {:ok, preview} -> preview_reference_keys(preview)
+      :error -> command.affected_reference_keys
+    end
+  end
+
+  defp preview_reference_keys(%{affected_references: affected_references}) do
+    AudienceDependencies.reference_keys(affected_references)
+  end
+
+  defp preview_reference_keys(_preview), do: []
+
+  defp audience_blockers(command, :denied),
+    do: [%{"code" => "audience_mutation_denied", "operation" => command.operation}]
+
+  defp audience_blockers(command, _result),
+    do: [%{"code" => "audience_mutation_#{command.operation}_blocked"}]
 
   defp audience_blockers(_command, :error, %Rulestead.Error{message: message}) do
     [%{"code" => audience_blocker_code(message)}]
@@ -2762,13 +2844,26 @@ defmodule Rulestead.Store.Ecto do
 
   defp audience_blocker_code(message) when is_binary(message) do
     cond do
-      String.contains?(message, "stale") -> "audience_preview_stale"
-      String.contains?(message, "not found") -> "audience_missing"
-      String.contains?(message, "archived") -> "audience_archived"
-      String.contains?(message, "protected shared targeting") -> "protected_shared_targeting_requires_confirmation"
-      String.contains?(message, "audience_delete_unsupported") -> "audience_delete_unsupported"
-      String.contains?(message, "schema") -> "audience_preview_schema_incompatible"
-      true -> "audience_mutation_blocked"
+      String.contains?(message, "stale") ->
+        "audience_preview_stale"
+
+      String.contains?(message, "not found") ->
+        "audience_missing"
+
+      String.contains?(message, "archived") ->
+        "audience_archived"
+
+      String.contains?(message, "protected shared targeting") ->
+        "protected_shared_targeting_requires_confirmation"
+
+      String.contains?(message, "audience_delete_unsupported") ->
+        "audience_delete_unsupported"
+
+      String.contains?(message, "schema") ->
+        "audience_preview_schema_incompatible"
+
+      true ->
+        "audience_mutation_blocked"
     end
   end
 
@@ -3949,8 +4044,9 @@ defmodule Rulestead.Store.Ecto do
   defp ensure_rollout_percentage(nil),
     do: {:error, StoreError.invalid_command("rollout_stage_conflict")}
 
-  defp ensure_rollout_percentage(percentage) when is_integer(percentage) and percentage >= 0 and percentage <= 100,
-    do: {:ok, percentage}
+  defp ensure_rollout_percentage(percentage)
+       when is_integer(percentage) and percentage >= 0 and percentage <= 100,
+       do: {:ok, percentage}
 
   defp ensure_rollout_percentage(_percentage),
     do: {:error, StoreError.invalid_command("rollout_stage_conflict")}
@@ -3975,7 +4071,8 @@ defmodule Rulestead.Store.Ecto do
       environment_key: command.environment_key,
       rule_key: rollout_rule.key,
       stage: command.stage,
-      tenant_key: command.metadata["tenant_key"] || get_in(command.metadata, ["tenant", "tenant_key"]),
+      tenant_key:
+        command.metadata["tenant_key"] || get_in(command.metadata, ["tenant", "tenant_key"]),
       decision_state: :pending_data,
       action_type: :advance,
       decision_reason: "monitoring_window_active",
@@ -4090,7 +4187,8 @@ defmodule Rulestead.Store.Ecto do
         environment_key: environment.key,
         rule_key: rollout_rule.key,
         stage: command.stage,
-        tenant_key: command.metadata["tenant_key"] || get_in(command.metadata, ["tenant", "tenant_key"]),
+        tenant_key:
+          command.metadata["tenant_key"] || get_in(command.metadata, ["tenant", "tenant_key"]),
         decision_state: evaluated.state,
         action_type: action_type,
         decision_reason: evaluated.reason,
@@ -4143,15 +4241,18 @@ defmodule Rulestead.Store.Ecto do
     snapshot = stable_target.authored_snapshot || %{}
 
     Multi.new()
-    |> Multi.insert(:ruleset, Ruleset.changeset(%Ruleset{}, %{
-      flag_environment_id: flag_environment.id,
-      version: next_ruleset_version(flag_environment.id),
-      status: :published,
-      salt: snapshot["salt"] || snapshot[:salt] || active_ruleset.salt,
-      published_at: published_at,
-      metadata: snapshot["metadata"] || snapshot[:metadata] || %{},
-      rules: snapshot["rules"] || snapshot[:rules] || []
-    }))
+    |> Multi.insert(
+      :ruleset,
+      Ruleset.changeset(%Ruleset{}, %{
+        flag_environment_id: flag_environment.id,
+        version: next_ruleset_version(flag_environment.id),
+        status: :published,
+        salt: snapshot["salt"] || snapshot[:salt] || active_ruleset.salt,
+        published_at: published_at,
+        metadata: snapshot["metadata"] || snapshot[:metadata] || %{},
+        rules: snapshot["rules"] || snapshot[:rules] || []
+      })
+    )
     |> Multi.run(:flag_environment, fn repo, %{ruleset: ruleset} ->
       flag_environment
       |> FlagEnvironment.changeset(%{
@@ -4172,7 +4273,8 @@ defmodule Rulestead.Store.Ecto do
         environment_key: environment.key,
         rule_key: rollout_rule.key,
         stage: command.stage,
-        tenant_key: command.metadata["tenant_key"] || get_in(command.metadata, ["tenant", "tenant_key"]),
+        tenant_key:
+          command.metadata["tenant_key"] || get_in(command.metadata, ["tenant", "tenant_key"]),
         decision_state: :rollback_triggered,
         action_type: :rollback,
         decision_reason: evaluated.reason,
@@ -4264,10 +4366,14 @@ defmodule Rulestead.Store.Ecto do
   end
 
   defp maybe_filter_guardrail_decision_rule(query, nil), do: query
-  defp maybe_filter_guardrail_decision_rule(query, rule_key), do: where(query, [decision], decision.rule_key == ^to_string(rule_key))
+
+  defp maybe_filter_guardrail_decision_rule(query, rule_key),
+    do: where(query, [decision], decision.rule_key == ^to_string(rule_key))
 
   defp maybe_filter_guardrail_decision_stage(query, nil), do: query
-  defp maybe_filter_guardrail_decision_stage(query, stage), do: where(query, [decision], decision.stage == ^to_string(stage))
+
+  defp maybe_filter_guardrail_decision_stage(query, stage),
+    do: where(query, [decision], decision.stage == ^to_string(stage))
 
   defp guardrail_status_payload(%GuardrailDecision{} = decision, active_ruleset_version) do
     %{
@@ -4982,7 +5088,9 @@ defmodule Rulestead.Store.Ecto do
     Repo.get(Ruleset, active_ruleset_id)
   end
 
-  defp active_ruleset_version(%FlagEnvironment{active_ruleset: %Ruleset{version: version}}), do: version
+  defp active_ruleset_version(%FlagEnvironment{active_ruleset: %Ruleset{version: version}}),
+    do: version
+
   defp active_ruleset_version(%FlagEnvironment{}), do: nil
 
   defp ruleset_audit_metadata(previous_ruleset, ruleset) do

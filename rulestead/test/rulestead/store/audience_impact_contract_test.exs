@@ -167,6 +167,48 @@ defmodule Rulestead.Store.AudienceImpactContractTest do
 
     assert stale_error.type == :invalid_command
 
+    assert {:error, %Error{message: schema_message}} =
+             Rulestead.Fake.apply_audience_mutation(
+               Command.ApplyAudienceMutation.new(%{
+                 environment_key: "test",
+                 tenant_key: "tenant-a",
+                 audience_key: "vip-users",
+                 operation: :update,
+                 preview_schema_version: 999,
+                 preview_fingerprint: preview.preview_fingerprint,
+                 preview_basis: preview.preview_basis,
+                 affected_reference_keys: ["flag:checkout-redesign:ruleset:1:rule:vip-rule"],
+                 after_definition: %{
+                   conditions: [%{attribute: "plan", operator: "eq", value: "pro"}]
+                 },
+                 actor: %{id: "editor-1", roles: [:editor]},
+                 reason: "apply incompatible schema"
+               })
+             )
+
+    assert schema_message =~ "schema"
+
+    assert {:error, %Error{message: affected_message}} =
+             Rulestead.Fake.apply_audience_mutation(
+               Command.ApplyAudienceMutation.new(%{
+                 environment_key: "test",
+                 tenant_key: "tenant-a",
+                 audience_key: "vip-users",
+                 operation: :update,
+                 preview_schema_version: preview.preview_schema_version,
+                 preview_fingerprint: preview.preview_fingerprint,
+                 preview_basis: preview.preview_basis,
+                 affected_reference_keys: [],
+                 after_definition: %{
+                   conditions: [%{attribute: "plan", operator: "eq", value: "pro"}]
+                 },
+                 actor: %{id: "editor-1", roles: [:editor]},
+                 reason: "apply mismatched references"
+               })
+             )
+
+    assert affected_message =~ "affected references"
+
     assert {:ok, applied} =
              Rulestead.apply_audience_mutation(%{
                environment_key: "test",

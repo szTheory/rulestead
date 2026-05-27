@@ -3014,8 +3014,10 @@ defmodule Rulestead.Fake do
          :ok <- ensure_audience_tenant(audience, command.tenant_key),
          :ok <- ensure_audience_active(audience),
          :ok <- ensure_supported_audience_operation(command),
+         :ok <- ensure_audience_preview_schema(command),
          current_preview <- audience_preview_payload(state, environment.key, audience, command),
          :ok <- ensure_fresh_audience_preview(command, current_preview),
+         :ok <- ensure_audience_reference_keys(command, current_preview),
          :ok <- ensure_protected_audience_confirmation(command),
          {:ok, updated_audience} <-
            apply_audience_operation(audience, command, state.now) do
@@ -3034,7 +3036,7 @@ defmodule Rulestead.Fake do
             "preview_fingerprint" => command.preview_fingerprint,
             "preview_schema_version" => command.preview_schema_version,
             "preview_basis" => command.preview_basis,
-            "affected_reference_keys" => command.affected_reference_keys
+            "affected_reference_keys" => preview_reference_keys(current_preview)
           }
         )
 
@@ -3112,6 +3114,16 @@ defmodule Rulestead.Fake do
 
   defp ensure_supported_audience_operation(_command), do: :ok
 
+  defp ensure_audience_preview_schema(%Command.ApplyAudienceMutation{
+         preview_schema_version: version
+       }) do
+    if version == ImpactPreview.schema_version() do
+      :ok
+    else
+      {:error, StoreError.invalid_command("audience preview schema version is incompatible")}
+    end
+  end
+
   defp ensure_fresh_audience_preview(command, current_preview) do
     if command.preview_fingerprint == current_preview.preview_fingerprint do
       :ok
@@ -3127,6 +3139,22 @@ defmodule Rulestead.Fake do
        )}
     end
   end
+
+  defp ensure_audience_reference_keys(command, current_preview) do
+    expected_keys = preview_reference_keys(current_preview)
+
+    if command.affected_reference_keys == expected_keys do
+      :ok
+    else
+      {:error, StoreError.invalid_command("audience preview affected references do not match")}
+    end
+  end
+
+  defp preview_reference_keys(%{affected_references: affected_references}) do
+    AudienceDependencies.reference_keys(affected_references)
+  end
+
+  defp preview_reference_keys(_preview), do: []
 
   defp ensure_protected_audience_confirmation(%Command.ApplyAudienceMutation{
          protected_shared_targeting?: true
