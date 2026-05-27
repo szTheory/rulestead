@@ -5,7 +5,6 @@ defmodule Rulestead.Governance.RolloutAutoAdvance do
   alias Rulestead.Governance.ApprovalRequirement
   alias Rulestead.Governance.RolloutAutoAdvance.Schedule
   alias Rulestead.Guardrails.AutoAdvance.Eligibility
-  alias Rulestead.Guardrails.SignalFact
   alias Rulestead.Store.Command
   alias Rulestead.StoreError
 
@@ -205,7 +204,7 @@ defmodule Rulestead.Governance.RolloutAutoAdvance do
           guardrail
           |> Map.put(:environment_key, scheduled_execution.environment_key)
           |> Rulestead.Guardrails.fetch_signal()
-          |> SignalFact.metadata()
+          |> Map.from_struct()
         end)
 
       {:ok, facts}

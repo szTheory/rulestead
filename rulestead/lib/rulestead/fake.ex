@@ -998,6 +998,8 @@ defmodule Rulestead.Fake do
                  audit_events: [audit_event | next_state.audit_events]
              }
 
+             next_state = maybe_schedule_auto_advance_tick_in_state(next_state, command)
+
              {:ok, guardrail_status_payload_in_state(decision, version), next_state}
            end
          end) do
@@ -1058,29 +1060,9 @@ defmodule Rulestead.Fake do
   end
 
   def handle_call({:fetch_guardrail_status, command}, _from, state) do
-    decision =
-      state.guardrail_decisions
-      |> Enum.filter(fn entry ->
-        entry.flag_key == to_string(command.flag_key) and
-          entry.environment_key == to_string(command.environment_key) and
-          (is_nil(command.rule_key) or entry.rule_key == command.rule_key) and
-          (is_nil(command.stage) or entry.stage == command.stage)
-      end)
-      |> Enum.sort_by(& &1.occurred_at, {:desc, DateTime})
-      |> List.first()
-
-    case decision do
-      nil ->
-        {:reply, {:error, StoreError.invalid_command("guardrail status was not found")}, state}
-
-      decision ->
-        active_ruleset_version =
-          state.flags[to_string(command.flag_key)].environments[
-            to_string(command.environment_key)
-          ].active_ruleset_version
-
-        {:reply, {:ok, guardrail_status_payload_in_state(decision, active_ruleset_version)},
-         state}
+    case fetch_guardrail_status_in_state(state, command) do
+      {:ok, payload} -> {:reply, {:ok, payload}, state}
+      {:error, error} -> {:reply, {:error, error}, state}
     end
   end
 
@@ -2151,7 +2133,51 @@ defmodule Rulestead.Fake do
     end
   end
 
-  defp fetch_rollout_auto_advance_policy_in_state(state, command) do
+  @doc false
+  def fetch_guardrail_status_in_state(state, command) do
+    decision =
+      state.guardrail_decisions
+      |> Enum.filter(fn entry ->
+        entry.flag_key == to_string(command.flag_key) and
+          entry.environment_key == to_string(command.environment_key) and
+          (is_nil(command.rule_key) or entry.rule_key == command.rule_key) and
+          (is_nil(command.stage) or entry.stage == command.stage)
+      end)
+      |> Enum.sort_by(& &1.occurred_at, {:desc, DateTime})
+      |> List.first()
+
+    case decision do
+      nil ->
+        {:error, StoreError.invalid_command("guardrail status was not found")}
+
+      decision ->
+        active_ruleset_version =
+          state.flags[to_string(command.flag_key)].environments[
+            to_string(command.environment_key)
+          ].active_ruleset_version
+
+        {:ok, guardrail_status_payload_in_state(decision, active_ruleset_version)}
+    end
+  end
+
+  @doc false
+  def fetch_flag_in_state(state, command) do
+    with_fetch_context(state, command.flag_key, command.environment_key, fn flag,
+                                                                            environment,
+                                                                            flag_environment ->
+      {:ok,
+       build_flag_detail_payload(
+         state,
+         flag,
+         environment,
+         flag_environment,
+         command.include_ruleset?
+       )}
+    end)
+  end
+
+  @doc false
+  def fetch_rollout_auto_advance_policy_in_state(state, command) do
     key = auto_advance_policy_key(command.flag_key, command.environment_key, command.rule_key)
 
     case Map.get(state.auto_advance_policies, key) do
@@ -2160,7 +2186,8 @@ defmodule Rulestead.Fake do
     end
   end
 
-  defp evaluate_rollout_auto_advance_in_state(state, command) do
+  @doc false
+  def evaluate_rollout_auto_advance_in_state(state, command) do
     with {:ok, policy} <- fetch_rollout_auto_advance_policy_in_state(state, command) do
       evaluated_at =
         command.evaluated_at ||
@@ -2175,6 +2202,74 @@ defmodule Rulestead.Fake do
       |> case do
         {:ok, eligibility} -> {:ok, eligibility}
       end
+    end
+  end
+
+  @doc false
+  def submit_change_request_in_state(state, command) do
+    with {:ok, command} <- prepare_audience_mutation_change_request(state, command) do
+      correlation_id = governance_correlation_id(command)
+
+      change_request =
+        %{
+          id: Ecto.UUID.generate(),
+          status: "submitted",
+          governed_action: Atom.to_string(command.action),
+          environment_key: command.environment_key,
+          resource_type: command.resource_type,
+          resource_key: command.resource_key,
+          submitter_id: get_in(command.actor || %{}, ["id"]),
+          submitter_type: get_in(command.actor || %{}, ["type"]) || "operator",
+          submitter_display: get_in(command.actor || %{}, ["display"]),
+          reason: command.reason,
+          approval_requirement_snapshot: command.approval_requirement,
+          command_snapshot: Command.GovernanceSupport.with_tenant_provenance(command.command),
+          metadata: command.metadata,
+          correlation_id: correlation_id,
+          submitted_at: state.now,
+          resolved_at: nil,
+          executed_at: nil,
+          inserted_at: state.now,
+          updated_at: state.now
+        }
+
+      audit_command = governance_audit_command(command, change_request, "submitted")
+
+      {audit_event, next_state} =
+        append_audit_event(state, audit_command, "change_request.submitted", :ok,
+          resource_key: change_request.resource_key,
+          environment_key: change_request.environment_key
+        )
+
+      final_state =
+        next_state
+        |> put_in([:change_requests, change_request.id], change_request)
+        |> update_in([:audit_events], fn events -> [audit_event | events] end)
+        |> enqueue_webhook_deliveries(
+          "change_request.submitted",
+          fn ->
+            %{
+              "change_request_id" => change_request.id,
+              "status" => change_request.status,
+              "governed_action" => change_request.governed_action,
+              "reason" => change_request.reason,
+              "submitter" => %{
+                "id" => change_request.submitter_id,
+                "type" => change_request.submitter_type,
+                "display" => change_request.submitter_display
+              }
+            }
+          end,
+          environment_key: command.environment_key,
+          resource_type: command.resource_type || "flag",
+          resource_key: command.resource_key
+        )
+
+      emit_governance_telemetry(:submitted, audit_command, change_request, audit_event)
+
+      {:ok, change_request, final_state}
+    else
+      {:error, error} -> {:error, error}
     end
   end
 
@@ -3602,8 +3697,23 @@ defmodule Rulestead.Fake do
   end
 
   defp execute_direct_scheduled_action(state, "advance_rollout", scheduled_execution, command) do
-    if RolloutAutoAdvance.automation_tick?(scheduled_execution.metadata) do
-      case RolloutAutoAdvance.execute_scheduled_tick(__MODULE__, scheduled_execution, command) do
+    normalized_scheduled_execution = serialize_scheduled_execution(scheduled_execution)
+
+    if RolloutAutoAdvance.automation_tick?(normalized_scheduled_execution.metadata) do
+      alias Rulestead.Fake.OrchestrationStore
+
+      OrchestrationStore.put_state!(state)
+
+      orchestration_result =
+        RolloutAutoAdvance.execute_scheduled_tick(
+          OrchestrationStore,
+          normalized_scheduled_execution,
+          command
+        )
+
+      state = OrchestrationStore.pop_state!() || state
+
+      case orchestration_result do
         {:ok, %{outcome: :blocked} = blocked_result} ->
           {:ok, blocked_result, state}
 

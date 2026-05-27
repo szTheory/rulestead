@@ -275,8 +275,10 @@ defmodule Rulestead.StoreFixtures do
     })
   end
 
-  @spec default_auto_advance_policy_attrs(map()) :: map()
+  @spec default_auto_advance_policy_attrs(map() | keyword()) :: map()
   def default_auto_advance_policy_attrs(overrides \\ %{}) do
+    overrides = if Keyword.keyword?(overrides), do: Map.new(overrides), else: overrides
+
     Map.merge(
       %{
         enabled: true,
@@ -353,6 +355,9 @@ defmodule Rulestead.StoreFixtures do
       |> maybe_put(:resource_key, flag_key)
 
     case adapter.list_scheduled_executions(Command.ListScheduledExecutions.new(list_opts)) do
+      {:ok, %{entries: scheduled_executions}} ->
+        Enum.filter(scheduled_executions, &auto_advance_tick?/1)
+
       {:ok, %{scheduled_executions: scheduled_executions}} ->
         Enum.filter(scheduled_executions, &auto_advance_tick?/1)
 
@@ -376,8 +381,6 @@ defmodule Rulestead.StoreFixtures do
       raise "no pending auto-advance tick found"
     end
 
-    maybe_set_fake_clock!(adapter, Keyword.get(opts, :evaluated_at))
-
     adapter.execute_scheduled_execution(
       Command.ExecuteScheduledExecution.new(scheduled_execution.id,
         actor: %{id: "system:scheduler", type: "system", display: "Scheduler"},
@@ -395,12 +398,6 @@ defmodule Rulestead.StoreFixtures do
     source = Map.get(metadata, :source) || Map.get(metadata, "source")
     source in ["guardrail_automation", :guardrail_automation]
   end
-
-  defp maybe_set_fake_clock!(Rulestead.Fake, %DateTime{} = evaluated_at) do
-    Rulestead.Fake.Control.set_now!(evaluated_at)
-  end
-
-  defp maybe_set_fake_clock!(_adapter, _evaluated_at), do: :ok
 
   defp maybe_put(keyword, _key, nil), do: keyword
   defp maybe_put(keyword, key, value), do: Keyword.put(keyword, key, value)
