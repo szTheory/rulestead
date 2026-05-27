@@ -21,6 +21,7 @@ defmodule Rulestead do
     Evaluator,
     Explainer,
     Governance.ApprovalRequirement,
+    Governance.BlastRadiusThreshold,
     Manifest,
     Promotion.Apply,
     Promotion.Compare,
@@ -932,7 +933,23 @@ defmodule Rulestead do
   end
 
   @doc """
+  Assesses audience mutation blast radius from preview payload inputs.
+
+  Returns a deterministic threshold verdict suitable for operator display and
+  change-request embedding. Does not perform I/O — supply preview data from
+  `preview_audience_impact/2`.
+  """
+  @spec assess_audience_blast_radius(map(), keyword()) :: {:ok, map()} | {:error, Error.t()}
+  def assess_audience_blast_radius(preview_or_attrs, opts \\ []) do
+    BlastRadiusThreshold.assess(preview_or_attrs, opts)
+  end
+
+  @doc """
   Applies a reusable audience mutation after validating fresh preview evidence.
+
+  Protected-environment threshold evaluation runs in the store pipeline via
+  `Rulestead.Governance.BlastRadiusThreshold.validate_protected_apply/3`.
+  Custom store adapters must call that helper to inherit the same contract.
   """
   @spec apply_audience_mutation(Command.ApplyAudienceMutation.t() | map() | keyword(), keyword()) ::
           Store.result(map())

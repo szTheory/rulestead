@@ -339,7 +339,7 @@ defmodule Rulestead.Repo.Migrations.CreateRulesteadTables do
     create(
       constraint(:change_requests, :change_requests_governed_action_must_be_valid,
         check:
-          "governed_action IN ('publish_ruleset', 'advance_rollout', 'engage_kill_switch', 'manage_settings', 'promote_environment')"
+          "governed_action IN ('publish_ruleset', 'advance_rollout', 'engage_kill_switch', 'manage_settings', 'promote_environment', 'apply_audience_mutation')"
       )
     )
 

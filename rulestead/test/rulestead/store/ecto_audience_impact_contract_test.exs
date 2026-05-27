@@ -16,6 +16,7 @@ defmodule Rulestead.Store.EctoAudienceImpactContractTest do
     RuntimeSnapshot,
     Runtime.Snapshot,
     Store.Command,
+    Targeting.AudienceDependencies,
     Targeting.ImpactPreview
   }
 
@@ -196,15 +197,125 @@ defmodule Rulestead.Store.EctoAudienceImpactContractTest do
     assert {:error, error} = EctoStore.apply_audience_mutation(tenant_mismatch)
     assert error.message =~ "stale"
 
-    protected = %{apply_command(preview) | protected_shared_targeting?: true}
-    assert {:error, error} = EctoStore.apply_audience_mutation(protected)
-    assert error.message =~ "protected shared targeting"
-
     delete_attempt = %{apply_command(preview) | operation: "delete_attempt"}
     assert {:error, error} = EctoStore.apply_audience_mutation(delete_attempt)
     assert error.message =~ "audience_delete_unsupported"
 
     assert Repo.get_by!(Audience, key: "vip-users").definition == original
+  end
+
+  test "Ecto apply allows below-threshold update in production" do
+    seed_production_audience_references!(1)
+
+    {:ok, preview} =
+      EctoStore.preview_audience_impact(
+        Command.PreviewAudienceImpact.new("vip-users", :update,
+          environment_key: "production",
+          tenant_key: "tenant-a",
+          after_definition: %{conditions: [%{attribute: "plan", operator: "eq", value: "pro"}]}
+        )
+      )
+
+    command =
+      production_apply_command(preview, %{
+        affected_reference_keys: AudienceDependencies.reference_keys(preview.affected_references)
+      })
+
+    assert {:ok, result} = EctoStore.apply_audience_mutation(command)
+    assert result.result == :ok
+  end
+
+  test "Ecto apply blocks above-threshold update in production" do
+    seed_production_audience_references!(3)
+
+    {:ok, preview} =
+      EctoStore.preview_audience_impact(
+        Command.PreviewAudienceImpact.new("vip-users", :update,
+          environment_key: "production",
+          tenant_key: "tenant-a",
+          after_definition: %{conditions: [%{attribute: "plan", operator: "eq", value: "pro"}]}
+        )
+      )
+
+    command =
+      production_apply_command(preview, %{
+        affected_reference_keys: AudienceDependencies.reference_keys(preview.affected_references)
+      })
+
+    assert {:error, %Rulestead.Error{type: :invalid_command} = error} =
+             EctoStore.apply_audience_mutation(command)
+
+    assert error.message =~ "change request" or
+             Enum.any?(error.details, &(&1.code == "blast_radius_above_threshold"))
+  end
+
+  test "Ecto apply bypasses threshold in non-protected environment" do
+    seed_audience_references_in_environment!("test", 3)
+
+    {:ok, preview} =
+      EctoStore.preview_audience_impact(
+        Command.PreviewAudienceImpact.new("vip-users", :update,
+          environment_key: "test",
+          tenant_key: "tenant-a",
+          after_definition: %{conditions: [%{attribute: "plan", operator: "eq", value: "pro"}]}
+        )
+      )
+
+    command =
+      apply_command(preview,
+        affected_reference_keys: AudienceDependencies.reference_keys(preview.affected_references)
+      )
+
+    assert {:ok, result} = EctoStore.apply_audience_mutation(command)
+    assert result.result == :ok
+  end
+
+  test "Ecto apply blocks archive with references in production" do
+    seed_production_audience_references!(1)
+
+    {:ok, preview} =
+      EctoStore.preview_audience_impact(
+        Command.PreviewAudienceImpact.new("vip-users", :archive,
+          environment_key: "production",
+          tenant_key: "tenant-a"
+        )
+      )
+
+    command =
+      production_apply_command(preview, %{
+        operation: :archive,
+        affected_reference_keys: AudienceDependencies.reference_keys(preview.affected_references),
+        after_definition: nil
+      })
+
+    assert {:error, %Rulestead.Error{type: :invalid_command} = error} =
+             EctoStore.apply_audience_mutation(command)
+
+    assert error.message =~ "change request"
+  end
+
+  test "Ecto apply blocks indeterminate blast radius in production" do
+    seed_production_audience_references!(1)
+
+    {:ok, preview} =
+      EctoStore.preview_audience_impact(
+        Command.PreviewAudienceImpact.new("vip-users", :update,
+          environment_key: "production",
+          tenant_key: "tenant-a",
+          after_definition: %{conditions: [%{attribute: "plan", operator: "eq", value: "pro"}]}
+        )
+      )
+
+    command =
+      production_apply_command(preview, %{
+        affected_reference_keys: ["flag:missing:ruleset:1:rule:vip-rule-1"]
+      })
+
+    assert {:error, %Rulestead.Error{type: :invalid_command} = error} =
+             EctoStore.apply_audience_mutation(command)
+
+    assert error.message =~ "Blast radius cannot be evaluated safely" or
+             Enum.any?(error.details, &(&1.code in ["blast_radius_indeterminate", "blast_radius_missing_preview_inputs"]))
   end
 
   test "apply emits incompatible_reference blockers and persists dependency findings in audit metadata" do
@@ -298,6 +409,72 @@ defmodule Rulestead.Store.EctoAudienceImpactContractTest do
 
     assert {:ok, _published} =
              EctoStore.publish_ruleset(Command.PublishRuleset.new("checkout-redesign", "test"))
+  end
+
+  defp seed_production_audience_references!(count) do
+    seed_audience_references_in_environment!("production", count)
+  end
+
+  defp seed_audience_references_in_environment!(environment_key, count) do
+    for index <- 1..count do
+      flag_key = "checkout-redesign-#{index}"
+
+      assert {:ok, _flag} =
+               EctoStore.create_flag(
+                 Command.CreateFlag.new(
+                   valid_flag_attrs(%{key: flag_key, environment_keys: [environment_key]})
+                 )
+               )
+
+      ruleset =
+        valid_ruleset_attrs(%{
+          rules: [
+            %{
+              key: "vip-rule-#{index}",
+              name: "VIP audience #{index}",
+              strategy: :segment_match,
+              audience_key: "vip-users",
+              conditions: []
+            }
+          ]
+        })
+
+      assert {:ok, _draft} =
+               EctoStore.save_draft_ruleset(
+                 Command.SaveDraftRuleset.new(flag_key, environment_key, ruleset)
+               )
+
+      assert {:ok, _published} =
+               EctoStore.publish_ruleset(Command.PublishRuleset.new(flag_key, environment_key))
+    end
+  end
+
+  defp production_reference_keys(count), do: environment_reference_keys("production", count)
+
+  defp environment_reference_keys(_environment_key, count) do
+    for index <- 1..count do
+      "flag:checkout-redesign-#{index}:ruleset:1:rule:vip-rule-#{index}"
+    end
+  end
+
+  defp production_apply_command(preview, overrides) do
+    attrs =
+      %{
+        environment_key: "production",
+        tenant_key: "tenant-a",
+        audience_key: "vip-users",
+        operation: :update,
+        preview_schema_version: preview.preview_schema_version,
+        preview_fingerprint: preview.preview_fingerprint,
+        preview_basis: preview.preview_basis,
+        affected_reference_keys: production_reference_keys(1),
+        after_definition: %{conditions: [%{attribute: "plan", operator: "eq", value: "pro"}]},
+        actor: %{id: "editor-1", roles: [:editor]},
+        reason: "apply confirmed update"
+      }
+      |> Map.merge(Map.new(overrides))
+
+    Command.ApplyAudienceMutation.new(attrs)
   end
 
   defp reset_repo! do

@@ -11,6 +11,8 @@ defmodule Rulestead.Store.Ecto do
     Admin.Lifecycle,
     Audience,
     Governance.Approval,
+    Governance.AudienceMutationChangeRequest,
+    Governance.BlastRadiusThreshold,
     Governance.ChangeRequest,
     Governance.ExecutionAttempt,
     Governance.ScheduledExecution,
@@ -673,7 +675,8 @@ defmodule Rulestead.Store.Ecto do
       {:error, StoreError.unavailable(cause: error)}
   end
 
-  defp apply_confirmed_audience_mutation(%Command.ApplyAudienceMutation{} = command) do
+  defp apply_confirmed_audience_mutation(%Command.ApplyAudienceMutation{} = command, opts \\ []) do
+    governed_apply? = Keyword.get(opts, :governed_apply?, false)
     published_at = now()
 
     Multi.new()
@@ -689,7 +692,7 @@ defmodule Rulestead.Store.Ecto do
            :ok <- ensure_audience_preview_schema(command),
            preview <- audience_preview_payload(repo, environment.key, audience, command),
            :ok <- ensure_fresh_audience_preview(command, preview),
-           :ok <- ensure_protected_audience_confirmation(command) do
+           :ok <- validate_blast_radius_threshold(command, preview, governed_apply?: governed_apply?) do
         {:ok, preview}
       end
     end)
@@ -761,19 +764,29 @@ defmodule Rulestead.Store.Ecto do
          }}
 
       {:error, _operation, %Rulestead.Error{} = error, _changes} ->
-        _ = insert_blocked_audience_event(command, error)
+        if Keyword.get(opts, :audit_blocked?, true) do
+          _ = insert_blocked_audience_event(command, error)
+        end
+
         {:error, error}
 
       {:error, _operation, %Changeset{} = changeset, _changes} ->
         error =
           StoreError.invalid_command("audience mutation could not be persisted", cause: changeset)
 
-        _ = insert_blocked_audience_event(command, error)
+        if Keyword.get(opts, :audit_blocked?, true) do
+          _ = insert_blocked_audience_event(command, error)
+        end
+
         {:error, error}
 
       {:error, _operation, reason, _changes} ->
         error = StoreError.unavailable(cause: reason)
-        _ = insert_blocked_audience_event(command, error)
+
+        if Keyword.get(opts, :audit_blocked?, true) do
+          _ = insert_blocked_audience_event(command, error)
+        end
+
         {:error, error}
     end
   end
@@ -1080,46 +1093,48 @@ defmodule Rulestead.Store.Ecto do
 
   @impl Store
   def submit_change_request(%Command.SubmitChangeRequest{} = command) do
-    correlation_id = governance_correlation_id(command)
-    submitted_at = now()
+    with {:ok, command} <- prepare_audience_mutation_change_request(command) do
+      correlation_id = governance_correlation_id(command)
+      submitted_at = now()
 
-    Multi.new()
-    |> Multi.run(:change_request, fn repo, _changes ->
-      insert_change_request(repo, command, correlation_id, submitted_at)
-    end)
-    |> Multi.run(:audit_event, fn repo, %{change_request: change_request} ->
-      audit_command = governance_audit_command(command, change_request, "submitted")
+      Multi.new()
+      |> Multi.run(:change_request, fn repo, _changes ->
+        insert_change_request(repo, command, correlation_id, submitted_at)
+      end)
+      |> Multi.run(:audit_event, fn repo, %{change_request: change_request} ->
+        audit_command = governance_audit_command(command, change_request, "submitted")
 
-      repo.insert(
-        audit_event_changeset(%AuditEvent{}, audit_command, "change_request.submitted", :ok, %{
-          resource_key: change_request.resource_key,
-          environment_key: change_request.environment_key
-        })
+        repo.insert(
+          audit_event_changeset(%AuditEvent{}, audit_command, "change_request.submitted", :ok, %{
+            resource_key: change_request.resource_key,
+            environment_key: change_request.environment_key
+          })
+        )
+      end)
+      |> enqueue_webhook_deliveries(
+        "change_request.submitted",
+        fn %{change_request: cr} ->
+          %{
+            "change_request_id" => cr.id,
+            "status" => to_string(cr[:status] || cr[:state]),
+            "governed_action" => to_string(cr[:governed_action] || cr[:action]),
+            "reason" => cr.reason,
+            "submitter" => Map.take(cr, [:submitter_id, :submitter_type, :submitter_display])
+          }
+        end,
+        environment_key: command.environment_key,
+        resource_type: command.resource_type || "flag",
+        resource_key: command.resource_key
       )
-    end)
-    |> enqueue_webhook_deliveries(
-      "change_request.submitted",
-      fn %{change_request: cr} ->
-        %{
-          "change_request_id" => cr.id,
-          "status" => to_string(cr[:status] || cr[:state]),
-          "governed_action" => to_string(cr[:governed_action] || cr[:action]),
-          "reason" => cr.reason,
-          "submitter" => Map.take(cr, [:submitter_id, :submitter_type, :submitter_display])
-        }
-      end,
-      environment_key: command.environment_key,
-      resource_type: "flag",
-      resource_key: command.resource_key
-    )
-    |> Repo.transact()
-    |> case do
-      {:ok, %{change_request: change_request, audit_event: audit_event}} ->
-        emit_governance_telemetry(:submitted, command, change_request, audit_event)
-        {:ok, %{change_request: serialize_change_request_row(change_request)}}
+      |> Repo.transact()
+      |> case do
+        {:ok, %{change_request: change_request, audit_event: audit_event}} ->
+          emit_governance_telemetry(:submitted, command, change_request, audit_event)
+          {:ok, %{change_request: serialize_change_request_row(change_request)}}
 
-      {:error, _operation, reason, _changes} ->
-        {:error, normalize_governance_failure(reason)}
+        {:error, _operation, reason, _changes} ->
+          {:error, normalize_governance_failure(reason)}
+      end
     end
   end
 
@@ -1216,6 +1231,9 @@ defmodule Rulestead.Store.Ecto do
                                     %{approval: approval, change_request: updated_change_request} ->
         audit_command =
           governance_audit_command(command, updated_change_request, "rejected")
+          |> Map.update!(:metadata, fn metadata ->
+            Map.merge(metadata, audience_mutation_terminal_metadata(change_request, command.reason))
+          end)
           |> Map.update!(:metadata, &Map.put(&1, "approval_id", approval.id))
 
         repo.insert(
@@ -1267,7 +1285,11 @@ defmodule Rulestead.Store.Ecto do
         })
       end)
       |> Multi.run(:audit_event, fn repo, %{change_request: updated_change_request} ->
-        audit_command = governance_audit_command(command, updated_change_request, "cancelled")
+        audit_command =
+          governance_audit_command(command, updated_change_request, "cancelled")
+          |> Map.update!(:metadata, fn metadata ->
+            Map.merge(metadata, audience_mutation_terminal_metadata(change_request, command.reason))
+          end)
 
         repo.insert(
           audit_event_changeset(%AuditEvent{}, audit_command, "change_request.cancelled", :ok, %{
@@ -3227,24 +3249,18 @@ defmodule Rulestead.Store.Ecto do
     end
   end
 
-  defp ensure_audience_reference_keys(command, current_preview) do
-    expected_keys = preview_reference_keys(current_preview)
+  defp validate_blast_radius_threshold(command, preview, opts) do
+    dependency_entries = audience_dependency_entries(preview, command)
 
-    if command.affected_reference_keys == expected_keys do
-      :ok
-    else
-      {:error, StoreError.invalid_command("audience preview affected references do not match")}
-    end
+    BlastRadiusThreshold.validate_protected_apply(
+      command,
+      preview,
+      Keyword.merge(
+        [dependency_entries: dependency_entries, audiences: dependency_validation_audiences()],
+        opts
+      )
+    )
   end
-
-  defp ensure_protected_audience_confirmation(%Command.ApplyAudienceMutation{
-         protected_shared_targeting?: true
-       }) do
-    {:error,
-     StoreError.invalid_command("protected shared targeting mutation requires confirmation")}
-  end
-
-  defp ensure_protected_audience_confirmation(%Command.ApplyAudienceMutation{}), do: :ok
 
   defp apply_audience_operation(
          repo,
@@ -3348,10 +3364,38 @@ defmodule Rulestead.Store.Ecto do
     %AuditEvent{}
     |> audience_audit_event_changeset(command, event_type, :error, %{
       blockers: audience_blockers(command, :error, error),
-      metadata: %{"dependency_findings" => serialize_dependency_findings(error.details)}
+      metadata: blocked_audience_metadata(error)
     })
     |> Repo.insert()
   end
+
+  defp blocked_audience_metadata(%Rulestead.Error{metadata: %{verdict: verdict}} = error)
+       when verdict in ["above_threshold", "indeterminate"] do
+    %{
+      "blast_radius_verdict" => verdict,
+      "blast_radius_reference_count" => Map.get(error.metadata, :reference_count),
+      "blast_radius_breach_reasons" => blast_radius_breach_reasons(error),
+      "dependency_findings" => serialize_dependency_findings(error.details)
+    }
+  end
+
+  defp blocked_audience_metadata(error) do
+    %{"dependency_findings" => serialize_dependency_findings(error.details)}
+  end
+
+  defp blast_radius_breach_reasons(%Rulestead.Error{cause: %{breach_reasons: reasons}})
+       when is_list(reasons) do
+    Enum.map(reasons, fn reason ->
+      %{
+        "code" => Map.get(reason, :code),
+        "observed" => Map.get(reason, :observed),
+        "limit" => Map.get(reason, :limit),
+        "remediation" => Map.get(reason, :remediation)
+      }
+    end)
+  end
+
+  defp blast_radius_breach_reasons(_error), do: []
 
   defp audience_audit_reference_keys(command, opts) do
     case Map.fetch(opts, :preview) do
@@ -3430,8 +3474,11 @@ defmodule Rulestead.Store.Ecto do
       String.contains?(message, "archived") ->
         "audience_archived"
 
-      String.contains?(message, "protected shared targeting") ->
-        "protected_shared_targeting_requires_confirmation"
+      String.contains?(message, "direct-apply limit for protected environments") ->
+        "blast_radius_above_threshold"
+
+      String.contains?(message, "Blast radius cannot be evaluated safely") ->
+        "blast_radius_indeterminate"
 
       String.contains?(message, "audience_delete_unsupported") ->
         "audience_delete_unsupported"
@@ -4097,6 +4144,77 @@ defmodule Rulestead.Store.Ecto do
     command.metadata[:request_id] || command.metadata["request_id"] || Ecto.UUID.generate()
   end
 
+  defp prepare_audience_mutation_change_request(%Command.SubmitChangeRequest{
+         action: :apply_audience_mutation
+       } = command) do
+    apply_command =
+      Command.ApplyAudienceMutation.new(
+        command.command,
+        actor: command.actor,
+        reason: command.reason,
+        metadata: command.metadata
+      )
+
+    with {:ok, environment} <- fetch_environment(apply_command.environment_key),
+         {:ok, audience} <- fetch_audience_for_mutation(apply_command.audience_key),
+         :ok <- ensure_audience_active(audience) do
+      current_preview = audience_preview_payload(Repo, environment.key, audience, apply_command)
+
+      with :ok <- AudienceMutationChangeRequest.validate_submit(command, current_preview),
+           {:ok, assessment} <- audience_mutation_submit_assessment(command, current_preview) do
+        metadata =
+          command.metadata
+          |> Map.new()
+          |> Map.merge(
+            AudienceMutationChangeRequest.build_submission_metadata(assessment, current_preview)
+          )
+
+        {:ok,
+         %{
+           command
+           | metadata: metadata,
+             resource_type: "audience",
+             resource_key: apply_command.audience_key
+         }}
+      end
+    end
+  end
+
+  defp prepare_audience_mutation_change_request(command), do: {:ok, command}
+
+  defp audience_mutation_submit_assessment(command, current_preview) do
+    mutation_command = command.command || %{}
+    references = Map.get(current_preview, :affected_references) || []
+
+    BlastRadiusThreshold.assess(%{
+      environment_key: command.environment_key,
+      operation: Map.get(mutation_command, "operation") || Map.get(mutation_command, :operation),
+      preview_fingerprint:
+        Map.get(mutation_command, "preview_fingerprint") ||
+          Map.get(mutation_command, :preview_fingerprint),
+      preview_schema_version:
+        Map.get(mutation_command, "preview_schema_version") ||
+          Map.get(mutation_command, :preview_schema_version),
+      affected_references: references,
+      affected_reference_keys:
+        Map.get(mutation_command, "affected_reference_keys") ||
+          Map.get(mutation_command, :affected_reference_keys),
+      tenant_key: Map.get(mutation_command, "tenant_key") || Map.get(mutation_command, :tenant_key)
+    })
+  end
+
+  defp audience_mutation_terminal_metadata(%{governed_action: "apply_audience_mutation"} = change_request, reason) do
+    metadata = change_request.metadata || %{}
+
+    %{
+      "blast_radius_assessment" => Map.get(metadata, "blast_radius_assessment"),
+      "affected_reference_summary" => Map.get(metadata, "affected_reference_summary"),
+      "terminal_reason" => reason
+    }
+  end
+
+  defp audience_mutation_terminal_metadata(_change_request, _reason), do: %{}
+
   defp governance_audit_command(command, change_request, stage) do
     metadata =
       command.metadata
@@ -4118,7 +4236,8 @@ defmodule Rulestead.Store.Ecto do
               "advance_rollout",
               "engage_kill_switch",
               "release_kill_switch",
-              "promote_environment"
+              "promote_environment",
+              "apply_audience_mutation"
             ] do
     execute_bounded_governed_action(governed_action, change_request, command)
   end
@@ -4395,6 +4514,35 @@ defmodule Rulestead.Store.Ecto do
         }
       )
     )
+  end
+
+  defp execute_bounded_governed_action("apply_audience_mutation", change_request, command) do
+    apply_command =
+      change_request.command_snapshot
+      |> Command.ApplyAudienceMutation.new(
+        actor: command.actor,
+        reason: command.reason,
+        metadata:
+          Map.merge(command.metadata || %{}, %{
+            "change_request_id" => change_request.id,
+            "execution_stage" => "execute",
+            "request_id" => change_request.correlation_id
+          })
+      )
+
+    with {:ok, execution_result} <-
+           apply_confirmed_audience_mutation(apply_command,
+             governed_apply?: true,
+             audit_blocked?: false
+           ) do
+      persisted_change_request =
+        case fetch_change_request_row(change_request.id) do
+          {:ok, current_change_request} -> current_change_request
+          {:error, _error} -> change_request
+        end
+
+      {:ok, execution_result, persisted_change_request, nil}
+    end
   end
 
   defp execute_bounded_governed_action("promote_environment", change_request, command) do

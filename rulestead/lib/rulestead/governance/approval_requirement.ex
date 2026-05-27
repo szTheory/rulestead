@@ -22,7 +22,8 @@ defmodule Rulestead.Governance.ApprovalRequirement do
     :advance_rollout,
     :engage_kill_switch,
     :release_kill_switch,
-    :promote_environment
+    :promote_environment,
+    :apply_audience_mutation
   ]
 
   @type action ::
@@ -31,6 +32,7 @@ defmodule Rulestead.Governance.ApprovalRequirement do
           | :engage_kill_switch
           | :release_kill_switch
           | :promote_environment
+          | :apply_audience_mutation
 
   @type t :: %__MODULE__{
           action: action(),

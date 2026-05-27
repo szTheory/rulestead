@@ -11,7 +11,8 @@ defmodule Rulestead.Governance.ChangeRequest do
     :advance_rollout,
     :engage_kill_switch,
     :release_kill_switch,
-    :promote_environment
+    :promote_environment,
+    :apply_audience_mutation
   ]
 
   @enforce_keys [
@@ -47,6 +48,7 @@ defmodule Rulestead.Governance.ChangeRequest do
           | :engage_kill_switch
           | :release_kill_switch
           | :promote_environment
+          | :apply_audience_mutation
 
   @type actor_summary :: %{
           optional(:id) => String.t(),

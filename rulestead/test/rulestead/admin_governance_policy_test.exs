@@ -87,6 +87,28 @@ defmodule Rulestead.AdminGovernancePolicyTest do
            }
   end
 
+  test "audience mutation change requests use apply_audience_mutation governance vocabulary" do
+    assert :apply_audience_mutation in Rulestead.Governance.ChangeRequest.governed_actions()
+
+    assert %ApprovalRequirement{
+             action: :apply_audience_mutation,
+             environment_key: "production",
+             required_approvals: 1,
+             change_request_required?: true,
+             self_approval_allowed?: false
+           } =
+             ApprovalRequirement.new(
+               action: :apply_audience_mutation,
+               environment_key: "production",
+               required_approvals: 1,
+               change_request_required?: true,
+               self_approval_allowed?: false
+             )
+
+    assert :submit_change_request in Rulestead.Admin.Policy.editor_actions()
+    assert :apply_audience_mutation in Rulestead.Admin.Policy.editor_actions()
+  end
+
   test "bounded governance vocabulary includes release kill switch without legacy manage settings fallback" do
     assert Rulestead.Admin.Policy.governance_actions() == [
              :publish_ruleset,

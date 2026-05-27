@@ -13,7 +13,8 @@ defmodule Rulestead.Governance.ChangeRequestContractTest do
                :advance_rollout,
                :engage_kill_switch,
                :release_kill_switch,
-               :promote_environment
+               :promote_environment,
+               :apply_audience_mutation
              ]
     end
   end

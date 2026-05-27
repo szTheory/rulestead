@@ -7,7 +7,7 @@ defmodule Rulestead.Store.AudienceImpactContractTest do
   alias Rulestead.Error
   alias Rulestead.Runtime.Snapshot
   alias Rulestead.Store.Command
-  alias Rulestead.Targeting.ImpactPreview
+  alias Rulestead.Targeting.{AudienceDependencies, ImpactPreview}
 
   setup do
     previous_store = Application.get_env(:rulestead, :store)
@@ -239,9 +239,11 @@ defmodule Rulestead.Store.AudienceImpactContractTest do
              "conditions" => [%{"attribute" => "plan", "operator" => "eq", "value" => "pro"}]
            }
 
+    seed_production_audience_references!(1)
+
     {:ok, archive_preview} =
       Rulestead.preview_audience_impact("vip-users", :archive,
-        environment_key: "test",
+        environment_key: "production",
         tenant_key: "tenant-a",
         actor: %{id: "reader-1", roles: [:viewer]},
         reason: "archive preview"
@@ -249,20 +251,192 @@ defmodule Rulestead.Store.AudienceImpactContractTest do
 
     assert {:error, %Error{} = protected_error} =
              Rulestead.apply_audience_mutation(%{
-               environment_key: "test",
+               environment_key: "production",
                tenant_key: "tenant-a",
                audience_key: "vip-users",
                operation: :archive,
                preview_schema_version: archive_preview.preview_schema_version,
                preview_fingerprint: archive_preview.preview_fingerprint,
                preview_basis: archive_preview.preview_basis,
-               affected_reference_keys: ["flag:checkout-redesign:ruleset:1:rule:vip-rule"],
-               protected_shared_targeting?: true,
+               affected_reference_keys:
+                 AudienceDependencies.reference_keys(archive_preview.affected_references),
                actor: %{id: "editor-1", roles: [:editor]},
                reason: "archive protected audience"
              })
 
     assert protected_error.type == :invalid_command
+    assert protected_error.message =~ "change request"
+  end
+
+  test "Fake apply allows below-threshold update in production" do
+    setup_fake!()
+    seed_production_audience_references!(1)
+
+    {:ok, preview} =
+      Rulestead.preview_audience_impact("vip-users", :update,
+        environment_key: "production",
+        tenant_key: "tenant-a",
+        after_definition: %{conditions: [%{attribute: "plan", operator: "eq", value: "pro"}]},
+        actor: %{id: "reader-1", roles: [:viewer]},
+        reason: "inspect blast radius"
+      )
+
+    assert {:ok, applied} =
+             Rulestead.apply_audience_mutation(%{
+               environment_key: "production",
+               tenant_key: "tenant-a",
+               audience_key: "vip-users",
+               operation: :update,
+               preview_schema_version: preview.preview_schema_version,
+               preview_fingerprint: preview.preview_fingerprint,
+               preview_basis: preview.preview_basis,
+               affected_reference_keys:
+                 AudienceDependencies.reference_keys(preview.affected_references),
+               after_definition: %{
+                 conditions: [%{attribute: "plan", operator: "eq", value: "pro"}]
+               },
+               actor: %{id: "editor-1", roles: [:editor]},
+               reason: "apply below-threshold update in production"
+             })
+
+    assert applied.result == :ok
+  end
+
+  test "Fake apply blocks above-threshold update in production" do
+    setup_fake!()
+    seed_production_audience_references!(3)
+
+    {:ok, preview} =
+      Rulestead.preview_audience_impact("vip-users", :update,
+        environment_key: "production",
+        tenant_key: "tenant-a",
+        after_definition: %{conditions: [%{attribute: "plan", operator: "eq", value: "pro"}]},
+        actor: %{id: "reader-1", roles: [:viewer]},
+        reason: "inspect blast radius"
+      )
+
+    assert {:error, %Error{type: :invalid_command} = error} =
+             Rulestead.apply_audience_mutation(%{
+               environment_key: "production",
+               tenant_key: "tenant-a",
+               audience_key: "vip-users",
+               operation: :update,
+               preview_schema_version: preview.preview_schema_version,
+               preview_fingerprint: preview.preview_fingerprint,
+               preview_basis: preview.preview_basis,
+               affected_reference_keys:
+                 AudienceDependencies.reference_keys(preview.affected_references),
+               after_definition: %{
+                 conditions: [%{attribute: "plan", operator: "eq", value: "pro"}]
+               },
+               actor: %{id: "editor-1", roles: [:editor]},
+               reason: "apply above-threshold update in production"
+             })
+
+    assert error.message =~ "change request" or
+             Enum.any?(error.details, &(&1.code == "blast_radius_above_threshold"))
+  end
+
+  test "Fake apply bypasses threshold in non-protected environment" do
+    setup_fake!()
+    seed_audience_references_in_environment!("test", 3)
+
+    {:ok, preview} =
+      Rulestead.preview_audience_impact("vip-users", :update,
+        environment_key: "test",
+        tenant_key: "tenant-a",
+        after_definition: %{conditions: [%{attribute: "plan", operator: "eq", value: "pro"}]},
+        actor: %{id: "reader-1", roles: [:viewer]},
+        reason: "inspect blast radius"
+      )
+
+    assert {:ok, applied} =
+             Rulestead.apply_audience_mutation(%{
+               environment_key: "test",
+               tenant_key: "tenant-a",
+               audience_key: "vip-users",
+               operation: :update,
+               preview_schema_version: preview.preview_schema_version,
+               preview_fingerprint: preview.preview_fingerprint,
+               preview_basis: preview.preview_basis,
+               affected_reference_keys:
+                 AudienceDependencies.reference_keys(preview.affected_references),
+               after_definition: %{
+                 conditions: [%{attribute: "plan", operator: "eq", value: "pro"}]
+               },
+               actor: %{id: "editor-1", roles: [:editor]},
+               reason: "apply above-threshold update in test"
+             })
+
+    assert applied.result == :ok
+  end
+
+  test "Fake apply blocks indeterminate blast radius in production" do
+    setup_fake!()
+    seed_production_audience_references!(1)
+
+    {:ok, preview} =
+      Rulestead.preview_audience_impact("vip-users", :update,
+        environment_key: "production",
+        tenant_key: "tenant-a",
+        after_definition: %{conditions: [%{attribute: "plan", operator: "eq", value: "pro"}]},
+        actor: %{id: "reader-1", roles: [:viewer]},
+        reason: "indeterminate preview"
+      )
+
+    assert {:error, %Error{type: :invalid_command} = error} =
+             Rulestead.apply_audience_mutation(%{
+               environment_key: "production",
+               tenant_key: "tenant-a",
+               audience_key: "vip-users",
+               operation: :update,
+               preview_schema_version: preview.preview_schema_version,
+               preview_fingerprint: preview.preview_fingerprint,
+               preview_basis: preview.preview_basis,
+               affected_reference_keys: ["flag:missing:ruleset:1:rule:vip-rule"],
+               after_definition: %{
+                 conditions: [%{attribute: "plan", operator: "eq", value: "pro"}]
+               },
+               actor: %{id: "editor-1", roles: [:editor]},
+               reason: "apply indeterminate blast radius"
+             })
+
+    assert error.message =~ "Blast radius cannot be evaluated safely" or
+             Enum.any?(error.details, &(&1.code in ["blast_radius_indeterminate", "blast_radius_missing_preview_inputs"]))
+  end
+
+  test "apply_audience_mutation blocks above-threshold production mutation via facade" do
+    setup_fake!()
+    seed_production_audience_references!(3)
+
+    {:ok, preview} =
+      Rulestead.preview_audience_impact("vip-users", :update,
+        environment_key: "production",
+        tenant_key: "tenant-a",
+        after_definition: %{conditions: [%{attribute: "plan", operator: "eq", value: "pro"}]},
+        actor: %{id: "reader-1", roles: [:viewer]},
+        reason: "inspect blast radius"
+      )
+
+    assert {:error, %Error{type: :invalid_command} = error} =
+             Rulestead.apply_audience_mutation(%{
+               environment_key: "production",
+               tenant_key: "tenant-a",
+               audience_key: "vip-users",
+               operation: :update,
+               preview_schema_version: preview.preview_schema_version,
+               preview_fingerprint: preview.preview_fingerprint,
+               preview_basis: preview.preview_basis,
+               affected_reference_keys:
+                 AudienceDependencies.reference_keys(preview.affected_references),
+               after_definition: %{
+                 conditions: [%{attribute: "plan", operator: "eq", value: "pro"}]
+               },
+               actor: %{id: "editor-1", roles: [:editor]},
+               reason: "facade apply above-threshold production"
+             })
+
+    assert error.message =~ "change request"
   end
 
   test "Fake apply blocks incompatible dependencies and records dependency_findings audit metadata" do
@@ -445,6 +619,61 @@ defmodule Rulestead.Store.AudienceImpactContractTest do
              Rulestead.Fake.publish_ruleset(
                Command.PublishRuleset.new("checkout-redesign", "test")
              )
+  end
+
+  defp seed_production_audience_references!(count) do
+    seed_audience_references_in_environment!("production", count)
+  end
+
+  defp seed_audience_references_in_environment!(environment_key, count) do
+    Rulestead.Fake.Control.put_audience!(%{
+      key: "vip-users",
+      tenant_key: "tenant-a",
+      description: "VIP Users",
+      definition: %{conditions: [%{attribute: "plan", operator: "eq", value: "enterprise"}]}
+    })
+
+    for index <- 1..count do
+      flag_key = "checkout-redesign-#{index}"
+
+      Rulestead.Fake.Control.put_flag!(
+        valid_flag_attrs(%{
+          key: flag_key,
+          environment_keys: [environment_key]
+        })
+      )
+
+      ruleset =
+        valid_ruleset_attrs(%{
+          rules: [
+            %{
+              key: "vip-rule-#{index}",
+              name: "VIP audience #{index}",
+              strategy: :segment_match,
+              audience_key: "vip-users",
+              conditions: []
+            }
+          ]
+        })
+
+      assert {:ok, _draft} =
+               Rulestead.Fake.save_draft_ruleset(
+                 Command.SaveDraftRuleset.new(flag_key, environment_key, ruleset)
+               )
+
+      assert {:ok, _published} =
+               Rulestead.Fake.publish_ruleset(
+                 Command.PublishRuleset.new(flag_key, environment_key)
+               )
+    end
+  end
+
+  defp production_reference_keys(count), do: environment_reference_keys("production", count)
+
+  defp environment_reference_keys(environment_key, count) do
+    for index <- 1..count do
+      "flag:checkout-redesign-#{index}:ruleset:1:rule:vip-rule-#{index}"
+    end
   end
 
   defp dependency_code?(entry, code) do
