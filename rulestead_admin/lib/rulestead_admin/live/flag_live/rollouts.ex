@@ -6,7 +6,16 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
 
   alias Rulestead.Context
   alias Rulestead.Store.Command
-  alias RulesteadAdmin.Components.{FlagComponents, OperatorComponents, RolloutComponents, Shell}
+  alias Rulestead.Admin.Redaction
+
+  alias RulesteadAdmin.Components.{
+    AuditComponents,
+    FlagComponents,
+    OperatorComponents,
+    RolloutComponents,
+    Shell
+  }
+
   alias RulesteadAdmin.Live.Session
 
   @sample_size 20
@@ -30,6 +39,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
      |> assign(:guardrail_status, nil)
      |> assign(:guardrail_status_error, nil)
      |> assign(:guardrail_definitions, [])
+     |> assign(:guardrail_interventions, [])
      |> assign(:confirm_reason, "")
      |> assign(:confirmation_required?, false)
      |> assign(:editable?, false)
@@ -220,6 +230,17 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
               definitions={@guardrail_definitions}
               timeline_path={path_for(assigns, "/#{@flag_key}/timeline")}
             />
+
+            <section class="rs-card" aria-label="Guardrail interventions">
+              <h2>Guardrail interventions</h2>
+              <p :if={@guardrail_interventions == []}>
+                No guardrail intervention events are available for this rollout stage yet.
+              </p>
+              <div :for={entry <- @guardrail_interventions}>
+                <AuditComponents.timeline_row entry={entry} />
+              </div>
+              <a href={path_for(assigns, "/#{@flag_key}/timeline")}>Open full timeline</a>
+            </section>
           </section>
 
           <aside class="rs-rollouts__sidebar">
@@ -319,6 +340,9 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
         {guardrail_status, guardrail_status_error} =
           load_guardrail_status(flag_key, env, rollout_rule, socket.assigns.current_actor)
 
+        guardrail_interventions =
+          load_guardrail_interventions(flag_key, env, socket.assigns.current_actor)
+
         socket
         |> assign(:detail, detail)
         |> assign(:published_percentage, active_rollout_percentage(detail))
@@ -330,6 +354,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
         |> assign(:guardrail_status, guardrail_status)
         |> assign(:guardrail_status_error, guardrail_status_error)
         |> assign(:guardrail_definitions, guardrail_definitions)
+        |> assign(:guardrail_interventions, guardrail_interventions)
         |> assign(:confirm_reason, "")
         |> assign(:confirmation_required?, false)
         |> assign(:editable?, is_nil(detail.flag.archived_at) and not is_nil(rollout_rule))
@@ -353,11 +378,178 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
         |> assign(:guardrail_status, nil)
         |> assign(:guardrail_status_error, nil)
         |> assign(:guardrail_definitions, [])
+        |> assign(:guardrail_interventions, [])
         |> assign(:confirm_reason, "")
         |> assign(:confirmation_required?, false)
         |> assign(:editable?, false)
         |> assign(:error_message, error.message)
     end
+  end
+
+  defp load_guardrail_interventions(flag_key, env, actor) do
+    case Rulestead.list_audit_events(flag_key: flag_key, environment_key: env, actor: actor) do
+      {:ok, page} ->
+        page.entries
+        |> Enum.sort_by(& &1.occurred_at, {:desc, DateTime})
+        |> Enum.filter(&intervention_event?/1)
+        |> Enum.map(&intervention_entry_view/1)
+        |> Enum.take(5)
+
+      {:error, _error} ->
+        []
+    end
+  end
+
+  defp intervention_event?(%{event_type: event_type}) do
+    event_type in [
+      "rollout.guardrail_held",
+      "rollout.guardrail_rollback",
+      "rollout.guardrail_evaluated",
+      "rollout.advance",
+      "ruleset.publish"
+    ]
+  end
+
+  defp intervention_entry_view(event) do
+    metadata = intervention_redacted_metadata(event.metadata)
+    before_state = metadata["before"] || %{}
+    after_state = metadata["after"] || %{}
+    diff_state = metadata["diff"] || %{}
+
+    %{
+      id: event.id,
+      title: intervention_title_for(event),
+      meta: intervention_meta_for(event),
+      summary: intervention_summary_for(event, before_state, after_state, diff_state),
+      reason: event.reason,
+      automatic?: guardrail_automation_event?(event),
+      source_label: source_label(metadata),
+      raw: %{
+        event:
+          Map.take(event, [
+            :event_type,
+            :result,
+            :resource_key,
+            :environment_key,
+            :actor_display,
+            :occurred_at
+          ]),
+        metadata: metadata
+      },
+      result: event.result,
+      rollback_of_event_id: metadata["rollback_of_event_id"],
+      rollback_allowed?: false,
+      show_diff?: false
+    }
+  end
+
+  defp intervention_redacted_metadata(metadata) do
+    metadata
+    |> Redaction.redact_metadata(
+      allow: [
+        "before.status",
+        "before.kill_switch_variant_key",
+        "before.rules",
+        "after.status",
+        "after.kill_switch_variant_key",
+        "after.rules",
+        "diff.rules",
+        "guardrail",
+        "guardrail.evidence",
+        "guardrail.signal_key",
+        "guardrail.environment_key",
+        "links.guardrail_decision_id",
+        "links.stable_guardrail_decision_id",
+        "rollback_of_event_id",
+        "links.inverse_event_type",
+        "source",
+        "request_id"
+      ]
+    )
+    |> Map.fetch!(:audit)
+  end
+
+  defp guardrail_automation_event?(%{event_type: event_type}) do
+    event_type in [
+      "rollout.guardrail_held",
+      "rollout.guardrail_rollback",
+      "rollout.guardrail_evaluated"
+    ]
+  end
+
+  defp source_label(metadata), do: metadata["source"]
+
+  defp intervention_title_for(%{event_type: "rollout.guardrail_held"}),
+    do: "Automatic guardrail hold"
+
+  defp intervention_title_for(%{event_type: "rollout.guardrail_rollback"}),
+    do: "Automatic guardrail rollback"
+
+  defp intervention_title_for(%{event_type: "rollout.guardrail_evaluated"}),
+    do: "Guardrail evaluated"
+
+  defp intervention_title_for(%{event_type: event_type}), do: humanize_event(event_type)
+
+  defp intervention_meta_for(event) do
+    actor = event.actor_display || event.actor_id || "Unknown actor"
+    result = event.result |> to_string() |> String.upcase()
+
+    time =
+      if(event.occurred_at,
+        do: Calendar.strftime(event.occurred_at, "%Y-%m-%d %H:%M:%S UTC"),
+        else: "Unknown time"
+      )
+
+    "#{actor} • #{event.environment_key} • #{result} • #{time}"
+  end
+
+  defp intervention_summary_for(
+         %{event_type: "rollout.guardrail_held"} = event,
+         _before_state,
+         _after_state,
+         _diff_state
+       ) do
+    append_reason(
+      "Guardrail automation held this rollout fail-closed. Review the missing or stale signal before advancing.",
+      event
+    )
+  end
+
+  defp intervention_summary_for(
+         %{event_type: "rollout.guardrail_rollback"} = event,
+         _before_state,
+         _after_state,
+         _diff_state
+       ) do
+    append_reason(
+      "A confirmed threshold breach triggered rollback to the last stable rollout snapshot.",
+      event
+    )
+  end
+
+  defp intervention_summary_for(
+         %{event_type: "rollout.guardrail_evaluated"} = event,
+         _before_state,
+         _after_state,
+         _diff_state
+       ) do
+    append_reason(
+      "Automation is waiting for valid guardrail evidence and will not assume the stage is healthy.",
+      event
+    )
+  end
+
+  defp intervention_summary_for(
+         %{event_type: "ruleset.publish"},
+         _before_state,
+         _after_state,
+         diff_state
+       ) do
+    "Ruleset publish updated ordered rule positions: #{Enum.join(diff_lines("ruleset.publish", diff_state), "; ")}."
+  end
+
+  defp intervention_summary_for(event, before_state, after_state, _diff_state) do
+    "#{humanize_event(event.event_type)} changed #{state_summary(before_state)} to #{state_summary(after_state)}."
   end
 
   defp build_preview(detail, source_ruleset, rollout_rule_index, percentage) do
@@ -698,6 +890,43 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
       query -> URI.decode_query(query)
     end
   end
+
+  defp diff_lines("ruleset.publish", %{"rules" => rules}) when is_list(rules) do
+    Enum.map(rules, fn rule ->
+      "#{rule["key"]} from #{inspect(rule["from"])} to #{inspect(rule["to"])}"
+    end)
+  end
+
+  defp diff_lines(_event_type, _diff_state), do: []
+
+  defp state_summary(state) when map_size(state) == 0, do: "no recorded state"
+
+  defp state_summary(state) do
+    rules = Map.get(state, "rules") || Map.get(state, :rules)
+
+    if is_list(rules) and rules != [] do
+      rules
+      |> Enum.map_join(", ", fn rule ->
+        "#{rule["key"] || rule[:key]} @ #{rule["position"] || rule[:position]}"
+      end)
+    else
+      status = state["status"] || state[:status] || "unknown"
+      variant = state["kill_switch_variant_key"] || state[:kill_switch_variant_key] || "none"
+      "status #{status}, kill variant #{variant}"
+    end
+  end
+
+  defp humanize_event(event_type) do
+    event_type
+    |> String.replace(".", " ")
+    |> String.replace("_", " ")
+    |> String.capitalize()
+  end
+
+  defp append_reason(summary, %{reason: reason}) when is_binary(reason) and reason != "",
+    do: "#{summary} Reason: #{reason}"
+
+  defp append_reason(summary, _event), do: summary
 
   defp humanize(value) when is_atom(value), do: humanize(to_string(value))
 

@@ -43,7 +43,9 @@ defmodule RulesteadAdmin.Live.FlagLive.TimelineTest do
              Rulestead.engage_kill_switch(
                "checkout-redesign",
                "prod",
-               %{id: "op-1", display: "Priya", roles: [:admin]}, reason: "incident")
+               %{id: "op-1", display: "Priya", roles: [:admin]},
+               reason: "incident"
+             )
 
     Application.put_env(:rulestead, :admin_policy, DenyPolicy)
 
@@ -51,7 +53,9 @@ defmodule RulesteadAdmin.Live.FlagLive.TimelineTest do
              Rulestead.engage_kill_switch(
                "checkout-redesign",
                "prod",
-               %{id: "viewer-1", display: "Viewer", roles: [:viewer]}, reason: "denied attempt")
+               %{id: "viewer-1", display: "Viewer", roles: [:viewer]},
+               reason: "denied attempt"
+             )
 
     Application.put_env(:rulestead, :admin_policy, AllowPolicy)
 
@@ -262,8 +266,8 @@ defmodule RulesteadAdmin.Live.FlagLive.TimelineTest do
                  rule_key: "checkout-canary",
                  stage: "canary-60",
                  percentage: 60,
-                 monitoring_window_started_at: ~U[2026-04-23 16:05:00Z],
-                 monitoring_window_ends_at: ~U[2026-04-23 16:10:00Z]
+                 monitoring_window_started_at: ~U[2026-04-23 15:55:00Z],
+                 monitoring_window_ends_at: ~U[2026-04-23 16:00:00Z]
                },
                metadata: %{request_id: "req-manual-advance-60", source: :admin_ui}
              )
@@ -275,8 +279,8 @@ defmodule RulesteadAdmin.Live.FlagLive.TimelineTest do
                %{
                  rule_key: "checkout-canary",
                  stage: "canary-60",
-                 monitoring_window_started_at: ~U[2026-04-23 16:05:00Z],
-                 monitoring_window_ends_at: ~U[2026-04-23 16:10:00Z],
+                 monitoring_window_started_at: ~U[2026-04-23 15:55:00Z],
+                 monitoring_window_ends_at: ~U[2026-04-23 16:00:00Z],
                  signal_facts: [
                    %{
                      signal_key: "checkout_error_rate",

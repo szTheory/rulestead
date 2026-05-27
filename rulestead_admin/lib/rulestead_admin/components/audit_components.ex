@@ -3,13 +3,13 @@ defmodule RulesteadAdmin.Components.AuditComponents do
 
   use Phoenix.Component
 
-  attr :active?, :boolean, required: true
-  attr :flag_key, :string, required: true
-  attr :environment_name, :string, required: true
-  attr :reason, :string, default: nil
-  attr :kill_path, :string, required: true
-  attr :timeline_path, :string, required: true
-  attr :show_release_button, :boolean, default: false
+  attr(:active?, :boolean, required: true)
+  attr(:flag_key, :string, required: true)
+  attr(:environment_name, :string, required: true)
+  attr(:reason, :string, default: nil)
+  attr(:kill_path, :string, required: true)
+  attr(:timeline_path, :string, required: true)
+  attr(:show_release_button, :boolean, default: false)
 
   def kill_switch_banner(assigns) do
     ~H"""
@@ -38,19 +38,20 @@ defmodule RulesteadAdmin.Components.AuditComponents do
     """
   end
 
-  attr :mode, :atom, required: true
-  attr :flag_key, :string, required: true
-  attr :production?, :boolean, required: true
-  attr :confirmation_value, :string, default: ""
-  attr :reason_value, :string, default: ""
-  attr :error, :string, default: nil
+  attr(:mode, :atom, required: true)
+  attr(:flag_key, :string, required: true)
+  attr(:production?, :boolean, required: true)
+  attr(:confirmation_value, :string, default: "")
+  attr(:reason_value, :string, default: "")
+  attr(:error, :string, default: nil)
 
   def kill_switch_form(assigns) do
     assigns =
       assign(assigns,
         title: if(assigns.mode == :engage, do: "Engage kill switch", else: "Release kill switch"),
         event: if(assigns.mode == :engage, do: "engage", else: "release"),
-        submit_label: if(assigns.mode == :engage, do: "Confirm kill switch", else: "Confirm release")
+        submit_label:
+          if(assigns.mode == :engage, do: "Confirm kill switch", else: "Confirm release")
       )
 
     ~H"""
@@ -85,9 +86,9 @@ defmodule RulesteadAdmin.Components.AuditComponents do
     """
   end
 
-  attr :entry, :map, required: true
-  attr :show_flag, :boolean, default: false
-  attr :show_rollback, :boolean, default: false
+  attr(:entry, :map, required: true)
+  attr(:show_flag, :boolean, default: false)
+  attr(:show_rollback, :boolean, default: false)
 
   def timeline_row(assigns) do
     ~H"""
@@ -97,6 +98,18 @@ defmodule RulesteadAdmin.Components.AuditComponents do
         <p>{@entry.meta}</p>
       </header>
 
+      <p :if={Map.get(@entry, :automatic?, false)} class="rs-audit-row__source">
+        Automatic<span :if={Map.get(@entry, :source_label)}> source {@entry.source_label}</span>
+      </p>
+      <p
+        :if={
+          !Map.get(@entry, :automatic?, false) and
+            String.starts_with?(to_string(@entry.raw.event.event_type), "rollout.")
+        }
+        class="rs-audit-row__source"
+      >
+        Manual rollout action
+      </p>
       <p>{@entry.summary}</p>
       <p :if={@show_flag} class="rs-audit-row__flag">Flag: <code>{@entry.resource_key}</code></p>
       <p :if={@entry.reason} class="rs-audit-row__reason">Reason: {@entry.reason}</p>
@@ -124,11 +137,11 @@ defmodule RulesteadAdmin.Components.AuditComponents do
     """
   end
 
-  attr :entry, :map, required: true
-  attr :source_label, :string, default: "Before"
-  attr :current_target_label, :string, default: nil
-  attr :proposed_target_label, :string, default: "After"
-  attr :structured_label, :string, default: "Readable diff"
+  attr(:entry, :map, required: true)
+  attr(:source_label, :string, default: "Before")
+  attr(:current_target_label, :string, default: nil)
+  attr(:proposed_target_label, :string, default: "After")
+  attr(:structured_label, :string, default: "Readable diff")
 
   def diff_card(assigns) do
     ~H"""

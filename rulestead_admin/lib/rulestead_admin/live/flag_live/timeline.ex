@@ -137,7 +137,20 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
       meta: meta_for(event),
       summary: summary_for(event, before_state, after_state, diff_state),
       reason: event.reason,
-      raw: %{event: Map.take(event, [:event_type, :result, :resource_key, :environment_key, :actor_display, :occurred_at]), metadata: metadata},
+      automatic?: guardrail_automation_event?(event),
+      source_label: source_label(metadata),
+      raw: %{
+        event:
+          Map.take(event, [
+            :event_type,
+            :result,
+            :resource_key,
+            :environment_key,
+            :actor_display,
+            :occurred_at
+          ]),
+        metadata: metadata
+      },
       result: event.result,
       before_summary: state_summary(before_state),
       after_summary: state_summary(after_state),
@@ -159,32 +172,106 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
         "after.kill_switch_variant_key",
         "after.rules",
         "diff.rules",
+        "guardrail",
+        "guardrail.evidence",
+        "guardrail.signal_key",
+        "guardrail.environment_key",
+        "links.guardrail_decision_id",
+        "links.stable_guardrail_decision_id",
         "rollback_of_event_id",
-        "links.inverse_event_type"
+        "links.inverse_event_type",
+        "source",
+        "request_id"
       ]
     )
     |> Map.fetch!(:audit)
   end
 
+  defp guardrail_automation_event?(%{event_type: event_type}) do
+    event_type in [
+      "rollout.guardrail_held",
+      "rollout.guardrail_rollback",
+      "rollout.guardrail_evaluated"
+    ]
+  end
+
+  defp source_label(metadata), do: metadata["source"]
+
+  defp title_for(%{event_type: "rollout.guardrail_held"}), do: "Automatic guardrail hold"
+
+  defp title_for(%{event_type: "rollout.guardrail_rollback"}),
+    do: "Automatic guardrail rollback"
+
+  defp title_for(%{event_type: "rollout.guardrail_evaluated"}), do: "Guardrail evaluated"
   defp title_for(%{event_type: "kill_switch.engage", result: :ok}), do: "Kill switch engaged"
   defp title_for(%{event_type: "kill_switch.release", result: :ok}), do: "Kill switch released"
   defp title_for(%{event_type: "audit.rollback"}), do: "Rollback applied"
-  defp title_for(%{event_type: event_type, result: :denied}), do: "#{humanize_event(event_type)} denied"
+
+  defp title_for(%{event_type: event_type, result: :denied}),
+    do: "#{humanize_event(event_type)} denied"
+
   defp title_for(%{event_type: event_type}), do: humanize_event(event_type)
 
   defp meta_for(event) do
     actor = event.actor_display || event.actor_id || "Unknown actor"
     result = event.result |> to_string() |> String.upcase()
-    time = if(event.occurred_at, do: Calendar.strftime(event.occurred_at, "%Y-%m-%d %H:%M:%S UTC"), else: "Unknown time")
+
+    time =
+      if(event.occurred_at,
+        do: Calendar.strftime(event.occurred_at, "%Y-%m-%d %H:%M:%S UTC"),
+        else: "Unknown time"
+      )
+
     "#{actor} • #{event.environment_key} • #{result} • #{time}"
   end
 
-  defp summary_for(%{event_type: "audit.rollback"} = event, _before_state, after_state, _diff_state) do
+  defp summary_for(
+         %{event_type: "audit.rollback"} = event,
+         _before_state,
+         after_state,
+         _diff_state
+       ) do
     "Inverse write restored #{state_summary(after_state)} and linked this row back to #{event.metadata["rollback_of_event_id"] || "the original event"}."
   end
 
   defp summary_for(%{event_type: "ruleset.publish"}, _before_state, _after_state, diff_state) do
     "Ruleset publish updated ordered rule positions: #{Enum.join(diff_lines("ruleset.publish", diff_state), "; ")}."
+  end
+
+  defp summary_for(
+         %{event_type: "rollout.guardrail_held"} = event,
+         _before_state,
+         _after_state,
+         _diff_state
+       ) do
+    append_reason(
+      "Guardrail automation held this rollout fail-closed. Review the missing or stale signal before advancing.",
+      event
+    )
+  end
+
+  defp summary_for(
+         %{event_type: "rollout.guardrail_rollback"} = event,
+         _before_state,
+         _after_state,
+         _diff_state
+       ) do
+    append_reason(
+      "A confirmed threshold breach triggered rollback to the last stable rollout snapshot.",
+      event
+    )
+  end
+
+  defp summary_for(
+         %{event_type: "rollout.guardrail_evaluated"} = event,
+         _before_state,
+         _after_state,
+         _diff_state
+       ) do
+    append_reason(
+      "Automation is waiting for valid guardrail evidence and will not assume the stage is healthy.",
+      event
+    )
   end
 
   defp summary_for(event, before_state, after_state, _diff_state) do
@@ -196,6 +283,11 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
         "#{humanize_event(event.event_type)} changed #{state_summary(before_state)} to #{state_summary(after_state)}."
     end
   end
+
+  defp append_reason(summary, %{reason: reason}) when is_binary(reason) and reason != "",
+    do: "#{summary} Reason: #{reason}"
+
+  defp append_reason(summary, _event), do: summary
 
   defp state_summary(state) when map_size(state) == 0, do: "no recorded state"
 
