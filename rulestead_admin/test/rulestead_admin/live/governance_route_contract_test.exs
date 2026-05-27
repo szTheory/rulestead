@@ -116,6 +116,24 @@ defmodule RulesteadAdmin.Live.GovernanceRouteContractTest do
     assert schedule_show_html =~ "/admin/flags/schedule?env=staging"
   end
 
+  test "audience governance reuses existing audience preview and confirm routes only" do
+    router_source =
+      Path.join([__DIR__, "..", "..", "..", "lib", "rulestead_admin", "router.ex"])
+      |> File.read!()
+
+    for path <- [
+          "/audiences/:audience_key/edit/preview",
+          "/audiences/:audience_key/edit/confirm",
+          "/audiences/:audience_key/archive/preview",
+          "/audiences/:audience_key/archive/confirm"
+        ] do
+      assert router_source =~ "live(\"#{path}\""
+    end
+
+    refute router_source =~ ~r/live\("[^"]*governance/
+    refute router_source =~ ~r/live\("[^"]*proposal/
+  end
+
   test "mounted governance routes accept canonical env query params", %{
     conn: conn,
     scheduled_execution_id: sched_id

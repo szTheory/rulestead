@@ -68,7 +68,7 @@
 3. Operators without full dependency visibility see redacted or partial evidence without raw predicate leakage or unauthorized resource detail.
 4. Mounted workflows do not introduce standalone-admin claims or bulk automation paths.
 
-**Plans**: 4 plans (3/4 complete) — `59-01` ✅ governance components + loader; `59-02` ✅ preview UX; `59-03` ✅ confirm apply/submit; `59-04` CR show evidence + proof
+**Plans**: 4 plans (4/4 complete) — `59-01` ✅ governance components + loader; `59-02` ✅ preview UX; `59-03` ✅ confirm apply/submit; `59-04` ✅ CR show evidence + route proof
 
 ### Phase 60: Proof, Docs, And Support Truth
 
@@ -90,7 +90,7 @@
 |-------|-----------|----------------|--------|-----------|
 | 57. Blast-Radius Threshold Contract | v1.7.0 | 4/4 | Complete    | 2026-05-27 |
 | 58. Change Request Integration | v1.7.0 | 0/4 | Complete    | 2026-05-27 |
-| 59. Mounted Governance Workflows | v1.7.0 | 1/4 | In Progress | — |
+| 59. Mounted Governance Workflows | v1.7.0 | 4/4 | Complete    | 2026-05-27 |
 | 60. Proof, Docs, And Support Truth | v1.7.0 | 0/4 | Not started | — |
 
 <details>
