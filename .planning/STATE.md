@@ -1,11 +1,11 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.6.0
-milestone_name: milestone
-status: completed
-stopped_at: Phase 56 complete — v1.6.0 milestone ready for archive
-last_updated: "2026-05-27T17:30:00.000Z"
-last_activity: 2026-05-27 -- Phase 56 execution and traceability sync
+milestone_name: Reusable Targeting Deepening
+status: shipped
+stopped_at: Milestone v1.6.0 archived — planning next milestone
+last_updated: "2026-05-27T18:00:00.000Z"
+last_activity: 2026-05-27 — Milestone v1.6.0 completed, archived, and tagged
 progress:
   total_phases: 4
   completed_phases: 4
@@ -21,15 +21,15 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-27)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions - booleans, variants, and remote config - with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
-**Current focus:** v1.6.0 milestone complete — proof, docs, and support truth shipped
-**Milestone:** `v1.6.0 - Reusable Targeting Deepening`
+**Current focus:** Planning next milestone
+**Milestone:** `v1.6.0 - Reusable Targeting Deepening` (shipped)
 
 ## Current Position
 
-Phase: 56 (complete)
-Plan: 56-04 complete
-Status: Milestone v1.6.0 ready for archive
-Last activity: 2026-05-27 -- Phase 56 execution and traceability sync
+Phase: Milestone v1.6.0 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-05-27 — Milestone v1.6.0 completed, archived, and tagged
 
 Progress: [##########] 100%
 
@@ -38,46 +38,39 @@ Progress: [##########] 100%
 **Velocity:**
 
 - Total plans completed: 16
-- Average duration: n/a
-- Total execution time: 0.0 hours
+- Milestone duration: same-day execution (2026-05-27)
+- Git commits in milestone range: 71
 
 **By Phase:**
 
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 53. Impact Preview Contract | 4 | - | - |
-| 54. Dependency Truth And Promotion Safety | 4 | - | - |
-| 55. Mounted Operator Workflows | TBD | - | - |
-| 56. Proof, Docs, And Support Truth | TBD | - | - |
-| 55 | 4 | - | - |
-| 56 | 4 | - | - |
-
-**Recent Trend:**
-
-- Last 8 plans: 53-01, 53-02, 53-03, 53-04, 54-01, 54-02, 54-03, 54-04
-- Trend: Phase 54 completed; Phase 55 ready for discuss/plan
+| Phase | Plans | Status |
+|-------|-------|--------|
+| 53. Impact Preview Contract | 4/4 | Complete |
+| 54. Dependency Truth And Promotion Safety | 4/4 | Complete |
+| 55. Mounted Operator Workflows | 4/4 | Complete |
+| 56. Proof, Docs, And Support Truth | 4/4 | Complete |
 
 ## Accumulated Context
 
 ### Decisions
 
-Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecting current work:
+Decisions are logged in PROJECT.md Key Decisions table. Milestone-shaping decisions:
 
-- Activate `v1.6.0 - Reusable Targeting Deepening` as the next milestone after `v1.5.0` guarded rollout foundations.
-- Treat reusable audiences as already shipped; this milestone deepens safety, dependency visibility, explainability, and support truth rather than adding a new targeting primitive.
-- Keep previews authored-state and explicit-sample based. Do not imply Rulestead owns identity, tenant catalog, observability, or authoritative affected-user counts.
-- Preserve the linked-version two-package release model: `rulestead` owns core contracts and validation; `rulestead_admin` owns mounted presentation only.
+- Deepen reusable audiences instead of adding a new targeting primitive.
+- Keep previews authored-state and explicit-sample based.
+- Preserve linked-version two-package release model.
 
 ### Pending Todos
 
-None yet.
+None.
 
 ### Blockers/Concerns
 
-- Avoid runtime database, mounted-admin, host identity, or observability lookups during evaluation; audience resolution must stay snapshot-local.
-- Do not introduce Phase 8-only docs, standalone `rulestead_admin` publish prep, graph visualizers, bulk automation, hidden inheritance, or tenant hierarchy shortcuts.
+None blocking next milestone selection.
 
 ## Deferred Items
+
+Known deferred items at close: 4 (see table below)
 
 | Category | Item | Status | Deferred At |
 |----------|------|--------|-------------|
@@ -88,6 +81,10 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-05-27T17:30:00.000Z
-Stopped at: Phase 56 complete — v1.6.0 milestone ready for archive
-Resume file: .planning/phases/56-proof-docs-and-support-truth/56-HANDOFF-CHECKLIST.md
+Last session: 2026-05-27T18:00:00.000Z
+Stopped at: Milestone v1.6.0 archived — planning next milestone
+Resume file: none — start with `/gsd-new-milestone`
+
+## Operator Next Steps
+
+- Start the next milestone with `/gsd-new-milestone`

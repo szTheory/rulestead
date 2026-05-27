@@ -13,17 +13,24 @@ Rulestead is a batteries-included, Elixir-native feature-flag and remote-config 
 - `v1.3.0` shipped on 2026-05-25 across Phases 41-44, closing release-truth drift, authored-state parity, mounted companion verification, and OpenFeature companion proof without widening the linked sibling-package release model.
 - `v1.4.0` shipped on 2026-05-26 across Phases 45-48, restoring the mounted companion boot/runtime contract, the repo-root `mounted_admin_contract` proof bar, and the release/support-truth chain without widening the sibling-package product shape.
 - `v1.5.0` shipped on 2026-05-27 across Phases 49-52, adding host-owned guardrail signal contracts, fail-closed guarded rollout decisions, governed/audited hold or rollback behavior, mounted guardrail explanation surfaces, and bounded proof/docs truth without turning Rulestead into an observability product.
+- `v1.6.0` shipped on 2026-05-27 across Phases 53-56, deepening reusable audience targeting with impact previews, dependency inventory and fail-closed validation, mounted preview-confirm-audit workflows, explain trace carry-through, and bounded proof/docs/support truth without widening the sibling-package release model.
 
-## Current Milestone: v1.6.0 Reusable Targeting Deepening
+## Next Milestone Goals
+
+- Select the next milestone via `/gsd-new-milestone` after audit and roadmap review.
+- Candidate themes from deferred items include richer host-supplied preview evidence (`IMP-05`), blast-radius governance (`GOV-01`), and automatic guarded rollout advancement (`ROL-04`).
+
+<details>
+<summary>Previous milestone: v1.6.0 Reusable Targeting Deepening (shipped 2026-05-27)</summary>
 
 **Goal:** Deepen already-shipped reusable audience targeting with impact previews, dependency visibility, explainability, and bounded mounted operator workflows while preserving deterministic snapshots and the linked sibling-package release design.
 
-**Target features:**
+**Delivered:**
 - Core audience dependency inventory, reference counts, and fail-closed validation for referenced, archived, missing, stale, or tenant-mismatched audiences.
-- Impact preview and confirmation contract for audience edits, archive/delete attempts, and protected mutation paths, including preview basis, stale-token checks, audit summary, and affected rollout/lifecycle context.
-- Promotion, manifest, compare, explainability, and mounted admin surfaces that make reusable audience dependencies visible and supportable without hidden inheritance or runtime admin lookups.
+- Impact preview and confirmation contract for audience edits, archive/delete attempts, and protected mutation paths.
+- Promotion, manifest, compare, explainability, and mounted admin surfaces that make reusable audience dependencies visible and supportable.
 
-**Why now:** `v1.5.0` shipped bounded guarded rollout foundations; the next trust gap is making existing reusable audience indirection safe to change, inspect, and explain before it becomes a blast-radius surprise.
+</details>
 
 ## Core Value
 
@@ -55,7 +62,7 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
   - Value: The strongest next differentiator once the mounted companion support surface is fully credible again.
 - **v1.6.0: Reusable Targeting Deepening**
   - Focus: Deepen the already-shipped audience reuse model with impact previews, dependency visibility, and bounded operator ergonomics.
-  - Value: Reduce duplicated targeting logic safely only after lifecycle, support truth, and rollout posture remain understandable.
+  - Value: Shipped on 2026-05-27; reusable audience changes are now previewable, dependency-aware, explainable, and supportable without runtime lookup drift.
 
 ## Release Posture
 
@@ -67,10 +74,7 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 
 ### Active
 
-- [ ] Define core audience dependency truth and reference counts in `rulestead` without adding runtime DB lookups or graph-library dependencies.
-- [ ] Add bounded audience impact previews, stale-token validation, archive/delete blockers, and audit evidence for shared targeting mutations.
-- [ ] Carry audience dependency visibility through promotion, manifest import/export, compare, explain traces, and mounted admin workflows.
-- [ ] Re-close proof, docs, and support truth for reusable targeting deepening under the linked sibling-package release model.
+(None — start fresh requirements with `/gsd-new-milestone`)
 
 ### Validated
 
@@ -105,6 +109,7 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 - ✓ Establish a runnable bounded proof path for `open_feature_rulestead` (`OFE-01`) — `v1.3.0`
 - ✓ Re-close the mounted companion boot/runtime seam, bounded proof bar, CI/release semantics, and support-truth chain (`PKG-01`, `PKG-02`, `ADM-01`, `VER-01`, `DOC-01`) — `v1.4.0`
 - ✓ Establish bounded guarded rollout foundations (`ROL-01`, `ROL-02`, `ROL-03`, `AUD-01`, `AUD-02`, `ADM-01`, `VER-01`) — `v1.5.0`
+- ✓ Deepen reusable audience targeting with impact previews, dependency truth, mounted workflows, and support truth (`IMP-01` to `IMP-04`, `DEP-01` to `DEP-04`, `ADM-01` to `ADM-04`, `VER-01` to `VER-03`) — `v1.6.0`
 
 ### Out of Scope
 
@@ -122,6 +127,7 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 - `v1.3.0` shipped across Phases 41-44, proving release-facing support truth, authored-state parity, mounted companion verification, and bounded OpenFeature proof can align without widening the product shape.
 - `v1.4.0` shipped across Phases 45-48, proving the mounted companion boot/runtime seam, bounded proof bar, CI semantics, and support-truth surfaces can be reclosed cleanly without broadening the admin posture.
 - `v1.5.0` shipped across Phases 49-52, proving bounded guarded rollout foundations can stay host-supplied, fail-closed, governed, audited, mounted-workflow-friendly, and explicitly documented without broadening into observability or standalone-admin scope.
+- `v1.6.0` shipped across Phases 53-56, proving reusable audience targeting can be deepened with snapshot-local evaluation, impact previews, one core dependency truth, mounted preview-confirm-audit workflows, and aligned proof/docs without widening the sibling-package product shape.
 - The project remains a linked-version, two-package monorepo.
 
 ## Constraints
@@ -155,13 +161,13 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 | Keep `v1.5.0` as the next candidate after shipping `v1.4.0` | With the mounted companion proof surface repaired, guarded rollout again becomes the strongest differentiated follow-on while reusable targeting stays a later deepening pass. | Validated |
 | Activate `v1.5.0` as a bounded guarded-rollout milestone instead of reopening milestone selection | The milestone arc, repo state, and prior research all pointed to guarded rollout as the next highest-leverage differentiator as long as host-owned observability and mounted companion boundaries stayed explicit. | Validated |
 | Ship guarded rollout foundations as host-owned, fail-closed, and mounted-workflow bounded | Keeps rollout safety useful without turning Rulestead into an observability product, standalone control plane, or time-based routing engine. | Validated |
-| Activate `v1.6.0` as reusable targeting deepening instead of adding a new targeting primitive | Reusable audiences are already shipped; the highest-leverage next work is blast-radius safety, dependency visibility, and explainability for existing audience reuse. | Pending |
-| Keep reusable targeting previews authored-state and explicit-sample based | Preserves deterministic evaluation, host-owned identity/observability truth, and honest support claims while still giving operators useful impact evidence. | Pending |
+| Activate `v1.6.0` as reusable targeting deepening instead of adding a new targeting primitive | Reusable audiences are already shipped; the highest-leverage next work is blast-radius safety, dependency visibility, and explainability for existing audience reuse. | Validated |
+| Keep reusable targeting previews authored-state and explicit-sample based | Preserves deterministic evaluation, host-owned identity/observability truth, and honest support claims while still giving operators useful impact evidence. | Validated |
 
 ## Milestone Archives
 
-- Roadmap archive: [.planning/milestones/v0.1.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.1.0-ROADMAP.md), [.planning/milestones/v0.2.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.2.0-ROADMAP.md), [.planning/milestones/v0.3.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.3.0-ROADMAP.md), [.planning/milestones/v0.4.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.4.0-ROADMAP.md), [.planning/milestones/v0.5.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.5.0-ROADMAP.md), [.planning/milestones/v0.6.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.6.0-ROADMAP.md), [.planning/milestones/v1.0.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.0.0-ROADMAP.md), [.planning/milestones/v1.1.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.1.0-ROADMAP.md), [.planning/milestones/v1.2.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.2.0-ROADMAP.md), [.planning/milestones/v1.3.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.3.0-ROADMAP.md), [.planning/milestones/v1.4.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.4.0-ROADMAP.md), [.planning/milestones/v1.5.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.5.0-ROADMAP.md)
-- Requirements archive: [.planning/milestones/v0.1.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.1.0-REQUIREMENTS.md), [.planning/milestones/v0.2.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.2.0-REQUIREMENTS.md), [.planning/milestones/v0.3.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.3.0-REQUIREMENTS.md), [.planning/milestones/v0.4.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.4.0-REQUIREMENTS.md), [.planning/milestones/v0.5.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.5.0-REQUIREMENTS.md), [.planning/milestones/v0.6.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.6.0-REQUIREMENTS.md), [.planning/milestones/v1.0.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v1.0.0-REQUIREMENTS.md), [.planning/milestones/v1.1.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v1.1.0-REQUIREMENTS.md), [.planning/milestones/v1.2.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v1.2.0-REQUIREMENTS.md), [.planning/milestones/v1.3.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v1.3.0-REQUIREMENTS.md), [.planning/milestones/v1.4.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v1.4.0-REQUIREMENTS.md), [.planning/milestones/v1.5.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v1.5.0-REQUIREMENTS.md)
+- Roadmap archive: [.planning/milestones/v0.1.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.1.0-ROADMAP.md), [.planning/milestones/v0.2.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.2.0-ROADMAP.md), [.planning/milestones/v0.3.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.3.0-ROADMAP.md), [.planning/milestones/v0.4.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.4.0-ROADMAP.md), [.planning/milestones/v0.5.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.5.0-ROADMAP.md), [.planning/milestones/v0.6.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.6.0-ROADMAP.md), [.planning/milestones/v1.0.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.0.0-ROADMAP.md), [.planning/milestones/v1.1.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.1.0-ROADMAP.md), [.planning/milestones/v1.2.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.2.0-ROADMAP.md), [.planning/milestones/v1.3.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.3.0-ROADMAP.md), [.planning/milestones/v1.4.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.4.0-ROADMAP.md), [.planning/milestones/v1.5.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.5.0-ROADMAP.md), [.planning/milestones/v1.6.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.6.0-ROADMAP.md)
+- Requirements archive: [.planning/milestones/v0.1.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.1.0-REQUIREMENTS.md), [.planning/milestones/v0.2.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.2.0-REQUIREMENTS.md), [.planning/milestones/v0.3.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.3.0-REQUIREMENTS.md), [.planning/milestones/v0.4.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.4.0-REQUIREMENTS.md), [.planning/milestones/v0.5.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.5.0-REQUIREMENTS.md), [.planning/milestones/v0.6.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.6.0-REQUIREMENTS.md), [.planning/milestones/v1.0.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v1.0.0-REQUIREMENTS.md), [.planning/milestones/v1.1.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v1.1.0-REQUIREMENTS.md), [.planning/milestones/v1.2.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v1.2.0-REQUIREMENTS.md), [.planning/milestones/v1.3.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v1.3.0-REQUIREMENTS.md), [.planning/milestones/v1.4.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v1.4.0-REQUIREMENTS.md), [.planning/milestones/v1.5.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v1.5.0-REQUIREMENTS.md), [.planning/milestones/v1.6.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v1.6.0-REQUIREMENTS.md)
 
 ## Historical Context
 
@@ -192,4 +198,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-27 after v1.6.0 milestone activation*
+*Last updated: 2026-05-27 after v1.6.0 milestone*

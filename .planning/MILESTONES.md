@@ -1,5 +1,32 @@
 # Milestones
 
+## v1.6.0 Reusable Targeting Deepening (Shipped: 2026-05-27)
+
+**Phases completed:** 4 phases, 16 plans, 22 tasks
+
+**Key accomplishments:**
+
+- Pure audience impact previews with scoped audprev fingerprints, redacted sample evidence, and authored-state dependency summaries.
+- Runtime snapshots now carry compiled reusable audiences, and segment_match evaluation resolves them locally with deterministic support-safe traces.
+- Public and Store audience impact preview/apply contracts with Fake stale-fingerprint enforcement and Redis read-only parity.
+- Ecto-backed audience preview/apply enforcement with support-safe audit evidence and snapshot-local runtime audience payloads
+- Shipped a canonical, deterministic audience dependency inventory with projection-backed Ecto/Fake parity and authorized redacted public read APIs for downstream promotion and manifest safety flows.
+- Shared dependency truth now blocks unsafe publish and audience mutation writes in both Ecto and Fake with deterministic blocker findings and auditable evidence.
+- Promotion and manifest apply paths now consume one deterministic dependency-truth contract, surface scoped dependency findings, and fail closed before any unsafe writes.
+- Phase 54 now has deterministic dependency proof coverage, parity-safe fail-closed contract assertions, a single `mix verify.phase54` merge gate, and a Phase 55 handoff checklist that locks core-vs-mounted truth boundaries.
+- Mounted audience library and detail surfaces render Phase 54 dependency inventory with policy-aware partial visibility and UI-SPEC operator copy.
+- Audience edit and archive mutations use mounted preview → confirm → audit with drift handling; delete stays fail-closed.
+- Flag explain, rules, and simulate surfaces carry reusable audience context with support-safe traces and links into the audience library.
+- Compare surfaces audience dependency findings read-only; phase verification and handoff document lock core-vs-mounted boundaries for Phase 56.
+- `mix verify.phase56` ships as the v1.6 reusable targeting deepening merge gate with a flat 17-path core union and bounded admin completion tests.
+- Release-contract drift guards and README/MAINTAINING/package README sections now describe the same bounded v1.6 reusable targeting scope.
+- Four operator flow guides now describe Audience preview limits, snapshot-local explain traces, mounted preview→confirm→audit, and scoped compare/promotion dependency findings.
+- Phase 56 closes with optional CI proof scope, handoff/verification artifacts, and VER-01/02/03 traceability — sibling-package release model unchanged.
+
+Known deferred items at close: 4 (see STATE.md Deferred Items)
+
+---
+
 ## v1.5.0 - Guarded Rollout Foundations (Shipped: 2026-05-27)
 
 **Phases completed:** 4 phases, 8 plans, 10 tasks

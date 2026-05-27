@@ -1,14 +1,12 @@
-# Milestone Arc: Post-v1.5.0 Closeout
+# Milestone Arc: Post-v1.6.0 Closeout
 
-**Last updated:** 2026-05-27 during milestone v1.6.0 activation
+**Last updated:** 2026-05-27 during milestone v1.6.0 closeout
 **Selection posture:** Default to the highest-priority candidate below unless the user explicitly chooses a materially different direction. Shift low-impact milestone-selection preference left inside GSD instead of re-opening the full tradeoff set every time.
 
 ## Active Milestone
 
-- **Active now:** `v1.6.0 - Reusable Targeting Deepening`
-- **Why it is active:** With guarded rollout foundations shipped, the next highest-leverage product gap is making already-shipped reusable audience targeting safer to edit, easier to inspect, and clearer to explain without introducing hidden inheritance graphs or standalone control-plane behavior.
-- **Scope posture:** Deepen impact previews, dependency visibility, promotion/manifest validation, mounted operator ergonomics, and support truth for existing reusable audiences.
-- **Next queued candidate:** none selected; choose after `v1.6.0` closeout based on audit findings.
+- **Active now:** none — `v1.6.0 - Reusable Targeting Deepening` shipped on 2026-05-27
+- **Next queued candidate:** choose via `/gsd-new-milestone` after audit review; deferred items include `IMP-05`, `ADM-05`, `GOV-01`, and `ROL-04`
 
 ## Candidate Ranking
 
