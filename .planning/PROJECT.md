@@ -14,6 +14,7 @@ Rulestead is a batteries-included, Elixir-native feature-flag and remote-config 
 - `v1.4.0` shipped on 2026-05-26 across Phases 45-48, restoring the mounted companion boot/runtime contract, the repo-root `mounted_admin_contract` proof bar, and the release/support-truth chain without widening the sibling-package product shape.
 - `v1.5.0` shipped on 2026-05-27 across Phases 49-52, adding host-owned guardrail signal contracts, fail-closed guarded rollout decisions, governed/audited hold or rollback behavior, mounted guardrail explanation surfaces, and bounded proof/docs truth without turning Rulestead into an observability product.
 - `v1.6.0` shipped on 2026-05-27 across Phases 53-56, deepening reusable audience targeting with impact previews, dependency inventory and fail-closed validation, mounted preview-confirm-audit workflows, explain trace carry-through, and bounded proof/docs/support truth without widening the sibling-package release model.
+- `v1.7.0` in progress (Phases 57-60): blast-radius threshold contract, change-request integration, and mounted governance workflows. **Phase 59 complete** — mounted admin detects threshold breaches, routes governed audience mutations through proposal/review, and preserves policy-aware fallbacks (ADM-01–03).
 
 ## Current Milestone: v1.7.0 Blast-Radius Governance
 
@@ -213,4 +214,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-27 after v1.7.0 milestone assessment*
+*Last updated: 2026-05-27 after Phase 59 (mounted governance workflows)*
