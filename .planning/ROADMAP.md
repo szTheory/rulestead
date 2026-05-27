@@ -40,7 +40,7 @@
 3. Threshold evaluation fails closed when preview fingerprints are stale, dependency truth is unresolved, or required threshold inputs are missing.
 4. Fake and Ecto store paths share one deterministic threshold contract suitable for downstream change-request routing.
 
-**Plans**: 4 plans (TBD via `/gsd-plan-phase 57`)
+**Plans**: 4 plans
 
 ### Phase 58: Change Request Integration
 
