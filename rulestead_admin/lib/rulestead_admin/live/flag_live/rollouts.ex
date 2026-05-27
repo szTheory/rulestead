@@ -822,6 +822,12 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
     |> Map.fetch!(:audit)
   end
 
+  defp guardrail_automation_event?(%{event_type: "rollout.advance"} = event) do
+    metadata = event.metadata || %{}
+    source = metadata["source"] || metadata[:source]
+    source in ["guardrail_automation", :guardrail_automation]
+  end
+
   defp guardrail_automation_event?(%{event_type: event_type}) do
     event_type in [
       "rollout.guardrail_held",
@@ -840,6 +846,12 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
 
   defp intervention_title_for(%{event_type: "rollout.guardrail_evaluated"}),
     do: "Guardrail evaluated"
+
+  defp intervention_title_for(%{event_type: "rollout.advance"} = event) do
+    if guardrail_automation_event?(event),
+      do: "Automatic rollout advance",
+      else: humanize_event("rollout.advance")
+  end
 
   defp intervention_title_for(%{event_type: event_type}), do: humanize_event(event_type)
 
@@ -899,6 +911,19 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
          diff_state
        ) do
     "Ruleset publish updated ordered rule positions: #{Enum.join(diff_lines("ruleset.publish", diff_state), "; ")}."
+  end
+
+  defp intervention_summary_for(
+         %{event_type: "rollout.advance"} = event,
+         before_state,
+         after_state,
+         _diff_state
+       ) do
+    if guardrail_automation_event?(event) do
+      automatic_rollout_advance_summary(event, before_state, after_state)
+    else
+      "#{humanize_event(event.event_type)} changed #{state_summary(before_state)} to #{state_summary(after_state)}."
+    end
   end
 
   defp intervention_summary_for(event, before_state, after_state, _diff_state) do
@@ -1263,6 +1288,69 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
     |> String.replace("_", " ")
     |> String.capitalize()
   end
+
+  defp automatic_rollout_advance_summary(event, before_state, after_state) do
+    metadata = event.metadata || %{}
+    context = metadata["context"] || metadata[:context] || %{}
+    eligibility = context["eligibility"] || context[:eligibility] || %{}
+    snapshot = eligibility["policy_snapshot"] || eligibility[:policy_snapshot] || %{}
+
+    stage = snapshot["next_stage"] || snapshot[:next_stage]
+    percentage = snapshot["next_percentage"] || snapshot[:next_percentage]
+
+    {stage, percentage} =
+      if present?(stage) do
+        {stage, percentage}
+      else
+        advance_target_from_rules(after_state) || advance_target_from_rules(before_state) ||
+          {nil, nil}
+      end
+
+    window_ends =
+      context["observation_window_ends_at"] || context[:observation_window_ends_at] ||
+        metadata["observation_window_ends_at"] || metadata[:observation_window_ends_at]
+
+    base =
+      cond do
+        present?(stage) and present?(percentage) ->
+          "Advanced to #{stage} at #{percentage}%"
+
+        present?(stage) ->
+          "Advanced to #{stage}"
+
+        true ->
+          "Automatic rollout advanced"
+      end
+
+    if present?(window_ends) do
+      "#{base} after observation window closed at #{format_observation_timestamp(window_ends)}."
+    else
+      "#{base} after observation window closed."
+    end
+  end
+
+  defp advance_target_from_rules(state) do
+    rules = Map.get(state, "rules") || Map.get(state, :rules) || []
+
+    case List.first(rules) do
+      %{} = rule ->
+        rollout = Map.get(rule, "rollout") || Map.get(rule, :rollout) || %{}
+        stage = Map.get(rollout, "stage") || Map.get(rollout, :stage)
+        percentage = Map.get(rollout, "percentage") || Map.get(rollout, :percentage)
+        if present?(stage), do: {stage, percentage}, else: nil
+
+      _ ->
+        nil
+    end
+  end
+
+  defp format_observation_timestamp(%DateTime{} = dt),
+    do: Calendar.strftime(dt, "%Y-%m-%d %H:%M:%S UTC")
+
+  defp format_observation_timestamp(value) when is_binary(value), do: value
+  defp format_observation_timestamp(_), do: "closed"
+
+  defp present?(value), do: not is_nil(value) and value != ""
 
   defp append_reason(summary, %{reason: reason}) when is_binary(reason) and reason != "",
     do: "#{summary} Reason: #{reason}"
