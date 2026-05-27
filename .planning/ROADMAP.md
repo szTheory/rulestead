@@ -82,7 +82,12 @@
 3. README and getting-started teach payload-first evaluation consistent with `guides/flows/evaluation.md`.
 4. Linked-version sibling-package release model and mounted-admin posture remain unchanged.
 
-**Plans**: 4 plans (TBD via `/gsd-plan-phase 60`)
+**Plans**: 4 plans
+
+- [ ] 60-01-PLAN.md — `mix verify.phase60` v1.7 merge gate (VER-01)
+- [ ] 60-02-PLAN.md — release_contract drift guards + README/MAINTAINING/package READMEs (VER-02)
+- [ ] 60-03-PLAN.md — in-place flow guide updates + quickstart parity (VER-02, VER-03)
+- [ ] 60-04-PLAN.md — CI scope, handoff checklist, verification artifact (VER-03)
 
 ## Progress
 
