@@ -3,6 +3,8 @@ defmodule RulesteadAdmin.Components.RolloutComponents do
 
   use Phoenix.Component
 
+  alias RulesteadAdmin.Components.OperatorComponents
+
   attr(:steps, :list, default: [])
   attr(:current, :integer, default: 0)
   attr(:selected, :integer, default: 0)
@@ -228,13 +230,12 @@ defmodule RulesteadAdmin.Components.RolloutComponents do
   attr(:approval_requirement, :map, default: nil)
   attr(:can_save?, :boolean, default: false)
   attr(:capability_denied_reason, :string, default: nil)
+  attr(:form_error, :string, default: nil)
+  attr(:rollout_rule_key, :string, default: nil)
   attr(:ladder_steps, :list, default: [])
 
   def auto_advance_panel(assigns) do
-    assigns =
-      assigns
-      |> assign(:policy_enabled, policy_enabled?(assigns.policy))
-      |> assign(:form_disabled, form_disabled?(assigns))
+    assigns = assign(assigns, :policy_enabled, policy_enabled?(assigns.policy))
 
     ~H"""
     <section class="rs-card" aria-label="Auto-advance">
@@ -248,21 +249,33 @@ defmodule RulesteadAdmin.Components.RolloutComponents do
         </p>
       </div>
 
+      <OperatorComponents.capability_explanation
+        :if={!@can_save? && @capability_denied_reason}
+        title="Auto-advance configuration requires advance permission"
+        reason={@capability_denied_reason}
+        tone="warning"
+      />
+
       <form
-        id="auto-advance-policy-form"
+        :if={@can_save? and @mode not in [:unavailable, :blocked_health]}
+        id="auto-advance-form"
         aria-label="Auto-advance policy form"
         phx-submit="save_auto_advance_policy"
         phx-change="validate_auto_advance"
       >
+        <input
+          type="hidden"
+          name="auto_advance[rule_key]"
+          value={auto_advance_rule_key(@policy, @rollout_rule_key)}
+        />
         <label>
           <input
             type="checkbox"
             name="auto_advance[enabled]"
             value="true"
             checked={@policy_enabled}
-            disabled={@form_disabled}
           />
-          Enable auto-advance for this rollout stage
+          Enable auto-advance
         </label>
 
         <label>
@@ -272,7 +285,6 @@ defmodule RulesteadAdmin.Components.RolloutComponents do
             name="auto_advance[observation_window_seconds]"
             min="1"
             value={policy_field(@policy, :observation_window_seconds)}
-            disabled={@form_disabled}
           />
         </label>
 
@@ -282,7 +294,6 @@ defmodule RulesteadAdmin.Components.RolloutComponents do
             type="text"
             name="auto_advance[next_stage]"
             value={policy_field(@policy, :next_stage)}
-            disabled={@form_disabled}
           />
         </label>
 
@@ -294,34 +305,52 @@ defmodule RulesteadAdmin.Components.RolloutComponents do
             min="0"
             max="100"
             value={policy_field(@policy, :next_percentage)}
-            disabled={@form_disabled}
           />
         </label>
+
+        <p :if={@form_error} role="alert"><%= @form_error %></p>
+
+        <button type="submit" disabled={@mode == :config_incomplete}>
+          Save auto-advance policy
+        </button>
       </form>
+
+      <div :if={@mode in [:unavailable, :blocked_health]} class="rs-auto-advance-readonly-fields">
+        <p>
+          <input type="checkbox" disabled checked={@policy_enabled} />
+          Enable auto-advance
+        </p>
+        <p>
+          Observation window (seconds):
+          <span><%= policy_field(@policy, :observation_window_seconds) %></span>
+        </p>
+        <p>
+          Next stage: <span><%= policy_field(@policy, :next_stage) %></span>
+        </p>
+        <p>
+          Next percentage: <span><%= policy_field(@policy, :next_percentage) %></span>
+        </p>
+      </div>
 
       <p :if={@ladder_steps != []}>
         Recommendations stay advisory; next stage and percentage are operator-authored.
         Suggested ladder: <%= Enum.join(@ladder_steps, ", ") %>%.
       </p>
-
-      <div
-        :if={!@can_save? && @capability_denied_reason}
-        class="rs-auto-advance-capability-slot"
-        data-capability-denied={to_string(!@can_save?)}
-      >
-      </div>
     </section>
     """
-  end
-
-  defp form_disabled?(assigns) do
-    assigns.mode in [:unavailable, :blocked_health] or not assigns.can_save?
   end
 
   defp policy_enabled?(nil), do: false
 
   defp policy_enabled?(policy) do
     Map.get(policy, :enabled) == true or Map.get(policy, "enabled") == true
+  end
+
+  defp auto_advance_rule_key(policy, rollout_rule_key) do
+    case policy_field(policy, :rule_key) do
+      "" -> rollout_rule_key || ""
+      value -> value
+    end
   end
 
   defp policy_field(nil, _key), do: ""
