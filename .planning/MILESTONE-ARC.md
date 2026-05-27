@@ -1,12 +1,12 @@
-# Milestone Arc: Post-v1.5.0 Activation
+# Milestone Arc: Post-v1.5.0 Closeout
 
-**Last updated:** 2026-05-26 during milestone v1.5.0 activation
+**Last updated:** 2026-05-27 during milestone v1.5.0 closeout
 **Selection posture:** Default to the highest-priority candidate below unless the user explicitly chooses a materially different direction. Shift low-impact milestone-selection preference left inside GSD instead of re-opening the full tradeoff set every time.
 
 ## Active Milestone
 
-- **Activated now:** `v1.5.0 - Guarded Rollout Foundations` is active as of 2026-05-26.
-- **Why now:** `v1.4.0` shipped the last materially broken mounted proof surface, so the strongest next move is to add bounded guarded-rollout safety on top of a now-credible sibling-package support posture.
+- **Active now:** none; `v1.5.0 - Guarded Rollout Foundations` shipped on 2026-05-27.
+- **Why it shipped:** It added bounded guarded-rollout safety on top of the repaired sibling-package support posture without widening Rulestead into observability, standalone admin, or time-based routing scope.
 - **Next queued candidate:** `v1.6.0 - Reusable Targeting Deepening`
 
 ## Candidate Ranking
@@ -95,14 +95,14 @@
 
 ### 4. `v1.5.0 - Guarded Rollout Foundations`
 
-**Status:** active on 2026-05-26 after shipped `v1.4.0`
+**Status:** shipped on 2026-05-27
 **Why it was activated next:**
 
 - It offers the strongest product differentiation once the support-truth surface is credible.
 - The work now lands on a calmer base: docs, migrations, installer truth, and bounded verification no longer fight each other.
 - Its main risk remains scope drift into observability or control-plane expansion, so the guardrails stay essential.
 
-**Activated shape:**
+**Shipped shape:**
 
 - Host-supplied rollout-signal behaviour seam
 - Stage-level monitoring windows with explicit `hold` / `roll back`
@@ -121,7 +121,7 @@
 
 ### 5. `v1.6.0 - Reusable Targeting Deepening`
 
-**Status:** next queued candidate after active `v1.5.0`
+**Status:** next queued candidate after shipped `v1.5.0`
 **Why it is later:**
 
 - Reusable audiences already exist in shipped runtime/admin/promotion surfaces, so the next value here is deepening ergonomics and blast-radius safety rather than introducing the concept

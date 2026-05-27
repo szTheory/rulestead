@@ -12,19 +12,15 @@ Rulestead is a batteries-included, Elixir-native feature-flag and remote-config 
 - `v1.2.0` shipped on 2026-05-24 across Phases 35-40, delivering host-owned ownership metadata, bounded archive-readiness guidance, a governed mounted lifecycle cleanup flow, and release-facing lifecycle docs plus verification without widening the sibling-package release model.
 - `v1.3.0` shipped on 2026-05-25 across Phases 41-44, closing release-truth drift, authored-state parity, mounted companion verification, and OpenFeature companion proof without widening the linked sibling-package release model.
 - `v1.4.0` shipped on 2026-05-26 across Phases 45-48, restoring the mounted companion boot/runtime contract, the repo-root `mounted_admin_contract` proof bar, and the release/support-truth chain without widening the sibling-package product shape.
-- `v1.5.0` was activated on 2026-05-26 across Phases 49-52 to add bounded guarded-rollout safety without turning Rulestead into an observability product.
-- Phase 49 and Phase 50 are implemented as of 2026-05-27 planning reconciliation: guardrail signal contracts, authored guardrail definitions, compare/export durability, guarded decision evaluation, durable decisions, and governed/audited hold or rollback behavior are in `main` at `c4dd3fb`.
+- `v1.5.0` shipped on 2026-05-27 across Phases 49-52, adding host-owned guardrail signal contracts, fail-closed guarded rollout decisions, governed/audited hold or rollback behavior, mounted guardrail explanation surfaces, and bounded proof/docs truth without turning Rulestead into an observability product.
 
-## Current Milestone: v1.5.0 Guarded Rollout Foundations
+## Current Milestone
 
-**Goal:** Add host-supplied guardrail signals and audited rollout hold or rollback foundations on top of the now-credible mounted companion support surface.
+No active milestone is defined. The next milestone should start with `$gsd-new-milestone`, which creates fresh requirements and roadmap scope.
 
-**Target features:**
-- Host-supplied rollout signal seams with explicit threshold semantics
-- Audited hold and rollback behavior that stays deterministic and fail-closed
-- Rollout safety improvements that preserve the mounted sibling-package architecture
+**Queued candidate:** `v1.6.0 - Reusable Targeting Deepening`
 
-**Why now:** `v1.4.0` closed the last materially broken mounted proof surface, so the strongest next move is to add guarded rollout safety on top of a now-credible shipped support posture.
+**Default direction:** Deepen already-shipped reusable targeting with impact previews, dependency visibility, and bounded operator ergonomics while preserving deterministic snapshots and avoiding hidden inheritance graphs.
 
 ## Core Value
 
@@ -68,13 +64,7 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 
 ### Active
 
-- [x] `ROL-01` - Add a host-supplied rollout signal seam with explicit threshold, freshness, sample-size, environment, and tenant semantics.
-- [x] `ROL-02` - Evaluate guarded rollout monitoring windows into fail-closed decision states instead of assuming health from weak or stale signals.
-- [x] `ROL-03` - Preserve deterministic sticky rollout behavior and stage snapshots during automatic hold or rollback.
-- [x] `AUD-01` - Keep automatic guardrail interventions inside the existing governed mutation and audit envelope.
-- [x] `AUD-02` - Distinguish automatic guardrail actions from manual rollout actions with bounded remediation guidance.
-- [ ] `ADM-01` - Surface per-stage guardrail status and intervention reasons inside the mounted rollout workflow only.
-- [x] `VER-01` - Reclose proof and docs for the bounded guarded-rollout support surface.
+No active milestone requirements. Fresh requirements should be defined by the next `$gsd-new-milestone` run.
 
 ### Validated
 
@@ -108,17 +98,13 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 - ✓ Restore mounted-admin contract truth and sibling-package verification credibility (`ADM-01`, `VER-01`) — `v1.3.0`
 - ✓ Establish a runnable bounded proof path for `open_feature_rulestead` (`OFE-01`) — `v1.3.0`
 - ✓ Re-close the mounted companion boot/runtime seam, bounded proof bar, CI/release semantics, and support-truth chain (`PKG-01`, `PKG-02`, `ADM-01`, `VER-01`, `DOC-01`) — `v1.4.0`
-- ✓ Establish the host-owned guardrail signal contract and authored rollout guardrail schema (`ROL-01`) — `v1.5.0` Phase 49
-- ✓ Implement fail-closed guarded rollout decision states, stable-snapshot rollback, and governed/audited automatic interventions (`ROL-02`, `ROL-03`, `AUD-01`, `AUD-02`) — `v1.5.0` Phase 50
-- ✓ Reclose guarded rollout proof, docs, and support-truth traceability for stale signal, insufficient sample, hold, rollback, and bounded host-seam behavior (`VER-01`) — `v1.5.0` Phase 52
+- ✓ Establish bounded guarded rollout foundations (`ROL-01`, `ROL-02`, `ROL-03`, `AUD-01`, `AUD-02`, `ADM-01`, `VER-01`) — `v1.5.0`
 
-## Current Milestone Goals
+## Next Milestone Goals
 
-- Define `v1.5.0` as the guarded rollout follow-on without reopening the release-shape debate.
-- Preserve the newly repaired mounted proof and support-truth posture while introducing rollout signal seams and audited intervention behavior.
-- Keep rollout guardrails host-supplied and fail-closed instead of widening Rulestead into an observability product.
-- Preserve the sibling-package release model and avoid runtime hot-path coupling, tenant-partitioned storage, observability-product drift, or standalone admin drift.
-- Keep `v1.6.0` queued behind this work instead of reframing already-shipped audience support as a new concept.
+- Start fresh requirements for `v1.6.0 - Reusable Targeting Deepening` unless the user chooses a different direction.
+- Deepen existing audience reuse safely through impact previews, dependency visibility, and explainability rather than treating reusable targeting as a greenfield feature.
+- Preserve the sibling-package release model, host-owned boundaries, deterministic evaluation, and bounded support-truth proof posture established through `v1.5.0`.
 
 ### Out of Scope
 
@@ -135,6 +121,7 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 - `v1.2.0` shipped across Phases 35-40, proving ownership metadata, archive-readiness guidance, mounted cleanup preview/confirm flows, and lifecycle release surfaces can stay explicit, host-friendly, and sibling-package aligned.
 - `v1.3.0` shipped across Phases 41-44, proving release-facing support truth, authored-state parity, mounted companion verification, and bounded OpenFeature proof can align without widening the product shape.
 - `v1.4.0` shipped across Phases 45-48, proving the mounted companion boot/runtime seam, bounded proof bar, CI semantics, and support-truth surfaces can be reclosed cleanly without broadening the admin posture.
+- `v1.5.0` shipped across Phases 49-52, proving bounded guarded rollout foundations can stay host-supplied, fail-closed, governed, audited, mounted-workflow-friendly, and explicitly documented without broadening into observability or standalone-admin scope.
 - The project remains a linked-version, two-package monorepo.
 
 ## Constraints
@@ -165,12 +152,13 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 | Re-prioritize the next milestone to mounted companion proof reclosure after `v1.3.0` | Repo-local verification still showed the named mounted companion proof bar failing, while reusable audiences were already shipped and guarded rollout remained a better follow-on than an immediate next move. | Validated |
 | Activate `v1.4.0` as a bounded proof-reclosure milestone instead of reopening feature direction | The remaining highest-leverage gap was narrow and support-facing: restore mounted companion proof credibility before layering new differentiated capability. | Validated |
 | Keep `v1.5.0` as the next candidate after shipping `v1.4.0` | With the mounted companion proof surface repaired, guarded rollout again becomes the strongest differentiated follow-on while reusable targeting stays a later deepening pass. | Validated |
-| Activate `v1.5.0` as a bounded guarded-rollout milestone instead of reopening milestone selection | The milestone arc, repo state, and prior research all point to guarded rollout as the next highest-leverage differentiator as long as host-owned observability and mounted companion boundaries stay explicit. | Validated |
+| Activate `v1.5.0` as a bounded guarded-rollout milestone instead of reopening milestone selection | The milestone arc, repo state, and prior research all pointed to guarded rollout as the next highest-leverage differentiator as long as host-owned observability and mounted companion boundaries stayed explicit. | Validated |
+| Ship guarded rollout foundations as host-owned, fail-closed, and mounted-workflow bounded | Keeps rollout safety useful without turning Rulestead into an observability product, standalone control plane, or time-based routing engine. | Validated |
 
 ## Milestone Archives
 
-- Roadmap archive: [.planning/milestones/v0.1.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.1.0-ROADMAP.md), [.planning/milestones/v0.2.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.2.0-ROADMAP.md), [.planning/milestones/v0.3.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.3.0-ROADMAP.md), [.planning/milestones/v0.4.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.4.0-ROADMAP.md), [.planning/milestones/v0.5.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.5.0-ROADMAP.md), [.planning/milestones/v0.6.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.6.0-ROADMAP.md), [.planning/milestones/v1.0.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.0.0-ROADMAP.md), [.planning/milestones/v1.1.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.1.0-ROADMAP.md), [.planning/milestones/v1.2.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.2.0-ROADMAP.md), [.planning/milestones/v1.3.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.3.0-ROADMAP.md), [.planning/milestones/v1.4.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.4.0-ROADMAP.md)
-- Requirements archive: [.planning/milestones/v0.1.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.1.0-REQUIREMENTS.md), [.planning/milestones/v0.2.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.2.0-REQUIREMENTS.md), [.planning/milestones/v0.3.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.3.0-REQUIREMENTS.md), [.planning/milestones/v0.4.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.4.0-REQUIREMENTS.md), [.planning/milestones/v0.5.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.5.0-REQUIREMENTS.md), [.planning/milestones/v0.6.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.6.0-REQUIREMENTS.md), [.planning/milestones/v1.0.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v1.0.0-REQUIREMENTS.md), [.planning/milestones/v1.1.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v1.1.0-REQUIREMENTS.md), [.planning/milestones/v1.2.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v1.2.0-REQUIREMENTS.md), [.planning/milestones/v1.3.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v1.3.0-REQUIREMENTS.md), [.planning/milestones/v1.4.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v1.4.0-REQUIREMENTS.md)
+- Roadmap archive: [.planning/milestones/v0.1.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.1.0-ROADMAP.md), [.planning/milestones/v0.2.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.2.0-ROADMAP.md), [.planning/milestones/v0.3.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.3.0-ROADMAP.md), [.planning/milestones/v0.4.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.4.0-ROADMAP.md), [.planning/milestones/v0.5.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.5.0-ROADMAP.md), [.planning/milestones/v0.6.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.6.0-ROADMAP.md), [.planning/milestones/v1.0.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.0.0-ROADMAP.md), [.planning/milestones/v1.1.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.1.0-ROADMAP.md), [.planning/milestones/v1.2.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.2.0-ROADMAP.md), [.planning/milestones/v1.3.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.3.0-ROADMAP.md), [.planning/milestones/v1.4.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.4.0-ROADMAP.md), [.planning/milestones/v1.5.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.5.0-ROADMAP.md)
+- Requirements archive: [.planning/milestones/v0.1.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.1.0-REQUIREMENTS.md), [.planning/milestones/v0.2.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.2.0-REQUIREMENTS.md), [.planning/milestones/v0.3.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.3.0-REQUIREMENTS.md), [.planning/milestones/v0.4.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.4.0-REQUIREMENTS.md), [.planning/milestones/v0.5.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.5.0-REQUIREMENTS.md), [.planning/milestones/v0.6.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.6.0-REQUIREMENTS.md), [.planning/milestones/v1.0.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v1.0.0-REQUIREMENTS.md), [.planning/milestones/v1.1.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v1.1.0-REQUIREMENTS.md), [.planning/milestones/v1.2.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v1.2.0-REQUIREMENTS.md), [.planning/milestones/v1.3.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v1.3.0-REQUIREMENTS.md), [.planning/milestones/v1.4.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v1.4.0-REQUIREMENTS.md), [.planning/milestones/v1.5.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v1.5.0-REQUIREMENTS.md)
 
 ## Historical Context
 
@@ -201,4 +189,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-27 after Phase 49/50 reconciliation*
+*Last updated: 2026-05-27 after v1.5.0 milestone archive*

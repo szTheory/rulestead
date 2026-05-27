@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.5.0
 milestone_name: v1.5.0 - Guarded Rollout Foundations
-status: ready_for_closeout
-last_updated: "2026-05-27T08:33:00.000Z"
-last_activity: 2026-05-27 -- Phase 52 guarded rollout proof, docs, and traceability closure complete
+status: shipped
+last_updated: "2026-05-27T08:41:13.339Z"
+last_activity: 2026-05-27 -- Archived v1.5.0 guarded rollout foundations and reset planning state for next milestone definition
 progress:
   total_phases: 4
   completed_phases: 4
@@ -20,8 +20,8 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-26)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
-**Current focus:** Phase 52 — proof, docs & milestone closure
-**Milestone:** `v1.5.0 - Guarded Rollout Foundations`
+**Current focus:** Awaiting next milestone definition
+**Milestone:** none active; latest shipped milestone is `v1.5.0 - Guarded Rollout Foundations`
 
 ## Roadmap Reference
 
@@ -29,24 +29,21 @@ See: `.planning/ROADMAP.md` for the active milestone phases and traceability map
 
 ## Current Position
 
-Phase: 52
-Plan: Complete
-Status: ready_for_closeout
-Last activity: 2026-05-27 -- Phase 52 guarded rollout proof, docs, and traceability closure complete
+Phase: none
+Plan: none
+Status: shipped
+Last activity: 2026-05-27 -- Archived v1.5.0 guarded rollout foundations and reset planning state for next milestone definition
 
 ## Current Milestone Focus
 
-- `ROL-01` — completed by Phase 49 through the host-supplied rollout signal seam, authored guardrail schema, and compare/export durability proof
-- `ROL-02` / `ROL-03` — completed by Phase 50 through explicit guarded decision states, sticky hold behavior, and exact stable-snapshot rollback
-- `AUD-01` / `AUD-02` — completed by Phase 50 through durable guardrail decisions, governed mutation execution, and bounded audit evidence
-- `ADM-01` — completed by Phase 51 through mounted rollout status, guardrail preservation, and automatic/manual intervention timeline distinction
-- `VER-01` — completed by Phase 52 through the bounded guarded rollout proof bar, support-truth docs, and verification artifact
+- No active milestone requirements. Fresh requirements should be created by `$gsd-new-milestone`.
+- Latest shipped milestone: `v1.5.0 - Guarded Rollout Foundations`.
 
 ## Carryover Items
 
-- `v1.6.0 - Reusable Targeting Deepening` remains queued behind guarded rollout.
+- `v1.6.0 - Reusable Targeting Deepening` remains the next queued candidate.
 - Keep the sibling-package release model, mounted-admin posture, host-owned identity boundary, and host-owned observability boundary unchanged.
-- Do not widen guarded rollout into automated advancement, dashboards, or standalone-admin posture during Phase 49 planning.
+- Do not widen guarded rollout into automated advancement, dashboards, or standalone-admin posture without a future milestone explicitly accepting that scope.
 
 ## Anchor Docs (prompts/)
 
@@ -100,6 +97,7 @@ These remain the primary source of truth and should be loaded selectively per ph
 - **49-00**: Activated `v1.5.0` as a bounded guarded-rollout milestone and kept host-owned observability, mounted-admin, and linked-version package boundaries explicit from the start.
 - **49-01**: Completed the bounded guardrail signal contract as a host-owned provider seam with explicit scope, threshold, freshness, sample-size, compare, and export semantics.
 - **50-01**: Completed the guarded decision engine and audit path in `rulestead`, keeping automatic hold and rollback inside the existing store/governance/audit spine.
+- **52-03**: Archived `v1.5.0` after the milestone audit passed and kept `v1.6.0 - Reusable Targeting Deepening` as the next queued candidate.
 - [Phase 51-mounted-guardrail-workflow]: Mounted rollout guardrail status reads only through Rulestead.fetch_guardrail_status/3 with the current actor. — Keeps the mounted admin UI inside the core admin read and policy envelope.
 - [Phase 51-mounted-guardrail-workflow]: Missing guardrail decisions render prerequisite copy, not healthy or empty state. — Prevents operators from mistaking absent operational truth for a safe rollout stage.
 - [Phase 51-mounted-guardrail-workflow]: Rollout percentage serialization preserves authored guardrails and excludes operational decision state. — Keeps authored rollout configuration durable while preventing Phase 50 operational fields from leaking into config.
@@ -110,6 +108,7 @@ These remain the primary source of truth and should be loaded selectively per ph
 ## Latest Activity
 
 - 2026-05-27 — Completed Phase 52 guarded rollout proof, docs, and traceability closure; VER-01 is satisfied and v1.5.0 is ready_for_closeout.
+- 2026-05-27 — Archived milestone `v1.5.0`, created shipped roadmap and requirements archives, updated the project and milestone arc, and reset planning state to await the next milestone definition.
 - 2026-05-27 — Verified and accepted Phase 51 with clean code review, schema-drift check, targeted mounted rollout/timeline/router tests, and browser smoke captures for the mounted rollout and per-flag timeline surfaces.
 - 2026-05-27 — Executed Phase 51 Plan 02 in commits `134d5bd` and `c8dc863`, adding automatic guardrail timeline wording, rollout-page intervention excerpts, and denied audit-read behavior.
 - 2026-05-27 — Executed Phase 51 Plan 01 in commits `13aa023`, `bac53c6`, and `53bc654`, adding mounted rollout guardrail status, missing-prerequisite copy, and guardrail-preserving percentage saves.
@@ -125,4 +124,4 @@ These remain the primary source of truth and should be loaded selectively per ph
 
 ## Next Action
 
-Next: Run the standard milestone closeout workflow for v1.5.0; do not archive from Phase 52 itself.
+Next: Run `$gsd-new-milestone` to define fresh requirements and activate the next milestone. The queued candidate is `v1.6.0 - Reusable Targeting Deepening`.
