@@ -322,14 +322,14 @@ end)
 
 | # | Claim | Section | Risk if Wrong |
 |---|-------|---------|---------------|
-| A1 | The planner can choose whether to add CI job wiring for `guarded_rollout_foundations`; research recommends adding script scope first and CI only if touched surface justifies it. [ASSUMED] | Summary / Architecture Patterns | If project maintainers require every named proof scope to have CI visibility, the plan may need a small `.github/workflows/ci.yml` job addition. |
+| A1 | Resolved for Phase 52: add the `guarded_rollout_foundations` script scope and maintainer docs rerun path; do not require a new path-gated CI job unless execution changes CI policy/docs enough to justify it. [VERIFIED: revision decision 2026-05-27] | Summary / Architecture Patterns | If execution later edits CI policy/docs to promise visible guarded rollout CI, then add a small `.github/workflows/ci.yml` job in the same execution slice. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should `guarded_rollout_foundations` be path-gated in CI immediately?** [VERIFIED: .planning/phases/52-proof-docs-milestone-closure/52-CONTEXT.md]
    - What we know: D-04 allows CI wiring if updated and says to follow existing path-gated proof-bar patterns. [VERIFIED: .planning/phases/52-proof-docs-milestone-closure/52-CONTEXT.md]
-   - What's unclear: Whether Phase 52 must expose a new CI job or whether local/maintainer rerun scope is enough. [ASSUMED]
-   - Recommendation: Add script scope no matter what; add CI job only if docs/support-truth or release-gate policy wants visible guarded rollout proof. [VERIFIED: scripts/ci/test.sh; .github/workflows/ci.yml]
+   - Resolution: For Phase 52, add the `guarded_rollout_foundations` script scope and maintainer docs rerun path; do not require a new path-gated CI job unless execution changes CI policy/docs enough to justify it. [VERIFIED: revision decision 2026-05-27]
+   - Plan alignment: Keep `.github/workflows/ci.yml` out of Phase 52 plan files by default. If the executor changes CI policy, branch-protection docs, or release-gate docs to reference guarded rollout CI visibility, then add the path-gated CI job using the existing stable job-id and `release_gate` pattern in the same plan execution. [VERIFIED: scripts/ci/test.sh; .github/workflows/ci.yml]
 
 ## Environment Availability
 
