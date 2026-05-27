@@ -142,6 +142,26 @@ defmodule Rulestead.Fake.Control do
     GenServer.call(Fake, {:control, :reconnect})
   end
 
+  @spec list_audience_dependencies!(map()) :: map()
+  def list_audience_dependencies!(command \\ %{}) do
+    ensure_started()
+
+    case Fake.list_audience_dependencies(command) do
+      {:ok, result} -> result
+      {:error, error} -> raise error
+    end
+  end
+
+  @spec rebuild_audience_reference_projection!() :: map()
+  def rebuild_audience_reference_projection! do
+    ensure_started()
+
+    case Fake.rebuild_audience_reference_projection() do
+      {:ok, result} -> result
+      {:error, error} -> raise error
+    end
+  end
+
   @spec put_test_flag!(String.t() | atom(), term(), keyword()) :: map()
   def put_test_flag!(flag_key, value, opts \\ []) do
     ensure_started()

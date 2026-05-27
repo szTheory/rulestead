@@ -32,6 +32,7 @@ defmodule Rulestead.Fake do
     Store,
     StoreError,
     Targeting.AudienceDependencies,
+    Targeting.DependencyInventory,
     Targeting.ImpactPreview,
     Telemetry
   }
@@ -62,6 +63,7 @@ defmodule Rulestead.Fake do
           webhook_destinations: %{required(String.t()) => map()},
           webhook_outbound_events: %{required(String.t()) => map()},
           webhook_deliveries: %{required(String.t()) => map()},
+          audience_reference_projection: %{required(tuple()) => map()},
           snapshot_reads_connected?: boolean()
         }
 
@@ -149,6 +151,29 @@ defmodule Rulestead.Fake do
   @impl Store
   def list_audiences(%Command.ListAudiences{} = command) do
     call({:list_audiences, command})
+  end
+
+  @doc false
+  @spec list_audience_dependencies(map()) ::
+          {:ok,
+           %{
+             entries: [DependencyInventory.entry()],
+             limit: pos_integer(),
+             offset: non_neg_integer(),
+             returned: non_neg_integer(),
+             total_count: non_neg_integer()
+           }}
+          | {:error, Rulestead.Error.t()}
+  def list_audience_dependencies(command) when is_map(command) do
+    call({:list_audience_dependencies, command})
+  end
+
+  @doc false
+  @spec rebuild_audience_reference_projection() ::
+          {:ok, %{deleted_rows: non_neg_integer(), inserted_rows: non_neg_integer()}}
+          | {:error, Rulestead.Error.t()}
+  def rebuild_audience_reference_projection do
+    call(:rebuild_audience_reference_projection)
   end
 
   @impl Store
@@ -394,7 +419,12 @@ defmodule Rulestead.Fake do
 
   def handle_call({:control, :restore, restored_state}, _from, _state)
       when is_map(restored_state) do
-    {:reply, :ok, restored_state}
+    next_state =
+      restored_state
+      |> ensure_projection_state()
+      |> rebuild_audience_reference_projection_state()
+
+    {:reply, :ok, next_state}
   end
 
   def handle_call({:control, :now}, _from, state) do
@@ -738,6 +768,39 @@ defmodule Rulestead.Fake do
       |> Enum.take(command.limit)
 
     {:reply, {:ok, audiences}, state}
+  end
+
+  def handle_call({:list_audience_dependencies, command}, _from, state) do
+    entries =
+      state.audience_reference_projection
+      |> Map.values()
+      |> maybe_filter_projection_scope(command)
+      |> DependencyInventory.sort_entries()
+
+    limit = command_limit(command)
+    offset = command_offset(command)
+    page_entries = entries |> Enum.drop(offset) |> Enum.take(limit)
+
+    {:reply,
+     {:ok,
+      %{
+        entries: page_entries,
+        limit: limit,
+        offset: offset,
+        returned: length(page_entries),
+        total_count: length(entries)
+      }}, state}
+  end
+
+  def handle_call(:rebuild_audience_reference_projection, _from, state) do
+    next_state = rebuild_audience_reference_projection_state(state)
+
+    {:reply,
+     {:ok,
+      %{
+        deleted_rows: map_size(state.audience_reference_projection),
+        inserted_rows: map_size(next_state.audience_reference_projection)
+      }}, next_state}
   end
 
   def handle_call({:preview_audience_impact, command}, _from, state) do
@@ -1818,6 +1881,7 @@ defmodule Rulestead.Fake do
       webhook_destinations: %{},
       webhook_outbound_events: %{},
       webhook_deliveries: %{},
+      audience_reference_projection: %{},
       snapshot_reads_connected?: true
     }
     |> seed_default_environment("development", "Development")
@@ -1967,6 +2031,196 @@ defmodule Rulestead.Fake do
       end
     end)
   end
+
+  defp ensure_projection_state(state) do
+    Map.put_new(state, :audience_reference_projection, %{})
+  end
+
+  defp rebuild_audience_reference_projection_state(state) do
+    projection =
+      state.environments
+      |> Map.keys()
+      |> Enum.sort()
+      |> Enum.reduce(%{}, fn environment_key, acc ->
+        Map.merge(acc, projection_entries_for_environment(state, environment_key))
+      end)
+
+    %{state | audience_reference_projection: projection}
+  end
+
+  defp refresh_audience_reference_projection(state, environment_key) do
+    normalized_environment_key = normalize_projection_environment_key(environment_key)
+
+    retained =
+      state.audience_reference_projection
+      |> Enum.reject(fn {key, _entry} -> elem(key, 0) == normalized_environment_key end)
+      |> Map.new()
+
+    refreshed = projection_entries_for_environment(state, normalized_environment_key)
+
+    %{state | audience_reference_projection: Map.merge(retained, refreshed)}
+  end
+
+  defp projection_entries_for_environment(state, environment_key) do
+    state
+    |> compare_payloads_for_environment(environment_key)
+    |> Map.values()
+    |> projection_entries_from_payloads()
+    |> Enum.into(%{}, fn entry -> {projection_identity_key(entry), entry} end)
+  end
+
+  defp projection_entries_from_payloads(payloads) do
+    payloads
+    |> Enum.flat_map(&payload_projection_entries/1)
+    |> Enum.reduce(%{}, fn entry, acc ->
+      key = projection_identity_key(entry)
+      Map.update(acc, key, entry, &Map.update!(&1, :reference_count, fn count -> count + 1 end))
+    end)
+    |> Map.values()
+  end
+
+  defp payload_projection_entries(payload) do
+    payload
+    |> projection_rules()
+    |> Enum.flat_map(fn rule ->
+      if projection_rule_strategy(rule) == "segment_match" do
+        [
+          DependencyInventory.normalize_entry(%{
+            environment_key: payload_environment_key(payload),
+            tenant_key: payload_tenant_key(payload),
+            flag_key: get_in(payload, [:flag, :key]),
+            ruleset_version: get_in(payload, [:active_ruleset, :version]),
+            rule_key: projection_rule_key(rule),
+            audience_key: projection_rule_audience_key(rule),
+            ruleset_status: get_in(payload, [:active_ruleset, :status]),
+            rollout_context: projection_rollout_context(rule),
+            lifecycle_context: normalize_projection_context(payload.flag.lifecycle),
+            visibility: %{status: "visible"},
+            reference_count: 1,
+            hidden_reference_count: 0
+          })
+        ]
+      else
+        []
+      end
+    end)
+    |> Enum.reject(& &1.malformed?)
+  end
+
+  defp projection_rules(%{active_ruleset: %{rules: rules}}) when is_list(rules), do: rules
+  defp projection_rules(_payload), do: []
+
+  defp payload_environment_key(payload) do
+    get_in(payload, [:environment, :key])
+  end
+
+  defp payload_tenant_key(payload) do
+    payload
+    |> Map.get(:tenant_key, Map.get(payload, "tenant_key"))
+    |> case do
+      nil -> "global"
+      value -> to_string(value)
+    end
+  end
+
+  defp projection_rule_strategy(rule) do
+    rule
+    |> Map.get(:strategy, Map.get(rule, "strategy"))
+    |> to_string()
+  end
+
+  defp projection_rule_key(rule) do
+    rule
+    |> Map.get(:key, Map.get(rule, "key"))
+    |> to_string()
+  end
+
+  defp projection_rule_audience_key(rule) do
+    case Map.get(rule, :audience_key, Map.get(rule, "audience_key")) do
+      nil -> nil
+      value -> to_string(value)
+    end
+  end
+
+  defp projection_rollout_context(rule) do
+    case Map.get(rule, :rollout, Map.get(rule, "rollout")) do
+      rollout when is_map(rollout) -> normalize_projection_context(rollout)
+      _other -> %{}
+    end
+  end
+
+  defp normalize_projection_context(%_{} = value) do
+    value
+    |> Map.from_struct()
+    |> normalize_projection_context()
+  end
+
+  defp normalize_projection_context(value) when is_map(value) do
+    Map.new(value, fn {key, nested} -> {key, normalize_projection_context(nested)} end)
+  end
+
+  defp normalize_projection_context(value) when is_list(value) do
+    Enum.map(value, &normalize_projection_context/1)
+  end
+
+  defp normalize_projection_context(value), do: value
+
+  defp projection_identity_key(entry) do
+    {
+      entry.environment_key,
+      entry.tenant_key,
+      entry.flag_key,
+      entry.ruleset_version,
+      entry.rule_key,
+      entry.audience_key
+    }
+  end
+
+  defp maybe_filter_projection_scope(entries, command) do
+    entries
+    |> maybe_filter_projection_environment(Map.get(command, :environment_key))
+    |> maybe_filter_projection_tenant(Map.get(command, :tenant_key))
+    |> maybe_filter_projection_audience(Map.get(command, :audience_key))
+  end
+
+  defp maybe_filter_projection_environment(entries, nil), do: entries
+
+  defp maybe_filter_projection_environment(entries, environment_key) do
+    normalized_environment_key = normalize_projection_environment_key(environment_key)
+    Enum.filter(entries, &(&1.environment_key == normalized_environment_key))
+  end
+
+  defp maybe_filter_projection_tenant(entries, nil), do: entries
+
+  defp maybe_filter_projection_tenant(entries, tenant_key) do
+    normalized_tenant_key = normalize_projection_tenant_key(tenant_key)
+    Enum.filter(entries, &(&1.tenant_key == normalized_tenant_key))
+  end
+
+  defp maybe_filter_projection_audience(entries, nil), do: entries
+
+  defp maybe_filter_projection_audience(entries, audience_key) do
+    normalized_audience_key = normalize_projection_audience_key(audience_key)
+    Enum.filter(entries, &(&1.audience_key == normalized_audience_key))
+  end
+
+  defp command_limit(command) do
+    case Map.get(command, :limit) do
+      value when is_integer(value) and value > 0 -> value
+      _other -> 50
+    end
+  end
+
+  defp command_offset(command) do
+    case Map.get(command, :offset) do
+      value when is_integer(value) and value >= 0 -> value
+      _other -> 0
+    end
+  end
+
+  defp normalize_projection_environment_key(environment_key), do: to_string(environment_key)
+  defp normalize_projection_tenant_key(tenant_key), do: to_string(tenant_key)
+  defp normalize_projection_audience_key(audience_key), do: to_string(audience_key)
 
   defp ensure_environment_keys(state, environment_keys) do
     case Enum.find(environment_keys, &(not Map.has_key?(state.environments, &1))) do
@@ -4648,11 +4902,13 @@ defmodule Rulestead.Fake do
         pubsub_topic: Config.pubsub_topic()
       )
 
-    update_in(state.snapshots, fn snapshots ->
+    state
+    |> update_in([:snapshots], fn snapshots ->
       Map.update(snapshots, environment_key, %{version => snapshot}, fn environment_snapshots ->
         Map.put(environment_snapshots, version, snapshot)
       end)
     end)
+    |> refresh_audience_reference_projection(environment_key)
   end
 
   defp build_environment_snapshot_payload(state, environment_key) do
