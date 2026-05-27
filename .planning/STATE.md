@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.9.0
 milestone_name: Host-Supplied Preview Evidence
-status: Defining requirements
-stopped_at: Milestone initialized
-last_updated: "2026-05-27T00:00:00.000Z"
-last_activity: 2026-05-27 — Milestone v1.9.0 started
+status: Planning
+stopped_at: Phase 65 context gathered
+last_updated: "2026-05-27T12:00:00.000Z"
+last_activity: 2026-05-27 — Phase 65 context gathered (assumptions mode)
 progress:
   total_phases: 4
   completed_phases: 0
@@ -26,10 +26,10 @@ See: `.planning/PROJECT.md` (updated 2026-05-27)
 
 ## Current Position
 
-Phase: Not started (requirements and roadmap defined)
+Phase: 65 — Host Preview Evidence Contract
 Plan: —
 Status: Ready for Phase 65 planning
-Last activity: 2026-05-27 — Milestone v1.9.0 initialized
+Last activity: 2026-05-27 — Phase 65 CONTEXT.md captured (assumptions mode)
 
 ## Performance Metrics
 
@@ -47,6 +47,7 @@ Last activity: 2026-05-27 — Milestone v1.9.0 initialized
 - GOV-05: blast-radius thresholds stay reference-count only even when impression summaries ship.
 - Phase numbering continues at 65 (no reset).
 - v1.8 phase directories archived to `.planning/milestones/v1.8.0-phases/`.
+- Phase 65: `PreviewEvidence` behaviour mirrors `Guardrails.Provider`; `ImpactPreview` schema v2; union sample merge cap 25; impression summary allowlist; GOV unchanged.
 
 ### Pending Todos
 
@@ -67,10 +68,10 @@ None.
 ## Session Continuity
 
 Last session: 2026-05-27
-Stopped at: Milestone v1.9.0 initialized
-Resume: `/gsd-discuss-phase 65` or `/gsd-plan-phase 65`
+Stopped at: Phase 65 context gathered
+Resume file: `.planning/phases/65-host-preview-evidence-contract/65-CONTEXT.md`
 
 ## Operator Next Steps
 
-- `/gsd-discuss-phase 65` — gather context for Host Preview Evidence Contract
-- `/gsd-plan-phase 65` — skip discussion, plan directly
+- `/gsd-plan-phase 65` — create phase plans from context
+- `/gsd-plan-phase 65 --skip-research` — plan without research pass
