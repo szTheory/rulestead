@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.9.0
 milestone_name: milestone
-status: executing
-stopped_at: Completed 65-03-PLAN.md
-last_updated: "2026-05-27T21:59:53Z"
+status: phase_complete
+stopped_at: Completed 65-04-PLAN.md
+last_updated: "2026-05-27T22:18:00Z"
 last_activity: 2026-05-27
 progress:
   total_phases: 4
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 4
-  completed_plans: 3
-  percent: 75
+  completed_plans: 4
+  percent: 25
 ---
 
 # State: Rulestead
@@ -21,15 +21,15 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-27)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions - booleans, variants, and remote config - with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
-**Current focus:** Phase 65 — host-preview-evidence-contract
+**Current focus:** Phase 66 — evidence-carry-through-and-governance-boundary
 **Milestone:** `v1.9.0 - Host-Supplied Preview Evidence` (initialized 2026-05-27)
 
 ## Current Position
 
-Phase: 65 (host-preview-evidence-contract) — EXECUTING
-Plan: 4 of 4 (65-04 next)
-Status: Ready to execute
-Last activity: 2026-05-27 — Completed 65-03-PLAN.md
+Phase: 65 (host-preview-evidence-contract) — COMPLETE
+Plan: 4 of 4 (65-04 done)
+Status: Phase 65 complete; ready for Phase 66
+Last activity: 2026-05-27 — Completed 65-04-PLAN.md
 
 ## Performance Metrics
 
@@ -38,7 +38,8 @@ Last activity: 2026-05-27 — Completed 65-03-PLAN.md
 - 65-01: 12 min, 3 tasks, 4 files
 - 65-02: 15 min, 2 tasks, 2 files
 - 65-03: 18 min, 2 tasks, 5 files
-- Milestone plans completed: 3/4 (Phase 65)
+- 65-04: 18 min, 3 tasks, 2 files
+- Milestone plans completed: 4/16 (Phase 65 complete)
 
 ## Accumulated Context
 
@@ -53,6 +54,7 @@ Last activity: 2026-05-27 — Completed 65-03-PLAN.md
 - 65-01: Opt-in resolver returns `{:ok, %{}}` when unconfigured; unknown impression keys fail-closed; merge dedupe uses actor_key+targeting_key with command rows first.
 - 65-02: ImpactPreview schema v2 adds impression_evidence and impression_fingerprint; basis-specific uncertainty messages; derive with_host_evidence when impression summary non-empty.
 - 65-03: Store invokes PreviewEvidence before ImpactPreview.build in Fake/Ecto; union merge via Limits; Fake.PreviewEvidenceResolver for tests; ensure_loaded before resolver export check.
+- 65-04: Contract tests prove Fake/Ecto parity for evidence/stale/fail-closed; per-adapter stub reset for stale drift; GOV assess ignores impression_evidence.
 
 ### Pending Todos
 
@@ -72,11 +74,11 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-27T21:59:53Z
-Stopped at: Completed 65-03-PLAN.md
+Last session: 2026-05-27T22:18:00Z
+Stopped at: Completed 65-04-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
 
-- `/gsd-execute-phase 65` — run plans 65-01 through 65-04
-- `cat .planning/phases/65-host-preview-evidence-contract/*-PLAN.md` — review plans
+- `/gsd-plan-phase 66` — plan evidence carry-through and governance boundary
+- `/gsd-discuss-phase 66` — gather context before planning
