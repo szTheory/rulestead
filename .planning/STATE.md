@@ -1,11 +1,11 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.9.0
-milestone_name: Host-Supplied Preview Evidence
-status: Planning
-stopped_at: Phase 65 context gathered
-last_updated: "2026-05-27T12:00:00.000Z"
-last_activity: 2026-05-27 — Phase 65 context gathered (assumptions mode)
+milestone_name: milestone
+status: planning
+stopped_at: Phase 65 context gathered (assumptions mode)
+last_updated: "2026-05-27T21:49:29.606Z"
+last_activity: 2026-05-27 — Phase 65 CONTEXT.md captured (assumptions mode)
 progress:
   total_phases: 4
   completed_phases: 0
@@ -67,9 +67,9 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-27
-Stopped at: Phase 65 context gathered
-Resume file: `.planning/phases/65-host-preview-evidence-contract/65-CONTEXT.md`
+Last session: 2026-05-27T21:49:29.604Z
+Stopped at: Phase 65 context gathered (assumptions mode)
+Resume file: .planning/phases/65-host-preview-evidence-contract/65-CONTEXT.md
 
 ## Operator Next Steps
 
