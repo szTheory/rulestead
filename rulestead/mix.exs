@@ -25,7 +25,8 @@ defmodule Rulestead.MixProject do
         {:"verify.phase54", :test},
         {:"verify.phase55", :test},
         {:"verify.phase56", :test},
-        {:"verify.phase60", :test}
+        {:"verify.phase60", :test},
+        {:"verify.phase64", :test}
       ]
     ]
   end
