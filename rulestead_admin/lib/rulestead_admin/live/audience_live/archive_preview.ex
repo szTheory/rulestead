@@ -4,8 +4,8 @@ defmodule RulesteadAdmin.Live.AudienceLive.ArchivePreview do
 
   use Phoenix.LiveView
 
-  alias RulesteadAdmin.Components.{AudienceComponents, FlagComponents, Shell}
-  alias RulesteadAdmin.Live.{AudienceLive.Shared, Session}
+  alias RulesteadAdmin.Components.{AudienceComponents, FlagComponents, GovernanceComponents, Shell}
+  alias RulesteadAdmin.Live.{AudienceLive.Governance, AudienceLive.Shared, Session}
 
   @impl true
   def mount(_params, _session, socket) do
@@ -51,12 +51,33 @@ defmodule RulesteadAdmin.Live.AudienceLive.ArchivePreview do
         <p>{@drift_message}</p>
       </FlagComponents.callout>
 
+      <FlagComponents.callout
+        :if={@preview && @governance_mode == :change_request}
+        title="Change request required"
+        tone="warning"
+      >
+        <p>
+          This archive exceeds the direct-apply limit for <strong>{@current_environment.name}</strong>.
+          You will submit a change request instead of archiving immediately.
+        </p>
+      </FlagComponents.callout>
+
+      <GovernanceComponents.blast_radius_panel
+        :if={@preview && @blast_radius_assessment}
+        assessment={@blast_radius_assessment}
+        variant={:operator}
+        visibility={visibility_attr(@visibility_tier)}
+        environment_label={@current_environment.name}
+      />
+
       <AudienceComponents.impact_preview :if={@preview} preview={@preview} />
 
       <FlagComponents.section_card :if={@preview} title="Continue">
         <p>
-          <a href={confirm_path(assigns)}>Continue to archive confirm</a>
-          ·
+          <a :if={@governance_mode != :blocked} href={confirm_path(assigns)}>
+            {continue_link_text(@governance_mode)}
+          </a>
+          <span :if={@governance_mode != :blocked}> · </span>
           <a href={Shared.path(assigns, "/audiences/#{@audience_key}")}>Back to audience</a>
         </p>
       </FlagComponents.section_card>
@@ -72,6 +93,7 @@ defmodule RulesteadAdmin.Live.AudienceLive.ArchivePreview do
         socket
         |> assign(:preview, preview)
         |> assign(:error_message, nil)
+        |> Governance.load_governance_context(preview, operation: :archive)
 
       {:error, error} ->
         socket
@@ -79,6 +101,12 @@ defmodule RulesteadAdmin.Live.AudienceLive.ArchivePreview do
         |> assign(:error_message, error.message)
     end
   end
+
+  defp visibility_attr(:full), do: :full
+  defp visibility_attr(_), do: :redacted
+
+  defp continue_link_text(:change_request), do: "Continue to submit"
+  defp continue_link_text(_), do: "Continue to archive confirm"
 
   defp confirm_path(assigns) do
     preview = assigns.preview
