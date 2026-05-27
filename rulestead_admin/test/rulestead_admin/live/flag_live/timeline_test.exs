@@ -36,6 +36,7 @@ defmodule RulesteadAdmin.Live.FlagLive.TimelineTest do
     Control.reset!(now: now)
     Control.set_now!(now)
     ensure_environment!("prod", "Production")
+    ensure_environment!("staging", "Staging")
     seed_flag!()
     publish_ruleset!("checkout-redesign", "prod")
 
@@ -123,7 +124,29 @@ defmodule RulesteadAdmin.Live.FlagLive.TimelineTest do
     refute html =~ "provider-secret-timeline"
   end
 
-  defp seed_flag! do
+  test "timeline ignores URL environments outside the mounted session scope", %{conn: conn} do
+    publish_ruleset!("checkout-redesign", "staging")
+
+    scoped_conn =
+      conn
+      |> Phoenix.ConnTest.recycle()
+      |> Phoenix.ConnTest.init_test_session(%{
+        "current_actor" => %{id: 7, email: "priya@example.com", roles: ["admin", "auditor"]},
+        "rulestead_admin_last_env" => "staging",
+        "rulestead_admin_environments" => [
+          %{"key" => "staging", "name" => "Staging"}
+        ]
+      })
+
+    {:ok, _view, html} = live(scoped_conn, "/admin/flags/checkout-redesign/timeline?env=prod")
+
+    assert html =~ "Staging"
+    assert html =~ "Ruleset publish"
+    refute html =~ "Production"
+    refute html =~ "Kill switch engaged"
+  end
+
+  defp seed_flag!(opts \\ []) do
     attrs = %{
       key: "checkout-redesign",
       owner: "growth",
@@ -134,7 +157,7 @@ defmodule RulesteadAdmin.Live.FlagLive.TimelineTest do
       flag_type: :release,
       value_type: :boolean,
       default_value: %{value: false},
-      environment_keys: ["prod"]
+      environment_keys: Keyword.get(opts, :environment_keys, ["prod", "staging"])
     }
 
     assert %{flag: %{key: "checkout-redesign"}} = Control.put_flag!(attrs)

@@ -255,6 +255,29 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
     refute html =~ "source guardrail_automation"
   end
 
+  test "rollout page ignores URL environments outside the mounted session scope", %{conn: conn} do
+    publish_ruleset!("checkout-redesign", "staging")
+    seed_guardrail_hold!()
+
+    scoped_conn =
+      conn
+      |> Phoenix.ConnTest.recycle()
+      |> Phoenix.ConnTest.init_test_session(%{
+        "current_actor" => %{id: 7, email: "priya@example.com", roles: ["admin"]},
+        "rulestead_admin_last_env" => "staging",
+        "rulestead_admin_environments" => [
+          %{"key" => "staging", "name" => "Staging"}
+        ]
+      })
+
+    {:ok, _view, html} = live(scoped_conn, "/admin/flags/checkout-redesign/rollouts?env=prod")
+
+    assert html =~ "Staging"
+    assert html =~ "No guardrail decision recorded"
+    refute html =~ "Production"
+    refute html =~ "Automatic guardrail hold"
+  end
+
   test "page treats missing guardrail status as a prerequisite instead of healthy and preserves guardrails on save",
        %{conn: conn} do
     {:ok, view, html} = live(conn, "/admin/flags/checkout-redesign/rollouts?env=prod")

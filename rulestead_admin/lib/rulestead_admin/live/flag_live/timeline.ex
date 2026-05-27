@@ -22,8 +22,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
   end
 
   @impl true
-  def handle_params(%{"key" => key}, uri, socket) do
-    env = query_params(uri)["env"] || socket.assigns.current_environment.key
+  def handle_params(%{"key" => key}, _uri, socket) do
+    env = socket.assigns.current_environment.key
     base_path = build_base_path(socket, key)
 
     socket =
@@ -324,16 +324,6 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
     |> String.replace(".", " ")
     |> String.replace("_", " ")
     |> String.capitalize()
-  end
-
-  defp query_params(uri) do
-    uri
-    |> URI.parse()
-    |> Map.get(:query)
-    |> case do
-      nil -> %{}
-      query -> URI.decode_query(query)
-    end
   end
 
   defp diff_lines("ruleset.publish", %{"rules" => rules}) when is_list(rules) do
