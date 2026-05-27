@@ -63,12 +63,12 @@ Success criteria:
 
 **Goal**: Reclose support truth for guarded rollout foundations with bounded proof, docs, and traceability before wider rollout automation is considered.
 **Depends on**: Phase 51
-**Plans**: 2 plans
+**Plans:** 2 plans
 **Requirements**: `VER-01`
 
 Plans:
-- [ ] `52-01-PLAN.md` - Build bounded guarded rollout proof bar and support-truth docs
-- [ ] `52-02-PLAN.md` - Write verification artifact and reconcile planning truth
+- [x] `52-01-PLAN.md` - Build bounded guarded rollout proof bar and support-truth docs
+- [x] `52-02-PLAN.md` - Write verification artifact and reconcile planning truth
 
 Success criteria:
 1. Repo-local verification covers stale-signal, insufficient-sample, hold, rollback, and bounded host-seam behavior.
@@ -85,7 +85,7 @@ Success criteria:
 | AUD-01 | Phase 50 | Complete |
 | AUD-02 | Phase 50 | Complete |
 | ADM-01 | Phase 51 | Complete |
-| VER-01 | Phase 52 | Pending |
+| VER-01 | Phase 52 | Complete |
 
 **Coverage:**
 - Milestone requirements: 7 total
@@ -97,6 +97,8 @@ Success criteria:
 - Phase 49 guardrail signal contract is complete.
 - Phase 50 guarded decision engine and audit path is complete in commit `c4dd3fb`.
 - Phase 51 mounted rollout guardrail status and timeline intervention distinction are complete.
+- Phase 52 guarded rollout proof, docs, and traceability closure are complete; v1.5.0 is ready_for_closeout.
+- Phase 52 verification evidence is recorded in 52-VERIFICATION.md.
 - `v1.6.0 - Reusable Targeting Deepening` remains the next queued candidate after guarded rollout foundations.
 
 ## Milestone Archives
@@ -106,4 +108,4 @@ Success criteria:
 
 ## Next Step
 
-Next: Execute Phase 52 to close guarded-rollout proof, docs, and milestone traceability.
+Next: Run the standard milestone closeout workflow for v1.5.0; do not archive from Phase 52 itself.

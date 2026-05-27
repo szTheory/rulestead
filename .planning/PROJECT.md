@@ -74,7 +74,7 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 - [x] `AUD-01` - Keep automatic guardrail interventions inside the existing governed mutation and audit envelope.
 - [x] `AUD-02` - Distinguish automatic guardrail actions from manual rollout actions with bounded remediation guidance.
 - [ ] `ADM-01` - Surface per-stage guardrail status and intervention reasons inside the mounted rollout workflow only.
-- [ ] `VER-01` - Reclose proof and docs for the bounded guarded-rollout support surface.
+- [x] `VER-01` - Reclose proof and docs for the bounded guarded-rollout support surface.
 
 ### Validated
 
@@ -110,6 +110,7 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 - ✓ Re-close the mounted companion boot/runtime seam, bounded proof bar, CI/release semantics, and support-truth chain (`PKG-01`, `PKG-02`, `ADM-01`, `VER-01`, `DOC-01`) — `v1.4.0`
 - ✓ Establish the host-owned guardrail signal contract and authored rollout guardrail schema (`ROL-01`) — `v1.5.0` Phase 49
 - ✓ Implement fail-closed guarded rollout decision states, stable-snapshot rollback, and governed/audited automatic interventions (`ROL-02`, `ROL-03`, `AUD-01`, `AUD-02`) — `v1.5.0` Phase 50
+- ✓ Reclose guarded rollout proof, docs, and support-truth traceability for stale signal, insufficient sample, hold, rollback, and bounded host-seam behavior (`VER-01`) — `v1.5.0` Phase 52
 
 ## Current Milestone Goals
 

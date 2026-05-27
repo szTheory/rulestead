@@ -18,17 +18,17 @@
 
 ### Mounted Rollout Status (`ADM`)
 
-- [x] **ADM-01**: Mounted rollout screens show per-stage guardrail status, thresholds, freshness, and intervention reasons inside the existing workflow without implying standalone admin support or a built-in observability dashboard.
+- [x] **ADM-01**: Mounted rollout screens show per-stage guardrail status, thresholds, freshness, and intervention reasons inside the existing workflow without implying standalone admin support or a package-owned dashboard.
 
 ### Verification & Support Truth (`VER`)
 
-- [ ] **VER-01**: Repo-local proof and docs cover stale-signal, insufficient-sample, hold, rollback, and bounded host-seam behavior so guarded rollout support claims stay explicit, rerunnable, and fail closed.
+- [x] **VER-01**: Repo-local proof and docs cover stale-signal, insufficient-sample, hold, rollback, and bounded host-seam behavior so guarded rollout support claims stay explicit, rerunnable, and fail closed.
 
 ## Future Requirements
 
 ### Deferred Beyond v1.5.0
 
-- **ROL-04**: Rollouts can auto-advance between stages when guardrails remain healthy for a configured observation window.
+- **ROL-04**: Rollouts can automatically advance between stages when guardrails remain healthy for a configured observation window.
 - **ROL-05**: Guardrails can compare rollout health against bounded baselines or cohorts without embedding a bespoke statistics engine.
 - **SEG-01**: Reusable targeting deepening adds impact previews and dependency visibility for the already-shipped audience surface.
 - **SEG-02**: Shared targeting assets preserve explainability, compare correctness, import/export validity, and promotion safety without hidden inheritance graphs.
@@ -89,7 +89,7 @@
 | AUD-01 | Phase 50 | Complete |
 | AUD-02 | Phase 50 | Complete |
 | ADM-01 | Phase 51 | Complete |
-| VER-01 | Phase 52 | Pending |
+| VER-01 | Phase 52 | Complete |
 
 **Coverage:**
 - v1.5.0 requirements: 7 total
