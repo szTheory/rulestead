@@ -73,6 +73,20 @@ defmodule Rulestead.Store.ManifestImportContractTest do
       end
     end
 
+    def archive_audience!(audience_key) do
+      case Repo.get_by(Audience, key: audience_key) do
+        nil -> :ok
+        audience -> audience |> Ecto.Changeset.change(archived_at: DateTime.utc_now()) |> Repo.update!()
+      end
+    end
+
+    def update_audience_definition!(audience_key, definition) do
+      case Repo.get_by(Audience, key: audience_key) do
+        nil -> :ok
+        audience -> audience |> Ecto.Changeset.change(definition: definition) |> Repo.update!()
+      end
+    end
+
     defp checkout_repo do
       case Ecto.Adapters.SQL.Sandbox.checkout(Repo) do
         :ok -> Ecto.Adapters.SQL.Sandbox.mode(Repo, {:shared, self()})
@@ -160,6 +174,40 @@ defmodule Rulestead.Store.ManifestImportContractTest do
       snapshot = Rulestead.Fake.Control.snapshot!()
       Rulestead.Fake.Control.restore!(%{snapshot | audiences: Map.delete(snapshot.audiences, audience_key)})
     end
+
+    def archive_audience!(audience_key) do
+      snapshot = Rulestead.Fake.Control.snapshot!()
+      audience = Map.get(snapshot.audiences, audience_key)
+
+      if is_map(audience) do
+        Rulestead.Fake.Control.restore!(%{
+          snapshot
+          | audiences:
+              Map.put(snapshot.audiences, audience_key, %{
+                audience
+                | archived_at: snapshot.now,
+                  updated_at: snapshot.now
+              })
+        })
+      end
+    end
+
+    def update_audience_definition!(audience_key, definition) do
+      snapshot = Rulestead.Fake.Control.snapshot!()
+      audience = Map.get(snapshot.audiences, audience_key)
+
+      if is_map(audience) do
+        Rulestead.Fake.Control.restore!(%{
+          snapshot
+          | audiences:
+              Map.put(snapshot.audiences, audience_key, %{
+                audience
+                | definition: definition,
+                  updated_at: snapshot.now
+              })
+        })
+      end
+    end
   end
 
   @adapters [
@@ -224,6 +272,27 @@ defmodule Rulestead.Store.ManifestImportContractTest do
   end
 
   test "fake and ecto do not apply when dependency findings are blockers" do
+    assert_manifest_blocked_case("missing_reference", fn control, _plan ->
+      control.delete_audience!("vip-users")
+      %{}
+    end)
+  end
+
+  test "fake and ecto keep apply blocked for archived_reference and does not publish target state" do
+    assert_manifest_blocked_case("archived_reference", fn control, _plan ->
+      control.archive_audience!("vip-users")
+      %{}
+    end)
+  end
+
+  test "fake and ecto keep apply blocked for incompatible_reference and snapshot unchanged" do
+    assert_manifest_blocked_case("incompatible_reference", fn control, _plan ->
+      control.update_audience_definition!("vip-users", %{clauses: "invalid-shape"})
+      %{}
+    end)
+  end
+
+  test "fake and ecto keep tenant_mismatch scope drift fail closed with stale apply status" do
     Enum.each(@adapters, fn {_label, adapter, control} ->
       control.ensure_started()
       control.reset!()
@@ -239,14 +308,11 @@ defmodule Rulestead.Store.ManifestImportContractTest do
 
       assert {:ok, manifest} = Rulestead.export_manifest("staging")
       assert {:ok, planned} = Import.plan(manifest, target_environment: "test")
-      plan = planned["details"]["plan"]
+      plan = planned["details"]["plan"] |> Map.put("tenant_key", "tenant-a")
 
-      control.delete_audience!("vip-users")
-
-      # archived_reference / incompatible_reference / tenant_mismatch are covered by the same contract.
-      assert {:ok, apply_result} = Import.apply(plan, reason: "dependencies drifted")
-      assert apply_result["status"] == "blocked"
-      assert Enum.any?(apply_result["dependency_findings"], &(&1["code"] == "missing_reference"))
+      # tenant_mismatch-style scope drift fails closed before apply writes.
+      assert {:ok, apply_result} = Import.apply(plan, reason: "tenant scope drift")
+      assert apply_result["status"] == "stale"
 
       assert {:error, %Rulestead.Error{type: :flag_not_found}} =
                Rulestead.fetch_flag("checkout-redesign", "test")
@@ -301,5 +367,38 @@ defmodule Rulestead.Store.ManifestImportContractTest do
              Rulestead.Fake.publish_ruleset(
                publish_ruleset_command("checkout-redesign", "staging")
              )
+  end
+
+  defp assert_manifest_blocked_case(expected_code, mutate!) do
+    Enum.each(@adapters, fn {_label, adapter, control} ->
+      control.ensure_started()
+      control.reset!()
+      Application.put_env(:rulestead, :store, adapter)
+      control.seed_audience!(%{
+        key: "vip-users",
+        name: "VIP Users",
+        description: "VIP cohort",
+        definition: %{clauses: [%{attribute: "plan", op: "eq", value: "vip"}]}
+      })
+
+      seed_importable_flag!(adapter)
+
+      assert {:ok, manifest} = Rulestead.export_manifest("staging")
+      assert {:ok, planned} = Import.plan(manifest, target_environment: "test")
+
+      plan = planned["details"]["plan"]
+      mutation_result = mutate!.(control, plan)
+
+      plan_to_apply = Map.get(mutation_result, :plan_override, plan)
+      apply_opts = Keyword.merge([reason: "dependencies drifted"], Map.get(mutation_result, :apply_opts, []))
+
+      assert {:ok, apply_result} = Import.apply(plan_to_apply, apply_opts)
+      assert apply_result["status"] == "blocked"
+      assert Enum.any?(apply_result["dependency_findings"], &(&1["code"] == expected_code))
+
+      # blocked manifest apply does not publish target state
+      assert {:error, %Rulestead.Error{type: :flag_not_found}} =
+               Rulestead.fetch_flag("checkout-redesign", "test")
+    end)
   end
 end

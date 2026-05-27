@@ -230,6 +230,16 @@ defmodule Rulestead.Store.EctoAudienceImpactContractTest do
 
     assert %{metadata: %{"dependency_findings" => findings}} = latest_blocked_audience_event!()
     assert Enum.any?(findings, &dependency_code?(&1, "incompatible_reference"))
+
+    # Fake and Ecto same findings contract: deterministic order + explicit scope fields.
+    assert findings == Enum.sort_by(findings, &dependency_sort_tuple/1)
+
+    assert Enum.all?(findings, fn finding ->
+             is_binary(Map.get(finding, "environment_key")) and
+               Map.get(finding, "environment_key") != "" and
+               is_binary(Map.get(finding, "tenant_key")) and
+               Map.get(finding, "tenant_key") != ""
+           end)
   end
 
   defp apply_command(preview, overrides \\ []) do
@@ -324,6 +334,19 @@ defmodule Rulestead.Store.EctoAudienceImpactContractTest do
 
   defp dependency_code?(entry, code) do
     Map.get(entry, :code) == code or Map.get(entry, "code") == code
+  end
+
+  defp dependency_sort_tuple(finding) do
+    {
+      Map.get(finding, "severity", Map.get(finding, :severity)),
+      Map.get(finding, "code", Map.get(finding, :code)),
+      Map.get(finding, "environment_key", Map.get(finding, :environment_key)),
+      Map.get(finding, "tenant_key", Map.get(finding, :tenant_key)),
+      Map.get(finding, "flag_key", Map.get(finding, :flag_key)),
+      Map.get(finding, "ruleset_version", Map.get(finding, :ruleset_version)),
+      Map.get(finding, "rule_key", Map.get(finding, :rule_key)),
+      Map.get(finding, "audience_key", Map.get(finding, :audience_key))
+    }
   end
 
   defp checkout_repo do

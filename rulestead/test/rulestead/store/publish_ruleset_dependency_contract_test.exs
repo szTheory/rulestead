@@ -213,6 +213,20 @@ defmodule Rulestead.Store.PublishRulesetDependencyContractTest do
       |> Repo.insert!()
     end
 
+    def archive_audience!(audience_key) do
+      case Repo.get_by(Audience, key: audience_key) do
+        nil -> :ok
+        audience -> audience |> Ecto.Changeset.change(archived_at: DateTime.utc_now()) |> Repo.update!()
+      end
+    end
+
+    def update_audience_definition!(audience_key, definition) do
+      case Repo.get_by(Audience, key: audience_key) do
+        nil -> :ok
+        audience -> audience |> Ecto.Changeset.change(definition: definition) |> Repo.update!()
+      end
+    end
+
     def latest_audit_event do
       AuditEvent
       |> Repo.all()
@@ -299,6 +313,40 @@ defmodule Rulestead.Store.PublishRulesetDependencyContractTest do
     def put_flag!(attrs), do: Rulestead.Fake.Control.put_flag!(attrs)
     def put_audience!(attrs), do: Rulestead.Fake.Control.put_audience!(attrs)
 
+    def archive_audience!(audience_key) do
+      snapshot = Rulestead.Fake.Control.snapshot!()
+      audience = Map.get(snapshot.audiences, audience_key)
+
+      if is_map(audience) do
+        Rulestead.Fake.Control.restore!(%{
+          snapshot
+          | audiences:
+              Map.put(snapshot.audiences, audience_key, %{
+                audience
+                | archived_at: snapshot.now,
+                  updated_at: snapshot.now
+              })
+        })
+      end
+    end
+
+    def update_audience_definition!(audience_key, definition) do
+      snapshot = Rulestead.Fake.Control.snapshot!()
+      audience = Map.get(snapshot.audiences, audience_key)
+
+      if is_map(audience) do
+        Rulestead.Fake.Control.restore!(%{
+          snapshot
+          | audiences:
+              Map.put(snapshot.audiences, audience_key, %{
+                audience
+                | definition: definition,
+                  updated_at: snapshot.now
+              })
+        })
+      end
+    end
+
     def latest_audit_event do
       Rulestead.Fake.Control.snapshot!()
       |> Map.get(:audit_events, [])
@@ -364,6 +412,40 @@ defmodule Rulestead.Store.PublishRulesetDependencyContractTest do
                  @store_module.publish_ruleset(Command.PublishRuleset.new("checkout-redesign", "test"))
 
         assert published_payload?(payload)
+      end
+
+      test "publish blocked missing_reference keeps snapshot unchanged and does not publish draft blockers" do
+        assert_blocked_publish_case(
+          @store_module,
+          @control_module,
+          "missing_reference",
+          "ghost-users",
+          fn _control -> :ok end
+        )
+      end
+
+      test "publish blocked archived_reference keeps snapshot unchanged and does not publish draft blockers" do
+        assert_blocked_publish_case(
+          @store_module,
+          @control_module,
+          "archived_reference",
+          "vip-users",
+          fn control -> control.archive_audience!("vip-users") end
+        )
+      end
+
+      test "publish blocked incompatible_reference keeps snapshot unchanged and does not publish draft blockers" do
+        assert_blocked_publish_case(
+          @store_module,
+          @control_module,
+          "incompatible_reference",
+          "vip-users",
+          fn control ->
+            control.update_audience_definition!("vip-users", %{
+              conditions: [%{attribute: "plan", operator: "unsupported_operator", value: "enterprise"}]
+            })
+          end
+        )
       end
     end
   end
@@ -434,4 +516,65 @@ defmodule Rulestead.Store.PublishRulesetDependencyContractTest do
   defp published_payload?(%{ruleset: %{status: :published}}), do: true
   defp published_payload?(%{flag: %{key: _key}}), do: true
   defp published_payload?(_payload), do: false
+
+  defp assert_blocked_publish_case(
+         store_module,
+         control_module,
+         expected_code,
+         audience_key,
+         mutate!
+       ) do
+    control_module.ensure_started()
+    control_module.reset!()
+
+    control_module.put_audience!(%{
+      key: "vip-users",
+      tenant_key: "global",
+      description: "VIP users",
+      definition: %{conditions: [%{attribute: "plan", operator: "eq", value: "enterprise"}]}
+    })
+
+    control_module.put_flag!(
+      valid_flag_attrs(%{key: "checkout-redesign", environment_keys: ["test"]})
+    )
+
+    assert {:ok, %{version: version_1}} =
+             store_module.save_draft_ruleset(
+               Command.SaveDraftRuleset.new("checkout-redesign", "test", dependency_ruleset("vip-users"))
+             )
+
+    assert {:ok, _published_v1} =
+             store_module.publish_ruleset(
+               Command.PublishRuleset.new("checkout-redesign", "test", version: version_1)
+             )
+
+    assert {:ok, baseline_snapshot} = store_module.fetch_snapshot(fetch_snapshot_command("test"))
+
+    mutate!.(control_module)
+
+    assert {:ok, %{version: blocked_version}} =
+             store_module.save_draft_ruleset(
+               Command.SaveDraftRuleset.new(
+                 "checkout-redesign",
+                 "test",
+                 dependency_ruleset(audience_key)
+               )
+             )
+
+    assert {:error, %Rulestead.Error{message: "ruleset publish blocked by dependency validation"} = error} =
+             store_module.publish_ruleset(
+               Command.PublishRuleset.new("checkout-redesign", "test", version: blocked_version)
+             )
+
+    assert Enum.any?(error.details, &dependency_code?(&1, expected_code))
+
+    # blocked publish does not publish and keeps snapshot unchanged
+    assert {:ok, snapshot_after_block} = store_module.fetch_snapshot(fetch_snapshot_command("test"))
+    assert snapshot_after_block.version == baseline_snapshot.version
+
+    assert {:ok, payload_after_block} =
+             store_module.fetch_flag(fetch_flag_command("checkout-redesign", "test"))
+
+    assert payload_after_block.active_ruleset.version == version_1
+  end
 end

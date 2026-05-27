@@ -411,6 +411,58 @@ defmodule Rulestead.Store.PromotionApplyContractTest do
     end)
   end
 
+  test "replay apply stays blocked when dependency closure drifts and snapshot unchanged across adapters" do
+    Enum.each(@adapters, fn {_label, adapter, control} ->
+      control.ensure_started()
+      control.reset!()
+      Application.put_env(:rulestead, :store, adapter)
+      control.seed_audience!(audience_attrs())
+      seed_promotable_flag!(adapter)
+
+      assert {:ok, compare} =
+               adapter.compare_environments(
+                 Command.CompareEnvironments.new("staging", "test",
+                   flag_keys: ["checkout-redesign"],
+                   tenant_key: "acme"
+                 )
+               )
+
+      command = build_apply_command(compare) |> Map.put(:tenant_key, "acme")
+      assert {:ok, snapshot_before} = adapter.fetch_snapshot(fetch_snapshot_command("test"))
+
+      assert {:ok, %{version: stale_version}} =
+               adapter.save_draft_ruleset(
+                 save_draft_command(
+                   "checkout-redesign",
+                   "staging",
+                   valid_ruleset_attrs(%{
+                     salt: "checkout-redesign:v3",
+                     rules: [
+                       %{
+                         key: "force-enabled",
+                         strategy: :forced_value,
+                         value: %{value: true},
+                         conditions: []
+                       }
+                     ]
+                   })
+                 )
+               )
+
+      assert {:ok, _published} =
+               adapter.publish_ruleset(
+                 publish_ruleset_command("checkout-redesign", "staging", version: stale_version)
+               )
+
+      assert {:error, %Rulestead.Error{message: "promotion compare dependency closure drifted"}} =
+               adapter.apply_promotion(command)
+
+      # blocked replay keeps target snapshot unchanged
+      assert {:ok, snapshot_after} = adapter.fetch_snapshot(fetch_snapshot_command("test"))
+      assert snapshot_after.version == snapshot_before.version
+    end)
+  end
+
   defp seed_promotable_flag!(adapter, opts \\ []) do
     target_environment = Keyword.get(opts, :target_environment, "test")
 

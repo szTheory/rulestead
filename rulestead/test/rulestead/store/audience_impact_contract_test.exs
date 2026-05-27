@@ -312,7 +312,20 @@ defmodule Rulestead.Store.AudienceImpactContractTest do
       |> List.first()
 
     assert latest_event.event_type == "audience.mutation_blocked"
-    assert Enum.any?(latest_event.metadata["dependency_findings"], &dependency_code?(&1, "incompatible_reference"))
+
+    dependency_findings = latest_event.metadata["dependency_findings"]
+
+    assert Enum.any?(dependency_findings, &dependency_code?(&1, "incompatible_reference"))
+
+    # Fake and Ecto same findings contract: deterministic order + explicit scope fields.
+    assert dependency_findings == Enum.sort_by(dependency_findings, &dependency_sort_tuple/1)
+
+    assert Enum.all?(dependency_findings, fn finding ->
+             is_binary(Map.get(finding, "environment_key")) and
+               Map.get(finding, "environment_key") != "" and
+               is_binary(Map.get(finding, "tenant_key")) and
+               Map.get(finding, "tenant_key") != ""
+           end)
   end
 
   test "Fake blocks archived audiences tenant mismatch delete attempts and Redis rejects new callbacks" do
@@ -436,6 +449,19 @@ defmodule Rulestead.Store.AudienceImpactContractTest do
 
   defp dependency_code?(entry, code) do
     Map.get(entry, :code) == code or Map.get(entry, "code") == code
+  end
+
+  defp dependency_sort_tuple(finding) do
+    {
+      Map.get(finding, "severity", Map.get(finding, :severity)),
+      Map.get(finding, "code", Map.get(finding, :code)),
+      Map.get(finding, "environment_key", Map.get(finding, :environment_key)),
+      Map.get(finding, "tenant_key", Map.get(finding, :tenant_key)),
+      Map.get(finding, "flag_key", Map.get(finding, :flag_key)),
+      Map.get(finding, "ruleset_version", Map.get(finding, :ruleset_version)),
+      Map.get(finding, "rule_key", Map.get(finding, :rule_key)),
+      Map.get(finding, "audience_key", Map.get(finding, :audience_key))
+    }
   end
 
   defmodule CapturePolicy do
