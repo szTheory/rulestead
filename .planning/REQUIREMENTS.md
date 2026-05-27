@@ -21,9 +21,9 @@
 
 ### Verification And Support Truth (`VER`)
 
-- [ ] **VER-01**: Repo-local proof covers host evidence resolver wiring, redaction, fingerprint determinism, stale-token rejection with evidence present, governance unchanged semantics, and mounted preview rendering (`mix verify.phase68` or equivalent merge gate).
-- [ ] **VER-02**: Host-app integration seam docs and in-place flow guides describe bounded preview-evidence responsibilities, sample/impression limits, and forbidden overclaim phrases; `MAINTAINING.md` mounted proof file list matches CI/release-contract truth.
-- [ ] **VER-03**: Release-contract and public docs allow bounded host-supplied preview evidence claims only where implemented and preserve the linked-version sibling-package model without standalone-admin or observability-product widening.
+- [x] **VER-01**: Repo-local proof covers host evidence resolver wiring, redaction, fingerprint determinism, stale-token rejection with evidence present, governance unchanged semantics, and mounted preview rendering (`mix verify.phase68` or equivalent merge gate).
+- [x] **VER-02**: Host-app integration seam docs and in-place flow guides describe bounded preview-evidence responsibilities, sample/impression limits, and forbidden overclaim phrases; `MAINTAINING.md` mounted proof file list matches CI/release-contract truth.
+- [x] **VER-03**: Release-contract and public docs allow bounded host-supplied preview evidence claims only where implemented and preserve the linked-version sibling-package model without standalone-admin or observability-product widening.
 
 ## Future Requirements
 
@@ -81,9 +81,9 @@
 | IMP-07 | Phase 66 | Complete |
 | GOV-05 | Phase 66 | Complete |
 | ADM-05 | Phase 67 | Complete |
-| VER-01 | Phase 68 | Pending |
-| VER-02 | Phase 68 | Pending |
-| VER-03 | Phase 68 | Pending |
+| VER-01 | Phase 68 | Complete |
+| VER-02 | Phase 68 | Complete |
+| VER-03 | Phase 68 | Complete |
 
 **Coverage:**
 
