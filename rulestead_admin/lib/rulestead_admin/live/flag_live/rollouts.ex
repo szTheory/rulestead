@@ -76,6 +76,10 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
      |> assign(:status_message, nil)}
   end
 
+  def handle_event("preview", _params, %{assigns: %{editable?: false}} = socket) do
+    {:noreply, assign(socket, :error_message, "No rollout rule is available for this environment.")}
+  end
+
   def handle_event("preview", _params, socket) do
     with {:ok, preview} <-
            build_preview(

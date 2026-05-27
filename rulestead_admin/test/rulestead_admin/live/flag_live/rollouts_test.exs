@@ -181,12 +181,17 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
 
     publish_non_rollout_ruleset!("maintenance-mode", "prod")
 
-    {:ok, _view, html} = live(conn, "/admin/flags/maintenance-mode/rollouts?env=prod")
+    {:ok, view, html} = live(conn, "/admin/flags/maintenance-mode/rollouts?env=prod")
 
     assert html =~ "Rollout controls"
     assert html =~ "No rollout rule is available for this environment."
     refute html =~ ~s(phx-click="preview")
     refute html =~ "Preview sample"
+
+    preview_html = render_click(view, "preview")
+
+    assert preview_html =~ "Rollout controls"
+    assert preview_html =~ "No rollout rule is available for this environment."
   end
 
   test "page shows authored guardrails and latest operational status without raw provider payloads",
