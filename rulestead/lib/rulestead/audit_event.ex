@@ -53,6 +53,8 @@ defmodule Rulestead.AuditEvent do
       |> Kernel.||(Map.get(attrs, :guardrail_evidence) || Map.get(attrs, "guardrail_evidence"))
       |> Command.GovernanceSupport.normalize_guardrail_metadata()
 
+    audience_preview = audience_preview_metadata(attrs)
+
     %{
       "before" => before,
       "after" => after_map,
@@ -64,6 +66,7 @@ defmodule Rulestead.AuditEvent do
     |> maybe_put("lifecycle_transition", lifecycle_transition(before, after_map, diff))
     |> maybe_put("tenant", tenant)
     |> maybe_put("guardrail", if(map_size(guardrail) == 0, do: nil, else: guardrail))
+    |> Map.merge(audience_preview)
     |> maybe_put("request_id", Map.get(attrs, :request_id) || Map.get(attrs, "request_id"))
     |> maybe_put("source", Map.get(attrs, :source) || Map.get(attrs, "source"))
     |> maybe_put(
@@ -166,6 +169,9 @@ defmodule Rulestead.AuditEvent do
 
   defp normalize_map(map) when is_map(map) do
     Map.new(map, fn
+      {key, %DateTime{} = value} -> {to_string(key), DateTime.to_iso8601(value)}
+      {key, %NaiveDateTime{} = value} -> {to_string(key), NaiveDateTime.to_iso8601(value)}
+      {key, %Date{} = value} -> {to_string(key), Date.to_iso8601(value)}
       {key, value} when is_map(value) -> {to_string(key), normalize_map(value)}
       {key, value} when is_list(value) -> {to_string(key), Enum.map(value, &normalize_value/1)}
       {key, value} -> {to_string(key), normalize_value(value)}
@@ -184,6 +190,9 @@ defmodule Rulestead.AuditEvent do
 
   defp normalize_context(_value), do: %{}
 
+  defp normalize_value(%DateTime{} = value), do: DateTime.to_iso8601(value)
+  defp normalize_value(%NaiveDateTime{} = value), do: NaiveDateTime.to_iso8601(value)
+  defp normalize_value(%Date{} = value), do: Date.to_iso8601(value)
   defp normalize_value(value) when is_map(value), do: normalize_map(value)
   defp normalize_value(value) when is_list(value), do: Enum.map(value, &normalize_value/1)
   defp normalize_value(value), do: value
@@ -217,11 +226,28 @@ defmodule Rulestead.AuditEvent do
 
   defp drop_sensitive_context_keys(map) do
     map
-    |> Map.drop(["session", "session_data", "session_id", "session_token", "socket_session"])
+    |> Enum.reject(fn {key, _value} -> sensitive_context_key?(key) end)
     |> Map.new(fn
       {key, value} when is_map(value) -> {key, drop_sensitive_context_keys(value)}
       {key, value} when is_list(value) -> {key, Enum.map(value, &drop_sensitive_list_value/1)}
       entry -> entry
+    end)
+  end
+
+  defp sensitive_context_key?(key) do
+    key
+    |> to_string()
+    |> String.downcase()
+    |> then(fn normalized ->
+      normalized in [
+        "session",
+        "session_data",
+        "session_id",
+        "session_token",
+        "socket_session",
+        "email",
+        "phone"
+      ] or String.contains?(normalized, "token")
     end)
   end
 
@@ -244,6 +270,33 @@ defmodule Rulestead.AuditEvent do
     do: Enum.map(value, &normalize_scheduled_value/1)
 
   defp normalize_scheduled_value(value), do: value
+
+  defp audience_preview_metadata(attrs) do
+    [
+      "preview_fingerprint",
+      "preview_schema_version",
+      "affected_references",
+      "affected_reference_keys",
+      "preview_basis",
+      "uncertainty",
+      "sample_evidence",
+      "blockers"
+    ]
+    |> Enum.reduce(%{}, fn key, acc ->
+      value = Map.get(attrs, key) || Map.get(attrs, String.to_atom(key))
+
+      case normalize_audience_preview_value(value) do
+        nil -> acc
+        normalized -> Map.put(acc, key, normalized)
+      end
+    end)
+  end
+
+  defp normalize_audience_preview_value(nil), do: nil
+  defp normalize_audience_preview_value(value) when is_map(value), do: normalize_map(value)
+  defp normalize_audience_preview_value(value) when is_list(value), do: Enum.map(value, &normalize_audience_preview_value/1)
+  defp normalize_audience_preview_value(value) when is_atom(value), do: Atom.to_string(value)
+  defp normalize_audience_preview_value(value), do: value
 
   defp ownership_transition(before, after_map, diff) do
     before_ownership = ownership_payload(before)

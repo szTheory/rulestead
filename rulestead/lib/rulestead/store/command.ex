@@ -1414,6 +1414,7 @@ defmodule Rulestead.Store.Command do
       :before_definition,
       :after_definition,
       affected_reference_keys: [],
+      samples: [],
       actor: nil,
       reason: nil,
       metadata: %{},
@@ -1429,6 +1430,7 @@ defmodule Rulestead.Store.Command do
             preview_fingerprint: String.t(),
             preview_basis: nil | map() | String.t(),
             affected_reference_keys: [String.t()],
+            samples: [map()],
             before_definition: nil | map(),
             after_definition: nil | map(),
             actor: nil | map(),
@@ -1474,6 +1476,10 @@ defmodule Rulestead.Store.Command do
           attrs
           |> GovernanceSupport.fetch(:affected_reference_keys)
           |> normalize_reference_keys(),
+        samples:
+          attrs
+          |> GovernanceSupport.fetch(:samples)
+          |> normalize_samples(),
         before_definition:
           attrs
           |> GovernanceSupport.fetch(:before_definition)
@@ -1533,6 +1539,14 @@ defmodule Rulestead.Store.Command do
     end
 
     defp normalize_reference_keys(value), do: normalize_reference_keys([value])
+
+    defp normalize_samples(nil), do: []
+
+    defp normalize_samples(samples) when is_list(samples) do
+      Enum.map(samples, &GovernanceSupport.normalize_map/1)
+    end
+
+    defp normalize_samples(sample), do: normalize_samples([sample])
 
     defp normalize_boolean(value, _default) when is_boolean(value), do: value
     defp normalize_boolean(nil, default), do: default

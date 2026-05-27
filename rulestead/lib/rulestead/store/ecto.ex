@@ -559,6 +559,17 @@ defmodule Rulestead.Store.Ecto do
 
   @impl Store
   def apply_audience_mutation(%Command.ApplyAudienceMutation{} = command) do
+    if audit_result(command) == :denied do
+      insert_audience_audit_only_event(command, "audience.mutation_blocked", :denied)
+    else
+      apply_confirmed_audience_mutation(command)
+    end
+  rescue
+    error in [ConstraintError] ->
+      {:error, StoreError.unavailable(cause: error)}
+  end
+
+  defp apply_confirmed_audience_mutation(%Command.ApplyAudienceMutation{} = command) do
     published_at = now()
 
     Multi.new()
@@ -604,17 +615,19 @@ defmodule Rulestead.Store.Ecto do
          }}
 
       {:error, _operation, %Rulestead.Error{} = error, _changes} ->
+        _ = insert_blocked_audience_event(command, error)
         {:error, error}
 
       {:error, _operation, %Changeset{} = changeset, _changes} ->
-        {:error, StoreError.invalid_command("audience mutation could not be persisted", cause: changeset)}
+        error = StoreError.invalid_command("audience mutation could not be persisted", cause: changeset)
+        _ = insert_blocked_audience_event(command, error)
+        {:error, error}
 
       {:error, _operation, reason, _changes} ->
-        {:error, StoreError.unavailable(cause: reason)}
+        error = StoreError.unavailable(cause: reason)
+        _ = insert_blocked_audience_event(command, error)
+        {:error, error}
     end
-  rescue
-    error in [ConstraintError] ->
-      {:error, StoreError.unavailable(cause: error)}
   end
 
   @impl Store
@@ -2688,6 +2701,7 @@ defmodule Rulestead.Store.Ecto do
           preview_schema_version: command.preview_schema_version,
           affected_reference_keys: command.affected_reference_keys,
           preview_basis: command.preview_basis,
+          blockers: Map.get(opts, :blockers),
           affected_references: Map.get(opts, :preview, %{}) |> Map.get(:affected_references),
           uncertainty: Map.get(opts, :preview, %{}) |> Map.get(:uncertainty),
           sample_evidence: Map.get(opts, :preview, %{}) |> Map.get(:sample_evidence)
@@ -2695,6 +2709,52 @@ defmodule Rulestead.Store.Ecto do
       correlation_id: correlation_id(command),
       occurred_at: now()
     })
+  end
+
+  defp insert_audience_audit_only_event(command, event_type, result) do
+    %AuditEvent{}
+    |> audience_audit_event_changeset(command, event_type, result, %{
+      blockers: audience_blockers(command, result)
+    })
+    |> Repo.insert()
+    |> case do
+      {:ok, audit_event} -> {:ok, %{audit_event: AuditEvent.serialize(audit_event)}}
+      {:error, %Changeset{} = changeset} -> {:error, StoreError.invalid_command("audience audit could not be persisted", cause: changeset)}
+    end
+  end
+
+  defp insert_blocked_audience_event(command, %Rulestead.Error{} = error) do
+    event_type =
+      if command.operation == "delete_attempt" do
+        "audience.delete_blocked"
+      else
+        "audience.mutation_blocked"
+      end
+
+    %AuditEvent{}
+    |> audience_audit_event_changeset(command, event_type, :error, %{
+      blockers: audience_blockers(command, :error, error)
+    })
+    |> Repo.insert()
+  end
+
+  defp audience_blockers(command, :denied), do: [%{"code" => "audience_mutation_denied", "operation" => command.operation}]
+  defp audience_blockers(command, _result), do: [%{"code" => "audience_mutation_#{command.operation}_blocked"}]
+
+  defp audience_blockers(_command, :error, %Rulestead.Error{message: message}) do
+    [%{"code" => audience_blocker_code(message)}]
+  end
+
+  defp audience_blocker_code(message) when is_binary(message) do
+    cond do
+      String.contains?(message, "stale") -> "audience_preview_stale"
+      String.contains?(message, "not found") -> "audience_missing"
+      String.contains?(message, "archived") -> "audience_archived"
+      String.contains?(message, "protected shared targeting") -> "protected_shared_targeting_requires_confirmation"
+      String.contains?(message, "audience_delete_unsupported") -> "audience_delete_unsupported"
+      String.contains?(message, "schema") -> "audience_preview_schema_incompatible"
+      true -> "audience_mutation_blocked"
+    end
   end
 
   defp flag_environment_summary(flag_environment) do

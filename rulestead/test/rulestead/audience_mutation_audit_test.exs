@@ -152,7 +152,7 @@ defmodule Rulestead.AudienceMutationAuditTest do
     )
   end
 
-  defp apply_command(preview, overrides \\ []) do
+  defp apply_command(preview, overrides) do
     attrs =
       %{
         environment_key: "test",
@@ -163,6 +163,7 @@ defmodule Rulestead.AudienceMutationAuditTest do
         preview_fingerprint: preview.preview_fingerprint,
         preview_basis: preview.preview_basis,
         affected_reference_keys: ["flag:checkout-redesign:ruleset:1:rule:vip-rule"],
+        samples: [%{actor_key: "actor-1", traits: %{plan: "pro"}, email: "sample@example.com"}],
         after_definition: %{conditions: [%{attribute: "plan", operator: "eq", value: "pro"}]},
         actor: %{id: "editor-1", type: "operator", display: "Editor One"},
         reason: "apply confirmed update"
