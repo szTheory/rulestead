@@ -67,7 +67,7 @@ defmodule Rulestead.Targeting.ImpactPreviewTest do
           })
         )
 
-      assert preview.preview_schema_version == 1
+      assert preview.preview_schema_version == 2
       assert String.starts_with?(preview.preview_fingerprint, "audprev_")
       assert preview.environment_scope == %{environment_key: "production"}
       assert preview.tenant_scope == %{tenant_key: "acme"}
