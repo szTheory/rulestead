@@ -103,6 +103,7 @@ defmodule Rulestead.Store.PublishRulesetDependencyContractTest do
       )
 
     assert Enum.any?(findings, &(&1.code == "stale_reference"))
+    refute Enum.any?(findings, &(&1.code == "missing_reference"))
   end
 
   test "tenant precedence enforces explicit scope tenant on every dependency entry" do

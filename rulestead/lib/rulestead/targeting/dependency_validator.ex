@@ -49,7 +49,8 @@ defmodule Rulestead.Targeting.DependencyValidator do
     scope = %{
       tenant_key: normalize_string(Map.get(opts, :tenant_key)),
       expected_reference_keys: optional_string_list(opts, :expected_reference_keys),
-      stale_reference_keys: normalize_string_list(Map.get(opts, :stale_reference_keys))
+      stale_reference_keys: normalize_string_list(Map.get(opts, :stale_reference_keys)),
+      audiences: Map.get(opts, :audiences) || Map.get(opts, "audiences")
     }
 
     do_validate(scope, entries)
