@@ -86,6 +86,7 @@
 | VER-03 | Phase 68 | Pending |
 
 **Coverage:**
+
 - v1.9.0 requirements: 8 total
 - Mapped to phases: 8
 - Unmapped: 0 ✓

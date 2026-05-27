@@ -21,6 +21,8 @@ Rulestead is a batteries-included, Elixir-native feature-flag and remote-config 
 
 **Goal:** Close the last reusable-targeting preview gap by letting hosts supply bounded, redacted sample cohorts and impression summaries through an explicit seam—wired through mounted admin preview flows—without claiming authoritative population counts or widening blast-radius governance semantics.
 
+**Progress:** Phase 65 complete (2026-05-27) — `PreviewEvidence` behaviour seam, fail-closed limits, `ImpactPreview` schema v2 with impression fingerprints, Fake/Ecto store wiring, and contract tests (IMP-05, IMP-06). Next: Phase 66 evidence carry-through and governance boundary.
+
 **Target features:**
 - Host-owned preview evidence resolver behavior with bounded sample cohort and impression-summary payloads
 - Core preview contract, fingerprints, and audit/change-request carry-through for richer evidence basis
@@ -123,10 +125,11 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 
 ### Active
 
-- **IMP-05** through **IMP-07**, **GOV-05**, **ADM-05**, **VER-01** through **VER-03** — host-supplied preview evidence (`v1.9.0`, Phases 65-68)
+- **IMP-07**, **GOV-05**, **ADM-05**, **VER-01** through **VER-03** — host-supplied preview evidence carry-through and mounted workflows (`v1.9.0`, Phases 66-68)
 
 ### Validated
 
+- ✓ **IMP-05**, **IMP-06** — host preview evidence resolver seam, ImpactPreview v2, store wiring, stale fingerprint contract tests — Phase 65 (`v1.9.0`, 2026-05-27)
 - ✓ **ROL-04** through **ROL-07**, **ORC-01**, **ORC-02**, **AUD-03**, **AUD-04**, **ADM-04**, **VER-01** through **VER-03** — guarded rollout auto-advance (`v1.8.0`, Phases 61-64)
 - ✓ **ROL-07** (governance slice): Protected-env parity for auto-advance mutations — Phase 63
 - ✓ **AUD-04**: Automation vs manual distinction in mounted timeline — Phase 63
@@ -267,4 +270,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-27 — v1.9.0 milestone initialized (Host-Supplied Preview Evidence)*
+*Last updated: 2026-05-27 — Phase 65 complete (Host Preview Evidence Contract, IMP-05/IMP-06)*
