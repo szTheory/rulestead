@@ -57,6 +57,11 @@ defmodule Rulestead.Manifest.ValidateTest do
     assert result["status"] == "invalid"
     assert Enum.any?(result["dependency_findings"], &(&1["code"] == "missing_reference"))
     assert Enum.any?(result["findings"], &(&1["code"] == "missing_reference"))
+
+    assert Enum.all?(result["dependency_findings"], fn finding ->
+             is_binary(finding["environment_key"]) and finding["environment_key"] != "" and
+               is_binary(finding["tenant_key"]) and finding["tenant_key"] != ""
+           end)
   end
 
   test "returns deterministic dependency blocker findings for archived_reference incompatible_reference and tenant_mismatch" do
@@ -79,6 +84,25 @@ defmodule Rulestead.Manifest.ValidateTest do
              result["dependency_findings"],
              &(&1["code"] in ["incompatible_reference", "tenant_mismatch"])
            )
+
+    assert result["dependency_findings"] ==
+             Enum.sort_by(result["dependency_findings"], fn finding ->
+               {
+                 finding["severity"],
+                 finding["code"],
+                 finding["environment_key"],
+                 finding["tenant_key"],
+                 finding["flag_key"],
+                 finding["ruleset_version"],
+                 finding["rule_key"],
+                 finding["audience_key"]
+               }
+             end)
+
+    assert Enum.all?(result["dependency_findings"], fn finding ->
+             is_binary(finding["environment_key"]) and finding["environment_key"] != "" and
+               is_binary(finding["tenant_key"]) and finding["tenant_key"] != ""
+           end)
   end
 
   defp valid_manifest do

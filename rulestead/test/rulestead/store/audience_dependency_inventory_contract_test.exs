@@ -80,6 +80,12 @@ defmodule Rulestead.Store.AudienceDependencyInventoryContractTest do
       end
     end
 
+    def seed_audience!(attrs) do
+      %Audience{}
+      |> Audience.changeset(attrs)
+      |> Repo.insert!()
+    end
+
     def clear_projection! do
       Repo.delete_all(AudienceReferenceProjection)
     end
@@ -154,6 +160,8 @@ defmodule Rulestead.Store.AudienceDependencyInventoryContractTest do
     def reset!, do: Rulestead.Fake.Control.reset!()
     def put_flag!(attrs), do: Rulestead.Fake.Control.put_flag!(attrs)
 
+    def seed_audience!(attrs), do: Rulestead.Fake.Control.put_audience!(attrs)
+
     def clear_projection! do
       snapshot =
         Rulestead.Fake.Control.snapshot!()
@@ -183,10 +191,14 @@ defmodule Rulestead.Store.AudienceDependencyInventoryContractTest do
     ecto_entries = seed_and_read_entries(Rulestead.Store.Ecto, EctoControl)
     fake_entries = seed_and_read_entries(Fake, FakeControl)
 
-    assert entry_keys(ecto_entries) == entry_keys(fake_entries)
+    expected_order = [
+      {"production", "global", "checkout-redesign", 1, "prod-segment", "vip-users"},
+      {"staging", "global", "checkout-redesign", 1, "stage-segment", "beta-users"},
+      {"staging", "global", "search-boost", 1, "search-segment", "vip-users"}
+    ]
 
-    expected_order = Enum.sort(entry_keys(ecto_entries))
     assert entry_keys(ecto_entries) == expected_order
+    assert entry_keys(fake_entries) == expected_order
 
     assert Enum.all?(ecto_entries, fn entry ->
              is_binary(entry.environment_key) and
@@ -203,6 +215,13 @@ defmodule Rulestead.Store.AudienceDependencyInventoryContractTest do
                is_map(entry.lifecycle_context) and
                is_integer(entry.reference_count) and
                is_integer(entry.hidden_reference_count)
+           end)
+
+    assert Enum.all?(fake_entries, fn entry ->
+             is_binary(entry.environment_key) and
+               is_binary(entry.tenant_key) and
+               String.trim(entry.environment_key) != "" and
+               String.trim(entry.tenant_key) != ""
            end)
   end
 
@@ -242,6 +261,22 @@ defmodule Rulestead.Store.AudienceDependencyInventoryContractTest do
   defp seed_inventory_fixture!(store_module, control_module) do
     control_module.ensure_started()
     control_module.reset!()
+
+    control_module.seed_audience!(%{
+      key: "vip-users",
+      name: "VIP users",
+      description: "VIP audience",
+      tenant_key: "global",
+      definition: %{conditions: [%{attribute: "plan", operator: "eq", value: "vip"}]}
+    })
+
+    control_module.seed_audience!(%{
+      key: "beta-users",
+      name: "Beta users",
+      description: "Beta audience",
+      tenant_key: "global",
+      definition: %{conditions: [%{attribute: "cohort", operator: "eq", value: "beta"}]}
+    })
 
     control_module.put_flag!(
       valid_flag_attrs(%{
