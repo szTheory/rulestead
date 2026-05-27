@@ -48,7 +48,17 @@ defmodule RulesteadAdmin.Live.AudienceLive.EditConfirmGovernanceTest do
   setup do
     Control.reset!()
     seed_prod_audience_flags!()
+    previous = Application.get_env(:rulestead, :admin_policy)
     Application.put_env(:rulestead, :admin_policy, GovernanceTestPolicy)
+
+    on_exit(fn ->
+      if previous do
+        Application.put_env(:rulestead, :admin_policy, previous)
+      else
+        Application.delete_env(:rulestead, :admin_policy)
+      end
+    end)
+
     :ok
   end
 

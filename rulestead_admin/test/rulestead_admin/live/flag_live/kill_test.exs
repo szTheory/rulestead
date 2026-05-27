@@ -187,7 +187,7 @@ defmodule RulesteadAdmin.Live.FlagLive.KillTest do
       conn
       |> Phoenix.ConnTest.recycle()
       |> Phoenix.ConnTest.init_test_session(%{
-        "current_actor" => %{id: 9, email: "viewer@example.com", roles: ["viewer"]},
+        "current_actor" => %{id: 9, email: "operator@example.com", roles: ["admin"]},
         "rulestead_admin_last_env" => "prod",
         "rulestead_admin_environments" => [
           %{"key" => "dev", "name" => "Development"},
