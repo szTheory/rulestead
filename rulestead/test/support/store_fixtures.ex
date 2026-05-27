@@ -275,6 +275,136 @@ defmodule Rulestead.StoreFixtures do
     })
   end
 
+  @spec default_auto_advance_policy_attrs(map()) :: map()
+  def default_auto_advance_policy_attrs(overrides \\ %{}) do
+    Map.merge(
+      %{
+        enabled: true,
+        observation_window_seconds: 300,
+        next_stage: "canary-100",
+        next_percentage: 100
+      },
+      overrides
+    )
+  end
+
+  @spec seed_rollout_with_auto_advance_policy!(module(), String.t(), keyword()) :: :ok
+  def seed_rollout_with_auto_advance_policy!(adapter, flag_key, opts \\ []) do
+    environment_key = Keyword.get(opts, :environment_key, "test")
+    rule_key = Keyword.get(opts, :rule_key, "variant-split")
+    policy_attrs = Keyword.get(opts, :policy, default_auto_advance_policy_attrs())
+
+    flag_attrs =
+      valid_flag_attrs(%{
+        key: flag_key,
+        permanent: true,
+        environment_keys: [environment_key]
+      })
+
+    unless match?({:ok, _}, adapter.create_flag(Command.CreateFlag.new(flag_attrs,
+           actor: %{id: "creator", type: "operator", display: "Creator"}
+         ))) do
+      raise "failed to create flag #{flag_key}"
+    end
+
+    unless match?({:ok, _},
+             adapter.save_draft_ruleset(
+               save_draft_command(flag_key, environment_key, guarded_rollout_ruleset_attrs())
+             )
+           ) do
+      raise "failed to save draft ruleset for #{flag_key}"
+    end
+
+    unless match?({:ok, _},
+             adapter.publish_ruleset(publish_ruleset_command(flag_key, environment_key))
+           ) do
+      raise "failed to publish ruleset for #{flag_key}"
+    end
+
+    unless match?({:ok, _},
+             adapter.upsert_rollout_auto_advance_policy(
+               Command.UpsertRolloutAutoAdvancePolicy.new(
+                 flag_key,
+                 environment_key,
+                 rule_key,
+                 policy_attrs
+               )
+             )
+           ) do
+      raise "failed to upsert auto-advance policy for #{flag_key}"
+    end
+
+    :ok
+  end
+
+  @spec list_auto_advance_ticks(module(), keyword()) :: [map()]
+  def list_auto_advance_ticks(adapter, opts \\ []) do
+    environment_key = Keyword.get(opts, :environment_key, "test")
+    flag_key = Keyword.get(opts, :flag_key)
+
+    list_opts =
+      [
+        environment_key: environment_key,
+        resource_type: "flag",
+        action: :advance_rollout,
+        state: :scheduled,
+        limit: 100
+      ]
+      |> maybe_put(:resource_key, flag_key)
+
+    case adapter.list_scheduled_executions(Command.ListScheduledExecutions.new(list_opts)) do
+      {:ok, %{scheduled_executions: scheduled_executions}} ->
+        Enum.filter(scheduled_executions, &auto_advance_tick?/1)
+
+      {:error, error} ->
+        raise error
+    end
+  end
+
+  @spec execute_auto_advance_tick!(module(), keyword()) ::
+          {:ok, map()} | {:error, term()}
+  def execute_auto_advance_tick!(adapter, opts \\ []) do
+    ticks = list_auto_advance_ticks(adapter, opts)
+
+    scheduled_execution =
+      case Keyword.get(opts, :scheduled_execution_id) do
+        nil -> List.first(ticks)
+        id -> Enum.find(ticks, &(&1.id == id)) || raise "auto-advance tick not found: #{id}"
+      end
+
+    unless scheduled_execution do
+      raise "no pending auto-advance tick found"
+    end
+
+    maybe_set_fake_clock!(adapter, Keyword.get(opts, :evaluated_at))
+
+    adapter.execute_scheduled_execution(
+      Command.ExecuteScheduledExecution.new(scheduled_execution.id,
+        actor: %{id: "system:scheduler", type: "system", display: "Scheduler"},
+        reason: "Execute auto-advance observation window tick",
+        metadata: %{
+          request_id: "req-auto-advance-#{System.unique_integer([:positive])}",
+          source: :scheduled_execution_worker
+        }
+      )
+    )
+  end
+
+  defp auto_advance_tick?(scheduled_execution) do
+    metadata = Map.get(scheduled_execution, :metadata) || %{}
+    source = Map.get(metadata, :source) || Map.get(metadata, "source")
+    source in ["guardrail_automation", :guardrail_automation]
+  end
+
+  defp maybe_set_fake_clock!(Rulestead.Fake, %DateTime{} = evaluated_at) do
+    Rulestead.Fake.Control.set_now!(evaluated_at)
+  end
+
+  defp maybe_set_fake_clock!(_adapter, _evaluated_at), do: :ok
+
+  defp maybe_put(keyword, _key, nil), do: keyword
+  defp maybe_put(keyword, key, value), do: Keyword.put(keyword, key, value)
+
   @spec invalid_operator_payload_ruleset_attrs() :: map()
   def invalid_operator_payload_ruleset_attrs do
     valid_ruleset_attrs(%{
