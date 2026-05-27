@@ -188,13 +188,33 @@ defmodule Rulestead.Store.Ecto do
   end
 
   defp run_promotion_apply(%Command.ApplyPromotion{} = command, opts) do
+    allow_protected_target? = Keyword.get(opts, :allow_protected_target?, false)
+
     with {:ok, _source_environment} <- fetch_environment(command.source_environment_key),
          {:ok, target_environment} <- fetch_environment(command.target_environment_key),
          :ok <-
            ensure_promotion_target_allowed(
              target_environment.key,
-             Keyword.get(opts, :allow_protected_target?, false)
-           ) do
+             allow_protected_target?
+           ),
+         # Fail closed for direct apply and replay/re-apply paths.
+         :ok <-
+           Apply.validate_live_dependencies(
+             command,
+             dependency_validation_audiences(),
+             message: "promotion apply blocked by dependency validation"
+           ),
+         {:ok, compare} <-
+           compare_environments(
+             Command.CompareEnvironments.new(
+               command.source_environment_key,
+               command.target_environment_key,
+               flag_keys: command.flag_keys,
+               compare_token: command.compare_token,
+               tenant_key: command.tenant_key
+             )
+           ),
+         :ok <- Apply.validate_with_compare(command, compare, allow_protected_target?: allow_protected_target?) do
       published_at = now()
 
       Multi.new()

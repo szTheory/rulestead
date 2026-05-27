@@ -4612,6 +4612,8 @@ defmodule Rulestead.Fake do
   end
 
   defp do_apply_promotion(state, command, opts) do
+    allow_protected_target? = Keyword.get(opts, :allow_protected_target?, false)
+
     with {:ok, _source_environment} <-
            fetch_environment_from_state(state, command.source_environment_key),
          {:ok, target_environment} <-
@@ -4619,8 +4621,17 @@ defmodule Rulestead.Fake do
          :ok <-
            ensure_promotion_target_allowed(
              target_environment.key,
-             Keyword.get(opts, :allow_protected_target?, false)
+             allow_protected_target?
            ),
+         # Fail closed for direct apply and replay/re-apply paths.
+         :ok <-
+           Apply.validate_live_dependencies(
+             command,
+             Map.get(state, :audiences, %{}),
+             message: "promotion apply blocked by dependency validation"
+           ),
+         {:ok, compare} <- compare_environments_in_state(state, compare_command(command)),
+         :ok <- Apply.validate_with_compare(command, compare, allow_protected_target?: allow_protected_target?),
          {:ok, applied_state} <- apply_promotion_bundle(state, target_environment.key, command) do
       version = next_environment_version(state, target_environment.key)
 
