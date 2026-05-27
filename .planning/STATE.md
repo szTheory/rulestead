@@ -1,127 +1,88 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.5.0
-milestone_name: v1.5.0 - Guarded Rollout Foundations
-status: shipped
-last_updated: "2026-05-27T08:41:13.339Z"
-last_activity: 2026-05-27 -- Archived v1.5.0 guarded rollout foundations and reset planning state for next milestone definition
+milestone: v1.6.0
+milestone_name: v1.6.0 - Reusable Targeting Deepening
+status: ready_to_plan
+last_updated: "2026-05-27T00:00:00.000Z"
+last_activity: 2026-05-27 -- Created v1.6.0 roadmap across Phases 53-56 and mapped all active requirements
 progress:
   total_phases: 4
-  completed_phases: 4
-  total_plans: 8
-  completed_plans: 8
-  percent: 100
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # State: Rulestead
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-05-26)
+See: `.planning/PROJECT.md` (updated 2026-05-27)
 
-**Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
-**Current focus:** Awaiting next milestone definition
-**Milestone:** none active; latest shipped milestone is `v1.5.0 - Guarded Rollout Foundations`
-
-## Roadmap Reference
-
-See: `.planning/ROADMAP.md` for the active milestone phases and traceability map.
+**Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions - booleans, variants, and remote config - with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
+**Current focus:** Phase 53 - Impact Preview Contract
+**Milestone:** `v1.6.0 - Reusable Targeting Deepening`
 
 ## Current Position
 
-Phase: none
-Plan: none
-Status: shipped
-Last activity: 2026-05-27 -- Archived v1.5.0 guarded rollout foundations and reset planning state for next milestone definition
+Phase: 53 of 56 (Impact Preview Contract)
+Plan: TBD
+Status: Ready to plan
+Last activity: 2026-05-27 -- Roadmap created for v1.6.0 and traceability updated
 
-## Current Milestone Focus
+Progress: [----------] 0%
 
-- No active milestone requirements. Fresh requirements should be created by `$gsd-new-milestone`.
-- Latest shipped milestone: `v1.5.0 - Guarded Rollout Foundations`.
+## Performance Metrics
 
-## Carryover Items
+**Velocity:**
+- Total plans completed: 0
+- Average duration: n/a
+- Total execution time: 0.0 hours
 
-- `v1.6.0 - Reusable Targeting Deepening` remains the next queued candidate.
-- Keep the sibling-package release model, mounted-admin posture, host-owned identity boundary, and host-owned observability boundary unchanged.
-- Do not widen guarded rollout into automated advancement, dashboards, or standalone-admin posture without a future milestone explicitly accepting that scope.
+**By Phase:**
 
-## Anchor Docs (prompts/)
+| Phase | Plans | Total | Avg/Plan |
+|-------|-------|-------|----------|
+| 53. Impact Preview Contract | TBD | - | - |
+| 54. Dependency Truth And Promotion Safety | TBD | - | - |
+| 55. Mounted Operator Workflows | TBD | - | - |
+| 56. Proof, Docs, And Support Truth | TBD | - | - |
 
-These remain the primary source of truth and should be loaded selectively per phase:
+**Recent Trend:**
+- Last 5 plans: none
+- Trend: n/a
 
-- `prompts/elixir_feature_flags_research_brief.md` — product vision and phased market thesis
-- `prompts/rulestead-engineering-dna-from-prior-libs.md` — validated patterns from prior shipped libs
-- `prompts/rulestead-brand-book.md` — naming, voice, visual identity
-- `prompts/rulestead-domain-language-field-guide.md` — canonical vocabulary
-- `prompts/rulestead-release-engineering-and-ci.md` — release engineering reference
-- `prompts/rulestead-testing-and-e2e-strategy.md` — testing and verification reference
-- `prompts/rulestead-admin-ux-and-operator-ia.md` — admin/operator UX reference
-- `prompts/rulestead-telemetry-observability-and-audit.md` — telemetry and audit reference
-- `prompts/rulestead-security-privacy-and-threat-model.md` — security/privacy reference
-- `prompts/rulestead-personas-jtbd-and-onboarding.md` — persona and onboarding reference
-- `prompts/rulestead-host-app-integration-seam.md` — host-app integration seam reference
+## Accumulated Context
 
-## Decisions
+### Decisions
 
-- **14-01**: Scaffolded `open_feature_rulestead` as a sibling package to core `rulestead` to avoid vendor lock-in.
-- **14-01**: Implemented `ContextMapper` to map loosely typed OpenFeature attributes into strongly typed Rulestead Contexts.
-- **14-02**: Adopted OpenFeature.Provider behaviour to map contexts and resolutions.
-- **14-02**: Mitigated Information Disclosure by selectively surfacing scalar metadata (matched_rule, flag_version, cache_age_ms) instead of full Rulestead engine telemetry.
-- **15-02**: Used Elixir's native AST parser instead of regex for precise code reference detection.
-- **15-02**: Created an Ecto schema and migration for persisting ingested code references securely via token auth.
-- **15-03**: Validated exact flag key typing for production environment archival.
-- **19-02**: Published exact versioned snapshots into Redis from the control plane while keeping the write path off the hot request path.
-- **20-01**: Added a notifier seam so runtime invalidation transport stays configurable rather than Phoenix-only.
-- **20-02**: Version-gated invalidation handling to ignore stale or duplicate refresh notices and preserve last-known-good snapshots on refresh failure.
-- **21-01**: Kept infrastructure health node-local by default and exposed peer data only through an explicit host-provided seam.
-- **21-01**: Added `[:rulestead, :sync, :delta_received]` and `[:rulestead, :cache, :invalidation]` as additive aliases on top of the Phase 20 runtime invalidation telemetry family.
-- **21-02**: Mounted diagnostics inside the existing `rulestead_admin` router macro so the screen inherits the current session and policy envelope.
-- **21-02**: Kept the diagnostics page explicitly current-node by default and rendered missing-snapshot states as critical operator copy instead of implying peer health.
-- **23-02**: Reused the existing governed-action approval and policy surfaces for protected-environment promotion instead of introducing a parallel promotion workflow.
-- **23-03**: Executed approved and scheduled governed promotion from the stored reviewed bundle snapshot instead of recomputing source intent later.
-- **23-04**: Modeled re-apply-version as a fresh forward promotion from immutable environment-version history rather than a rollback shortcut.
-- **23-05**: Kept compare, change-request, and schedule routes as the mounted operator entrypoints for promotion and re-apply.
-- **24-04**: Reused the existing governed promotion change-request path for protected-target CLI promote apply rather than adding a direct CLI bypass.
-- **35-00**: Activated lifecycle hygiene and ownership as `v1.2.0` ahead of guarded rollout and reusable targeting to close the strongest everyday trust/cleanup gap first.
-- **41-00**: Redirected the next milestone toward adopter-truth and proof-posture closure before guarded rollout because current repo evidence shows conflicting release docs and failing proof surfaces.
-- **41-01**: Activated `v1.3.0` as a bounded support-truth milestone instead of reopening feature prioritization because docs, migrations, and runnable proof are the highest-leverage current adopter gap.
-- **41-02**: Centralized the repo-GA versus package-line explanation at the root README while keeping sibling package READMEs narrow and linked back to shared docs.
-- **41-03**: Bounded public support truth to the local demo plus `mix verify.release_publish` and `mix verify.release_parity`, and locked that posture into release-contract tests.
-- **44-01**: Kept the OpenFeature companion contract package-first and pushed the browser path to a clearly secondary host-owned demo surface.
-- **44-02**: Exposed `openfeature_companion` as a named, path-gated proof bar instead of widening the default release gate.
-- **44-03**: Closed milestone support truth only after root docs, demo docs, CI, and verification evidence all cited the same bounded proof commands.
-- **45-00**: Re-ranked the next milestone to mounted companion proof reclosure after repo-local verification showed the named mounted-admin proof bar still failing while the OpenFeature companion proof bar passed.
-- **45-01**: Reclassified reusable targeting from a net-new milestone concept to a later deepening pass because reusable audiences already exist across runtime, admin, compare, and manifest flows.
-- **45-02**: Activated `v1.4.0` as a bounded mounted companion proof-reclosure milestone and preserved guarded rollout as the next planned differentiator.
-- **48-03**: Archived `v1.4.0` after the milestone audit passed and restored `v1.5.0` as the next recommended candidate.
-- **49-00**: Activated `v1.5.0` as a bounded guarded-rollout milestone and kept host-owned observability, mounted-admin, and linked-version package boundaries explicit from the start.
-- **49-01**: Completed the bounded guardrail signal contract as a host-owned provider seam with explicit scope, threshold, freshness, sample-size, compare, and export semantics.
-- **50-01**: Completed the guarded decision engine and audit path in `rulestead`, keeping automatic hold and rollback inside the existing store/governance/audit spine.
-- **52-03**: Archived `v1.5.0` after the milestone audit passed and kept `v1.6.0 - Reusable Targeting Deepening` as the next queued candidate.
-- [Phase 51-mounted-guardrail-workflow]: Mounted rollout guardrail status reads only through Rulestead.fetch_guardrail_status/3 with the current actor. — Keeps the mounted admin UI inside the core admin read and policy envelope.
-- [Phase 51-mounted-guardrail-workflow]: Missing guardrail decisions render prerequisite copy, not healthy or empty state. — Prevents operators from mistaking absent operational truth for a safe rollout stage.
-- [Phase 51-mounted-guardrail-workflow]: Rollout percentage serialization preserves authored guardrails and excludes operational decision state. — Keeps authored rollout configuration durable while preventing Phase 50 operational fields from leaking into config.
-- [Phase 51-mounted-guardrail-workflow]: Guardrail intervention excerpts read through Rulestead.list_audit_events/1 with the current actor and render empty on authorization errors. — Keeps intervention reasons inside the existing mounted audit policy envelope.
-- [Phase 51-mounted-guardrail-workflow]: rollout.guardrail_* timeline rows are labeled Automatic with source wording, while manual rollout rows receive Manual rollout action copy. — Preserves operator distinction between system automation and human rollout actions.
-- [Phase 51-mounted-guardrail-workflow]: Raw audit metadata remains behind the existing details disclosure with only bounded guardrail/source/link fields allowlisted. — Keeps intervention context useful without leaking raw provider payloads.
+Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecting current work:
 
-## Latest Activity
+- Activate `v1.6.0 - Reusable Targeting Deepening` as the next milestone after `v1.5.0` guarded rollout foundations.
+- Treat reusable audiences as already shipped; this milestone deepens safety, dependency visibility, explainability, and support truth rather than adding a new targeting primitive.
+- Keep previews authored-state and explicit-sample based. Do not imply Rulestead owns identity, tenant catalog, observability, or authoritative affected-user counts.
+- Preserve the linked-version two-package release model: `rulestead` owns core contracts and validation; `rulestead_admin` owns mounted presentation only.
 
-- 2026-05-27 — Completed Phase 52 guarded rollout proof, docs, and traceability closure; VER-01 is satisfied and v1.5.0 is ready_for_closeout.
-- 2026-05-27 — Archived milestone `v1.5.0`, created shipped roadmap and requirements archives, updated the project and milestone arc, and reset planning state to await the next milestone definition.
-- 2026-05-27 — Verified and accepted Phase 51 with clean code review, schema-drift check, targeted mounted rollout/timeline/router tests, and browser smoke captures for the mounted rollout and per-flag timeline surfaces.
-- 2026-05-27 — Executed Phase 51 Plan 02 in commits `134d5bd` and `c8dc863`, adding automatic guardrail timeline wording, rollout-page intervention excerpts, and denied audit-read behavior.
-- 2026-05-27 — Executed Phase 51 Plan 01 in commits `13aa023`, `bac53c6`, and `53bc654`, adding mounted rollout guardrail status, missing-prerequisite copy, and guardrail-preserving percentage saves.
-- 2026-05-27 — Reconciled GSD planning truth after terminal interruption: `main` and `origin/main` both point at `c4dd3fb`, Phase 49 and Phase 50 code is pushed, and the active next step is Phase 51 planning.
-- 2026-05-26 — Implemented and pushed Phase 50 guarded rollout decision engine in commit `c4dd3fb`, adding durable guardrail decisions, `advance_rollout`, `evaluate_guarded_rollout`, `fetch_guardrail_status`, hold behavior, rollback-to-stable-snapshot behavior, and Ecto/fake adapter proof.
-- 2026-05-26 — Executed Phase 49 guardrail signal contract across three plans: host-owned signal seam, authored rollout guardrail definitions, and compare/export durability proof.
-- 2026-05-26 — Activated milestone `v1.5.0`, created `.planning/REQUIREMENTS.md`, rewrote `.planning/ROADMAP.md` for Phases 49-52, updated `.planning/PROJECT.md`, and reset active planning state for phase work.
-- 2026-05-26 — Archived milestone `v1.4.0`, created shipped roadmap and requirements archives, updated the project and milestone arc, and reset planning state to await the next milestone definition.
-- 2026-05-26 — Milestone audit for `v1.4.0` passed with all 5 requirements satisfied and no blocking integration or flow gaps.
-- 2026-05-26 — Executed Phase 48, reran the bounded mounted proof bundle plus release-contract suites, created `48-VERIFICATION.md`, and reconciled active planning truth plus the milestone audit to `ready_for_closeout`.
-- 2026-05-26 — Executed Phase 47 and reclosed root, package, and maintainer-facing support truth around the bounded mounted companion proof command, fail-closed host seam, and release-contract drift guards.
-- 2026-05-25 — Executed Phase 46 and restored the repo-root mounted proof bar, repaired mounted cleanup/preview/confirm permission proof, and added a named mounted-proof CI lane wired into `release_gate`.
+### Pending Todos
 
-## Next Action
+None yet.
 
-Next: Run `$gsd-new-milestone` to define fresh requirements and activate the next milestone. The queued candidate is `v1.6.0 - Reusable Targeting Deepening`.
+### Blockers/Concerns
+
+- Avoid runtime database, mounted-admin, host identity, or observability lookups during evaluation; audience resolution must stay snapshot-local.
+- Do not introduce Phase 8-only docs, standalone `rulestead_admin` publish prep, graph visualizers, bulk automation, hidden inheritance, or tenant hierarchy shortcuts.
+
+## Deferred Items
+
+| Category | Item | Status | Deferred At |
+|----------|------|--------|-------------|
+| Targeting | Richer host-supplied impression or cohort previews | Future requirement IMP-05 | v1.6.0 requirements |
+| Admin | Optional draft-only targeting presets | Future requirement ADM-05 | v1.6.0 requirements |
+| Governance | Blast-radius-threshold approvals for protected audience edits | Future requirement GOV-01 | v1.6.0 requirements |
+| Rollouts | Automatic guarded rollout advancement windows | Future requirement ROL-04 | v1.6.0 requirements |
+
+## Session Continuity
+
+Last session: 2026-05-27
+Stopped at: v1.6.0 roadmap and traceability created; next action is planning Phase 53.
+Resume file: None

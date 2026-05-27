@@ -14,13 +14,16 @@ Rulestead is a batteries-included, Elixir-native feature-flag and remote-config 
 - `v1.4.0` shipped on 2026-05-26 across Phases 45-48, restoring the mounted companion boot/runtime contract, the repo-root `mounted_admin_contract` proof bar, and the release/support-truth chain without widening the sibling-package product shape.
 - `v1.5.0` shipped on 2026-05-27 across Phases 49-52, adding host-owned guardrail signal contracts, fail-closed guarded rollout decisions, governed/audited hold or rollback behavior, mounted guardrail explanation surfaces, and bounded proof/docs truth without turning Rulestead into an observability product.
 
-## Current Milestone
+## Current Milestone: v1.6.0 Reusable Targeting Deepening
 
-No active milestone is defined. The next milestone should start with `$gsd-new-milestone`, which creates fresh requirements and roadmap scope.
+**Goal:** Deepen already-shipped reusable audience targeting with impact previews, dependency visibility, explainability, and bounded mounted operator workflows while preserving deterministic snapshots and the linked sibling-package release design.
 
-**Queued candidate:** `v1.6.0 - Reusable Targeting Deepening`
+**Target features:**
+- Core audience dependency inventory, reference counts, and fail-closed validation for referenced, archived, missing, stale, or tenant-mismatched audiences.
+- Impact preview and confirmation contract for audience edits, archive/delete attempts, and protected mutation paths, including preview basis, stale-token checks, audit summary, and affected rollout/lifecycle context.
+- Promotion, manifest, compare, explainability, and mounted admin surfaces that make reusable audience dependencies visible and supportable without hidden inheritance or runtime admin lookups.
 
-**Default direction:** Deepen already-shipped reusable targeting with impact previews, dependency visibility, and bounded operator ergonomics while preserving deterministic snapshots and avoiding hidden inheritance graphs.
+**Why now:** `v1.5.0` shipped bounded guarded rollout foundations; the next trust gap is making existing reusable audience indirection safe to change, inspect, and explain before it becomes a blast-radius surprise.
 
 ## Core Value
 
@@ -64,7 +67,10 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 
 ### Active
 
-No active milestone requirements. Fresh requirements should be defined by the next `$gsd-new-milestone` run.
+- [ ] Define core audience dependency truth and reference counts in `rulestead` without adding runtime DB lookups or graph-library dependencies.
+- [ ] Add bounded audience impact previews, stale-token validation, archive/delete blockers, and audit evidence for shared targeting mutations.
+- [ ] Carry audience dependency visibility through promotion, manifest import/export, compare, explain traces, and mounted admin workflows.
+- [ ] Re-close proof, docs, and support truth for reusable targeting deepening under the linked sibling-package release model.
 
 ### Validated
 
@@ -100,12 +106,6 @@ No active milestone requirements. Fresh requirements should be defined by the ne
 - ✓ Re-close the mounted companion boot/runtime seam, bounded proof bar, CI/release semantics, and support-truth chain (`PKG-01`, `PKG-02`, `ADM-01`, `VER-01`, `DOC-01`) — `v1.4.0`
 - ✓ Establish bounded guarded rollout foundations (`ROL-01`, `ROL-02`, `ROL-03`, `AUD-01`, `AUD-02`, `ADM-01`, `VER-01`) — `v1.5.0`
 
-## Next Milestone Goals
-
-- Start fresh requirements for `v1.6.0 - Reusable Targeting Deepening` unless the user chooses a different direction.
-- Deepen existing audience reuse safely through impact previews, dependency visibility, and explainability rather than treating reusable targeting as a greenfield feature.
-- Preserve the sibling-package release model, host-owned boundaries, deterministic evaluation, and bounded support-truth proof posture established through `v1.5.0`.
-
 ### Out of Scope
 
 - Broadening `rulestead_admin` beyond the mounted sibling-package design into a standalone control-plane product — explicitly disallowed by the current release design.
@@ -134,6 +134,7 @@ No active milestone requirements. Fresh requirements should be defined by the ne
 - **Guarded rollout scope**: Any future rollout guardrails must stay host-supplied and must not widen Rulestead into an observability platform.
 - **Support truth**: Public docs, install guidance, migrations, and verification evidence must agree before new differentiated milestone work claims the surface is ready.
 - **Reusable targeting scope**: Future targeting work should deepen existing audience reuse safely; do not restate shipped audience support as if it were a greenfield milestone.
+- **Reusable targeting preview truth**: Impact previews must declare their basis and uncertainty; Rulestead must not claim authoritative affected-user counts unless the host supplied bounded sample or impression evidence through explicit seams.
 
 ## Key Decisions
 
@@ -154,6 +155,8 @@ No active milestone requirements. Fresh requirements should be defined by the ne
 | Keep `v1.5.0` as the next candidate after shipping `v1.4.0` | With the mounted companion proof surface repaired, guarded rollout again becomes the strongest differentiated follow-on while reusable targeting stays a later deepening pass. | Validated |
 | Activate `v1.5.0` as a bounded guarded-rollout milestone instead of reopening milestone selection | The milestone arc, repo state, and prior research all pointed to guarded rollout as the next highest-leverage differentiator as long as host-owned observability and mounted companion boundaries stayed explicit. | Validated |
 | Ship guarded rollout foundations as host-owned, fail-closed, and mounted-workflow bounded | Keeps rollout safety useful without turning Rulestead into an observability product, standalone control plane, or time-based routing engine. | Validated |
+| Activate `v1.6.0` as reusable targeting deepening instead of adding a new targeting primitive | Reusable audiences are already shipped; the highest-leverage next work is blast-radius safety, dependency visibility, and explainability for existing audience reuse. | Pending |
+| Keep reusable targeting previews authored-state and explicit-sample based | Preserves deterministic evaluation, host-owned identity/observability truth, and honest support claims while still giving operators useful impact evidence. | Pending |
 
 ## Milestone Archives
 
@@ -189,4 +192,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-27 after v1.5.0 milestone archive*
+*Last updated: 2026-05-27 after v1.6.0 milestone activation*

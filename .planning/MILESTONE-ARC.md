@@ -1,13 +1,14 @@
 # Milestone Arc: Post-v1.5.0 Closeout
 
-**Last updated:** 2026-05-27 during milestone v1.5.0 closeout
+**Last updated:** 2026-05-27 during milestone v1.6.0 activation
 **Selection posture:** Default to the highest-priority candidate below unless the user explicitly chooses a materially different direction. Shift low-impact milestone-selection preference left inside GSD instead of re-opening the full tradeoff set every time.
 
 ## Active Milestone
 
-- **Active now:** none; `v1.5.0 - Guarded Rollout Foundations` shipped on 2026-05-27.
-- **Why it shipped:** It added bounded guarded-rollout safety on top of the repaired sibling-package support posture without widening Rulestead into observability, standalone admin, or time-based routing scope.
-- **Next queued candidate:** `v1.6.0 - Reusable Targeting Deepening`
+- **Active now:** `v1.6.0 - Reusable Targeting Deepening`
+- **Why it is active:** With guarded rollout foundations shipped, the next highest-leverage product gap is making already-shipped reusable audience targeting safer to edit, easier to inspect, and clearer to explain without introducing hidden inheritance graphs or standalone control-plane behavior.
+- **Scope posture:** Deepen impact previews, dependency visibility, promotion/manifest validation, mounted operator ergonomics, and support truth for existing reusable audiences.
+- **Next queued candidate:** none selected; choose after `v1.6.0` closeout based on audit findings.
 
 ## Candidate Ranking
 
@@ -121,18 +122,20 @@
 
 ### 5. `v1.6.0 - Reusable Targeting Deepening`
 
-**Status:** next queued candidate after shipped `v1.5.0`
-**Why it is later:**
+**Status:** active as of 2026-05-27
+**Why it is active now:**
 
 - Reusable audiences already exist in shipped runtime/admin/promotion surfaces, so the next value here is deepening ergonomics and blast-radius safety rather than introducing the concept
-- Solves scale and duplication pain, but not the biggest current trust/operability gap
+- Guarded rollout foundations shipped in `v1.5.0`, so rollout safety now has enough base support for targeting dependency visibility to become the next trust gap
 - Introduces indirection across explainability, compare, promotion, import/export, and dependency visibility
 
-**Recommended shape if activated later:**
+**Activated shape:**
 
 - Audience impact previews and reference counts before edits
 - Stronger dependency visibility and explainability for existing audience reuse
-- Any templates remain draft-based, bounded, and non-inheriting if they are still justified at all
+- Promotion, manifest, compare, explainability, archive/delete, and guarded-rollout interaction validation that fails closed on missing, archived, incompatible, stale, or tenant-mismatched audience references
+- Mounted admin workflows that show "used by" scope, preview basis, affected references, confirmation state, and audit evidence
+- Any presets remain deferred unless draft-only, bounded, and non-inheriting after safety surfaces are complete
 
 **Key tradeoffs:**
 

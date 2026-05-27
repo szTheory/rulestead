@@ -1,59 +1,144 @@
-# Architecture Research: Rulestead v1.3.0 - Adopter Truth & Proof Closure
+# Architecture Research: v1.6.0 Reusable Targeting Deepening
 
-**Project:** Rulestead v1.3.0 - Adopter Truth & Proof Closure
-**Researched:** 2026-05-24
+**Project:** Rulestead v1.6.0 - Reusable Targeting Deepening  
+**Researched:** 2026-05-27  
+**Confidence:** HIGH for repo-local integration points; MEDIUM for exact phase split until requirements are frozen.
 
-## Architectural Focus
+## Architectural Thesis
 
-This milestone does not introduce a new product subsystem. It reconciles four existing truth surfaces so that the public release story, authored-state contract, mounted companion behavior, and optional bridge proof all describe the same product.
+Reusable audiences already exist in the runtime, mounted rules UI, compare, and manifest surfaces. v1.6.0 should not introduce a new targeting subsystem. It should add a small dependency/impact read model over existing authored state, then thread that projection into admin review, explainability, promotion, and manifest validation.
 
-## Required Integration Points
+The runtime hot path should remain deterministic and snapshot-backed. Audience definitions may become more visible and safer to edit, but evaluation must continue to consume compiled snapshot payloads rather than live database lookups or inheritance graphs.
 
-### 1. Public Docs <-> Shipped Release Posture
+## Current Integration Points
 
-- Root and sibling package READMEs must match the `v1.0.0` GA reality recorded in planning.
-- Shared guides remain the canonical cross-package narrative, especially lifecycle and installation.
-- Release messaging should continue to describe `rulestead_admin` as a mounted companion, never a standalone admin product.
+| Surface | Existing Component | v1.6.0 Integration |
+|---------|--------------------|--------------------|
+| Audience authored state | `Rulestead.Audience` | Keep as the canonical shared targeting asset. Add dependency metadata/projections outside evaluation. |
+| Rule references | `Rulestead.Ruleset.Rule` with `:segment_match`, `audience_key` | Preserve explicit key references. Do not add nested audience inheritance or templates. |
+| Runtime explanation | `Rulestead.Explainer` and evaluation traces | Extend traces/summaries to name matched/skipped reusable audience references and missing-audience failures. |
+| Impact/dependency preview | New read-only domain projection | Add `Rulestead.Targeting.DependencyGraph` or equivalent read service over authored flags/rulesets/audiences. |
+| Mutations | Existing `Ecto.Multi` command/store patterns | Audience edits/archive/publish should compute impact before mutation and audit the accepted preview token. |
+| Promotion compare | `Rulestead.Promotion.Compare` dependency closure | Expand `audience:*` closure from key list into reference counts, affected flags, blockers, and stale preview detection. |
+| Manifest import/export | `Rulestead.Manifest.*` | Include/validate audience dependency closure deterministically; fail preview/apply on missing or incompatible audience refs. |
+| Mounted rules UI | `RulesteadAdmin.Live.FlagLive.Rules` and `RuleEditorComponents` | Add usage badges, affected flags links, and pre-save warnings near audience picker. |
+| Simulation | `RulesteadAdmin.Live.FlagLive.Simulate` | Show audience-level match explanation inside existing trace, not a separate debugger. |
+| Audit/timeline | Existing append-only audit surfaces | Record audience edit impact summary and automatic denied/blocked decisions with redacted details. |
 
-### 2. Ecto Schema <-> Migrations <-> Installer Truth
+## New vs Modified Components
 
-- `rulestead/lib/rulestead/flag.ex` already expects explicit `ownership` and `lifecycle` embeds plus `expected_expiration`.
-- The initial authoring migration and later lifecycle migration need to prove the same authored shape that runtime code and tests already assume.
-- Installer and upgrade paths must remain reproducible for host apps; migration parity is part of the public contract.
+### New
 
-### 3. Host-Facing Admin Contract <-> Mounted UI
+| Component | Package | Responsibility |
+|-----------|---------|----------------|
+| `Rulestead.Targeting.DependencyGraph` | `rulestead` | Pure projection from authored flags/rulesets/audiences to references, reverse references, missing refs, archived refs, and impact counts. |
+| `Rulestead.Targeting.ImpactPreview` | `rulestead` | Builds deterministic before/after preview for audience changes using authored state fingerprints and optional bounded sample contexts. |
+| Audience impact command structs | `rulestead` | Commands such as preview/edit/archive audience with compare-token style staleness protection. |
+| Audience dependency fixtures/tests | both | Contract fixtures proving snapshot determinism, missing-ref fail-closed behavior, and admin visibility. |
 
-- The mounted admin surface is public at the policy/session/route seam, not at the DOM implementation level.
-- Contract tests should assert real host-facing expectations: lifecycle form fields, bounded permission degradation, and mounted-only operator flow posture.
-- Fix the drift by reconciling either tests or intended behavior, but record one truth.
+### Modified
 
-### 4. Companion Bridge <-> Runnable Proof
+| Component | Package | Change |
+|-----------|---------|--------|
+| `Rulestead.Audience` | `rulestead` | Add validations needed for edit/archive safety; avoid adding runtime-only fields. |
+| Ruleset validation | `rulestead` | Reuse dependency graph checks so `segment_match` remains explicit and fail-closed. |
+| Snapshot compiler/store publication | `rulestead` | Ensure compiled snapshots include enough audience definition data for local deterministic evaluation and explain traces. |
+| `Rulestead.Explainer` | `rulestead` | Include audience reference names and match/miss reasons in concise operator language. |
+| `Rulestead.Promotion.Compare` | `rulestead` | Replace flat audience dependency list with richer, stable dependency findings while keeping schema-versioned output. |
+| `Rulestead.Manifest.Validate/Diff/Import/Export` | `rulestead` | Validate declared and implied audience dependencies with stable semantic keys. |
+| Mounted rules and compare LiveViews | `rulestead_admin` | Surface impact/dependency data inside existing mounted workflows and policy state. |
+| Timeline/audit components | `rulestead_admin` | Render audience impact summaries without raw condition payload overload. |
 
-- `open_feature_rulestead` remains a companion package, not the product center.
-- Its proof surface should be small but real: documented setup, stable dependency posture, and a runnable test path.
-- Bridge proof must not force core package architecture changes.
+## Data Flow Changes
 
-## Packaging Ledger
+### Audience Edit Preview
 
-| Surface | Classification | Notes |
-|---------|----------------|-------|
-| Runtime docs and migrations in `rulestead` | `core` | Canonical install and authored-state truth lives here. |
-| Mounted admin docs and contract proof in `rulestead_admin` | `companion` | Mounted-only posture stays unchanged. |
-| OpenFeature bridge docs and tests | `companion` | Support honestly or bound explicitly. |
-| Demo, verification scripts, and shared guides | `core support surface` | Used to prove adoption and release coherence. |
+```text
+operator edits audience draft
+  -> rulestead_admin validates form and asks rulestead for impact preview
+  -> ImpactPreview loads authored audiences + active/draft rulesets
+  -> DependencyGraph computes reverse references and affected flags
+  -> optional sample contexts are evaluated against before/after compiled payloads
+  -> preview returns impact_token, affected flags, changed decisions, blockers
+  -> operator confirms
+  -> Ecto.Multi verifies impact_token/fingerprint, writes audience change, audit row, snapshot publication trigger
+```
+
+### Runtime Evaluation
+
+```text
+published authored state
+  -> snapshot compiler embeds resolved audience definitions by key
+  -> local evaluator consumes snapshot only
+  -> explain trace records audience_key, audience_found?, audience_matched?, condition reasons
+  -> runtime_explain adds existing environment/snapshot metadata
+```
+
+No runtime database dependency should be introduced for audience lookups.
+
+### Promotion and Manifest
+
+```text
+compare/export/import input
+  -> collect flag ruleset audience_key refs
+  -> resolve against source/target/manifest audience catalog
+  -> emit deterministic dependency closure and findings
+  -> block apply on missing, archived, incompatible, or stale audience refs
+  -> apply through existing governed/audited mutation path
+```
+
+## Patterns to Follow
+
+### Read-Only Projection First
+
+Build dependency visibility as a pure projection before adding mutation UX. It can be tested with authored payload fixtures, reused by compare/manifest/admin, and kept out of the runtime evaluator.
+
+### Tokened Preview Before Mutation
+
+Mirror compare-token behavior for audience edits: preview returns a token over audience key, current audience fingerprint, referenced ruleset fingerprints, environment/tenant scope, and intended change. Apply refuses stale tokens.
+
+### Snapshot-Compiled Resolution
+
+Audience references should resolve at snapshot compile/publication time. Missing or incompatible references should fail closed in validation/publication paths and explain clearly at runtime if an older snapshot contains a bad reference.
+
+## Anti-Patterns to Avoid
+
+| Anti-Pattern | Why Bad | Use Instead |
+|--------------|---------|-------------|
+| Live audience inheritance graph | Creates hidden blast radius and hard-to-debug precedence | Explicit `audience_key` refs plus reverse-reference projection |
+| Runtime DB lookup for audience definitions | Breaks local deterministic snapshot evaluation | Embed resolved definitions in snapshots |
+| Template engine for targeting | Expands scope beyond deepening shipped audiences | Draft-only audience edits with previews |
+| Separate audience control plane | Violates mounted companion boundary | Add audience visibility inside existing admin IA |
+| Silent archive of referenced audiences | Breaks flags unexpectedly | Block or require explicit confirm with impact token and audit reason |
 
 ## Suggested Build Order
 
-1. Fix release language and support-truth claims so the intended surface is explicit.
-2. Reconcile runtime schema and migration parity so installer/database truth matches runtime code.
-3. Reconcile mounted admin contract expectations with actual host-facing behavior.
-4. Close cross-package verification, including the OpenFeature bridge, and publish bounded support truth.
+1. **Dependency projection in `rulestead`** - implement pure graph/reference functions and tests over audiences, rulesets, tenant scope, archived state, and missing refs.
+2. **Runtime explain enrichment** - extend snapshot payload/trace shape so audience match/miss reasons are deterministic and local.
+3. **Impact preview commands** - add before/after preview and staleness token; keep mutation behind existing `Ecto.Multi` and audit patterns.
+4. **Compare/manifest integration** - upgrade dependency findings and validation so promotion/import cannot bypass audience safety.
+5. **Mounted admin ergonomics** - add reference counts, affected flag lists, preview-confirm flow, and simulation explanation in existing LiveViews.
+6. **Proof/docs closure** - add bounded proof scope for reusable targeting deepening and keep support truth aligned across both packages.
+
+## Determinism Requirements
+
+- Preview samples must be explicit inputs or stable fixtures, never analytics-derived hidden cohorts.
+- Snapshot compilation remains the only runtime resolution boundary.
+- Dependency output must sort by stable semantic keys, not database IDs.
+- Tokens/fingerprints must include audience definitions, referencing rulesets, environment key, tenant key, and requested operation.
+- Promotion/import/export must preserve authored intent, not compiled snapshot bytes.
 
 ## Sources
 
-- `.planning/threads/2026-05-24-proof-posture-drift.md`
+- `.planning/PROJECT.md`
+- `.planning/MILESTONE-ARC.md`
+- `.planning/milestones/v1.5.0-ROADMAP.md`
 - `prompts/rulestead-host-app-integration-seam.md`
-- `prompts/rulestead-release-engineering-and-ci.md`
-- `rulestead/lib/rulestead/flag.ex`
-- `rulestead/priv/repo/migrations/20260423020100_create_rulestead_authoring_tables.exs`
-- `rulestead/priv/repo/migrations/20260424210000_add_phase6_admin_lifecycle_fields.exs`
+- `prompts/rulestead-testing-and-e2e-strategy.md`
+- `rulestead/lib/rulestead/audience.ex`
+- `rulestead/lib/rulestead/ruleset/rule.ex`
+- `rulestead/lib/rulestead/explainer.ex`
+- `rulestead/lib/rulestead/promotion/compare.ex`
+- `rulestead/lib/rulestead/manifest/export.ex`
+- `rulestead_admin/lib/rulestead_admin/live/flag_live/rules.ex`
+- `rulestead_admin/lib/rulestead_admin/live/flag_live/simulate.ex`
