@@ -2,6 +2,7 @@ defmodule Rulestead.ReleaseContractTest do
   use ExUnit.Case, async: true
 
   alias Rulestead.{Admin.Policy, Config, Context, Error, Result, Store, Telemetry}
+  alias Rulestead.Store.Command
 
   @api_stability_path Path.expand("../../../guides/api_stability.md", __DIR__)
   @root_readme_path Path.expand("../../../README.md", __DIR__)
@@ -84,6 +85,7 @@ defmodule Rulestead.ReleaseContractTest do
   ]
 
   @store_callbacks [
+    apply_audience_mutation: 1,
     archive_flag: 1,
     create_flag: 1,
     engage_kill_switch: 1,
@@ -93,6 +95,7 @@ defmodule Rulestead.ReleaseContractTest do
     list_audit_events: 1,
     list_environments: 1,
     list_flags: 1,
+    preview_audience_impact: 1,
     publish_ruleset: 1,
     record_evaluation: 1,
     release_kill_switch: 1,
@@ -381,6 +384,70 @@ defmodule Rulestead.ReleaseContractTest do
              can?: 4,
              change_request_required?: 4
            ]
+  end
+
+  test "audience impact commands normalize preview and guarded mutation evidence" do
+    preview =
+      Command.PreviewAudienceImpact.new(:vip_users, :update,
+        environment_key: :production,
+        tenant_key: 123,
+        before_definition: %{rules: [%{attribute: :plan}]},
+        after_definition: %{"rules" => [%{"attribute" => "plan"}]},
+        samples: [%{email: "secret@example.com", plan: :pro}],
+        actor: %{id: 42, type: :operator, display: "Ada"},
+        reason: "  evaluate blast radius  ",
+        metadata: %{request_id: "req-1", password: "drop"}
+      )
+
+    assert %Command.PreviewAudienceImpact{
+             environment_key: "production",
+             tenant_key: "123",
+             audience_key: "vip_users",
+             operation: "update",
+             before_definition: %{"rules" => [%{"attribute" => "plan"}]},
+             after_definition: %{"rules" => [%{"attribute" => "plan"}]},
+             samples: [%{"email" => "secret@example.com", "plan" => "pro"}],
+             actor: %{"id" => "42", "type" => "operator", "display" => "Ada"},
+             reason: "evaluate blast radius",
+             metadata: %{"request_id" => "req-1"}
+           } = preview
+
+    apply =
+      Command.ApplyAudienceMutation.new(
+        %{
+          environment_key: :production,
+          tenant_key: 123,
+          audience_key: :vip_users,
+          operation: :archive,
+          preview_schema_version: "1",
+          preview_fingerprint: "audprev_abc",
+          preview_basis: %{scope: :authored_state},
+          affected_reference_keys: [:beta_flag, "checkout-redesign"],
+          before_definition: %{rules: [%{attribute: :plan}]},
+          after_definition: nil,
+          protected_shared_targeting?: true,
+          actor: %{id: 42},
+          reason: "retire shared targeting",
+          metadata: %{trace_id: "trace-1", token: "drop"}
+        }
+      )
+
+    assert %Command.ApplyAudienceMutation{
+             environment_key: "production",
+             tenant_key: "123",
+             audience_key: "vip_users",
+             operation: "archive",
+             preview_schema_version: 1,
+             preview_fingerprint: "audprev_abc",
+             preview_basis: %{"scope" => "authored_state"},
+             affected_reference_keys: ["beta_flag", "checkout-redesign"],
+             before_definition: %{"rules" => [%{"attribute" => "plan"}]},
+             after_definition: nil,
+             actor: %{"id" => "42"},
+             reason: "retire shared targeting",
+             metadata: %{"trace_id" => "trace-1"},
+             protected_shared_targeting?: true
+           } = apply
   end
 
   test "public structs keep the documented fields and closed atom sets" do
