@@ -38,6 +38,7 @@ defmodule Rulestead.Store.Ecto do
     Targeting.AudienceDependencies,
     Targeting.AudienceReferenceProjection,
     Targeting.DependencyInventory,
+    Targeting.DependencyValidator,
     Targeting.ImpactPreview,
     Telemetry,
     Webhooks.Destination,
@@ -446,42 +447,58 @@ defmodule Rulestead.Store.Ecto do
              :ok <- ensure_not_archived(command.flag_key, flag),
              {:ok, ruleset} <-
                resolve_publishable_ruleset(flag_environment, environment.key, command.version) do
-          published_at = now()
-          previous_ruleset = active_ruleset(flag_environment)
+          dependency_entries =
+            publish_dependency_entries(environment.key, command, flag, ruleset)
 
-          Multi.new()
-          |> Multi.update(
-            :ruleset,
-            Ruleset.changeset(ruleset, %{status: :published, published_at: published_at})
-          )
-          |> Multi.update(
-            :flag_environment,
-            FlagEnvironment.changeset(flag_environment, %{
-              active_ruleset_id: ruleset.id,
-              status: :active,
-              last_published_at: published_at
-            })
-          )
-          |> Multi.update(:flag, Changeset.change(flag, updated_at: published_at))
-          |> Multi.run(:runtime_snapshot, fn repo, _changes ->
-            insert_runtime_snapshot(repo, environment, published_at)
-          end)
-          |> audit_multi(:audit_event, command, ruleset, environment, previous_ruleset)
-          |> Repo.transact()
-          |> case do
-            {:ok, _changes} ->
-              _ = refresh_audience_reference_projection(command.environment_key)
-              fetch_flag(Command.FetchFlag.new(command.flag_key, command.environment_key))
+          dependency_findings = validate_dependency_entries(command, dependency_entries)
 
-            {:error, :ruleset, %Changeset{} = changeset, _changes} ->
-              {:error, ruleset_error(changeset, command.flag_key, command.environment_key)}
+          if DependencyValidator.blockers?(dependency_findings) do
+            error =
+              DependencyValidator.to_error(dependency_findings,
+                message: "ruleset publish blocked by dependency validation"
+              )
 
-            {:error, :flag_environment, %Changeset{} = changeset, _changes} ->
-              {:error,
-               store_changeset_error(changeset, command.flag_key, command.environment_key)}
+            _ = insert_blocked_publish_event(command, ruleset, dependency_findings)
 
-            {:error, _operation, reason, _changes} ->
-              {:error, StoreError.unavailable(cause: reason)}
+            {:error, error}
+          else
+            published_at = now()
+            previous_ruleset = active_ruleset(flag_environment)
+
+            Multi.new()
+            |> Multi.update(
+              :ruleset,
+              Ruleset.changeset(ruleset, %{status: :published, published_at: published_at})
+            )
+            |> Multi.update(
+              :flag_environment,
+              FlagEnvironment.changeset(flag_environment, %{
+                active_ruleset_id: ruleset.id,
+                status: :active,
+                last_published_at: published_at
+              })
+            )
+            |> Multi.update(:flag, Changeset.change(flag, updated_at: published_at))
+            |> Multi.run(:runtime_snapshot, fn repo, _changes ->
+              insert_runtime_snapshot(repo, environment, published_at)
+            end)
+            |> audit_multi(:audit_event, command, ruleset, environment, previous_ruleset)
+            |> Repo.transact()
+            |> case do
+              {:ok, _changes} ->
+                _ = refresh_audience_reference_projection(command.environment_key)
+                fetch_flag(Command.FetchFlag.new(command.flag_key, command.environment_key))
+
+              {:error, :ruleset, %Changeset{} = changeset, _changes} ->
+                {:error, ruleset_error(changeset, command.flag_key, command.environment_key)}
+
+              {:error, :flag_environment, %Changeset{} = changeset, _changes} ->
+                {:error,
+                 store_changeset_error(changeset, command.flag_key, command.environment_key)}
+
+              {:error, _operation, reason, _changes} ->
+                {:error, StoreError.unavailable(cause: reason)}
+            end
           end
         end
     end
@@ -2875,6 +2892,159 @@ defmodule Rulestead.Store.Ecto do
     })
   end
 
+  defp publish_dependency_entries(environment_key, command, flag, ruleset) do
+    tenant_key = publish_scope_tenant(command)
+    flag_key = to_string(flag.key)
+
+    ruleset_dependency_entries(
+      environment_key,
+      tenant_key,
+      flag_key,
+      ruleset
+    )
+  end
+
+  defp ruleset_dependency_entries(environment_key, tenant_key, flag_key, ruleset) do
+    rules = Map.get(ruleset, :rules) || Map.get(ruleset, "rules") || []
+    ruleset_version = Map.get(ruleset, :version) || Map.get(ruleset, "version")
+    ruleset_status = Map.get(ruleset, :status) || Map.get(ruleset, "status")
+
+    rules
+    |> Enum.flat_map(fn rule ->
+      if projection_rule_strategy(rule) == "segment_match" do
+        [
+          DependencyInventory.normalize_entry(%{
+            environment_key: environment_key,
+            tenant_key: tenant_key || "global",
+            audience_key: projection_rule_audience_key(rule),
+            flag_key: flag_key,
+            ruleset_version: ruleset_version,
+            rule_key: projection_rule_key(rule),
+            ruleset_status: ruleset_status,
+            rollout_context: projection_rollout_context(rule),
+            lifecycle_context: %{available?: false},
+            visibility: %{status: "visible"},
+            reference_count: 1,
+            hidden_reference_count: 0,
+            audience_schema_version: rule_audience_schema_version(rule),
+            audience_version_hash: rule_audience_version_hash(rule)
+          })
+        ]
+      else
+        []
+      end
+    end)
+    |> Enum.reject(&(&1.malformed? or is_nil(&1.audience_key)))
+    |> DependencyInventory.sort_entries()
+  end
+
+  defp validate_dependency_entries(command, dependency_entries, opts \\ []) do
+    findings =
+      DependencyValidator.validate(
+        %{
+          tenant_key: publish_scope_tenant(command),
+          audiences: dependency_validation_audiences(),
+          expected_reference_keys: Keyword.get(opts, :expected_reference_keys),
+          stale_reference_keys: Keyword.get(opts, :stale_reference_keys)
+        },
+        dependency_entries
+      )
+
+    DependencyValidator.sort_findings(findings)
+  end
+
+  defp dependency_validation_audiences do
+    from(audience in Audience)
+    |> Repo.all()
+    |> Map.new(fn audience ->
+      {audience.key,
+       %{
+         key: audience.key,
+         tenant_key: Map.get(audience, :tenant_key),
+         archived_at: audience.archived_at,
+         definition: audience.definition
+       }}
+    end)
+  end
+
+  defp publish_scope_tenant(command) do
+    command
+    |> Command.GovernanceSupport.tenant_provenance()
+    |> Map.get("tenant_key")
+  end
+
+  defp rule_audience_schema_version(rule) do
+    metadata = rule_metadata(rule)
+
+    Map.get(rule, :audience_schema_version) ||
+      Map.get(rule, "audience_schema_version") ||
+      Map.get(metadata, :audience_schema_version) ||
+      Map.get(metadata, "audience_schema_version")
+  end
+
+  defp rule_audience_version_hash(rule) do
+    metadata = rule_metadata(rule)
+
+    Map.get(rule, :audience_version_hash) ||
+      Map.get(rule, "audience_version_hash") ||
+      Map.get(metadata, :audience_version_hash) ||
+      Map.get(metadata, "audience_version_hash")
+  end
+
+  defp rule_metadata(%_{} = rule), do: rule |> Map.from_struct() |> rule_metadata()
+
+  defp rule_metadata(rule) when is_map(rule) do
+    Map.get(rule, :metadata) || Map.get(rule, "metadata") || %{}
+  end
+
+  defp rule_metadata(_rule), do: %{}
+
+  defp insert_blocked_publish_event(command, ruleset, findings) do
+    metadata = %{
+      "version" => Map.get(ruleset, :version),
+      "blockers" => dependency_blockers(findings),
+      "dependency_findings" => serialize_dependency_findings(findings)
+    }
+
+    %AuditEvent{}
+    |> audit_event_changeset(command, "ruleset.publish_blocked", :error, %{metadata: metadata})
+    |> Repo.insert()
+  end
+
+  defp dependency_blockers(findings) when is_list(findings) do
+    Enum.map(findings, fn finding ->
+      %{
+        "code" => to_string(Map.get(finding, :code)),
+        "environment_key" => Map.get(finding, :environment_key),
+        "tenant_key" => Map.get(finding, :tenant_key),
+        "flag_key" => Map.get(finding, :flag_key),
+        "ruleset_version" => Map.get(finding, :ruleset_version),
+        "rule_key" => Map.get(finding, :rule_key),
+        "audience_key" => Map.get(finding, :audience_key)
+      }
+    end)
+  end
+
+  defp dependency_blockers(_findings), do: []
+
+  defp serialize_dependency_findings(findings) when is_list(findings) do
+    Enum.map(findings, fn finding ->
+      %{
+        "code" => to_string(Map.get(finding, :code)),
+        "severity" => to_string(Map.get(finding, :severity)),
+        "message" => Map.get(finding, :message),
+        "environment_key" => Map.get(finding, :environment_key),
+        "tenant_key" => Map.get(finding, :tenant_key),
+        "audience_key" => Map.get(finding, :audience_key),
+        "flag_key" => Map.get(finding, :flag_key),
+        "ruleset_version" => Map.get(finding, :ruleset_version),
+        "rule_key" => Map.get(finding, :rule_key)
+      }
+    end)
+  end
+
+  defp serialize_dependency_findings(_findings), do: []
+
   defp maybe_filter_projection_scope(query, command) do
     query
     |> maybe_filter_projection_environment(command)
@@ -3534,6 +3704,20 @@ defmodule Rulestead.Store.Ecto do
   end
 
   defp audit_event_changeset(audit_event, command, event_type, result, opts) do
+    metadata =
+      AuditEvent.metadata(%{
+        before: Map.get(opts, :before, %{}),
+        after: Map.get(opts, :after, %{}),
+        diff: diff_map(Map.get(opts, :before, %{}), Map.get(opts, :after, %{})),
+        links: Map.get(opts, :links, %{}),
+        tenant: Command.GovernanceSupport.tenant_provenance(command),
+        context: Map.get(command, :metadata, %{}),
+        request_id: correlation_id(command),
+        source: command.metadata[:source] || command.metadata["source"],
+        rollback_of_event_id: Map.get(opts, :rollback_of_event_id)
+      })
+      |> Map.merge(Map.new(Map.get(opts, :metadata, %{})))
+
     AuditEvent.changeset(audit_event, %{
       event_type: event_type,
       resource_type: "flag",
@@ -3545,18 +3729,7 @@ defmodule Rulestead.Store.Ecto do
       actor_display: actor_value(command.actor, "display"),
       reason: Map.get(command, :reason),
       result: result,
-      metadata:
-        AuditEvent.metadata(%{
-          before: Map.get(opts, :before, %{}),
-          after: Map.get(opts, :after, %{}),
-          diff: diff_map(Map.get(opts, :before, %{}), Map.get(opts, :after, %{})),
-          links: Map.get(opts, :links, %{}),
-          tenant: Command.GovernanceSupport.tenant_provenance(command),
-          context: Map.get(command, :metadata, %{}),
-          request_id: correlation_id(command),
-          source: command.metadata[:source] || command.metadata["source"],
-          rollback_of_event_id: Map.get(opts, :rollback_of_event_id)
-        }),
+      metadata: metadata,
       correlation_id: correlation_id(command),
       occurred_at: now()
     })

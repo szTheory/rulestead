@@ -437,7 +437,10 @@ defmodule Rulestead.Targeting.DependencyValidator do
 
   defp optional_string_list(map, key) do
     if Map.has_key?(map, key) or Map.has_key?(map, Atom.to_string(key)) do
-      normalize_string_list(Map.get(map, key) || Map.get(map, Atom.to_string(key)))
+      case Map.get(map, key) || Map.get(map, Atom.to_string(key)) do
+        nil -> nil
+        value -> normalize_string_list(value)
+      end
     else
       nil
     end

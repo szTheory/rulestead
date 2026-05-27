@@ -34,6 +34,7 @@ defmodule Rulestead.Fake do
     StoreError,
     Targeting.AudienceDependencies,
     Targeting.DependencyInventory,
+    Targeting.DependencyValidator,
     Targeting.ImpactPreview,
     Telemetry
   }
@@ -635,50 +636,76 @@ defmodule Rulestead.Fake do
                                                                                        flag_environment ->
                case resolve_publishable_ruleset(flag, environment.key, command.version) do
                  {:ok, ruleset_record} ->
-                   before_ruleset =
-                     active_ruleset_payload(
-                       flag,
-                       environment.key,
-                       flag_environment.active_ruleset_version
-                     )
+                  dependency_entries =
+                    publish_dependency_entries(environment.key, command, flag, ruleset_record)
 
-                   {:ok, next_state} =
-                     publish_ruleset_record(
-                       state,
-                       command.flag_key,
-                       environment.key,
-                       flag_environment,
-                       ruleset_record
-                     )
+                  dependency_findings = validate_dependency_entries(state, command, dependency_entries)
 
-                   refreshed_flag = next_state.flags[to_string(command.flag_key)]
-                   refreshed_flag_environment = refreshed_flag.environments[environment.key]
+                  if DependencyValidator.blockers?(dependency_findings) do
+                    error =
+                      DependencyValidator.to_error(dependency_findings,
+                        message: "ruleset publish blocked by dependency validation"
+                      )
 
-                   payload =
-                     build_flag_detail_payload(
-                       next_state,
-                       refreshed_flag,
-                       environment,
-                       refreshed_flag_environment,
-                       true
-                     )
+                    {audit_event, blocked_state} =
+                      append_audit_event(state, command, "ruleset.publish_blocked", :error,
+                        metadata: %{
+                          "version" => ruleset_record.version,
+                          "blockers" => dependency_blockers(dependency_findings),
+                          "dependency_findings" =>
+                            serialize_dependency_findings(dependency_findings)
+                        }
+                      )
 
-                   {audit_event, next_state} =
-                     append_audit_event(next_state, command, "ruleset.publish", :ok,
-                       before: ruleset_audit_state(before_ruleset),
-                       after: ruleset_audit_state(ruleset_record),
-                       diff: ruleset_position_diff(before_ruleset, ruleset_record),
-                       metadata: %{version: ruleset_record.version}
-                     )
+                    {:dependency_blocked, error,
+                     %{blocked_state | audit_events: [audit_event | blocked_state.audit_events]}}
+                  else
+                    before_ruleset =
+                      active_ruleset_payload(
+                        flag,
+                        environment.key,
+                        flag_environment.active_ruleset_version
+                      )
 
-                   {:ok, payload,
-                    %{next_state | audit_events: [audit_event | next_state.audit_events]}}
+                    {:ok, next_state} =
+                      publish_ruleset_record(
+                        state,
+                        command.flag_key,
+                        environment.key,
+                        flag_environment,
+                        ruleset_record
+                      )
+
+                    refreshed_flag = next_state.flags[to_string(command.flag_key)]
+                    refreshed_flag_environment = refreshed_flag.environments[environment.key]
+
+                    payload =
+                      build_flag_detail_payload(
+                        next_state,
+                        refreshed_flag,
+                        environment,
+                        refreshed_flag_environment,
+                        true
+                      )
+
+                    {audit_event, next_state} =
+                      append_audit_event(next_state, command, "ruleset.publish", :ok,
+                        before: ruleset_audit_state(before_ruleset),
+                        after: ruleset_audit_state(ruleset_record),
+                        diff: ruleset_position_diff(before_ruleset, ruleset_record),
+                        metadata: %{version: ruleset_record.version}
+                      )
+
+                    {:ok, payload,
+                     %{next_state | audit_events: [audit_event | next_state.audit_events]}}
+                  end
 
                  {:error, error} ->
                    {:error, error}
                end
              end) do
           {:ok, result, next_state} -> {:reply, {:ok, result}, next_state}
+          {:dependency_blocked, error, next_state} -> {:reply, {:error, error}, next_state}
           {:error, error} -> {:reply, {:error, error}, state}
         end
     end
@@ -2176,6 +2203,128 @@ defmodule Rulestead.Fake do
   end
 
   defp normalize_projection_context(value), do: value
+
+  defp publish_dependency_entries(environment_key, command, flag, ruleset) do
+    tenant_key = publish_scope_tenant(command)
+    flag_key = to_string(flag.key)
+
+    ruleset_dependency_entries(environment_key, tenant_key, flag_key, ruleset)
+  end
+
+  defp ruleset_dependency_entries(environment_key, tenant_key, flag_key, ruleset) do
+    rules = Map.get(ruleset, :rules) || Map.get(ruleset, "rules") || []
+    ruleset_version = Map.get(ruleset, :version) || Map.get(ruleset, "version")
+    ruleset_status = Map.get(ruleset, :status) || Map.get(ruleset, "status")
+
+    rules
+    |> Enum.flat_map(fn rule ->
+      if projection_rule_strategy(rule) == "segment_match" do
+        [
+          DependencyInventory.normalize_entry(%{
+            environment_key: environment_key,
+            tenant_key: tenant_key || "global",
+            audience_key: projection_rule_audience_key(rule),
+            flag_key: flag_key,
+            ruleset_version: ruleset_version,
+            rule_key: projection_rule_key(rule),
+            ruleset_status: ruleset_status,
+            rollout_context: projection_rollout_context(rule),
+            lifecycle_context: %{available?: false},
+            visibility: %{status: "visible"},
+            reference_count: 1,
+            hidden_reference_count: 0,
+            audience_schema_version: rule_audience_schema_version(rule),
+            audience_version_hash: rule_audience_version_hash(rule)
+          })
+        ]
+      else
+        []
+      end
+    end)
+    |> Enum.reject(&(&1.malformed? or is_nil(&1.audience_key)))
+    |> DependencyInventory.sort_entries()
+  end
+
+  defp validate_dependency_entries(state, command, dependency_entries, opts \\ []) do
+    findings =
+      DependencyValidator.validate(
+        %{
+          tenant_key: publish_scope_tenant(command),
+          audiences: Map.get(state, :audiences, %{}),
+          expected_reference_keys: Keyword.get(opts, :expected_reference_keys),
+          stale_reference_keys: Keyword.get(opts, :stale_reference_keys)
+        },
+        dependency_entries
+      )
+
+    DependencyValidator.sort_findings(findings)
+  end
+
+  defp publish_scope_tenant(command) do
+    command
+    |> Command.GovernanceSupport.tenant_provenance()
+    |> Map.get("tenant_key")
+  end
+
+  defp rule_audience_schema_version(rule) do
+    metadata = rule_metadata(rule)
+
+    Map.get(rule, :audience_schema_version) ||
+      Map.get(rule, "audience_schema_version") ||
+      Map.get(metadata, :audience_schema_version) ||
+      Map.get(metadata, "audience_schema_version")
+  end
+
+  defp rule_audience_version_hash(rule) do
+    metadata = rule_metadata(rule)
+
+    Map.get(rule, :audience_version_hash) ||
+      Map.get(rule, "audience_version_hash") ||
+      Map.get(metadata, :audience_version_hash) ||
+      Map.get(metadata, "audience_version_hash")
+  end
+
+  defp rule_metadata(%_{} = rule), do: rule |> Map.from_struct() |> rule_metadata()
+
+  defp rule_metadata(rule) when is_map(rule) do
+    Map.get(rule, :metadata) || Map.get(rule, "metadata") || %{}
+  end
+
+  defp rule_metadata(_rule), do: %{}
+
+  defp dependency_blockers(findings) when is_list(findings) do
+    Enum.map(findings, fn finding ->
+      %{
+        "code" => to_string(Map.get(finding, :code)),
+        "environment_key" => Map.get(finding, :environment_key),
+        "tenant_key" => Map.get(finding, :tenant_key),
+        "flag_key" => Map.get(finding, :flag_key),
+        "ruleset_version" => Map.get(finding, :ruleset_version),
+        "rule_key" => Map.get(finding, :rule_key),
+        "audience_key" => Map.get(finding, :audience_key)
+      }
+    end)
+  end
+
+  defp dependency_blockers(_findings), do: []
+
+  defp serialize_dependency_findings(findings) when is_list(findings) do
+    Enum.map(findings, fn finding ->
+      %{
+        "code" => to_string(Map.get(finding, :code)),
+        "severity" => to_string(Map.get(finding, :severity)),
+        "message" => Map.get(finding, :message),
+        "environment_key" => Map.get(finding, :environment_key),
+        "tenant_key" => Map.get(finding, :tenant_key),
+        "audience_key" => Map.get(finding, :audience_key),
+        "flag_key" => Map.get(finding, :flag_key),
+        "ruleset_version" => Map.get(finding, :ruleset_version),
+        "rule_key" => Map.get(finding, :rule_key)
+      }
+    end)
+  end
+
+  defp serialize_dependency_findings(_findings), do: []
 
   defp projection_identity_key(entry) do
     {
