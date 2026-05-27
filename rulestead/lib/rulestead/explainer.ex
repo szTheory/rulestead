@@ -25,14 +25,48 @@ defmodule Rulestead.Explainer do
         _ -> nil
       end
 
-    if is_integer(rollout_bucket) do
-      "Matched rule #{matched_rule}. Bucket #{rollout_bucket} determined the rollout path."
-    else
-      "Matched rule #{matched_rule}."
+    audience_summary = audience_trace_summary(rule_traces)
+
+    base =
+      if is_integer(rollout_bucket) do
+        "Matched rule #{matched_rule}. Bucket #{rollout_bucket} determined the rollout path."
+      else
+        "Matched rule #{matched_rule}."
+      end
+
+    case audience_summary do
+      "" -> base
+      summary -> base <> " " <> summary
     end
   end
 
   def explain(_trace), do: "No evaluation trace was available."
+
+  defp audience_trace_summary(rule_traces) when is_list(rule_traces) do
+    rule_traces
+    |> Enum.flat_map(fn trace ->
+      case Map.get(trace, :audience_trace) do
+        %{audience_key: key, matched?: true, reason: :matched} ->
+          ["Audience #{key} matched."]
+
+        %{audience_key: key, matched?: false, reason: :missed} ->
+          ["Audience #{key} missed."]
+
+        %{audience_key: key, reason: :missing} ->
+          ["Audience #{key} is missing from the snapshot."]
+
+        %{audience_key: key, reason: :archived} ->
+          ["Audience #{key} is archived."]
+
+        _ ->
+          []
+      end
+    end)
+    |> Enum.uniq()
+    |> Enum.join(" ")
+  end
+
+  defp audience_trace_summary(_rule_traces), do: ""
 
   @spec runtime_explain(map() | nil, map()) :: String.t()
   def runtime_explain(trace, runtime_metadata) do

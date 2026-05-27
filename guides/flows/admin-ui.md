@@ -62,6 +62,10 @@ mounted seam:
 - `/admin/flags/:key/rollouts`
 - `/admin/flags/:key/kill`
 - `/admin/flags/:key/timeline`
+- `/admin/audiences`
+- `/admin/audiences/:key`
+- `/admin/audiences/:key/edit` (preview → confirm → audit)
+- `/admin/audiences/:key/archive` (preview → confirm → audit)
 
 The `env` query parameter is the canonical environment selector across the
 mounted UI.
@@ -107,7 +111,7 @@ Use this default path:
    back in the same queue
 
 That is the public lifecycle workflow the docs rely on. It is still a mounted
-companion, not a standalone control plane, and the host continues to own
+companion, not an independent admin product, and the host continues to own
 identity, authorization, and surrounding layout.
 
 ## Cleanup Flow
@@ -127,6 +131,17 @@ Mounted admin should make these boundaries obvious:
 Use `mix rulestead.lifecycle` for the read-only report and the mounted
 companion for the queue and route-backed review flow. Do not promise selector
 or DOM stability for any of these screens.
+
+## Audience Workflows
+
+Reusable **Audience** management is a mounted companion workflow. Core
+validates dependency, preview, and audit truth; the mounted package renders
+policy-aware **used-by** tables and operator copy with redaction when reads
+are denied.
+
+Audience mutations follow **preview → confirm → audit** (parallel to cleanup).
+Compare surfaces show **dependency findings** as **read-only** — there is no
+Apply or Publish action from compare routes.
 
 ## What Is Not Public API
 

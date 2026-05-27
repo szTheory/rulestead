@@ -58,6 +58,26 @@ Phase `v0.1.0` supports bounded attribute predicates inside rules:
 Rules can also reference reusable audiences so you do not copy large condition
 sets into every flag.
 
+## Reusable Audience Impact Preview
+
+Operators manage reusable **Audience** definitions (the product term — internal
+code may use `segment_match`). Before publish or archive of a shared audience,
+run an **impact preview** against the **preview basis**: authored state ±
+**explicit samples** only.
+
+Previews carry **uncertainty** by design. They do **not** claim exact
+affected-user or population counts. Treat preview output as bounded guidance,
+not a census.
+
+Audience references **fail closed** when assets are missing, archived,
+incompatible, stale, or tenant-mismatched. Always confirm **environment scope**
+and **tenant scope** — same-name audiences in different env/tenant contexts
+are not assumed equivalent.
+
+The mounted companion at `/admin/audiences` follows **preview → confirm →
+audit** for audience mutations. Use that workflow instead of bypassing preview
+when editing shared audiences.
+
 ## Variants And Weights
 
 Multivariate flags keep stable variant keys and authored rollout weights.

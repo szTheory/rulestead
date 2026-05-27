@@ -67,6 +67,9 @@ defmodule RulesteadAdmin.Components.SimulateComponents do
             <li :for={rule_trace <- Map.get(@trace, :rule_traces, [])}>
               <strong><%= rule_trace.rule_key %></strong>
               <span><%= if rule_trace.matched?, do: "matched", else: "skipped" %></span>
+              <span :if={audience_trace = Map.get(rule_trace, :audience_trace)}>
+                · audience <code><%= audience_trace.audience_key %></code> <%= audience_trace_label(audience_trace) %>
+              </span>
 
               <ul>
                 <li :for={condition <- Map.get(rule_trace, :conditions, [])}>
@@ -104,6 +107,12 @@ defmodule RulesteadAdmin.Components.SimulateComponents do
   end
 
   defp bucket_row(_rollout), do: "No rollout bucket"
+
+  defp audience_trace_label(%{matched?: true, reason: :matched}), do: "(matched)"
+  defp audience_trace_label(%{matched?: false, reason: :missed}), do: "(missed)"
+  defp audience_trace_label(%{reason: :missing}), do: "(missing from snapshot)"
+  defp audience_trace_label(%{reason: :archived}), do: "(archived)"
+  defp audience_trace_label(_), do: ""
 
   defp humanize(nil), do: "unknown"
   defp humanize(value) when is_atom(value), do: value |> Atom.to_string() |> humanize()

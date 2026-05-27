@@ -244,7 +244,7 @@ defmodule Rulestead.Targeting.DependencyInventory do
       environment_key: entry.environment_key,
       tenant_key: entry.tenant_key,
       audience_key: "[REDACTED]",
-      flag_key: entry.flag_key,
+      flag_key: "[REDACTED]",
       ruleset_version: entry.ruleset_version,
       rule_key: entry.rule_key,
       ruleset_status: entry.ruleset_status,

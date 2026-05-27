@@ -25,6 +25,17 @@ companion: the host owns routing, policy, session, actor identity, and the
 metrics provider seam while `rulestead_admin` renders the bounded status and
 timeline explanation.
 
+## Reusable Audience mounted companion
+
+The **mounted companion** renders core dependency, preview, and audit truth
+for reusable **Audience** workflows. It is **mounted presentation** only —
+not an independent admin product.
+
+Stable operator routes include `/admin/audiences`, audience edit/archive
+preview and confirm paths, and read-only compare **dependency findings**.
+Audience mutations follow **preview → confirm → audit** with core-issued
+preview fingerprints; the mounted surface does not invent domain validation.
+
 ## Install
 
 Add `rulestead_admin` only when a Phoenix host app needs the mounted companion

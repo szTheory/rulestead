@@ -395,7 +395,8 @@ defmodule RulesteadAdmin.Live.FlagLive.RulesTest do
       id: "aud-" <> key,
       key: key,
       name: name,
-      description: "#{name} reusable audience"
+      description: "#{name} reusable audience",
+      definition: %{"conditions" => [], "schema_version" => 1}
     }
 
     next_state = put_in(snapshot.audiences[key], audience)

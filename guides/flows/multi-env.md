@@ -75,3 +75,18 @@ host app still owns:
 
 Rulestead documents the mount seam and environment convention, then leaves those
 authorization choices to the host policy module.
+
+## Compare And Promotion Dependency Findings
+
+Compare and promotion surfaces show **audience dependency findings** with
+explicit environment and **tenant scope** on links (`?env=`, `tenant_key`, or
+equivalent). Same-name audiences across environments or tenants are **not**
+assumed equivalent — the host owns tenant catalog and authorization; Rulestead
+carries scope on payloads only.
+
+Promotion and manifest import **fail closed** on missing or incompatible
+reusable targeting assets. Compare and promotion **dependency findings** are
+**read-only** — operators cannot Apply or Publish from compare surfaces.
+
+When reviewing cross-environment drift, treat dependency findings as scoped
+signals requiring explicit env/tenant context, not as global truth.

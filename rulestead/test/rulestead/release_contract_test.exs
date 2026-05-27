@@ -335,6 +335,78 @@ defmodule Rulestead.ReleaseContractTest do
     end
   end
 
+  test "reusable targeting deepening support truth stays bounded across root package and maintainer docs" do
+    root_readme = File.read!(@root_readme_path)
+    runtime_readme = File.read!(@runtime_readme_path)
+    admin_readme = File.read!(@admin_readme_path)
+    maintaining = File.read!(@maintaining_path)
+
+    assert root_readme =~ "mix verify.phase56"
+    assert root_readme =~ "reusable targeting deepening"
+    assert root_readme =~ "preview basis"
+    assert root_readme =~ "explicit samples"
+    assert root_readme =~ "environment scope"
+    assert root_readme =~ "tenant scope"
+    assert root_readme =~ "preview → confirm → audit"
+    assert root_readme =~ "fail closed"
+    assert root_readme =~ "audprev_"
+    assert root_readme =~ "host-owned"
+    assert root_readme =~ "mounted companion"
+    assert root_readme =~ "uncertainty"
+
+    assert root_readme =~
+             "RULESTEAD_TEST_SCOPE=reusable_targeting_deepening bash scripts/ci/test.sh"
+
+    assert runtime_readme =~ "mix verify.phase56"
+    assert runtime_readme =~ "domain"
+    assert runtime_readme =~ "validation"
+    assert runtime_readme =~ "contracts"
+    assert runtime_readme =~ "fail closed"
+    assert runtime_readme =~ "no metrics ingestion"
+    assert runtime_readme =~ "host-owned"
+
+    assert admin_readme =~ "mounted companion"
+    assert admin_readme =~ "mounted presentation"
+    assert admin_readme =~ "not a standalone"
+    assert admin_readme =~ "/admin/audiences"
+    assert admin_readme =~ "preview → confirm → audit"
+
+    assert maintaining =~ "Reusable Targeting Deepening Proof"
+    assert maintaining =~ "mix verify.phase56"
+    assert maintaining =~ "54-HANDOFF-CHECKLIST"
+    assert maintaining =~ "55-HANDOFF-CHECKLIST"
+    assert maintaining =~ "VER-01"
+
+    assert maintaining =~
+             "RULESTEAD_TEST_SCOPE=reusable_targeting_deepening bash scripts/ci/test.sh"
+
+    assert root_readme =~ "dependency"
+    assert maintaining =~ "promotion"
+
+    forbidden_phrases = [
+      "standalone rulestead_admin",
+      "standalone control plane",
+      "graph visualizer",
+      "bulk automation",
+      "one-click bulk",
+      "authoritative affected-user",
+      "real user population",
+      "built-in observability",
+      "Rulestead dashboard",
+      "metrics ingestion",
+      "metrics warehouse",
+      "automatic progressive delivery platform",
+      "segment library",
+      "manage segments"
+    ]
+
+    operator_docs = [root_readme, admin_readme, maintaining]
+
+    for phrase <- forbidden_phrases, doc <- operator_docs do
+      refute doc =~ phrase
+    end
+  end
+
   test "the root module exposes the locked v0.1.0 public function catalog" do
     expected = MapSet.new(@root_exports)
     actual = MapSet.new(Rulestead.__info__(:functions))

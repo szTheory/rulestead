@@ -3152,10 +3152,18 @@ defmodule Rulestead.Store.Ecto do
   end
 
   defp redaction_options(command) do
-    [
+    base = [
       visible_audience_keys: Map.get(command, :visible_audience_keys),
       include_redacted_placeholders?: Map.get(command, :include_redacted_placeholders?, false)
     ]
+
+    case Map.get(command, :actor) do
+      actor when is_map(actor) ->
+        Keyword.put(base, :visibility_resolver, Rulestead.Admin.DependencyVisibility.visibility_resolver(actor))
+
+      _ ->
+        base
+    end
   end
 
   defp plain_struct_map(%_{} = value), do: value |> Map.from_struct() |> plain_struct_map()

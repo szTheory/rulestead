@@ -28,9 +28,9 @@
 
 ### Verification And Support Truth (`VER`)
 
-- [ ] **VER-01**: Repo-local proof covers dependency inventory, preview determinism, stale-token rejection, fail-closed missing/archive behavior, audit evidence, explain trace carry-through, and promotion/manifest dependency blockers.
-- [ ] **VER-02**: Public docs, package docs, release-contract checks, and mounted companion proof explain the supported reusable-targeting deepening scope, package boundaries, preview-basis limits, tenant/environment semantics, and host-owned identity/observability responsibilities.
-- [ ] **VER-03**: The linked-version sibling-package release model remains intact: `rulestead` owns domain contracts and validation, `rulestead_admin` owns mounted presentation, and no Phase 8-only docs or standalone `rulestead_admin` publish prep are introduced.
+- [x] **VER-01**: Repo-local proof covers dependency inventory, preview determinism, stale-token rejection, fail-closed missing/archive behavior, audit evidence, explain trace carry-through, and promotion/manifest dependency blockers.
+- [x] **VER-02**: Public docs, package docs, release-contract checks, and mounted companion proof explain the supported reusable-targeting deepening scope, package boundaries, preview-basis limits, tenant/environment semantics, and host-owned identity/observability responsibilities.
+- [x] **VER-03**: The linked-version sibling-package release model remains intact: `rulestead` owns domain contracts and validation, `rulestead_admin` owns mounted presentation, and no Phase 8-only docs or standalone `rulestead_admin` publish prep are introduced.
 
 ## Future Requirements
 
@@ -112,9 +112,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ADM-02 | Phase 55 | Complete |
 | ADM-03 | Phase 55 | Complete |
 | ADM-04 | Phase 55 | Complete |
-| VER-01 | Phase 56 | Pending |
-| VER-02 | Phase 56 | Pending |
-| VER-03 | Phase 56 | Pending |
+| VER-01 | Phase 56 | Complete |
+| VER-02 | Phase 56 | Complete |
+| VER-03 | Phase 56 | Complete |
 
 **Coverage:**
 

@@ -49,6 +49,17 @@ records inside the runtime store.
 
 This package intentionally provides no metrics ingestion, no dashboards, no statistics engine, and no built-in provider adapters. Hosts own provider selection, collection, aggregation, and normalization before facts reach the runtime command boundary.
 
+## Reusable targeting deepening contract
+
+`rulestead` owns **domain**, **validation**, and **contracts** for reusable
+**Audience** targeting: dependency inventory, impact preview determinism,
+promotion/manifest **fail closed** blockers, and snapshot-local evaluation.
+This package does not ingest metrics, render dashboards, or resolve host
+identity — observability and tenant catalogs remain **host-owned**.
+
+Run `cd rulestead && mix verify.phase56` before changing audience dependency,
+preview, promotion, or support-truth docs in this milestone.
+
 ## Next docs
 
 - Root front door: [../README.md](../README.md)

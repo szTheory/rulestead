@@ -121,6 +121,48 @@ run_openfeature_companion() {
     test/open_feature_rulestead/provider_test.exs
 }
 
+print_reusable_targeting_failure_guidance() {
+  local category="${1:-unknown}"
+
+  {
+    echo
+    echo "reusable_targeting_deepening failure category: ${category}"
+    echo "Expected support boundary: core owns domain/validation; mounted companion presents bounded operator workflows."
+    echo "Rerun: RULESTEAD_TEST_SCOPE=reusable_targeting_deepening bash scripts/ci/test.sh"
+    echo "Remediation: cd rulestead && mix verify.phase56"
+
+    if [[ "${category}" == "docs drift" ]]; then
+      echo "Docs drift hint: release_contract_test.exs reusable-targeting block failed — sync README/MAINTAINING/package READMEs with asserts."
+    elif [[ "${category}" == "setup/prerequisite failure" ]]; then
+      echo "Setup expectation: install repo deps and prepare the rulestead test database before rerunning."
+      echo "Suggested setup:"
+      echo "  - cd rulestead && mix deps.get"
+      echo "  - cd rulestead && mix ecto.create && mix ecto.migrate"
+      echo "  - cd ../rulestead_admin && mix deps.get"
+    else
+      echo "Remediation focus: inspect contract regression output above for dependency, preview, or promotion failures."
+    fi
+
+    echo "Runbook: ${MOUNTED_PROOF_RUNBOOK}"
+  } >&2
+}
+
+reusable_targeting_failure_category() {
+  local log_file="$1"
+
+  if rg -q "reusable targeting deepening support truth stays bounded" "${log_file}" 2>/dev/null; then
+    echo "docs drift"
+  elif rg -q \
+    "Unchecked dependencies|Could not find Hex|Could not compile dependency|mix local\\.hex|mix deps\\.get|The database for" \
+    "${log_file}"; then
+    echo "setup/prerequisite failure"
+  elif rg -q "test failed|failures|ExUnit\\.AssertionError" "${log_file}"; then
+    echo "contract regression"
+  else
+    echo "unknown reusable-targeting failure"
+  fi
+}
+
 run_guarded_rollout_foundations() {
   run_mix rulestead deps.get
   prepare_rulestead_test_db
@@ -134,6 +176,35 @@ run_guarded_rollout_foundations() {
   run_mix rulestead_admin test \
     test/rulestead_admin/live/flag_live/rollouts_test.exs \
     test/rulestead_admin/live/flag_live/timeline_test.exs
+}
+
+run_reusable_targeting_deepening() {
+  local log_file
+  local status=0
+  log_file="$(mktemp)"
+
+  if run_mix_logged rulestead "${log_file}" deps.get; then
+    prepare_rulestead_test_db
+    if run_mix_logged rulestead "${log_file}" verify.phase56; then
+      if run_mix_logged rulestead_admin "${log_file}" deps.get; then
+        :
+      else
+        status=$?
+      fi
+    else
+      status=$?
+    fi
+  else
+    status=$?
+  fi
+
+  if [[ "${status}" -ne 0 ]]; then
+    print_reusable_targeting_failure_guidance "$(reusable_targeting_failure_category "${log_file}")"
+    rm -f "${log_file}"
+    return "${status}"
+  fi
+
+  rm -f "${log_file}"
 }
 
 if [[ -n "${MATRIX_ELIXIR}" || -n "${MATRIX_OTP}" ]]; then
@@ -162,9 +233,13 @@ case "${TEST_SCOPE}" in
     echo "Running guarded rollout foundations proof bar"
     run_guarded_rollout_foundations
     ;;
+  reusable_targeting_deepening)
+    echo "Running reusable targeting deepening proof bar"
+    run_reusable_targeting_deepening
+    ;;
   *)
     echo "Unknown test scope: ${TEST_SCOPE}" >&2
-    echo "Supported scopes: all, mounted_admin_contract, openfeature_companion, guarded_rollout_foundations" >&2
+    echo "Supported scopes: all, mounted_admin_contract, openfeature_companion, guarded_rollout_foundations, reusable_targeting_deepening" >&2
     exit 64
     ;;
 esac

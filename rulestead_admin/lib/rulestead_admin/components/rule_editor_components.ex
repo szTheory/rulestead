@@ -57,16 +57,19 @@ defmodule RulesteadAdmin.Components.RuleEditorComponents do
   end
 
   attr :audiences, :list, default: []
+  attr :mount_path, :string, default: nil
 
   def audience_library(assigns) do
     ~H"""
     <section class="rs-audience-library" aria-label="Audience library">
-      <h3>Reusable audience</h3>
+      <h3>Audience library</h3>
       <p>Audience targeting references shared definitions instead of repeating inline conditions.</p>
       <ul>
         <li :for={audience <- @audiences}>
           <strong><%= audience.key %></strong>
-          <span :if={audience.description}> <%= audience.description %></span>
+          <span :if={Map.get(audience, :description)}> <%= Map.get(audience, :description) %></span>
+          <span :if={Map.get(audience, :archived_at)}> (archived)</span>
+          <a :if={@mount_path} href={"#{@mount_path}/audiences/#{audience.key}"}>View audience <%= audience.key %></a>
         </li>
         <li :if={@audiences == []}>No reusable audiences available.</li>
       </ul>
@@ -77,6 +80,7 @@ defmodule RulesteadAdmin.Components.RuleEditorComponents do
   attr :index, :integer, required: true
   attr :rule, :map, required: true
   attr :audiences, :list, default: []
+  attr :mount_path, :string, default: nil
   attr :editable?, :boolean, required: true
 
   def rule_card(assigns) do
@@ -86,6 +90,16 @@ defmodule RulesteadAdmin.Components.RuleEditorComponents do
         <div>
           <h4><%= @rule["name"] |> blank_to_fallback(@rule["key"]) %></h4>
           <p>Strategy: <%= humanize(@rule["strategy"]) %></p>
+          <p :if={@rule["strategy"] == "segment_match"}>
+            Audience:
+            <code><%= @rule["audience_key"] || "not selected" %></code>
+            <span :if={missing_audience?(@rule, @audiences)} role="alert">
+              — Audience not found in snapshot — pick another audience or remove the reference before publish.
+            </span>
+            <a :if={@mount_path && @rule["audience_key"]} href={"#{@mount_path}/audiences/#{@rule["audience_key"]}"}>
+              View audience <%= @rule["audience_key"] %>
+            </a>
+          </p>
         </div>
         <div class="rs-rule-card__moves">
           <button
@@ -243,4 +257,13 @@ defmodule RulesteadAdmin.Components.RuleEditorComponents do
   end
 
   defp blank_to_fallback(value, _fallback), do: value
+
+  defp missing_audience?(%{"strategy" => "segment_match", "audience_key" => key}, audiences)
+       when is_binary(key) do
+    not Enum.any?(audiences, fn audience ->
+      audience.key == key and is_nil(Map.get(audience, :archived_at))
+    end)
+  end
+
+  defp missing_audience?(_rule, _audiences), do: false
 end

@@ -67,6 +67,9 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
         <div class="rs-detail__actions">
           <a :if={@rulestead_admin_policy_state.capabilities.edit? or @rulestead_admin_policy_state.capabilities.admin?} href={path_for(assigns, "/#{@detail.flag.key}/edit")}>Edit metadata</a>
           <a href={path_for(assigns, "/#{@detail.flag.key}/rules")}>Open rules workspace</a>
+          <a href={path_for(assigns, "/#{@detail.flag.key}/simulate")}>Simulate</a>
+          <a href={path_for(assigns, "/#{@detail.flag.key}/explain")}>Explain</a>
+          <a href={path_for(assigns, "/audiences")}>Audiences</a>
           <a :if={@rulestead_admin_policy_state.capabilities.execute? or @rulestead_admin_policy_state.capabilities.admin?} href={path_for(assigns, "/#{@detail.flag.key}/kill")}>Open kill switch</a>
           <a href={path_for(assigns, "/#{@detail.flag.key}/cleanup")}>Review cleanup</a>
           <a href={path_for(assigns, "/#{@detail.flag.key}/timeline")}>Open audit timeline</a>

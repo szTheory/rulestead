@@ -77,7 +77,8 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.ShowTest do
       )
 
     assert html =~ "Staleness conflict"
-    assert html =~ "missing dependency"
+    assert html =~ "Audience dependencies for this flag"
+    assert html =~ "vip-users"
     assert html =~ "Show structured diff for checkout-redesign"
     assert html =~ "Show raw compare payload for checkout-redesign"
     assert html =~ "Compare token"
@@ -100,6 +101,12 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.ShowTest do
   defp seed_compare_fixture! do
     Control.reset!()
     Control.put_environment!(%{key: "prod", name: "Production"})
+
+    Control.put_audience!(%{
+      key: "vip-users",
+      description: "VIP reusable audience",
+      definition: %{conditions: [%{attribute: "plan", operator: "eq", value: "pro"}]}
+    })
 
     Control.put_flag!(%{
       key: "checkout-redesign",

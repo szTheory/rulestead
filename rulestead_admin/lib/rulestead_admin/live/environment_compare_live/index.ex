@@ -93,6 +93,26 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Index do
           </ul>
         </section>
 
+        <FlagComponents.section_card title="Audience dependencies">
+          <p :if={@compare.dependency_findings == []}>No reusable audience dependency findings for this compare.</p>
+          <ul :if={@compare.dependency_findings != []}>
+            <li :for={finding <- @compare.dependency_findings}>
+              <strong><%= humanize_status(finding.severity) %></strong>
+              <code><%= finding.code %></code>
+              <span> — <%= finding.message %></span>
+              <span :if={finding.audience_key}> · audience <code><%= finding.audience_key %></code></span>
+              <span :if={finding.flag_key}>
+                ·
+                <a href={dependency_flag_path(@page, finding)}><code><%= finding.flag_key %></code></a>
+              </span>
+              <span :if={finding.audience_key}>
+                ·
+                <a href={dependency_audience_path(@page, finding)}><code>audience detail</code></a>
+              </span>
+            </li>
+          </ul>
+        </FlagComponents.section_card>
+
         <FlagComponents.section_card title="Flag results">
           <%= if @compare.flags == [] do %>
             <h3>No comparable differences found</h3>
@@ -285,4 +305,18 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Index do
 
   defp admin_base_path(%Phoenix.LiveView.Socket{} = socket, suffix),
     do: "#{socket.assigns.rulestead_admin_mount_path}#{suffix}"
+
+  defp dependency_flag_path(page, finding) do
+    params = %{"env" => finding.environment_key || page.current_environment.key}
+    params = if page.current_tenant, do: Map.put(params, "tenant", page.current_tenant.key), else: params
+
+    "#{page.mount_path}/#{finding.flag_key}/rules?#{URI.encode_query(params)}"
+  end
+
+  defp dependency_audience_path(page, finding) do
+    params = %{"env" => finding.environment_key || page.current_environment.key}
+    params = if page.current_tenant, do: Map.put(params, "tenant", page.current_tenant.key), else: params
+
+    "#{page.mount_path}/audiences/#{finding.audience_key}?#{URI.encode_query(params)}"
+  end
 end

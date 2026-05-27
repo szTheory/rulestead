@@ -82,6 +82,21 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Show do
           />
         </section>
 
+        <FlagComponents.section_card title="Audience dependencies for this flag">
+          <ul :if={flag_dependency_findings(@compare, @flag.flag_key) != []}>
+            <li :for={finding <- flag_dependency_findings(@compare, @flag.flag_key)}>
+              <strong><%= humanize_status(finding.severity) %></strong>
+              <code><%= finding.code %></code> — <%= finding.message %>
+              <span :if={finding.audience_key}>
+                · audience <a href={audience_path(@page, finding)}><code><%= finding.audience_key %></code></a>
+              </span>
+            </li>
+          </ul>
+          <p :if={flag_dependency_findings(@compare, @flag.flag_key) == []}>
+            No audience dependency findings for this flag in the current compare.
+          </p>
+        </FlagComponents.section_card>
+
         <FlagComponents.section_card title="State review">
           <AuditComponents.diff_card
             entry={
@@ -220,4 +235,24 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Show do
 
   defp admin_base_path(%Phoenix.LiveView.Socket{} = socket, suffix),
     do: "#{socket.assigns.rulestead_admin_mount_path}#{suffix}"
+
+  defp flag_dependency_findings(compare, flag_key) do
+    compare.dependency_findings
+    |> List.wrap()
+    |> Enum.filter(&(Map.get(&1, :flag_key) == flag_key))
+  end
+
+  defp audience_path(page, finding) do
+    params = %{"env" => page.current_environment.key}
+    params = if page.current_tenant, do: Map.put(params, "tenant", page.current_tenant.key), else: params
+
+    "#{page.mount_path}/audiences/#{finding.audience_key}?#{URI.encode_query(params)}"
+  end
+
+  defp humanize_status(status) do
+    status
+    |> to_string()
+    |> String.replace("_", " ")
+    |> String.capitalize()
+  end
 end

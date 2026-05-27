@@ -156,6 +156,21 @@ The repo's current proof posture is intentionally bounded:
   outcomes for `pending_data`, `held`, and `rollback_triggered`; audited hold
   and rollback decisions; mounted status inside the existing workflow; and
   drift guards for the support truth in these docs.
+- **Reusable targeting deepening (v1.6):** `cd rulestead && mix verify.phase56`
+  proves dependency inventory, preview determinism, stale preview fingerprint
+  rejection (`audprev_`), fail-closed missing/archive/incompatible references,
+  audit evidence, explain trace carry-through, and promotion/manifest
+  dependency blockers. Impact previews use **preview basis** (authored state ±
+  **explicit samples**); they do not claim exact affected-user or population
+  counts — previews carry **uncertainty** by design. **Audience**
+  workflows respect explicit **environment scope** and **tenant scope**
+  (`?env=`, `tenant_key`); same-name audiences are not assumed equivalent
+  across scope. Mutations follow **preview → confirm → audit** and **fail
+  closed** on stale or mismatched references. Identity and observability remain
+  **host-owned**; the mounted companion presents core truth — not a standalone
+  admin product.
+- `RULESTEAD_TEST_SCOPE=reusable_targeting_deepening bash scripts/ci/test.sh`
+  reruns the v1.6 reusable targeting deepening proof bar in CI.
 - `RULESTEAD_TEST_SCOPE=openfeature_companion bash scripts/ci/test.sh` proves the
   optional `open_feature_rulestead` companion package's Elixir provider contract:
   `context_mapper_test` and `provider_test`.

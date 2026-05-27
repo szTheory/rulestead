@@ -95,6 +95,21 @@ The admin-safe explain seam returns redacted context metadata alongside the
 explanation so operators can confirm what was actually used without dumping the
 full trait bag.
 
+## Audience Trace In Explain Output
+
+Explain and simulate output includes **Audience** trace steps for reusable
+targeting: `matched`, `missed`, `missing from snapshot`, and `archived`.
+Resolution is **snapshot-local** — no live database reads, mounted-admin
+lookups, host identity resolution, or observability queries during audience
+evaluation.
+
+Support-safe explain permalinks include flag, environment, tenant, and
+targeting key only — never raw traits.
+
+When audience questions exceed one explain call, escalate through explain +
+dependency inventory + audit history. Rulestead does not provide built-in
+observability dashboards or package-owned metrics for this path.
+
 ## Simulation And Explain Belong Together
 
 Simulation is the operator workflow for asking "what would happen for this

@@ -18,7 +18,7 @@
 - [x] **Phase 53: Impact Preview Contract** - Operators can preview, token-confirm, and audit reusable audience mutations without false precision or runtime lookup drift. (completed 2026-05-27)
 - [x] **Phase 54: Dependency Truth And Promotion Safety** - Core dependency inventory, validation, promotion, compare, and manifest paths expose audience dependency truth and fail closed. (completed 2026-05-27)
 - [x] **Phase 55: Mounted Operator Workflows** - Mounted admin screens make reusable audience dependencies, previews, confirmations, and explain traces visible inside the existing policy envelope. (completed 2026-05-27)
-- [ ] **Phase 56: Proof, Docs, And Support Truth** - Verification, docs, and release-contract truth close the reusable targeting scope under the linked sibling-package model.
+- [x] **Phase 56: Proof, Docs, And Support Truth** - Verification, docs, and release-contract truth close the reusable targeting scope under the linked sibling-package model.
 
 ## Phase Details
 
@@ -100,10 +100,10 @@ Plans:
 
 Plans:
 
-- [ ] 56-01-PLAN.md — `mix verify.phase56` v1.6 merge gate (VER-01)
-- [ ] 56-02-PLAN.md — release_contract drift guards + README/MAINTAINING/package READMEs (VER-02)
-- [ ] 56-03-PLAN.md — in-place flow guide updates (VER-02)
-- [ ] 56-04-PLAN.md — CI scope, handoff checklist, verification artifact (VER-03)
+- [x] 56-01-PLAN.md — `mix verify.phase56` v1.6 merge gate (VER-01)
+- [x] 56-02-PLAN.md — release_contract drift guards + README/MAINTAINING/package READMEs (VER-02)
+- [x] 56-03-PLAN.md — in-place flow guide updates (VER-02)
+- [x] 56-04-PLAN.md — CI scope, handoff checklist, verification artifact (VER-03)
 
 ## Progress
 
@@ -115,7 +115,7 @@ Phases execute in numeric order: 53 -> 54 -> 55 -> 56
 | 53. Impact Preview Contract | v1.6.0 | 4/4 | Complete    | 2026-05-27 |
 | 54. Dependency Truth And Promotion Safety | v1.6.0 | 4/4 | Complete    | 2026-05-27 |
 | 55. Mounted Operator Workflows | v1.6.0 | 4/4 | Complete    | 2026-05-27 |
-| 56. Proof, Docs, And Support Truth | v1.6.0 | 0/TBD | Not started | - |
+| 56. Proof, Docs, And Support Truth | v1.6.0 | 4/4 | Complete    | 2026-05-27 |
 
 ## Requirement Coverage
 
@@ -125,17 +125,17 @@ Phases execute in numeric order: 53 -> 54 -> 55 -> 56
 | IMP-02 | Phase 53 | Complete |
 | IMP-03 | Phase 53 | Complete |
 | IMP-04 | Phase 53 | Complete |
-| DEP-01 | Phase 54 | Pending |
-| DEP-02 | Phase 54 | Pending |
-| DEP-03 | Phase 54 | Pending |
-| DEP-04 | Phase 54 | Pending |
-| ADM-01 | Phase 55 | Pending |
-| ADM-02 | Phase 55 | Pending |
-| ADM-03 | Phase 55 | Pending |
-| ADM-04 | Phase 55 | Pending |
-| VER-01 | Phase 56 | Pending |
-| VER-02 | Phase 56 | Pending |
-| VER-03 | Phase 56 | Pending |
+| DEP-01 | Phase 54 | Complete |
+| DEP-02 | Phase 54 | Complete |
+| DEP-03 | Phase 54 | Complete |
+| DEP-04 | Phase 54 | Complete |
+| ADM-01 | Phase 55 | Complete |
+| ADM-02 | Phase 55 | Complete |
+| ADM-03 | Phase 55 | Complete |
+| ADM-04 | Phase 55 | Complete |
+| VER-01 | Phase 56 | Complete |
+| VER-02 | Phase 56 | Complete |
+| VER-03 | Phase 56 | Complete |
 
 **Coverage:** 15/15 v1.6.0 requirements mapped. No orphaned requirements. No duplicate phase assignments.
 

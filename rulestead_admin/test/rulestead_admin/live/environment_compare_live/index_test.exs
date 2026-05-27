@@ -70,6 +70,16 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.IndexTest do
     refute html =~ ">Publish<"
   end
 
+  test "renders audience dependency findings section", %{conn: conn} do
+    {:ok, _view, html} =
+      live(
+        conn,
+        "/admin/flags/compare?env=prod&tenant=acme&source_env=staging&target_env=prod"
+      )
+
+    assert html =~ "Audience dependencies"
+  end
+
   test "preserves mounted admin production emphasis and flag drill-in navigation", %{conn: conn} do
     {:ok, _view, html} =
       live(
@@ -92,6 +102,12 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.IndexTest do
   defp seed_compare_fixture! do
     Control.reset!()
     Control.put_environment!(%{key: "prod", name: "Production"})
+
+    Control.put_audience!(%{
+      key: "vip-users",
+      description: "VIP reusable audience",
+      definition: %{conditions: [%{attribute: "plan", operator: "eq", value: "pro"}]}
+    })
 
     Control.put_flag!(%{
       key: "checkout-redesign",

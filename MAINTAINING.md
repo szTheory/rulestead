@@ -234,9 +234,46 @@ automatic hold, automatic rollback, mounted explanation, and support-truth
 drift guards. It proves VER-01 only across the current host-owned fact seam and
 mounted companion explanation path.
 
-It does not prove metrics ingestion, dashboards, provider adapters, browser
+It does not prove metrics pipelines, dashboards, provider adapters, browser
 demo flows, or automated rollout advancement. Keep those as separate future
 support claims unless a later phase adds explicit code, docs, and proof.
+
+## Reusable Targeting Deepening Proof
+
+Use the reusable targeting deepening proof when work touches reusable
+**Audience** workflows, dependency inventory, impact preview, compare/promotion
+dependency findings, explain trace carry-through, or the root/package docs
+that describe v1.6 support truth (VER-01 for this milestone).
+
+Run the primary maintainer command:
+
+```bash
+cd rulestead && mix verify.phase56
+```
+
+Or rerun through the CI wrapper:
+
+```bash
+RULESTEAD_TEST_SCOPE=reusable_targeting_deepening bash scripts/ci/test.sh
+```
+
+That scope is intentionally bounded. It proves:
+
+- dependency inventory and visibility contracts
+- preview determinism and stale preview fingerprint rejection
+- fail-closed blockers for missing, archived, incompatible, or stale references
+- audit evidence for audience mutations
+- explain trace carry-through for audience resolution
+- promotion and manifest dependency blockers
+
+It does **not** prove exact affected-user counts, dependency graph UIs,
+batch mutation automation, package-owned metrics pipelines, or observability
+dashboards inside Rulestead. Keep those as separate future support claims.
+
+Upstream boundary contracts for this milestone:
+
+- `.planning/phases/54-dependency-truth-and-promotion-safety/54-HANDOFF-CHECKLIST.md`
+- `.planning/phases/55-mounted-operator-workflows/55-HANDOFF-CHECKLIST.md`
 
 ## Lifecycle Release Surface
 

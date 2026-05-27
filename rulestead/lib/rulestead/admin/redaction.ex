@@ -55,10 +55,15 @@ defmodule Rulestead.Admin.Redaction do
   def redact_dependency_inventory(entries, opts \\ [])
 
   def redact_dependency_inventory(entries, opts) when is_list(entries) do
-    DependencyInventory.redacted_result(entries,
-      visible_audience_keys: Keyword.get(opts, :visible_audience_keys),
-      include_redacted_placeholders?: Keyword.get(opts, :include_redacted_placeholders?, false)
-    )
+    redaction_opts =
+      [
+        visible_audience_keys: Keyword.get(opts, :visible_audience_keys),
+        include_redacted_placeholders?: Keyword.get(opts, :include_redacted_placeholders?, false),
+        visibility_resolver: Keyword.get(opts, :visibility_resolver)
+      ]
+      |> Enum.reject(fn {_key, value} -> is_nil(value) end)
+
+    DependencyInventory.redacted_result(entries, redaction_opts)
   end
 
   def redact_dependency_inventory(_entries, _opts),

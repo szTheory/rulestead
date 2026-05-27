@@ -58,6 +58,12 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.AccessibilityTest do
     Control.reset!()
     Control.put_environment!(%{key: "prod", name: "Production"})
 
+    Control.put_audience!(%{
+      key: "vip-users",
+      description: "VIP reusable audience",
+      definition: %{conditions: [%{attribute: "plan", operator: "eq", value: "pro"}]}
+    })
+
     Control.put_flag!(%{
       key: "checkout-redesign",
       description: "Release the new checkout flow",

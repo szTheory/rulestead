@@ -20,7 +20,7 @@ defmodule Rulestead.MixProject do
   end
 
   def cli do
-    [preferred_envs: [{:"verify.phase54", :test}]]
+    [preferred_envs: [{:"verify.phase54", :test}, {:"verify.phase55", :test}, {:"verify.phase56", :test}]]
   end
 
   def application do

@@ -2399,10 +2399,18 @@ defmodule Rulestead.Fake do
   end
 
   defp redaction_options(command) do
-    [
+    base = [
       visible_audience_keys: Map.get(command, :visible_audience_keys),
       include_redacted_placeholders?: Map.get(command, :include_redacted_placeholders?, false)
     ]
+
+    case Map.get(command, :actor) do
+      actor when is_map(actor) ->
+        Keyword.put(base, :visibility_resolver, Rulestead.Admin.DependencyVisibility.visibility_resolver(actor))
+
+      _ ->
+        base
+    end
   end
 
   defp normalize_projection_environment_key(environment_key), do: to_string(environment_key)

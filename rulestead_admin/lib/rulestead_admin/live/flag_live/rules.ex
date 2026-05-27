@@ -147,6 +147,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Rules do
                 index={index}
                 rule={rule}
                 audiences={@audiences}
+                mount_path={@rulestead_admin_mount_path}
                 editable?={@editable?}
               />
             </section>
@@ -158,7 +159,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Rules do
                 error_messages={@error_messages}
               />
 
-              <RuleEditorComponents.audience_library audiences={@audiences} />
+              <RuleEditorComponents.audience_library audiences={@audiences} mount_path={@rulestead_admin_mount_path} />
             </aside>
           </div>
         </form>
