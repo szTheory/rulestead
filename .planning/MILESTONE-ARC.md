@@ -1,13 +1,13 @@
 # Milestone Arc: Post-v1.6.0 Closeout
 
-**Last updated:** 2026-05-27 after next-milestone assessment (see `.planning/threads/2026-05-27-next-milestone-assessment.md`)
+**Last updated:** 2026-05-27 after post-v1.7 assessment (see `.planning/threads/2026-05-27-post-v1.7-milestone-assessment.md`)
 **Selection posture:** Default to the highest-priority candidate below unless the user explicitly chooses a materially different direction. Shift low-impact milestone-selection preference left inside GSD instead of re-opening the full tradeoff set every time.
 
 ## Active Milestone
 
-- **Active now:** `v1.7.0 — Blast-Radius Governance` (Phases 57-60)
-- **Last shipped:** `v1.6.0 - Reusable Targeting Deepening` on 2026-05-27
-- **Next after v1.7:** `v1.8.0 — Guarded Rollout Auto-Advance` (`ROL-04`); then `IMP-05` / defer `ADM-05`
+- **Active:** `v1.8.0 — Guarded Rollout Auto-Advance` (`ROL-04`) — Phases 61-64 (initialized 2026-05-27)
+- **Last shipped:** `v1.7.0 — Blast-Radius Governance` on 2026-05-27 (Phases 57-60)
+- **After v1.8:** `IMP-05` (v1.9 or defer) / defer `ADM-05`
 
 ## Candidate Ranking
 
@@ -149,7 +149,7 @@
 
 ### 6. `v1.7.0 — Blast-Radius Governance`
 
-**Status:** active (initialized 2026-05-27)
+**Status:** shipped on 2026-05-27
 **Why it is next:**
 
 - v1.6 delivered impact previews and dependency truth; protected-environment audience edits still lack threshold-based change-request routing (GOV-01)
@@ -176,7 +176,7 @@
 
 ### 7. `v1.8.0 — Guarded Rollout Auto-Advance` (ROL-04)
 
-**Status:** queued after v1.7
+**Status:** active (initialized 2026-05-27)
 **Why it follows GOV-01:**
 
 - Completes v1.5 guarded rollout story (hold/rollback shipped; auto-advance deferred)

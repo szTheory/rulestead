@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.7.0
-milestone_name: milestone
-status: Awaiting next milestone
-stopped_at: Phase 60 context gathered (assumptions mode)
-last_updated: "2026-05-27T18:01:00.843Z"
-last_activity: 2026-05-27 — Milestone v1.7.0 completed and archived
+milestone: v1.8.0
+milestone_name: Guarded Rollout Auto-Advance
+status: Defining requirements
+stopped_at: Milestone initialized — ready for Phase 61 discuss/plan
+last_updated: "2026-05-27T21:00:00.000Z"
+last_activity: 2026-05-27 — Milestone v1.8.0 initialized (ROL-04)
 progress:
   total_phases: 4
-  completed_phases: 4
-  total_plans: 16
-  completed_plans: 16
-  percent: 100
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # State: Rulestead
@@ -21,36 +21,33 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-27)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions - booleans, variants, and remote config - with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
-**Current focus:** Planning next milestone (`v1.8.0` guarded rollout auto-advance queued)
-**Milestone:** `v1.7.0 - Blast-Radius Governance` (shipped 2026-05-27)
+**Current focus:** **v1.8.0 Guarded Rollout Auto-Advance** — Phases 61-64
+**Milestone:** `v1.8.0 - Guarded Rollout Auto-Advance` (initialized 2026-05-27)
 
 ## Current Position
 
-Phase: Milestone v1.7.0 complete
+Phase: Not started (defining requirements complete; ready for Phase 61)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-05-27 — Milestone v1.7.0 completed and archived
+Status: Ready for `/gsd-discuss-phase 61` or `/gsd-plan-phase 61`
+Last activity: 2026-05-27 — Milestone v1.8.0 started
 
 ## Performance Metrics
 
-**Velocity (v1.6.0 reference):**
+**Velocity (v1.7.0 reference):**
 
-- Total plans completed: 32
+- Total plans completed: 16
 - Milestone duration: same-day execution (2026-05-27)
 
 ## Accumulated Context
 
 ### Decisions
 
-- Activate v1.7.0 Blast-Radius Governance (GOV-01) as next milestone; phases 57-60.
-- Reuse existing change-request envelope — no parallel governance path.
-- Bundle quickstart/doc support truth into Phase 60 verification.
-- Skip parallel research; v1.6 FEATURES.md and assessment thread cover governed audience updates.
-- Sort affected_reference_keys before blast-radius assess to match core reference_keys ordering.
-- Governance loader uses hidden_reference_count for visibility tier; dependency_entries in assess deferred until preview-aligned inventory wiring in 59-03.
-- Preview surfaces show blast-radius panel above impact_preview with Continue to submit when governed (59-02).
-- Confirm surfaces branch Apply vs Submit change request with fail-closed blocked state (59-03).
-- CR show uses frozen metadata blast_radius_assessment only; approve gate uses live dependency visibility tier (59-04).
+- Activate v1.8.0 ROL-04 after v1.7 GOV-01; defer IMP-05 and ADM-05 presets.
+- Skip parallel research; v1.5 guardrail contract + post-v1.7 assessment sufficient.
+- Reuse `ScheduledExecution` / Oban worker for observation-window ticks — no parallel mutation path.
+- Auto-advance orchestrates existing `Guardrails.Decision` and governed `advance_rollout`; no parallel decision model.
+- Protected-environment auto-advance respects same change-request envelope as manual advance.
+- Phase numbering continues at 61 (no reset).
 
 ### Pending Todos
 
@@ -60,21 +57,21 @@ None.
 
 None.
 
-## Deferred Items (post-v1.7 queue)
+## Deferred Items (post-v1.8 queue)
 
 | Category | Item | Target |
 |----------|------|--------|
-| Rollouts | Automatic guarded rollout advancement (ROL-04) | v1.8.0 |
 | Targeting | Richer host-supplied preview evidence (IMP-05) | v1.9 or defer |
 | Admin | Draft-only targeting presets (ADM-05) | Defer |
+| Rollouts | Guardrail baseline comparison (ROL-05 from v1.5 memo) | Future |
 
 ## Session Continuity
 
-Last session: 2026-05-27T17:46:56.458Z
-Stopped at: Phase 60 context gathered (assumptions mode)
-Resume file: .planning/phases/60-proof-docs-and-support-truth/60-CONTEXT.md
+Last session: 2026-05-27 — `/gsd-new-milestone v1.8.0`
+Resume: `/gsd-discuss-phase 61` or `/gsd-plan-phase 61`
 
 ## Operator Next Steps
 
-- `/gsd-new-milestone` — start v1.8.0 (ROL-04) planning
-- `/gsd-review-backlog` — review deferred queue before committing to next milestone
+- `/gsd-discuss-phase 61` — gather Phase 61 context (auto-advance authored contract)
+- `/gsd-plan-phase 61` — skip discussion, plan directly
+- Assessment thread: `.planning/threads/2026-05-27-post-v1.7-milestone-assessment.md`

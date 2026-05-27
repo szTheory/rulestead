@@ -2,7 +2,7 @@
 
 ## Status
 
-- Closed (superseded by milestone initialization)
+- Closed — superseded by `2026-05-27-post-v1.7-milestone-assessment.md` (v1.7 shipped; GOV-01 and quickstart closed)
 - Updated: 2026-05-27
 
 ## Assessment Lens

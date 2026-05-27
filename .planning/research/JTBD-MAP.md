@@ -327,12 +327,18 @@ research to targeted milestone definition and implementation.
 
 **Current gaps (important-but-narrow):**
 
-- Protected-environment audience governance by blast-radius threshold (GOV-01) — **recommended v1.7.0**
-- Automatic guarded rollout stage advancement (ROL-04) — queued v1.8.0
-- Quickstart/doc payload-first API truth — bundle into v1.7 verification
-- Richer host-supplied preview evidence (IMP-05) and draft presets (ADM-05) — later/defer
+- Automatic guarded rollout stage advancement (ROL-04) — **recommended v1.8.0** (unbuilt; no `auto_advance` / observation-window orchestration in repo)
+- Richer host-supplied preview evidence (IMP-05) and draft presets (ADM-05) — v1.9 or defer
+- Maintainer doc drift: `MAINTAINING.md` mounted proof file list vs CI `session_test.exs` — polish only
 
-**Rough done band:** ~87% for stated scope; finish 2–3 wedges then diminishing returns.
+**Closed since prior delta:**
+
+- Protected-environment audience governance (GOV-01) — shipped v1.7.0 (`BlastRadiusThreshold`, change-request integration, mounted governance UX)
+- Quickstart payload-first API truth — shipped v1.7.0 Phase 60 (VER-03 + release-contract guard)
+
+**Rough done band:** ~90–92% for stated scope; finish ROL-04 then mostly diminishing returns.
+
+**Assessment thread:** `.planning/threads/2026-05-27-post-v1.7-milestone-assessment.md`
 
 **Note:** Body sections above (role inventory, gap matrix ranked 2026-05-21) are partially stale. Prefer this delta section and milestone archives for current truth until a full JTBD refresh is warranted.
 

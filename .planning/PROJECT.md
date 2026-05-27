@@ -16,9 +16,16 @@ Rulestead is a batteries-included, Elixir-native feature-flag and remote-config 
 - `v1.6.0` shipped on 2026-05-27 across Phases 53-56, deepening reusable audience targeting with impact previews, dependency inventory and fail-closed validation, mounted preview-confirm-audit workflows, explain trace carry-through, and bounded proof/docs/support truth without widening the sibling-package release model.
 - `v1.7.0` shipped on 2026-05-27 across Phases 57-60: blast-radius threshold contract, change-request integration, mounted governance workflows, and proof/docs/support-truth closure (`mix verify.phase60`, release-contract drift guards, payload-first quickstart parity).
 
-## Current Milestone
+## Current Milestone: v1.8.0 Guarded Rollout Auto-Advance
 
-Awaiting next milestone selection. Primary queued item: **v1.8.0** guarded rollout auto-advance (ROL-04). See `.planning/STATE.md` Deferred Items.
+**Goal:** Complete the guarded rollout story by letting staged rollouts automatically advance when host-supplied guardrails remain healthy for a configured observation window—without turning Rulestead into an observability product.
+
+**Target features:**
+- Opt-in per-rollout auto-advance policy with observation window and explicit authored next-stage plan
+- Scheduled guardrail evaluation ticks via existing `ScheduledExecution` / Oban pattern → governed `advance_rollout` when all signals are `:healthy`
+- Fail-closed semantics on `:pending_data`, `:held`, stale, weak, or missing signals; protected environments respect change-request envelope
+- Mounted admin: auto-advance toggle, pending-observation state, timeline distinguishes `guardrail_automation` from manual actions
+- Proof and support truth: extend guarded-rollout proof scope and release-contract for bounded auto-advance claims
 
 <details>
 <summary>Latest shipped: v1.7.0 Blast-Radius Governance (2026-05-27)</summary>
@@ -94,7 +101,11 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 
 ### Active
 
-(None — start next milestone with `/gsd-new-milestone`)
+- **ROL-04** through **ROL-07**: Opt-in auto-advance policy, fail-closed guardrail semantics, protected-env governance parity, preserved hold/rollback
+- **ORC-01**, **ORC-02**: Scheduled evaluation ticks and idempotent execution through existing governed envelope
+- **AUD-03**, **AUD-04**: Audited auto-advance evidence and automation vs manual distinction
+- **ADM-04**: Mounted auto-advance toggle, pending observation, bounded prerequisite copy
+- **VER-01** through **VER-03**: Proof, docs, host seam, and release-contract support truth
 
 ### Validated
 
@@ -189,6 +200,8 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 | Activate `v1.6.0` as reusable targeting deepening instead of adding a new targeting primitive | Reusable audiences are already shipped; the highest-leverage next work is blast-radius safety, dependency visibility, and explainability for existing audience reuse. | Validated |
 | Keep reusable targeting previews authored-state and explicit-sample based | Preserves deterministic evaluation, host-owned identity/observability truth, and honest support claims while still giving operators useful impact evidence. | Validated |
 | Activate `v1.7.0` as blast-radius governance after v1.6 reusable targeting deepening | v1.6 made blast radius visible; protected-environment audience edits still need threshold-based change-request routing before auto-advance rollouts or preset ergonomics. | Validated |
+| Post-v1.7 assessment: activate `v1.8.0` ROL-04 next; defer IMP-05 and ADM-05 | GOV-01 and quickstart parity shipped in v1.7; largest remaining differentiated gap is guarded rollout auto-advance (hold/rollback already shipped). | Validated |
+| Activate `v1.8.0` as guarded rollout auto-advance after v1.7 blast-radius governance | Completes v1.5 hold/rollback story; reuses `ScheduledExecution` and governed `advance_rollout`; fail-closed on weak signals; no observability product widening. | Pending |
 
 ## Milestone Archives
 
@@ -224,4 +237,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-27 after v1.7.0 milestone*
+*Last updated: 2026-05-27 — milestone v1.8.0 initialized*
