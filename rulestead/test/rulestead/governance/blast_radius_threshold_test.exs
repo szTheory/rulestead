@@ -135,6 +135,54 @@ defmodule Rulestead.Governance.BlastRadiusThresholdTest do
 
       assert Enum.any?(assessment.breach_reasons, &(&1.code == "blast_radius_unresolved_dependency_truth"))
     end
+
+    test "assess ignores impression_evidence and sample_evidence for verdict" do
+      references = [
+        @reference,
+        %{@reference | reference_key: "flag:b:ruleset:1:rule:r2", flag_key: "b"}
+      ]
+
+      base_attrs =
+        prod_update_attrs(references, %{
+          impression_evidence: %{
+            window_label: "last_24h",
+            sampled_impressions: 1,
+            matched_impressions: 999_999_999
+          },
+          sample_evidence:
+            for(index <- 1..25,
+              do: %{actor_key: "actor-#{index}", targeting_key: "target-#{index}"}
+            )
+        })
+
+      assert {:ok, baseline} = assess(Map.drop(base_attrs, [:impression_evidence, :sample_evidence]))
+      assert {:ok, enriched} = assess(base_attrs)
+
+      assert baseline.verdict == enriched.verdict
+      assert baseline.reference_count == enriched.reference_count
+      assert baseline.verdict == :below_threshold
+
+      above_references = references ++ [
+        %{@reference | reference_key: "flag:c:ruleset:1:rule:r3", flag_key: "c"}
+      ]
+
+      above_base = prod_update_attrs(above_references)
+
+      above_with_impression =
+        Map.merge(above_base, %{
+          impression_evidence: %{
+            window_label: "last_7d",
+            matched_impressions: 50_000_000
+          },
+          sample_evidence: for(index <- 1..25, do: %{actor_key: "cohort-#{index}"})
+        })
+
+      assert {:ok, above_baseline} = assess(above_base)
+      assert {:ok, above_enriched} = assess(above_with_impression)
+
+      assert above_baseline.verdict == above_enriched.verdict
+      assert above_baseline.verdict == :above_threshold
+    end
   end
 
   describe "validate_protected_apply/3" do
