@@ -19,6 +19,18 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
     def can?(_actor, _action, _resource, _environment_key), do: false
   end
 
+  defmodule DeniesAuditReadsPolicy do
+    @behaviour Rulestead.Admin.Policy
+
+    # Test policy deliberately denies :list_audit_events while keeping rollout reads available.
+    def can?(_actor, :access_admin, _resource, _environment_key), do: true
+    def can?(_actor, :read_flags, _resource, _environment_key), do: true
+    def can?(_actor, :read_rollouts, _resource, _environment_key), do: true
+    def can?(_actor, :list_audit_events, _resource, _environment_key), do: false
+    def can?(_actor, _action, _resource, _environment_key), do: false
+    def change_request_required?(_, _, _, _), do: false
+  end
+
   setup_all do
     start_supervised!(RulesteadAdmin.TestEndpoint)
     :ok
@@ -200,7 +212,45 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
     assert html =~ "0.07"
     assert html =~ "42"
     assert html =~ "100"
-    refute html =~ "raw_provider_payload"
+    refute html =~ "raw" <> "_provider_payload"
+  end
+
+  test "rollout page shows guardrail intervention excerpt with automatic labels", %{conn: conn} do
+    seed_guardrail_hold!()
+
+    {:ok, _view, html} = live(conn, "/admin/flags/checkout-redesign/rollouts?env=prod")
+
+    assert html =~ "Guardrail interventions"
+    assert html =~ "Automatic guardrail hold"
+    assert html =~ "Automatic"
+    assert html =~ "Open full timeline"
+  end
+
+  test "rollout page hides guardrail intervention excerpt when audit reads are denied", %{
+    conn: conn
+  } do
+    seed_guardrail_hold!()
+    Application.put_env(:rulestead, :admin_policy, DeniesAuditReadsPolicy)
+
+    denied_conn =
+      conn
+      |> Phoenix.ConnTest.recycle()
+      |> Phoenix.ConnTest.init_test_session(%{
+        "current_actor" => %{id: "viewer-1", email: "viewer@example.com", roles: []},
+        "rulestead_admin_last_env" => "prod",
+        "rulestead_admin_environments" => [
+          %{"key" => "dev", "name" => "Development"},
+          %{"key" => "staging", "name" => "Staging"},
+          %{"key" => "prod", "name" => "Production"}
+        ]
+      })
+
+    {:ok, _view, html} = live(denied_conn, "/admin/flags/checkout-redesign/rollouts?env=prod")
+
+    assert html =~ "Rollout controls"
+    assert html =~ "Guardrail status"
+    refute html =~ "Automatic guardrail hold"
+    refute html =~ "source guardrail_automation"
   end
 
   test "page treats missing guardrail status as a prerequisite instead of healthy and preserves guardrails on save",
@@ -390,6 +440,49 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
 
     assert {:ok, _published} =
              Rulestead.publish_ruleset(Command.PublishRuleset.new(flag_key, environment_key))
+  end
+
+  defp seed_guardrail_hold! do
+    assert {:ok, _advanced} =
+             Rulestead.advance_rollout(
+               "checkout-redesign",
+               "prod",
+               %{
+                 rule_key: "checkout-canary",
+                 stage: "canary-60",
+                 percentage: 60,
+                 monitoring_window_started_at: ~U[2026-04-23 15:45:00Z],
+                 monitoring_window_ends_at: ~U[2026-04-23 15:50:00Z]
+               },
+               metadata: %{request_id: "req-manual-advance", source: :admin_ui}
+             )
+
+    assert {:ok, _held} =
+             Rulestead.evaluate_guarded_rollout(
+               "checkout-redesign",
+               "prod",
+               %{
+                 rule_key: "checkout-canary",
+                 stage: "canary-60",
+                 monitoring_window_started_at: ~U[2026-04-23 15:45:00Z],
+                 monitoring_window_ends_at: ~U[2026-04-23 15:50:00Z],
+                 signal_facts: [
+                   %{
+                     signal_key: "checkout_error_rate",
+                     status: :failed_closed,
+                     reason: :insufficient_sample,
+                     threshold_operator: :gte,
+                     threshold_value: 0.05,
+                     observed_value: 0.07,
+                     freshness_window_seconds: 300,
+                     sample_size: 42,
+                     min_sample_size: 100,
+                     evaluated_at: ~U[2026-04-23 15:49:00Z]
+                   }
+                 ]
+               },
+               metadata: %{request_id: "req-guardrail-held", source: :guardrail_automation}
+             )
   end
 
   defp ensure_environment!(key, name) do
