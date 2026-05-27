@@ -100,6 +100,41 @@ Use it when you need to:
 
 After the incident, use the timeline route to document what changed and why.
 
+## Observation window and auto-advance
+
+Guarded rollouts may opt in to **auto-advance** per rollout rule. The operator
+authors an explicit **next-stage plan** (`next_stage`, `next_percentage`) and
+**observation window** duration before automation can fire. There is no implicit
+progression from ladder presets or time-based percentage rollout.
+
+### Window, tick, and eligibility
+
+Each advance opens a monitoring window (`monitoring_window_started_at` /
+`monitoring_window_ends_at`). When the window closes, a single governed scheduled
+tick evaluates eligibility and, only when pure checks pass, executes
+`:advance_rollout` with the policy-authored next stage.
+
+Eligibility is **fail-closed**: weak, stale, or missing guardrail signal facts
+block advance. Holds and rollbacks (ROL-07) remain available when auto-advance is
+enabled — automation does not bypass operator stop paths.
+
+### Host-owned signals
+
+Metrics and signal facts remain **host-owned**. The host's guardrails provider
+(normalized via `fetch_signal/2` or your configured seam) supplies facts at tick
+time; Rulestead evaluates those facts only. Rulestead does not ingest metrics,
+ship dashboards, or run observability pipelines.
+
+### Protected environments and audit
+
+In protected environments, eligible ticks submit change requests rather than
+auto-applying. Audit entries for successful automation carry
+**`guardrail_automation`** metadata so timeline review distinguishes automation
+from manual advance, hold, and rollback.
+
+See [Admin UI](admin-ui.md) for mounted panel placement, pending observation
+display, and operator-facing mode labels.
+
 ## Keep Runtime And UI Contracts Separate
 
 The runtime contract for a rollout is still the authored ruleset plus the

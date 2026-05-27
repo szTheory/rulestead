@@ -189,6 +189,13 @@ They want:
 This is the operational heart of the system: release code separately from
 release exposure.
 
+Operators may enable **auto-advance** on a guarded rollout: they author the
+next stage and observation window, the host supplies guardrail signal facts, and
+Rulestead schedules a fail-closed tick at window close. In protected environments,
+automation submits a change request instead of auto-applying; the timeline labels
+**`guardrail_automation`** separately from manual advances. See
+[Rollout](../flows/rollout.md) and [Admin UI](../flows/admin-ui.md).
+
 ### Flow 5: Explain One User's Reality
 
 Support gets a ticket. A PM asks what is live. An engineer wonders whether the

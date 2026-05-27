@@ -177,6 +177,68 @@ never surfaces audience predicate or condition definitions. **Host-owned policy*
 (`Rulestead.Admin.Policy` / your Authorizer module) governs who may submit and
 approve change requests; the mounted companion presents core truth only.
 
+## Auto-advance on the rollouts page
+
+The mounted rollouts page (`/admin/flags/:key/rollouts?env=`) includes an
+**Auto-advance** panel between guardrail status and guardrail interventions.
+Operators configure opt-in policy there; core owns persistence and eligibility;
+the panel renders bounded state only.
+
+### Panel location and fail-closed modes
+
+The panel derives one of six modes on load:
+
+1. **disabled** — auto-advance off or prerequisites not met
+2. **blocked_health** — guardrail status is held, pending data, or rollback
+   triggered; copy does not imply automation will advance
+3. **blocked_policy** — policy save denied or incomplete authored plan
+4. **blocked_protected_env** — protected environment; save allowed, execute routes
+   through change request (see below)
+5. **scheduled** — observation window closed and a governed tick is scheduled
+6. **eligible** — policy enabled, prerequisites met, ready for window close or tick
+
+Remediation stays on this rollout stage. The UI does not show fleet health,
+Rulestead-owned metrics, or percentage-of-time rollout controls.
+
+### Policy save and authorization
+
+Operators save policy inline: `enabled`, `observation_window_seconds`,
+`next_stage`, and `next_percentage`. Save requires `:advance_rollout` capability
+through your `Rulestead.Admin.Policy` implementation. Denied saves show the
+standard capability explanation — not a silent failure.
+
+**Host-owned policy** governs who may configure auto-advance, submit change
+requests, and approve protected-environment advances. The mounted companion
+presents core truth; it does not bundle auth.
+
+### Pending observation state
+
+When the monitoring window is still open, the panel shows **pending observation**
+copy with `window_ends_at` (for example: observation window open until close;
+auto-advance evaluates at window close). When a scheduled execution exists for
+this flag, environment, and rollout rule with `metadata.source` of
+`guardrail_automation`, the panel shows the tick time and that advance runs only
+if guardrails remain healthy after the window.
+
+Refresh after manual advance, hold, or rollback — superseded ticks must not
+leave stale scheduled state visible.
+
+### Protected environments
+
+In protected environments where `change_request_required?(:advance_rollout)` is
+true, an informational callout explains that eligible automation **submits a
+change request for approval** — it will not auto-apply. Operators may still save
+and enable policy; execution routing matches manual advance governance.
+
+### Timeline: automation vs manual
+
+The timeline and rollouts intervention excerpt label successful automation with
+**`guardrail_automation`** on `rollout.advance` events (title such as "Automatic
+rollout advance" with observation-window bounds). Manual hold, advance, and
+rollback actions keep distinct manual labels. Support and on-call can see
+whether a stage transition was operator-driven or window-close automation
+without inferring from ruleset diffs alone.
+
 ## Operational Guidance
 
 Treat the admin package as the control surface around runtime truth:
