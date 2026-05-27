@@ -31,8 +31,33 @@ mix ecto.migrate
 
 ## 3. Gate a code path
 
-Use a `Plug.Conn`, a `%Rulestead.Context{}`, or another supported context
-builder. The common first step is gating one controller path:
+Build an explicit `%Rulestead.Context{}` and evaluate against a flag payload.
+This is the canonical contract documented in [../flows/evaluation.md](../flows/evaluation.md):
+
+```elixir
+context =
+  Rulestead.Context.new(
+    environment: "production",
+    targeting_key: "user-123",
+    traits: %{plan: :pro}
+  )
+
+flag_payload = ... # from snapshot or store
+
+with {:ok, result} <- Rulestead.evaluate(flag_payload, context) do
+  if result.enabled? do
+    render_v2(conn)
+  else
+    render_v1(conn)
+  end
+end
+```
+
+### Convenience wrappers
+
+When using Phoenix with the snapshot cache, `Rulestead.enabled?/2` and
+`Rulestead.get_variant/2` on `%Plug.Conn{}` are convenience wrappers — the
+explicit contract is flag payload + `%Rulestead.Context{}`:
 
 ```elixir
 if Rulestead.enabled?("checkout_v2", conn) do
@@ -40,11 +65,7 @@ if Rulestead.enabled?("checkout_v2", conn) do
 else
   render_v1(conn)
 end
-```
 
-When you need typed values or variants, keep the same runtime boundary:
-
-```elixir
 variant = Rulestead.get_variant("pricing_experiment", conn)
 config = Rulestead.get_value("checkout_config", conn, default: %{"timeout_ms" => 1_000})
 ```

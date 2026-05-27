@@ -90,3 +90,20 @@ reusable targeting assets. Compare and promotion **dependency findings** are
 
 When reviewing cross-environment drift, treat dependency findings as scoped
 signals requiring explicit env/tenant context, not as global truth.
+
+## Protected environments and blast radius thresholds
+
+**Protected environments** (commonly production) trigger blast-radius threshold
+evaluation on audience mutations. Routing depends on the threshold verdict:
+
+- **Below threshold** — direct apply remains eligible after fresh preview confirm
+- **Above threshold** — mutations must route through **change request** review
+  and execute
+
+Rulestead **fails closed** when the preview fingerprint is stale, dependency
+truth is unresolved, or required threshold inputs are missing. Operators should
+not assume silent direct apply in those states.
+
+Impact previews use **preview basis** only (authored references and **explicit
+samples**). They do not claim affected-user counts or observability-backed
+population totals — the host owns metrics and identity boundaries.

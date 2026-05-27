@@ -156,6 +156,27 @@ The following are intentionally not stable contracts:
 If you need a stable integration point, use the router seam, policy behaviour,
 session keys, and documented URL conventions instead.
 
+## Blast radius governance in protected environments
+
+Protected environments (for example `prod`) trigger blast-radius threshold
+evaluation on audience edit and archive mutations. The mounted workflow is:
+
+1. **Preview impact** — assess threshold using preview basis (authored
+   references and **explicit samples** only; no affected-user or population counts)
+2. **Below threshold** — **Continue to confirm** for direct apply with a fresh
+   preview fingerprint
+3. **Above threshold** — **Continue to submit** a **change request** for review
+4. **Review and execute** on the change-request show surface after approval
+
+**Blocked states** (indeterminate assessment, partial dependency visibility,
+stale preview fingerprint) show **Cannot evaluate safely** with back navigation
+only — no Continue, Apply, or Submit.
+
+The blast-radius panel shows verdict, threshold line, and breach reasons. It
+never surfaces audience predicate or condition definitions. **Host-owned policy**
+(`Rulestead.Admin.Policy` / your Authorizer module) governs who may submit and
+approve change requests; the mounted companion presents core truth only.
+
 ## Operational Guidance
 
 Treat the admin package as the control surface around runtime truth:
