@@ -91,7 +91,7 @@
 |-------|-----------|----------------|--------|-----------|
 | 61. Auto-Advance Authored Contract | v1.8.0 | 4/4 | Complete    | 2026-05-27 |
 | 62. Orchestration And Governed Execution | v1.8.0 | 4/4 | Complete    | 2026-05-27 |
-| 63. Mounted Auto-Advance Workflows | v1.8.0 | 0/4 | Not started | — |
+| 63. Mounted Auto-Advance Workflows | v1.8.0 | 1/4 | In progress | — |
 | 64. Proof, Docs, And Support Truth | v1.8.0 | 0/4 | Not started | — |
 
 <details>
