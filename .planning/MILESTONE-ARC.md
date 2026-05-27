@@ -1,12 +1,13 @@
 # Milestone Arc: Post-v1.6.0 Closeout
 
-**Last updated:** 2026-05-27 during milestone v1.6.0 closeout
+**Last updated:** 2026-05-27 after next-milestone assessment (see `.planning/threads/2026-05-27-next-milestone-assessment.md`)
 **Selection posture:** Default to the highest-priority candidate below unless the user explicitly chooses a materially different direction. Shift low-impact milestone-selection preference left inside GSD instead of re-opening the full tradeoff set every time.
 
 ## Active Milestone
 
-- **Active now:** none — `v1.6.0 - Reusable Targeting Deepening` shipped on 2026-05-27
-- **Next queued candidate:** choose via `/gsd-new-milestone` after audit review; deferred items include `IMP-05`, `ADM-05`, `GOV-01`, and `ROL-04`
+- **Active now:** `v1.7.0 — Blast-Radius Governance` (Phases 57-60)
+- **Last shipped:** `v1.6.0 - Reusable Targeting Deepening` on 2026-05-27
+- **Next after v1.7:** `v1.8.0 — Guarded Rollout Auto-Advance` (`ROL-04`); then `IMP-05` / defer `ADM-05`
 
 ## Candidate Ranking
 
@@ -120,8 +121,8 @@
 
 ### 5. `v1.6.0 - Reusable Targeting Deepening`
 
-**Status:** active as of 2026-05-27
-**Why it is active now:**
+**Status:** shipped on 2026-05-27
+**Why it shipped when it did:**
 
 - Reusable audiences already exist in shipped runtime/admin/promotion surfaces, so the next value here is deepening ergonomics and blast-radius safety rather than introducing the concept
 - Guarded rollout foundations shipped in `v1.5.0`, so rollout safety now has enough base support for targeting dependency visibility to become the next trust gap
@@ -146,6 +147,48 @@
 - Fail closed when referenced assets are missing or incompatible
 - Avoid live inheritance graphs, workflow-engine behavior, and release-orchestration drift
 
+### 6. `v1.7.0 — Blast-Radius Governance`
+
+**Status:** active (initialized 2026-05-27)
+**Why it is next:**
+
+- v1.6 delivered impact previews and dependency truth; protected-environment audience edits still lack threshold-based change-request routing (GOV-01)
+- Natural closure of the reusable-targeting safety arc: preview → dependency visibility → governed brakes
+- Lower scope-drift risk than auto-advance rollouts (ROL-04), which v1.5 explicitly deferred as a later layer
+
+**Recommended shape:**
+
+- Blast-radius threshold contract evaluated over preview/dependency payloads (reference counts, rollout/lifecycle hints)
+- High-blast-radius audience mutations in protected environments route through existing change-request envelope
+- Mounted proposal/approval UX; audit includes preview fingerprint and threshold context
+- Bundle quickstart/doc support truth in verification phase (README payload-first API)
+
+**Key tradeoffs:**
+
+- Strong Tech Lead / release-owner value; lower marketing flash than ROL-04
+- Must not widen into generic workflow engine or blast-radius dashboards
+
+**Guardrails:**
+
+- Reuse existing change requests, approvals, and governed-action envelope — no parallel governance path
+- Require fresh preview token/fingerprint before proposal (build on v1.6 IMP contract)
+- Keep host auth and identity host-owned; thresholds are authored-state based, not observability-backed population counts
+
+### 7. `v1.8.0 — Guarded Rollout Auto-Advance` (ROL-04)
+
+**Status:** queued after v1.7
+**Why it follows GOV-01:**
+
+- Completes v1.5 guarded rollout story (hold/rollback shipped; auto-advance deferred)
+- Strongest remaining differentiator once shared-audience governance closes
+- Higher trust risk — requires healthy guardrail provider and observation windows
+
+**Guardrails:**
+
+- Fail closed on stale, weak, or missing signals; never assume healthy
+- Governed + audited stage advancement only; preserve deterministic sticky rollout semantics
+- Do not widen into observability product or time-based gradual rollout
+
 ## Cross-Candidate Architecture Guidance
 
 - Preserve `rulestead` as runtime/domain contract and `rulestead_admin` as the mounted operator companion
@@ -161,6 +204,7 @@
 - `.planning/research/v1.2.0-guarded-rollout-foundations-recommendation.md`
 - `.planning/research/v1.2.0-reusable-targeting-assets-memo.md`
 - `.planning/threads/2026-05-25-next-milestone-assessment.md`
+- `.planning/threads/2026-05-27-next-milestone-assessment.md`
 - `prompts/rulestead-admin-ux-and-operator-ia.md`
 - `prompts/rulestead-engineering-dna-from-prior-libs.md`
 - `prompts/rulestead-host-app-integration-seam.md`

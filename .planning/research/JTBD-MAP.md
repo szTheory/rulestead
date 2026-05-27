@@ -1,6 +1,6 @@
 # JTBD Map: Rulestead Post-GA
 
-**Last reviewed:** 2026-05-21
+**Last reviewed:** 2026-05-27 (delta); body sections partially stale — see Delta Since Last Review
 **Purpose:** Maintain one current map of what user flows Rulestead already
 supports, what serious gaps remain, and where further JTBD research stops being
 worth the time.
@@ -314,12 +314,40 @@ research to targeted milestone definition and implementation.
 
 ## Delta Since Last Review
 
+**2026-05-27 update** (post-v1.6.0 assessment; see `.planning/threads/2026-05-27-next-milestone-assessment.md`):
+
+**Shipped since initial review (2026-05-21):**
+
+- Tenancy helpers and validation (v1.1.0)
+- Lifecycle hygiene and ownership (v1.2.0)
+- Adopter truth and proof closure (v1.3.0)
+- Mounted companion proof reclosure (v1.4.0)
+- Guarded rollout foundations — hold/rollback, host-supplied guardrails (v1.5.0)
+- Reusable targeting deepening — impact previews, dependency truth, mounted workflows (v1.6.0)
+
+**Current gaps (important-but-narrow):**
+
+- Protected-environment audience governance by blast-radius threshold (GOV-01) — **recommended v1.7.0**
+- Automatic guarded rollout stage advancement (ROL-04) — queued v1.8.0
+- Quickstart/doc payload-first API truth — bundle into v1.7 verification
+- Richer host-supplied preview evidence (IMP-05) and draft presets (ADM-05) — later/defer
+
+**Rough done band:** ~87% for stated scope; finish 2–3 wedges then diminishing returns.
+
+**Note:** Body sections above (role inventory, gap matrix ranked 2026-05-21) are partially stale. Prefer this delta section and milestone archives for current truth until a full JTBD refresh is warranted.
+
+---
+
+<details>
+<summary>Initial review (2026-05-21, superseded by delta above)</summary>
+
 Initial version created after `v1.0.0` shipped on 2026-05-21.
 
-Current conclusion:
+Current conclusion at that time:
 
 - Rulestead already covers the core release-control chain well.
 - The biggest immediate JTBD gap is tenancy completion for real SaaS adopters.
 - The biggest broad post-GA product gap is lifecycle ownership and cleanup.
-- The most tempting but still later-stage gap is guarded rollouts with
-  automatic rollback.
+- The most tempting but still later-stage gap is guarded rollouts with automatic rollback.
+
+</details>

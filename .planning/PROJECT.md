@@ -15,10 +15,24 @@ Rulestead is a batteries-included, Elixir-native feature-flag and remote-config 
 - `v1.5.0` shipped on 2026-05-27 across Phases 49-52, adding host-owned guardrail signal contracts, fail-closed guarded rollout decisions, governed/audited hold or rollback behavior, mounted guardrail explanation surfaces, and bounded proof/docs truth without turning Rulestead into an observability product.
 - `v1.6.0` shipped on 2026-05-27 across Phases 53-56, deepening reusable audience targeting with impact previews, dependency inventory and fail-closed validation, mounted preview-confirm-audit workflows, explain trace carry-through, and bounded proof/docs/support truth without widening the sibling-package release model.
 
-## Next Milestone Goals
+## Current Milestone: v1.7.0 Blast-Radius Governance
 
-- Select the next milestone via `/gsd-new-milestone` after audit and roadmap review.
-- Candidate themes from deferred items include richer host-supplied preview evidence (`IMP-05`), blast-radius governance (`GOV-01`), and automatic guarded rollout advancement (`ROL-04`).
+**Goal:** Close the reusable-targeting safety arc by routing high-blast-radius protected-environment audience edits through governed change requests after v1.6 preview and dependency truth are proven.
+
+**Target features:**
+- Blast-radius threshold contract over preview/dependency payloads (GOV-01)
+- Change-request integration for audience mutations in protected environments
+- Mounted proposal/approval workflows with audit evidence
+- Quickstart/doc support truth bundled in verification (payload-first evaluation API)
+
+**Queued after v1.7:** `v1.8.0` guarded rollout auto-advance (ROL-04); defer `ADM-05` presets.
+
+<details>
+<summary>Assessment: 2026-05-27 next-milestone review (87% done band)</summary>
+
+See [`.planning/threads/2026-05-27-next-milestone-assessment.md`](/Users/jon/projects/rulestead/.planning/threads/2026-05-27-next-milestone-assessment.md) for adopter-facing evidence, ranking, and open investigations.
+
+</details>
 
 <details>
 <summary>Previous milestone: v1.6.0 Reusable Targeting Deepening (shipped 2026-05-27)</summary>
@@ -74,7 +88,7 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 
 ### Active
 
-(None — start fresh requirements with `/gsd-new-milestone`)
+(None — v1.7.0 requirements defined in `.planning/REQUIREMENTS.md`)
 
 ### Validated
 
@@ -163,6 +177,7 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 | Ship guarded rollout foundations as host-owned, fail-closed, and mounted-workflow bounded | Keeps rollout safety useful without turning Rulestead into an observability product, standalone control plane, or time-based routing engine. | Validated |
 | Activate `v1.6.0` as reusable targeting deepening instead of adding a new targeting primitive | Reusable audiences are already shipped; the highest-leverage next work is blast-radius safety, dependency visibility, and explainability for existing audience reuse. | Validated |
 | Keep reusable targeting previews authored-state and explicit-sample based | Preserves deterministic evaluation, host-owned identity/observability truth, and honest support claims while still giving operators useful impact evidence. | Validated |
+| Activate `v1.7.0` as blast-radius governance after v1.6 reusable targeting deepening | v1.6 made blast radius visible; protected-environment audience edits still need threshold-based change-request routing before auto-advance rollouts or preset ergonomics. | Active |
 
 ## Milestone Archives
 
@@ -198,4 +213,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-27 after v1.6.0 milestone*
+*Last updated: 2026-05-27 after v1.7.0 milestone assessment*
