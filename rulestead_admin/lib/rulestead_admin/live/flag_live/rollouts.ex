@@ -65,6 +65,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
      |> assign(:auto_advance_approval_requirement, nil)
      |> assign(:auto_advance_can_save?, false)
      |> assign(:auto_advance_capability_denied_reason, nil)
+     |> assign(:auto_advance_form_error, nil)
      |> assign(:confirm_reason, "")
      |> assign(:confirmation_required?, false)
      |> assign(:editable?, false)
@@ -162,6 +163,60 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
      |> assign(:confirm_reason, "")
      |> assign(:status_message, nil)
      |> assign(:error_message, nil)}
+  end
+
+  def handle_event("validate_auto_advance", %{"auto_advance" => params}, socket) do
+    attrs = parse_auto_advance_params(params)
+
+    error =
+      case validate_auto_advance_policy(attrs) do
+        :ok -> nil
+        {:error, msg} -> msg
+      end
+
+    {:noreply, assign(socket, :auto_advance_form_error, error)}
+  end
+
+  def handle_event("save_auto_advance_policy", %{"auto_advance" => params}, socket) do
+    attrs =
+      params
+      |> parse_auto_advance_params()
+      |> ensure_auto_advance_rule_key(socket.assigns.rollout_rule_key)
+
+    flag_key = socket.assigns.flag_key
+    env = socket.assigns.current_environment.key
+
+    with :ok <- authorize_advance_rollout(socket),
+         :ok <- validate_auto_advance_policy(attrs),
+         {:ok, _} <-
+           Rulestead.upsert_rollout_auto_advance_policy(flag_key, env, attrs,
+             actor: socket.assigns.current_actor,
+             reason: params["reason"] || "Auto-advance policy updated from rollouts page",
+             metadata:
+               command_metadata(socket, "rollouts.save_auto_advance_policy", %{
+                 enabled: attrs.enabled,
+                 observation_window_seconds: attrs.observation_window_seconds,
+                 next_stage: attrs.next_stage,
+                 next_percentage: attrs.next_percentage
+               })
+           ) do
+      {:noreply,
+       socket
+       |> assign(:status_message, "Auto-advance policy saved.")
+       |> assign(:auto_advance_form_error, nil)
+       |> assign(:error_message, nil)
+       |> load_page(flag_key, env)}
+    else
+      {:error, :unauthorized} ->
+        {:noreply,
+         assign(socket, :error_message, "Advance permission required to configure auto-advance.")}
+
+      {:error, %Rulestead.Error{} = error} ->
+        {:noreply, assign(socket, :error_message, error.message)}
+
+      {:error, message} when is_binary(message) ->
+        {:noreply, assign(socket, :auto_advance_form_error, message)}
+    end
   end
 
   @impl true
@@ -270,6 +325,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
               approval_requirement={@auto_advance_approval_requirement}
               can_save?={@auto_advance_can_save?}
               capability_denied_reason={@auto_advance_capability_denied_reason}
+              form_error={@auto_advance_form_error}
+              rollout_rule_key={@rollout_rule_key}
               ladder_steps={@ladder_steps}
             />
 
@@ -448,6 +505,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
     |> assign(:auto_advance_approval_requirement, nil)
     |> assign(:auto_advance_can_save?, false)
     |> assign(:auto_advance_capability_denied_reason, nil)
+    |> assign(:auto_advance_form_error, nil)
   end
 
   defp assign_auto_advance_load(socket, flag_key, env, rollout_rule_key, definitions, guardrail_status) do
@@ -466,19 +524,21 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
       protected_callout? =
         Compare.protected_target?(env) or approval_requirement.change_request_required?
 
-      {can_save?, capability_denied_reason} =
+      {auth_ok?, capability_denied_reason} =
         case Authorizer.authorize(actor, :advance_rollout, resource, env) do
           :ok -> {true, nil}
           {:error, error, _} -> {false, format_capability_denied_reason(error)}
         end
 
+      mode =
+        derive_auto_advance_mode(definitions, guardrail_status, policy, scheduled_tick, now)
+
+      can_save? = auth_ok? and mode not in [:unavailable, :blocked_health]
+
       socket
       |> assign(:auto_advance_policy, policy)
       |> assign(:auto_advance_scheduled_tick, scheduled_tick)
-      |> assign(
-        :auto_advance_mode,
-        derive_auto_advance_mode(definitions, guardrail_status, policy, scheduled_tick, now)
-      )
+      |> assign(:auto_advance_mode, mode)
       |> assign(:auto_advance_protected_callout?, protected_callout?)
       |> assign(:auto_advance_approval_requirement, approval_requirement)
       |> assign(:auto_advance_can_save?, can_save?)
@@ -584,6 +644,92 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
       _ -> "Advance rollout is not permitted for this actor in this environment."
     end
   end
+
+  defp parse_auto_advance_params(params) do
+    enabled = params["enabled"] in ["true", true, "on"]
+
+    %{
+      rule_key: params["rule_key"],
+      enabled: enabled,
+      observation_window_seconds: parse_int(params["observation_window_seconds"]),
+      next_stage: blank_to_nil(params["next_stage"]),
+      next_percentage: parse_int(params["next_percentage"])
+    }
+  end
+
+  defp parse_int(nil), do: nil
+  defp parse_int(""), do: nil
+
+  defp parse_int(value) when is_binary(value) do
+    case Integer.parse(String.trim(value)) do
+      {parsed, _} -> parsed
+      :error -> nil
+    end
+  end
+
+  defp parse_int(value) when is_integer(value), do: value
+  defp parse_int(_), do: nil
+
+  defp blank_to_nil(nil), do: nil
+  defp blank_to_nil(""), do: nil
+
+  defp blank_to_nil(value) when is_binary(value) do
+    case String.trim(value) do
+      "" -> nil
+      trimmed -> trimmed
+    end
+  end
+
+  defp blank_to_nil(value), do: value
+
+  defp authorize_advance_rollout(socket) do
+    actor = socket.assigns.current_actor
+    env = socket.assigns.current_environment.key
+    resource = %{resource_type: "flag", resource_key: socket.assigns.flag_key}
+
+    case Authorizer.authorize(actor, :advance_rollout, resource, env) do
+      :ok -> :ok
+      {:error, _, _} -> {:error, :unauthorized}
+    end
+  end
+
+  defp ensure_auto_advance_rule_key(attrs, rollout_rule_key) do
+    if blank?(attrs.rule_key) and is_binary(rollout_rule_key) and rollout_rule_key != "" do
+      Map.put(attrs, :rule_key, rollout_rule_key)
+    else
+      attrs
+    end
+  end
+
+  defp validate_auto_advance_policy(%{enabled: false}), do: :ok
+  defp validate_auto_advance_policy(%{enabled: nil}), do: :ok
+
+  defp validate_auto_advance_policy(attrs) do
+    cond do
+      not positive_int?(attrs.observation_window_seconds) ->
+        {:error, "Observation window must be greater than zero when auto-advance is enabled."}
+
+      blank?(attrs.next_stage) ->
+        {:error, "Next stage is required when auto-advance is enabled."}
+
+      not percentage_in_range?(attrs.next_percentage) ->
+        {:error, "Next percentage must be between 0 and 100 when auto-advance is enabled."}
+
+      true ->
+        :ok
+    end
+  end
+
+  defp positive_int?(value) when is_integer(value) and value > 0, do: true
+  defp positive_int?(_), do: false
+
+  defp percentage_in_range?(value) when is_integer(value) and value >= 0 and value <= 100, do: true
+  defp percentage_in_range?(_), do: false
+
+  defp blank?(nil), do: true
+  defp blank?(""), do: true
+  defp blank?(value) when is_binary(value), do: String.trim(value) == ""
+  defp blank?(_), do: false
 
   defp load_guardrail_interventions(flag_key, env, actor) do
     case Rulestead.list_audit_events(flag_key: flag_key, environment_key: env, actor: actor) do
