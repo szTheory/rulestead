@@ -2,6 +2,7 @@
 defmodule Rulestead.Store.EctoAudienceImpactContractTest do
   use ExUnit.Case, async: false
 
+  import Ecto.Query
   import Rulestead.StoreFixtures
 
   alias Rulestead.{
@@ -13,6 +14,7 @@ defmodule Rulestead.Store.EctoAudienceImpactContractTest do
     Repo,
     Ruleset,
     RuntimeSnapshot,
+    Runtime.Snapshot,
     Store.Command,
     Targeting.ImpactPreview
   }
@@ -87,6 +89,13 @@ defmodule Rulestead.Store.EctoAudienceImpactContractTest do
              "conditions" => [%{"attribute" => "plan", "operator" => "eq", "value" => "pro"}]
            }
 
+    assert {:ok, compiled} = Snapshot.compile(latest_snapshot!("test"))
+    assert compiled.version == 2
+    assert compiled.audience_keys == ["vip-users"]
+    assert compiled.audiences["vip-users"].definition == %{
+             "conditions" => [%{"attribute" => "plan", "operator" => "eq", "value" => "pro"}]
+           }
+
     {:ok, archive_preview} =
       EctoStore.preview_audience_impact(
         Command.PreviewAudienceImpact.new("vip-users", :archive,
@@ -113,6 +122,24 @@ defmodule Rulestead.Store.EctoAudienceImpactContractTest do
     assert archive_result.operation == "archive"
     assert archive_result.snapshot_version == 3
     assert %DateTime{} = Repo.get_by!(Audience, key: "vip-users").archived_at
+
+    assert {:ok, archived_compiled} = Snapshot.compile(latest_snapshot!("test"))
+    assert archived_compiled.version == 3
+    assert archived_compiled.audience_keys == []
+  end
+
+  test "published Ecto runtime snapshot payload includes non-archived audiences" do
+    snapshot = latest_snapshot!("test")
+    payload = :erlang.binary_to_term(snapshot.payload)
+
+    assert Map.has_key?(payload, :audiences)
+    assert payload.audiences["vip-users"].definition == %{
+             "conditions" => [%{"attribute" => "plan", "operator" => "eq", "value" => "enterprise"}]
+           }
+
+    assert {:ok, compiled} = Snapshot.compile(snapshot)
+    assert compiled.audience_keys == ["vip-users"]
+    assert Map.has_key?(compiled.flags["checkout-redesign"].flag_payload, :audiences)
   end
 
   test "apply fail-closed cases leave audience unchanged" do
@@ -239,6 +266,15 @@ defmodule Rulestead.Store.EctoAudienceImpactContractTest do
     Enum.each(default_environments(), fn attrs ->
       %Environment{} |> Environment.changeset(attrs) |> Repo.insert!()
     end)
+  end
+
+  defp latest_snapshot!(environment_key) do
+    RuntimeSnapshot
+    |> where([snapshot], snapshot.environment_key == ^environment_key)
+    |> order_by([snapshot], desc: snapshot.version)
+    |> limit(1)
+    |> Repo.one!()
+    |> Map.from_struct()
   end
 
   defp checkout_repo do
