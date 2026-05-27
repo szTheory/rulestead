@@ -57,4 +57,29 @@ defmodule RulesteadAdmin.RouterTest do
     assert :binary.match(rendered, "\"/schedule\"") < :binary.match(rendered, "\"/:key\"")
     assert :binary.match(rendered, "\"/webhooks\"") < :binary.match(rendered, "\"/:key\"")
   end
+
+  test "live_session only carries mounted admin session keys" do
+    conn =
+      Phoenix.ConnTest.build_conn()
+      |> Phoenix.ConnTest.init_test_session(%{
+        "current_actor" => %{id: 7, email: "priya@example.com"},
+        "rulestead_admin_environments" => [%{"key" => "prod", "name" => "Production"}],
+        "rulestead_admin_last_env" => "prod",
+        "rulestead_admin_tenants" => [%{"key" => "acme", "name" => "Acme"}],
+        "rulestead_admin_last_tenant" => "acme",
+        "rulestead_admin_default_tenant" => "acme",
+        "host_session_token" => "secret-token",
+        "return_to" => "/internal"
+      })
+
+    session = RulesteadAdmin.Router.live_session(conn, "/admin/flags", RulesteadAdmin.TestPolicy)
+
+    assert session["current_actor"] == %{id: 7, email: "priya@example.com"}
+    assert session["rulestead_admin_last_env"] == "prod"
+    assert session["rulestead_admin_last_tenant"] == "acme"
+    assert session["policy"] == RulesteadAdmin.TestPolicy
+    assert session["mount_path"] == "/admin/flags"
+    refute Map.has_key?(session, "host_session_token")
+    refute Map.has_key?(session, "return_to")
+  end
 end

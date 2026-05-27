@@ -46,8 +46,17 @@ defmodule RulesteadAdmin.Router do
   end
 
   def live_session(conn, path, policy) do
-    conn
-    |> Plug.Conn.get_session()
+    session = Plug.Conn.get_session(conn)
+
+    session
+    |> Map.take([
+      "current_actor",
+      "rulestead_admin_environments",
+      "rulestead_admin_last_env",
+      "rulestead_admin_tenants",
+      "rulestead_admin_last_tenant",
+      "rulestead_admin_default_tenant"
+    ])
     |> Map.merge(%{
       "policy" => policy,
       "mount_path" => path
