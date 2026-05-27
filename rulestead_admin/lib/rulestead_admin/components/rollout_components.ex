@@ -214,4 +214,163 @@ defmodule RulesteadAdmin.Components.RolloutComponents do
   defp missing_status_body(_reason) do
     "This rollout stage has guardrail definitions, but no evaluated decision has been recorded for this environment yet. Wire the host signal provider or run the guarded evaluation before treating the stage as healthy."
   end
+
+  attr(:mode, :atom,
+    required: true,
+    values: [:unavailable, :blocked_health, :config_incomplete, :ready, :pending_observation, :scheduled]
+  )
+
+  attr(:policy, :map, default: nil)
+  attr(:guardrail_status, :map, default: nil)
+  attr(:guardrail_definitions, :list, default: [])
+  attr(:scheduled_tick, :map, default: nil)
+  attr(:protected_callout?, :boolean, default: false)
+  attr(:approval_requirement, :map, default: nil)
+  attr(:can_save?, :boolean, default: false)
+  attr(:capability_denied_reason, :string, default: nil)
+  attr(:ladder_steps, :list, default: [])
+
+  def auto_advance_panel(assigns) do
+    assigns =
+      assigns
+      |> assign(:policy_enabled, policy_enabled?(assigns.policy))
+      |> assign(:form_disabled, form_disabled?(assigns))
+
+    ~H"""
+    <section class="rs-card" aria-label="Auto-advance">
+      <h2>Auto-advance</h2>
+
+      <p role="status"><%= mode_body(@mode, @guardrail_status, @scheduled_tick) %></p>
+
+      <div :if={@protected_callout?} class="rs-auto-advance-protected-callout">
+        <p>
+          When eligible, advancement submits a change request for approval — it will not auto-apply in this environment.
+        </p>
+      </div>
+
+      <form
+        id="auto-advance-policy-form"
+        aria-label="Auto-advance policy form"
+        phx-submit="save_auto_advance_policy"
+        phx-change="validate_auto_advance"
+      >
+        <label>
+          <input
+            type="checkbox"
+            name="auto_advance[enabled]"
+            value="true"
+            checked={@policy_enabled}
+            disabled={@form_disabled}
+          />
+          Enable auto-advance for this rollout stage
+        </label>
+
+        <label>
+          Observation window (seconds)
+          <input
+            type="number"
+            name="auto_advance[observation_window_seconds]"
+            min="1"
+            value={policy_field(@policy, :observation_window_seconds)}
+            disabled={@form_disabled}
+          />
+        </label>
+
+        <label>
+          Next stage
+          <input
+            type="text"
+            name="auto_advance[next_stage]"
+            value={policy_field(@policy, :next_stage)}
+            disabled={@form_disabled}
+          />
+        </label>
+
+        <label>
+          Next percentage
+          <input
+            type="number"
+            name="auto_advance[next_percentage]"
+            min="0"
+            max="100"
+            value={policy_field(@policy, :next_percentage)}
+            disabled={@form_disabled}
+          />
+        </label>
+      </form>
+
+      <p :if={@ladder_steps != []}>
+        Recommendations stay advisory; next stage and percentage are operator-authored.
+        Suggested ladder: <%= Enum.join(@ladder_steps, ", ") %>%.
+      </p>
+
+      <div
+        :if={!@can_save? && @capability_denied_reason}
+        class="rs-auto-advance-capability-slot"
+        data-capability-denied={to_string(!@can_save?)}
+      >
+      </div>
+    </section>
+    """
+  end
+
+  defp form_disabled?(assigns) do
+    assigns.mode in [:unavailable, :blocked_health] or not assigns.can_save?
+  end
+
+  defp policy_enabled?(nil), do: false
+
+  defp policy_enabled?(policy) do
+    Map.get(policy, :enabled) == true or Map.get(policy, "enabled") == true
+  end
+
+  defp policy_field(nil, _key), do: ""
+
+  defp policy_field(policy, key) do
+    case Map.get(policy, key) || Map.get(policy, to_string(key)) do
+      nil -> ""
+      value -> to_string(value)
+    end
+  end
+
+  defp mode_body(:unavailable, _status, _tick) do
+    "Wire guardrails on this rollout rule before enabling auto-advance."
+  end
+
+  defp mode_body(:blocked_health, %{state: state}, _tick) when not is_nil(state) do
+    state_body(state)
+  end
+
+  defp mode_body(:blocked_health, _status, _tick) do
+    state_body(:held)
+  end
+
+  defp mode_body(:config_incomplete, _status, _tick) do
+    "Enabling auto-advance requires an observation window, next stage, and next percentage."
+  end
+
+  defp mode_body(:ready, _status, _tick) do
+    "Auto-advance is configured. Advancement runs when guardrail evidence is valid at window close."
+  end
+
+  defp mode_body(:pending_observation, %{window_ends_at: window_ends_at}, _tick)
+       when not is_nil(window_ends_at) do
+    "Observation window open until #{window_ends_at}. Auto-advance evaluates at window close."
+  end
+
+  defp mode_body(:pending_observation, _status, _tick) do
+    "Observation window is open. Auto-advance evaluates at window close."
+  end
+
+  defp mode_body(:scheduled, _status, %{scheduled_for: scheduled_for}) when not is_nil(scheduled_for) do
+    "Advance scheduled for #{scheduled_for} if guardrails remain healthy."
+  end
+
+  defp mode_body(:scheduled, _status, _tick) do
+    "Advance is scheduled if guardrails remain healthy."
+  end
+
+  defp mode_body(_mode, _status, _tick) do
+    "Auto-advance status is unavailable for this rollout stage."
+  end
 end
