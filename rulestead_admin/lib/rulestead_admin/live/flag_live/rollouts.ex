@@ -633,8 +633,14 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
 
   defp auto_advance_now do
     case Application.get_env(:rulestead, :admin_lifecycle) do
-      %{now: %DateTime{} = now} -> now
-      _ -> DateTime.utc_now()
+      %{now: %DateTime{} = now} ->
+        now
+
+      _ ->
+        case Application.get_env(:rulestead, :store) do
+          Rulestead.Fake -> Rulestead.Fake.Control.now!()
+          _ -> DateTime.utc_now()
+        end
     end
   end
 

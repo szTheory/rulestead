@@ -275,6 +275,7 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
     assert html =~ "Open full timeline"
   end
 
+  @tag :auto_advance
   @tag :auto_advance_label
   test "rollout intervention excerpt labels automatic rollout advance", %{conn: conn} do
     seed_auto_advance_intervention!()
@@ -286,6 +287,7 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
     assert html =~ "Automatic"
   end
 
+  @tag :auto_advance
   @tag :auto_advance_panel
   @tag :auto_advance_load
   test "rollout page renders auto-advance panel with unavailable mode when no guardrails", %{
@@ -298,9 +300,12 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
     assert html =~ "Auto-advance"
     assert html =~ "Wire guardrails on this rollout rule before enabling auto-advance."
     refute html =~ "fleet healthy"
+    refute html =~ "all signals green"
     refute html =~ "metrics dashboard"
+    refute html =~ ~r/phx-submit="save_auto_advance_policy"/
   end
 
+  @tag :auto_advance
   @tag :auto_advance_capability
   test "rollout page hides auto-advance save form when advance_rollout is denied", %{conn: conn} do
     Application.put_env(:rulestead, :admin_policy, DenyAdvanceRolloutPolicy)
@@ -327,6 +332,7 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
     refute html =~ ~r/phx-submit="save_auto_advance_policy"/
   end
 
+  @tag :auto_advance
   @tag :auto_advance_protected
   test "protected environment shows change-request callout and still saves auto-advance policy",
        %{conn: conn} do
@@ -366,6 +372,7 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
     assert policy.next_percentage == 50
   end
 
+  @tag :auto_advance
   @tag :auto_advance_save
   test "rollout page saves auto-advance policy via direct upsert", %{conn: conn} do
     seed_healthy_guardrail!()
@@ -404,10 +411,9 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
     assert policy.next_percentage == 50
   end
 
-  @tag :auto_advance_load
-  test "rollout page renders auto-advance panel with blocked health copy when guardrails held", %{
-    conn: conn
-  } do
+  @tag :auto_advance
+  @tag :auto_advance_blocked
+  test "rollout page blocks auto-advance save when guardrail health is held", %{conn: conn} do
     seed_guardrail_hold!()
 
     {:ok, _view, html} = live(conn, "/admin/flags/checkout-redesign/rollouts?env=prod")
@@ -415,6 +421,67 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
     assert html =~ "Auto-advance"
     assert html =~ "Guardrail automation held this rollout fail-closed"
     refute html =~ "fleet healthy"
+    refute html =~ "all signals green"
+    refute html =~ "metrics dashboard"
+    refute html =~ ~r/phx-submit="save_auto_advance_policy"/
+  end
+
+  @tag :auto_advance
+  @tag :auto_advance_pending
+  test "rollout page shows pending observation window copy when window is open", %{conn: conn} do
+    now = ~U[2026-04-23 16:00:00Z]
+    window_ends_at = ~U[2026-04-23 16:30:00Z]
+
+    Control.set_now!(now)
+
+    Application.put_env(:rulestead, :admin_lifecycle,
+      warning_after_seconds: 1_800,
+      stale_after_seconds: 3_600,
+      now: now
+    )
+
+    seed_auto_advance_pending_window!(window_ends_at)
+
+    {:ok, _view, html} = live(conn, "/admin/flags/checkout-redesign/rollouts?env=prod")
+
+    assert html =~ "Observation window open until"
+    assert html =~ to_string(window_ends_at)
+    refute html =~ "fleet healthy"
+    refute html =~ "all signals green"
+    refute html =~ "metrics dashboard"
+  end
+
+  @tag :auto_advance
+  @tag :auto_advance_scheduled
+  test "rollout page shows scheduled auto-advance tick copy", %{conn: conn} do
+    now = ~U[2026-04-23 16:00:00Z]
+    Control.set_now!(now)
+
+    Application.put_env(:rulestead, :admin_lifecycle,
+      warning_after_seconds: 1_800,
+      stale_after_seconds: 3_600,
+      now: now
+    )
+
+    %{scheduled_for: scheduled_for} = seed_auto_advance_scheduled_tick!()
+
+    {:ok, page} =
+      Rulestead.list_scheduled_executions(
+        resource_key: "checkout-redesign",
+        environment_key: "prod",
+        action: :advance_rollout,
+        state: "scheduled",
+        limit: 10
+      )
+
+    assert length(automation_ticks(page.entries)) == 1
+
+    {:ok, _view, html} = live(conn, "/admin/flags/checkout-redesign/rollouts?env=prod")
+
+    assert html =~ "Advance scheduled for"
+    assert html =~ to_string(scheduled_for)
+    refute html =~ "fleet healthy"
+    refute html =~ "all signals green"
     refute html =~ "metrics dashboard"
   end
 
@@ -741,6 +808,107 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
              Rulestead.publish_ruleset(Command.PublishRuleset.new(flag_key, environment_key))
   end
 
+  defp seed_auto_advance_pending_window!(window_ends_at) do
+    seed_auto_advance_policy!(true)
+    window_started_at = DateTime.add(window_ends_at, -300, :second)
+
+    assert {:ok, _status} =
+             Rulestead.evaluate_guarded_rollout(
+               "checkout-redesign",
+               "prod",
+               %{
+                 rule_key: "checkout-canary",
+                 stage: "canary-25",
+                 monitoring_window_started_at: window_started_at,
+                 monitoring_window_ends_at: window_ends_at,
+                 signal_facts: [
+                   %{
+                     signal_key: "checkout_error_rate",
+                     status: :healthy,
+                     reason: :healthy,
+                     threshold_operator: :gte,
+                     threshold_value: 0.05,
+                     observed_value: 0.01,
+                     freshness_window_seconds: 300,
+                     sample_size: 100,
+                     min_sample_size: 100,
+                     evaluated_at: DateTime.add(window_ends_at, -60, :second),
+                     metadata: %{}
+                   }
+                 ]
+               },
+               metadata: %{request_id: "req-rollouts-pending-window", source: :guardrail_automation}
+             )
+  end
+
+  defp seed_auto_advance_scheduled_tick! do
+    seed_auto_advance_policy!(true)
+
+    window_started_at = ~U[2026-04-23 15:55:00Z]
+    window_ends_at = ~U[2026-04-23 16:05:00Z]
+
+    assert {:ok, _advanced} =
+             Rulestead.advance_rollout(
+               "checkout-redesign",
+               "prod",
+               %{
+                 rule_key: "checkout-canary",
+                 stage: "canary-25",
+                 percentage: 25,
+                 monitoring_window_started_at: window_started_at,
+                 monitoring_window_ends_at: window_ends_at
+               },
+               metadata: %{request_id: "req-rollouts-scheduled-tick", source: :admin_ui}
+             )
+
+    assert {:ok, _status} =
+             Rulestead.evaluate_guarded_rollout(
+               "checkout-redesign",
+               "prod",
+               %{
+                 rule_key: "checkout-canary",
+                 stage: "canary-25",
+                 monitoring_window_started_at: window_started_at,
+                 monitoring_window_ends_at: window_ends_at,
+                 signal_facts: [
+                   %{
+                     signal_key: "checkout_error_rate",
+                     status: :healthy,
+                     reason: :healthy,
+                     threshold_operator: :gte,
+                     threshold_value: 0.05,
+                     observed_value: 0.01,
+                     freshness_window_seconds: 300,
+                     sample_size: 100,
+                     min_sample_size: 100,
+                     evaluated_at: ~U[2026-04-23 16:00:00Z],
+                     metadata: %{}
+                   }
+                 ]
+               },
+               metadata: %{request_id: "req-rollouts-scheduled-healthy", source: :guardrail_automation}
+             )
+
+    {:ok, page} =
+      Rulestead.list_scheduled_executions(
+        resource_key: "checkout-redesign",
+        environment_key: "prod",
+        action: :advance_rollout,
+        state: "scheduled",
+        limit: 10
+      )
+
+    tick =
+      Enum.find(page.entries, fn entry ->
+        metadata = Map.get(entry, :metadata) || %{}
+        source = metadata["source"] || metadata[:source]
+        source in ["guardrail_automation", :guardrail_automation]
+      end)
+
+    assert %{} = tick
+    %{scheduled_for: tick.scheduled_for}
+  end
+
   defp seed_auto_advance_policy!(enabled \\ true, overrides \\ []) do
     attrs =
       Map.merge(
@@ -872,6 +1040,14 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
                },
                metadata: %{request_id: "req-guardrail-held", source: :guardrail_automation}
              )
+  end
+
+  defp automation_ticks(entries) do
+    Enum.filter(entries, fn entry ->
+      metadata = Map.get(entry, :metadata) || %{}
+      source = metadata["source"] || metadata[:source]
+      source in ["guardrail_automation", :guardrail_automation]
+    end)
   end
 
   defp ensure_environment!(key, name) do
