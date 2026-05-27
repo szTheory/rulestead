@@ -106,6 +106,7 @@ defmodule RulesteadAdmin.Live.FlagLive.TimelineTest do
     assert html =~ "Show raw detail"
   end
 
+  @tag :auto_advance
   @tag :auto_advance_redaction
   test "timeline redacts auto-advance provider secrets but keeps allowed context", %{conn: conn} do
     seed_auto_advance_audit_with_secret!()
@@ -118,6 +119,7 @@ defmodule RulesteadAdmin.Live.FlagLive.TimelineTest do
     assert html =~ "observation window closed"
   end
 
+  @tag :auto_advance
   @tag :auto_advance_label
   test "timeline distinguishes automatic rollout advance from manual rollout actions", %{
     conn: conn
@@ -126,10 +128,12 @@ defmodule RulesteadAdmin.Live.FlagLive.TimelineTest do
 
     {:ok, _view, html} = live(conn, "/admin/flags/checkout-redesign/timeline?env=prod")
 
+    assert html =~ "Automatic guardrail hold"
     assert html =~ "Automatic rollout advance"
     assert html =~ "Automatic"
     assert html =~ "source guardrail_automation"
     assert html =~ "Manual rollout action"
+    refute html =~ "provider-secret-timeline"
   end
 
   test "timeline distinguishes automatic guardrail events from manual rollout actions", %{
@@ -320,6 +324,21 @@ defmodule RulesteadAdmin.Live.FlagLive.TimelineTest do
               next_percentage: 55,
               observation_window_seconds: 300
             }
+          },
+          context: %{
+            eligibility: %{
+              policy_snapshot: %{
+                next_stage: "canary-55",
+                next_percentage: 55,
+                observation_window_seconds: 300
+              }
+            },
+            observation_window_started_at: "2026-04-23T15:51:00Z",
+            observation_window_ends_at: "2026-04-23T15:56:00Z"
+          },
+          guardrail: %{
+            provider: "provider-secret-timeline",
+            signal_key: "checkout_error_rate"
           }
         }
       )
