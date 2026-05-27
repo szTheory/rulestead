@@ -177,14 +177,25 @@ defmodule Rulestead.Targeting.ImpactPreview do
 
   defp reference_sort_key(reference), do: Map.get(reference, :reference_key, "")
 
-  defp normalize_output_value(value) when is_map(value), do: atomize_keys(value)
+  defp normalize_output_value(value) when is_map(value), do: preserve_nested_map(value)
   defp normalize_output_value(value) when is_list(value), do: Enum.map(value, &normalize_output_value/1)
   defp normalize_output_value(value) when is_binary(value), do: normalize_string(value)
   defp normalize_output_value(value), do: value
 
   defp atomize_keys(map) when is_map(map) do
     Map.new(map, fn {key, value} ->
-      {normalize_output_key(key), normalize_output_value(value)}
+      {normalize_output_key(key), atomize_value(value)}
+    end)
+  end
+
+  defp atomize_value(value) when is_map(value), do: atomize_keys(value)
+  defp atomize_value(value) when is_list(value), do: Enum.map(value, &atomize_value/1)
+  defp atomize_value(value) when is_binary(value), do: normalize_string(value)
+  defp atomize_value(value), do: value
+
+  defp preserve_nested_map(map) do
+    Map.new(map, fn {key, value} ->
+      {key, normalize_output_value(value)}
     end)
   end
 
