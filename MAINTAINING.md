@@ -169,6 +169,10 @@ RULESTEAD_TEST_SCOPE=mounted_admin_contract bash scripts/ci/test.sh
 
 That scope is intentionally bounded to:
 
+- `rulestead_admin/test/rulestead_admin/components/audience_components_test.exs`
+- `rulestead_admin/test/rulestead_admin/live/audience_live/edit_preview_test.exs`
+- `rulestead_admin/test/rulestead_admin/live/audience_live/archive_preview_test.exs`
+- `rulestead_admin/test/rulestead_admin/live/audience_live/delete_preview_test.exs`
 - `rulestead_admin/test/rulestead_admin/live/session_test.exs`
 - `rulestead_admin/test/rulestead_admin/live/flag_live/index_test.exs`
 - `rulestead_admin/test/rulestead_admin/live/flag_live/cleanup_test.exs`
@@ -182,6 +186,12 @@ CI exposes the same command through the path-gated `mounted companion proof`
 job in `.github/workflows/ci.yml`. It is visible by name so maintainers can
 cite it directly, and `release_gate` treats that job as required whenever
 mounted-proof-relevant paths change.
+
+Audience preview evidence tests configure
+`Application.put_env(:rulestead, :preview_evidence_resolver, Rulestead.Fake.PreviewEvidenceResolver)`
+in the edit, archive, and delete preview LiveView tests above. They prove mounted
+surfaces render bounded sample/impression evidence without observability-product
+copy regressions.
 
 Treat this proof bar as merge-blocking for mounted lifecycle and
 admin-contract changes. It is sufficient to claim the mounted lifecycle/admin
