@@ -2,17 +2,16 @@
 
 ## Milestones
 
-- **v1.8.0 - Guarded Rollout Auto-Advance** — Phases 61-64 (active)
+- ✅ **v1.8.0 - Guarded Rollout Auto-Advance** — Phases 61-64 (shipped 2026-05-27)
 - ✅ **v1.7.0 - Blast-Radius Governance** — Phases 57-60 (shipped 2026-05-27)
 - ✅ **v1.6.0 - Reusable Targeting Deepening** — Phases 53-56 (shipped 2026-05-27)
 - ✅ **v1.5.0 - Guarded Rollout Foundations** — Phases 49-52 (shipped 2026-05-27)
 
 ## Current Milestone
 
-- **v1.8.0 - Guarded Rollout Auto-Advance**: active as of 2026-05-27. Phases 61-64 complete the guarded rollout story by orchestrating governed stage advancement when host-supplied guardrails remain healthy for a configured observation window.
-
 ## Latest Shipped Milestone
 
+- **v1.8.0 - Guarded Rollout Auto-Advance**: shipped on 2026-05-27. Phases 61-64 deliver opt-in observation-window auto-advance with fail-closed guardrails, governed orchestration, mounted operator UX, and bounded proof/docs support truth.
 - **v1.7.0 - Blast-Radius Governance**: shipped on 2026-05-27. See [.planning/milestones/v1.7.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.7.0-ROADMAP.md) and [.planning/milestones/v1.7.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v1.7.0-REQUIREMENTS.md).
 
 ## Phases
@@ -25,7 +24,7 @@
 - [x] **Phase 61: Auto-Advance Authored Contract** - Core defines opt-in auto-advance policy, explicit next-stage plan metadata, and fail-closed evaluation semantics on top of v1.5 guardrails.
 - [x] **Phase 62: Orchestration And Governed Execution** - Observation-window ticks schedule guardrail evaluation and governed `advance_rollout` with idempotency and protected-env parity. (completed 2026-05-27)
 - [x] **Phase 63: Mounted Auto-Advance Workflows** - Mounted admin exposes toggle, pending observation, and automation-vs-manual timeline distinction inside the existing rollout envelope. (completed 2026-05-27)
-- [ ] **Phase 64: Proof, Docs, And Support Truth** - Verification, host seam docs, and release-contract truth close bounded auto-advance support claims.
+- [x] **Phase 64: Proof, Docs, And Support Truth** - Verification, host seam docs, and release-contract truth close bounded auto-advance support claims. (completed 2026-05-27)
 
 ## Phase Details
 
@@ -83,7 +82,7 @@
 3. Release-contract and public docs allow bounded auto-advance claims only where implemented and retain forbidden overclaim phrases for observability and time-based rollout.
 4. Linked-version sibling-package release model and mounted-admin posture remain unchanged.
 
-**Plans**: 4 plans (typical)
+**Plans**: 4 plans
 
 ## Progress
 
@@ -92,7 +91,7 @@
 | 61. Auto-Advance Authored Contract | v1.8.0 | 4/4 | Complete    | 2026-05-27 |
 | 62. Orchestration And Governed Execution | v1.8.0 | 4/4 | Complete    | 2026-05-27 |
 | 63. Mounted Auto-Advance Workflows | v1.8.0 | 4/4 | Complete    | 2026-05-27 |
-| 64. Proof, Docs, And Support Truth | v1.8.0 | 0/4 | Not started | — |
+| 64. Proof, Docs, And Support Truth | v1.8.0 | 4/4 | Complete    | 2026-05-27 |
 
 <details>
 <summary>✅ v1.7.0 Blast-Radius Governance (Phases 57-60) — SHIPPED 2026-05-27</summary>

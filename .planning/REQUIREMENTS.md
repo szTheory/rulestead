@@ -29,8 +29,8 @@
 ### Verification And Support Truth (`VER`)
 
 - [x] **VER-01**: Repo-local proof covers healthy auto-advance, fail-closed non-advance, protected-env governance parity, idempotency races, and stale-signal behavior (`mix verify.phase64` or extended guarded-rollout proof scope).
-- [ ] **VER-02**: Public docs, host-app integration seam subsection, and release-contract checks describe bounded auto-advance scope, observation-window semantics, and host-owned metrics responsibilities.
-- [ ] **VER-03**: Support truth preserves the linked-version sibling-package model; release-contract allows bounded auto-advance claims only where implemented and keeps forbidden overclaim phrases.
+- [x] **VER-02**: Public docs, host-app integration seam subsection, and release-contract checks describe bounded auto-advance scope, observation-window semantics, and host-owned metrics responsibilities.
+- [x] **VER-03**: Support truth preserves the linked-version sibling-package model; release-contract allows bounded auto-advance claims only where implemented and keeps forbidden overclaim phrases.
 
 ## Future Requirements
 
@@ -103,8 +103,8 @@
 | ADM-04 | Phase 63 | Complete |
 | AUD-04 | Phase 63 | Complete |
 | VER-01 | Phase 64 | Complete |
-| VER-02 | Phase 64 | Pending |
-| VER-03 | Phase 64 | Pending |
+| VER-02 | Phase 64 | Complete |
+| VER-03 | Phase 64 | Complete |
 
 **Coverage:**
 
@@ -114,4 +114,4 @@
 
 ---
 *Requirements defined: 2026-05-27*
-*Last updated: 2026-05-27 after roadmap creation*
+*Last updated: 2026-05-27 after Phase 64 completion*
