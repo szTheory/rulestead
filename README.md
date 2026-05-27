@@ -198,6 +198,17 @@ The repo's current proof posture is intentionally bounded:
   companion presents core truth — not a standalone admin product.
 - `RULESTEAD_TEST_SCOPE=blast_radius_governance bash scripts/ci/test.sh`
   reruns the v1.7 blast radius governance proof bar in CI.
+- **Guarded rollout auto-advance (v1.8):** `cd rulestead && mix verify.phase64`
+  proves opt-in per-rollout auto-advance policy with **observation window** and
+  **authored next-stage plan**, healthy scheduled-tick advance, fail-closed
+  non-advance on weak or stale signals, protected-environment **change request**
+  routing at tick execute, idempotency under concurrent manual advance, and
+  mounted admin presentation of pending observation state. Timeline entries
+  distinguish **`guardrail_automation`** from manual actions. Metrics and signal
+  facts remain **host-owned**; Rulestead evaluates normalized facts only — not a
+  package-owned observability stack or metrics product.
+- `RULESTEAD_TEST_SCOPE=guarded_rollout_auto_advance bash scripts/ci/test.sh`
+  reruns the v1.8 guarded rollout auto-advance proof bar in CI.
 - `RULESTEAD_TEST_SCOPE=openfeature_companion bash scripts/ci/test.sh` proves the
   optional `open_feature_rulestead` companion package's Elixir provider contract:
   `context_mapper_test` and `provider_test`.

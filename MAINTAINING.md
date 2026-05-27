@@ -169,7 +169,7 @@ RULESTEAD_TEST_SCOPE=mounted_admin_contract bash scripts/ci/test.sh
 
 That scope is intentionally bounded to:
 
-- `rulestead_admin/test/rulestead_admin/live/flag_live/form_test.exs`
+- `rulestead_admin/test/rulestead_admin/live/session_test.exs`
 - `rulestead_admin/test/rulestead_admin/live/flag_live/index_test.exs`
 - `rulestead_admin/test/rulestead_admin/live/flag_live/cleanup_test.exs`
 - `rulestead_admin/test/rulestead_admin/live/flag_live/cleanup_preview_test.exs`
@@ -312,6 +312,48 @@ Upstream boundary contracts for this milestone:
 - `.planning/phases/57-blast-radius-threshold-contract/`
 - `.planning/phases/58-change-request-integration/`
 - `.planning/phases/59-mounted-governance-workflows/`
+
+## Guarded Rollout Auto-Advance Proof
+
+Use the guarded rollout auto-advance proof when work touches opt-in
+auto-advance policy, observation-window eligibility, scheduled-tick
+orchestration, mounted auto-advance panel presentation, or the root/package
+docs that describe v1.8 support truth (VER-01 for this milestone).
+
+Run the primary maintainer command:
+
+```bash
+cd rulestead && mix verify.phase64
+```
+
+Or rerun through the CI wrapper:
+
+```bash
+RULESTEAD_TEST_SCOPE=guarded_rollout_auto_advance bash scripts/ci/test.sh
+```
+
+That scope is intentionally bounded. It proves:
+
+- opt-in per-rollout auto-advance policy with observation window and authored
+  next-stage plan
+- healthy scheduled-tick advance and fail-closed non-advance on weak or stale
+  signals
+- protected-environment change-request routing at tick execute
+- idempotency under concurrent manual advance
+- mounted admin auto-advance panel and timeline labeling with
+  **`guardrail_automation`**
+- v1.5 hold and rollback behavior preserved when auto-advance is enabled
+
+It does **not** prove metrics pipelines, fleet-wide operator dashboards,
+clock-driven percentage rollout semantics, unattended rollout recovery, or
+Rulestead-owned progressive delivery automation. Signal facts and metrics
+normalization remain host-owned; Rulestead evaluates normalized facts only.
+
+Upstream boundary contracts for this milestone:
+
+- `.planning/phases/61-auto-advance-authored-contract/`
+- `.planning/phases/62-orchestration-and-governed-execution/`
+- `.planning/phases/63-mounted-auto-advance-workflows/`
 
 ## Lifecycle Release Surface
 

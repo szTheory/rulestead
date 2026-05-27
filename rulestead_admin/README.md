@@ -44,6 +44,20 @@ audience mutations. Core owns domain validation and threshold contracts;
 `rulestead_admin` renders bounded operator UX — **not a standalone** governance
 product. Authorization remains **host-owned** through `Rulestead.Admin.Policy`.
 
+## Guarded rollout auto-advance mounted presentation
+
+The **mounted companion** renders auto-advance toggle, observation-window
+duration, and pending-observation state on rollout detail screens. Core owns
+auto-advance policy persistence, eligibility evaluation, and scheduled-tick
+orchestration; `rulestead_admin` provides **mounted presentation** only —
+**not a standalone** control plane.
+
+Timeline entries label successful automation with **`guardrail_automation`**
+so operators can distinguish guardrail-driven advancement from manual actions.
+When prerequisites or guardrail health block automation, the mounted surface
+shows bounded fail-closed copy instead of inventing package-owned metrics or
+signal sources.
+
 ## Install
 
 Add `rulestead_admin` only when a Phoenix host app needs the mounted companion

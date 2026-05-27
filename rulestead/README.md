@@ -70,6 +70,23 @@ and observability — this package does not ingest metrics or resolve identity.
 Run `cd rulestead && mix verify.phase60` before changing governance threshold,
 change-request, or support-truth docs in the v1.7 milestone.
 
+## Guarded rollout auto-advance contract
+
+`rulestead` owns **domain**, **validation**, and **contracts** for opt-in
+per-rollout auto-advance policy, **observation window** eligibility, and
+**authored next-stage plan** metadata. Scheduled ticks advance only when
+guardrails resolve healthy after the window closes; weak or stale signals
+**fail closed** into non-advance. Protected-environment ticks route through the
+same change-request envelope as manual advance. Timeline audit entries use
+**`guardrail_automation`** to distinguish automation from manual actions.
+
+Signal facts and metrics normalization remain **host-owned** — this package
+evaluates normalized facts only and does not ship metrics pipelines or
+fleet-wide operator dashboards.
+
+Run `cd rulestead && mix verify.phase64` before changing auto-advance policy,
+orchestration, or support-truth docs in the v1.8 milestone.
+
 ## Next docs
 
 - Root front door: [../README.md](../README.md)
