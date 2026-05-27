@@ -186,6 +186,7 @@ defmodule Rulestead.Mix.Tasks.RulesteadInstallTest do
     assert output_lines(first_output) == [
              "copy priv/repo/migrations/.keep",
              "copy priv/repo/migrations/20260524000000_create_rulestead_tables.exs",
+             "copy priv/repo/migrations/20260526110000_add_guardrail_decisions.exs",
              "write config/rulestead.exs",
              "write config/config.exs import",
              "write lib/my_app_web/endpoint.ex plug",
