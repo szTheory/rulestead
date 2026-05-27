@@ -156,6 +156,88 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
     assert html =~ "Current rollout rule"
   end
 
+  test "page shows authored guardrails and latest operational status without raw provider payloads", %{
+    conn: conn
+  } do
+    assert {:ok, _status} =
+             Rulestead.evaluate_guarded_rollout(
+               "checkout-redesign",
+               "prod",
+               %{
+                 rule_key: "checkout-canary",
+                 stage: "canary-25",
+                 monitoring_window_started_at: ~U[2026-04-23 15:50:00Z],
+                 monitoring_window_ends_at: ~U[2026-04-23 16:00:00Z],
+                 signal_facts: [
+                   %{
+                     signal_key: "checkout_error_rate",
+                     status: :failed_closed,
+                     reason: :insufficient_sample,
+                     threshold_operator: :gte,
+                     threshold_value: 0.05,
+                     observed_value: 0.07,
+                     freshness_window_seconds: 300,
+                     sample_size: 42,
+                     min_sample_size: 100,
+                     evaluated_at: ~U[2026-04-23 15:59:00Z]
+                   }
+                 ]
+               },
+               metadata: %{request_id: "req-rollouts-status", source: :guardrail_automation}
+             )
+
+    {:ok, _view, html} = live(conn, "/admin/flags/checkout-redesign/rollouts?env=prod")
+
+    assert html =~ "Guardrail status"
+    assert html =~ "checkout_error_rate"
+    assert html =~ "Thresholds and evidence"
+    assert html =~ "Freshness"
+    assert html =~ "Sample"
+    assert html =~ "Held"
+    assert html =~ "insufficient_sample"
+    assert html =~ "0.05"
+    assert html =~ "0.07"
+    assert html =~ "42"
+    assert html =~ "100"
+    refute html =~ "raw_provider_payload"
+  end
+
+  test "page treats missing guardrail status as a prerequisite instead of healthy and preserves guardrails on save",
+       %{conn: conn} do
+    {:ok, view, html} = live(conn, "/admin/flags/checkout-redesign/rollouts?env=prod")
+
+    assert html =~ "Guardrail status"
+    assert html =~ "checkout_error_rate"
+    assert html =~ "No guardrail decision recorded"
+
+    assert html =~
+             "This rollout stage has guardrail definitions, but no evaluated decision has been recorded for this environment yet. Wire the host signal provider or run the guarded evaluation before treating the stage as healthy."
+
+    view
+    |> form("form[aria-label='Rollout controls form']", %{"rollout" => %{"percentage" => "50"}})
+    |> render_change()
+
+    view
+    |> element("button[phx-click='save_draft']")
+    |> render_click()
+
+    detail = Rulestead.fetch_flag!("checkout-redesign", "prod")
+    [draft | _rest] = detail.draft_rulesets
+    rollout_rule = Enum.at(draft.rules, 1)
+
+    assert [
+             %Rulestead.Ruleset.Guardrail{
+               signal_key: "checkout_error_rate",
+               threshold_operator: :gte,
+               threshold_value: 0.05,
+               freshness_window_seconds: 300,
+               min_sample_size: 100,
+               environment_scope: :environment,
+               tenant_scope: :required
+             }
+           ] = rollout_rule.rollout.guardrails
+  end
+
   test "safe next-step publish stays direct and explicit", %{conn: conn} do
     {:ok, view, _html} = live(conn, "/admin/flags/checkout-redesign/rollouts?env=prod")
 
@@ -272,7 +354,22 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
           name: "Checkout canary",
           strategy: :variant_split,
           conditions: [],
-          rollout: %{bucket_by: :subject, percentage: 25, salt: "checkout-canary"},
+          rollout: %{
+            bucket_by: :subject,
+            percentage: 25,
+            salt: "checkout-canary",
+            guardrails: [
+              %{
+                signal_key: "checkout_error_rate",
+                threshold_operator: :gte,
+                threshold_value: 0.05,
+                freshness_window_seconds: 300,
+                min_sample_size: 100,
+                environment_scope: :environment,
+                tenant_scope: :required
+              }
+            ]
+          },
           variants: [
             %{key: "control", value: %{value: false}, weight: 80},
             %{key: "treatment", value: %{value: true}, weight: 20}
