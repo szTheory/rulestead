@@ -58,6 +58,15 @@ When prerequisites or guardrail health block automation, the mounted surface
 shows bounded fail-closed copy instead of inventing package-owned metrics or
 signal sources.
 
+## Host preview evidence mounted presentation
+
+The **mounted companion** renders bounded **sample cohort** and **impression
+summary** blocks on audience impact previews when the host configures
+`:preview_evidence_resolver`. Core owns resolver invocation, redaction, and
+fingerprint contracts; `rulestead_admin` provides **mounted presentation**
+only — **not a standalone** admin product and not an observability or
+population-analytics stack.
+
 ## Install
 
 Add `rulestead_admin` only when a Phoenix host app needs the mounted companion

@@ -239,6 +239,30 @@ rollback actions keep distinct manual labels. Support and on-call can see
 whether a stage transition was operator-driven or window-close automation
 without inferring from ruleset diffs alone.
 
+## Audience preview evidence (mounted admin)
+
+Edit, archive, and delete audience workflows call
+`Rulestead.preview_audience_impact/3` from the host app. The mounted companion
+does not configure `:preview_evidence_resolver` — the host does.
+
+When the host configures a resolver, `impact_preview` may include:
+
+- a **Sample cohort** table from bounded `sample_evidence` rows
+- an **Impression summary** block from `impression_evidence`
+
+`preview_basis` values operators should expect:
+
+- `authored_state_and_explicit_samples`
+- `authored_state_with_host_evidence`
+- `authored_state_host_evidence_unavailable`
+
+Fail-closed errors (`{:error, error}`) render with `role="alert"` and
+`error.message`. Confirm links must preserve `preview_fingerprint` and
+`preview_schema_version` so stale evidence cannot slip through apply.
+
+This is **mounted presentation** only — not fleet dashboards, not a population
+analytics product, and not a standalone admin control plane.
+
 ## Operational Guidance
 
 Treat the admin package as the control surface around runtime truth:

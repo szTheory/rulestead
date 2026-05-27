@@ -365,6 +365,51 @@ Upstream boundary contracts for this milestone:
 - `.planning/phases/62-orchestration-and-governed-execution/`
 - `.planning/phases/63-mounted-auto-advance-workflows/`
 
+## Host Preview Evidence Proof
+
+Use the host preview evidence proof when work touches opt-in resolver wiring,
+sample cohort and impression summary on audience previews, redaction and
+fingerprint/stale rejection, governance boundary (GOV-05), mounted rendering, or
+the root/package docs that describe v1.9 support truth (VER-01).
+
+Run the primary maintainer command:
+
+```bash
+cd rulestead && mix verify.phase68
+```
+
+Or rerun through the CI wrapper:
+
+```bash
+RULESTEAD_TEST_SCOPE=host_preview_evidence bash scripts/ci/test.sh
+```
+
+That scope is intentionally bounded. It proves:
+
+- resolver wiring, redaction, and fingerprint determinism on impact previews
+- fail-closed rejection of invalid, oversized, or policy-denied evidence
+- governance boundary: impression evidence does not change blast-radius assess
+- mounted admin rendering of sample cohort and impression summary with
+  `audience_components_test.exs` and audience_live preview tests
+
+Core delta paths (union with phase64 regression):
+
+- `test/rulestead/targeting/preview_evidence_contract_test.exs`
+- `test/rulestead/targeting/preview_evidence_test.exs`
+- `test/rulestead/governance/preview_evidence_governance_contract_test.exs`
+- `test/rulestead_admin/components/audience_components_test.exs`
+
+It does **not** prove warehouse ingestion, fleet-wide operator views,
+authoritative population analytics, or Rulestead-owned impression pipelines.
+Hosts supply bounded summaries; Rulestead evaluates and presents them — not a
+metrics product.
+
+Upstream boundary contracts for this milestone:
+
+- `.planning/phases/65-host-preview-evidence-contract/`
+- `.planning/phases/66-evidence-carry-through-and-governance-boundary/`
+- `.planning/phases/67-mounted-preview-evidence-workflows/`
+
 ## Lifecycle Release Surface
 
 Phase 38 adds a lifecycle release surface that maintainers must verify

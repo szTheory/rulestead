@@ -542,6 +542,57 @@ orchestration, and audit correlation only.
 
 ---
 
+## Host preview evidence (audience impact previews)
+
+Host preview evidence is **opt-in** and **host-owned end to end**. Rulestead
+invokes a configured resolver during audience impact preview; it does not ingest
+impressions, run warehouse queries, or ship fleet or population analytics
+dashboards.
+
+### Opt-in resolver
+
+The host implements `Rulestead.Targeting.PreviewEvidence` and registers it:
+
+```elixir
+config :rulestead, :preview_evidence_resolver, MyApp.RulesteadPreviewEvidence
+```
+
+When `:preview_evidence_resolver` is unset, previews use **authored state and
+explicit samples only** (pre-v1.9 behavior).
+
+### Bounded summaries
+
+Resolver results may include:
+
+- **sample_evidence** rows with allowlisted fields: `actor_key`, `targeting_key`,
+  `matched?`, `reason`
+- **impression_evidence** with `window_label`, `sampled_impressions`,
+  `matched_impressions`, and optional `variant_breakdown`
+
+Core redacts traits and computes preview fingerprints before the admin mounts
+render evidence.
+
+### Fail-closed
+
+Invalid, oversized, or policy-denied resolver results return `Rulestead.Error`.
+The mounted admin shows `role="alert"` copy with `error.message` — no silent
+fallback to authoritative population counts. Previews always carry
+`authoritative_population_count?: false` and honest uncertainty from
+`preview.uncertainty[:message]`.
+
+### Explicit non-claims
+
+Rulestead does **not**:
+
+- ingest impression events or run warehouse SQL on behalf of the host
+- provide fleet dashboards or population analytics products
+- claim exact affected-user or fleet-wide population counts from preview evidence
+
+Hosts own data sources and resolver implementations; Rulestead owns bounded
+contracts, redaction, fingerprint/stale rejection, and mounted presentation only.
+
+---
+
 ## 8. Admin UI mount
 
 ```elixir

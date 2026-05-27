@@ -87,6 +87,22 @@ fleet-wide operator dashboards.
 Run `cd rulestead && mix verify.phase64` before changing auto-advance policy,
 orchestration, or support-truth docs in the v1.8 milestone.
 
+## Host preview evidence contract
+
+`rulestead` owns **domain**, **validation**, and **contracts** for bounded
+host-supplied sample cohort and impression summary on audience impact previews.
+Hosts implement `Rulestead.Targeting.PreviewEvidence` via
+`config :rulestead, :preview_evidence_resolver, MyApp.RulesteadPreviewEvidence`.
+
+When no resolver is configured, previews use authored state and explicit samples
+only. Invalid, oversized, or policy-denied resolver results **fail closed** with
+`Rulestead.Error` — the mounted companion shows alert copy; it does not invent
+`authoritative_population_count?: true` claims or fleet-wide analytics products.
+
+Run `cd rulestead && mix verify.phase68` before changing preview evidence
+resolver wiring, redaction, fingerprint/stale rejection, governance boundary, or
+support-truth docs in the v1.9 milestone.
+
 ## Next docs
 
 - Root front door: [../README.md](../README.md)

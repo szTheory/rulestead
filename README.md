@@ -209,6 +209,14 @@ The repo's current proof posture is intentionally bounded:
   package-owned observability stack or metrics product.
 - `RULESTEAD_TEST_SCOPE=guarded_rollout_auto_advance bash scripts/ci/test.sh`
   reruns the v1.8 guarded rollout auto-advance proof bar in CI.
+- **Host preview evidence (v1.9):** `cd rulestead && mix verify.phase68`
+  proves bounded **host-supplied** sample cohort and impression summary on
+  audience impact previews when the host configures
+  `:preview_evidence_resolver`; resolver is opt-in; previews use
+  **preview basis** and `authoritative_population_count?: false`; invalid or
+  policy-denied evidence **fail closed**.
+- `RULESTEAD_TEST_SCOPE=host_preview_evidence bash scripts/ci/test.sh`
+  reruns the v1.9 host preview evidence proof bar in CI.
 - `RULESTEAD_TEST_SCOPE=openfeature_companion bash scripts/ci/test.sh` proves the
   optional `open_feature_rulestead` companion package's Elixir provider contract:
   `context_mapper_test` and `provider_test`.

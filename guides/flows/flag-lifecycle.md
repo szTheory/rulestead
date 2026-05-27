@@ -146,6 +146,22 @@ Before you archive, ask:
 Unknown owner is not archive permission. Missing scans are not archive
 permission. Quiet traffic is not archive permission by itself.
 
+## Preview basis and uncertainty
+
+Audience impact previews (including reusable **Audience** mutations) carry
+`authoritative_population_count?: false` always. Operators should read uncertainty
+from `preview.uncertainty[:message]` — not from hardcoded fleet or population
+copy.
+
+When the host configures `:preview_evidence_resolver`, host-supplied sample and
+impression evidence **supplements** explicit sample rows; it does not silently
+replace operator-provided samples or invent authoritative population counts.
+
+Apply paths reject stale previews when `preview_fingerprint` drifts — especially
+when impression evidence changes between preview and confirm. Treat fingerprint
+mismatch as fail-closed guidance to re-run preview, not as permission to apply
+against outdated evidence.
+
 ## Archive Flow: Preview, Confirm, Audit
 
 Archive is a deliberate operator action. The canonical mounted workflow is
