@@ -42,6 +42,8 @@ defmodule Rulestead.Fake do
     Targeting.DependencyInventory,
     Targeting.DependencyValidator,
     Targeting.ImpactPreview,
+    Targeting.PreviewEvidence,
+    Targeting.PreviewEvidence.Limits,
     Telemetry
   }
 
@@ -3145,9 +3147,9 @@ defmodule Rulestead.Fake do
     with {:ok, environment} <- fetch_environment_from_state(state, apply_command.environment_key),
          {:ok, audience} <- fetch_audience_for_mutation(state, apply_command.audience_key),
          :ok <- ensure_audience_tenant(audience, apply_command.tenant_key),
-         :ok <- ensure_audience_active(audience) do
-      current_preview = audience_preview_payload(state, environment.key, audience, apply_command)
-
+         :ok <- ensure_audience_active(audience),
+         {:ok, current_preview} <-
+           audience_preview_payload(state, environment.key, audience, apply_command) do
       with :ok <- AudienceMutationChangeRequest.validate_submit(command, current_preview),
            {:ok, assessment} <- audience_mutation_submit_assessment(command, current_preview) do
         metadata =
@@ -3836,7 +3838,7 @@ defmodule Rulestead.Fake do
          {:ok, audience} <- fetch_audience_for_mutation(state, command.audience_key),
          :ok <- ensure_audience_tenant(audience, command.tenant_key),
          :ok <- ensure_audience_active(audience) do
-      {:ok, audience_preview_payload(state, environment.key, audience, command)}
+      audience_preview_payload(state, environment.key, audience, command)
     end
   end
 
@@ -3847,7 +3849,8 @@ defmodule Rulestead.Fake do
          :ok <- ensure_audience_active(audience),
          :ok <- ensure_supported_audience_operation(command),
          :ok <- ensure_audience_preview_schema(command),
-         current_preview <- audience_preview_payload(state, environment.key, audience, command),
+         {:ok, current_preview} <-
+           audience_preview_payload(state, environment.key, audience, command),
          :ok <- ensure_fresh_audience_preview(command, current_preview),
          :ok <-
            validate_blast_radius_threshold(command, current_preview, state.audiences,
@@ -3935,13 +3938,34 @@ defmodule Rulestead.Fake do
     end
   end
 
-  defp audience_preview_payload(state, environment_key, audience, command) do
+  defp audience_preview_payload(state, environment_key, audience, command, opts \\ []) do
     affected_references =
       state
       |> compare_payloads_for_environment(environment_key)
       |> Map.values()
       |> then(&AudienceDependencies.summarize(audience.key, &1))
 
+    resolver_opts = Keyword.get(opts, :preview_evidence_resolver_opts, [])
+
+    with {:ok, attrs} <-
+           assemble_preview_evidence_attrs(
+             environment_key,
+             audience,
+             command,
+             affected_references,
+             resolver_opts
+           ) do
+      {:ok, ImpactPreview.build(attrs)}
+    end
+  end
+
+  defp assemble_preview_evidence_attrs(
+         environment_key,
+         audience,
+         command,
+         affected_references,
+         resolver_opts
+       ) do
     before_definition = command.before_definition || audience.definition
 
     after_definition =
@@ -3950,17 +3974,81 @@ defmodule Rulestead.Fake do
         _other -> command.after_definition
       end
 
-    ImpactPreview.build(%{
+    tenant_key = command.tenant_key || Map.get(audience, :tenant_key)
+    command_samples = Map.get(command, :samples, [])
+    explicit_basis = Map.get(command, :preview_basis)
+
+    base_attrs = %{
       environment_key: environment_key,
-      tenant_key: command.tenant_key || Map.get(audience, :tenant_key),
+      tenant_key: tenant_key,
       audience_key: audience.key,
       operation: command.operation,
       before_definition: before_definition,
       after_definition: after_definition,
-      samples: Map.get(command, :samples, []),
-      affected_references: affected_references,
-      preview_basis: Map.get(command, :preview_basis)
-    })
+      affected_references: affected_references
+    }
+
+    query =
+      Map.merge(base_attrs, %{
+        affected_reference_keys: AudienceDependencies.reference_keys(affected_references)
+      })
+
+    case PreviewEvidence.resolver_module(resolver_opts) do
+      nil ->
+        {:ok,
+         Map.merge(base_attrs, %{
+           samples: command_samples,
+           impression_summary: %{},
+           preview_basis: explicit_basis || "authored_state_and_explicit_samples"
+         })}
+
+      _resolver ->
+        case PreviewEvidence.resolve(query, resolver_opts) do
+          {:ok, evidence} ->
+            merged_samples =
+              Limits.merge_samples(
+                command_samples,
+                Map.get(evidence, :samples, []),
+                resolver_opts
+              )
+
+            impression_summary = Map.get(evidence, :impression_summary, %{})
+
+            preview_basis =
+              cond do
+                explicit_basis ->
+                  explicit_basis
+
+                preview_evidence_present?(merged_samples, impression_summary) ->
+                  "authored_state_with_host_evidence"
+
+                true ->
+                  "authored_state_host_evidence_unavailable"
+              end
+
+            {:ok,
+             Map.merge(base_attrs, %{
+               samples: merged_samples,
+               impression_summary: impression_summary,
+               preview_basis: preview_basis
+             })}
+
+          {:error, %Rulestead.Error{metadata: %{reason: :empty}}} ->
+            {:ok,
+             Map.merge(base_attrs, %{
+               samples: command_samples,
+               impression_summary: %{},
+               preview_basis: explicit_basis || "authored_state_host_evidence_unavailable"
+             })}
+
+          {:error, _} = error ->
+            error
+        end
+    end
+  end
+
+  defp preview_evidence_present?(samples, impression_summary) do
+    Enum.any?(List.wrap(samples)) or map_size(impression_summary) > 0
   end
 
   defp fetch_audience_for_mutation(state, audience_key) do

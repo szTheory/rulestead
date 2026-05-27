@@ -46,6 +46,8 @@ defmodule Rulestead.Store.Ecto do
     Targeting.DependencyInventory,
     Targeting.DependencyValidator,
     Targeting.ImpactPreview,
+    Targeting.PreviewEvidence,
+    Targeting.PreviewEvidence.Limits,
     Telemetry,
     Webhooks.Destination,
     Webhooks.Delivery
@@ -663,7 +665,7 @@ defmodule Rulestead.Store.Ecto do
     with {:ok, environment} <- fetch_environment(command.environment_key || "test"),
          {:ok, audience} <- fetch_audience_for_mutation(command.audience_key),
          :ok <- ensure_audience_active(audience) do
-      {:ok, audience_preview_payload(Repo, environment.key, audience, command)}
+      audience_preview_payload(Repo, environment.key, audience, command)
     end
   end
 
@@ -694,7 +696,7 @@ defmodule Rulestead.Store.Ecto do
       with :ok <- ensure_audience_active(audience),
            :ok <- ensure_supported_audience_operation(command),
            :ok <- ensure_audience_preview_schema(command),
-           preview <- audience_preview_payload(repo, environment.key, audience, command),
+           {:ok, preview} <- audience_preview_payload(repo, environment.key, audience, command),
            :ok <- ensure_fresh_audience_preview(command, preview),
            :ok <- validate_blast_radius_threshold(command, preview, governed_apply?: governed_apply?) do
         {:ok, preview}
@@ -2819,13 +2821,34 @@ defmodule Rulestead.Store.Ecto do
     ])
   end
 
-  defp audience_preview_payload(repo, environment_key, audience, command) do
+  defp audience_preview_payload(repo, environment_key, audience, command, opts \\ []) do
     affected_references =
       AudienceDependencies.summarize(
         audience.key,
         audience_reference_payloads(repo, environment_key)
       )
 
+    resolver_opts = Keyword.get(opts, :preview_evidence_resolver_opts, [])
+
+    with {:ok, attrs} <-
+           assemble_preview_evidence_attrs(
+             environment_key,
+             audience,
+             command,
+             affected_references,
+             resolver_opts
+           ) do
+      {:ok, ImpactPreview.build(attrs)}
+    end
+  end
+
+  defp assemble_preview_evidence_attrs(
+         environment_key,
+         audience,
+         command,
+         affected_references,
+         resolver_opts
+       ) do
     before_definition = command.before_definition || audience.definition
 
     after_definition =
@@ -2834,17 +2857,81 @@ defmodule Rulestead.Store.Ecto do
         _other -> command.after_definition
       end
 
-    ImpactPreview.build(%{
+    tenant_key = command.tenant_key || Map.get(audience, :tenant_key)
+    command_samples = Map.get(command, :samples, [])
+    explicit_basis = Map.get(command, :preview_basis)
+
+    base_attrs = %{
       environment_key: environment_key,
-      tenant_key: command.tenant_key,
+      tenant_key: tenant_key,
       audience_key: audience.key,
       operation: command.operation,
       before_definition: before_definition,
       after_definition: after_definition,
-      samples: Map.get(command, :samples, []),
-      affected_references: affected_references,
-      preview_basis: Map.get(command, :preview_basis)
-    })
+      affected_references: affected_references
+    }
+
+    query =
+      Map.merge(base_attrs, %{
+        affected_reference_keys: AudienceDependencies.reference_keys(affected_references)
+      })
+
+    case PreviewEvidence.resolver_module(resolver_opts) do
+      nil ->
+        {:ok,
+         Map.merge(base_attrs, %{
+           samples: command_samples,
+           impression_summary: %{},
+           preview_basis: explicit_basis || "authored_state_and_explicit_samples"
+         })}
+
+      _resolver ->
+        case PreviewEvidence.resolve(query, resolver_opts) do
+          {:ok, evidence} ->
+            merged_samples =
+              Limits.merge_samples(
+                command_samples,
+                Map.get(evidence, :samples, []),
+                resolver_opts
+              )
+
+            impression_summary = Map.get(evidence, :impression_summary, %{})
+
+            preview_basis =
+              cond do
+                explicit_basis ->
+                  explicit_basis
+
+                preview_evidence_present?(merged_samples, impression_summary) ->
+                  "authored_state_with_host_evidence"
+
+                true ->
+                  "authored_state_host_evidence_unavailable"
+              end
+
+            {:ok,
+             Map.merge(base_attrs, %{
+               samples: merged_samples,
+               impression_summary: impression_summary,
+               preview_basis: preview_basis
+             })}
+
+          {:error, %Rulestead.Error{metadata: %{reason: :empty}}} ->
+            {:ok,
+             Map.merge(base_attrs, %{
+               samples: command_samples,
+               impression_summary: %{},
+               preview_basis: explicit_basis || "authored_state_host_evidence_unavailable"
+             })}
+
+          {:error, _} = error ->
+            error
+        end
+    end
+  end
+
+  defp preview_evidence_present?(samples, impression_summary) do
+    Enum.any?(List.wrap(samples)) or map_size(impression_summary) > 0
   end
 
   defp audience_reference_payloads(repo, environment_key) do
@@ -4417,9 +4504,9 @@ defmodule Rulestead.Store.Ecto do
 
     with {:ok, environment} <- fetch_environment(apply_command.environment_key),
          {:ok, audience} <- fetch_audience_for_mutation(apply_command.audience_key),
-         :ok <- ensure_audience_active(audience) do
-      current_preview = audience_preview_payload(Repo, environment.key, audience, apply_command)
-
+         :ok <- ensure_audience_active(audience),
+         {:ok, current_preview} <-
+           audience_preview_payload(Repo, environment.key, audience, apply_command) do
       with :ok <- AudienceMutationChangeRequest.validate_submit(command, current_preview),
            {:ok, assessment} <- audience_mutation_submit_assessment(command, current_preview) do
         metadata =
