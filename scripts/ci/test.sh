@@ -320,6 +320,77 @@ run_guarded_rollout_auto_advance() {
   rm -f "${log_file}"
 }
 
+print_host_preview_evidence_failure_guidance() {
+  local category="${1:-unknown}"
+
+  {
+    echo
+    echo "host_preview_evidence failure category: ${category}"
+    echo "Expected support boundary: core owns resolver + redaction; mounted companion presents bounded sample/impression evidence."
+    echo "Rerun: RULESTEAD_TEST_SCOPE=host_preview_evidence bash scripts/ci/test.sh"
+    echo "Remediation: cd rulestead && mix verify.phase68"
+
+    if [[ "${category}" == "docs drift" ]]; then
+      echo "Docs drift hint: release_contract_test.exs host preview evidence support truth block failed — sync README/MAINTAINING/package READMEs with asserts."
+    elif [[ "${category}" == "setup/prerequisite failure" ]]; then
+      echo "Setup expectation: install repo deps and prepare the rulestead test database before rerunning."
+      echo "Suggested setup:"
+      echo "  - cd rulestead && mix deps.get"
+      echo "  - cd rulestead && mix ecto.create && mix ecto.migrate"
+      echo "  - cd ../rulestead_admin && mix deps.get"
+    else
+      echo "Remediation focus: inspect contract regression output above for preview evidence resolver, governance boundary, or mounted workflow failures."
+    fi
+
+    echo "Runbook: ${MOUNTED_PROOF_RUNBOOK}"
+  } >&2
+}
+
+host_preview_evidence_failure_category() {
+  local log_file="$1"
+
+  if rg -q "host preview evidence support truth stays bounded" "${log_file}" 2>/dev/null; then
+    echo "docs drift"
+  elif rg -q \
+    "Unchecked dependencies|Could not find Hex|Could not compile dependency|mix local\\.hex|mix deps\\.get|The database for" \
+    "${log_file}"; then
+    echo "setup/prerequisite failure"
+  elif rg -q "test failed|failures|ExUnit\\.AssertionError" "${log_file}"; then
+    echo "contract regression"
+  else
+    echo "unknown host-preview-evidence failure"
+  fi
+}
+
+run_host_preview_evidence() {
+  local log_file
+  local status=0
+  log_file="$(mktemp)"
+
+  if run_mix_logged rulestead "${log_file}" deps.get; then
+    prepare_rulestead_test_db
+    if run_mix_logged rulestead_admin "${log_file}" deps.get; then
+      if run_mix_logged rulestead "${log_file}" verify.phase68; then
+        :
+      else
+        status=$?
+      fi
+    else
+      status=$?
+    fi
+  else
+    status=$?
+  fi
+
+  if [[ "${status}" -ne 0 ]]; then
+    print_host_preview_evidence_failure_guidance "$(host_preview_evidence_failure_category "${log_file}")"
+    rm -f "${log_file}"
+    return "${status}"
+  fi
+
+  rm -f "${log_file}"
+}
+
 run_reusable_targeting_deepening() {
   local log_file
   local status=0
@@ -387,9 +458,13 @@ case "${TEST_SCOPE}" in
     echo "Running guarded rollout auto-advance proof bar"
     run_guarded_rollout_auto_advance
     ;;
+  host_preview_evidence)
+    echo "Running host preview evidence proof bar"
+    run_host_preview_evidence
+    ;;
   *)
     echo "Unknown test scope: ${TEST_SCOPE}" >&2
-    echo "Supported scopes: all, mounted_admin_contract, openfeature_companion, guarded_rollout_foundations, reusable_targeting_deepening, blast_radius_governance, guarded_rollout_auto_advance" >&2
+    echo "Supported scopes: all, mounted_admin_contract, openfeature_companion, guarded_rollout_foundations, reusable_targeting_deepening, blast_radius_governance, guarded_rollout_auto_advance, host_preview_evidence" >&2
     exit 64
     ;;
 esac
