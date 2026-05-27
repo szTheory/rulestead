@@ -94,6 +94,78 @@ defmodule Rulestead.Targeting.ImpactPreviewTest do
       assert preview.affected_references == [
                %{reference_key: "flag:checkout:ruleset:7:rule:vip"}
              ]
+
+      assert preview.impression_evidence == %{}
+    end
+
+    test "schema version 2 on build" do
+      preview = ImpactPreview.build(preview_attrs())
+      assert preview.preview_schema_version == 2
+      assert ImpactPreview.schema_version() == 2
+    end
+
+    test "fingerprint changes when impression_summary changes" do
+      base = preview_attrs()
+
+      fingerprint_a =
+        ImpactPreview.preview_fingerprint(
+          Map.put(base, :impression_summary, %{window_label: "last_24h"})
+        )
+
+      fingerprint_b =
+        ImpactPreview.preview_fingerprint(
+          Map.put(base, :impression_summary, %{window_label: "last_7d"})
+        )
+
+      refute fingerprint_a == fingerprint_b
+    end
+
+    test "fingerprint stable for identical impression evidence" do
+      attrs =
+        preview_attrs(%{
+          impression_summary: %{
+            window_label: "last_24h",
+            sampled_impressions: 100,
+            matched_impressions: 42
+          }
+        })
+
+      assert ImpactPreview.preview_fingerprint(attrs) == ImpactPreview.preview_fingerprint(attrs)
+    end
+
+    test "impression_evidence redaction" do
+      preview =
+        ImpactPreview.build(
+          preview_attrs(%{
+            impression_summary: %{
+              window_label: "last_24h",
+              sampled_impressions: 10,
+              email: "person@example.com"
+            }
+          })
+        )
+
+      assert preview.impression_evidence == %{
+               window_label: "last_24h",
+               sampled_impressions: 10
+             }
+
+      refute Map.has_key?(preview.impression_evidence, :email)
+    end
+
+    test "basis messages" do
+      for {basis, expected_fragment} <- [
+            {"authored_state_and_explicit_samples", "explicit-sample preview only"},
+            {"authored_state_with_host_evidence", "bounded host-supplied evidence"},
+            {"authored_state_host_evidence_unavailable", "host evidence unavailable or denied"}
+          ] do
+        preview = ImpactPreview.build(preview_attrs(%{preview_basis: basis}))
+
+        assert preview.preview_basis == basis
+        assert preview.uncertainty.basis == basis
+        assert preview.uncertainty.authoritative_population_count? == false
+        assert preview.uncertainty.message =~ expected_fragment
+      end
     end
 
     test "build does not atomize caller-controlled output keys" do
