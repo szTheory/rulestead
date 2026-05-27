@@ -152,6 +152,16 @@ defmodule Rulestead.Fake.Control do
     end
   end
 
+  @spec list_change_requests!(keyword()) :: map()
+  def list_change_requests!(opts \\ []) do
+    ensure_started()
+
+    case Fake.list_change_requests(Command.ListChangeRequests.new(opts)) do
+      {:ok, page} -> page
+      {:error, error} -> raise error
+    end
+  end
+
   @spec rebuild_audience_reference_projection!() :: map()
   def rebuild_audience_reference_projection! do
     ensure_started()
