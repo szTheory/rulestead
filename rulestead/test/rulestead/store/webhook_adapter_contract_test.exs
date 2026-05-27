@@ -107,7 +107,7 @@ defmodule Rulestead.Store.EctoWebhookContractTest do
 end
 
 defmodule Rulestead.Store.FakeWebhookContractTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
   import Rulestead.Store.WebhookAdapterContractTest
 
   setup do
