@@ -14,8 +14,8 @@
 
 ### Orchestration (`ORC`)
 
-- [ ] **ORC-01**: Observation-window close schedules guardrail evaluation and governed `advance_rollout` through the existing `ScheduledExecution` / Oban worker pattern—not a parallel mutation or ad-hoc worker path.
-- [ ] **ORC-02**: Scheduling and execution are idempotent when a tick races manual advance, rollback, hold, cancellation, or duplicate scheduled ticks.
+- [x] **ORC-01**: Observation-window close schedules guardrail evaluation and governed `advance_rollout` through the existing `ScheduledExecution` / Oban worker pattern—not a parallel mutation or ad-hoc worker path.
+- [x] **ORC-02**: Scheduling and execution are idempotent when a tick races manual advance, rollback, hold, cancellation, or duplicate scheduled ticks.
 
 ### Audited Automation (`AUD`)
 
@@ -97,8 +97,8 @@
 | ROL-05 | Phase 61 | Complete |
 | ROL-07 | Phase 61 | Complete |
 | ROL-06 | Phase 62 | Pending |
-| ORC-01 | Phase 62 | Pending |
-| ORC-02 | Phase 62 | Pending |
+| ORC-01 | Phase 62 | Complete |
+| ORC-02 | Phase 62 | Complete |
 | AUD-03 | Phase 62 | Pending |
 | ADM-04 | Phase 63 | Pending |
 | AUD-04 | Phase 63 | Pending |

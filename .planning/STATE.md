@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.8.0
 milestone_name: milestone
-status: completed
-last_updated: "2026-05-27T19:35:36.094Z"
-last_activity: 2026-05-27
+status: executing
+last_updated: "2026-05-27T19:45:42.558Z"
+last_activity: 2026-05-27 -- Completed 62-01 schedule hook and idempotency contract
 progress:
   total_phases: 4
   completed_phases: 1
-  total_plans: 4
-  completed_plans: 4
-  percent: 25
+  total_plans: 8
+  completed_plans: 5
+  percent: 31
 ---
 
 # State: Rulestead
@@ -25,10 +25,10 @@ See: `.planning/PROJECT.md` (updated 2026-05-27)
 
 ## Current Position
 
-Phase: 62
-Plan: Not started
-Status: Phase complete
-Last activity: 2026-05-27
+Phase: 62 (orchestration-and-governed-execution) — EXECUTING
+Plan: 2 of 4 (62-01 complete)
+Status: Ready for 62-02 execute orchestration
+Last activity: 2026-05-27 -- Completed 62-01 schedule hook and idempotency contract
 
 ## Performance Metrics
 
@@ -47,6 +47,8 @@ Last activity: 2026-05-27
 - Auto-advance orchestrates existing `Guardrails.Decision` and governed `advance_rollout`; no parallel decision model.
 - Protected-environment auto-advance respects same change-request envelope as manual advance.
 - Phase numbering continues at 61 (no reset).
+- Extract RolloutAutoAdvance.Schedule for shared schedule contract across Ecto/Fake — avoids >40 lines duplication; single source for idempotency key and command snapshot shape.
+- Auto-advance schedule hook is fail-open on errors — advance_rollout must succeed even when Oban/scheduled_executions unavailable (D-02, Phase 61 regression schemas).
 
 ### Pending Todos
 
@@ -66,10 +68,10 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-27T19:35:36.092Z
-Resume: `/gsd-plan-phase 62`
+Last session: 2026-05-27T19:45:25.412Z
+Resume: Execute 62-02-PLAN.md (execute orchestration module)
 
 ## Operator Next Steps
 
-- Plan Phase 62 — orchestration and governed execution (`ScheduledExecution` ticks, governed `advance_rollout`, AUD-03)
+- Execute plan 62-02 — tick execute orchestration (signal fetch, evaluate, advance/CR submit)
 - Assessment thread: `.planning/threads/2026-05-27-post-v1.7-milestone-assessment.md`
