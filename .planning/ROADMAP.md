@@ -89,7 +89,7 @@
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 61. Auto-Advance Authored Contract | v1.8.0 | 2/4 | In Progress|  |
+| 61. Auto-Advance Authored Contract | v1.8.0 | 3/4 | In Progress|  |
 | 62. Orchestration And Governed Execution | v1.8.0 | 0/4 | Not started | — |
 | 63. Mounted Auto-Advance Workflows | v1.8.0 | 0/4 | Not started | — |
 | 64. Proof, Docs, And Support Truth | v1.8.0 | 0/4 | Not started | — |
