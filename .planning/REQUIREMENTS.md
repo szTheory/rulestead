@@ -14,9 +14,9 @@
 
 ### Change Request Integration (`CRQ`)
 
-- [ ] **CRQ-01**: High-blast-radius audience mutation proposals submit change requests that embed preview fingerprint, affected-reference summary, threshold breach context, and intended operation scope.
-- [ ] **CRQ-02**: Approved change requests execute audience apply through the existing governed mutation path with frozen preview evidence and reject stale or drifted preview state at execution time.
-- [ ] **CRQ-03**: Rejected, cancelled, or expired audience change requests leave authored audience state unchanged and emit auditable denial or cancellation evidence.
+- [x] **CRQ-01**: High-blast-radius audience mutation proposals submit change requests that embed preview fingerprint, affected-reference summary, threshold breach context, and intended operation scope.
+- [x] **CRQ-02**: Approved change requests execute audience apply through the existing governed mutation path with frozen preview evidence and reject stale or drifted preview state at execution time.
+- [x] **CRQ-03**: Rejected, cancelled, or expired audience change requests leave authored audience state unchanged and emit auditable denial or cancellation evidence.
 
 ### Mounted Governance Workflows (`ADM`)
 
@@ -94,9 +94,9 @@
 | GOV-02 | Phase 57 | Complete |
 | GOV-03 | Phase 57 | Complete |
 | GOV-04 | Phase 57 | Complete |
-| CRQ-01 | Phase 58 | Pending |
-| CRQ-02 | Phase 58 | Pending |
-| CRQ-03 | Phase 58 | Pending |
+| CRQ-01 | Phase 58 | Complete |
+| CRQ-02 | Phase 58 | Complete |
+| CRQ-03 | Phase 58 | Complete |
 | ADM-01 | Phase 59 | Pending |
 | ADM-02 | Phase 59 | Pending |
 | ADM-03 | Phase 59 | Pending |

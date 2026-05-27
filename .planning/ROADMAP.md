@@ -22,7 +22,7 @@
 - Decimal phases (57.1, 57.2): Urgent insertions, if needed
 
 - [x] **Phase 57: Blast-Radius Threshold Contract** - Core evaluates audience mutation blast radius from v1.6 preview and dependency payloads and fails closed on missing or stale inputs. (completed 2026-05-27)
-- [ ] **Phase 58: Change Request Integration** - High-blast-radius audience mutations in protected environments route through the existing change-request proposal and execute envelope.
+- [x] **Phase 58: Change Request Integration** - High-blast-radius audience mutations in protected environments route through the existing change-request proposal and execute envelope. (completed 2026-05-27)
 - [ ] **Phase 59: Mounted Governance Workflows** - Mounted admin detects threshold breaches, routes operators through proposal/review, and preserves policy-aware fallbacks.
 - [ ] **Phase 60: Proof, Docs, And Support Truth** - Verification, docs, quickstart parity, and release-contract truth close the v1.7 scope under the linked sibling-package model.
 
@@ -54,7 +54,7 @@
 3. Rejected, cancelled, or expired requests leave audience authored state unchanged and emit auditable evidence.
 4. Change-request integration preserves environment and tenant scope and reuses existing approval/self-approval policy seams.
 
-**Plans**: 4 plans (TBD via `/gsd-plan-phase 58`)
+**Plans**: 4 plans
 
 ### Phase 59: Mounted Governance Workflows
 
@@ -89,7 +89,7 @@
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 57. Blast-Radius Threshold Contract | v1.7.0 | 4/4 | Complete    | 2026-05-27 |
-| 58. Change Request Integration | v1.7.0 | 0/4 | Not started | — |
+| 58. Change Request Integration | v1.7.0 | 0/4 | Complete    | 2026-05-27 |
 | 59. Mounted Governance Workflows | v1.7.0 | 0/4 | Not started | — |
 | 60. Proof, Docs, And Support Truth | v1.7.0 | 0/4 | Not started | — |
 
