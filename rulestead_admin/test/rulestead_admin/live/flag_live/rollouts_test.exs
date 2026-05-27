@@ -168,6 +168,27 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
     assert html =~ "Current rollout rule"
   end
 
+  test "page without rollout rule hides preview action and stays on the mounted workflow", %{conn: conn} do
+    seed_flag!(
+      key: "maintenance-mode",
+      owner: "platform",
+      tags: ["ops"],
+      description: "Maintenance mode gate",
+      expected_expiration: ~D[2026-05-01],
+      permanent: false,
+      environment_keys: ["prod"]
+    )
+
+    publish_non_rollout_ruleset!("maintenance-mode", "prod")
+
+    {:ok, _view, html} = live(conn, "/admin/flags/maintenance-mode/rollouts?env=prod")
+
+    assert html =~ "Rollout controls"
+    assert html =~ "No rollout rule is available for this environment."
+    refute html =~ ~s(phx-click="preview")
+    refute html =~ "Preview sample"
+  end
+
   test "page shows authored guardrails and latest operational status without raw provider payloads",
        %{
          conn: conn
@@ -453,6 +474,29 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
           name: "Fallback disabled",
           strategy: :forced_value,
           value: %{value: false},
+          conditions: []
+        }
+      ]
+    }
+
+    assert {:ok, _draft} =
+             Rulestead.save_draft_ruleset(
+               Command.SaveDraftRuleset.new(flag_key, environment_key, ruleset)
+             )
+
+    assert {:ok, _published} =
+             Rulestead.publish_ruleset(Command.PublishRuleset.new(flag_key, environment_key))
+  end
+
+  defp publish_non_rollout_ruleset!(flag_key, environment_key) do
+    ruleset = %{
+      salt: "#{flag_key}:#{environment_key}:non-rollout",
+      rules: [
+        %{
+          key: "#{flag_key}-enabled",
+          name: "Enabled rule",
+          strategy: :forced_value,
+          value: %{value: true},
           conditions: []
         }
       ]
