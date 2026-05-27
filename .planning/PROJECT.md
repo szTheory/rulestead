@@ -18,7 +18,7 @@ Rulestead is a batteries-included, Elixir-native feature-flag and remote-config 
 
 ## Current Milestone: v1.8.0 Guarded Rollout Auto-Advance
 
-**Progress:** Phase 61 complete (2026-05-27) — authored auto-advance policy contract, pure fail-closed eligibility evaluation, Fake/Ecto store parity, and contract tests. Orchestration and governed execution (Phase 62) is next.
+**Progress:** Phase 62 complete (2026-05-27) — observation-window ticks schedule via `ScheduledExecution`, `RolloutAutoAdvance` execute orchestration with fresh signals, protected-environment change-request routing, and Fake/Ecto orchestration contract tests. Mounted auto-advance workflows (Phase 63) is next.
 
 **Goal:** Complete the guarded rollout story by letting staged rollouts automatically advance when host-supplied guardrails remain healthy for a configured observation window—without turning Rulestead into an observability product.
 
@@ -103,15 +103,15 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 
 ### Active
 
-- **ROL-04** (execution slice): Governed auto-advance execution via scheduled ticks and `advance_rollout` when eligibility passes
-- **ROL-06**: Protected-environment auto-advance respects change-request envelope
+- **ROL-04** (execution slice): Governed auto-advance execution via scheduled ticks and `advance_rollout` when eligibility passes — validated Phase 62 (orchestration)
 - **ROL-07** (governance slice): Protected-env parity for auto-advance mutations
-- **ORC-01**, **ORC-02**: Scheduled evaluation ticks and idempotent execution through existing governed envelope
-- **AUD-03**, **AUD-04**: Audited auto-advance evidence and automation vs manual distinction
+- **AUD-04**: Automation vs manual distinction in mounted timeline
 - **ADM-04**: Mounted auto-advance toggle, pending observation, bounded prerequisite copy
 - **VER-01** through **VER-03**: Proof, docs, host seam, and release-contract support truth
 
 ### Validated
+
+- ✓ **ROL-06**, **ORC-01**, **ORC-02**, **AUD-03** — Phase 62: observation-window ticks, governed execute orchestration, protected-env CR routing, automation audit evidence
 
 - ✓ Deterministic payload-first evaluation with explicit context, explainability, and property-tested bucketing — `v0.1.0`
 - ✓ Snapshot-backed runtime reads with refresh, diagnostics, and public telemetry events — `v0.1.0`
@@ -245,4 +245,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-27 — Phase 61 complete (auto-advance authored contract)*
+*Last updated: 2026-05-27 — Phase 62 complete (orchestration and governed execution)*

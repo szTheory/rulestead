@@ -23,7 +23,7 @@
 - Decimal phases (61.1, 61.2): Urgent insertions, if needed
 
 - [x] **Phase 61: Auto-Advance Authored Contract** - Core defines opt-in auto-advance policy, explicit next-stage plan metadata, and fail-closed evaluation semantics on top of v1.5 guardrails.
-- [ ] **Phase 62: Orchestration And Governed Execution** - Observation-window ticks schedule guardrail evaluation and governed `advance_rollout` with idempotency and protected-env parity.
+- [x] **Phase 62: Orchestration And Governed Execution** - Observation-window ticks schedule guardrail evaluation and governed `advance_rollout` with idempotency and protected-env parity. (completed 2026-05-27)
 - [ ] **Phase 63: Mounted Auto-Advance Workflows** - Mounted admin exposes toggle, pending observation, and automation-vs-manual timeline distinction inside the existing rollout envelope.
 - [ ] **Phase 64: Proof, Docs, And Support Truth** - Verification, host seam docs, and release-contract truth close bounded auto-advance support claims.
 
