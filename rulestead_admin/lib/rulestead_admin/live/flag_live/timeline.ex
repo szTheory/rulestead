@@ -135,7 +135,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
       id: event.id,
       title: title_for(event),
       meta: meta_for(event),
-      summary: summary_for(event, before_state, after_state, diff_state),
+      summary: summary_for(event, metadata, before_state, after_state, diff_state),
       reason: event.reason,
       automatic?: guardrail_automation_event?(event),
       source_label: source_label(metadata),
@@ -189,7 +189,19 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
         "rollback_of_event_id",
         "links.inverse_event_type",
         "source",
-        "request_id"
+        "request_id",
+        "context.source",
+        "context.eligibility",
+        "context.scheduled_execution_id",
+        "context.observation_window_started_at",
+        "context.observation_window_ends_at",
+        "context.observation_window_seconds",
+        "context.eligibility.policy_snapshot",
+        "context.eligibility.policy_snapshot.next_stage",
+        "context.eligibility.policy_snapshot.next_percentage",
+        "context.eligibility.policy_snapshot.observation_window_seconds",
+        "links.scheduled_execution_id",
+        "links.change_request_id"
       ]
     )
     |> Map.fetch!(:audit)
@@ -248,6 +260,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
 
   defp summary_for(
          %{event_type: "audit.rollback"} = event,
+         _metadata,
          _before_state,
          after_state,
          _diff_state
@@ -255,12 +268,13 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
     "Inverse write restored #{state_summary(after_state)} and linked this row back to #{event.metadata["rollback_of_event_id"] || "the original event"}."
   end
 
-  defp summary_for(%{event_type: "ruleset.publish"}, _before_state, _after_state, diff_state) do
+  defp summary_for(%{event_type: "ruleset.publish"}, _metadata, _before_state, _after_state, diff_state) do
     "Ruleset publish updated ordered rule positions: #{Enum.join(diff_lines("ruleset.publish", diff_state), "; ")}."
   end
 
   defp summary_for(
          %{event_type: "rollout.guardrail_held"} = event,
+         _metadata,
          _before_state,
          _after_state,
          _diff_state
@@ -273,6 +287,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
 
   defp summary_for(
          %{event_type: "rollout.guardrail_rollback"} = event,
+         _metadata,
          _before_state,
          _after_state,
          _diff_state
@@ -285,6 +300,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
 
   defp summary_for(
          %{event_type: "rollout.guardrail_evaluated"} = event,
+         _metadata,
          _before_state,
          _after_state,
          _diff_state
@@ -297,12 +313,13 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
 
   defp summary_for(
          %{event_type: "rollout.advance"} = event,
+         metadata,
          before_state,
          after_state,
          _diff_state
        ) do
     if guardrail_automation_event?(event) do
-      automatic_rollout_advance_summary(event, before_state, after_state)
+      automatic_rollout_advance_summary(metadata, before_state, after_state)
     else
       case event.result do
         :denied ->
@@ -314,7 +331,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
     end
   end
 
-  defp summary_for(event, before_state, after_state, _diff_state) do
+  defp summary_for(event, _metadata, before_state, after_state, _diff_state) do
     case event.result do
       :denied ->
         "Denied action remains visible in the audit ledger. Requested change: #{state_summary(after_state)}."
@@ -324,8 +341,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
     end
   end
 
-  defp automatic_rollout_advance_summary(event, before_state, after_state) do
-    metadata = event.metadata || %{}
+  defp automatic_rollout_advance_summary(metadata, before_state, after_state) do
     context = metadata["context"] || metadata[:context] || %{}
     eligibility = context["eligibility"] || context[:eligibility] || %{}
     snapshot = eligibility["policy_snapshot"] || eligibility[:policy_snapshot] || %{}
@@ -342,8 +358,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
       end
 
     window_ends =
-      context["observation_window_ends_at"] || context[:observation_window_ends_at] ||
-        metadata["observation_window_ends_at"] || metadata[:observation_window_ends_at]
+      context["observation_window_ends_at"] || context[:observation_window_ends_at]
 
     base =
       cond do

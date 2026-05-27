@@ -106,6 +106,18 @@ defmodule RulesteadAdmin.Live.FlagLive.TimelineTest do
     assert html =~ "Show raw detail"
   end
 
+  @tag :auto_advance_redaction
+  test "timeline redacts auto-advance provider secrets but keeps allowed context", %{conn: conn} do
+    seed_auto_advance_audit_with_secret!()
+
+    {:ok, _view, html} = live(conn, "/admin/flags/checkout-redesign/timeline?env=prod")
+
+    assert html =~ "[REDACTED]"
+    refute html =~ "provider-secret-auto-advance"
+    assert html =~ "canary-75"
+    assert html =~ "observation window closed"
+  end
+
   test "timeline distinguishes automatic guardrail events from manual rollout actions", %{
     conn: conn
   } do
@@ -199,6 +211,37 @@ defmodule RulesteadAdmin.Live.FlagLive.TimelineTest do
 
     assert {:ok, _published} =
              Rulestead.publish_ruleset(Command.PublishRuleset.new(flag_key, environment_key))
+  end
+
+  defp seed_auto_advance_audit_with_secret! do
+    command =
+      Command.AdvanceRollout.new(
+        "checkout-redesign",
+        "prod",
+        %{
+          rule_key: "checkout-canary",
+          stage: "canary-75",
+          percentage: 75,
+          monitoring_window_started_at: ~U[2026-04-23 16:05:00Z],
+          monitoring_window_ends_at: ~U[2026-04-23 16:10:00Z]
+        },
+        metadata: %{
+          source: :guardrail_automation,
+          request_id: "req-auto-advance-redaction",
+          eligibility: %{
+            policy_snapshot: %{
+              next_stage: "canary-75",
+              next_percentage: 75,
+              observation_window_seconds: 300
+            }
+          },
+          observation_window_started_at: ~U[2026-04-23 16:05:00Z],
+          observation_window_ends_at: ~U[2026-04-23 16:10:00Z],
+          raw_provider_payload: "provider-secret-auto-advance"
+        }
+      )
+
+    assert {:ok, _} = Rulestead.Fake.advance_rollout(command)
   end
 
   defp seed_guardrail_interventions! do

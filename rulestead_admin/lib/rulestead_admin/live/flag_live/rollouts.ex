@@ -765,7 +765,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
       id: event.id,
       title: intervention_title_for(event),
       meta: intervention_meta_for(event),
-      summary: intervention_summary_for(event, before_state, after_state, diff_state),
+      summary:
+        intervention_summary_for(event, metadata, before_state, after_state, diff_state),
       reason: event.reason,
       automatic?: guardrail_automation_event?(event),
       source_label: source_label(metadata),
@@ -816,7 +817,19 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
         "rollback_of_event_id",
         "links.inverse_event_type",
         "source",
-        "request_id"
+        "request_id",
+        "context.source",
+        "context.eligibility",
+        "context.scheduled_execution_id",
+        "context.observation_window_started_at",
+        "context.observation_window_ends_at",
+        "context.observation_window_seconds",
+        "context.eligibility.policy_snapshot",
+        "context.eligibility.policy_snapshot.next_stage",
+        "context.eligibility.policy_snapshot.next_percentage",
+        "context.eligibility.policy_snapshot.observation_window_seconds",
+        "links.scheduled_execution_id",
+        "links.change_request_id"
       ]
     )
     |> Map.fetch!(:audit)
@@ -870,6 +883,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
 
   defp intervention_summary_for(
          %{event_type: "rollout.guardrail_held"} = event,
+         _metadata,
          _before_state,
          _after_state,
          _diff_state
@@ -882,6 +896,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
 
   defp intervention_summary_for(
          %{event_type: "rollout.guardrail_rollback"} = event,
+         _metadata,
          _before_state,
          _after_state,
          _diff_state
@@ -894,6 +909,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
 
   defp intervention_summary_for(
          %{event_type: "rollout.guardrail_evaluated"} = event,
+         _metadata,
          _before_state,
          _after_state,
          _diff_state
@@ -906,6 +922,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
 
   defp intervention_summary_for(
          %{event_type: "ruleset.publish"},
+         _metadata,
          _before_state,
          _after_state,
          diff_state
@@ -915,18 +932,19 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
 
   defp intervention_summary_for(
          %{event_type: "rollout.advance"} = event,
+         metadata,
          before_state,
          after_state,
          _diff_state
        ) do
     if guardrail_automation_event?(event) do
-      automatic_rollout_advance_summary(event, before_state, after_state)
+      automatic_rollout_advance_summary(metadata, before_state, after_state)
     else
       "#{humanize_event(event.event_type)} changed #{state_summary(before_state)} to #{state_summary(after_state)}."
     end
   end
 
-  defp intervention_summary_for(event, before_state, after_state, _diff_state) do
+  defp intervention_summary_for(event, _metadata, before_state, after_state, _diff_state) do
     "#{humanize_event(event.event_type)} changed #{state_summary(before_state)} to #{state_summary(after_state)}."
   end
 
@@ -1289,8 +1307,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
     |> String.capitalize()
   end
 
-  defp automatic_rollout_advance_summary(event, before_state, after_state) do
-    metadata = event.metadata || %{}
+  defp automatic_rollout_advance_summary(metadata, before_state, after_state) do
     context = metadata["context"] || metadata[:context] || %{}
     eligibility = context["eligibility"] || context[:eligibility] || %{}
     snapshot = eligibility["policy_snapshot"] || eligibility[:policy_snapshot] || %{}
@@ -1307,8 +1324,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
       end
 
     window_ends =
-      context["observation_window_ends_at"] || context[:observation_window_ends_at] ||
-        metadata["observation_window_ends_at"] || metadata[:observation_window_ends_at]
+      context["observation_window_ends_at"] || context[:observation_window_ends_at]
 
     base =
       cond do
