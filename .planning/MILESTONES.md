@@ -1,5 +1,20 @@
 # Milestones
 
+## v1.7.0 Blast-Radius Governance (Shipped: 2026-05-27)
+
+**Phases completed:** 4 phases, 16 plans, 8 tasks
+
+**Key accomplishments:**
+
+- Reusable blast-radius panel and AudienceLive governance loader assign governance_mode, visibility tier, and threshold assessment without predicate leakage.
+- Edit and archive preview LiveViews load blast-radius assessment, show governance evidence above impact preview, and branch Continue CTA copy for protected above-threshold mutations.
+- Edit and archive confirm LiveViews enforce blast-radius governance: direct apply below threshold, Submit change request above threshold, and fail-closed blocked state with prod LiveView proof.
+- Change request review shows frozen blast-radius evidence for audience mutations, blocks approve when flag read visibility is partial, and documents that governance UX stays on existing audience preview/confirm routes.
+
+Known deferred items at close: 3 (see STATE.md Deferred Items)
+
+---
+
 ## v1.6.0 Reusable Targeting Deepening (Shipped: 2026-05-27)
 
 **Phases completed:** 4 phases, 16 plans, 22 tasks

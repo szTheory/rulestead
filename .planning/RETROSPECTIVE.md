@@ -2,6 +2,48 @@
 
 *A living document updated after each milestone. Lessons feed forward into future planning.*
 
+## Milestone: v1.7.0 — Blast-Radius Governance
+
+**Shipped:** 2026-05-27
+**Phases:** 4 | **Plans:** 16 | **Tasks:** 8
+
+### What Was Built
+
+- Pure `BlastRadiusThreshold` evaluator with fail-closed protected-environment semantics and facade `assess_audience_blast_radius/2`.
+- Audience mutation change-request integration reusing `:apply_audience_mutation` on the existing governed envelope.
+- Mounted governance loader, blast-radius panel, preview/confirm branching, and change-request show evidence with policy-aware visibility.
+- `mix verify.phase60` merge gate, release-contract drift guards, governance flow guides, and optional `blast_radius_governance` CI scope.
+
+### What Worked
+
+- Reusing the v1.6 preview/dependency payloads as threshold inputs kept the milestone bounded and honest about preview basis limits.
+- The four-phase split (threshold contract → change requests → mounted UX → proof/docs) mirrored v1.6 and preserved core-vs-companion boundaries.
+- Frozen blast-radius metadata on change-request show plus live visibility tier on approve avoided re-assess drift while keeping policy enforcement current.
+
+### What Was Inefficient
+
+- No formal milestone audit artifact was produced before close (same gap as v1.6); run `/gsd-audit-milestone` before future closes when time allows.
+- CLI milestone close surfaced a STATE.md field mismatch warning; planning doc formats should stay aligned with gsd-tools expectations.
+
+### Patterns Established
+
+- Threshold evaluation consumes authored-state preview fingerprints only — no observability-backed population counts.
+- Protected-environment audience mutations branch: direct apply below threshold, change request above threshold, fail-closed when inputs are stale or unresolved.
+- Governance UX reuses existing audience preview/confirm routes instead of introducing parallel admin flows.
+
+### Key Lessons
+
+1. Closing a safety arc (preview → dependency → governance) is faster when each layer builds on the prior milestone's contracts.
+2. Change-request metadata should freeze assessment evidence at submit time; approve gates may still consult live policy visibility.
+3. Support-truth phases remain essential — quickstart API parity and drift guards prevent governance features from feeling "admin-only."
+
+### Cost Observations
+
+- Milestone executed in a single day with 16 plans across 4 phases.
+- Known deferred items at close: 3 (see STATE.md Deferred Items).
+
+---
+
 ## Milestone: v1.6.0 — Reusable Targeting Deepening
 
 **Shipped:** 2026-05-27
@@ -53,6 +95,7 @@
 |-----------|--------|-------|------------|
 | v1.5.0 | 4 | 8 | Introduced guarded rollout foundations with host-owned signal seam |
 | v1.6.0 | 4 | 16 | Deepened reusable targeting with equal core/mounted/proof phase split |
+| v1.7.0 | 4 | 16 | Closed reusable-targeting safety arc with blast-radius governance via change requests |
 
 ### Cumulative Quality
 
@@ -60,6 +103,7 @@
 |-----------|-------------------|-------------------------|-------------------|
 | v1.5.0 | verify.phase52 | guarded rollout drift guards | 2 |
 | v1.6.0 | verify.phase54–56 | reusable targeting drift guards | 4 |
+| v1.7.0 | verify.phase60 | blast-radius governance drift guards | 3 |
 
 ### Top Lessons (Verified Across Milestones)
 

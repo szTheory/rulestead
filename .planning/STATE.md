@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.7.0
 milestone_name: milestone
-status: complete
-stopped_at: Phase 60 complete — v1.7.0 milestone shipped
-last_updated: "2026-05-27T17:56:08.020Z"
-last_activity: 2026-05-27
+status: Awaiting next milestone
+stopped_at: Phase 60 context gathered (assumptions mode)
+last_updated: "2026-05-27T18:01:00.843Z"
+last_activity: 2026-05-27 — Milestone v1.7.0 completed and archived
 progress:
   total_phases: 4
   completed_phases: 4
@@ -21,17 +21,15 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-05-27)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions - booleans, variants, and remote config - with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
-**Current focus:** v1.7.0 milestone complete — select next milestone
+**Current focus:** Planning next milestone (`v1.8.0` guarded rollout auto-advance queued)
 **Milestone:** `v1.7.0 - Blast-Radius Governance` (shipped 2026-05-27)
 
 ## Current Position
 
-Phase: 60 (complete)
-Plan: 60-04 complete
-Status: Milestone shipped
-Last activity: 2026-05-27 — Phase 60 execution complete
-
-Progress: [##########] 100%
+Phase: Milestone v1.7.0 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-05-27 — Milestone v1.7.0 completed and archived
 
 ## Performance Metrics
 
@@ -78,6 +76,5 @@ Resume file: .planning/phases/60-proof-docs-and-support-truth/60-CONTEXT.md
 
 ## Operator Next Steps
 
-- `/gsd-progress` — review v1.7.0 completion and deferred queue
-- `/gsd-new-milestone` or `/gsd-review-backlog` — start v1.8.0 (ROL-04) planning
-- `cd rulestead && mix verify.phase60` — v1.7 maintainer merge gate
+- `/gsd-new-milestone` — start v1.8.0 (ROL-04) planning
+- `/gsd-review-backlog` — review deferred queue before committing to next milestone
