@@ -20,7 +20,7 @@
 ### Audited Automation (`AUD`)
 
 - [x] **AUD-03**: Successful auto-advance records auditable evidence with guardrail facts, observation window, triggering source `guardrail_automation`, and stage transition context in the existing audit envelope.
-- [ ] **AUD-04**: Operators can distinguish automatic guardrail-driven advancement from manual rollout actions in audit and timeline surfaces with remediation guidance preserved.
+- [x] **AUD-04**: Operators can distinguish automatic guardrail-driven advancement from manual rollout actions in audit and timeline surfaces with remediation guidance preserved.
 
 ### Mounted Auto-Advance (`ADM`)
 
@@ -101,7 +101,7 @@
 | ORC-02 | Phase 62 | Complete |
 | AUD-03 | Phase 62 | Complete |
 | ADM-04 | Phase 63 | Pending |
-| AUD-04 | Phase 63 | Pending |
+| AUD-04 | Phase 63 | Complete |
 | VER-01 | Phase 64 | Pending |
 | VER-02 | Phase 64 | Pending |
 | VER-03 | Phase 64 | Pending |
