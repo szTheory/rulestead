@@ -4,8 +4,9 @@ defmodule RulesteadAdmin.Live.AudienceLive.ArchiveConfirm do
 
   use Phoenix.LiveView
 
-  alias RulesteadAdmin.Components.{FlagComponents, Shell}
-  alias RulesteadAdmin.Live.{AudienceLive.Shared, Session}
+  alias Rulestead.Store.Command
+  alias RulesteadAdmin.Components.{FlagComponents, GovernanceComponents, OperatorComponents, Shell}
+  alias RulesteadAdmin.Live.{AudienceLive.Governance, AudienceLive.Shared, Session}
 
   @impl true
   def mount(_params, _session, socket) do
@@ -16,7 +17,15 @@ defmodule RulesteadAdmin.Live.AudienceLive.ArchiveConfirm do
      |> assign(:error_message, nil)
      |> assign(:reason_value, "")
      |> assign(:current_path, nil)
-     |> assign(:env_links, %{})}
+     |> assign(:env_links, %{})
+     |> assign(:governance_mode, nil)
+     |> assign(:visibility_tier, nil)
+     |> assign(:blast_radius_assessment, nil)
+     |> assign(:dependency_inventory, nil)
+     |> assign(:governance_blocked_reason, nil)
+     |> assign(:required_approvals, 0)
+     |> assign(:self_approval_allowed?, true)
+     |> assign(:can_submit?, false)}
   end
 
   @impl true
@@ -49,14 +58,68 @@ defmodule RulesteadAdmin.Live.AudienceLive.ArchiveConfirm do
 
       <FlagComponents.section_card :if={@preview} title="Confirm archive">
         <p><strong>Fingerprint:</strong> <code><%= @preview.preview_fingerprint %></code></p>
-        <form phx-submit="apply" aria-label="Confirm audience archive">
+        <p><strong>Scope:</strong> <code><%= @current_environment.key %></code>
+          <span :if={@current_tenant}> · tenant <code><%= @current_tenant.key %></code></span>
+        </p>
+
+        <GovernanceComponents.blast_radius_panel
+          :if={@blast_radius_assessment && @governance_mode == :change_request}
+          assessment={@blast_radius_assessment}
+          variant={:operator}
+          visibility={visibility_attr(@visibility_tier)}
+          environment_label={@current_environment.name}
+        />
+
+        <FlagComponents.callout
+          :if={@governance_mode == :blocked}
+          title="Cannot evaluate safely"
+          tone="critical"
+        >
+          <p>{@governance_blocked_reason || "Blast radius cannot be evaluated safely."}</p>
+          <p :if={@dependency_inventory}>{@dependency_inventory.summary}</p>
+        </FlagComponents.callout>
+
+        <p :if={@governance_mode == :change_request && @required_approvals > 0}>
+          <strong>Required approvals:</strong> <%= @required_approvals %>
+        </p>
+        <p :if={@governance_mode == :change_request}>
+          <strong>Self-approval:</strong>
+          <%= if @self_approval_allowed?, do: "You may approve your own request.", else: "You cannot approve your own request." %>
+        </p>
+
+        <OperatorComponents.capability_explanation
+          :if={@governance_mode == :change_request && !@can_submit?}
+          title="Change request required"
+          reason="You do not have permission to submit a change request for this audience."
+        />
+
+        <form
+          :if={@governance_mode == :change_request && @can_submit?}
+          phx-submit="submit_change_request"
+          aria-label="Submit audience archive change request"
+        >
+          <label>
+            <span>Reason (required)</span>
+            <textarea name="reason"><%= @reason_value %></textarea>
+          </label>
+          <button type="submit">Submit change request</button>
+        </form>
+
+        <form
+          :if={show_apply_form?(@governance_mode)}
+          phx-submit="apply"
+          aria-label="Confirm audience archive"
+        >
           <label>
             <span>Reason (required)</span>
             <textarea name="reason"><%= @reason_value %></textarea>
           </label>
           <button type="submit">Apply archive</button>
         </form>
-        <p><a href={Shared.path(assigns, "/audiences/#{@audience_key}/archive/preview")}>Back to preview</a></p>
+
+        <p>
+          <a href={Shared.path(assigns, "/audiences/#{@audience_key}/archive/preview")}>Back to preview</a>
+        </p>
       </FlagComponents.section_card>
     </Shell.page>
     """
@@ -68,6 +131,7 @@ defmodule RulesteadAdmin.Live.AudienceLive.ArchiveConfirm do
 
     with :ok <- validate_reason(reason),
          {:ok, preview} <- ensure_preview(socket),
+         :ok <- ensure_apply_allowed(socket),
          {:ok, _result} <- Rulestead.apply_audience_mutation(apply_attrs(socket, preview, reason)) do
       {:noreply,
        socket
@@ -79,6 +143,9 @@ defmodule RulesteadAdmin.Live.AudienceLive.ArchiveConfirm do
 
       {:error, :missing_preview} ->
         {:noreply, assign(socket, :error_message, "Run impact preview before confirming.")}
+
+      {:error, message} when is_binary(message) ->
+        {:noreply, assign(socket, :error_message, message)}
 
       {:error, error} ->
         if Shared.stale_preview_error?(error) do
@@ -93,17 +160,88 @@ defmodule RulesteadAdmin.Live.AudienceLive.ArchiveConfirm do
     end
   end
 
+  @impl true
+  def handle_event("submit_change_request", %{"reason" => reason}, socket) do
+    reason = String.trim(reason)
+    audience_key = socket.assigns.audience_key
+
+    with :ok <- validate_reason(reason),
+         {:ok, preview} <- ensure_preview(socket),
+         :ok <- Governance.ensure_governance_mode(socket, :change_request),
+         approval_requirement <-
+           Governance.build_approval_requirement(socket, :apply_audience_mutation, audience_key),
+         command_map <- Governance.audience_mutation_command_map(socket, preview, nil, :archive),
+         {:ok, %{change_request: change_request}} <-
+           Rulestead.submit_change_request(
+             Command.SubmitChangeRequest.new(
+               %{
+                 action: :apply_audience_mutation,
+                 environment_key: socket.assigns.current_environment.key,
+                 resource_type: "audience",
+                 resource_key: audience_key,
+                 command: command_map,
+                 approval_requirement: approval_requirement
+               },
+               actor: socket.assigns.current_actor,
+               reason: reason
+             )
+           ) do
+      {:noreply,
+       socket
+       |> put_flash(
+         :info,
+         "Change request submitted. Audience archive is unchanged until this request is approved and executed."
+       )
+       |> push_navigate(
+         to:
+           Session.current_path(
+             socket,
+             "#{Shared.mount_path(socket)}/change-requests/#{change_request.id}"
+           )
+       )}
+    else
+      {:error, :missing_preview} ->
+        {:noreply, assign(socket, :error_message, "Run impact preview before confirming.")}
+
+      {:error, :missing_reason} ->
+        {:noreply, assign(socket, :error_message, "Reason is required.")}
+
+      {:error, message} when is_binary(message) ->
+        {:noreply, assign(socket, :error_message, message)}
+
+      {:error, error} ->
+        {:noreply, assign(socket, :error_message, error.message)}
+    end
+  end
+
   defp load_preview(socket, audience_key, query) do
     fingerprint = blank_to_nil(query["preview_fingerprint"])
     schema_version = blank_to_nil(query["preview_schema_version"])
 
-    if fingerprint && schema_version do
-      case Rulestead.preview_audience_impact(audience_key, :archive, Shared.scope_opts(socket)) do
-        {:ok, preview} -> assign(socket, preview: preview, error_message: nil)
-        {:error, error} -> assign(socket, preview: nil, error_message: error.message)
-      end
-    else
-      assign(socket, preview: nil, error_message: "Run impact preview before confirming.")
+    cond do
+      is_nil(fingerprint) or is_nil(schema_version) ->
+        assign(socket, preview: nil, error_message: "Run impact preview before confirming.")
+
+      true ->
+        opts =
+          Shared.scope_opts(socket)
+          |> Keyword.merge(
+            preview_fingerprint: fingerprint,
+            preview_schema_version: schema_version,
+            reason: "Mounted archive confirm"
+          )
+
+        case Rulestead.preview_audience_impact(audience_key, :archive, opts) do
+          {:ok, preview} ->
+            socket
+            |> assign(:preview, preview)
+            |> assign(:error_message, nil)
+            |> Governance.load_governance_context(preview, operation: :archive)
+            |> Governance.merge_approval_expectations(audience_key)
+
+          {:error, error} ->
+            assign(socket, preview: nil, error_message: error.message)
+        end
     end
   end
 
@@ -130,6 +268,19 @@ defmodule RulesteadAdmin.Live.AudienceLive.ArchiveConfirm do
 
   defp validate_reason(""), do: {:error, :missing_reason}
   defp validate_reason(_), do: :ok
+
+  defp ensure_apply_allowed(%{assigns: %{governance_mode: mode}})
+       when mode in [:unrestricted, :direct_apply],
+       do: :ok
+
+  defp ensure_apply_allowed(_socket),
+    do: {:error, "Direct apply is not available for the current governance state."}
+
+  defp show_apply_form?(mode) when mode in [:unrestricted, :direct_apply], do: true
+  defp show_apply_form?(_), do: false
+
+  defp visibility_attr(:full), do: :full
+  defp visibility_attr(_), do: :redacted
 
   defp blank_to_nil(nil), do: nil
   defp blank_to_nil(""), do: nil
