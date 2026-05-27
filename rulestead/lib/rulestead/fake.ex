@@ -27,6 +27,7 @@ defmodule Rulestead.Fake do
     Governance.BlastRadiusThreshold,
     Governance.ChangeRequest,
     Governance.ExecutionAttempt,
+    Governance.RolloutAutoAdvance,
     Governance.RolloutAutoAdvance.Schedule,
     Governance.ScheduledExecution,
     Manifest.Import,
@@ -3597,29 +3598,48 @@ defmodule Rulestead.Fake do
   end
 
   defp execute_direct_scheduled_action(state, "advance_rollout", scheduled_execution, command) do
-    case handle_advance_rollout_in_state(
-           state,
-           Command.AdvanceRollout.new(
-             scheduled_execution.resource_key,
-             scheduled_execution.environment_key,
-             Map.merge(
-               scheduled_execution.command_snapshot["rollout"] ||
-                 scheduled_execution.command_snapshot,
-               %{"signal_facts" => scheduled_execution.command_snapshot["signal_facts"]}
-             ),
-             actor: command.actor,
-             reason: command.reason,
-             metadata: %{
-               request_id: scheduled_execution.correlation_id,
-               source: scheduled_execution.metadata["source"],
-               scheduled_execution_id: scheduled_execution.id,
-               execution_stage: "scheduled_execution",
-               tenant: scheduled_execution.command_snapshot["tenant"]
-             }
-           )
-         ) do
-      {:ok, payload, next_state} -> {:ok, payload, next_state}
-      {:error, error} -> {:error, error, state}
+    if RolloutAutoAdvance.automation_tick?(scheduled_execution.metadata) do
+      case RolloutAutoAdvance.execute_scheduled_tick(__MODULE__, scheduled_execution, command) do
+        {:ok, %{outcome: :blocked} = blocked_result} ->
+          {:ok, blocked_result, state}
+
+        {:ok, %{outcome: :change_request_submitted} = cr_result} ->
+          {:ok, cr_result, state}
+
+        {:ok, %Command.AdvanceRollout{} = advance_command} ->
+          case handle_advance_rollout_in_state(state, advance_command) do
+            {:ok, payload, next_state} -> {:ok, payload, next_state}
+            {:error, error} -> {:error, error, state}
+          end
+
+        {:error, reason} ->
+          {:error, reason, state}
+      end
+    else
+      case handle_advance_rollout_in_state(
+             state,
+             Command.AdvanceRollout.new(
+               scheduled_execution.resource_key,
+               scheduled_execution.environment_key,
+               Map.merge(
+                 scheduled_execution.command_snapshot["rollout"] ||
+                   scheduled_execution.command_snapshot,
+                 %{"signal_facts" => scheduled_execution.command_snapshot["signal_facts"]}
+               ),
+               actor: command.actor,
+               reason: command.reason,
+               metadata: %{
+                 request_id: scheduled_execution.correlation_id,
+                 source: scheduled_execution.metadata["source"],
+                 scheduled_execution_id: scheduled_execution.id,
+                 execution_stage: "scheduled_execution",
+                 tenant: scheduled_execution.command_snapshot["tenant"]
+               }
+             )
+           ) do
+        {:ok, payload, next_state} -> {:ok, payload, next_state}
+        {:error, error} -> {:error, error, state}
+      end
     end
   end
 
