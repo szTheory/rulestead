@@ -892,6 +892,7 @@ defmodule Rulestead.Store.Ecto do
       |> Repo.transact()
       |> case do
         {:ok, %{decision: decision, ruleset: ruleset}} ->
+          maybe_schedule_auto_advance_tick(command, %{decision: decision, ruleset: ruleset})
           {:ok, guardrail_status_payload(decision, ruleset.version)}
 
         {:error, :ruleset, %Changeset{} = changeset, _changes} ->
@@ -3810,6 +3811,175 @@ defmodule Rulestead.Store.Ecto do
         environment_key: command.environment_key,
         rule_key: command.rule_key
       }
+    )
+  end
+
+  defp maybe_schedule_auto_advance_tick(%Command.AdvanceRollout{} = command, _result) do
+    fetch_command =
+      Command.FetchRolloutAutoAdvancePolicy.new(
+        command.flag_key,
+        command.environment_key,
+        command.rule_key
+      )
+
+    with {:ok, %{policy: policy}} <- fetch_rollout_auto_advance_policy(fetch_command),
+         true <- auto_advance_policy_enabled?(policy),
+         true <- auto_advance_policy_complete?(policy),
+         %DateTime{} = window_ends <- command.monitoring_window_ends_at do
+      idempotency_key = auto_advance_tick_idempotency_key(command, window_ends)
+
+      command_snapshot = auto_advance_tick_command_snapshot(command, policy)
+
+      :ok =
+        cancel_superseded_auto_advance_ticks!(
+          command.flag_key,
+          command.environment_key,
+          command.rule_key,
+          auto_advance_scheduler_actor()
+        )
+
+      schedule_command =
+        Command.ScheduleGovernedAction.new(
+          %{
+            action: :advance_rollout,
+            environment_key: command.environment_key,
+            resource_type: "flag",
+            resource_key: command.flag_key,
+            command: command_snapshot,
+            scheduled_for: window_ends,
+            execution_mode: :policy_bypass,
+            idempotency_key: idempotency_key
+          },
+          actor: auto_advance_scheduler_actor(),
+          reason: "auto_advance observation window close",
+          metadata: auto_advance_tick_schedule_metadata()
+        )
+
+      case schedule_governed_action(schedule_command) do
+        {:ok, _payload} ->
+          :ok
+
+        {:error, error} ->
+          emit_auto_advance_schedule_failure(command, idempotency_key, error)
+          :ok
+      end
+    else
+      _ -> :ok
+    end
+
+    :ok
+  end
+
+  defp auto_advance_scheduler_actor do
+    %{"id" => "system:scheduler", "type" => "system", "display" => "Scheduler"}
+  end
+
+  defp auto_advance_tick_schedule_metadata do
+    %{
+      "source" => "guardrail_automation",
+      "automation_phase" => "evaluate_and_advance"
+    }
+  end
+
+  defp auto_advance_tick_idempotency_key(command, window_ends) do
+    "scheduled_execution:auto_advance:#{command.flag_key}:#{command.environment_key}:#{command.rule_key}:#{command.stage}:#{DateTime.to_iso8601(window_ends)}"
+  end
+
+  defp auto_advance_tick_command_snapshot(command, policy) do
+    %{
+      "rollout" => %{
+        "rule_key" => command.rule_key,
+        "stage" => command.stage,
+        "percentage" => command.percentage,
+        "monitoring_window_started_at" => command.monitoring_window_started_at,
+        "monitoring_window_ends_at" => command.monitoring_window_ends_at
+      },
+      "auto_advance" => %{
+        "policy_next_stage" => Map.get(policy, :next_stage) || Map.get(policy, "next_stage"),
+        "policy_next_percentage" =>
+          Map.get(policy, :next_percentage) || Map.get(policy, "next_percentage"),
+        "observation_window_seconds" =>
+          Map.get(policy, :observation_window_seconds) ||
+            Map.get(policy, "observation_window_seconds")
+      },
+      "signal_facts" => []
+    }
+  end
+
+  defp auto_advance_policy_enabled?(policy) do
+    Map.get(policy, :enabled, Map.get(policy, "enabled")) == true
+  end
+
+  defp auto_advance_policy_complete?(policy) do
+    observation_window_seconds =
+      Map.get(policy, :observation_window_seconds) ||
+        Map.get(policy, "observation_window_seconds")
+
+    next_stage = Map.get(policy, :next_stage) || Map.get(policy, "next_stage")
+    next_percentage = Map.get(policy, :next_percentage) || Map.get(policy, "next_percentage")
+
+    not blank_auto_advance_field?(observation_window_seconds) and
+      not blank_auto_advance_field?(next_stage) and
+      not blank_auto_advance_field?(next_percentage)
+  end
+
+  defp blank_auto_advance_field?(nil), do: true
+  defp blank_auto_advance_field?(value) when is_binary(value), do: String.trim(value) == ""
+  defp blank_auto_advance_field?(_value), do: false
+
+  defp cancel_superseded_auto_advance_ticks!(flag_key, environment_key, rule_key, actor) do
+    flag_key = to_string(flag_key)
+    environment_key = to_string(environment_key)
+    rule_key = to_string(rule_key)
+
+    pending_auto_advance_scheduled_executions(flag_key, environment_key, rule_key)
+    |> Enum.each(fn scheduled_execution ->
+      _ =
+        cancel_scheduled_execution(%Command.CancelScheduledExecution{
+          scheduled_execution_id: scheduled_execution.id,
+          actor: actor,
+          reason: "superseded by new auto-advance stage advance",
+          metadata: %{"source" => "guardrail_automation"}
+        })
+    end)
+
+    :ok
+  end
+
+  defp pending_auto_advance_scheduled_executions(flag_key, environment_key, rule_key) do
+    from(se in "scheduled_executions",
+      where:
+        field(se, :resource_key) == ^flag_key and
+          field(se, :environment_key) == ^environment_key and
+          field(se, :state) == "scheduled" and
+          field(se, :governed_action) == "advance_rollout" and
+          fragment("?->>'source' = ?", field(se, :metadata), "guardrail_automation"),
+      select: map(se, ^scheduled_execution_fields())
+    )
+    |> Repo.all()
+    |> Enum.map(&normalize_scheduled_execution_row/1)
+    |> Enum.filter(fn scheduled_execution ->
+      rollout = scheduled_execution.command_snapshot["rollout"] || %{}
+
+      to_string(rollout["rule_key"] || "") == rule_key
+    end)
+  end
+
+  defp emit_auto_advance_schedule_failure(command, idempotency_key, error) do
+    Telemetry.execute(
+      Telemetry.scheduled_execution_event(:failed),
+      %{count: 1},
+      Telemetry.metadata(
+        %{
+          flag_key: command.flag_key,
+          environment_key: command.environment_key,
+          rule_key: command.rule_key,
+          idempotency_key: idempotency_key,
+          source: "guardrail_automation",
+          phase: "schedule_auto_advance_tick",
+          error_type: error.type
+        }
+      )
     )
   end
 
