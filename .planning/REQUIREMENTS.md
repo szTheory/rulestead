@@ -24,7 +24,7 @@
 
 ### Mounted Auto-Advance (`ADM`)
 
-- [ ] **ADM-04**: Mounted rollout screens expose auto-advance toggle, observation-window and pending-observation state, and bounded copy when prerequisites or guardrail health block automation—without implying Rulestead-owned observability or fleet dashboards.
+- [x] **ADM-04**: Mounted rollout screens expose auto-advance toggle, observation-window and pending-observation state, and bounded copy when prerequisites or guardrail health block automation—without implying Rulestead-owned observability or fleet dashboards.
 
 ### Verification And Support Truth (`VER`)
 
@@ -100,7 +100,7 @@
 | ORC-01 | Phase 62 | Complete |
 | ORC-02 | Phase 62 | Complete |
 | AUD-03 | Phase 62 | Complete |
-| ADM-04 | Phase 63 | Pending |
+| ADM-04 | Phase 63 | Complete |
 | AUD-04 | Phase 63 | Complete |
 | VER-01 | Phase 64 | Pending |
 | VER-02 | Phase 64 | Pending |
