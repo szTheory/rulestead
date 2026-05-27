@@ -309,7 +309,13 @@ defmodule Rulestead.GuardedRolloutTest do
              )
 
     assert {:ok, _} =
-             adapter.save_draft_ruleset(StoreFixtures.save_draft_command(flag_key, "test"))
+             adapter.save_draft_ruleset(
+               StoreFixtures.save_draft_command(
+                 flag_key,
+                 "test",
+                 StoreFixtures.guarded_rollout_ruleset_attrs()
+               )
+             )
 
     assert {:ok, _} =
              adapter.publish_ruleset(StoreFixtures.publish_ruleset_command(flag_key, "test"))
