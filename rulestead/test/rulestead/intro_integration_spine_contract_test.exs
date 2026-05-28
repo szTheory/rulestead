@@ -29,6 +29,13 @@ defmodule Rulestead.IntroIntegrationSpineContractTest do
     end
   end
 
+  test "getting-started deep-links spine section 6 with numbered heading slug" do
+    getting_started = File.read!(@getting_started_path)
+
+    assert getting_started =~ "phoenix-integration-spine.md#6-create-your-first-flag-lifecycle-required"
+    refute getting_started =~ "phoenix-integration-spine.md#create-your-first-flag-lifecycle-required"
+  end
+
   test "root readme routes Phoenix integrators to the spine" do
     root_readme = File.read!(@root_readme_path)
 
