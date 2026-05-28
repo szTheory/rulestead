@@ -100,8 +100,28 @@ jobs:
         with:
           version-file: .tool-versions
           version-type: strict
+      - name: Cache Mix deps and build
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: |
+            rulestead/deps
+            rulestead/_build
+          key: ${{ runner.os }}-lint-mix-${{ hashFiles('**/mix.lock', '.tool-versions') }}
+          restore-keys: |
+            ${{ runner.os }}-lint-mix-
+      - name: Restore Dialyzer PLT
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: rulestead/priv/plts
+          key: ${{ runner.os }}-plt-${{ hashFiles('**/mix.lock', '.tool-versions') }}
       - name: Run lint lane
         run: scripts/ci/lint.sh
+      - name: Save Dialyzer PLT
+        if: always()
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: rulestead/priv/plts
+          key: ${{ runner.os }}-plt-${{ hashFiles('**/mix.lock', '.tool-versions') }}
 
   test:
     name: test (${{ matrix.elixir }} / OTP ${{ matrix.otp }})
@@ -143,6 +163,18 @@ jobs:
         with:
           elixir-version: ${{ matrix.elixir }}
           otp-version: ${{ matrix.otp }}
+      - name: Cache Mix deps and build
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: |
+            rulestead/deps
+            rulestead/_build/test
+            rulestead_admin/deps
+            rulestead_admin/_build/test
+          key: ${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-${{ hashFiles('**/mix.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-
+            ${{ runner.os }}-mix-
       - name: Run test lane
         run: scripts/ci/test.sh
 
@@ -189,6 +221,17 @@ jobs:
         with:
           version-file: .tool-versions
           version-type: strict
+      - name: Cache Mix deps and build
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: |
+            rulestead/deps
+            rulestead/_build/test
+            rulestead_admin/deps
+            rulestead_admin/_build/test
+          key: ${{ runner.os }}-adopter-mix-${{ hashFiles('**/mix.lock', '.tool-versions') }}
+          restore-keys: |
+            ${{ runner.os }}-adopter-mix-
       - name: Run post-GA band closure proof bar
         run: RULESTEAD_TEST_SCOPE=post_ga_band_closure scripts/ci/test.sh
 
@@ -205,6 +248,15 @@ jobs:
         with:
           version-file: .tool-versions
           version-type: strict
+      - name: Cache Mix deps and build
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: |
+            open_feature_rulestead/deps
+            open_feature_rulestead/_build/test
+          key: ${{ runner.os }}-openfeature-mix-${{ hashFiles('**/mix.lock', '.tool-versions') }}
+          restore-keys: |
+            ${{ runner.os }}-openfeature-mix-
       - name: Run OpenFeature companion proof bar
         run: RULESTEAD_TEST_SCOPE=openfeature_companion scripts/ci/test.sh
 
@@ -221,6 +273,17 @@ jobs:
         with:
           version-file: .tool-versions
           version-type: strict
+      - name: Cache Mix deps and build
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: |
+            rulestead/deps
+            rulestead/_build/test
+            rulestead_admin/deps
+            rulestead_admin/_build/test
+          key: ${{ runner.os }}-mounted-mix-${{ hashFiles('**/mix.lock', '.tool-versions') }}
+          restore-keys: |
+            ${{ runner.os }}-mounted-mix-
       - name: Install mounted proof deps
         run: |
           cd rulestead && mix deps.get

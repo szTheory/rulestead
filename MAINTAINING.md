@@ -51,6 +51,17 @@ Document these settings exactly on `main`:
 - Allow deletions: off
 - Require conversation resolution before merging: off
 
+## CI caching
+
+`ci.yml` restores and saves bounded Mix caches to keep lint and test lanes fast:
+
+- **Mix deps/build** — `rulestead/` (and sibling packages where the job needs them)
+  keyed by `mix.lock` plus OTP/Elixir when matrixed.
+- **Dialyzer PLTs** — `rulestead/priv/plts/` uses restore → build-if-miss → save in
+  the lint job (PLTs are gitignored locally; CI owns the warm cache).
+
+Cache keys intentionally exclude `.planning/`, `prompts/`, and guide-only edits.
+
 ## Release Please flow
 
 The repository uses a linked-version sibling-package setup:
