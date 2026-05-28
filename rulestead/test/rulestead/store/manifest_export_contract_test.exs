@@ -81,6 +81,7 @@ defmodule Rulestead.Store.ManifestExportContractTest do
         previous_store = Application.get_env(:rulestead, :store)
         @control.ensure_started()
         @control.reset!()
+
         if @adapter == Rulestead.Store.Ecto do
           Rulestead.StoreFixtures.seed_default_audience_for_repo!()
         end

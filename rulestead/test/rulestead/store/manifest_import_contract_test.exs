@@ -51,7 +51,6 @@ defmodule Rulestead.Store.ManifestImportContractTest do
         %Environment{} |> Environment.changeset(attrs) |> Repo.insert!()
       end)
 
-
       :ok
     end
 

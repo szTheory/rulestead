@@ -32,87 +32,93 @@ defmodule Rulestead.ScheduledExecutionAdapterContractTest do
     Enum.each(@adapters, fn adapter ->
       with_store_adapter(adapter, fn ->
         reset_adapter!(adapter)
-      seed_publishable_flag!(adapter)
+        seed_publishable_flag!(adapter)
 
-      scheduled_for = ~U[2026-04-25 12:30:00Z]
+        scheduled_for = ~U[2026-04-25 12:30:00Z]
 
-      assert {:ok, %{scheduled_execution: scheduled_execution}} =
-               adapter.schedule_governed_action(
-                 Command.ScheduleGovernedAction.new(%{
-                   action: :publish_ruleset,
-                   environment_key: "test",
-                   resource_type: "flag",
-                   resource_key: "checkout-redesign",
-                   command: %{"version" => 3},
-                   scheduled_for: scheduled_for,
-                   execution_mode: :policy_bypass,
-                   actor: %{id: "scheduler-1", type: "operator", display: "Scheduler"},
-                   reason: "Publish v3",
-                   approval_requirement:
-                     ApprovalRequirement.new(
-                       action: :publish_ruleset,
-                       environment_key: "test",
-                       required_approvals: 0,
-                       change_request_required?: false,
-                       self_approval_allowed?: true
-                     ),
-                   metadata: %{request_id: "corr-transient", source: :admin_ui}
-                 })
-               )
-
-      assert {:error, %Rulestead.Error{}} =
-               adapter.execute_scheduled_execution(
-                 Command.ExecuteScheduledExecution.new(scheduled_execution.id,
-                   actor: %{id: "scheduler", type: "system", display: "Scheduler"},
-                   reason: "Due now",
-                   metadata: %{request_id: "req-transient-1", source: :scheduled_execution_worker}
+        assert {:ok, %{scheduled_execution: scheduled_execution}} =
+                 adapter.schedule_governed_action(
+                   Command.ScheduleGovernedAction.new(%{
+                     action: :publish_ruleset,
+                     environment_key: "test",
+                     resource_type: "flag",
+                     resource_key: "checkout-redesign",
+                     command: %{"version" => 3},
+                     scheduled_for: scheduled_for,
+                     execution_mode: :policy_bypass,
+                     actor: %{id: "scheduler-1", type: "operator", display: "Scheduler"},
+                     reason: "Publish v3",
+                     approval_requirement:
+                       ApprovalRequirement.new(
+                         action: :publish_ruleset,
+                         environment_key: "test",
+                         required_approvals: 0,
+                         change_request_required?: false,
+                         self_approval_allowed?: true
+                       ),
+                     metadata: %{request_id: "corr-transient", source: :admin_ui}
+                   })
                  )
-               )
 
-      assert {:ok, %{scheduled_execution: failed_once, attempts: attempts}} =
-               adapter.fetch_scheduled_execution(
-                 Command.FetchScheduledExecution.new(scheduled_execution.id)
-               )
-
-      assert failed_once.id == scheduled_execution.id
-      assert failed_once.state == :scheduled
-      assert failed_once.attempt_count == 1
-      assert [%{attempt_number: 1, state: :failed}] = attempts
-
-      assert {:ok, _} =
-               adapter.save_draft_ruleset(
-                 StoreFixtures.save_draft_command(
-                   "checkout-redesign",
-                   "test",
-                   StoreFixtures.valid_ruleset_attrs(%{salt: "checkout-redesign:v3"})
+        assert {:error, %Rulestead.Error{}} =
+                 adapter.execute_scheduled_execution(
+                   Command.ExecuteScheduledExecution.new(scheduled_execution.id,
+                     actor: %{id: "scheduler", type: "system", display: "Scheduler"},
+                     reason: "Due now",
+                     metadata: %{
+                       request_id: "req-transient-1",
+                       source: :scheduled_execution_worker
+                     }
+                   )
                  )
-               )
 
-      assert {:ok, %{scheduled_execution: completed}} =
-               adapter.execute_scheduled_execution(
-                 Command.ExecuteScheduledExecution.new(scheduled_execution.id,
-                   actor: %{id: "scheduler", type: "system", display: "Scheduler"},
-                   reason: "Retry after fix",
-                   metadata: %{request_id: "req-transient-2", source: :scheduled_execution_worker}
+        assert {:ok, %{scheduled_execution: failed_once, attempts: attempts}} =
+                 adapter.fetch_scheduled_execution(
+                   Command.FetchScheduledExecution.new(scheduled_execution.id)
                  )
-               )
 
-      assert completed.id == scheduled_execution.id
-      assert completed.state == :completed
+        assert failed_once.id == scheduled_execution.id
+        assert failed_once.state == :scheduled
+        assert failed_once.attempt_count == 1
+        assert [%{attempt_number: 1, state: :failed}] = attempts
 
-      assert {:ok, %{scheduled_execution: fetched, attempts: completed_attempts}} =
-               adapter.fetch_scheduled_execution(
-                 Command.FetchScheduledExecution.new(scheduled_execution.id)
-               )
+        assert {:ok, _} =
+                 adapter.save_draft_ruleset(
+                   StoreFixtures.save_draft_command(
+                     "checkout-redesign",
+                     "test",
+                     StoreFixtures.valid_ruleset_attrs(%{salt: "checkout-redesign:v3"})
+                   )
+                 )
 
-      assert fetched.id == scheduled_execution.id
-      assert fetched.state == :completed
-      assert fetched.attempt_count == 2
+        assert {:ok, %{scheduled_execution: completed}} =
+                 adapter.execute_scheduled_execution(
+                   Command.ExecuteScheduledExecution.new(scheduled_execution.id,
+                     actor: %{id: "scheduler", type: "system", display: "Scheduler"},
+                     reason: "Retry after fix",
+                     metadata: %{
+                       request_id: "req-transient-2",
+                       source: :scheduled_execution_worker
+                     }
+                   )
+                 )
 
-      assert Enum.map(completed_attempts, &{&1.attempt_number, &1.state}) == [
-               {1, :failed},
-               {2, :completed}
-             ]
+        assert completed.id == scheduled_execution.id
+        assert completed.state == :completed
+
+        assert {:ok, %{scheduled_execution: fetched, attempts: completed_attempts}} =
+                 adapter.fetch_scheduled_execution(
+                   Command.FetchScheduledExecution.new(scheduled_execution.id)
+                 )
+
+        assert fetched.id == scheduled_execution.id
+        assert fetched.state == :completed
+        assert fetched.attempt_count == 2
+
+        assert Enum.map(completed_attempts, &{&1.attempt_number, &1.state}) == [
+                 {1, :failed},
+                 {2, :completed}
+               ]
       end)
     end)
   end
@@ -121,74 +127,80 @@ defmodule Rulestead.ScheduledExecutionAdapterContractTest do
     Enum.each(@adapters, fn adapter ->
       with_store_adapter(adapter, fn ->
         reset_adapter!(adapter)
-      seed_publishable_flag!(adapter)
+        seed_publishable_flag!(adapter)
 
-      assert {:ok, %{scheduled_execution: completed_schedule}} =
-               adapter.schedule_governed_action(scheduled_publish_command(2, "corr-complete"))
+        assert {:ok, %{scheduled_execution: completed_schedule}} =
+                 adapter.schedule_governed_action(scheduled_publish_command(2, "corr-complete"))
 
-      assert {:ok, %{scheduled_execution: completed}} =
-               adapter.execute_scheduled_execution(
-                 Command.ExecuteScheduledExecution.new(completed_schedule.id,
-                   actor: %{id: "scheduler", type: "system", display: "Scheduler"},
-                   reason: "Execute",
-                   metadata: %{request_id: "req-complete-1", source: :scheduled_execution_worker}
-                 )
-               )
-
-      assert completed.state == :completed
-
-      assert {:ok, %{scheduled_execution: replayed}} =
-               adapter.execute_scheduled_execution(
-                 Command.ExecuteScheduledExecution.new(completed_schedule.id,
-                   actor: %{id: "scheduler", type: "system", display: "Scheduler"},
-                   reason: "Replay",
-                   metadata: %{request_id: "req-complete-2", source: :scheduled_execution_worker}
-                 )
-               )
-
-      assert replayed.id == completed_schedule.id
-      assert replayed.state == :completed
-
-      assert {:ok, %{scheduled_execution: failed_schedule}} =
-               adapter.schedule_governed_action(scheduled_publish_command(9, "corr-quarantine"))
-
-      for attempt <- 1..3 do
-        assert {:error, %Rulestead.Error{}} =
+        assert {:ok, %{scheduled_execution: completed}} =
                  adapter.execute_scheduled_execution(
-                   Command.ExecuteScheduledExecution.new(failed_schedule.id,
+                   Command.ExecuteScheduledExecution.new(completed_schedule.id,
                      actor: %{id: "scheduler", type: "system", display: "Scheduler"},
-                     reason: "Attempt #{attempt}",
+                     reason: "Execute",
                      metadata: %{
-                       request_id: "req-quarantine-#{attempt}",
+                       request_id: "req-complete-1",
                        source: :scheduled_execution_worker
                      }
                    )
                  )
-      end
 
-      assert {:ok, %{scheduled_execution: quarantined}} =
-               adapter.fetch_scheduled_execution(
-                 Command.FetchScheduledExecution.new(failed_schedule.id)
-               )
+        assert completed.state == :completed
 
-      assert quarantined.id == failed_schedule.id
-      assert quarantined.state == :quarantined
-      assert quarantined.attempt_count == 3
-      assert is_binary(quarantined.failure_reason)
-      assert quarantined.failure_reason != ""
-
-      assert {:ok, %{scheduled_execution: requeued}} =
-               adapter.requeue_scheduled_execution(
-                 Command.RequeueScheduledExecution.new(failed_schedule.id,
-                   actor: %{id: "operator-1", type: "operator", display: "Operator"},
-                   reason: "Retry after repair",
-                   metadata: %{request_id: "req-requeue", source: :admin_ui}
+        assert {:ok, %{scheduled_execution: replayed}} =
+                 adapter.execute_scheduled_execution(
+                   Command.ExecuteScheduledExecution.new(completed_schedule.id,
+                     actor: %{id: "scheduler", type: "system", display: "Scheduler"},
+                     reason: "Replay",
+                     metadata: %{
+                       request_id: "req-complete-2",
+                       source: :scheduled_execution_worker
+                     }
+                   )
                  )
-               )
 
-      assert requeued.id == failed_schedule.id
-      assert requeued.state == :scheduled
-      assert requeued.failure_reason == nil
+        assert replayed.id == completed_schedule.id
+        assert replayed.state == :completed
+
+        assert {:ok, %{scheduled_execution: failed_schedule}} =
+                 adapter.schedule_governed_action(scheduled_publish_command(9, "corr-quarantine"))
+
+        for attempt <- 1..3 do
+          assert {:error, %Rulestead.Error{}} =
+                   adapter.execute_scheduled_execution(
+                     Command.ExecuteScheduledExecution.new(failed_schedule.id,
+                       actor: %{id: "scheduler", type: "system", display: "Scheduler"},
+                       reason: "Attempt #{attempt}",
+                       metadata: %{
+                         request_id: "req-quarantine-#{attempt}",
+                         source: :scheduled_execution_worker
+                       }
+                     )
+                   )
+        end
+
+        assert {:ok, %{scheduled_execution: quarantined}} =
+                 adapter.fetch_scheduled_execution(
+                   Command.FetchScheduledExecution.new(failed_schedule.id)
+                 )
+
+        assert quarantined.id == failed_schedule.id
+        assert quarantined.state == :quarantined
+        assert quarantined.attempt_count == 3
+        assert is_binary(quarantined.failure_reason)
+        assert quarantined.failure_reason != ""
+
+        assert {:ok, %{scheduled_execution: requeued}} =
+                 adapter.requeue_scheduled_execution(
+                   Command.RequeueScheduledExecution.new(failed_schedule.id,
+                     actor: %{id: "operator-1", type: "operator", display: "Operator"},
+                     reason: "Retry after repair",
+                     metadata: %{request_id: "req-requeue", source: :admin_ui}
+                   )
+                 )
+
+        assert requeued.id == failed_schedule.id
+        assert requeued.state == :scheduled
+        assert requeued.failure_reason == nil
       end)
     end)
   end
@@ -197,96 +209,96 @@ defmodule Rulestead.ScheduledExecutionAdapterContractTest do
     Enum.each(@adapters, fn adapter ->
       with_store_adapter(adapter, fn ->
         reset_adapter!(adapter)
-      seed_publishable_flag!(adapter)
+        seed_publishable_flag!(adapter)
 
-      assert {:ok, %{scheduled_execution: cancelled_schedule}} =
-               adapter.schedule_governed_action(scheduled_publish_command(2, "corr-cancel"))
+        assert {:ok, %{scheduled_execution: cancelled_schedule}} =
+                 adapter.schedule_governed_action(scheduled_publish_command(2, "corr-cancel"))
 
-      assert {:ok, %{scheduled_execution: cancelled}} =
-               adapter.cancel_scheduled_execution(
-                 Command.CancelScheduledExecution.new(cancelled_schedule.id,
-                   actor: %{id: "operator-2", type: "operator", display: "Operator"},
-                   reason: "Launch moved",
-                   metadata: %{request_id: "req-cancel-scheduled", source: :admin_ui}
-                 )
-               )
-
-      assert cancelled.state == :cancelled
-
-      assert {:ok, %{scheduled_execution: quarantined_schedule}} =
-               adapter.schedule_governed_action(
-                 scheduled_publish_command(11, "corr-list-quarantine")
-               )
-
-      for attempt <- 1..3 do
-        assert {:error, %Rulestead.Error{}} =
-                 adapter.execute_scheduled_execution(
-                   Command.ExecuteScheduledExecution.new(quarantined_schedule.id,
-                     actor: %{id: "scheduler", type: "system", display: "Scheduler"},
-                     reason: "Attempt #{attempt}",
-                     metadata: %{
-                       request_id: "req-list-quarantine-#{attempt}",
-                       source: :scheduled_execution_worker
-                     }
+        assert {:ok, %{scheduled_execution: cancelled}} =
+                 adapter.cancel_scheduled_execution(
+                   Command.CancelScheduledExecution.new(cancelled_schedule.id,
+                     actor: %{id: "operator-2", type: "operator", display: "Operator"},
+                     reason: "Launch moved",
+                     metadata: %{request_id: "req-cancel-scheduled", source: :admin_ui}
                    )
                  )
-      end
 
-      assert {:ok, %{scheduled_execution: fetched_cancelled, attempts: cancelled_attempts}} =
-               adapter.fetch_scheduled_execution(
-                 Command.FetchScheduledExecution.new(cancelled_schedule.id)
-               )
+        assert cancelled.state == :cancelled
 
-      assert fetched_cancelled.id == cancelled_schedule.id
-      assert fetched_cancelled.state == :cancelled
-      assert fetched_cancelled.action == :publish_ruleset
-      assert fetched_cancelled.environment_key == "test"
-      assert fetched_cancelled.resource_key == "checkout-redesign"
-      assert cancelled_attempts == []
-
-      assert {:ok, %{scheduled_execution: fetched_quarantined, attempts: quarantined_attempts}} =
-               adapter.fetch_scheduled_execution(
-                 Command.FetchScheduledExecution.new(quarantined_schedule.id)
-               )
-
-      assert fetched_quarantined.state == :quarantined
-      assert length(quarantined_attempts) == 3
-
-      assert {:ok, %Command.Page{entries: cancelled_entries}} =
-               adapter.list_scheduled_executions(
-                 Command.ListScheduledExecutions.new(
-                   environment_key: "test",
-                   state: :cancelled,
-                   action: :publish_ruleset,
-                   resource_key: "checkout-redesign",
-                   after: ~U[2026-04-25 12:00:00Z],
-                   before: ~U[2026-04-25 13:00:00Z],
-                   limit: 10
+        assert {:ok, %{scheduled_execution: quarantined_schedule}} =
+                 adapter.schedule_governed_action(
+                   scheduled_publish_command(11, "corr-list-quarantine")
                  )
-               )
 
-      assert Enum.any?(
-               cancelled_entries,
-               &(&1.id == cancelled_schedule.id and &1.state == :cancelled)
-             )
+        for attempt <- 1..3 do
+          assert {:error, %Rulestead.Error{}} =
+                   adapter.execute_scheduled_execution(
+                     Command.ExecuteScheduledExecution.new(quarantined_schedule.id,
+                       actor: %{id: "scheduler", type: "system", display: "Scheduler"},
+                       reason: "Attempt #{attempt}",
+                       metadata: %{
+                         request_id: "req-list-quarantine-#{attempt}",
+                         source: :scheduled_execution_worker
+                       }
+                     )
+                   )
+        end
 
-      assert {:ok, %Command.Page{entries: quarantined_entries}} =
-               adapter.list_scheduled_executions(
-                 Command.ListScheduledExecutions.new(
-                   environment_key: "test",
-                   state: "quarantined",
-                   action: "publish_ruleset",
-                   resource_key: "checkout-redesign",
-                   after: ~U[2026-04-25 12:00:00Z],
-                   before: ~U[2026-04-25 13:00:00Z],
-                   limit: 10
+        assert {:ok, %{scheduled_execution: fetched_cancelled, attempts: cancelled_attempts}} =
+                 adapter.fetch_scheduled_execution(
+                   Command.FetchScheduledExecution.new(cancelled_schedule.id)
                  )
+
+        assert fetched_cancelled.id == cancelled_schedule.id
+        assert fetched_cancelled.state == :cancelled
+        assert fetched_cancelled.action == :publish_ruleset
+        assert fetched_cancelled.environment_key == "test"
+        assert fetched_cancelled.resource_key == "checkout-redesign"
+        assert cancelled_attempts == []
+
+        assert {:ok, %{scheduled_execution: fetched_quarantined, attempts: quarantined_attempts}} =
+                 adapter.fetch_scheduled_execution(
+                   Command.FetchScheduledExecution.new(quarantined_schedule.id)
+                 )
+
+        assert fetched_quarantined.state == :quarantined
+        assert length(quarantined_attempts) == 3
+
+        assert {:ok, %Command.Page{entries: cancelled_entries}} =
+                 adapter.list_scheduled_executions(
+                   Command.ListScheduledExecutions.new(
+                     environment_key: "test",
+                     state: :cancelled,
+                     action: :publish_ruleset,
+                     resource_key: "checkout-redesign",
+                     after: ~U[2026-04-25 12:00:00Z],
+                     before: ~U[2026-04-25 13:00:00Z],
+                     limit: 10
+                   )
+                 )
+
+        assert Enum.any?(
+                 cancelled_entries,
+                 &(&1.id == cancelled_schedule.id and &1.state == :cancelled)
                )
 
-      assert Enum.any?(
-               quarantined_entries,
-               &(&1.id == quarantined_schedule.id and &1.state == :quarantined)
-             )
+        assert {:ok, %Command.Page{entries: quarantined_entries}} =
+                 adapter.list_scheduled_executions(
+                   Command.ListScheduledExecutions.new(
+                     environment_key: "test",
+                     state: "quarantined",
+                     action: "publish_ruleset",
+                     resource_key: "checkout-redesign",
+                     after: ~U[2026-04-25 12:00:00Z],
+                     before: ~U[2026-04-25 13:00:00Z],
+                     limit: 10
+                   )
+                 )
+
+        assert Enum.any?(
+                 quarantined_entries,
+                 &(&1.id == quarantined_schedule.id and &1.state == :quarantined)
+               )
       end)
     end)
   end
@@ -295,44 +307,44 @@ defmodule Rulestead.ScheduledExecutionAdapterContractTest do
     Enum.each(@adapters, fn adapter ->
       with_store_adapter(adapter, fn ->
         reset_adapter!(adapter)
-      seed_promotable_flag!(adapter)
+        seed_promotable_flag!(adapter)
 
-      compare = promotion_compare!(adapter)
+        compare = promotion_compare!(adapter)
 
-      assert {:ok, %{change_request: submitted}} =
-               adapter.submit_change_request(
-                 governed_promotion_command(compare, "corr-promote-approved")
-               )
-
-      assert {:ok, %{change_request: approved}} =
-               adapter.approve_change_request(
-                 Command.ApproveChangeRequest.new(submitted.id,
-                   actor: %{id: "reviewer-1", type: "operator", display: "Reviewer"},
-                   reason: "Approved",
-                   metadata: %{request_id: "corr-promote-approved", source: :review_queue}
+        assert {:ok, %{change_request: submitted}} =
+                 adapter.submit_change_request(
+                   governed_promotion_command(compare, "corr-promote-approved")
                  )
-               )
 
-      assert approved.state == :approved
-
-      assert {:ok, %{change_request: executed, execution_result: execution_result}} =
-               adapter.execute_change_request(
-                 Command.ExecuteChangeRequest.new(approved.id,
-                   actor: %{id: "executor-1", type: "operator", display: "Executor"},
-                   reason: "Execute promotion",
-                   metadata: %{request_id: "corr-promote-approved", source: :governance_worker}
+        assert {:ok, %{change_request: approved}} =
+                 adapter.approve_change_request(
+                   Command.ApproveChangeRequest.new(submitted.id,
+                     actor: %{id: "reviewer-1", type: "operator", display: "Reviewer"},
+                     reason: "Approved",
+                     metadata: %{request_id: "corr-promote-approved", source: :review_queue}
+                   )
                  )
-               )
 
-      assert executed.state == :executed
-      assert execution_result.target_environment_key == "production"
-      assert execution_result.applied_flag_keys == ["checkout-redesign"]
-      assert is_binary(execution_result.environment_version_id)
+        assert approved.state == :approved
 
-      assert {:ok, target_payload} =
-               adapter.fetch_flag(Command.FetchFlag.new("checkout-redesign", "production"))
+        assert {:ok, %{change_request: executed, execution_result: execution_result}} =
+                 adapter.execute_change_request(
+                   Command.ExecuteChangeRequest.new(approved.id,
+                     actor: %{id: "executor-1", type: "operator", display: "Executor"},
+                     reason: "Execute promotion",
+                     metadata: %{request_id: "corr-promote-approved", source: :governance_worker}
+                   )
+                 )
 
-      assert target_payload.active_ruleset.salt == "checkout-redesign:v2"
+        assert executed.state == :executed
+        assert execution_result.target_environment_key == "production"
+        assert execution_result.applied_flag_keys == ["checkout-redesign"]
+        assert is_binary(execution_result.environment_version_id)
+
+        assert {:ok, target_payload} =
+                 adapter.fetch_flag(Command.FetchFlag.new("checkout-redesign", "production"))
+
+        assert target_payload.active_ruleset.salt == "checkout-redesign:v2"
       end)
     end)
   end
@@ -341,46 +353,46 @@ defmodule Rulestead.ScheduledExecutionAdapterContractTest do
     Enum.each(@adapters, fn adapter ->
       with_store_adapter(adapter, fn ->
         reset_adapter!(adapter)
-      seed_promotable_flag!(adapter)
+        seed_promotable_flag!(adapter)
 
-      compare = promotion_compare!(adapter)
+        compare = promotion_compare!(adapter)
 
-      assert {:ok, %{scheduled_execution: scheduled_execution}} =
-               adapter.schedule_governed_action(
-                 scheduled_promotion_command(compare, "corr-promote-scheduled")
-               )
-
-      mutate_source_environment!(adapter, "checkout-redesign:v3")
-
-      assert {:error,
-              %Rulestead.Error{
-                type: :invalid_command,
-                message: "promotion compare preview is stale"
-              }} =
-               adapter.execute_scheduled_execution(
-                 Command.ExecuteScheduledExecution.new(scheduled_execution.id,
-                   actor: %{id: "scheduler", type: "system", display: "Scheduler"},
-                   reason: "Execute scheduled promotion",
-                   metadata: %{
-                     request_id: "req-promote-scheduled",
-                     source: :scheduled_execution_worker
-                   }
+        assert {:ok, %{scheduled_execution: scheduled_execution}} =
+                 adapter.schedule_governed_action(
+                   scheduled_promotion_command(compare, "corr-promote-scheduled")
                  )
-               )
 
-      assert {:ok, %{scheduled_execution: fetched, attempts: attempts}} =
-               adapter.fetch_scheduled_execution(
-                 Command.FetchScheduledExecution.new(scheduled_execution.id)
-               )
+        mutate_source_environment!(adapter, "checkout-redesign:v3")
 
-      assert fetched.state == :scheduled
-      assert fetched.attempt_count == 1
-      assert [%{attempt_number: 1, state: :failed}] = attempts
+        assert {:error,
+                %Rulestead.Error{
+                  type: :invalid_command,
+                  message: "promotion compare preview is stale"
+                }} =
+                 adapter.execute_scheduled_execution(
+                   Command.ExecuteScheduledExecution.new(scheduled_execution.id,
+                     actor: %{id: "scheduler", type: "system", display: "Scheduler"},
+                     reason: "Execute scheduled promotion",
+                     metadata: %{
+                       request_id: "req-promote-scheduled",
+                       source: :scheduled_execution_worker
+                     }
+                   )
+                 )
 
-      assert {:ok, target_payload} =
-               adapter.fetch_flag(Command.FetchFlag.new("checkout-redesign", "production"))
+        assert {:ok, %{scheduled_execution: fetched, attempts: attempts}} =
+                 adapter.fetch_scheduled_execution(
+                   Command.FetchScheduledExecution.new(scheduled_execution.id)
+                 )
 
-      assert target_payload.active_ruleset.salt == "checkout-redesign:v1"
+        assert fetched.state == :scheduled
+        assert fetched.attempt_count == 1
+        assert [%{attempt_number: 1, state: :failed}] = attempts
+
+        assert {:ok, target_payload} =
+                 adapter.fetch_flag(Command.FetchFlag.new("checkout-redesign", "production"))
+
+        assert target_payload.active_ruleset.salt == "checkout-redesign:v1"
       end)
     end)
   end

@@ -54,7 +54,6 @@ defmodule Rulestead.Store.PromotionApplyContractTest do
         %Environment{} |> Environment.changeset(attrs) |> Repo.insert!()
       end)
 
-
       :ok
     end
 

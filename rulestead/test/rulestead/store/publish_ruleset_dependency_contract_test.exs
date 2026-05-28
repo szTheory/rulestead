@@ -198,7 +198,6 @@ defmodule Rulestead.Store.PublishRulesetDependencyContractTest do
         %Environment{} |> Environment.changeset(attrs) |> Repo.insert!()
       end)
 
-
       :ok
     end
 

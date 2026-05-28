@@ -48,7 +48,6 @@ defmodule Rulestead.Store.AudienceDependencyInventoryContractTest do
         %Environment{} |> Environment.changeset(attrs) |> Repo.insert!()
       end)
 
-
       :ok
     end
 

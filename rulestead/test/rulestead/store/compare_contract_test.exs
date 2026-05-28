@@ -38,7 +38,6 @@ defmodule Rulestead.Store.CompareContractTest do
         %Environment{} |> Environment.changeset(attrs) |> Repo.insert!()
       end)
 
-
       :ok
     end
 

@@ -137,7 +137,9 @@ defmodule RulesteadAdmin.Live.FlagLive.KillTest do
              Rulestead.engage_kill_switch(
                "checkout-redesign",
                "prod",
-               %{id: "op-1", roles: [:admin]}, reason: "incident")
+               %{id: "op-1", roles: [:admin]},
+               reason: "incident"
+             )
 
     {:ok, view, html} = live(conn, "/admin/flags/checkout-redesign?env=prod")
 
@@ -161,7 +163,9 @@ defmodule RulesteadAdmin.Live.FlagLive.KillTest do
              Rulestead.engage_kill_switch(
                "checkout-redesign",
                "prod",
-               %{id: "op-1", roles: [:admin]}, reason: "incident")
+               %{id: "op-1", roles: [:admin]},
+               reason: "incident"
+             )
 
     {:ok, view, _html} = live(conn, "/admin/flags/checkout-redesign/kill?env=prod")
 
@@ -181,7 +185,9 @@ defmodule RulesteadAdmin.Live.FlagLive.KillTest do
              Rulestead.release_kill_switch(
                "checkout-redesign",
                "prod",
-               %{id: "op-1", roles: [:admin]}, reason: "resolved again")
+               %{id: "op-1", roles: [:admin]},
+               reason: "resolved again"
+             )
 
     assert second_release.flag_environment.status == :active
     assert is_nil(second_release.flag_environment.kill_switch_variant_key)

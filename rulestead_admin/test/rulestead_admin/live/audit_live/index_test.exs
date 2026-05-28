@@ -46,13 +46,17 @@ defmodule RulesteadAdmin.Live.AuditLive.IndexTest do
              Rulestead.engage_kill_switch(
                "checkout-redesign",
                "prod",
-               %{id: "op-1", display: "Priya", roles: [:admin]}, reason: "incident")
+               %{id: "op-1", display: "Priya", roles: [:admin]},
+               reason: "incident"
+             )
 
     assert {:ok, _} =
              Rulestead.release_kill_switch(
                "checkout-redesign",
                "prod",
-               %{id: "op-1", display: "Priya", roles: [:admin]}, reason: "resolved")
+               %{id: "op-1", display: "Priya", roles: [:admin]},
+               reason: "resolved"
+             )
 
     Application.put_env(:rulestead, :admin_policy, DenyPolicy)
 
@@ -60,7 +64,9 @@ defmodule RulesteadAdmin.Live.AuditLive.IndexTest do
              Rulestead.engage_kill_switch(
                "search-ranking",
                "staging",
-               %{id: "viewer-1", display: "Sam", roles: [:viewer]}, reason: "denied attempt")
+               %{id: "viewer-1", display: "Sam", roles: [:viewer]},
+               reason: "denied attempt"
+             )
 
     Application.put_env(:rulestead, :admin_policy, AllowPolicy)
 

@@ -26,7 +26,6 @@ defmodule Rulestead.Store.EctoContractTest do
         %Environment{} |> Environment.changeset(attrs) |> Repo.insert!()
       end)
 
-
       :ok
     end
 
