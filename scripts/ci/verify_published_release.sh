@@ -55,7 +55,7 @@ run_mix() {
   echo "==> mix ${task} $*"
   (
     cd "${RULESTEAD_REPO}/rulestead"
-    mix "${task}" "$@"
+    MIX_ENV=test mix "${task}" "$@"
   )
 }
 
