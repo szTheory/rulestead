@@ -69,6 +69,7 @@ defmodule Rulestead.Test.ReleasePublishFixture do
       {:rulestead_admin, version}
     ])
 
+    write_admin_policy!(app_dir)
     encode_admin_contract!(app_dir)
 
     %{
@@ -140,6 +141,31 @@ defmodule Rulestead.Test.ReleasePublishFixture do
     File.write!(mix_exs_path, updated)
   end
 
+  defp write_admin_policy!(app_dir) do
+    policy_path = Path.join([app_dir, "lib", "admin_consumer", "rulestead_policy.ex"])
+
+    File.mkdir_p!(Path.dirname(policy_path))
+
+    File.write!(
+      policy_path,
+      """
+      defmodule AdminConsumer.RulesteadPolicy do
+        @moduledoc false
+        @behaviour Rulestead.Admin.Policy
+
+        @impl true
+        def can?(_actor, _action, _resource, _env), do: true
+
+        @impl true
+        def change_request_required?(_actor, _action, _resource, _env), do: false
+
+        @impl true
+        def allow_self_approval?(_actor, _action, _resource, _env), do: true
+      end
+      """
+    )
+  end
+
   defp encode_admin_contract!(app_dir) do
     router_path = Path.join([app_dir, "lib", "admin_consumer_web", "router.ex"])
 
@@ -178,17 +204,18 @@ defmodule Rulestead.Test.ReleasePublishFixture do
   defp append_admin_mount(router_source) do
     mount_block = """
 
-      scope \"/\" do
+      scope "/admin" do
         pipe_through :browser
 
-        rulestead_admin \"#{@admin_contract.mount_path}\", policy: AdminConsumer.RulesteadPolicy
+        rulestead_admin "#{@admin_contract.mount_path}", policy: AdminConsumer.RulesteadPolicy
       end
     """
 
     if String.contains?(router_source, ~s(rulestead_admin "#{@admin_contract.mount_path}")) do
       router_source
     else
-      String.trim_trailing(router_source) <> mount_block <> "\n"
+      trimmed = String.trim_trailing(router_source)
+      Regex.replace(~r/\nend\s*\z/, trimmed, mount_block <> "\nend")
     end
   end
 end

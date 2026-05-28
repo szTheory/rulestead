@@ -87,12 +87,31 @@ defmodule Mix.Tasks.Verify.ReleaseParity do
   defp default_loader(version) do
     with {:ok, tag_manifest} <- git_tag_manifest(version),
          {:ok, tarball_manifest} <- hex_tarball_manifest(version) do
+      files = publishable_paths()
+      tag_manifest = filter_publishable_manifest(tag_manifest, files)
+      tarball_manifest = filter_publishable_manifest(tarball_manifest, files)
       {:ok, {tag_manifest, tarball_manifest}}
     end
   end
 
+  def publishable_paths(project_config \\ Mix.Project.config()) do
+    project_config
+    |> Keyword.get(:package, [])
+    |> Keyword.get(:files, [])
+  end
+
+  def publishable_path?(path, files) when is_binary(path) and is_list(files) do
+    Enum.any?(files, fn file ->
+      path == file or String.starts_with?(path, file <> "/")
+    end)
+  end
+
+  defp filter_publishable_manifest(manifest, files) do
+    Map.filter(manifest, fn {path, _digest} -> publishable_path?(path, files) end)
+  end
+
   defp git_tag_manifest(version) do
-    tag = "v#{version}"
+    tag = core_release_tag(version)
     package_root = "rulestead"
 
     with {paths_output, 0} <-
@@ -103,7 +122,8 @@ defmodule Mix.Tasks.Verify.ReleaseParity do
       paths =
         paths_output
         |> String.split("\n", trim: true)
-        |> Enum.map(&Path.relative_to(&1, package_root))
+        |> Enum.map(fn path -> Path.relative_to(path, package_root) end)
+        |> Enum.reject(&(&1 == "." or &1 == ""))
 
       manifest =
         Enum.reduce(paths, %{}, fn relative_path, acc ->
@@ -177,6 +197,8 @@ defmodule Mix.Tasks.Verify.ReleaseParity do
   defp format_drift(drift) do
     "release parity drift detected: missing=#{inspect(drift.missing)} extra=#{inspect(drift.extra)} changed=#{inspect(drift.changed)}"
   end
+
+  def core_release_tag(version) when is_binary(version), do: "rulestead-v#{version}"
 
   defp repo_root do
     Path.expand("..", File.cwd!())

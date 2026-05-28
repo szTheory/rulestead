@@ -48,4 +48,19 @@ defmodule Rulestead.Mix.Tasks.VerifyReleaseParityTest do
   test "runtime failures map to exit code 1" do
     assert ReleaseParity.exit_code({:error, :hex_unavailable}) == 1
   end
+
+  test "core_release_tag matches release-please component tag format" do
+    assert ReleaseParity.core_release_tag("0.1.1") == "rulestead-v0.1.1"
+    assert ReleaseParity.core_release_tag("1.0.0") == "rulestead-v1.0.0"
+  end
+
+  test "publishable_path? mirrors Hex package files whitelist" do
+    files = ReleaseParity.publishable_paths(package: [files: ~w(lib guides mix.exs)])
+
+    assert ReleaseParity.publishable_path?("lib/rulestead.ex", files)
+    assert ReleaseParity.publishable_path?("guides/README.md", files)
+    assert ReleaseParity.publishable_path?("mix.exs", files)
+    refute ReleaseParity.publishable_path?("test/rulestead_test.exs", files)
+    refute ReleaseParity.publishable_path?("config/config.exs", files)
+  end
 end

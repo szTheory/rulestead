@@ -165,7 +165,12 @@ defmodule Rulestead.Mix.Tasks.VerifyReleasePublishTest do
     assert mix_exs =~ ~s({:rulestead_admin, "~> 0.1.0"})
     refute mix_exs =~ "path:"
     assert router =~ "use RulesteadAdmin.Router"
+    assert router =~ ~s(scope "/admin" do)
     assert router =~ ~s(rulestead_admin "/flags", policy: AdminConsumer.RulesteadPolicy)
+
+    assert File.exists?(
+             Path.join(consumer.app_dir, "lib/admin_consumer/rulestead_policy.ex")
+           )
     assert contract =~ "package_order: [:rulestead, :rulestead_admin]"
     assert contract =~ ~s(mount_path: "/flags")
     assert contract =~ ~s(env_query_param: "env")
@@ -191,6 +196,26 @@ defmodule Rulestead.Mix.Tasks.VerifyReleasePublishTest do
              pubsub: AdminConsumer.PubSub,
              pubsub_topic: "rulestead:runtime_snapshot"
            }
+  end
+
+  @published_smoke_version "0.1.1"
+
+  test "admin consumer fixture compiles against published Hex packages" do
+    tmp_dir = tmp_dir()
+    on_exit(fn -> File.rm_rf!(tmp_dir) end)
+
+    consumer =
+      ReleasePublishFixture.setup_admin_consumer!(tmp_dir, @published_smoke_version)
+
+    for check <- consumer.checks do
+      {output, status} =
+        System.cmd(check.cmd, check.args, cd: consumer.app_dir, stderr_to_stdout: true)
+
+      assert status == 0, """
+      #{check.cmd} #{Enum.join(check.args, " ")} failed in #{consumer.app_dir}:
+      #{output}
+      """
+    end
   end
 
   test "verify.release_publish can plan with the shared fixture helper" do

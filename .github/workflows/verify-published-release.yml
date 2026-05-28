@@ -27,6 +27,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
       - uses: erlef/setup-beam@8251c48667b97e88a0a24ec512f5b72a039fcea7 # v1
         with:
           version-file: .tool-versions
@@ -161,6 +163,19 @@ jobs:
           filename: ${{ steps.issue-template.outputs.filename }}
           update_existing: true
           search_existing: open
+      - name: Close rolling drift issue on success
+        if: steps.resolve.outputs.status == 'ok' && steps.verify.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          issue_number="$(gh issue list --state open --search 'in:title "Release drift: published verification failed"' --json number --jq '.[0].number // empty')"
+          if [[ -n "${issue_number}" ]]; then
+            gh issue close "${issue_number}" --comment "Published release verification trio passed for ${{ steps.resolve.outputs.version }}."
+            echo "Closed drift issue #${issue_number}."
+          else
+            echo "No open drift issue found; nothing to close."
+          fi
       - name: Fail on verification drift
         if: steps.resolve.outputs.status != 'missing' && (steps.resolve.outputs.status != 'ok' || steps.verify.outcome == 'failure')
         run: |
