@@ -1,7 +1,7 @@
 defmodule Rulestead.ReleaseContractTest do
   use ExUnit.Case, async: true
 
-  alias Rulestead.{Admin.Policy, Config, Context, Error, Result, Store, Telemetry}
+  alias Rulestead.{Admin.Policy, Config, Context, Error, Result, Runtime, Store, Telemetry}
   alias Rulestead.Store.Command
   alias Rulestead.Targeting.DependencyValidator
 
@@ -154,6 +154,25 @@ defmodule Rulestead.ReleaseContractTest do
   @oban_keys [:enabled, :context_key, :middlewares]
   @runtime_keys [:api, :notifier, :health_peer_provider, :pubsub, :pubsub_topic]
   @tenancy_keys [:module]
+
+  @documented_supported_facades ["Rulestead.Runtime", "Rulestead.TestHelpers"]
+
+  @documented_runtime_functions [
+    :evaluate,
+    :enabled?,
+    :get_value,
+    :get_variant,
+    :explain,
+    :diagnostics
+  ]
+
+  @documented_test_helper_functions [
+    "with_flag/3",
+    "put_flag/3",
+    "clear_flags/0",
+    "seed_bucket/3",
+    "assert_flag_evaluated/2"
+  ]
 
   test "api stability guide states the explicit public and private boundary" do
     contract = File.read!(@api_stability_path)
@@ -896,6 +915,58 @@ defmodule Rulestead.ReleaseContractTest do
     for event <- @telemetry_events do
       assert contract =~ "`#{inspect(event)}`"
     end
+  end
+
+  test "documented public surfaces stay listed in the api stability contract" do
+    contract = File.read!(@api_stability_path)
+
+    for {name, arity} <- @root_exports do
+      assert contract =~ "`#{name}/#{arity}`"
+    end
+
+    for {name, arity} <- @store_callbacks do
+      assert contract =~ "`#{name}/#{arity}`"
+    end
+
+    for {name, arity} <- Policy.behaviour_info(:callbacks) do
+      assert contract =~ "`#{name}/#{arity}`" or contract =~ "`#{name}`"
+    end
+
+    for type <- Error.leaf_types() do
+      assert contract =~ "`:#{type}`"
+    end
+
+    assert contract =~ ":tenancy"
+    assert contract =~ "tenancy"
+
+    for key <- @config_top_level_keys do
+      assert contract =~ "`:#{key}`"
+    end
+  end
+
+  test "supported adopter facades documented in api stability match the closed runtime catalog" do
+    contract = File.read!(@api_stability_path)
+
+    for module <- @documented_supported_facades do
+      assert contract =~ module
+    end
+
+    for fun <- @documented_runtime_functions do
+      assert contract =~ "`#{fun}/"
+    end
+
+    for helper <- @documented_test_helper_functions do
+      assert contract =~ helper
+    end
+
+    documented_runtime = MapSet.new(@documented_runtime_functions)
+
+    actual_runtime =
+      Runtime.__info__(:functions)
+      |> Enum.map(fn {name, _arity} -> name end)
+      |> MapSet.new()
+
+    assert MapSet.subset?(documented_runtime, actual_runtime)
   end
 
   test "the host config schema keeps the documented closed keys and enum values" do
