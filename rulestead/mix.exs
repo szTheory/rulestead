@@ -90,6 +90,8 @@ defmodule Rulestead.MixProject do
         "../CONVENTIONS.md",
         "../guides/introduction/installation.md",
         "../guides/introduction/getting-started.md",
+        "../guides/introduction/phoenix-integration-spine.md",
+        "../guides/introduction/product-boundary.md",
         "../guides/introduction/user-flows-and-jtbd.md",
         "../guides/introduction/upgrading.md",
         "../guides/cheatsheet.cheatmd",
@@ -108,6 +110,7 @@ defmodule Rulestead.MixProject do
         "../guides/recipes/oban-background-jobs.md",
         "../guides/recipes/deployment.md",
         "../guides/recipes/context-propagation.md",
+        "../guides/recipes/footguns.md",
         "../guides/recipes/migrating-from-funwithflags.md"
       ],
       groups_for_modules: [
@@ -135,12 +138,14 @@ defmodule Rulestead.MixProject do
         Recipes: ~r"guides/recipes/"
       ],
       skip_undefined_reference_warnings_on: fn ref ->
-        is_binary(ref) and String.starts_with?(ref, "lib/")
+        is_binary(ref) and
+          (String.starts_with?(ref, "lib/") or String.starts_with?(ref, "mix verify."))
       end,
       skip_code_autolink_to: fn ref ->
         is_binary(ref) and
           (String.starts_with?(ref, "Rulestead.") or
-             String.starts_with?(ref, "mix rulestead."))
+             String.starts_with?(ref, "mix rulestead.") or
+             String.starts_with?(ref, "mix verify."))
       end
     ]
   end

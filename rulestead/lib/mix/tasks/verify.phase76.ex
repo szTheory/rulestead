@@ -1,6 +1,10 @@
 # credo:disable-for-this-file
 defmodule Mix.Tasks.Verify.Phase76 do
-  @moduledoc false
+  @moduledoc """
+  Post-GA band closure and v1.11 integration-spine contract verification.
+
+      mix verify.phase76
+  """
 
   use Mix.Task
 
