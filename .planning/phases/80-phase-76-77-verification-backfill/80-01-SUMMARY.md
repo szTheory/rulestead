@@ -63,11 +63,11 @@ completed: 2026-05-28
 
 Each task was committed atomically:
 
-1. **Task 1: Create 76-VERIFICATION.md (INT-01–INT-03)** - (see git log)
-2. **Task 2: Create 77-VERIFICATION.md (DOC-01–DOC-03)** - (see git log)
-3. **Task 3: Refresh 77-VALIDATION.md task status** - (see git log)
+1. **Task 1: Create 76-VERIFICATION.md (INT-01–INT-03)** - `3ef80a8` (docs)
+2. **Task 2: Create 77-VERIFICATION.md (DOC-01–DOC-03)** - `28fd43f` (docs)
+3. **Task 3: Refresh 77-VALIDATION.md task status** - `7b0757c` (docs)
 
-**Plan metadata:** (see git log)
+**Plan metadata:** `60d59e5` (docs: complete plan)
 
 ## Files Created/Modified
 

@@ -13,7 +13,7 @@
 **Audit gaps:** [.planning/milestones/v1.11-MILESTONE-AUDIT.md](milestones/v1.11-MILESTONE-AUDIT.md) (`gaps_found`, 2026-05-28)
 
 - [x] Phase 79: Lifecycle Deep-Link Anchor Fix — DOC-02, INT-02 (completed 2026-05-28)
-- [ ] Phase 80: Phase 76–77 Verification Backfill — INT-01, INT-03, DOC-01, DOC-03
+- [x] Phase 80: Phase 76–77 Verification Backfill — INT-01, INT-03, DOC-01, DOC-03 (completed 2026-05-28)
 - [ ] Phase 81: Doc Contract Hardening — DOC-01 (contract guards), Nyquist Phase 76
 
 **Proof spine (unchanged):** `cd rulestead && mix verify.phase76` · `mix verify.adopter`
