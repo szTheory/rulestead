@@ -41,15 +41,6 @@ Rulestead is a batteries-included, Elixir-native feature-flag and remote-config 
 
 </details>
 
-<details>
-<summary>Shipped: v1.10.1 Support-truth & Contract Honesty (2026-05-28)</summary>
-
-**Goal:** Close the last adopter-trust leaks in docs, API catalog, and contract tests — no new product APIs.
-
-**Delivered:** Phases 73–75; see `.planning/v1.10.1-MILESTONE-AUDIT.md`
-
-</details>
-
 ## Post-GA Band Status
 
 v1.1–v1.9 feature band is **complete**. v1.10.x–v1.11 doc bands are **shipped**. See `guides/introduction/product-boundary.md` and `.planning/DEFERRED.md` for v2 triggers.
