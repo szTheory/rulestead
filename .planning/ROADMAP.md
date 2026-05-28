@@ -2,21 +2,20 @@
 
 ## Milestones
 
-- **v1.11 - Integration Spine (docs-only)** — Phases 76-78 (active)
+- ✅ **v1.11 - Integration Spine (docs-only)** — Phases 76-78 (shipped 2026-05-28) — [.planning/v1.11-MILESTONE-AUDIT.md](v1.11-MILESTONE-AUDIT.md)
 - ✅ **v1.10.1 - Support-truth & Contract Honesty** — Phases 73-75 (shipped 2026-05-28) — [.planning/v1.10.1-MILESTONE-AUDIT.md](v1.10.1-MILESTONE-AUDIT.md)
 - ✅ **v1.10.0 - Post-GA Band Truth & Adopter Closure** — Phases 69-72 (shipped 2026-05-28) — [.planning/milestones/v1.10.0-ROADMAP.md](milestones/v1.10.0-ROADMAP.md)
 - ✅ **v1.9.0 - Host-Supplied Preview Evidence** — Phases 65-68 (shipped 2026-05-28) — [.planning/milestones/v1.9.0-ROADMAP.md](milestones/v1.9.0-ROADMAP.md)
 - ✅ **v1.8.0 - Guarded Rollout Auto-Advance** — Phases 61-64 (shipped 2026-05-27)
 
-## Active Milestone: v1.11 Integration Spine (docs-only)
+## Shipped Milestone: v1.11 Integration Spine (docs-only)
 
-**Goal:** Close INV-INTRO-01 with a first-hour Phoenix integration path — no new product APIs.
+**Shipped:** 2026-05-28 — [.planning/v1.11-MILESTONE-AUDIT.md](v1.11-MILESTONE-AUDIT.md) (`integration_spine_complete`)
 
-**Requirements:** INT-01–03, DOC-01–03, VER-01–02, AUD-01–02 (see [.planning/REQUIREMENTS.md](REQUIREMENTS.md))
+**Proof spine:** `cd rulestead && mix verify.phase76` · `mix verify.adopter`
 
-**Path-to-done:** [.planning/threads/2026-05-28-path-to-done-milestones.md](threads/2026-05-28-path-to-done-milestones.md)
-
-**Canonical refs:** `prompts/rulestead-host-app-integration-seam.md`, `prompts/rulestead-personas-jtbd-and-onboarding.md`, `guides/recipes/context-propagation.md`, `guides/flows/flag-lifecycle.md`
+<details>
+<summary>v1.11 phases (76–78)</summary>
 
 ### Phase 76: Phoenix Integration Spine Doc
 
@@ -52,21 +51,13 @@
 
 ---
 
-### Phase 78: Doc Contract Guards And Milestone Closure
+### Phase 78: Doc Contract Guards And Milestone Closure ✅
 
 **Goal:** Guard intro spine with release-contract tests, extend verify entrypoint, close INV-INTRO-01, record v1.11 audit.
 
-**Depends on:** Phase 77
+**Status:** Complete 2026-05-28 — [.planning/phases/78-doc-contract-guards-and-milestone-closure/78-VERIFICATION.md](phases/78-doc-contract-guards-and-milestone-closure/78-VERIFICATION.md)
 
-**Requirements:** VER-01, VER-02, AUD-01, AUD-02
-
-**Success criteria:**
-
-1. Release-contract or doc contract test fails if spine or lifecycle callouts regress.
-2. `mix verify.phase76` flat-unions phase73 plus v1.11 guards; adopter entrypoint documents successor.
-3. `STATE.md` marks INV-INTRO-01 closed; `v1.11-MILESTONE-AUDIT.md` records integration-spine closure.
-
-**Proof spine (target):** `cd rulestead && mix verify.phase76` · `mix verify.adopter`
+</details>
 
 ---
 

@@ -20,18 +20,16 @@ Rulestead is a batteries-included, Elixir-native feature-flag and remote-config 
 - `v1.10.0` shipped on 2026-05-28 across Phases 69-72: post-GA planning truth, doc/API honesty, `mix verify.phase72` / `mix verify.adopter` proof umbrella, `post_ga_band_closure` CI scope, and public band-complete signaling — no new product APIs.
 - **Phase 73 complete (2026-05-28):** Context `traits:` → `attributes` back-compat, quickstart doc honesty guards, and MAINTAINING.md live public-surface contract (CTX-01, CTX-02, DOC-01; closes INV-MAINT-01).
 
-## Current Milestone: v1.11 Integration Spine (docs-only)
+<details>
+<summary>Shipped: v1.11 Integration Spine (2026-05-28)</summary>
 
 **Goal:** Close the first-hour Phoenix integration gap (INV-INTRO-01) with a single intro spine — supervision → config → Plug → first flag with lifecycle fields — without new product APIs.
 
-**Target features:**
+**Delivered:** Phases 76–78; see `.planning/v1.11-MILESTONE-AUDIT.md`
 
-- First-hour Phoenix integration spine doc wired from getting-started/README/installation
-- `guides/flows/evaluation.md` names `Rulestead.Runtime` keyed lookup alongside payload-first contract
-- Intro lifecycle callout (`owner` + `expected_expiration` on flag create) with cross-links to flag-lifecycle
-- Doc contract guards + `mix verify.phase76` proof extension; close INV-INTRO-01 in STATE
+**Proof:** `cd rulestead && mix verify.phase76` · `mix verify.adopter`
 
-**Phases:** 76–78 (see `.planning/ROADMAP.md`)
+</details>
 
 <details>
 <summary>Shipped: v1.10.1 Support-truth & Contract Honesty (2026-05-28)</summary>

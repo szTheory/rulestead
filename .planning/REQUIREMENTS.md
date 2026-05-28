@@ -21,13 +21,13 @@ Docs-only milestone — no new runtime or admin product APIs. Closes INV-INTRO-0
 
 ### Proof & Contract Guards (`VER`)
 
-- [ ] **VER-01**: `release_contract_test.exs` (or dedicated doc contract test) guards intro spine presence and lifecycle-field mention in spine/getting-started.
-- [ ] **VER-02**: `mix verify.phase76` flat-unions phase73 plus v1.11 doc contract guards; `mix verify.adopter` delegates to phase76 (or documents phase76 as successor).
+- [x] **VER-01**: `release_contract_test.exs` (or dedicated doc contract test) guards intro spine presence and lifecycle-field mention in spine/getting-started.
+- [x] **VER-02**: `mix verify.phase76` flat-unions phase73 plus v1.11 doc contract guards; `mix verify.adopter` delegates to phase76 (or documents phase76 as successor).
 
 ### Milestone Auditability (`AUD`)
 
-- [ ] **AUD-01**: `STATE.md` marks INV-INTRO-01 **Closed** with proof command pointers.
-- [ ] **AUD-02**: `v1.11-MILESTONE-AUDIT.md` records integration-spine closure evidence and proof spine.
+- [x] **AUD-01**: `STATE.md` marks INV-INTRO-01 **Closed** with proof command pointers.
+- [x] **AUD-02**: `v1.11-MILESTONE-AUDIT.md` records integration-spine closure evidence and proof spine.
 
 ## Future Requirements (deferred)
 
@@ -55,10 +55,10 @@ Docs-only milestone — no new runtime or admin product APIs. Closes INV-INTRO-0
 | DOC-01 | Phase 77 | Complete |
 | DOC-02 | Phase 77 | Complete |
 | DOC-03 | Phase 77 | Complete |
-| VER-01 | Phase 78 | Pending |
-| VER-02 | Phase 78 | Pending |
-| AUD-01 | Phase 78 | Pending |
-| AUD-02 | Phase 78 | Pending |
+| VER-01 | Phase 78 | Complete |
+| VER-02 | Phase 78 | Complete |
+| AUD-01 | Phase 78 | Complete |
+| AUD-02 | Phase 78 | Complete |
 
 **Coverage:**
 
