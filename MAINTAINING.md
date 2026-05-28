@@ -416,10 +416,12 @@ Use this proof when closing v1.10 support truth or validating that docs, release
 contract, and the v1.9 proof superset still align.
 
 ```bash
-cd rulestead && mix verify.phase73
+cd rulestead && mix verify.phase76
 ```
 
-Integrator-facing alias (delegates to phase73):
+Integrator-facing alias (delegates to phase76):
+
+> Historical v1.10.1 gate: `mix verify.phase73` (unchanged task; superseded by phase76 for current merges).
 
 ```bash
 cd rulestead && mix verify.adopter
@@ -439,6 +441,7 @@ scripts/demo/proof.sh
 
 Proves:
 
+- v1.11 intro integration spine doc contract (`phoenix-integration-spine.md` routing)
 - v1.9 proof union (phase68 core + mounted admin audience/governance paths)
 - `post_ga_band_contract_test.exs` — band docs exist; no stale “unbuilt” claims
 - quickstart/runtime doc honesty (`Rulestead.Runtime`, not `enabled?(key, conn)`)
@@ -453,11 +456,12 @@ e2e (use `scripts/demo/verify.sh` for Playwright).
 | Command | Proves | Does not prove |
 |---------|--------|----------------|
 | `mix test` (both packages) | Full regression + `release_contract_test` | Faster milestone-only subset |
-| `mix verify.phase73` / `mix verify.adopter` | Post-GA band + v1.10.1 context + api_stability contract guards | Historical phase56-only regressions in isolation |
+| `mix verify.phase76` / `mix verify.adopter` | Post-GA band + v1.10.1 context + v1.11 intro-spine contract guards | Historical phase56-only regressions in isolation |
+| `mix verify.phase73` | Historical v1.10.1 gate (reproducibility) | Superseded by phase76 for current merges |
 | `mix verify.phase72` | Historical v1.10.0 gate | Superseded by phase73 for v1.10.1+ |
-| `mix verify.phase68` | v1.9 host preview evidence focus | Band-closure doc contracts only in phase73 |
-| `RULESTEAD_TEST_SCOPE=post_ga_band_closure` | Same as phase73 via CI script | Default merge gate (use `all`) |
-| `scripts/demo/proof.sh` | Demo smoke + phase73 (via adopter) | Playwright frontend |
+| `mix verify.phase68` | v1.9 host preview evidence focus | Band-closure doc contracts only in phase76 |
+| `RULESTEAD_TEST_SCOPE=post_ga_band_closure` | Same as phase76 via CI script | Default merge gate (use `all`) |
+| `scripts/demo/proof.sh` | Demo smoke + phase76 (via adopter) | Playwright frontend |
 | `scripts/demo/verify.sh` | Compose + Playwright e2e | Entire ExUnit suite |
 
 ## Lifecycle Release Surface

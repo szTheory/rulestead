@@ -428,7 +428,7 @@ print_post_ga_band_closure_failure_guidance() {
     echo "post_ga_band_closure failure category: ${category}"
     echo "Expected support boundary: post-v1.9 band truth — docs, release contract, and v1.9 proof superset."
     echo "Rerun: RULESTEAD_TEST_SCOPE=post_ga_band_closure bash scripts/ci/test.sh"
-    echo "Remediation: cd rulestead && mix verify.phase73"
+    echo "Remediation: cd rulestead && mix verify.phase76"
 
     if [[ "${category}" == "docs drift" ]]; then
       echo "Docs drift hint: release_contract_test.exs post-GA band closure block failed — sync README/MAINTAINING with asserts."
@@ -469,7 +469,7 @@ run_post_ga_band_closure() {
   if run_mix_logged rulestead "${log_file}" deps.get; then
     prepare_rulestead_test_db
     if run_mix_logged rulestead_admin "${log_file}" deps.get; then
-      if run_mix_logged rulestead "${log_file}" verify.phase73; then
+      if run_mix_logged rulestead "${log_file}" verify.phase76; then
         :
       else
         status=$?

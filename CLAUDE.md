@@ -13,7 +13,8 @@ config system with a sibling-package layout:
 - `.planning/PROJECT.md`
 - `.planning/REQUIREMENTS.md`
 - `.planning/ROADMAP.md`
-- `.planning/phases/01-repo-bootstrap/01-CONTEXT.md` for Phase 1 work
+- `.planning/STATE.md`
+- `guides/introduction/product-boundary.md` for in-scope / deferred surfaces
 - `prompts/` anchor docs relevant to the current phase
 
 ## Working rules
@@ -23,11 +24,11 @@ config system with a sibling-package layout:
 - Treat `prompts/` as the pattern and policy reference set.
 - Preserve the sibling-package layout. Do not collapse work into a single
   package shape for convenience.
+- Post-GA band (v1.1–v1.9) is feature-complete; v1.10 closes support truth only.
+- v2 work (ADM-06, ROL-08, GOV-02-ext) requires an explicit new milestone.
 - Do not create Phase 8-only docs early:
-  `guides/api_stability.md`, `guides/cheatsheet.cheatmd`,
-  `guides/flows/extending-rulestead.md`.
-- `rulestead_admin` is intentionally a guarded stub until later phases. Do
-  not introduce early publish flows that bypass that rule.
+  `guides/cheatsheet.cheatmd`, `guides/flows/extending-rulestead.md`.
+- `rulestead_admin` is a mounted companion — not a standalone control plane.
 
 ## Output expectations
 

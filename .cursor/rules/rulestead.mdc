@@ -82,7 +82,7 @@ The three **master docs** (load every phase):
 
 ## Current state
 
-Phase 1 is the next action. Run `/gsd-discuss-phase 1` or `/gsd-plan-phase 1`.
+**Milestone v1.10.0 — Post-GA Band Truth & Adopter Closure** (Phases 69–72). Post-GA product band v1.1–v1.9 is feature-complete; v1.10 is docs/proof/planning only. Read `.planning/REQUIREMENTS.md` and `.planning/STATE.md`. Do not reopen GOV-01, ROL-04, or IMP-05 as unbuilt work.
 
 ## Conventions (carried over from prior libs — port verbatim)
 

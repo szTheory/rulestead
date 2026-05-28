@@ -34,7 +34,7 @@
 
 ### 2.2 Jobs to be done
 
-1. **Gate a new code path behind a flag.** — "I want `if Rulestead.enabled?("checkout_v2")` in my controller and nothing else."
+1. **Gate a new code path behind a flag.** — "I want `Rulestead.Runtime.enabled?(env, "checkout_v2", context)` (or `evaluate` on a payload) in my controller and nothing else."
 2. **Pick a variant for a specific user.** — `variant = Rulestead.get_variant("pricing_exp", ctx)`.
 3. **Get a complex value (JSON config) from a flag.** — `%{timeout_ms: ..., rate_limit: ...} = Rulestead.get_value("checkout_config", ctx, default: @defaults)`.
 4. **Use flags inside LiveView without boilerplate.** — `{:ok, assign_flags(socket, [:checkout_v2])}`.
@@ -56,7 +56,7 @@
 2. `mix rulestead.install` (interactive; answers default to yes, `--yes` flag skips).
 3. `mix ecto.migrate`.
 4. Add `plug Rulestead.Plug` in endpoint.
-5. Use `Rulestead.enabled?("checkout_v2", conn)` in controller.
+5. Use `Rulestead.Runtime.enabled?("dev", "checkout_v2", context)` with context from Plug assigns.
 6. Add a flag via `mix rulestead.add_flag checkout_v2 --default false --env dev`.
 7. Toggle to `true` via `mix rulestead.set_flag checkout_v2 true --env dev` or browse to `/admin/flags`.
 8. Reload → feature flips. Done.
@@ -66,10 +66,11 @@ First 15 minutes delivers value. No read of full docs required.
 ### 2.5 Key API surfaces
 
 ```elixir
-Rulestead.enabled?(flag_key, ctx_or_conn)
-Rulestead.get_variant(flag_key, ctx_or_conn, opts \\ [])
-Rulestead.get_value(flag_key, ctx_or_conn, opts \\ [])
-Rulestead.evaluate(flag_key, ctx_or_conn, opts \\ [])
+Rulestead.evaluate(flag_payload, context, opts \\ [])
+Rulestead.enabled?(flag_payload, context)
+Rulestead.get_variant(flag_payload, context, opts \\ [])
+Rulestead.get_value(flag_payload, context, opts \\ [])
+Rulestead.Runtime.enabled?(environment_key, flag_key, context)
 
 # LiveView helper
 {:ok, socket} = Rulestead.LiveView.assign_flags(socket, [:checkout_v2, :pricing_exp])

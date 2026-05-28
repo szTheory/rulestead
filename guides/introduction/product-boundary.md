@@ -66,8 +66,8 @@ Maintainers track full trigger text in the repository `.planning/DEFERRED.md`.
 Adopters should trust what CI and maintainers run:
 
 - Every merge: full `mix test` in `rulestead` and `rulestead_admin` (includes `release_contract_test.exs`)
-- Band closure maintainer gate: `cd rulestead && mix verify.phase73`
-- Integrator shortcut: `cd rulestead && mix verify.adopter` (delegates to phase73)
+- Band closure maintainer gate: `cd rulestead && mix verify.phase76`
+- Integrator shortcut: `cd rulestead && mix verify.adopter` (delegates to phase76)
 - Runnable demo: `scripts/demo/proof.sh`
 
 ## Read next

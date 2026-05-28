@@ -53,6 +53,10 @@ mix rulestead.install
 mix ecto.migrate
 ```
 
+**Phoenix integrators:** follow the
+[Phoenix Integration Spine](guides/introduction/phoenix-integration-spine.md)
+for supervision → Plug → `Rulestead.Runtime` → lifecycle-honest flag create.
+
 Gate a code path (payload-first — see [evaluation.md](guides/flows/evaluation.md)):
 
 ```elixir
@@ -240,9 +244,10 @@ The repo's current proof posture is intentionally bounded:
   policy-denied evidence **fail closed**.
 - `RULESTEAD_TEST_SCOPE=host_preview_evidence bash scripts/ci/test.sh`
   reruns the v1.9 host preview evidence proof bar in CI.
-- **Post-GA band closure (v1.10.1):** `cd rulestead && mix verify.phase73` (alias:
-  `mix verify.adopter`) runs the v1.9 proof superset plus band-closure doc
-  contracts. `RULESTEAD_TEST_SCOPE=post_ga_band_closure bash scripts/ci/test.sh`
+- **Post-GA band closure (v1.11):** `cd rulestead && mix verify.phase76` (alias:
+  `mix verify.adopter`) runs the v1.10.1 proof superset plus v1.11 intro-spine
+  doc contracts. See [Phoenix Integration Spine](guides/introduction/phoenix-integration-spine.md).
+  `RULESTEAD_TEST_SCOPE=post_ga_band_closure bash scripts/ci/test.sh`
   reruns that bar in CI. `scripts/demo/proof.sh` runs demo smoke + band verify.
 - `RULESTEAD_TEST_SCOPE=openfeature_companion bash scripts/ci/test.sh` proves the
   optional `open_feature_rulestead` companion package's Elixir provider contract:

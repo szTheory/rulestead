@@ -636,7 +636,7 @@ defmodule Rulestead.ReleaseContractTest do
     runtime_readme = File.read!(@runtime_readme_path)
     maintaining = File.read!(@maintaining_path)
 
-    assert root_readme =~ "mix verify.phase73"
+    assert root_readme =~ "mix verify.phase76"
     assert root_readme =~ "mix verify.adopter"
     assert root_readme =~ ~r/post-GA|Post-GA|band complete|band closure/i
     assert root_readme =~ "product-boundary.md"
@@ -645,9 +645,9 @@ defmodule Rulestead.ReleaseContractTest do
     assert root_readme =~
              "RULESTEAD_TEST_SCOPE=post_ga_band_closure bash scripts/ci/test.sh"
 
-    assert runtime_readme =~ "mix verify.phase73"
+    assert runtime_readme =~ "mix verify.phase76"
     assert maintaining =~ "Post-GA Band Closure Proof"
-    assert maintaining =~ "mix verify.phase73"
+    assert maintaining =~ "mix verify.phase76"
     assert maintaining =~ "mix verify.adopter"
 
     assert maintaining =~
@@ -656,6 +656,24 @@ defmodule Rulestead.ReleaseContractTest do
     refute root_readme =~ "ROL-04 remains unbuilt"
     refute root_readme =~ "GOV-01 gap"
     refute maintaining =~ "IMP-05 partial"
+  end
+
+  test "v1.11 integration spine support truth routes adopters to first-hour path" do
+    root_readme = File.read!(@root_readme_path)
+    runtime_readme = File.read!(@runtime_readme_path)
+    maintaining = File.read!(@maintaining_path)
+
+    assert root_readme =~ "phoenix-integration-spine"
+    assert root_readme =~ "mix verify.phase76"
+    assert maintaining =~ "mix verify.phase76"
+
+    spine_in_maintaining? =
+      maintaining =~ "phoenix-integration-spine" or
+        maintaining =~ ~r/integration spine/i
+
+    assert spine_in_maintaining?
+
+    assert runtime_readme =~ "phoenix-integration-spine"
   end
 
   test "the root module exposes the locked v0.1.0 public function catalog" do
