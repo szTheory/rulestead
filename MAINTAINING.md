@@ -406,9 +406,56 @@ metrics product.
 
 Upstream boundary contracts for this milestone:
 
-- `.planning/phases/65-host-preview-evidence-contract/`
-- `.planning/phases/66-evidence-carry-through-and-governance-boundary/`
-- `.planning/phases/67-mounted-preview-evidence-workflows/`
+- `.planning/milestones/v1.9.0-phases/65-host-preview-evidence-contract/`
+- `.planning/milestones/v1.9.0-phases/66-evidence-carry-through-and-governance-boundary/`
+- `.planning/milestones/v1.9.0-phases/67-mounted-preview-evidence-workflows/`
+
+## Post-GA Band Closure Proof
+
+Use this proof when closing v1.10 support truth or validating that docs, release
+contract, and the v1.9 proof superset still align.
+
+```bash
+cd rulestead && mix verify.phase72
+```
+
+Integrator-facing alias (same suite):
+
+```bash
+cd rulestead && mix verify.adopter
+```
+
+CI wrapper:
+
+```bash
+RULESTEAD_TEST_SCOPE=post_ga_band_closure bash scripts/ci/test.sh
+```
+
+Adopter 15-minute path (demo smoke + band verify):
+
+```bash
+scripts/demo/proof.sh
+```
+
+Proves:
+
+- v1.9 proof union (phase68 core + mounted admin audience/governance paths)
+- `post_ga_band_contract_test.exs` — band docs exist; no stale “unbuilt” claims
+- quickstart/runtime doc honesty (`Rulestead.Runtime`, not `enabled?(key, conn)`)
+
+Does **not** prove: new v2 features (ADM-06, ROL-08, GOV-02-ext); full browser
+e2e (use `scripts/demo/verify.sh` for Playwright).
+
+## Proof Matrix (maintainer)
+
+| Command | Proves | Does not prove |
+|---------|--------|----------------|
+| `mix test` (both packages) | Full regression + `release_contract_test` | Faster milestone-only subset |
+| `mix verify.phase72` / `mix verify.adopter` | Post-GA band + v1.9 superset | Historical phase56-only regressions in isolation |
+| `mix verify.phase68` | v1.9 host preview evidence focus | Band-closure doc contracts only in phase72 |
+| `RULESTEAD_TEST_SCOPE=post_ga_band_closure` | Same as phase72 via CI script | Default merge gate (use `all`) |
+| `scripts/demo/proof.sh` | Demo smoke + phase72 | Playwright frontend |
+| `scripts/demo/verify.sh` | Compose + Playwright e2e | Entire ExUnit suite |
 
 ## Lifecycle Release Surface
 
@@ -450,18 +497,17 @@ resolves the latest shared stable sibling release from Hex, and opens or updates
 one rolling GitHub issue only when published verification actually fails or the
 sibling versions drift out of lockstep.
 
-## Deferred Phase 8 artifacts
+## Public surface contract (live)
 
-Do not create these early:
+These guides ship in the Hex package and define the locked public surface. They are **not** deferred artifacts:
 
-- `guides/api_stability.md`
-- `guides/cheatsheet.cheatmd`
-- `guides/flows/extending-rulestead.md`
+- `guides/api_stability.md` — primary semver public-surface contract (telemetry events, modules, breaking-change policy)
+- `guides/flows/extending-rulestead.md` — documented extension seams for host apps
+- `guides/cheatsheet.cheatmd` — operator quick reference
 
-These files describe the locked public surface and extension points. They
-belong to Phase 8, not bootstrap.
+**Catalog completeness:** reconciling post-GA modules/events with `api_stability.md` and generate-from-contract discipline is **Phase 74** (INV-API-01), not this phase.
 
-Until that surface is real, internal modules should prefer `@moduledoc false`.
+Internal modules should still prefer `@moduledoc false` until promoted into the public contract.
 
 ## Required references for maintainers and agents
 

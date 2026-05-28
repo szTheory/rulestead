@@ -586,7 +586,57 @@ defmodule Rulestead.ReleaseContractTest do
       assert doc =~ "Rulestead.evaluate"
       assert doc =~ ~r/Rulestead\.Context\.new|%Rulestead\.Context\{\}/
       assert doc =~ ~r/payload|flag_payload/i
+      assert doc =~ "Rulestead.Runtime"
+      refute doc =~ ~r/Rulestead\.enabled\?\("[^"]+",\s*conn\)/
     end
+  end
+
+  test "quickstart Context.new examples use attributes not traits for evaluation inputs" do
+    root_readme = File.read!(@root_readme_path)
+    getting_started = File.read!(Path.expand("../../../guides/introduction/getting-started.md", __DIR__))
+
+    for doc <- [root_readme, getting_started] do
+      assert doc =~ "attributes:"
+      refute doc =~ ~r/traits:\s*%\{/
+    end
+  end
+
+  test "maintainer doc truth treats api_stability as live public contract" do
+    maintaining = File.read!(@maintaining_path)
+
+    refute maintaining =~ "Deferred Phase 8 artifacts"
+    refute maintaining =~ "Do not create these early"
+    refute maintaining =~ ~r/Phase 8, not bootstrap/
+    assert maintaining =~ "Public surface contract (live)"
+    assert maintaining =~ "guides/api_stability.md"
+    assert maintaining =~ ~r/live|primary|semver/i
+  end
+
+  test "post-GA band closure support truth stays bounded across root package and maintainer docs" do
+    root_readme = File.read!(@root_readme_path)
+    runtime_readme = File.read!(@runtime_readme_path)
+    maintaining = File.read!(@maintaining_path)
+
+    assert root_readme =~ "mix verify.phase72"
+    assert root_readme =~ "mix verify.adopter"
+    assert root_readme =~ ~r/post-GA|Post-GA|band complete|band closure/i
+    assert root_readme =~ "product-boundary.md"
+    assert root_readme =~ "mix verify.phase68"
+
+    assert root_readme =~
+             "RULESTEAD_TEST_SCOPE=post_ga_band_closure bash scripts/ci/test.sh"
+
+    assert runtime_readme =~ "mix verify.phase72"
+    assert maintaining =~ "Post-GA Band Closure Proof"
+    assert maintaining =~ "mix verify.phase72"
+    assert maintaining =~ "mix verify.adopter"
+
+    assert maintaining =~
+             "RULESTEAD_TEST_SCOPE=post_ga_band_closure bash scripts/ci/test.sh"
+
+    refute root_readme =~ "ROL-04 remains unbuilt"
+    refute root_readme =~ "GOV-01 gap"
+    refute maintaining =~ "IMP-05 partial"
   end
 
   test "the root module exposes the locked v0.1.0 public function catalog" do
