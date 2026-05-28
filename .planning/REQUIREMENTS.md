@@ -21,18 +21,18 @@ Patch milestone only — no new runtime or admin product APIs. Closes remaining 
 ### Maintainer & Doc Truth (`DOC`)
 
 - [x] **DOC-01**: `MAINTAINING.md` no longer lists `guides/api_stability.md` as a deferred Phase 8 artifact (closes INV-MAINT-01).
-- [ ] **DOC-02**: Maintainer proof matrix and path-to-done thread reference v1.10.1 exit criteria; stale “open gap” copy removed where band features shipped.
+- [x] **DOC-02**: Maintainer proof matrix and path-to-done thread reference v1.10.1 exit criteria; stale “open gap” copy removed where band features shipped.
 
 ### Proof & Support Truth (`VER`)
 
-- [ ] **VER-01**: `mix verify.phase73` flat-unions phase72 plus v1.10.1 contract guards (no kitchen-sink verifier).
-- [ ] **VER-02**: `mix verify.adopter` delegates to phase73 as the integrator entrypoint.
+- [x] **VER-01**: `mix verify.phase73` flat-unions phase72 plus v1.10.1 contract guards (no kitchen-sink verifier).
+- [x] **VER-02**: `mix verify.adopter` delegates to phase73 as the integrator entrypoint.
 - [x] **VER-03**: `release_contract_test.exs` and/or `post_ga_band_contract_test.exs` guard api_stability catalog drift and Context quickstart honesty.
 
 ### Milestone Auditability (`AUD`)
 
-- [ ] **AUD-01**: Investigations INV-API-01 and INV-MAINT-01 marked closed in `STATE.md` with CI evidence pointers.
-- [ ] **AUD-02**: `v1.10.1-MILESTONE-AUDIT.md` records support-truth closure evidence and proof spine.
+- [x] **AUD-01**: Investigations INV-API-01 and INV-MAINT-01 marked closed in `STATE.md` with CI evidence pointers.
+- [x] **AUD-02**: `v1.10.1-MILESTONE-AUDIT.md` records support-truth closure evidence and proof spine.
 
 ## Future Requirements (deferred)
 
@@ -66,11 +66,11 @@ Patch milestone only — no new runtime or admin product APIs. Closes remaining 
 | API-02 | Phase 74 | Complete |
 | API-03 | Phase 74 | Complete |
 | VER-03 | Phase 74 | Complete |
-| VER-01 | Phase 75 | Pending |
-| VER-02 | Phase 75 | Pending |
-| DOC-02 | Phase 75 | Pending |
-| AUD-01 | Phase 75 | Pending |
-| AUD-02 | Phase 75 | Pending |
+| VER-01 | Phase 75 | Complete |
+| VER-02 | Phase 75 | Complete |
+| DOC-02 | Phase 75 | Complete |
+| AUD-01 | Phase 75 | Complete |
+| AUD-02 | Phase 75 | Complete |
 
 **Coverage:**
 
