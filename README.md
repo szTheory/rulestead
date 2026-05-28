@@ -240,7 +240,7 @@ The repo's current proof posture is intentionally bounded:
   policy-denied evidence **fail closed**.
 - `RULESTEAD_TEST_SCOPE=host_preview_evidence bash scripts/ci/test.sh`
   reruns the v1.9 host preview evidence proof bar in CI.
-- **Post-GA band closure (v1.10):** `cd rulestead && mix verify.phase72` (alias:
+- **Post-GA band closure (v1.10.1):** `cd rulestead && mix verify.phase73` (alias:
   `mix verify.adopter`) runs the v1.9 proof superset plus band-closure doc
   contracts. `RULESTEAD_TEST_SCOPE=post_ga_band_closure bash scripts/ci/test.sh`
   reruns that bar in CI. `scripts/demo/proof.sh` runs demo smoke + band verify.

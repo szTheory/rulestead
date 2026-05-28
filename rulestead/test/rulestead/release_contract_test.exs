@@ -636,7 +636,7 @@ defmodule Rulestead.ReleaseContractTest do
     runtime_readme = File.read!(@runtime_readme_path)
     maintaining = File.read!(@maintaining_path)
 
-    assert root_readme =~ "mix verify.phase72"
+    assert root_readme =~ "mix verify.phase73"
     assert root_readme =~ "mix verify.adopter"
     assert root_readme =~ ~r/post-GA|Post-GA|band complete|band closure/i
     assert root_readme =~ "product-boundary.md"
@@ -645,9 +645,9 @@ defmodule Rulestead.ReleaseContractTest do
     assert root_readme =~
              "RULESTEAD_TEST_SCOPE=post_ga_band_closure bash scripts/ci/test.sh"
 
-    assert runtime_readme =~ "mix verify.phase72"
+    assert runtime_readme =~ "mix verify.phase73"
     assert maintaining =~ "Post-GA Band Closure Proof"
-    assert maintaining =~ "mix verify.phase72"
+    assert maintaining =~ "mix verify.phase73"
     assert maintaining =~ "mix verify.adopter"
 
     assert maintaining =~
