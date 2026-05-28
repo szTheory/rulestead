@@ -45,7 +45,7 @@ defmodule Rulestead.MixProject do
 
   defp deps do
     [
-      {:ecto_sql, "~> 3.13"},
+      {:ecto_sql, "~> 3.14"},
       {:jason, "~> 1.4"},
       {:nimble_options, "~> 1.1"},
       {:phoenix_pubsub, "~> 2.1"},

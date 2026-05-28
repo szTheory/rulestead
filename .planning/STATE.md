@@ -44,7 +44,7 @@ Last activity: 2026-05-28 — Hex 0.1.2 published; CI/cache/publish-gate hygiene
 - **Done band (repo-verified):** 93–95% for stated post-GA scope — near-done; diminishing returns on major milestones.
 - **Default next work:** maintenance (patches, adopter support); do not open v2 without a real trigger.
 - **CI hygiene:** Mix + Dialyzer PLT caches; PLTs gitignored; `release-pr-ci` dispatch fixed; `gate-ci-green` polls for merge CI.
-- **Dependabot:** ecto_sql 3.14 PRs closed/deferred — needs intentional `~> 3.14` bump, not lock-only.
+- **Ecto 3.14:** Coordinated `ecto_sql ~> 3.14` bump shipped (maintenance); Decimal 3.x via transitive lock.
 - Open v2.0.0 **only** with a deferred trigger; default wedge order GOV-02-ext → ROL-08 → ADM-06.
 - **Current adopter bar:** `mix verify.phase76` / `mix verify.adopter` (delegates to phase76).
 - Phase numbering continues at **79** if a new milestone opens.

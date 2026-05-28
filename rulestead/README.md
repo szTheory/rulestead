@@ -18,10 +18,13 @@ identity directory.
 
 ## Install
 
+Host apps need `ecto_sql ~> 3.14` (Ecto 3.14 pulls in Decimal 3.x).
+
 ```elixir
 defp deps do
   [
-    {:rulestead, "~> 0.1"}
+    {:rulestead, "~> 0.1"},
+    {:ecto_sql, "~> 3.14"}
   ]
 end
 ```

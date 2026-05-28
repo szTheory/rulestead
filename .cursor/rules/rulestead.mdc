@@ -50,7 +50,7 @@ The three **master docs** (load every phase):
 
 - Elixir `~> 1.17` (CI matrix: 1.17/OTP 26.x + 1.19/OTP 28.x)
 - Phoenix `~> 1.7`, Phoenix.LiveView `~> 1.0`, Plug `~> 1.15`
-- Ecto `~> 3.11`, PostgreSQL `>= 15`
+- Ecto `~> 3.14`, PostgreSQL `>= 15`
 - Oban `~> 2.17` (optional dep), telemetry `~> 1.2`, NimbleOptions `~> 1.0`
 - ExUnit + Mox + StreamData for tests; `Ecto.Adapters.SQL.Sandbox` `mode: :manual`
 - MIT license; Hex-published via release-please (linked-versions for sibling packages)
