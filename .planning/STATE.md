@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.11
 milestone_name: Integration Spine
 status: Post path-to-done — maintenance default
-last_updated: "2026-05-28T20:00:00.000Z"
-last_activity: 2026-05-28 — Post-v1.11 milestone next-step assessment recorded
+last_updated: "2026-05-28T22:00:00.000Z"
+last_activity: 2026-05-28 — Hex 0.1.1 shipped; post-publish verify trio green; maintenance default
 progress:
   total_phases: 3
   completed_phases: 3
@@ -32,13 +32,14 @@ See: `.planning/PROJECT.md` (updated 2026-05-28)
 Phase: Path-to-done complete (v1.10.1 + v1.11 shipped)
 Plan: —
 Status: Maintenance default — no feature milestone without deferred trigger
-Last activity: 2026-05-28 — Post-v1.11 milestone next-step assessment
+Last activity: 2026-05-28 — Hex 0.1.1 published; post-publish verify trio green (see handoff thread)
 
 ## Accumulated Context
 
 ### Decisions
 
-- Post-GA band v1.1–v1.9 is feature-complete in code; v1.10.0–v1.11 closed doc/proof bands.
+- **Hex release:** `rulestead` + `rulestead_admin` **0.1.1** live (2026-05-28). Post-publish verify trio green; drift issue #17 closed.
+- **Handoff thread:** `.planning/threads/2026-05-28-post-0.1.1-handoff.md` — read after context clear.
 - **Path-to-done: complete** (v1.10.1 + v1.11 shipped 2026-05-28).
 - **Done band (repo-verified):** 93–95% for stated post-GA scope — near-done; diminishing returns on major milestones.
 - **Default next work:** maintenance (patches, adopter support); do not open v2 without a real trigger.
@@ -77,6 +78,8 @@ Last activity: 2026-05-28 — Post-v1.11 milestone next-step assessment
 
 ## Operator Next Steps
 
-- **Release prep:** see `.planning/threads/2026-05-28-release-readiness.md` — push CI hardening, merge release-please PR, approve hex-publish, run verify trio.
-- **Default after release:** maintenance — respond to adopter issues; patch as needed.
+- **Resume after context clear:** read `.planning/threads/2026-05-28-post-0.1.1-handoff.md`.
+- **Default:** maintenance — adopter issues, patch releases via release-please, keep `mix verify.adopter` green.
+- **After each Hex cut:** `bash scripts/ci/verify_published_release.sh <version>`.
+- **Optional:** v1.11.1 docs-only polish (graduation candidates table above).
 - **Triggered only:** `/gsd-new-milestone` for v2.0+ when a deferred trigger is real (see `.planning/DEFERRED.md`).

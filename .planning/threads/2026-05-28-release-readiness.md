@@ -2,7 +2,8 @@
 
 ## Status
 
-- **Active** — CI hardening landed locally; operator steps below for Hex cut
+- **Complete** for 0.1.1 — merge, Hex publish, verify trio all green (2026-05-28).
+- Successor handoff: `.planning/threads/2026-05-28-post-0.1.1-handoff.md`
 
 ## What shipped in this pass
 
