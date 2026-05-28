@@ -1,7 +1,7 @@
 ---
 phase: 79
 slug: lifecycle-deep-link-anchor-fix
-status: draft
+status: complete
 nyquist_compliant: true
 wave_0_complete: true
 created: 2026-05-28
@@ -38,9 +38,9 @@ created: 2026-05-28
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 79-01-01 | 01 | 1 | DOC-02 | T-79-01 | getting-started uses numbered §6 anchor | grep | `grep -q '#6-create-your-first-flag-lifecycle-required' guides/introduction/getting-started.md` | ✅ | ⬜ pending |
-| 79-01-02 | 01 | 1 | DOC-02, INT-02 | T-79-02 | Contract test enforces slug; blocks regression | unit | `cd rulestead && mix test test/rulestead/intro_integration_spine_contract_test.exs` | ✅ | ⬜ pending |
-| 79-01-03 | 01 | 1 | DOC-02 | — | Historical 77-01-PLAN anchor aligned | grep | `grep -q '#6-create-your-first-flag-lifecycle-required' .planning/phases/77-evaluation-and-lifecycle-doc-alignment/77-01-PLAN.md` | ✅ | ⬜ pending |
+| 79-01-01 | 01 | 1 | DOC-02 | T-79-01 | getting-started uses numbered §6 anchor | grep | `grep -q '#6-create-your-first-flag-lifecycle-required' guides/introduction/getting-started.md` | ✅ | ✅ done |
+| 79-01-02 | 01 | 1 | DOC-02, INT-02 | T-79-02 | Contract test enforces slug; blocks regression | unit | `cd rulestead && mix test test/rulestead/intro_integration_spine_contract_test.exs` | ✅ | ✅ done |
+| 79-01-03 | 01 | 1 | DOC-02 | — | Historical 77-01-PLAN anchor aligned | grep | `grep -q '#6-create-your-first-flag-lifecycle-required' .planning/phases/77-evaluation-and-lifecycle-doc-alignment/77-01-PLAN.md` | ✅ | ✅ done |
 
 ---
 
@@ -71,4 +71,4 @@ created: 2026-05-28
 - [x] Feedback latency < 300s
 - [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending execution
+**Approval:** verified 2026-05-28 (phase 79 execution)
