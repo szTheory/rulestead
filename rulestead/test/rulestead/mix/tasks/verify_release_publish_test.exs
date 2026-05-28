@@ -168,9 +168,7 @@ defmodule Rulestead.Mix.Tasks.VerifyReleasePublishTest do
     assert router =~ ~s(scope "/admin" do)
     assert router =~ ~s(rulestead_admin "/flags", policy: AdminConsumer.RulesteadPolicy)
 
-    assert File.exists?(
-             Path.join(consumer.app_dir, "lib/admin_consumer/rulestead_policy.ex")
-           )
+    assert File.exists?(Path.join(consumer.app_dir, "lib/admin_consumer/rulestead_policy.ex"))
     assert contract =~ "package_order: [:rulestead, :rulestead_admin]"
     assert contract =~ ~s(mount_path: "/flags")
     assert contract =~ ~s(env_query_param: "env")
