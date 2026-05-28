@@ -268,6 +268,4 @@ defmodule Rulestead.Targeting.DependencyInventory do
 
   defp fetch(map, key) when is_map(map),
     do: Map.get(map, key) || Map.get(map, Atom.to_string(key))
-
-  defp fetch(_map, _key), do: nil
 end

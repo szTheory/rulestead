@@ -32,6 +32,23 @@ defmodule Rulestead.Fake.Control do
       :ok -> :ok
       {:error, error} -> raise error
     end
+
+    if Keyword.get(opts, :seed_defaults, true) do
+      put_audience!(default_audience_seed_attrs())
+    end
+
+    :ok
+  end
+
+  defp default_audience_seed_attrs do
+    %{
+      key: "vip-users",
+      name: "VIP Users",
+      description: "VIP cohort for default ruleset fixtures",
+      definition: %{
+        conditions: [%{attribute: "plan", operator: "eq", value: "enterprise"}]
+      }
+    }
   end
 
   @spec put_environment!(map()) :: map()

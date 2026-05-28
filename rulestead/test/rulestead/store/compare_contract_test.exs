@@ -38,6 +38,8 @@ defmodule Rulestead.Store.CompareContractTest do
         %Environment{} |> Environment.changeset(attrs) |> Repo.insert!()
       end)
 
+      Rulestead.StoreFixtures.seed_default_audience_for_repo!()
+
       :ok
     end
 

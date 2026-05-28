@@ -1,7 +1,52 @@
 defmodule Rulestead.StoreFixtures do
   @moduledoc false
 
-  alias Rulestead.Store.Command
+  alias Rulestead.{Audience, Repo, Store.Command}
+
+  @spec default_audience_attrs() :: map()
+  def default_audience_attrs do
+    %{
+      key: "vip-users",
+      name: "VIP Users",
+      description: "VIP cohort for default ruleset fixtures",
+      definition: %{
+        conditions: [%{attribute: "plan", operator: "eq", value: "enterprise"}]
+      }
+    }
+  end
+
+  @spec seed_default_audience!() :: :ok
+  def seed_default_audience! do
+    case Application.get_env(:rulestead, :store) do
+      Rulestead.Store.Ecto ->
+        seed_default_audience_ecto!()
+
+      _ ->
+        Rulestead.Fake.Control.ensure_started()
+        Rulestead.Fake.Control.put_audience!(default_audience_attrs())
+    end
+
+    :ok
+  end
+
+  @spec seed_default_audience_for_repo!() :: :ok
+  def seed_default_audience_for_repo! do
+    attrs = default_audience_attrs()
+
+    %Audience{}
+    |> Audience.changeset(%{
+      key: attrs.key,
+      description: attrs.description,
+      definition: attrs.definition
+    })
+    |> Repo.insert!()
+
+    :ok
+  end
+
+  defp seed_default_audience_ecto! do
+    seed_default_audience_for_repo!()
+  end
 
   @spec valid_flag_attrs(map()) :: map()
   def valid_flag_attrs(overrides \\ %{}) do

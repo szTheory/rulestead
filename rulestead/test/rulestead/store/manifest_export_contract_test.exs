@@ -36,6 +36,8 @@ defmodule Rulestead.Store.ManifestExportContractTest do
       Enum.each(default_environments(), fn attrs ->
         %Environment{} |> Environment.changeset(attrs) |> Repo.insert!()
       end)
+
+      Rulestead.StoreFixtures.seed_default_audience_for_repo!()
     end
 
     defp checkout_repo do

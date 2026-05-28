@@ -291,7 +291,7 @@ defmodule Rulestead.Targeting.DependencyValidator do
 
   defp stale_findings(entries, scope) do
     stale_reference_keys =
-      (scope.stale_reference_keys || [])
+      scope.stale_reference_keys
       |> MapSet.new()
 
     changed_reference_keys =
