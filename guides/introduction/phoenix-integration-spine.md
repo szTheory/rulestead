@@ -82,7 +82,9 @@ config :rulestead, :host,
   ]
 ```
 
-Tune `environment_key` per deploy. Plug and runtime keys must stay aligned with
+Tune `environment_key` per deploy. The installer default is `"dev"` — keep
+Runtime lookups, flag `environment_keys`, and admin `?env=` routing aligned with
+that value (or your chosen override). Plug and runtime keys must stay aligned with
 how you build `%Rulestead.Context{}` in request handlers.
 
 ## 4. Request boundary: Plug
@@ -113,6 +115,9 @@ context = conn.assigns[:rulestead_context]
   Rulestead.Runtime.enabled?("dev", "checkout_v2", context)
 ```
 
+The first argument must match `config :rulestead, :host, environment_key` (the
+installer default is `"dev"`).
+
 `Rulestead.Runtime` looks up the authored flag in the local snapshot cache for the
 environment key. It is the supported Phoenix hot path when you already run the
 snapshot runtime.
@@ -136,9 +141,26 @@ Record at minimum:
 - **`expected_expiration`** — review horizon as a date (or the lifecycle fields
   your authoring surface maps to it).
 
-In the mounted admin UI, the create form requires these fields before save. If you
-author through store APIs, pass the same metadata — missing owner or expiration
-should fail closed rather than silently defaulting.
+In the mounted admin UI, the create form requires these fields before save.
+
+Programmatic create (IEx, seeds, or internal tooling) uses the same metadata:
+
+```elixir
+{:ok, _flag} =
+  Rulestead.create_flag(
+    key: "checkout_v2",
+    flag_type: :release,
+    value_type: :boolean,
+    default_value: %{value: false},
+    ownership: %{owner_ref: "team-checkout", owner_kind: :team},
+    expected_expiration: ~D[2026-12-31],
+    environment_keys: ["dev"]
+  )
+```
+
+Use the same environment keys you pass to `Rulestead.Runtime` (see section 5).
+If you author through other store APIs, pass the same lifecycle fields — missing
+owner or expiration should fail closed rather than silently defaulting.
 
 Honest posture:
 

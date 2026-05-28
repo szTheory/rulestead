@@ -13,6 +13,8 @@ defmodule Rulestead.IntroIntegrationSpineContractTest do
     assert spine =~ "Rulestead.Plug"
     assert spine =~ "owner_ref"
     assert spine =~ "expected_expiration"
+    assert spine =~ "Rulestead.create_flag"
+    assert spine =~ "environment_key"
     assert spine =~ "flag-lifecycle"
   end
 

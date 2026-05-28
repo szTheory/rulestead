@@ -8,7 +8,7 @@ Rulestead ships as a linked-version sibling-package monorepo:
 - `rulestead_admin`
 
 Repo GA shipped in `v1.0.0` on 2026-05-21. The current installable
-sibling-package line remains `0.1.0`, so maintainer release work should treat
+sibling-package line on Hex is **`0.1.1`**, so maintainer release work should treat
 the `0.1.x` packages as the live consumer surface while keeping
 `rulestead_admin` documented as the mounted companion rather than a standalone
 product.
@@ -79,7 +79,7 @@ with the minimum write scope needed for the workflow.
 
 ## Gated publish choreography
 
-The expected release path for the current shipped `0.1.0` line is:
+The expected release path for the current shipped `0.1.x` line (currently `0.1.1`) is:
 
 1. Merge the Release Please PR for the intended version.
 2. Let `release-please.yml` create the linked tags and dispatch

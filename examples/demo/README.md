@@ -5,8 +5,8 @@ This directory contains the Phase 28 GA demo stack:
 - `backend/` is a thin Phoenix host app that embeds `rulestead` and mounts `rulestead_admin`
 - `frontend/` is an external Next.js sample app that consumes the backend bridge through OpenFeature
 
-This is the primary runnable end-to-end proof path for the current `0.1.0`
-package line. It is not the package contract for
+This is the primary runnable end-to-end proof path for the current `0.1.1`
+Hex package line. It is not the package contract for
 `open_feature_rulestead` itself.
 
 If you need the package-local OpenFeature companion proof first, run:

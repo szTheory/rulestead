@@ -7,8 +7,8 @@ typed values, context builders, installer support, and fake-backed test helpers
 without mounting the admin UI.
 
 Repo GA shipped in `v1.0.0` on 2026-05-21, and the current installable package
-line for `rulestead` is `0.1.0`. Keep the broader release and proof posture in
-the shared root docs at [../README.md](../README.md).
+line for `rulestead` on Hex is `0.1.1`. Keep the broader release and proof
+posture in the shared root docs at [../README.md](../README.md).
 
 Lifecycle guidance still lives in the shared root docs. The canonical flag from
 birth to retirement guide is
@@ -120,9 +120,10 @@ Run `cd rulestead && mix verify.phase68` before changing preview evidence
 resolver wiring, redaction, fingerprint/stale rejection, governance boundary, or
 support-truth docs in the v1.9 milestone.
 
-**Post-GA band closure:** `mix verify.phase76` (alias `mix verify.adopter`) runs
-the v1.10.1 proof superset plus v1.11 intro-spine doc contracts. Phoenix
-integrators: [Phoenix Integration Spine](../guides/introduction/phoenix-integration-spine.md).
+**Post-GA band closure:** `mix verify.adopter` (alias `mix verify.phase76`) runs
+the v1.11 adopter bar: v1.10.1 support-truth contracts plus integration-spine
+doc checks. Phoenix integrators:
+[Phoenix Integration Spine](../guides/introduction/phoenix-integration-spine.md).
 See the root [README](../README.md) proof section.
 
 ## Next docs

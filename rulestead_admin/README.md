@@ -3,7 +3,7 @@
 `rulestead_admin` is the optional mounted admin package for Rulestead.
 
 Repo GA shipped in `v1.0.0` on 2026-05-21, and the current installable package
-line for `rulestead_admin` is `0.1.0`. This package stays documented as the
+line for `rulestead_admin` on Hex is `0.1.1`. This package stays documented as the
 mounted companion rather than a standalone control-plane product; the broader
 release and proof posture lives in [../README.md](../README.md).
 

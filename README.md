@@ -5,9 +5,9 @@
 > optional mounted Phoenix LiveView admin.
 
 > **Release truth:** repo GA shipped in `v1.0.0` on 2026-05-21. The current
-> installable sibling-package line remains `0.1.0`, so adopters should depend
-> on the `0.1.x` Hex packages while using this repo's `v1.0.0` milestone docs
-> as the support and proof posture reference.
+> installable sibling-package line on Hex is **`0.1.1`** (`~> 0.1`). Repo
+> milestones (`v1.0.0`–`v1.11`) and Hex semver are intentionally separate —
+> use milestone docs here for support and proof posture.
 
 ## Post-GA band (v1.1–v1.9 complete)
 
@@ -264,9 +264,10 @@ The repo's current proof posture is intentionally bounded:
   policy-denied evidence **fail closed**.
 - `RULESTEAD_TEST_SCOPE=host_preview_evidence bash scripts/ci/test.sh`
   reruns the v1.9 host preview evidence proof bar in CI.
-- **Post-GA band closure (v1.11):** `cd rulestead && mix verify.phase76` (alias:
-  `mix verify.adopter`) runs the v1.10.1 proof superset plus v1.11 intro-spine
-  doc contracts. See [Phoenix Integration Spine](guides/introduction/phoenix-integration-spine.md).
+- **Post-GA band closure (v1.11):** `cd rulestead && mix verify.adopter` (alias:
+  `mix verify.phase76`) runs the v1.11 adopter bar: v1.10.1 support-truth
+  contracts plus integration-spine doc checks. See
+  [Phoenix Integration Spine](guides/introduction/phoenix-integration-spine.md).
   `RULESTEAD_TEST_SCOPE=post_ga_band_closure bash scripts/ci/test.sh`
   reruns that bar in CI. `scripts/demo/proof.sh` runs demo smoke + band verify.
 - `RULESTEAD_TEST_SCOPE=openfeature_companion bash scripts/ci/test.sh` proves the
@@ -277,7 +278,7 @@ The repo's current proof posture is intentionally bounded:
   mount behavior, canonical `?env=` routing, lifecycle transitions, and
   permission-gated cleanup behavior.
 - `mix verify.release_publish <version>` proves published-consumer install and
-  HexDocs reachability for the shipped `0.1.0` package line.
+  HexDocs reachability for the shipped `0.1.x` package line (currently `0.1.1`).
 - `mix verify.release_parity <version>` proves the tagged release and Hex
   tarball stay in sync.
 

@@ -4,7 +4,7 @@ milestone: v1.11
 milestone_name: Integration Spine
 status: Post path-to-done — maintenance default
 last_updated: "2026-05-28T22:00:00.000Z"
-last_activity: 2026-05-28 — Hex 0.1.1 shipped; post-publish verify trio green; maintenance default
+last_activity: 2026-05-28 — v1.11.1 docs polish (Hex 0.1.1 narrative, spine create path, adopter bar wording)
 progress:
   total_phases: 3
   completed_phases: 3
@@ -43,7 +43,7 @@ Last activity: 2026-05-28 — Hex 0.1.1 published; post-publish verify trio gree
 - **Path-to-done: complete** (v1.10.1 + v1.11 shipped 2026-05-28).
 - **Done band (repo-verified):** 93–95% for stated post-GA scope — near-done; diminishing returns on major milestones.
 - **Default next work:** maintenance (patches, adopter support); do not open v2 without a real trigger.
-- **Optional:** v1.11.1 docs-only polish (README/spine friction) if warranted — not required for “done.”
+- **Optional:** v1.11.1 docs-only polish — **shipped** (2026-05-28); graduation candidates closed.
 - Open v2.0.0 **only** with a deferred trigger; default wedge order GOV-02-ext → ROL-08 → ADM-06.
 - **Current adopter bar:** `mix verify.phase76` / `mix verify.adopter` (delegates to phase76).
 - Phase numbering continues at **79** if a new milestone opens.
@@ -58,14 +58,14 @@ Last activity: 2026-05-28 — Hex 0.1.1 published; post-publish verify trio gree
 
 ### Graduation candidates (doc / release — not blocking)
 
-| Item | Notes |
-|------|-------|
-| README `## Local demo` empty header | Editing accident; fix in v1.11.1 or maintenance |
-| README “v1.10” vs v1.11 closure wording | Align with phase76 adopter bar |
-| Spine first-flag create step | Lifecycle fields documented; no canonical create walkthrough |
-| Runtime `environment_key` vs installer `dev` | Adopter friction |
-| `upgrading.md` missing `verify.adopter` | Support-truth parity |
-| Hex 0.1.0 vs v1.x milestone narrative | Release engineering graduation |
+| Item | Status |
+|------|--------|
+| README `## Local demo` empty header | **Closed** — section has runnable compose steps |
+| README “v1.10” vs v1.11 closure wording | **Closed** — v1.11 adopter bar wording in README + package README |
+| Spine first-flag create step | **Closed** — §6 includes admin + `Rulestead.create_flag/1` example |
+| Runtime `environment_key` vs installer `dev` | **Closed** — spine §3/§5 call out installer default alignment |
+| `upgrading.md` missing `verify.adopter` | **Closed** — present; Hex line updated to 0.1.1 |
+| Hex 0.1.0 vs v1.x milestone narrative | **Closed** — release truth distinguishes Hex semver from repo milestones |
 
 ### Open investigations
 
