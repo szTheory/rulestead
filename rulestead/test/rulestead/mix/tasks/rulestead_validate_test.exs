@@ -40,7 +40,7 @@ defmodule Rulestead.Mix.Tasks.RulesteadValidateTest do
       put_in(
         valid_manifest,
         ["flags", Access.at(0), "active_ruleset", "rules", Access.at(0), "audience_key"],
-        nil
+        "missing-audience"
       )
 
     assert {:ok, ok_result} = Validate.compute(valid_manifest)

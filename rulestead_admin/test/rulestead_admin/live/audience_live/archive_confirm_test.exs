@@ -94,7 +94,7 @@ defmodule RulesteadAdmin.Live.AudienceLive.ArchiveConfirmTest do
   test "archive confirm applies archive after preview fingerprint and reason", %{conn: conn} do
     conn = init_session(conn)
 
-    {:ok, preview_view, preview_html} =
+    {:ok, _preview_view, preview_html} =
       live(conn, "/admin/flags/audiences/vip-users/archive/preview?env=test")
 
     assert preview_html =~ "audprev_"

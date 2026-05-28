@@ -265,7 +265,7 @@ defmodule Rulestead.AudienceMutationAuditTest do
     end
   end
 
-  defp apply_command(preview, overrides \\ []) do
+  defp apply_command(preview, overrides) do
     overrides = List.wrap(overrides)
     environment_key = Keyword.get(overrides, :environment_key, "test")
 
@@ -373,7 +373,7 @@ defmodule Rulestead.AudienceMutationAuditTest do
   defp restore_env(key, nil), do: Application.delete_env(:rulestead, key)
   defp restore_env(key, value), do: Application.put_env(:rulestead, key, value)
 
-  defp command_samples(preview, overrides) do
+  defp command_samples(_preview, overrides) do
     case Keyword.get(overrides, :samples) do
       nil ->
         if Application.get_env(:rulestead, :preview_evidence_resolver) do

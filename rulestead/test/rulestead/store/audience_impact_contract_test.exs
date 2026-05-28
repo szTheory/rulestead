@@ -865,14 +865,6 @@ defmodule Rulestead.Store.AudienceImpactContractTest do
     end
   end
 
-  defp production_reference_keys(count), do: environment_reference_keys("production", count)
-
-  defp environment_reference_keys(environment_key, count) do
-    for index <- 1..count do
-      "flag:checkout-redesign-#{index}:ruleset:1:rule:vip-rule-#{index}"
-    end
-  end
-
   defp dependency_code?(entry, code) do
     Map.get(entry, :code) == code or Map.get(entry, "code") == code
   end

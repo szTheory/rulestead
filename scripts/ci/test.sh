@@ -46,11 +46,11 @@ run_mix_logged() {
 mounted_failure_category() {
   local log_file="$1"
 
-  if rg -q \
+  if grep -Eq \
     "Unchecked dependencies|Could not find Hex|Could not compile dependency|mix local\\.hex|mix deps\\.get|can't continue due to errors on dependencies|The database for" \
     "${log_file}"; then
     echo "setup/prerequisite failure"
-  elif rg -q "test failed|failures|ExUnit\\.AssertionError|MatchError|FunctionClauseError|UndefinedFunctionError" "${log_file}"; then
+  elif grep -Eq "test failed|failures|ExUnit\\.AssertionError|MatchError|FunctionClauseError|UndefinedFunctionError" "${log_file}"; then
     echo "mounted contract regression"
   else
     echo "unknown mounted-proof failure"
@@ -150,13 +150,13 @@ print_reusable_targeting_failure_guidance() {
 reusable_targeting_failure_category() {
   local log_file="$1"
 
-  if rg -q "reusable targeting deepening support truth stays bounded" "${log_file}" 2>/dev/null; then
+  if grep -Eq "reusable targeting deepening support truth stays bounded" "${log_file}" 2>/dev/null; then
     echo "docs drift"
-  elif rg -q \
+  elif grep -Eq \
     "Unchecked dependencies|Could not find Hex|Could not compile dependency|mix local\\.hex|mix deps\\.get|The database for" \
     "${log_file}"; then
     echo "setup/prerequisite failure"
-  elif rg -q "test failed|failures|ExUnit\\.AssertionError" "${log_file}"; then
+  elif grep -Eq "test failed|failures|ExUnit\\.AssertionError" "${log_file}"; then
     echo "contract regression"
   else
     echo "unknown reusable-targeting failure"
@@ -207,13 +207,13 @@ print_blast_radius_governance_failure_guidance() {
 blast_radius_governance_failure_category() {
   local log_file="$1"
 
-  if rg -q "blast radius governance support truth stays bounded" "${log_file}" 2>/dev/null; then
+  if grep -Eq "blast radius governance support truth stays bounded" "${log_file}" 2>/dev/null; then
     echo "docs drift"
-  elif rg -q \
+  elif grep -Eq \
     "Unchecked dependencies|Could not find Hex|Could not compile dependency|mix local\\.hex|mix deps\\.get|The database for" \
     "${log_file}"; then
     echo "setup/prerequisite failure"
-  elif rg -q "test failed|failures|ExUnit\\.AssertionError" "${log_file}"; then
+  elif grep -Eq "test failed|failures|ExUnit\\.AssertionError" "${log_file}"; then
     echo "contract regression"
   else
     echo "unknown blast-radius-governance failure"
@@ -278,13 +278,13 @@ print_guarded_rollout_auto_advance_failure_guidance() {
 guarded_rollout_auto_advance_failure_category() {
   local log_file="$1"
 
-  if rg -q "guarded rollout auto-advance support truth stays bounded" "${log_file}" 2>/dev/null; then
+  if grep -Eq "guarded rollout auto-advance support truth stays bounded" "${log_file}" 2>/dev/null; then
     echo "docs drift"
-  elif rg -q \
+  elif grep -Eq \
     "Unchecked dependencies|Could not find Hex|Could not compile dependency|mix local\\.hex|mix deps\\.get|The database for" \
     "${log_file}"; then
     echo "setup/prerequisite failure"
-  elif rg -q "test failed|failures|ExUnit\\.AssertionError" "${log_file}"; then
+  elif grep -Eq "test failed|failures|ExUnit\\.AssertionError" "${log_file}"; then
     echo "contract regression"
   else
     echo "unknown guarded-rollout-auto-advance failure"
@@ -349,13 +349,13 @@ print_host_preview_evidence_failure_guidance() {
 host_preview_evidence_failure_category() {
   local log_file="$1"
 
-  if rg -q "host preview evidence support truth stays bounded" "${log_file}" 2>/dev/null; then
+  if grep -Eq "host preview evidence support truth stays bounded" "${log_file}" 2>/dev/null; then
     echo "docs drift"
-  elif rg -q \
+  elif grep -Eq \
     "Unchecked dependencies|Could not find Hex|Could not compile dependency|mix local\\.hex|mix deps\\.get|The database for" \
     "${log_file}"; then
     echo "setup/prerequisite failure"
-  elif rg -q "test failed|failures|ExUnit\\.AssertionError" "${log_file}"; then
+  elif grep -Eq "test failed|failures|ExUnit\\.AssertionError" "${log_file}"; then
     echo "contract regression"
   else
     echo "unknown host-preview-evidence failure"
@@ -448,13 +448,13 @@ print_post_ga_band_closure_failure_guidance() {
 post_ga_band_closure_failure_category() {
   local log_file="$1"
 
-  if rg -q "post-GA band closure support truth stays bounded" "${log_file}" 2>/dev/null; then
+  if grep -Eq "post-GA band closure support truth stays bounded" "${log_file}" 2>/dev/null; then
     echo "docs drift"
-  elif rg -q \
+  elif grep -Eq \
     "Unchecked dependencies|Could not find Hex|Could not compile dependency|mix local\\.hex|mix deps\\.get|The database for" \
-    "${log_file}"; then
+    "${log_file}" 2>/dev/null; then
     echo "setup/prerequisite failure"
-  elif rg -q "test failed|failures|ExUnit\\.AssertionError" "${log_file}"; then
+  elif grep -Eq "test failed|failures|ExUnit\\.AssertionError" "${log_file}" 2>/dev/null; then
     echo "contract regression"
   else
     echo "unknown post-ga-band-closure failure"

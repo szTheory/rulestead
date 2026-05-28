@@ -122,8 +122,6 @@ defmodule Rulestead.Manifest.ImportTest do
   end
 
   defp seed_fixture! do
-    seed_fake_audience!("vip-users")
-
     assert {:ok, _} =
              Rulestead.create_flag(
                Command.CreateFlag.new(
@@ -144,26 +142,6 @@ defmodule Rulestead.Manifest.ImportTest do
       "checkout-redesign",
       "test",
       valid_ruleset_attrs(%{salt: "checkout-redesign:v1"})
-    )
-  end
-
-  defp seed_fake_audience!(key) do
-    now = Rulestead.Fake.Control.now!()
-
-    Rulestead.Fake.Control.restore!(
-      Rulestead.Fake.Control.snapshot!()
-      |> Map.update!(:audiences, fn audiences ->
-        Map.put(audiences, key, %{
-          id: "aud-#{key}",
-          key: key,
-          name: "Audience #{key}",
-          description: "Seeded audience",
-          definition: %{clauses: [%{attribute: "plan", op: "eq", value: "vip"}]},
-          inserted_at: now,
-          updated_at: now,
-          archived_at: nil
-        })
-      end)
     )
   end
 

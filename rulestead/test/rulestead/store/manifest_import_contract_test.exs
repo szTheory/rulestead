@@ -51,7 +51,6 @@ defmodule Rulestead.Store.ManifestImportContractTest do
         %Environment{} |> Environment.changeset(attrs) |> Repo.insert!()
       end)
 
-      Rulestead.StoreFixtures.seed_default_audience_for_repo!()
 
       :ok
     end
@@ -65,7 +64,7 @@ defmodule Rulestead.Store.ManifestImportContractTest do
           attrs
         )
 
-      %Audience{} |> Audience.changeset(attrs) |> Repo.insert!()
+      Rulestead.StoreFixtures.upsert_audience_for_repo!(attrs)
     end
 
     def delete_audience!(audience_key) do

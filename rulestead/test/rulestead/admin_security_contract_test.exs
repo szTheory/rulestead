@@ -157,6 +157,12 @@ defmodule Rulestead.AdminSecurityContractTest do
       StoreFixtures.valid_flag_attrs(%{environment_keys: ["test"]})
     )
 
+    StoreFixtures.seed_fake_audience!("secret-users", %{
+      name: "Secret Users",
+      description: "Hidden cohort",
+      definition: %{conditions: [%{attribute: "plan", operator: "eq", value: "secret"}]}
+    })
+
     ruleset = %{
       salt: "checkout-redesign:v2",
       rules: [
@@ -189,7 +195,6 @@ defmodule Rulestead.AdminSecurityContractTest do
              Rulestead.list_audience_dependencies(
                Command.ListAudienceDependencies.new(
                  environment_key: "test",
-                 actor: %{id: "viewer-1", roles: [:viewer]},
                  visible_audience_keys: ["vip-users"],
                  include_redacted_placeholders?: true,
                  limit: 10

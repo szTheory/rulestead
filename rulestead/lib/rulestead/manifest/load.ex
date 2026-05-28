@@ -161,30 +161,59 @@ defmodule Rulestead.Manifest.Load do
   defp load_ruleset(_ruleset),
     do: {:error, Manifest.invalid("manifest active_ruleset must be an object")}
 
+  defp maybe_put_segment_match_projection_fields(rule, "segment_match", source) do
+    rule
+    |> maybe_put(
+      "environment_key",
+      Map.get(source, "environment_key", Map.get(source, :environment_key))
+    )
+    |> maybe_put("tenant_key", Map.get(source, "tenant_key", Map.get(source, :tenant_key)))
+    |> maybe_put(
+      "audience_schema_version",
+      Map.get(source, "audience_schema_version", Map.get(source, :audience_schema_version))
+    )
+    |> maybe_put(
+      "audience_version_hash",
+      Map.get(source, "audience_version_hash", Map.get(source, :audience_version_hash))
+    )
+  end
+
+  defp maybe_put_segment_match_projection_fields(rule, _strategy, _source), do: rule
+
   defp load_rule(rule) when is_map(rule) do
-    {:ok,
-     %{}
-     |> maybe_put("key", Map.get(rule, "key", Map.get(rule, :key)))
-     |> maybe_put("name", Map.get(rule, "name", Map.get(rule, :name)))
-     |> maybe_put("description", Map.get(rule, "description", Map.get(rule, :description)))
-     |> maybe_put("strategy", Map.get(rule, "strategy", Map.get(rule, :strategy)))
-     |> maybe_put("value", Map.get(rule, "value", Map.get(rule, :value, %{})))
-     |> maybe_put("audience_key", Map.get(rule, "audience_key", Map.get(rule, :audience_key)))
-     |> maybe_put(
-       "conditions",
-       rule
-       |> Map.get("conditions", Map.get(rule, :conditions, []))
-       |> Enum.map(&load_condition/1)
-       |> unwrap_loaded_list()
-     )
-     |> maybe_put(
-       "variants",
-       rule
-       |> Map.get("variants", Map.get(rule, :variants, []))
-       |> Enum.map(&load_variant/1)
-       |> unwrap_loaded_list()
-     )
-     |> maybe_put("rollout", Map.get(rule, "rollout", Map.get(rule, :rollout)))}
+    strategy =
+      rule
+      |> Map.get("strategy", Map.get(rule, :strategy))
+      |> case do
+        value when is_atom(value) -> Atom.to_string(value)
+        value -> value
+      end
+
+    loaded =
+      %{}
+      |> maybe_put("key", Map.get(rule, "key", Map.get(rule, :key)))
+      |> maybe_put("name", Map.get(rule, "name", Map.get(rule, :name)))
+      |> maybe_put("description", Map.get(rule, "description", Map.get(rule, :description)))
+      |> maybe_put("strategy", Map.get(rule, "strategy", Map.get(rule, :strategy)))
+      |> maybe_put("value", Map.get(rule, "value", Map.get(rule, :value, %{})))
+      |> maybe_put("audience_key", Map.get(rule, "audience_key", Map.get(rule, :audience_key)))
+      |> maybe_put(
+        "conditions",
+        rule
+        |> Map.get("conditions", Map.get(rule, :conditions, []))
+        |> Enum.map(&load_condition/1)
+        |> unwrap_loaded_list()
+      )
+      |> maybe_put(
+        "variants",
+        rule
+        |> Map.get("variants", Map.get(rule, :variants, []))
+        |> Enum.map(&load_variant/1)
+        |> unwrap_loaded_list()
+      )
+      |> maybe_put("rollout", Map.get(rule, "rollout", Map.get(rule, :rollout)))
+
+    {:ok, maybe_put_segment_match_projection_fields(loaded, strategy, rule)}
   end
 
   defp load_rule(_rule), do: {:error, Manifest.invalid("manifest rules must be objects")}

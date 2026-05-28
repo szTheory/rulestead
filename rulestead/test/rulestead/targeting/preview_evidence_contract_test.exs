@@ -18,7 +18,7 @@ defmodule Rulestead.Targeting.PreviewEvidenceContractTest do
   alias Rulestead.{Audience, Environment, Error, Repo}
   alias Rulestead.Store.Command
   alias Rulestead.Store.Ecto, as: StoreEcto
-  alias Rulestead.Targeting.{AudienceDependencies, ImpactPreview}
+  alias Rulestead.Targeting.AudienceDependencies
 
   @adapters [Rulestead.Fake, StoreEcto]
 

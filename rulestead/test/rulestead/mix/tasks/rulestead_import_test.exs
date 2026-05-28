@@ -15,7 +15,6 @@ defmodule Rulestead.Mix.Tasks.RulesteadImportTest do
     Rulestead.Fake.Control.ensure_started()
     Rulestead.Fake.Control.reset!()
     Application.put_env(:rulestead, :store, Fake)
-    seed_audience!("vip-users")
 
     assert {:ok, _} =
              Rulestead.create_flag(
@@ -83,24 +82,5 @@ defmodule Rulestead.Mix.Tasks.RulesteadImportTest do
 
     assert {:ok, _} =
              Rulestead.publish_ruleset(publish_ruleset_command(flag_key, environment_key))
-  end
-
-  defp seed_audience!(key) do
-    now = Rulestead.Fake.Control.now!()
-
-    Rulestead.Fake.Control.restore!(
-      Rulestead.Fake.Control.snapshot!()
-      |> Map.update!(:audiences, fn audiences ->
-        Map.put(audiences, key, %{
-          id: "aud-#{key}",
-          key: key,
-          name: "Audience #{key}",
-          description: "Seeded audience",
-          inserted_at: now,
-          updated_at: now,
-          archived_at: nil
-        })
-      end)
-    )
   end
 end

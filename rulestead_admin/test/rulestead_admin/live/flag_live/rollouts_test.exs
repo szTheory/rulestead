@@ -922,7 +922,9 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
     %{scheduled_for: tick.scheduled_for}
   end
 
-  defp seed_auto_advance_policy!(enabled \\ true, overrides \\ []) do
+  defp seed_auto_advance_policy!(enabled), do: seed_auto_advance_policy!(enabled, [])
+
+  defp seed_auto_advance_policy!(enabled, overrides) do
     attrs =
       Map.merge(
         %{

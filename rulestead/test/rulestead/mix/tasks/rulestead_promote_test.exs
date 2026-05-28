@@ -16,7 +16,6 @@ defmodule Rulestead.Mix.Tasks.RulesteadPromoteTest do
     Application.put_env(:rulestead, :store, Fake)
     Application.put_env(:rulestead, :admin_policy, __MODULE__.AllowPolicy)
 
-    seed_fake_audience!("vip-users")
     seed_promotable_flag!()
 
     on_exit(fn ->
@@ -131,25 +130,6 @@ defmodule Rulestead.Mix.Tasks.RulesteadPromoteTest do
       "checkout-redesign",
       "production",
       valid_ruleset_attrs(%{salt: "checkout-redesign:v1"})
-    )
-  end
-
-  defp seed_fake_audience!(key) do
-    now = Rulestead.Fake.Control.now!()
-
-    Rulestead.Fake.Control.restore!(
-      Rulestead.Fake.Control.snapshot!()
-      |> Map.update!(:audiences, fn audiences ->
-        Map.put(audiences, key, %{
-          id: "aud-#{key}",
-          key: key,
-          name: "Audience #{key}",
-          description: "Seeded audience",
-          inserted_at: now,
-          updated_at: now,
-          archived_at: nil
-        })
-      end)
     )
   end
 

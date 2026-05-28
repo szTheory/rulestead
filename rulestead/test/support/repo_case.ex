@@ -22,6 +22,8 @@ defmodule Rulestead.RepoCase do
       Ecto.Adapters.SQL.Sandbox.mode(Rulestead.Repo, {:shared, self()})
     end
 
+    Rulestead.StoreFixtures.seed_default_audience_for_repo!()
+
     :ok
   end
 end

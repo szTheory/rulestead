@@ -28,11 +28,11 @@ defmodule Rulestead.Promotion.Apply do
     validate(command, allow_protected_target?: true)
   end
 
-  @spec validate_governed_snapshot(Command.ApplyPromotion.t()) ::
+  @spec validate_governed_snapshot(Command.ApplyPromotion.t(), map() | nil) ::
           :ok | {:error, Rulestead.Error.t()}
-  def validate_governed_snapshot(%Command.ApplyPromotion{} = command) do
+  def validate_governed_snapshot(%Command.ApplyPromotion{} = command, compare \\ nil) do
     with :ok <- validate_schema_version(command),
-         {:ok, compare} <- revalidate_compare(command),
+         {:ok, compare} <- fetch_compare_for_governed_snapshot(command, compare),
          :ok <- validate_dependency_findings(command, compare) do
       :ok
     end
@@ -107,6 +107,11 @@ defmodule Rulestead.Promotion.Apply do
       )
     )
   end
+
+  defp fetch_compare_for_governed_snapshot(_command, compare) when is_map(compare),
+    do: {:ok, compare}
+
+  defp fetch_compare_for_governed_snapshot(command, nil), do: revalidate_compare(command)
 
   defp validate_compare_payload(command, compare, opts) do
     allow_protected_target? = Keyword.get(opts, :allow_protected_target?, false)

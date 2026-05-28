@@ -15,7 +15,6 @@ defmodule Rulestead.Store.PromotionGovernedApplyContractTest do
     Application.put_env(:rulestead, :store, Fake)
     Application.put_env(:rulestead, :admin_policy, __MODULE__.GovernancePolicy)
 
-    seed_fake_audience!("vip-users")
     seed_promotable_flag!()
 
     on_exit(fn ->
@@ -99,25 +98,6 @@ defmodule Rulestead.Store.PromotionGovernedApplyContractTest do
              Rulestead.Fake.publish_ruleset(
                publish_ruleset_command("checkout-redesign", "production")
              )
-  end
-
-  defp seed_fake_audience!(key) do
-    now = Rulestead.Fake.Control.now!()
-
-    Rulestead.Fake.Control.restore!(
-      Rulestead.Fake.Control.snapshot!()
-      |> Map.update!(:audiences, fn audiences ->
-        Map.put(audiences, key, %{
-          id: "aud-#{key}",
-          key: key,
-          name: "Audience #{key}",
-          description: "Seeded audience",
-          inserted_at: now,
-          updated_at: now,
-          archived_at: nil
-        })
-      end)
-    )
   end
 
   defmodule GovernancePolicy do

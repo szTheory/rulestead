@@ -198,7 +198,6 @@ defmodule Rulestead.Store.PublishRulesetDependencyContractTest do
         %Environment{} |> Environment.changeset(attrs) |> Repo.insert!()
       end)
 
-      Rulestead.StoreFixtures.seed_default_audience_for_repo!()
 
       :ok
     end
@@ -211,9 +210,7 @@ defmodule Rulestead.Store.PublishRulesetDependencyContractTest do
     end
 
     def put_audience!(attrs) do
-      %Audience{}
-      |> Audience.changeset(attrs)
-      |> Repo.insert!()
+      Rulestead.StoreFixtures.upsert_audience_for_repo!(attrs)
     end
 
     def archive_audience!(audience_key) do

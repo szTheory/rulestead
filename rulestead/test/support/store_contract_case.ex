@@ -33,6 +33,10 @@ defmodule Rulestead.StoreContractCase do
           end
         end)
 
+        if @store_module == Rulestead.Store.Ecto do
+          Rulestead.StoreFixtures.seed_default_audience_for_repo!()
+        end
+
         :ok
       end
     end

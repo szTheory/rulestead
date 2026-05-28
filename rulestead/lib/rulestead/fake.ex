@@ -3586,7 +3586,9 @@ defmodule Rulestead.Fake do
           )
       )
 
-    with :ok <- Apply.validate_governed_snapshot(promotion_command),
+    with {:ok, compare} <-
+           compare_environments_in_state(state, compare_command(promotion_command)),
+         :ok <- Apply.validate_governed_snapshot(promotion_command, compare),
          {:ok, execution_result, next_state} <-
            do_apply_promotion(state, promotion_command, allow_protected_target?: true) do
       {:ok, execution_result, next_state}

@@ -36,8 +36,6 @@ defmodule Rulestead.Store.ManifestExportContractTest do
       Enum.each(default_environments(), fn attrs ->
         %Environment{} |> Environment.changeset(attrs) |> Repo.insert!()
       end)
-
-      Rulestead.StoreFixtures.seed_default_audience_for_repo!()
     end
 
     defp checkout_repo do
@@ -83,6 +81,10 @@ defmodule Rulestead.Store.ManifestExportContractTest do
         previous_store = Application.get_env(:rulestead, :store)
         @control.ensure_started()
         @control.reset!()
+        if @adapter == Rulestead.Store.Ecto do
+          Rulestead.StoreFixtures.seed_default_audience_for_repo!()
+        end
+
         Application.put_env(:rulestead, :store, @adapter)
 
         on_exit(fn ->
@@ -172,6 +174,8 @@ defmodule Rulestead.Store.ManifestExportContractTest do
                 "value" => %{},
                 "variants" => [],
                 "audience_key" => "vip-users",
+                "environment_key" => "staging",
+                "tenant_key" => "global",
                 "conditions" => [
                   %{
                     "attribute" => "attributes.email",

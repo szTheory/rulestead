@@ -14,9 +14,24 @@ defmodule Rulestead.ScheduledExecutionAdapterContractTest do
     :ok
   end
 
+  defp with_store_adapter(adapter, fun) when is_function(fun, 0) do
+    previous_store = Application.get_env(:rulestead, :store)
+    Application.put_env(:rulestead, :store, adapter)
+
+    try do
+      fun.()
+    after
+      case previous_store do
+        nil -> Application.delete_env(:rulestead, :store)
+        value -> Application.put_env(:rulestead, :store, value)
+      end
+    end
+  end
+
   test "transient failures append attempts and preserve the same scheduled execution identity" do
     Enum.each(@adapters, fn adapter ->
-      reset_adapter!(adapter)
+      with_store_adapter(adapter, fn ->
+        reset_adapter!(adapter)
       seed_publishable_flag!(adapter)
 
       scheduled_for = ~U[2026-04-25 12:30:00Z]
@@ -98,12 +113,14 @@ defmodule Rulestead.ScheduledExecutionAdapterContractTest do
                {1, :failed},
                {2, :completed}
              ]
+      end)
     end)
   end
 
   test "completed executions are replay safe and quarantined executions require explicit requeue" do
     Enum.each(@adapters, fn adapter ->
-      reset_adapter!(adapter)
+      with_store_adapter(adapter, fn ->
+        reset_adapter!(adapter)
       seed_publishable_flag!(adapter)
 
       assert {:ok, %{scheduled_execution: completed_schedule}} =
@@ -172,12 +189,14 @@ defmodule Rulestead.ScheduledExecutionAdapterContractTest do
       assert requeued.id == failed_schedule.id
       assert requeued.state == :scheduled
       assert requeued.failure_reason == nil
+      end)
     end)
   end
 
   test "cancel fetch and list expose the same normalized vocabulary in fake and ecto" do
     Enum.each(@adapters, fn adapter ->
-      reset_adapter!(adapter)
+      with_store_adapter(adapter, fn ->
+        reset_adapter!(adapter)
       seed_publishable_flag!(adapter)
 
       assert {:ok, %{scheduled_execution: cancelled_schedule}} =
@@ -268,12 +287,14 @@ defmodule Rulestead.ScheduledExecutionAdapterContractTest do
                quarantined_entries,
                &(&1.id == quarantined_schedule.id and &1.state == :quarantined)
              )
+      end)
     end)
   end
 
   test "approved protected-target promotion executes the stored bundle snapshot" do
     Enum.each(@adapters, fn adapter ->
-      reset_adapter!(adapter)
+      with_store_adapter(adapter, fn ->
+        reset_adapter!(adapter)
       seed_promotable_flag!(adapter)
 
       compare = promotion_compare!(adapter)
@@ -312,12 +333,14 @@ defmodule Rulestead.ScheduledExecutionAdapterContractTest do
                adapter.fetch_flag(Command.FetchFlag.new("checkout-redesign", "production"))
 
       assert target_payload.active_ruleset.salt == "checkout-redesign:v2"
+      end)
     end)
   end
 
   test "scheduled protected-target promotion revalidates the stored bundle before mutating target" do
     Enum.each(@adapters, fn adapter ->
-      reset_adapter!(adapter)
+      with_store_adapter(adapter, fn ->
+        reset_adapter!(adapter)
       seed_promotable_flag!(adapter)
 
       compare = promotion_compare!(adapter)
@@ -358,6 +381,7 @@ defmodule Rulestead.ScheduledExecutionAdapterContractTest do
                adapter.fetch_flag(Command.FetchFlag.new("checkout-redesign", "production"))
 
       assert target_payload.active_ruleset.salt == "checkout-redesign:v1"
+      end)
     end)
   end
 

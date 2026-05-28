@@ -323,10 +323,10 @@ defmodule RulesteadAdmin.Components.RolloutComponents do
       </form>
 
       <div :if={@mode in [:unavailable, :blocked_health]} class="rs-auto-advance-readonly-fields">
-        <p>
+        <label>
           <input type="checkbox" disabled checked={@policy_enabled} />
           Enable auto-advance
-        </p>
+        </label>
         <p>
           Observation window (seconds):
           <span><%= policy_field(@policy, :observation_window_seconds) %></span>

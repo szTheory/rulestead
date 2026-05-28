@@ -15,6 +15,19 @@ defmodule Rulestead.StoreFixtures do
     }
   end
 
+  @spec seed_fake_audience!(String.t(), map()) :: :ok
+  def seed_fake_audience!(key \\ "vip-users", overrides \\ %{}) do
+    Rulestead.Fake.Control.ensure_started()
+
+    attrs =
+      default_audience_attrs()
+      |> Map.put(:key, key)
+      |> Map.merge(overrides)
+
+    Rulestead.Fake.Control.put_audience!(attrs)
+    :ok
+  end
+
   @spec seed_default_audience!() :: :ok
   def seed_default_audience! do
     case Application.get_env(:rulestead, :store) do
@@ -29,19 +42,43 @@ defmodule Rulestead.StoreFixtures do
     :ok
   end
 
+  @spec upsert_audience_for_repo!(map()) :: Rulestead.Audience.t()
+  def upsert_audience_for_repo!(attrs) when is_map(attrs) do
+    attrs = Map.new(attrs)
+    key = Map.get(attrs, :key) || Map.get(attrs, "key")
+
+    case Repo.get_by(Audience, key: key) do
+      %Audience{} = audience ->
+        audience
+        |> Audience.changeset(attrs)
+        |> Repo.update!()
+
+      nil ->
+        %Audience{}
+        |> Audience.changeset(attrs)
+        |> Repo.insert!()
+    end
+  end
+
   @spec seed_default_audience_for_repo!() :: :ok
   def seed_default_audience_for_repo! do
     attrs = default_audience_attrs()
 
-    %Audience{}
-    |> Audience.changeset(%{
-      key: attrs.key,
-      description: attrs.description,
-      definition: attrs.definition
-    })
-    |> Repo.insert!()
+    case Repo.get_by(Audience, key: attrs.key) do
+      %Audience{} ->
+        :ok
 
-    :ok
+      nil ->
+        %Audience{}
+        |> Audience.changeset(%{
+          key: attrs.key,
+          description: attrs.description,
+          definition: attrs.definition
+        })
+        |> Repo.insert!()
+
+        :ok
+    end
   end
 
   defp seed_default_audience_ecto! do
