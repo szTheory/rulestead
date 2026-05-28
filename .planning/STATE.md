@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v1.11
 milestone_name: Integration Spine
-status: Post path-to-done — maintenance default
-last_updated: "2026-05-28T23:30:00.000Z"
+status: v1.11 gap closure — Phases 79–81
+last_updated: "2026-05-28T23:55:00.000Z"
 last_activity: 2026-05-28 — 0.1.3 shipped (Ecto 3.14); post-publish verify green
 progress:
   total_phases: 3
@@ -21,7 +21,7 @@ See: `.planning/PROJECT.md` (updated 2026-05-28)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
 
-**Current focus:** Post path-to-done — maintenance default; v2 wedges only when deferred triggers fire
+**Current focus:** v1.11 audit gap closure — Phases 79–81 (anchor fix, verification backfill, contract hardening)
 
 **Milestone:** v1.11 archived (2026-05-28) — see `.planning/milestones/v1.11-MILESTONE-AUDIT.md`
 
@@ -29,9 +29,9 @@ See: `.planning/PROJECT.md` (updated 2026-05-28)
 
 ## Current Position
 
-Phase: Path-to-done complete (v1.10.1 + v1.11 shipped)
+Phase: 79 — Lifecycle Deep-Link Anchor Fix (gap closure)
 Plan: —
-Status: Maintenance default — no feature milestone without deferred trigger
+Status: Active — close v1.11 audit gaps (Phases 79–81)
 Last activity: 2026-05-28 — Hex 0.1.3 published (`ecto_sql ~> 3.14`); post-publish verify green
 
 ## Accumulated Context
