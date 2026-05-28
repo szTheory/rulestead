@@ -18,6 +18,7 @@ Rulestead is a batteries-included, Elixir-native feature-flag and remote-config 
 - `v1.8.0` shipped on 2026-05-27 across Phases 61-64: authored auto-advance policy contract, scheduled orchestration with fail-closed eligibility and protected-env governance, mounted rollouts auto-advance panel and timeline labeling, and proof/docs/support-truth closure (`mix verify.phase64`, release-contract drift guards, host seam + flow guides, `guarded_rollout_auto_advance` CI scope).
 - `v1.9.0` shipped on 2026-05-28 across Phases 65-68: host-supplied preview evidence resolver seam, evidence carry-through and GOV-05 boundary, mounted sample cohort and impression summary UX, and proof/docs/support-truth closure (`mix verify.phase68`, release-contract drift guards, host seam + flow guides, `host_preview_evidence` CI scope).
 - `v1.10.0` shipped on 2026-05-28 across Phases 69-72: post-GA planning truth, doc/API honesty, `mix verify.phase72` / `mix verify.adopter` proof umbrella, `post_ga_band_closure` CI scope, and public band-complete signaling — no new product APIs.
+- **Phase 73 complete (2026-05-28):** Context `traits:` → `attributes` back-compat, quickstart doc honesty guards, and MAINTAINING.md live public-surface contract (CTX-01, CTX-02, DOC-01; closes INV-MAINT-01).
 
 ## Current Milestone: v1.10.1 Support-truth & Contract Honesty
 
@@ -25,10 +26,10 @@ Rulestead is a batteries-included, Elixir-native feature-flag and remote-config 
 
 **Target features:**
 
-- Context `traits:` → `attributes` back-compat and quickstart doc honesty (finish INV-CTX-01)
-- `guides/api_stability.md` synced with shipped post-GA surface (INV-API-01)
-- `MAINTAINING.md` aligned with live api_stability (INV-MAINT-01)
-- `mix verify.phase73` / `mix verify.adopter` proof umbrella extension
+- ✓ Context `traits:` → `attributes` back-compat and quickstart doc honesty (CTX-01, CTX-02 — Phase 73)
+- ✓ `MAINTAINING.md` aligned with live api_stability (DOC-01 — Phase 73; closes INV-MAINT-01)
+- `guides/api_stability.md` synced with shipped post-GA surface (INV-API-01 — Phase 74)
+- `mix verify.phase73` / `mix verify.adopter` proof umbrella extension (Phase 75)
 
 **Phases:** 73–75 (see `.planning/ROADMAP.md`)
 
@@ -314,4 +315,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-28 after v1.10.1 milestone initialization (Phases 73-75)*
+*Last updated: 2026-05-28 after Phase 73 completion (CTX-01, CTX-02, DOC-01)*
