@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.11
 milestone_name: Integration Spine
-status: completed
-last_updated: "2026-05-28T14:34:58.148Z"
-last_activity: 2026-05-28
+status: Awaiting next milestone
+last_updated: "2026-05-28T14:41:16.974Z"
+last_activity: 2026-05-28 — Milestone v1.11 completed and archived
 progress:
   total_phases: 3
   completed_phases: 3
@@ -23,14 +23,14 @@ See: `.planning/PROJECT.md` (updated 2026-05-28)
 
 **Current focus:** v1.11 shipped — maintenance / v2 triggers only
 
-**Milestone:** v1.11 complete (2026-05-28) — see `.planning/v1.11-MILESTONE-AUDIT.md`
+**Milestone:** v1.11 archived (2026-05-28) — see `.planning/milestones/v1.11-MILESTONE-AUDIT.md`
 
 ## Current Position
 
-Phase: 78 complete
-Plan: 3 of 3
-Status: v1.11 milestone closed (`integration_spine_complete`)
-Last activity: 2026-05-28 — Phase 78 source committed; ready for milestone archive
+Phase: Milestone v1.11 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-05-28 — Milestone v1.11 completed and archived
 
 ## Accumulated Context
 
@@ -62,7 +62,4 @@ Last activity: 2026-05-28 — Phase 78 source committed; ready for milestone arc
 
 ## Operator Next Steps
 
-1. `/gsd-progress` — roadmap and milestone status
-2. `/gsd-new-milestone` — when a v2 trigger fires
-
-**Proof:** `cd rulestead && mix verify.phase76` · `mix verify.adopter`
+- Start the next milestone with /gsd:new-milestone

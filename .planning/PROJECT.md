@@ -18,14 +18,15 @@ Rulestead is a batteries-included, Elixir-native feature-flag and remote-config 
 - `v1.8.0` shipped on 2026-05-27 across Phases 61-64: authored auto-advance policy contract, scheduled orchestration with fail-closed eligibility and protected-env governance, mounted rollouts auto-advance panel and timeline labeling, and proof/docs/support-truth closure (`mix verify.phase64`, release-contract drift guards, host seam + flow guides, `guarded_rollout_auto_advance` CI scope).
 - `v1.9.0` shipped on 2026-05-28 across Phases 65-68: host-supplied preview evidence resolver seam, evidence carry-through and GOV-05 boundary, mounted sample cohort and impression summary UX, and proof/docs/support-truth closure (`mix verify.phase68`, release-contract drift guards, host seam + flow guides, `host_preview_evidence` CI scope).
 - `v1.10.0` shipped on 2026-05-28 across Phases 69-72: post-GA planning truth, doc/API honesty, `mix verify.phase72` / `mix verify.adopter` proof umbrella, `post_ga_band_closure` CI scope, and public band-complete signaling — no new product APIs.
-- **Phase 73 complete (2026-05-28):** Context `traits:` → `attributes` back-compat, quickstart doc honesty guards, and MAINTAINING.md live public-surface contract (CTX-01, CTX-02, DOC-01; closes INV-MAINT-01).
+- `v1.10.1` shipped on 2026-05-28 across Phases 73–75: support-truth doc/API catalog alignment, `mix verify.phase73` proof umbrella — no new product APIs.
+- `v1.11` shipped on 2026-05-28 across Phases 76–78: first-hour Phoenix integration spine, evaluation/lifecycle doc alignment, `mix verify.phase76` contract guards — closes INV-INTRO-01; no new product APIs.
 
 <details>
 <summary>Shipped: v1.11 Integration Spine (2026-05-28)</summary>
 
 **Goal:** Close the first-hour Phoenix integration gap (INV-INTRO-01) with a single intro spine — supervision → config → Plug → first flag with lifecycle fields — without new product APIs.
 
-**Delivered:** Phases 76–78; see `.planning/v1.11-MILESTONE-AUDIT.md`
+**Delivered:** Phases 76–78; see `.planning/milestones/v1.11-MILESTONE-AUDIT.md`
 
 **Proof:** `cd rulestead && mix verify.phase76` · `mix verify.adopter`
 
@@ -40,9 +41,18 @@ Rulestead is a batteries-included, Elixir-native feature-flag and remote-config 
 
 </details>
 
+<details>
+<summary>Shipped: v1.10.1 Support-truth & Contract Honesty (2026-05-28)</summary>
+
+**Goal:** Close the last adopter-trust leaks in docs, API catalog, and contract tests — no new product APIs.
+
+**Delivered:** Phases 73–75; see `.planning/v1.10.1-MILESTONE-AUDIT.md`
+
+</details>
+
 ## Post-GA Band Status
 
-v1.1–v1.9 feature band is **complete**. v1.10.x is patches and support truth only. See `guides/introduction/product-boundary.md` and `.planning/DEFERRED.md` for v2 triggers.
+v1.1–v1.9 feature band is **complete**. v1.10.x–v1.11 doc bands are **shipped**. See `guides/introduction/product-boundary.md` and `.planning/DEFERRED.md` for v2 triggers.
 
 ## Next Milestone Goals
 
@@ -50,14 +60,14 @@ v1.1–v1.9 feature band is **complete**. v1.10.x is patches and support truth o
 
 | Order | Milestone | Notes |
 |-------|-----------|-------|
-| 1 | **v1.10.1 — Support-truth & contract honesty** | **Complete** (2026-05-28) — Phases 73–75; see `v1.10.1-MILESTONE-AUDIT.md` |
-| 2 | **v1.11 — Integration spine (docs-only)** | **Active** — Phases 76–78; first-hour Phoenix path; INV-INTRO-01 |
+| 1 | **v1.10.1 — Support-truth & contract honesty** | **Complete** (2026-05-28) |
+| 2 | **v1.11 — Integration spine (docs-only)** | **Complete** (2026-05-28) — `mix verify.phase76`; INV-INTRO-01 closed |
 | 3+ | **v2.0+ wedges (triggered only)** | GOV-02-ext → ROL-08 → ADM-06 per `.planning/DEFERRED.md` |
-| — | **Maintenance** | After v1.10.x + optional v2: patches only unless product direction changes |
+| — | **Maintenance** | Patches and adopter support until a v2 trigger fires |
 
-**Done band (2026-05-28 assessment):** ~91–94% for stated post-GA scope; feature band v1.1–v1.9 verified in `lib/` + contract tests.
+**Done band:** Post-GA scope through v1.11 is repo-verified; feature band v1.1–v1.9 in `lib/` + contract tests.
 
-**Next action:** `/gsd-discuss-phase 76` or `/gsd-plan-phase 76` for integration spine (Phase 76)
+**Next action:** `/gsd-new-milestone` when a deferred v2 trigger fires, or maintenance-only work
 
 <details>
 <summary>Latest shipped: v1.10.0 Post-GA Band Truth & Adopter Closure (2026-05-28)</summary>

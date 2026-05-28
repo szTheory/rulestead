@@ -1,5 +1,19 @@
 # Milestones
 
+## v1.11 Integration Spine (Shipped: 2026-05-28)
+
+**Phases completed:** 3 phases, 5 plans, 0 tasks
+
+**Key accomplishments:**
+
+- Phoenix integration spine doc (`phoenix-integration-spine.md`) wired from intro hubs
+- Evaluation and lifecycle doc alignment (`Rulestead.Runtime`, `owner_ref` / `expected_expiration` callouts)
+- Intro spine contract test and `mix verify.phase76` merge gate ship as the v1.11 adopter bar; adopter and CI delegate to phase76 without calling phase73.
+- Adopter and maintainer surfaces now cite `mix verify.phase76`; release_contract_test enforces phase76 strings and v1.11 spine routing.
+- v1.11 milestone closed: INV-INTRO-01 marked Closed in STATE, audit published, requirements VER/AUD ticked complete.
+
+---
+
 ## v1.10.1 Support-truth & Contract Honesty (Shipped: 2026-05-28)
 
 **Phases completed:** 3 phases, 7 plans
