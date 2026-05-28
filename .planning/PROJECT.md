@@ -28,8 +28,8 @@ Rulestead is a batteries-included, Elixir-native feature-flag and remote-config 
 
 - ✓ Context `traits:` → `attributes` back-compat and quickstart doc honesty (CTX-01, CTX-02 — Phase 73)
 - ✓ `MAINTAINING.md` aligned with live api_stability (DOC-01 — Phase 73; closes INV-MAINT-01)
-- `guides/api_stability.md` synced with shipped post-GA surface (INV-API-01 — Phase 74)
-- `mix verify.phase73` / `mix verify.adopter` proof umbrella extension (Phase 75)
+- ✓ `guides/api_stability.md` synced with shipped post-GA surface (INV-API-01 — Phase 74)
+- ✓ `mix verify.phase73` / `mix verify.adopter` proof umbrella extension (Phase 75; VER-01, VER-02)
 
 **Phases:** 73–75 (see `.planning/ROADMAP.md`)
 
@@ -43,14 +43,14 @@ v1.1–v1.9 feature band is **complete**. v1.10.x is patches and support truth o
 
 | Order | Milestone | Notes |
 |-------|-----------|-------|
-| 1 | **v1.10.1 — Support-truth & contract honesty** | **Active** — Phases 73–75 |
+| 1 | **v1.10.1 — Support-truth & contract honesty** | **Complete** (2026-05-28) — Phases 73–75; see `v1.10.1-MILESTONE-AUDIT.md` |
 | 2 | **v1.11 — Integration spine (optional, docs-only)** | First-hour Phoenix path; INV-INTRO-01 |
 | 3+ | **v2.0+ wedges (triggered only)** | GOV-02-ext → ROL-08 → ADM-06 per `.planning/DEFERRED.md` |
 | — | **Maintenance** | After v1.10.x + optional v2: patches only unless product direction changes |
 
 **Done band (2026-05-28 assessment):** ~91–94% for stated post-GA scope; feature band v1.1–v1.9 verified in `lib/` + contract tests.
 
-**Next action:** `/gsd-discuss-phase 73` or `/gsd-plan-phase 73`
+**Next action:** Optional `/gsd-discuss-phase` for v1.11 integration spine (INV-INTRO-01) or maintenance mode
 
 <details>
 <summary>Latest shipped: v1.10.0 Post-GA Band Truth & Adopter Closure (2026-05-28)</summary>
