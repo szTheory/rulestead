@@ -110,7 +110,7 @@ In a controller (or Plug-aware context), read the assign the plug set:
 context = conn.assigns[:rulestead_context]
 
 {:ok, enabled?} =
-  Rulestead.Runtime.enabled?("production", "checkout_v2", context)
+  Rulestead.Runtime.enabled?("dev", "checkout_v2", context)
 ```
 
 `Rulestead.Runtime` looks up the authored flag in the local snapshot cache for the

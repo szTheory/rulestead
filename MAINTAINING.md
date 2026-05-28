@@ -34,8 +34,9 @@ The sibling-package publish decision is intentional:
 Document these settings exactly on `main`:
 
 - Required status checks:
-  - `release_gate` (aggregates `lint`, `test`, `integration-placeholder`, and
-    the path-gated mounted companion proof result from `ci.yml`)
+  - `release_gate` (aggregates `lint`, `test`, `integration-placeholder`,
+    `adopter contract (post-GA band)`, and the path-gated mounted companion proof
+    result from `ci.yml`)
   - `Validate PR title`
   - `dependency-review`
 - `actionlint` is not a required status check because it is path-filtered
@@ -83,18 +84,21 @@ The expected release path for the current shipped `0.1.0` line is:
 1. Merge the Release Please PR for the intended version.
 2. Let `release-please.yml` create the linked tags and dispatch
    `publish-hex.yml`.
-3. Let the publish preflight re-run the release gate and the fresh
-   sibling-package admin slice from `rulestead_admin`.
-4. Review the `preflight` job output and approve the protected
-   `hex-publish` environment.
+3. Let `publish-hex` `preflight` and `gate-ci-green` complete — preflight runs
+   package guards and the Phase 7 admin slice; `gate-ci-green` requires a
+   successful `ci.yml` run on the tagged SHA (dispatch `ci.yml` on the release
+   PR ref when release-please bot pushes do not trigger checks).
+4. Review the `preflight` and `gate-ci-green` job output and approve the
+   protected `hex-publish` environment.
 5. Let `publish-core` publish `rulestead`.
 6. Let `publish-admin` publish `rulestead_admin`.
 7. Hand off to the separate post-publish verification wave. Do not claim
    live artifact proof before that follow-on verification completes.
 
-The preflight rerun matters because publish readiness must re-run the
-sibling-package release slice instead of trusting stale reports from earlier
-milestones.
+Publish no longer fakes merge CI success in preflight. `gate-ci-green` is the
+source of truth for green `ci.yml` on the release tag, including the
+`adopter contract (post-GA band)` job (`mix verify.phase76` via
+`post_ga_band_closure` scope).
 
 ## Manual recovery path
 

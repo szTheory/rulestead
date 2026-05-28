@@ -16,7 +16,7 @@ The post-GA release-control band is **feature-complete** for serious Phoenix Saa
 - Tenancy helpers, lifecycle hygiene, guarded rollouts (hold/rollback + auto-advance)
 - Reusable audiences with impact previews, blast-radius governance, host-supplied preview evidence
 
-**v1.10** closes support truth (docs, proof bars, planning alignment) — not new product APIs.
+**v1.10.1** and **v1.11** close support truth and the first-hour Phoenix integration spine (docs and proof bars) — not new product APIs.
 Optional v2 deepening (presets, baseline comparison, threshold profiles) is listed in
 [product-boundary.md](guides/introduction/product-boundary.md).
 
@@ -187,6 +187,26 @@ itself or integrating it into a larger release process.
 
 ## Local demo
 
+The runnable local demo lives under `examples/demo/`:
+
+```bash
+docker compose up --build
+```
+
+That boots Postgres, Redis, the Phoenix demo backend at `http://localhost:4000`,
+the mounted Admin sign-in route at `http://localhost:4000/demo/sign-in`, and the
+Next.js sample frontend at `http://localhost:3000`.
+
+The shortest end-to-end proof is:
+
+1. Open `http://localhost:3000` and confirm `The new operator cockpit is live.`
+2. Open `http://localhost:4000/demo/sign-in`.
+3. In the Admin UI, engage the kill switch for `enable-new-dashboard` in `staging`.
+4. Confirm the frontend flips to `The classic cockpit is holding.`
+
+See [examples/demo/README.md](examples/demo/README.md) for the smoke script and
+Playwright path.
+
 ## Proof today
 
 The repo's current proof posture is intentionally bounded:
@@ -288,26 +308,6 @@ bounded proof with:
 ```bash
 RULESTEAD_TEST_SCOPE=guarded_rollout_foundations bash scripts/ci/test.sh
 ```
-
-The runnable local demo lives under `examples/demo/`:
-
-```bash
-docker compose up --build
-```
-
-That boots Postgres, Redis, the Phoenix demo backend at `http://localhost:4000`,
-the mounted Admin sign-in route at `http://localhost:4000/demo/sign-in`, and the
-Next.js sample frontend at `http://localhost:3000`.
-
-The shortest end-to-end proof is:
-
-1. Open `http://localhost:3000` and confirm `The new operator cockpit is live.`
-2. Open `http://localhost:4000/demo/sign-in`.
-3. In the Admin UI, engage the kill switch for `enable-new-dashboard` in `staging`.
-4. Confirm the frontend flips to `The classic cockpit is holding.`
-
-See [examples/demo/README.md](examples/demo/README.md) for the smoke script and
-browser automation path.
 
 ## Versioning and upgrade posture
 

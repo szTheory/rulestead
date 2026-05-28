@@ -15,6 +15,8 @@ Support truth is intentionally bounded to the seams we can verify today:
 
 - [../../examples/demo/README.md](../../examples/demo/README.md) is the primary
   runnable demo proof path.
+- `cd rulestead && mix verify.adopter` (delegates to `mix verify.phase76`) is the
+  integrator proof bar for the post-GA doc band.
 - `mix verify.release_publish <version>` proves a published consumer can install
   the current package line and reach the published docs.
 - `mix verify.release_parity <version>` proves the git tag and Hex tarball stay

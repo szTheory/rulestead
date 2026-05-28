@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.11
 milestone_name: Integration Spine
-status: Awaiting next milestone
-last_updated: "2026-05-28T14:41:16.974Z"
-last_activity: 2026-05-28 — Milestone v1.11 completed and archived
+status: Post path-to-done — maintenance default
+last_updated: "2026-05-28T20:00:00.000Z"
+last_activity: 2026-05-28 — Post-v1.11 milestone next-step assessment recorded
 progress:
   total_phases: 3
   completed_phases: 3
@@ -21,27 +21,31 @@ See: `.planning/PROJECT.md` (updated 2026-05-28)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
 
-**Current focus:** v1.11 shipped — maintenance / v2 triggers only
+**Current focus:** Post path-to-done — maintenance default; v2 wedges only when deferred triggers fire
 
 **Milestone:** v1.11 archived (2026-05-28) — see `.planning/milestones/v1.11-MILESTONE-AUDIT.md`
 
+**Assessment:** `.planning/threads/2026-05-28-post-v1.11-milestone-next-step-assessment.md` (done band 93–95%)
+
 ## Current Position
 
-Phase: Milestone v1.11 complete
+Phase: Path-to-done complete (v1.10.1 + v1.11 shipped)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-05-28 — Milestone v1.11 completed and archived
+Status: Maintenance default — no feature milestone without deferred trigger
+Last activity: 2026-05-28 — Post-v1.11 milestone next-step assessment
 
 ## Accumulated Context
 
 ### Decisions
 
-- Post-GA band v1.1–v1.9 is feature-complete in code; v1.10.0–v1.10.1 closed support-truth band.
-- **Done band (repo-verified):** v1.11 closes first-hour Phoenix doc gap (INV-INTRO-01).
-- **Path-to-done:** v2 wedges if triggered → maintenance (see `.planning/threads/2026-05-28-path-to-done-milestones.md`).
+- Post-GA band v1.1–v1.9 is feature-complete in code; v1.10.0–v1.11 closed doc/proof bands.
+- **Path-to-done: complete** (v1.10.1 + v1.11 shipped 2026-05-28).
+- **Done band (repo-verified):** 93–95% for stated post-GA scope — near-done; diminishing returns on major milestones.
+- **Default next work:** maintenance (patches, adopter support); do not open v2 without a real trigger.
+- **Optional:** v1.11.1 docs-only polish (README/spine friction) if warranted — not required for “done.”
 - Open v2.0.0 **only** with a deferred trigger; default wedge order GOV-02-ext → ROL-08 → ADM-06.
 - **Current adopter bar:** `mix verify.phase76` / `mix verify.adopter` (delegates to phase76).
-- v1.10.1 support-truth band: `.planning/v1.10.1-MILESTONE-AUDIT.md`; v1.11: `.planning/v1.11-MILESTONE-AUDIT.md`.
+- Phase numbering continues at **79** if a new milestone opens.
 
 ### Deferred Items (v2)
 
@@ -51,6 +55,17 @@ Last activity: 2026-05-28 — Milestone v1.11 completed and archived
 | Rollouts | ROL-08 baseline comparison | Host baselines for guarded rollouts |
 | Admin | ADM-06 draft presets | High authoring duplication pain |
 
+### Graduation candidates (doc / release — not blocking)
+
+| Item | Notes |
+|------|-------|
+| README `## Local demo` empty header | Editing accident; fix in v1.11.1 or maintenance |
+| README “v1.10” vs v1.11 closure wording | Align with phase76 adopter bar |
+| Spine first-flag create step | Lifecycle fields documented; no canonical create walkthrough |
+| Runtime `environment_key` vs installer `dev` | Adopter friction |
+| `upgrading.md` missing `verify.adopter` | Support-truth parity |
+| Hex 0.1.0 vs v1.x milestone narrative | Release engineering graduation |
+
 ### Open investigations
 
 | ID | Topic | Status | Proof |
@@ -58,8 +73,10 @@ Last activity: 2026-05-28 — Milestone v1.11 completed and archived
 | INV-CTX-01 | Quickstart `traits:` vs `attributes:` | **Closed** | Phase 73 |
 | INV-API-01 | `api_stability.md` vs release contract | **Closed** | Phase 74–75 |
 | INV-MAINT-01 | MAINTAINING vs `api_stability.md` | **Closed** | Phase 73 |
-| INV-INTRO-01 | Intro spine missing Plug/supervision/lifecycle | **Closed** | Phase 78: `mix verify.phase76`, `intro_integration_spine_contract_test.exs`, `guides/introduction/phoenix-integration-spine.md` |
+| INV-INTRO-01 | Intro spine missing Plug/supervision/lifecycle | **Closed** | Phase 78 |
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd:new-milestone
+- **Release prep:** see `.planning/threads/2026-05-28-release-readiness.md` — push CI hardening, merge release-please PR, approve hex-publish, run verify trio.
+- **Default after release:** maintenance — respond to adopter issues; patch as needed.
+- **Triggered only:** `/gsd-new-milestone` for v2.0+ when a deferred trigger is real (see `.planning/DEFERRED.md`).
