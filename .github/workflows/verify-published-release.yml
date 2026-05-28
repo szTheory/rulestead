@@ -31,6 +31,10 @@ jobs:
         with:
           version-file: .tool-versions
           version-type: strict
+      - name: Fetch dependencies
+        run: |
+          (cd rulestead && mix deps.get)
+          (cd rulestead_admin && mix deps.get)
       - id: resolve
         name: Resolve published release version
         env:
@@ -126,7 +130,7 @@ jobs:
 
           {
             echo "---"
-            echo "title: Release drift: published verification failed"
+            echo "title: \"Release drift: published verification failed\""
             echo "labels: area:release, severity:drift"
             echo "---"
             echo
