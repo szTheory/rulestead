@@ -14,9 +14,9 @@ Patch milestone only — no new runtime or admin product APIs. Closes remaining 
 
 ### API Stability Catalog (`API`)
 
-- [ ] **API-01**: `guides/api_stability.md` catalogs shipped post-GA public modules and facades that `release_contract_test.exs` already exercises (closes INV-API-01), or documents an explicit generate-from-contract workflow with CI enforcement.
-- [ ] **API-02**: Release-contract test guards api_stability ↔ documented telemetry events, config schema keys, and struct fields without silent drift.
-- [ ] **API-03**: `Rulestead.Runtime` and other supported adopter paths are documented in api_stability or `product-boundary.md` with honest semver posture (supported path vs closed module list).
+- [x] **API-01**: `guides/api_stability.md` catalogs shipped post-GA public modules and facades that `release_contract_test.exs` already exercises (closes INV-API-01), or documents an explicit generate-from-contract workflow with CI enforcement.
+- [x] **API-02**: Release-contract test guards api_stability ↔ documented telemetry events, config schema keys, and struct fields without silent drift.
+- [x] **API-03**: `Rulestead.Runtime` and other supported adopter paths are documented in api_stability or `product-boundary.md` with honest semver posture (supported path vs closed module list).
 
 ### Maintainer & Doc Truth (`DOC`)
 
@@ -27,7 +27,7 @@ Patch milestone only — no new runtime or admin product APIs. Closes remaining 
 
 - [ ] **VER-01**: `mix verify.phase73` flat-unions phase72 plus v1.10.1 contract guards (no kitchen-sink verifier).
 - [ ] **VER-02**: `mix verify.adopter` delegates to phase73 as the integrator entrypoint.
-- [ ] **VER-03**: `release_contract_test.exs` and/or `post_ga_band_contract_test.exs` guard api_stability catalog drift and Context quickstart honesty.
+- [x] **VER-03**: `release_contract_test.exs` and/or `post_ga_band_contract_test.exs` guard api_stability catalog drift and Context quickstart honesty.
 
 ### Milestone Auditability (`AUD`)
 
@@ -62,10 +62,10 @@ Patch milestone only — no new runtime or admin product APIs. Closes remaining 
 | CTX-01 | Phase 73 | Complete |
 | CTX-02 | Phase 73 | Complete |
 | DOC-01 | Phase 73 | Complete |
-| API-01 | Phase 74 | Pending |
-| API-02 | Phase 74 | Pending |
-| API-03 | Phase 74 | Pending |
-| VER-03 | Phase 74 | Pending |
+| API-01 | Phase 74 | Complete |
+| API-02 | Phase 74 | Complete |
+| API-03 | Phase 74 | Complete |
+| VER-03 | Phase 74 | Complete |
 | VER-01 | Phase 75 | Pending |
 | VER-02 | Phase 75 | Pending |
 | DOC-02 | Phase 75 | Pending |
