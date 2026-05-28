@@ -36,6 +36,7 @@ defmodule RulesteadAdmin.MixProject do
       {:phoenix, "~> 1.8.1"},
       {:phoenix_html, "~> 4.2"},
       {:phoenix_live_view, "~> 1.1"},
+      {:ex_doc, "~> 0.38", only: :dev, runtime: false},
       rulestead_dep()
     ]
   end
