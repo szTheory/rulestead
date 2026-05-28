@@ -1,5 +1,23 @@
 # Milestones
 
+## v1.10.0 Post-GA Band Truth & Adopter Closure (Shipped: 2026-05-28)
+
+**Phases completed:** 4 phases, 0 plans (verification-driven closure)
+
+**Key accomplishments:**
+
+- Post-v1.9 band assessment (~94–96% done band) supersedes prior milestone-selection threads with adopter flow matrix and feature-complete v1.1–v1.9 verdict
+- `product-boundary.md` and `footguns.md` publish honest in-scope, host-owned, and evaluation footgun guidance without new APIs
+- README and getting-started teach payload-first evaluation and `Rulestead.Runtime` keyed lookup — not `Rulestead.enabled?(flag_key, conn)`
+- `mix verify.phase72` and `mix verify.adopter` provide a flat post-GA band merge gate; `post_ga_band_closure` CI scope with categorized failure guidance
+- `post_ga_band_contract_test.exs` and `release_contract_test.exs` guard band-closure support truth and forbid stale unbuilt claims for v1.7–v1.9 wedges
+- `scripts/demo/proof.sh` documents a bounded 15-minute adopter proof path; README band-complete section points to v2 deferred queue
+- `v1.10.0-MILESTONE-AUDIT.md` records `band_complete`; v1.9 phases archived under `milestones/v1.9.0-phases/`
+
+Known deferred items at close: 3 (see STATE.md Deferred Items)
+
+---
+
 ## v1.9.0 Host-Supplied Preview Evidence (Shipped: 2026-05-28)
 
 **Phases completed:** 4 phases, 16 plans, 12 tasks

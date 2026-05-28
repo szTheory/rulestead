@@ -2,6 +2,48 @@
 
 *A living document updated after each milestone. Lessons feed forward into future planning.*
 
+## Milestone: v1.10.0 — Post-GA Band Truth & Adopter Closure
+
+**Shipped:** 2026-05-28
+**Phases:** 4 | **Plans:** 0 (verification-driven)
+
+### What Was Built
+
+- Post-v1.9 band assessment declaring v1.1–v1.9 feature band complete (~94–96% done band for serious Phoenix SaaS adopters).
+- `product-boundary.md`, `footguns.md`, and payload-first `Rulestead.Runtime` quickstart honesty across README, getting-started, and api_stability header.
+- `mix verify.phase72` / `mix verify.adopter` flat merge gate, `post_ga_band_closure` CI scope, and `post_ga_band_contract_test.exs`.
+- `scripts/demo/proof.sh` bounded adopter proof path; README band-complete section; `v1.10.0-MILESTONE-AUDIT.md` with `band_complete`.
+
+### What Worked
+
+- Verification-driven closure without new product APIs kept scope honest and shippable in one day.
+- Flat union on phase68 core avoided kitchen-sink `mix verify.all` while still proving band closure.
+- Explicit v2 deferred triggers in `DEFERRED.md` prevent reopening v1.7–v1.9 arcs as false gaps.
+
+### What Was Inefficient
+
+- Phases 69–72 used VERIFICATION.md only (no PLAN/SUMMARY artifacts) — acceptable for support-truth band but weaker traceability than feature milestones.
+- `gsd-sdk milestone.complete` recorded empty accomplishments until manual MILESTONES.md backfill.
+
+### Patterns Established
+
+- `mix verify.adopter` as the integrator-facing alias; phase72 remains the implementation gate.
+- Diminishing-returns stop rule: v1.10.x = patches only; v2 picks one wedge by trigger.
+- Release contract tests guard support truth separately from feature delivery.
+
+### Key Lessons
+
+1. Band-closure milestones should lead with assessment + docs + proof — not feature creep.
+2. Adopter trust at ~94–96% is sufficient to declare post-GA band complete when proof spine is green.
+3. Milestone audits (`band_complete`) close the loop on support-truth claims without widening product shape.
+
+### Cost Observations
+
+- Single-day closure across 4 phases; ~96 files in recent git range.
+- Known deferred items at close: 3 (see STATE.md Deferred Items).
+
+---
+
 ## Milestone: v1.9.0 — Host-Supplied Preview Evidence
 
 **Shipped:** 2026-05-28

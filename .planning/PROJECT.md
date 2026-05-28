@@ -17,19 +17,32 @@ Rulestead is a batteries-included, Elixir-native feature-flag and remote-config 
 - `v1.7.0` shipped on 2026-05-27 across Phases 57-60: blast-radius threshold contract, change-request integration, mounted governance workflows, and proof/docs/support-truth closure (`mix verify.phase60`, release-contract drift guards, payload-first quickstart parity).
 - `v1.8.0` shipped on 2026-05-27 across Phases 61-64: authored auto-advance policy contract, scheduled orchestration with fail-closed eligibility and protected-env governance, mounted rollouts auto-advance panel and timeline labeling, and proof/docs/support-truth closure (`mix verify.phase64`, release-contract drift guards, host seam + flow guides, `guarded_rollout_auto_advance` CI scope).
 - `v1.9.0` shipped on 2026-05-28 across Phases 65-68: host-supplied preview evidence resolver seam, evidence carry-through and GOV-05 boundary, mounted sample cohort and impression summary UX, and proof/docs/support-truth closure (`mix verify.phase68`, release-contract drift guards, host seam + flow guides, `host_preview_evidence` CI scope).
+- `v1.10.0` shipped on 2026-05-28 across Phases 69-72: post-GA planning truth, doc/API honesty, `mix verify.phase72` / `mix verify.adopter` proof umbrella, `post_ga_band_closure` CI scope, and public band-complete signaling — no new product APIs.
 
-## Next Milestone Goals
+## Post-GA Band Status
 
-Run `/gsd-new-milestone` to define requirements and roadmap for v1.10+.
+v1.1–v1.9 feature band is **complete**. v1.10.x is patches and support truth only. See `guides/introduction/product-boundary.md` and `.planning/DEFERRED.md` for v2 triggers.
 
-**Candidates from deferred queue (see STATE.md):**
+## Next Milestone Goals (v2)
 
-- Draft-only targeting presets (ADM-06)
-- Guardrail baseline comparison (ROL-08)
-- Host-configurable blast-radius threshold profiles (GOV-02-ext)
+Open **one** v2 wedge by trigger (default order: GOV-02-ext → ROL-08 → ADM-06). Run `/gsd-new-milestone` when ready.
 
 <details>
-<summary>Latest shipped: v1.9.0 Host-Supplied Preview Evidence (2026-05-28)</summary>
+<summary>Latest shipped: v1.10.0 Post-GA Band Truth & Adopter Closure (2026-05-28)</summary>
+
+**Goal:** Close the post-GA adopter-trust band with docs, proof bars, and planning alignment — not new product features.
+
+**Delivered:**
+
+- Post-v1.9 band assessment and JTBD/planning truth refresh with ~94–96% done-band verdict
+- `product-boundary.md`, `footguns.md`, payload-first + `Rulestead.Runtime` quickstart honesty
+- `mix verify.phase72`, `mix verify.adopter`, `post_ga_band_closure` CI scope, `scripts/demo/proof.sh`
+- `v1.10.0-MILESTONE-AUDIT.md` (`band_complete`); v1.9 phase archive
+
+</details>
+
+<details>
+<summary>Previous: v1.9.0 Host-Supplied Preview Evidence (2026-05-28)</summary>
 
 **Goal:** Close the reusable-targeting preview gap with host-supplied bounded sample cohorts and impression summaries through an explicit seam—without claiming authoritative population counts or widening blast-radius governance.
 
@@ -128,7 +141,7 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 
 ### Active
 
-_None — define the next milestone with `/gsd-new-milestone`._
+- **PLN-01** through **PLN-03**, **DOC-01** through **DOC-05**, **VER-01** through **VER-05**, **AUD-01** through **AUD-03** — v1.10.0 band closure (Phases 69-72)
 
 ### Validated
 
@@ -200,7 +213,8 @@ _None — define the next milestone with `/gsd-new-milestone`._
 - `v1.7.0` shipped across Phases 57-60, proving blast-radius governance can route high-impact protected-environment audience edits through the existing change-request envelope with threshold evaluation, mounted proposal/review UX, and aligned proof/docs without observability-backed counts or a parallel governance workflow.
 - `v1.8.0` shipped across Phases 61-64, proving guarded rollouts can auto-advance after observation windows with fail-closed guardrails, governed orchestration, mounted operator UX, and aligned proof/docs.
 - `v1.9.0` shipped across Phases 65-68, proving hosts can supply bounded preview evidence through an explicit resolver seam with audit carry-through, mounted rendering, and GOV-05 reference-count governance unchanged by impression richness.
-- The project remains a linked-version, two-package monorepo. Phase numbering continues at 69.
+- The project remains a linked-version, two-package monorepo. Phase numbering continues at 69 (v1.10 band closure).
+- Post-GA feature band v1.1–v1.9 is complete; v1.10 closes support truth only.
 
 ## Constraints
 
@@ -274,4 +288,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-28 after v1.9.0 milestone archived*
+*Last updated: 2026-05-28 after v1.10.0 milestone*

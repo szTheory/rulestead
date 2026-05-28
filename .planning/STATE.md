@@ -1,17 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.9.0
-milestone_name: milestone
+milestone: v1.10.0
+milestone_name: Post-GA Band Truth & Adopter Closure
 status: Awaiting next milestone
-stopped_at: Phase 67 context gathered (assumptions mode)
-last_updated: "2026-05-28T00:50:53.487Z"
-last_activity: 2026-05-28 — Milestone v1.9.0 completed and archived
+last_updated: "2026-05-28T01:30:49.559Z"
+last_activity: 2026-05-28 — Milestone v1.10.0 completed and archived
 progress:
   total_phases: 4
-  completed_phases: 4
-  total_plans: 16
-  completed_plans: 16
-  percent: 100
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # State: Rulestead
@@ -20,63 +19,37 @@ progress:
 
 See: `.planning/PROJECT.md` (updated 2026-05-28)
 
-**Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions - booleans, variants, and remote config - with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
-**Current focus:** Planning next milestone
-**Milestone:** None (v1.9.0 archived 2026-05-28)
+**Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
+
+**Current focus:** Planning next milestone (v2)
+
+**Milestone:** None (v1.10.0 shipped 2026-05-28)
 
 ## Current Position
 
-Phase: Milestone v1.9.0 complete
+Phase: Milestone v1.10.0 complete
 Plan: —
 Status: Awaiting next milestone
-Last activity: 2026-05-28 — Milestone v1.9.0 completed and archived
-
-## Performance Metrics
-
-**Velocity (v1.9.0):**
-
-- 65-01: 12 min, 3 tasks, 4 files
-- 65-02: 15 min, 2 tasks, 2 files
-- 65-03: 18 min, 2 tasks, 5 files
-- 65-04: 18 min, 3 tasks, 2 files
-- Milestone plans completed: 4/16 (Phase 65 complete)
+Last activity: 2026-05-28 — Milestone v1.10.0 completed and archived
 
 ## Accumulated Context
 
 ### Decisions
 
-- Activate v1.9.0 IMP-05 after v1.8 ROL-04; defer ADM-06 presets and ROL-08 baseline comparison.
-- Skip parallel research; v1.6 IMP deferral + partial core sample support + post-v1.8 assessment sufficient.
-- GOV-05: blast-radius thresholds stay reference-count only even when impression summaries ship.
-- Phase numbering continues at 65 (no reset).
-- v1.8 phase directories archived to `.planning/milestones/v1.8.0-phases/`.
-- Phase 65: `PreviewEvidence` behaviour mirrors `Guardrails.Provider`; `ImpactPreview` schema v2; union sample merge cap 25; impression summary allowlist; GOV unchanged.
-- 65-01: Opt-in resolver returns `{:ok, %{}}` when unconfigured; unknown impression keys fail-closed; merge dedupe uses actor_key+targeting_key with command rows first.
-- 65-02: ImpactPreview schema v2 adds impression_evidence and impression_fingerprint; basis-specific uncertainty messages; derive with_host_evidence when impression summary non-empty.
-- 65-03: Store invokes PreviewEvidence before ImpactPreview.build in Fake/Ecto; union merge via Limits; Fake.PreviewEvidenceResolver for tests; ensure_loaded before resolver export check.
-- 65-04: Contract tests prove Fake/Ecto parity for evidence/stale/fail-closed; per-adapter stub reset for stale drift; GOV assess ignores impression_evidence.
+- Post-GA band v1.1–v1.9 is feature-complete; v1.10 is support truth only.
+- `mix verify.phase72` flat-unions phase68 core + `post_ga_band_contract_test.exs`; no subprocess to older verify tasks.
+- `mix verify.adopter` delegates to phase72 for integrators.
+- Quickstart teaches `Rulestead.Runtime` keyed lookup; root `enabled?/2` is payload + context only.
+- v2 backlog: GOV-02-ext → ROL-08 → ADM-06 by default trigger order.
 
-### Pending Todos
+### Deferred Items (v2)
 
-None.
-
-### Blockers/Concerns
-
-None.
-
-## Deferred Items (post-v1.9 queue)
-
-| Category | Item | Target |
-|----------|------|--------|
-| Admin | Draft-only targeting presets (ADM-06) | Defer |
-| Rollouts | Guardrail baseline comparison (ROL-08) | Future |
-| Governance | Host-configurable threshold profiles (GOV-02-ext) | Future |
-
-## Session Continuity
-
-Last session: 2026-05-28
-Stopped at: Milestone v1.9.0 archived
+| Category | Item | Trigger |
+|----------|------|---------|
+| Governance | GOV-02-ext threshold profiles | Per-env/tenant thresholds needed |
+| Rollouts | ROL-08 baseline comparison | Host baselines for guarded rollouts |
+| Admin | ADM-06 draft presets | High authoring duplication pain |
 
 ## Operator Next Steps
 
-- `/gsd-new-milestone` — define v1.10+ requirements and roadmap
+- Run `/gsd-new-milestone` to plan v2 (default wedge order: GOV-02-ext → ROL-08 → ADM-06)
