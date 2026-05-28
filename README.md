@@ -5,7 +5,7 @@
 > optional mounted Phoenix LiveView admin.
 
 > **Release truth:** repo GA shipped in `v1.0.0` on 2026-05-21. The current
-> installable sibling-package line on Hex is **`0.1.1`** (`~> 0.1`). Repo
+> installable sibling-package line on Hex is **`0.1.2`** (`~> 0.1`). Repo
 > milestones (`v1.0.0`–`v1.11`) and Hex semver are intentionally separate —
 > use milestone docs here for support and proof posture.
 
@@ -278,7 +278,7 @@ The repo's current proof posture is intentionally bounded:
   mount behavior, canonical `?env=` routing, lifecycle transitions, and
   permission-gated cleanup behavior.
 - `mix verify.release_publish <version>` proves published-consumer install and
-  HexDocs reachability for the shipped `0.1.x` package line (currently `0.1.1`).
+  HexDocs reachability for the shipped `0.1.x` package line (currently `0.1.2`).
 - `mix verify.release_parity <version>` proves the tagged release and Hex
   tarball stay in sync.
 

@@ -7,7 +7,7 @@ typed values, context builders, installer support, and fake-backed test helpers
 without mounting the admin UI.
 
 Repo GA shipped in `v1.0.0` on 2026-05-21, and the current installable package
-line for `rulestead` on Hex is `0.1.1`. Keep the broader release and proof
+line for `rulestead` on Hex is `0.1.2`. Keep the broader release and proof
 posture in the shared root docs at [../README.md](../README.md).
 
 Lifecycle guidance still lives in the shared root docs. The canonical flag from

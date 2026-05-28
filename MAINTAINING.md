@@ -8,7 +8,7 @@ Rulestead ships as a linked-version sibling-package monorepo:
 - `rulestead_admin`
 
 Repo GA shipped in `v1.0.0` on 2026-05-21. The current installable
-sibling-package line on Hex is **`0.1.1`**, so maintainer release work should treat
+sibling-package line on Hex is **`0.1.2`**, so maintainer release work should treat
 the `0.1.x` packages as the live consumer surface while keeping
 `rulestead_admin` documented as the mounted companion rather than a standalone
 product.
@@ -90,7 +90,7 @@ with the minimum write scope needed for the workflow.
 
 ## Gated publish choreography
 
-The expected release path for the current shipped `0.1.x` line (currently `0.1.1`) is:
+The expected release path for the current shipped `0.1.x` line (currently `0.1.2`) is:
 
 1. Merge the Release Please PR for the intended version.
 2. Let `release-please.yml` create the linked tags and dispatch
@@ -106,8 +106,9 @@ The expected release path for the current shipped `0.1.x` line (currently `0.1.1
 7. Hand off to the separate post-publish verification wave. Do not claim
    live artifact proof before that follow-on verification completes.
 
-Publish no longer fakes merge CI success in preflight. `gate-ci-green` is the
-source of truth for green `ci.yml` on the release tag, including the
+Publish no longer fakes merge CI success in preflight. `gate-ci-green` polls for up
+to ~15 minutes for a green `ci.yml` run on the release tag SHA (handles the
+release-please race where publish dispatches before merge CI finishes), including the
 `adopter contract (post-GA band)` job (`mix verify.phase76` via
 `post_ga_band_closure` scope).
 

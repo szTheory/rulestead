@@ -1,6 +1,6 @@
 # Getting Started
 
-This is the first-success path for the current `0.1.1` package line on Hex: install
+This is the first-success path for the current `0.1.2` package line on Hex: install
 the runtime, gate one code path, and optionally mount the admin UI.
 
 ## 1. Add dependencies

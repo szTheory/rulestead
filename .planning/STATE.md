@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.11
 milestone_name: Integration Spine
 status: Post path-to-done — maintenance default
-last_updated: "2026-05-28T22:00:00.000Z"
-last_activity: 2026-05-28 — v1.11.1 docs polish (Hex 0.1.1 narrative, spine create path, adopter bar wording)
+last_updated: "2026-05-28T23:30:00.000Z"
+last_activity: 2026-05-28 — 0.1.2 shipped; CI hygiene; doc truth 0.1.2; publish gate polling; dependabot deferred
 progress:
   total_phases: 3
   completed_phases: 3
@@ -32,18 +32,19 @@ See: `.planning/PROJECT.md` (updated 2026-05-28)
 Phase: Path-to-done complete (v1.10.1 + v1.11 shipped)
 Plan: —
 Status: Maintenance default — no feature milestone without deferred trigger
-Last activity: 2026-05-28 — Hex 0.1.1 published; post-publish verify trio green (see handoff thread)
+Last activity: 2026-05-28 — Hex 0.1.2 published; CI/cache/publish-gate hygiene; post-publish verify green
 
 ## Accumulated Context
 
 ### Decisions
 
-- **Hex release:** `rulestead` + `rulestead_admin` **0.1.1** live (2026-05-28). Post-publish verify trio green; drift issue #17 closed.
-- **Handoff thread:** `.planning/threads/2026-05-28-post-0.1.1-handoff.md` — read after context clear.
+- **Hex release:** `rulestead` + `rulestead_admin` **0.1.2** live (2026-05-28). Post-publish verify trio green.
+- **Handoff thread:** `.planning/threads/2026-05-28-post-0.1.2-maintenance-handoff.md` — read after context clear.
 - **Path-to-done: complete** (v1.10.1 + v1.11 shipped 2026-05-28).
 - **Done band (repo-verified):** 93–95% for stated post-GA scope — near-done; diminishing returns on major milestones.
 - **Default next work:** maintenance (patches, adopter support); do not open v2 without a real trigger.
-- **Optional:** v1.11.1 docs-only polish — **shipped** (2026-05-28); graduation candidates closed.
+- **CI hygiene:** Mix + Dialyzer PLT caches; PLTs gitignored; `release-pr-ci` dispatch fixed; `gate-ci-green` polls for merge CI.
+- **Dependabot:** ecto_sql 3.14 PRs closed/deferred — needs intentional `~> 3.14` bump, not lock-only.
 - Open v2.0.0 **only** with a deferred trigger; default wedge order GOV-02-ext → ROL-08 → ADM-06.
 - **Current adopter bar:** `mix verify.phase76` / `mix verify.adopter` (delegates to phase76).
 - Phase numbering continues at **79** if a new milestone opens.
@@ -58,14 +59,7 @@ Last activity: 2026-05-28 — Hex 0.1.1 published; post-publish verify trio gree
 
 ### Graduation candidates (doc / release — not blocking)
 
-| Item | Status |
-|------|--------|
-| README `## Local demo` empty header | **Closed** — section has runnable compose steps |
-| README “v1.10” vs v1.11 closure wording | **Closed** — v1.11 adopter bar wording in README + package README |
-| Spine first-flag create step | **Closed** — §6 includes admin + `Rulestead.create_flag/1` example |
-| Runtime `environment_key` vs installer `dev` | **Closed** — spine §3/§5 call out installer default alignment |
-| `upgrading.md` missing `verify.adopter` | **Closed** — present; Hex line updated to 0.1.1 |
-| Hex 0.1.0 vs v1.x milestone narrative | **Closed** — release truth distinguishes Hex semver from repo milestones |
+All closed — see v1.11.1 polish + 0.1.2 doc truth maintenance.
 
 ### Open investigations
 
@@ -78,8 +72,7 @@ Last activity: 2026-05-28 — Hex 0.1.1 published; post-publish verify trio gree
 
 ## Operator Next Steps
 
-- **Resume after context clear:** read `.planning/threads/2026-05-28-post-0.1.1-handoff.md`.
+- **Resume after context clear:** read `.planning/threads/2026-05-28-post-0.1.2-maintenance-handoff.md`.
 - **Default:** maintenance — adopter issues, patch releases via release-please, keep `mix verify.adopter` green.
 - **After each Hex cut:** `bash scripts/ci/verify_published_release.sh <version>`.
-- **Optional:** v1.11.1 docs-only polish (graduation candidates table above).
 - **Triggered only:** `/gsd-new-milestone` for v2.0+ when a deferred trigger is real (see `.planning/DEFERRED.md`).
