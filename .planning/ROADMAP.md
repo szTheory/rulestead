@@ -2,14 +2,16 @@
 
 ## Milestones
 
-- 🎯 **v1.10.1 - Support-truth & Contract Honesty** — Phases 73-75 (active) — see Current Milestone below
+- ✅ **v1.10.1 - Support-truth & Contract Honesty** — Phases 73-75 (shipped 2026-05-28) — [.planning/v1.10.1-MILESTONE-AUDIT.md](v1.10.1-MILESTONE-AUDIT.md)
 - ✅ **v1.10.0 - Post-GA Band Truth & Adopter Closure** — Phases 69-72 (shipped 2026-05-28) — [.planning/milestones/v1.10.0-ROADMAP.md](milestones/v1.10.0-ROADMAP.md)
 - ✅ **v1.9.0 - Host-Supplied Preview Evidence** — Phases 65-68 (shipped 2026-05-28) — [.planning/milestones/v1.9.0-ROADMAP.md](milestones/v1.9.0-ROADMAP.md)
 - ✅ **v1.8.0 - Guarded Rollout Auto-Advance** — Phases 61-64 (shipped 2026-05-27)
 
-## Current Milestone: v1.10.1 Support-truth & Contract Honesty
+## Shipped Milestone: v1.10.1 Support-truth & Contract Honesty (2026-05-28)
 
 **Goal:** Close the last adopter-trust leaks in docs, API catalog, and contract tests — no new product APIs.
+
+**Audit:** [.planning/v1.10.1-MILESTONE-AUDIT.md](v1.10.1-MILESTONE-AUDIT.md) (`support_truth_complete`)
 
 **Requirements:** CTX-01–02, API-01–03, DOC-01–02, VER-01–03, AUD-01–02 (see [.planning/REQUIREMENTS.md](REQUIREMENTS.md))
 
@@ -61,7 +63,7 @@
 2. `STATE.md` marks INV-API-01 and INV-MAINT-01 closed with proof command references.
 3. `v1.10.1-MILESTONE-AUDIT.md` records support-truth closure; maintainer docs no longer imply pre-v1.8 gaps are open.
 
-**Proof spine:** `cd rulestead && mix verify.adopter` · `RULESTEAD_TEST_SCOPE=post_ga_band_closure bash scripts/ci/test.sh`
+**Proof spine:** `cd rulestead && mix verify.phase73` · `mix verify.adopter` · `RULESTEAD_TEST_SCOPE=post_ga_band_closure bash scripts/ci/test.sh`
 
 ---
 
