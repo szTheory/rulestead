@@ -420,6 +420,76 @@ run_reusable_targeting_deepening() {
   rm -f "${log_file}"
 }
 
+print_post_ga_band_closure_failure_guidance() {
+  local category="${1:-unknown}"
+
+  {
+    echo
+    echo "post_ga_band_closure failure category: ${category}"
+    echo "Expected support boundary: post-v1.9 band truth — docs, release contract, and v1.9 proof superset."
+    echo "Rerun: RULESTEAD_TEST_SCOPE=post_ga_band_closure bash scripts/ci/test.sh"
+    echo "Remediation: cd rulestead && mix verify.phase73"
+
+    if [[ "${category}" == "docs drift" ]]; then
+      echo "Docs drift hint: release_contract_test.exs post-GA band closure block failed — sync README/MAINTAINING with asserts."
+    elif [[ "${category}" == "setup/prerequisite failure" ]]; then
+      echo "Suggested setup:"
+      echo "  - cd rulestead && mix deps.get"
+      echo "  - cd rulestead && mix ecto.create && mix ecto.migrate"
+      echo "  - cd ../rulestead_admin && mix deps.get"
+    else
+      echo "Remediation focus: inspect contract regression output for band-closure or v1.9 proof failures."
+    fi
+
+    echo "Runbook: ${MOUNTED_PROOF_RUNBOOK}"
+  } >&2
+}
+
+post_ga_band_closure_failure_category() {
+  local log_file="$1"
+
+  if rg -q "post-GA band closure support truth stays bounded" "${log_file}" 2>/dev/null; then
+    echo "docs drift"
+  elif rg -q \
+    "Unchecked dependencies|Could not find Hex|Could not compile dependency|mix local\\.hex|mix deps\\.get|The database for" \
+    "${log_file}"; then
+    echo "setup/prerequisite failure"
+  elif rg -q "test failed|failures|ExUnit\\.AssertionError" "${log_file}"; then
+    echo "contract regression"
+  else
+    echo "unknown post-ga-band-closure failure"
+  fi
+}
+
+run_post_ga_band_closure() {
+  local log_file
+  local status=0
+  log_file="$(mktemp)"
+
+  if run_mix_logged rulestead "${log_file}" deps.get; then
+    prepare_rulestead_test_db
+    if run_mix_logged rulestead_admin "${log_file}" deps.get; then
+      if run_mix_logged rulestead "${log_file}" verify.phase73; then
+        :
+      else
+        status=$?
+      fi
+    else
+      status=$?
+    fi
+  else
+    status=$?
+  fi
+
+  if [[ "${status}" -ne 0 ]]; then
+    print_post_ga_band_closure_failure_guidance "$(post_ga_band_closure_failure_category "${log_file}")"
+    rm -f "${log_file}"
+    return "${status}"
+  fi
+
+  rm -f "${log_file}"
+}
+
 if [[ -n "${MATRIX_ELIXIR}" || -n "${MATRIX_OTP}" ]]; then
   echo "Running test lane for Elixir ${MATRIX_ELIXIR:-unknown} / OTP ${MATRIX_OTP:-unknown}"
 fi
@@ -462,9 +532,13 @@ case "${TEST_SCOPE}" in
     echo "Running host preview evidence proof bar"
     run_host_preview_evidence
     ;;
+  post_ga_band_closure)
+    echo "Running post-GA band closure proof bar"
+    run_post_ga_band_closure
+    ;;
   *)
     echo "Unknown test scope: ${TEST_SCOPE}" >&2
-    echo "Supported scopes: all, mounted_admin_contract, openfeature_companion, guarded_rollout_foundations, reusable_targeting_deepening, blast_radius_governance, guarded_rollout_auto_advance, host_preview_evidence" >&2
+    echo "Supported scopes: all, mounted_admin_contract, openfeature_companion, guarded_rollout_foundations, reusable_targeting_deepening, blast_radius_governance, guarded_rollout_auto_advance, host_preview_evidence, post_ga_band_closure" >&2
     exit 64
     ;;
 esac
