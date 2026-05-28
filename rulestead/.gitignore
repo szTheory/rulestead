@@ -18,3 +18,6 @@
 
 # Ignore generated package tarballs.
 /rulestead-*.tar
+
+# Dialyzer PLTs — local/CI cache artifacts, not source.
+/priv/plts/
