@@ -159,6 +159,9 @@ jobs:
         with:
           version-file: .tool-versions
           version-type: strict
+      - name: Fetch dependencies
+        working-directory: rulestead
+        run: mix deps.get
       - name: Verify version matches release
         working-directory: rulestead
         run: grep -n "@version \"${{ inputs.release_version }}\"" mix.exs
@@ -188,6 +191,9 @@ jobs:
         with:
           version-file: .tool-versions
           version-type: strict
+      - name: Fetch dependencies
+        working-directory: rulestead_admin
+        run: mix deps.get
       - name: Guard admin publish
         run: scripts/ci/admin_publish_guard.sh
       - name: Verify version matches release
