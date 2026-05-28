@@ -9,8 +9,8 @@ Patch milestone only — no new runtime or admin product APIs. Closes remaining 
 
 ### Context & Quickstart Honesty (`CTX`)
 
-- [ ] **CTX-01**: `Rulestead.Context.new/1` promotes deprecated `traits:` to `attributes` with explicit `:attributes` winning key conflicts (back-compat, not a second public field).
-- [ ] **CTX-02**: README, getting-started, and package docs teach `attributes:` for evaluation inputs; release-contract test forbids `traits: %{...}` in quickstart examples.
+- [x] **CTX-01**: `Rulestead.Context.new/1` promotes deprecated `traits:` to `attributes` with explicit `:attributes` winning key conflicts (back-compat, not a second public field).
+- [x] **CTX-02**: README, getting-started, and package docs teach `attributes:` for evaluation inputs; release-contract test forbids `traits: %{...}` in quickstart examples.
 
 ### API Stability Catalog (`API`)
 
@@ -20,7 +20,7 @@ Patch milestone only — no new runtime or admin product APIs. Closes remaining 
 
 ### Maintainer & Doc Truth (`DOC`)
 
-- [ ] **DOC-01**: `MAINTAINING.md` no longer lists `guides/api_stability.md` as a deferred Phase 8 artifact (closes INV-MAINT-01).
+- [x] **DOC-01**: `MAINTAINING.md` no longer lists `guides/api_stability.md` as a deferred Phase 8 artifact (closes INV-MAINT-01).
 - [ ] **DOC-02**: Maintainer proof matrix and path-to-done thread reference v1.10.1 exit criteria; stale “open gap” copy removed where band features shipped.
 
 ### Proof & Support Truth (`VER`)
@@ -59,9 +59,9 @@ Patch milestone only — no new runtime or admin product APIs. Closes remaining 
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CTX-01 | Phase 73 | Pending |
-| CTX-02 | Phase 73 | Pending |
-| DOC-01 | Phase 73 | Pending |
+| CTX-01 | Phase 73 | Complete |
+| CTX-02 | Phase 73 | Complete |
+| DOC-01 | Phase 73 | Complete |
 | API-01 | Phase 74 | Pending |
 | API-02 | Phase 74 | Pending |
 | API-03 | Phase 74 | Pending |
