@@ -1,7 +1,12 @@
 # API Stability
 
-`guides/api_stability.md` is the v0.1.0 release contract for Rulestead.
-Anything listed here is part of the supported public surface for `v0.1.x`.
+`guides/api_stability.md` is the v0.1.0 release contract for Rulestead's public
+API catalog, carried forward on the
+**`0.1.x` Hex package line**. Repository milestone docs (v1.0.0 GA through
+v1.9.0 post-GA band) describe shipped capabilities and proof posture; they do
+not change the semver boundary below.
+
+Anything listed here is part of the supported public surface for `0.1.x`.
 Anything not listed here may change without notice, even if it is visible in
 source.
 
@@ -32,8 +37,39 @@ These modules are public in v0.1.0:
 - `Rulestead.Telemetry`
 - `Rulestead.Config`
 
-No other `Rulestead.*` modules are public unless they are added to this
-catalog in a future release.
+The **v0.1.0 core module list** above remains closed. **Post-GA supported
+adopter facades** (below) are additionally public on `0.1.x` without opening
+implementation trees.
+
+## Supported adopter facades (post-GA)
+
+### `Rulestead.Runtime`
+
+Supported keyed lookup for Phoenix apps using the snapshot cache. Closed
+function catalog:
+
+- `evaluate/3`
+- `enabled?/3`
+- `get_value/4`
+- `get_variant/3`
+- `explain/3`
+- `diagnostics/1`
+
+`Rulestead.Runtime.Cache`, `Rulestead.Runtime.Snapshot`, and other
+`Rulestead.Runtime.*` implementation modules are **not** public.
+
+### `Rulestead.TestHelpers`
+
+Supported Fake-backed test facade:
+
+- `with_flag/3`
+- `put_flag/3`
+- `clear_flags/0`
+- `seed_bucket/3`
+- `assert_flag_evaluated/2`
+
+Backed by `Rulestead.Fake` for in-memory state. `Rulestead.Fake.Control` is
+**not** public.
 
 ## Stable `Rulestead` Function Catalog
 
@@ -74,6 +110,13 @@ The root facade is a closed catalog in v0.1.0:
 - `list_environments/1`
 - `list_audiences/0`
 - `list_audiences/1`
+- `apply_audience_mutation/1`
+- `apply_audience_mutation/2`
+- `preview_audience_impact/1`
+- `preview_audience_impact/2`
+- `preview_audience_impact/3`
+- `list_audience_dependencies/0`
+- `list_audience_dependencies/1`
 - `record_evaluation/1`
 - `record_evaluation/3`
 - `evaluate/2`
@@ -191,6 +234,7 @@ Closed `:type` atoms:
 
 - `:flag_not_found`
 - `:environment_not_found`
+- `:snapshot_not_found`
 - `:ruleset_not_found`
 - `:missing_targeting_key`
 - `:repo_not_configured`
@@ -227,6 +271,9 @@ The store behavior is public. Its callback catalog is closed in v0.1.0:
 - `list_flags/1`
 - `list_environments/1`
 - `list_audiences/1`
+- `apply_audience_mutation/1`
+- `preview_audience_impact/1`
+- `list_audience_dependencies/1`
 - `record_evaluation/1`
 - `engage_kill_switch/1`
 - `release_kill_switch/1`
@@ -238,6 +285,8 @@ The store behavior is public. Its callback catalog is closed in v0.1.0:
 The admin policy seam is public and intentionally small:
 
 - `can?/4`
+- `allow_self_approval?/4`
+- `change_request_required?/4`
 
 Hosts own authorization. Rulestead does not ship a bundled auth stack. `can?/4` maps host actors to the canonical Rulestead operator role model (Viewer, Editor, Admin) and specific workflow actions.
 
@@ -324,6 +373,7 @@ Closed top-level keys:
 - `:live_view`
 - `:oban`
 - `:runtime`
+- `:tenancy`
 
 Closed nested keys:
 
@@ -336,6 +386,11 @@ Closed nested keys:
 - `oban.context_key`
 - `oban.middlewares`
 - `runtime.api`
+- `runtime.notifier`
+- `runtime.health_peer_provider`
+- `runtime.pubsub`
+- `runtime.pubsub_topic`
+- `tenancy.module`
 
 Allowed `live_view.assign_flags_mode` values:
 
@@ -390,6 +445,8 @@ and documented URL level only.
 
 The following are explicitly outside the v0.1.0 compatibility promise:
 
+- post-GA facade support does not make governance, manifest, or admin LiveView
+  modules public
 - `RulesteadAdmin.Live.*`
 - `RulesteadAdmin.Components.*`
 - socket assigns
