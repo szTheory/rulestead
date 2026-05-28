@@ -1,5 +1,30 @@
 # Milestones
 
+## v1.9.0 Host-Supplied Preview Evidence (Shipped: 2026-05-28)
+
+**Phases completed:** 4 phases, 16 plans, 12 tasks
+
+**Key accomplishments:**
+
+- Host-configurable PreviewEvidence behaviour with normalized query map, fail-closed 25-row/16 KiB limits, and redacted sample/impression validation
+- ImpactPreview schema v2 with impression_evidence, impression_fingerprint in deterministic preview token, and basis-specific uncertainty messages per D-04/D-05
+- Fake and Ecto audience_preview_payload invoke PreviewEvidence before ImpactPreview.build, with union sample merge, basis selection, and adapter contract tests via Rulestead.Fake.PreviewEvidenceResolver
+- Fake and Ecto contract tests prove schema v2 host evidence, fail-closed resolver errors, stale apply on impression drift, and GOV-05 reference-count-only blast-radius boundary
+- Single `audit_evidence_summary/1` helper and `impression_evidence` audit allowlist for support-safe preview carry-through.
+- Wired `audit_evidence_summary/1` through Fake and Ecto audience mutation audit paths including blast-radius blocks.
+- Frozen `preview_evidence_summary` on change-request submit and terminal reject/cancel audit metadata.
+- GOV-05 contract tests prove blast-radius routing ignores rich preview evidence; no scoring changes.
+- Extended `AudienceComponents.impact_preview/1` to render bounded sample cohort and impression summary evidence with core-driven uncertainty copy.
+- Mounted edit and archive preview LiveViews prove host-supplied evidence via `Rulestead.Fake.PreviewEvidenceResolver` with no LiveView code changes.
+- Delete preview shows impact evidence alongside unsupported-delete callout; prod edit preview shows governance + evidence when resolver is on.
+- Closed ADM-05 mounted contract sweep: confirm link carry-through, forbidden copy regression guard, MAINTAINING drift list.
+- `mix verify.phase68` runs the v1.9 superset: all phase64 core paths plus three preview-evidence contract tests and `audience_components_test.exs` in the admin subprocess.
+- Release contract drift guards and bounded v1.9 support-truth READMEs for host preview evidence.
+- Host seam and in-place flow guides teach preview evidence boundaries and operator UX.
+- `host_preview_evidence` CI scope, verification artifact, and maintainer handoff checklist close v1.9 proof traceability.
+
+---
+
 ## v1.8.0 Guarded Rollout Auto-Advance (Shipped: 2026-05-27)
 
 **Phases completed:** 4 phases, 16 plans, 32 tasks

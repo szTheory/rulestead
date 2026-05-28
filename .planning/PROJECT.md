@@ -16,31 +16,33 @@ Rulestead is a batteries-included, Elixir-native feature-flag and remote-config 
 - `v1.6.0` shipped on 2026-05-27 across Phases 53-56, deepening reusable audience targeting with impact previews, dependency inventory and fail-closed validation, mounted preview-confirm-audit workflows, explain trace carry-through, and bounded proof/docs/support truth without widening the sibling-package release model.
 - `v1.7.0` shipped on 2026-05-27 across Phases 57-60: blast-radius threshold contract, change-request integration, mounted governance workflows, and proof/docs/support-truth closure (`mix verify.phase60`, release-contract drift guards, payload-first quickstart parity).
 - `v1.8.0` shipped on 2026-05-27 across Phases 61-64: authored auto-advance policy contract, scheduled orchestration with fail-closed eligibility and protected-env governance, mounted rollouts auto-advance panel and timeline labeling, and proof/docs/support-truth closure (`mix verify.phase64`, release-contract drift guards, host seam + flow guides, `guarded_rollout_auto_advance` CI scope).
-- `v1.9.0` shipped on 2026-05-27 across Phases 65-68: host-supplied preview evidence resolver seam, evidence carry-through and GOV-05 boundary, mounted sample cohort and impression summary UX, and proof/docs/support-truth closure (`mix verify.phase68`, release-contract drift guards, host seam + flow guides, `host_preview_evidence` CI scope).
+- `v1.9.0` shipped on 2026-05-28 across Phases 65-68: host-supplied preview evidence resolver seam, evidence carry-through and GOV-05 boundary, mounted sample cohort and impression summary UX, and proof/docs/support-truth closure (`mix verify.phase68`, release-contract drift guards, host seam + flow guides, `host_preview_evidence` CI scope).
 
-## Current Milestone: v1.9.0 Host-Supplied Preview Evidence — SHIPPED 2026-05-27
+## Next Milestone Goals
 
-**Goal:** Close the last reusable-targeting preview gap by letting hosts supply bounded, redacted sample cohorts and impression summaries through an explicit seam—wired through mounted admin preview flows—without claiming authoritative population counts or widening blast-radius governance semantics.
+Run `/gsd-new-milestone` to define requirements and roadmap for v1.10+.
 
-**Progress:** All phases complete (65-68). Milestone delivered.
+**Candidates from deferred queue (see STATE.md):**
 
-**Target features:**
-- Host-owned preview evidence resolver behavior with bounded sample cohort and impression-summary payloads
-- Core preview contract, fingerprints, and audit/change-request carry-through for richer evidence basis
-- Mounted audience preview flows that request and render host-supplied evidence when configured
-- Proof, docs, and release-contract support truth (`mix verify.phase68`) including small MAINTAINING drift fixes
+- Draft-only targeting presets (ADM-06)
+- Guardrail baseline comparison (ROL-08)
+- Host-configurable blast-radius threshold profiles (GOV-02-ext)
 
 <details>
-<summary>Previous: Next milestone candidates (pre-v1.9)</summary>
+<summary>Latest shipped: v1.9.0 Host-Supplied Preview Evidence (2026-05-28)</summary>
 
-- Richer host-supplied audience preview evidence (`IMP-05`) — **activated as v1.9.0**
-- Draft-only targeting presets — defer to v1.10+
-- Guardrail baseline comparison (v1.5 memo) — future
+**Goal:** Close the reusable-targeting preview gap with host-supplied bounded sample cohorts and impression summaries through an explicit seam—without claiming authoritative population counts or widening blast-radius governance.
+
+**Delivered:**
+- `PreviewEvidence` behaviour, ImpactPreview schema v2, Fake/Ecto wiring, and contract tests with GOV-05 boundary.
+- Audit and change-request carry-through for support-safe preview evidence summaries.
+- Mounted audience preview flows with honest uncertainty copy and forbidden observability overclaim guards.
+- `mix verify.phase68`, release-contract drift guards, host seam + flow guides, `host_preview_evidence` CI scope.
 
 </details>
 
 <details>
-<summary>Latest shipped: v1.8.0 Guarded Rollout Auto-Advance (2026-05-27)</summary>
+<summary>Previous: v1.8.0 Guarded Rollout Auto-Advance (2026-05-27)</summary>
 
 **Goal:** Complete the guarded rollout story by letting staged rollouts automatically advance when host-supplied guardrails remain healthy for a configured observation window—without turning Rulestead into an observability product.
 
@@ -126,12 +128,11 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 
 ### Active
 
-- **IMP-07**, **GOV-05**, **ADM-05**, **VER-01** through **VER-03** — host-supplied preview evidence carry-through and mounted workflows (`v1.9.0`, Phases 66-68)
+_None — define the next milestone with `/gsd-new-milestone`._
 
 ### Validated
 
-- ✓ **VER-01** through **VER-03** — `mix verify.phase68`, release-contract preview-evidence support truth, host seam + flow guides, `host_preview_evidence` CI scope — Phase 68 (`v1.9.0`, 2026-05-27)
-- ✓ **IMP-05**, **IMP-06** — host preview evidence resolver seam, ImpactPreview v2, store wiring, stale fingerprint contract tests — Phase 65 (`v1.9.0`, 2026-05-27)
+- ✓ **IMP-05**, **IMP-06**, **IMP-07**, **GOV-05**, **ADM-05**, **VER-01** through **VER-03** — host-supplied preview evidence contract, governance boundary, mounted workflows, and proof/docs support truth — `v1.9.0`, Phases 65-68 (2026-05-28)
 - ✓ **ROL-04** through **ROL-07**, **ORC-01**, **ORC-02**, **AUD-03**, **AUD-04**, **ADM-04**, **VER-01** through **VER-03** — guarded rollout auto-advance (`v1.8.0`, Phases 61-64)
 - ✓ **ROL-07** (governance slice): Protected-env parity for auto-advance mutations — Phase 63
 - ✓ **AUD-04**: Automation vs manual distinction in mounted timeline — Phase 63
@@ -197,8 +198,9 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 - `v1.5.0` shipped across Phases 49-52, proving bounded guarded rollout foundations can stay host-supplied, fail-closed, governed, audited, mounted-workflow-friendly, and explicitly documented without broadening into observability or standalone-admin scope.
 - `v1.6.0` shipped across Phases 53-56, proving reusable audience targeting can be deepened with snapshot-local evaluation, impact previews, one core dependency truth, mounted preview-confirm-audit workflows, and aligned proof/docs without widening the sibling-package product shape.
 - `v1.7.0` shipped across Phases 57-60, proving blast-radius governance can route high-impact protected-environment audience edits through the existing change-request envelope with threshold evaluation, mounted proposal/review UX, and aligned proof/docs without observability-backed counts or a parallel governance workflow.
-- Phase 61 (v1.8.0) delivered the authored auto-advance policy contract, pure eligibility evaluation, Fake/Ecto store integration, and adapter parity contract tests — without scheduling ticks or executing `advance_rollout`.
-- The project remains a linked-version, two-package monorepo.
+- `v1.8.0` shipped across Phases 61-64, proving guarded rollouts can auto-advance after observation windows with fail-closed guardrails, governed orchestration, mounted operator UX, and aligned proof/docs.
+- `v1.9.0` shipped across Phases 65-68, proving hosts can supply bounded preview evidence through an explicit resolver seam with audit carry-through, mounted rendering, and GOV-05 reference-count governance unchanged by impression richness.
+- The project remains a linked-version, two-package monorepo. Phase numbering continues at 69.
 
 ## Constraints
 

@@ -2,6 +2,48 @@
 
 *A living document updated after each milestone. Lessons feed forward into future planning.*
 
+## Milestone: v1.9.0 — Host-Supplied Preview Evidence
+
+**Shipped:** 2026-05-28
+**Phases:** 4 | **Plans:** 16 | **Tasks:** 12
+
+### What Was Built
+
+- `PreviewEvidence` behaviour with bounded sample/impression payloads, fail-closed limits, and deterministic ImpactPreview schema v2 fingerprints.
+- Audit and change-request carry-through for support-safe preview evidence summaries with GOV-05 reference-count-only blast-radius boundary.
+- Mounted audience preview flows rendering host-supplied evidence with honest uncertainty copy and forbidden observability overclaim guards.
+- `mix verify.phase68` merge gate, release-contract drift guards, host seam + flow guides, and `host_preview_evidence` CI scope.
+
+### What Worked
+
+- Mirroring `Guardrails.Provider` for `PreviewEvidence` kept the host seam teachable and testable with `Rulestead.Fake.PreviewEvidenceResolver`.
+- The four-phase split (contract → carry-through → mounted UX → proof/docs) preserved core-vs-companion boundaries established in v1.6–v1.8.
+- GOV-05 contract tests early prevented impression-weighted governance creep before mounted UX shipped.
+
+### What Was Inefficient
+
+- No formal `v1.9.0-MILESTONE-AUDIT.md` before close (fourth consecutive milestone without audit artifact).
+- `gsd-sdk milestone.complete` warned about a missing STATE.md field — planning doc formats should stay aligned with gsd-tools expectations.
+
+### Patterns Established
+
+- Opt-in resolver returns `{:ok, %{}}` when unconfigured; richer evidence never bypasses stale fingerprint rejection.
+- Union sample merge capped at 25 rows with command rows first; impression fingerprint included in deterministic preview token.
+- Blast-radius `assess/2` ignores impression summaries and sample cohort sizes — governance stays reference-count based.
+
+### Key Lessons
+
+1. Closing the reusable-targeting preview arc (v1.6 previews → v1.7 governance → v1.9 host evidence) is faster when each layer extends the prior envelope.
+2. Host-owned observability truth must stay explicit — previews declare basis and uncertainty; Rulestead never claims population counts.
+3. Support-truth phases remain non-negotiable — `mix verify.phase68` and MAINTAINING drift guards prevent preview evidence from feeling experimental.
+
+### Cost Observations
+
+- Milestone executed in a single day with 16 plans across 4 phases (~91 files, ~8.5k LOC in milestone git range).
+- Known deferred items at close: 3 (see STATE.md Deferred Items).
+
+---
+
 ## Milestone: v1.8.0 — Guarded Rollout Auto-Advance
 
 **Shipped:** 2026-05-27

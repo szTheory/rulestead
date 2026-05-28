@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.9.0
 milestone_name: milestone
-status: milestone_complete
-stopped_at: Phase 68 complete — v1.9.0 milestone shipped
-last_updated: "2026-05-27T23:00:00.000Z"
-last_activity: 2026-05-27 -- Phase 68 execution complete; v1.9.0 milestone complete
+status: Awaiting next milestone
+stopped_at: Phase 67 context gathered (assumptions mode)
+last_updated: "2026-05-28T00:50:53.487Z"
+last_activity: 2026-05-28 — Milestone v1.9.0 completed and archived
 progress:
   total_phases: 4
   completed_phases: 4
@@ -18,18 +18,18 @@ progress:
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-05-27)
+See: `.planning/PROJECT.md` (updated 2026-05-28)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions - booleans, variants, and remote config - with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
-**Current focus:** v1.9.0 milestone complete — ready for next milestone planning
-**Milestone:** `v1.9.0 - Host-Supplied Preview Evidence` (initialized 2026-05-27)
+**Current focus:** Planning next milestone
+**Milestone:** None (v1.9.0 archived 2026-05-28)
 
 ## Current Position
 
-Phase: 68 (complete)
-Plan: 4/4 complete
-Status: Milestone v1.9.0 complete
-Last activity: 2026-05-27 -- Phase 68 execution complete
+Phase: Milestone v1.9.0 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-05-28 — Milestone v1.9.0 completed and archived
 
 ## Performance Metrics
 
@@ -74,11 +74,9 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-27T22:28:30.248Z
-Stopped at: Phase 67 context gathered (assumptions mode)
-Resume file: .planning/phases/67-mounted-preview-evidence-workflows/67-CONTEXT.md
+Last session: 2026-05-28
+Stopped at: Milestone v1.9.0 archived
 
 ## Operator Next Steps
 
-- `/gsd-plan-phase 66` — plan evidence carry-through and governance boundary
-- `/gsd-discuss-phase 66` — gather context before planning
+- `/gsd-new-milestone` — define v1.10+ requirements and roadmap
