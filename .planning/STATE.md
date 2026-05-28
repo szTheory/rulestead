@@ -4,7 +4,7 @@ milestone: v1.11
 milestone_name: Integration Spine
 status: Post path-to-done — maintenance default
 last_updated: "2026-05-28T23:30:00.000Z"
-last_activity: 2026-05-28 — 0.1.2 shipped; CI hygiene; doc truth 0.1.2; publish gate polling; dependabot deferred
+last_activity: 2026-05-28 — 0.1.3 shipped (Ecto 3.14); post-publish verify green
 progress:
   total_phases: 3
   completed_phases: 3
@@ -32,13 +32,13 @@ See: `.planning/PROJECT.md` (updated 2026-05-28)
 Phase: Path-to-done complete (v1.10.1 + v1.11 shipped)
 Plan: —
 Status: Maintenance default — no feature milestone without deferred trigger
-Last activity: 2026-05-28 — Hex 0.1.2 published; CI/cache/publish-gate hygiene; post-publish verify green
+Last activity: 2026-05-28 — Hex 0.1.3 published (`ecto_sql ~> 3.14`); post-publish verify green
 
 ## Accumulated Context
 
 ### Decisions
 
-- **Hex release:** `rulestead` + `rulestead_admin` **0.1.2** live (2026-05-28). Post-publish verify trio green.
+- **Hex release:** `rulestead` + `rulestead_admin` **0.1.3** live (2026-05-28). Post-publish verify trio green.
 - **Handoff thread:** `.planning/threads/2026-05-28-post-0.1.2-maintenance-handoff.md` — read after context clear.
 - **Path-to-done: complete** (v1.10.1 + v1.11 shipped 2026-05-28).
 - **Done band (repo-verified):** 93–95% for stated post-GA scope — near-done; diminishing returns on major milestones.

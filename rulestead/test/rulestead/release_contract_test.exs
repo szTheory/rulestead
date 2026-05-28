@@ -231,7 +231,7 @@ defmodule Rulestead.ReleaseContractTest do
 
     assert root_readme =~ "v1.0.0"
     assert root_readme =~ "2026-05-21"
-    assert root_readme =~ "0.1.2"
+    assert root_readme =~ "0.1.3"
     assert root_readme =~ "Proof today"
     assert root_readme =~ "verify.release_publish"
     assert root_readme =~ "verify.release_parity"
@@ -246,10 +246,10 @@ defmodule Rulestead.ReleaseContractTest do
     refute root_readme =~ "cleanup_test"
     refute root_readme =~ "admin_mount_test"
 
-    assert runtime_readme =~ "0.1.2"
+    assert runtime_readme =~ "0.1.3"
     assert runtime_readme =~ "shared root docs"
 
-    assert admin_readme =~ "0.1.2"
+    assert admin_readme =~ "0.1.3"
     assert admin_readme =~ "mounted companion"
     assert admin_readme =~ "rather than a standalone control-plane product"
     assert admin_readme =~ "fails closed"
@@ -258,12 +258,12 @@ defmodule Rulestead.ReleaseContractTest do
     assert admin_readme =~ "When `?env=` is present, it wins over remembered state"
 
     assert upgrading =~ "v1.0.0"
-    assert upgrading =~ "0.1.2"
+    assert upgrading =~ "0.1.3"
     assert upgrading =~ "verify.release_publish"
     assert upgrading =~ "verify.release_parity"
     assert upgrading =~ "demo proof path"
 
-    assert demo_readme =~ "0.1.2"
+    assert demo_readme =~ "0.1.3"
     assert demo_readme =~ "verify.release_publish"
     assert demo_readme =~ "verify.release_parity"
     assert demo_readme =~ "companion proof surface"
@@ -282,7 +282,7 @@ defmodule Rulestead.ReleaseContractTest do
 
     assert maintaining =~ "v1.0.0"
     assert maintaining =~ "2026-05-21"
-    assert maintaining =~ "0.1.2"
+    assert maintaining =~ "0.1.3"
     assert maintaining =~ "mounted companion"
     assert maintaining =~ "examples/demo/"
     assert maintaining =~ "mix verify.release_publish <version>"

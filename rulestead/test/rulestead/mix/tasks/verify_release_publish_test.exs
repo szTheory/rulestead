@@ -196,7 +196,7 @@ defmodule Rulestead.Mix.Tasks.VerifyReleasePublishTest do
            }
   end
 
-  @published_smoke_version "0.1.2"
+  @published_smoke_version "0.1.3"
 
   test "admin consumer fixture compiles against published Hex packages" do
     tmp_dir = tmp_dir()

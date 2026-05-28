@@ -1,7 +1,7 @@
 # Upgrading
 
 Repo GA shipped in `v1.0.0` on 2026-05-21, while the current installable
-packages on Hex are at **`0.1.2`** (`~> 0.1`). Most teams will still be adopting rather
+packages on Hex are at **`0.1.3`** (`~> 0.1`). Most teams will still be adopting rather
 than upgrading, but the compatibility posture is still important:
 
 - Patch releases in `v0.1.x` should preserve documented behavior and fix bugs
