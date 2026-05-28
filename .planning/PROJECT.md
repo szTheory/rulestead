@@ -274,4 +274,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-27 — v1.9.0 milestone complete (Phases 65-68, IMP-05/IMP-06, VER-01–VER-03)*
+*Last updated: 2026-05-28 after v1.9.0 milestone archived*
