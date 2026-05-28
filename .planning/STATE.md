@@ -29,8 +29,8 @@ See: `.planning/PROJECT.md` (updated 2026-05-28)
 
 Phase: 76
 Plan: Not started
-Status: Milestone v1.11 initialized — discuss/plan Phase 76
-Last activity: 2026-05-28 — Milestone v1.11 started
+Status: Phase 76 context gathered — ready to plan
+Last activity: 2026-05-28 — Phase 76 discuss (assumptions mode)
 
 ## Accumulated Context
 
@@ -62,7 +62,7 @@ Last activity: 2026-05-28 — Milestone v1.11 started
 
 ## Operator Next Steps
 
-1. `/gsd-discuss-phase 76` or `/gsd-plan-phase 76` — Phoenix integration spine doc
+1. `/gsd-plan-phase 76` — Phoenix integration spine doc
 2. `/gsd-progress` — roadmap and milestone status
 
 **Resume:** `.planning/ROADMAP.md` Phase 76
