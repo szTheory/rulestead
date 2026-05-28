@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.10.1
 milestone_name: Support-truth & Contract Honesty
-status: Defining requirements
-last_updated: "2026-05-28T23:30:00.000Z"
-last_activity: 2026-05-28 — Milestone v1.10.1 initialized (Phases 73-75)
+status: Phase 73 context gathered
+last_updated: "2026-05-28T23:45:00.000Z"
+last_activity: 2026-05-28 — Phase 73 context gathered (assumptions mode)
 progress:
   total_phases: 3
   completed_phases: 0
@@ -27,10 +27,10 @@ See: `.planning/PROJECT.md` (updated 2026-05-28)
 
 ## Current Position
 
-Phase: Not started (requirements and roadmap defined — ready for Phase 73)
+Phase: 73 — Context And Maintainer Doc Truth
 Plan: —
-Status: Defining requirements → execute Phase 73
-Last activity: 2026-05-28 — `/gsd-new-milestone` for v1.10.1 (Phases 73-75)
+Status: Context gathered → plan Phase 73
+Last activity: 2026-05-28 — `/gsd-discuss-phase 73` (assumptions mode)
 
 ## Accumulated Context
 
@@ -63,6 +63,6 @@ Last activity: 2026-05-28 — `/gsd-new-milestone` for v1.10.1 (Phases 73-75)
 
 ## Operator Next Steps
 
-1. `/gsd-discuss-phase 73` — gather context for Context & maintainer doc truth
-2. `/gsd-plan-phase 73` — skip discussion, plan directly
+1. `/gsd-plan-phase 73` — plan Context traits back-compat + MAINTAINING doc truth
+2. `/gsd-execute-phase 73` — after plans exist
 3. After v1.10.1 ships, optionally plan **v1.11 integration spine** (docs-only)
