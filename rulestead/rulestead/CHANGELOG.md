@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.2](https://github.com/szTheory/rulestead/compare/rulestead-v0.1.1...rulestead-v0.1.2) (2026-05-28)
+
+
+### Bug Fixes
+
+* restore post-publish verification trio for linked releases ([7bfea96](https://github.com/szTheory/rulestead/commit/7bfea96236c2abb981bdccd165fa64bcb15c808d))
+* unblock CI lint gate and release-pr-ci dispatch ([64798ef](https://github.com/szTheory/rulestead/commit/64798efb160a8a30e7a99935302d9d883e945675))
+
 ## [0.1.1](https://github.com/szTheory/rulestead/compare/rulestead-v0.1.0...rulestead-v0.1.1) (2026-05-28)
 
 
