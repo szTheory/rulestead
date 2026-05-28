@@ -39,7 +39,7 @@ context =
   Rulestead.Context.new(
     environment: "production",
     targeting_key: "user-123",
-    traits: %{plan: :pro}
+    attributes: %{plan: :pro}
   )
 
 flag_payload = ... # from snapshot or store
@@ -53,22 +53,24 @@ with {:ok, result} <- Rulestead.evaluate(flag_payload, context) do
 end
 ```
 
-### Convenience wrappers
+### Snapshot runtime lookup
 
-When using Phoenix with the snapshot cache, `Rulestead.enabled?/2` and
-`Rulestead.get_variant/2` on `%Plug.Conn{}` are convenience wrappers — the
-explicit contract is flag payload + `%Rulestead.Context{}`:
+When using Phoenix with the snapshot cache, use `Rulestead.Runtime` with the
+environment key and context from Plug (see
+[evaluation.md](../flows/evaluation.md)):
 
 ```elixir
-if Rulestead.enabled?("checkout_v2", conn) do
-  render_v2(conn)
-else
-  render_v1(conn)
-end
+context = conn.assigns[:rulestead_context]
 
-variant = Rulestead.get_variant("pricing_experiment", conn)
-config = Rulestead.get_value("checkout_config", conn, default: %{"timeout_ms" => 1_000})
+{:ok, enabled?} =
+  Rulestead.Runtime.enabled?("production", "checkout_v2", context)
+
+{:ok, variant} =
+  Rulestead.Runtime.get_variant("production", "pricing_experiment", context)
 ```
+
+Projection helpers on `Rulestead` (`enabled?/2`, `get_variant/2`) accept
+**flag payload + context**, not a string key on `%Plug.Conn{}`.
 
 ## 4. Optionally mount the admin UI
 
@@ -91,6 +93,8 @@ selector. The package-local details are in
 
 ## 5. Continue from here
 
+- In scope / deferred surfaces: [Product Boundary](product-boundary.md)
+- Common mistakes: [Footguns](../recipes/footguns.md)
 - Product mental model: [User Flows and JTBD](user-flows-and-jtbd.md)
 - Flag from birth to retirement: [../flows/flag-lifecycle.md](../flows/flag-lifecycle.md)
 - Runtime usage: [../flows/evaluation.md](../flows/evaluation.md)

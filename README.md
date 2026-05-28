@@ -9,6 +9,19 @@
 > on the `0.1.x` Hex packages while using this repo's `v1.0.0` milestone docs
 > as the support and proof posture reference.
 
+## Post-GA band (v1.1–v1.9 complete)
+
+The post-GA release-control band is **feature-complete** for serious Phoenix SaaS adopters:
+
+- Tenancy helpers, lifecycle hygiene, guarded rollouts (hold/rollback + auto-advance)
+- Reusable audiences with impact previews, blast-radius governance, host-supplied preview evidence
+
+**v1.10** closes support truth (docs, proof bars, planning alignment) — not new product APIs.
+Optional v2 deepening (presets, baseline comparison, threshold profiles) is listed in
+[product-boundary.md](guides/introduction/product-boundary.md).
+
+**Prove it locally:** `scripts/demo/proof.sh` or `cd rulestead && mix verify.adopter`.
+
 ## What this is (60 seconds)
 
 Rulestead ships as two sibling Hex packages:
@@ -47,7 +60,7 @@ context =
   Rulestead.Context.new(
     environment: "production",
     targeting_key: "user-123",
-    traits: %{plan: :pro}
+    attributes: %{plan: :pro}
   )
 
 flag_payload = ... # from snapshot or store
@@ -61,9 +74,19 @@ with {:ok, result} <- Rulestead.evaluate(flag_payload, context) do
 end
 ```
 
-When using Phoenix with the snapshot cache, `Rulestead.enabled?("checkout_v2", conn)`
-and `Rulestead.get_variant/2` on `%Plug.Conn{}` are convenience wrappers — the
-explicit contract is flag payload + `%Rulestead.Context{}`.
+When using Phoenix with the snapshot cache, load the flag by environment key via
+`Rulestead.Runtime` (see [evaluation.md](guides/flows/evaluation.md) and
+[multi-env.md](guides/flows/multi-env.md)):
+
+```elixir
+context = conn.assigns[:rulestead_context]
+
+{:ok, enabled?} =
+  Rulestead.Runtime.enabled?("production", "checkout_v2", context)
+```
+
+The explicit contract remains flag payload + `%Rulestead.Context{}` for
+`Rulestead.evaluate/3` and projection helpers on the root module.
 
 If your Phoenix app also needs the mounted companion admin, add
 `rulestead_admin` immediately after the runtime dependency:
@@ -217,6 +240,10 @@ The repo's current proof posture is intentionally bounded:
   policy-denied evidence **fail closed**.
 - `RULESTEAD_TEST_SCOPE=host_preview_evidence bash scripts/ci/test.sh`
   reruns the v1.9 host preview evidence proof bar in CI.
+- **Post-GA band closure (v1.10):** `cd rulestead && mix verify.phase72` (alias:
+  `mix verify.adopter`) runs the v1.9 proof superset plus band-closure doc
+  contracts. `RULESTEAD_TEST_SCOPE=post_ga_band_closure bash scripts/ci/test.sh`
+  reruns that bar in CI. `scripts/demo/proof.sh` runs demo smoke + band verify.
 - `RULESTEAD_TEST_SCOPE=openfeature_companion bash scripts/ci/test.sh` proves the
   optional `open_feature_rulestead` companion package's Elixir provider contract:
   `context_mapper_test` and `provider_test`.

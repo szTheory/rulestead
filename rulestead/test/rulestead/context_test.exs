@@ -38,4 +38,25 @@ defmodule Rulestead.ContextTest do
 
     assert context.targeting_key == "actor-key"
   end
+
+  test "promotes deprecated traits keyword to attributes" do
+    context =
+      Context.new(
+        environment: "production",
+        targeting_key: "user-123",
+        traits: %{plan: :pro}
+      )
+
+    assert context.attributes == %{plan: :pro}
+  end
+
+  test "attributes win over traits on key conflicts" do
+    context =
+      Context.new(
+        traits: %{plan: :pro},
+        attributes: %{plan: :enterprise}
+      )
+
+    assert context.attributes == %{plan: :enterprise}
+  end
 end

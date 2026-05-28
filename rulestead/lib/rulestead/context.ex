@@ -29,7 +29,7 @@ defmodule Rulestead.Context do
   def new(%__MODULE__{} = context), do: normalize(context)
 
   def new(attrs) when is_list(attrs) or is_map(attrs) do
-    attrs = attrs |> Map.new() |> normalize_aliases()
+    attrs = attrs |> Map.new() |> normalize_aliases() |> promote_traits_to_attributes()
     actor = normalize_actor(Map.get(attrs, :actor))
 
     %__MODULE__{
@@ -57,6 +57,26 @@ defmodule Rulestead.Context do
     |> Map.delete("subject")
     |> Map.delete(:subject)
     |> Map.put(:actor, actor)
+  end
+
+  # Back-compat for docs/examples that used `traits:` before the canonical `:attributes` field.
+  # Explicit `:attributes` wins on key conflicts.
+  defp promote_traits_to_attributes(attrs) do
+    traits = Map.get(attrs, :traits) || Map.get(attrs, "traits")
+
+    if traits do
+      from_traits = normalize_attributes(traits)
+
+      from_attributes =
+        normalize_attributes(Map.get(attrs, :attributes) || Map.get(attrs, "attributes") || %{})
+
+      attrs
+      |> Map.delete(:traits)
+      |> Map.delete("traits")
+      |> Map.put(:attributes, Map.merge(from_traits, from_attributes))
+    else
+      attrs
+    end
   end
 
   defp normalize_actor(nil), do: nil
