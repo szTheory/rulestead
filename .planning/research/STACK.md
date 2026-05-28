@@ -17,7 +17,7 @@ The milestone should deepen the existing audience reuse model. The repo already 
 | Technology | Current Posture | Use for v1.6.0 | Why |
 |------------|-----------------|----------------|-----|
 | Elixir | `~> 1.17` | Pure impact/dependency/explain modules | Keeps preview logic testable and deterministic without service dependencies. |
-| Ecto / Ecto SQL | `ecto_sql ~> 3.13`, locked `3.13.5` | Transactional audience edits, reference indexing, audit rows, snapshot publish | `Ecto.Multi` is the right fit for "validate dependencies -> write authored state -> write audit -> publish snapshot" in one mutation envelope. |
+| Ecto / Ecto SQL | `ecto_sql ~> 3.14`, locked `3.14.0` | Transactional audience edits, reference indexing, audit rows, snapshot publish | `Ecto.Multi` is the right fit for "validate dependencies -> write authored state -> write audit -> publish snapshot" in one mutation envelope. |
 | PostgreSQL via Postgrex | Existing runtime/admin persistence | Indexed audience reference table or derived reference rows | Dependency visibility should be queryable, not repeatedly inferred from opaque JSON in every admin render. |
 | Jason | `~> 1.4`, locked `1.4.5` | Manifest/export/import and preview payloads | Existing JSON contract is sufficient; no schema registry dependency needed. |
 | Phoenix / LiveView | admin locked Phoenix `1.8.7`, LiveView `1.1.30` | Impact preview screens, "used by" lists, async sample previews | LiveView already supports async assigns/streams and cancellation, which matches bounded preview jobs. |
