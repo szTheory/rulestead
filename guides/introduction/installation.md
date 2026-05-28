@@ -51,6 +51,11 @@ surface. If you mount `rulestead_admin`, follow the router seam documented in
 
 ## What happens next
 
+- **Phoenix integrators:** [Phoenix Integration Spine](phoenix-integration-spine.md)
+  — supervision → config → Plug → first flag (lifecycle fields required)
+- **Lifecycle at create:** flags require **`owner_ref`** and
+  **`expected_expiration`** before save — see
+  [Flag Lifecycle](../flows/flag-lifecycle.md)
 - Follow [Getting Started](getting-started.md) for the first-success path
 - Use [Evaluation](../flows/evaluation.md) for runtime usage patterns
 - Use [Admin UI](../flows/admin-ui.md) if your app mounts the operator surface

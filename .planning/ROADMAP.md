@@ -34,13 +34,15 @@
 
 ---
 
-### Phase 77: Evaluation And Lifecycle Doc Alignment
+### Phase 77: Evaluation And Lifecycle Doc Alignment ✅
 
 **Goal:** Name `Rulestead.Runtime` in evaluation docs and add intro lifecycle callouts (INV-INTRO-01 narrative closure).
 
 **Depends on:** Phase 76
 
 **Requirements:** DOC-01, DOC-02, DOC-03
+
+**Status:** Complete 2026-05-28 — [.planning/phases/77-evaluation-and-lifecycle-doc-alignment/77-01-SUMMARY.md](phases/77-evaluation-and-lifecycle-doc-alignment/77-01-SUMMARY.md)
 
 **Success criteria:**
 

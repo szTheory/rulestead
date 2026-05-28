@@ -29,7 +29,22 @@ mix rulestead.install
 mix ecto.migrate
 ```
 
+**Phoenix first-hour path:** [Phoenix Integration Spine](phoenix-integration-spine.md)
+(supervision → config → Plug → first `Rulestead.Runtime` eval → lifecycle-honest
+flag create).
+
+> **Lifecycle required at flag create:** Every new flag must include
+> **`owner_ref`** (host-owned team or service reference) and
+> **`expected_expiration`** (review date). Rulestead does not maintain a team
+> directory. See [Flag Lifecycle](../flows/flag-lifecycle.md) and
+> [Create your first flag](phoenix-integration-spine.md#create-your-first-flag-lifecycle-required)
+> in the spine.
+
 ## 3. Gate a code path
+
+For the ordered Plug → snapshot runtime path, follow the
+[Phoenix Integration Spine](phoenix-integration-spine.md). Below is the
+payload-first contract for tests and simulations.
 
 Build an explicit `%Rulestead.Context{}` and evaluate against a flag payload.
 This is the canonical contract documented in [../flows/evaluation.md](../flows/evaluation.md):
@@ -55,22 +70,12 @@ end
 
 ### Snapshot runtime lookup
 
-When using Phoenix with the snapshot cache, use `Rulestead.Runtime` with the
-environment key and context from Plug (see
-[evaluation.md](../flows/evaluation.md)):
-
-```elixir
-context = conn.assigns[:rulestead_context]
-
-{:ok, enabled?} =
-  Rulestead.Runtime.enabled?("production", "checkout_v2", context)
-
-{:ok, variant} =
-  Rulestead.Runtime.get_variant("production", "pricing_experiment", context)
-```
-
-Projection helpers on `Rulestead` (`enabled?/2`, `get_variant/2`) accept
-**flag payload + context**, not a string key on `%Plug.Conn{}`.
+Phoenix apps with the snapshot cache typically use `Rulestead.Runtime` and
+`conn.assigns[:rulestead_context]` — see the
+[Phoenix Integration Spine](phoenix-integration-spine.md) and
+[evaluation.md](../flows/evaluation.md). Projection helpers on `Rulestead`
+(`enabled?/2`, `get_variant/2`) accept **flag payload + context**, not a string
+key on `%Plug.Conn{}`.
 
 ## 4. Optionally mount the admin UI
 

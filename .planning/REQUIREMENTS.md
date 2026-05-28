@@ -15,9 +15,9 @@ Docs-only milestone — no new runtime or admin product APIs. Closes INV-INTRO-0
 
 ### Evaluation & Lifecycle Docs (`DOC`)
 
-- [ ] **DOC-01**: `guides/flows/evaluation.md` names `Rulestead.Runtime` keyed lookup APIs with examples; payload-first contract remains primary.
-- [ ] **DOC-02**: Intro docs (getting-started, installation) include a lifecycle-required-fields callout on flag create (closes INV-INTRO-01 narrative).
-- [ ] **DOC-03**: `rulestead/README.md` API ordering aligns with footguns and evaluation spine (Runtime for keyed lookup; root module payload-first).
+- [x] **DOC-01**: `guides/flows/evaluation.md` names `Rulestead.Runtime` keyed lookup APIs with examples; payload-first contract remains primary.
+- [x] **DOC-02**: Intro docs (getting-started, installation) include a lifecycle-required-fields callout on flag create (closes INV-INTRO-01 narrative).
+- [x] **DOC-03**: `rulestead/README.md` API ordering aligns with footguns and evaluation spine (Runtime for keyed lookup; root module payload-first).
 
 ### Proof & Contract Guards (`VER`)
 
@@ -52,9 +52,9 @@ Docs-only milestone — no new runtime or admin product APIs. Closes INV-INTRO-0
 | INT-01 | Phase 76 | Complete |
 | INT-02 | Phase 76 | Complete |
 | INT-03 | Phase 76 | Complete |
-| DOC-01 | Phase 77 | Pending |
-| DOC-02 | Phase 77 | Pending |
-| DOC-03 | Phase 77 | Pending |
+| DOC-01 | Phase 77 | Complete |
+| DOC-02 | Phase 77 | Complete |
+| DOC-03 | Phase 77 | Complete |
 | VER-01 | Phase 78 | Pending |
 | VER-02 | Phase 78 | Pending |
 | AUD-01 | Phase 78 | Pending |

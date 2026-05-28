@@ -34,10 +34,27 @@ mix ecto.migrate
 
 ## Runtime entrypoints
 
+### Keyed snapshot lookup (`Rulestead.Runtime`)
+
+Phoenix apps with the local snapshot cache typically call:
+
+- `Rulestead.Runtime.enabled?/3` — `(environment_key, flag_key, context)`
+- `Rulestead.Runtime.get_variant/3`
+- `Rulestead.Runtime.evaluate/3`
+- `Rulestead.Runtime.get_value/4`
+- `Rulestead.Runtime.explain/3`
+
+See [evaluation.md](../guides/flows/evaluation.md) and the
+[Phoenix Integration Spine](../guides/introduction/phoenix-integration-spine.md).
+
+### Payload-first evaluation (`Rulestead`)
+
+Tests, simulations, and tools that already hold the authored flag payload:
+
+- `Rulestead.evaluate/3` — `(flag_payload, context)`
 - `Rulestead.enabled?/2`
 - `Rulestead.get_value/3`
 - `Rulestead.get_variant/2`
-- `Rulestead.evaluate/3`
 - `Rulestead.explain/2`
 
 ## Guarded rollout runtime contract

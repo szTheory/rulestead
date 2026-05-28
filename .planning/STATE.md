@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.11
 milestone_name: Integration Spine
-status: Phase 76 complete — Phase 77 next
-last_updated: "2026-05-28T13:39:33.705Z"
-last_activity: 2026-05-28 — Milestone v1.11 started
+status: executing
+last_updated: "2026-05-28T14:00:00.000Z"
+last_activity: 2026-05-28 -- Phase 77 complete
 progress:
   total_phases: 3
-  completed_phases: 1
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  completed_phases: 2
+  total_plans: 3
+  completed_plans: 3
+  percent: 67
 ---
 
 # State: Rulestead
@@ -27,10 +27,10 @@ See: `.planning/PROJECT.md` (updated 2026-05-28)
 
 ## Current Position
 
-Phase: 77
+Phase: 78
 Plan: Not started
-Status: Phase 76 complete — evaluation/lifecycle doc alignment next
-Last activity: 2026-05-28 — Phase 76 spine doc shipped
+Status: Ready to plan
+Last activity: 2026-05-28 -- Phase 77 complete (DOC-01–DOC-03)
 
 ## Accumulated Context
 
@@ -58,11 +58,11 @@ Last activity: 2026-05-28 — Phase 76 spine doc shipped
 | INV-CTX-01 | Quickstart `traits:` vs `attributes:` | **Closed** | Phase 73 |
 | INV-API-01 | `api_stability.md` vs release contract | **Closed** | Phase 74–75 |
 | INV-MAINT-01 | MAINTAINING vs `api_stability.md` | **Closed** | Phase 73 |
-| INV-INTRO-01 | Intro spine missing Plug/supervision/lifecycle | **Open** — v1.11 | Phase 78 target |
+| INV-INTRO-01 | Intro spine missing Plug/supervision/lifecycle | **Open** — narrative closure Phase 78 | VER-01/02 + audit |
 
 ## Operator Next Steps
 
-1. `/gsd-plan-phase 77` — evaluation.md Runtime + intro lifecycle callouts
+1. `/gsd-plan-phase 78` — doc contract guards + milestone closure
 2. `/gsd-progress` — roadmap and milestone status
 
-**Resume:** `.planning/ROADMAP.md` Phase 76
+**Resume:** `.planning/ROADMAP.md` Phase 78

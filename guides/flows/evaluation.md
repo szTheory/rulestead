@@ -138,6 +138,43 @@ Those runtime calls are what mounted admin workflows use under the hood. They
 remain within the shipped public package boundary; they do not expose admin UI
 internals.
 
+### Runtime keyed lookup (`Rulestead.Runtime`)
+
+When your app runs the snapshot cache (typical Phoenix path), call
+`Rulestead.Runtime` with an **environment key**, **flag key**, and
+**context** — not a flag payload string on `%Plug.Conn{}`:
+
+| API | Arity | Use when |
+|-----|-------|----------|
+| `Rulestead.Runtime.evaluate/3` | 3 | Full `{:ok, %Rulestead.Result{}}` from cache |
+| `Rulestead.Runtime.enabled?/3` | 3 | Boolean gate only |
+| `Rulestead.Runtime.get_variant/3` | 3 | Variant string only |
+| `Rulestead.Runtime.get_value/4` | 4 | Value with default when unset |
+| `Rulestead.Runtime.explain/3` | 3 | Human-readable trace from cache |
+
+`context` may be `%Rulestead.Context{}` or any map/keyword that
+`Rulestead.Context.new/1` can normalize — often
+`conn.assigns[:rulestead_context]` after `plug Rulestead.Plug`.
+
+Example:
+
+```elixir
+context =
+  Rulestead.Context.new(
+    environment: "production",
+    targeting_key: "user-123",
+    attributes: %{plan: :pro}
+  )
+
+{:ok, enabled?} =
+  Rulestead.Runtime.enabled?("production", "checkout_v2", context)
+```
+
+Root-module projection helpers (`Rulestead.enabled?/2`, `get_variant/2`, and
+so on) take **(flag_payload, context)** — see
+[Footguns](../recipes/footguns.md). For Plug → assigns → first eval, follow the
+[Phoenix Integration Spine](../introduction/phoenix-integration-spine.md).
+
 ## Lifecycle Boundary
 
 Keep this boundary explicit:
