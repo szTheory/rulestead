@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.2](https://github.com/szTheory/rulestead/compare/rulestead_admin-v0.1.1...rulestead_admin-v0.1.2) (2026-05-28)
+
+
+### Miscellaneous Chores
+
+* **rulestead_admin:** Synchronize rulestead-monorepo versions
+
 ## [0.1.1](https://github.com/szTheory/rulestead/compare/rulestead_admin-v0.1.0...rulestead_admin-v0.1.1) (2026-05-28)
 
 
