@@ -67,7 +67,13 @@ defmodule Rulestead.Admin.Redaction do
   end
 
   def redact_dependency_inventory(_entries, _opts),
-    do: %{entries: [], reference_count: 0, hidden_reference_count: 0, redacted: false, redacted_entries: []}
+    do: %{
+      entries: [],
+      reference_count: 0,
+      hidden_reference_count: 0,
+      redacted: false,
+      redacted_entries: []
+    }
 
   defp direct_match?(path, allowed),
     do: path == allowed || Enum.take(path, length(allowed)) == allowed

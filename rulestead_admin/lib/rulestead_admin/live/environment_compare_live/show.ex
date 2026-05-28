@@ -244,7 +244,9 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Show do
 
   defp audience_path(page, finding) do
     params = %{"env" => page.current_environment.key}
-    params = if page.current_tenant, do: Map.put(params, "tenant", page.current_tenant.key), else: params
+
+    params =
+      if page.current_tenant, do: Map.put(params, "tenant", page.current_tenant.key), else: params
 
     "#{page.mount_path}/audiences/#{finding.audience_key}?#{URI.encode_query(params)}"
   end

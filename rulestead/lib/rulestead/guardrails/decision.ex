@@ -4,7 +4,12 @@ defmodule Rulestead.Guardrails.Decision do
   alias Rulestead.Guardrails.SignalFact
 
   @recoverable_reasons [:stale, :insufficient_sample]
-  @terminal_reasons [:provider_missing, :unsupported_signal, :unsupported_scope, :invalid_provider_response]
+  @terminal_reasons [
+    :provider_missing,
+    :unsupported_signal,
+    :unsupported_scope,
+    :invalid_provider_response
+  ]
 
   @enforce_keys [:state, :reason, :evaluated_at]
   defstruct [:state, :reason, :evaluated_at, :monitoring_window_closed?, signal_facts: []]
@@ -20,40 +25,14 @@ defmodule Rulestead.Guardrails.Decision do
   @spec evaluate([SignalFact.t() | map()], keyword()) :: t()
   def evaluate(signal_facts, opts \\ []) do
     facts = Enum.map(signal_facts, &SignalFact.new/1)
-    evaluated_at = Keyword.get(opts, :evaluated_at, DateTime.utc_now()) |> DateTime.truncate(:second)
-    monitoring_window_closed? = monitoring_window_closed?(evaluated_at, Keyword.get(opts, :monitoring_window_ends_at))
 
-    {state, reason} =
-      cond do
-        facts == [] and monitoring_window_closed? ->
-          {:held, "monitoring_window_expired"}
+    evaluated_at =
+      Keyword.get(opts, :evaluated_at, DateTime.utc_now()) |> DateTime.truncate(:second)
 
-        facts == [] ->
-          {:pending_data, "monitoring_window_active"}
+    monitoring_window_closed? =
+      monitoring_window_closed?(evaluated_at, Keyword.get(opts, :monitoring_window_ends_at))
 
-        fact = Enum.find(facts, &(&1.reason in @terminal_reasons)) ->
-          {:held, Atom.to_string(fact.reason)}
-
-        fact = Enum.find(facts, &(&1.reason == :breached)) ->
-          {:rollback_triggered, Atom.to_string(fact.reason)}
-
-        fact = Enum.find(facts, &(&1.reason in @recoverable_reasons)) ->
-          if monitoring_window_closed? do
-            {:held, Atom.to_string(fact.reason)}
-          else
-            {:pending_data, Atom.to_string(fact.reason)}
-          end
-
-        Enum.all?(facts, &(&1.reason == :healthy)) ->
-          {:healthy, "healthy"}
-
-        true ->
-          if monitoring_window_closed? do
-            {:held, "monitoring_window_expired"}
-          else
-            {:pending_data, "monitoring_window_active"}
-          end
-      end
+    {state, reason} = classify_facts(facts, monitoring_window_closed?)
 
     %__MODULE__{
       state: state,
@@ -63,6 +42,34 @@ defmodule Rulestead.Guardrails.Decision do
       signal_facts: facts
     }
   end
+
+  defp classify_facts([], true), do: {:held, "monitoring_window_expired"}
+  defp classify_facts([], false), do: {:pending_data, "monitoring_window_active"}
+
+  defp classify_facts(facts, monitoring_window_closed?) do
+    cond do
+      fact = Enum.find(facts, &(&1.reason in @terminal_reasons)) ->
+        {:held, Atom.to_string(fact.reason)}
+
+      fact = Enum.find(facts, &(&1.reason == :breached)) ->
+        {:rollback_triggered, Atom.to_string(fact.reason)}
+
+      fact = Enum.find(facts, &(&1.reason in @recoverable_reasons)) ->
+        recoverable_state(fact, monitoring_window_closed?)
+
+      Enum.all?(facts, &(&1.reason == :healthy)) ->
+        {:healthy, "healthy"}
+
+      true ->
+        default_window_state(monitoring_window_closed?)
+    end
+  end
+
+  defp recoverable_state(fact, true), do: {:held, Atom.to_string(fact.reason)}
+  defp recoverable_state(fact, false), do: {:pending_data, Atom.to_string(fact.reason)}
+
+  defp default_window_state(true), do: {:held, "monitoring_window_expired"}
+  defp default_window_state(false), do: {:pending_data, "monitoring_window_active"}
 
   defp monitoring_window_closed?(evaluated_at, %DateTime{} = ends_at),
     do: DateTime.compare(evaluated_at, ends_at) in [:gt, :eq]

@@ -34,7 +34,12 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.ShowTest do
 
     @impl true
     def can?(_actor, action, _resource, _environment_key)
-        when action in [:list_audiences, :list_audience_dependencies, :read, :submit_change_request],
+        when action in [
+               :list_audiences,
+               :list_audience_dependencies,
+               :read,
+               :submit_change_request
+             ],
         do: true
 
     @impl true
@@ -251,7 +256,10 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.ShowTest do
       {:ok, conn: conn, change_request: change_request}
     end
 
-    test "hides approve when dependency visibility is partial", %{conn: conn, change_request: change_request} do
+    test "hides approve when dependency visibility is partial", %{
+      conn: conn,
+      change_request: change_request
+    } do
       {:ok, _view, html} =
         live(conn, "/admin/flags/change-requests/#{change_request.id}?env=prod")
 
@@ -349,7 +357,9 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.ShowTest do
 
       publish_ruleset!(flag_key, "prod", %{
         salt: "#{flag_key}:prod",
-        rules: [%{key: rule_key, strategy: :segment_match, audience_key: "vip-users", conditions: []}]
+        rules: [
+          %{key: rule_key, strategy: :segment_match, audience_key: "vip-users", conditions: []}
+        ]
       })
     end
 
@@ -408,9 +418,13 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.ShowTest do
 
   defp publish_ruleset!(flag_key, environment_key, ruleset) do
     %{version: version} =
-      Rulestead.save_draft_ruleset!(Command.SaveDraftRuleset.new(flag_key, environment_key, ruleset))
+      Rulestead.save_draft_ruleset!(
+        Command.SaveDraftRuleset.new(flag_key, environment_key, ruleset)
+      )
 
-    Rulestead.publish_ruleset!(Command.PublishRuleset.new(flag_key, environment_key, version: version))
+    Rulestead.publish_ruleset!(
+      Command.PublishRuleset.new(flag_key, environment_key, version: version)
+    )
   end
 
   defp restore_env(key, nil), do: Application.delete_env(:rulestead, key)

@@ -3,9 +3,9 @@ defmodule RulesteadAdmin.Components.SimulateComponents do
 
   use Phoenix.Component
 
-  attr :title, :string, required: true
-  attr :archetypes, :list, default: []
-  attr :selected_archetype, :map, default: nil
+  attr(:title, :string, required: true)
+  attr(:archetypes, :list, default: [])
+  attr(:selected_archetype, :map, default: nil)
 
   def archetype_chips(assigns) do
     ~H"""
@@ -34,8 +34,8 @@ defmodule RulesteadAdmin.Components.SimulateComponents do
     """
   end
 
-  attr :fixture_export, :string, required: true
-  attr :environment_key, :string, required: true
+  attr(:fixture_export, :string, required: true)
+  attr(:environment_key, :string, required: true)
 
   def fixture_export(assigns) do
     ~H"""
@@ -47,7 +47,7 @@ defmodule RulesteadAdmin.Components.SimulateComponents do
     """
   end
 
-  attr :trace, :map, default: nil
+  attr(:trace, :map, default: nil)
 
   def trace_disclosure(assigns) do
     ~H"""
@@ -98,7 +98,12 @@ defmodule RulesteadAdmin.Components.SimulateComponents do
     """
   end
 
-  defp bucket_row(%{bucket: bucket, variant_bucket: variant_bucket, percentage: percentage, bucket_by: bucket_by}) do
+  defp bucket_row(%{
+         bucket: bucket,
+         variant_bucket: variant_bucket,
+         percentage: percentage,
+         bucket_by: bucket_by
+       }) do
     "#{bucket_by} bucket=#{bucket}, variant_bucket=#{variant_bucket}, percentage=#{percentage}"
   end
 
@@ -116,5 +121,7 @@ defmodule RulesteadAdmin.Components.SimulateComponents do
 
   defp humanize(nil), do: "unknown"
   defp humanize(value) when is_atom(value), do: value |> Atom.to_string() |> humanize()
-  defp humanize(value) when is_binary(value), do: value |> String.replace("_", " ") |> String.capitalize()
+
+  defp humanize(value) when is_binary(value),
+    do: value |> String.replace("_", " ") |> String.capitalize()
 end

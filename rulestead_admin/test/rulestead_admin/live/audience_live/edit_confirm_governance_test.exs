@@ -27,7 +27,12 @@ defmodule RulesteadAdmin.Live.AudienceLive.EditConfirmGovernanceTest do
 
     @impl true
     def can?(_actor, action, _resource, _environment_key)
-        when action in [:list_audiences, :list_audience_dependencies, :read, :submit_change_request],
+        when action in [
+               :list_audiences,
+               :list_audience_dependencies,
+               :read,
+               :submit_change_request
+             ],
         do: true
 
     @impl true
@@ -172,7 +177,9 @@ defmodule RulesteadAdmin.Live.AudienceLive.EditConfirmGovernanceTest do
 
       publish_ruleset!(flag_key, "prod", %{
         salt: "#{flag_key}:prod",
-        rules: [%{key: rule_key, strategy: :segment_match, audience_key: "vip-users", conditions: []}]
+        rules: [
+          %{key: rule_key, strategy: :segment_match, audience_key: "vip-users", conditions: []}
+        ]
       })
     end
 
@@ -189,8 +196,12 @@ defmodule RulesteadAdmin.Live.AudienceLive.EditConfirmGovernanceTest do
 
   defp publish_ruleset!(flag_key, environment_key, ruleset) do
     %{version: version} =
-      Rulestead.save_draft_ruleset!(Command.SaveDraftRuleset.new(flag_key, environment_key, ruleset))
+      Rulestead.save_draft_ruleset!(
+        Command.SaveDraftRuleset.new(flag_key, environment_key, ruleset)
+      )
 
-    Rulestead.publish_ruleset!(Command.PublishRuleset.new(flag_key, environment_key, version: version))
+    Rulestead.publish_ruleset!(
+      Command.PublishRuleset.new(flag_key, environment_key, version: version)
+    )
   end
 end

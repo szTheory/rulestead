@@ -3,10 +3,10 @@ defmodule RulesteadAdmin.Components.OperatorComponents do
 
   use Phoenix.Component
 
-  attr :title, :string, required: true
-  attr :body, :string, required: true
-  attr :tone, :string, default: "neutral"
-  attr :aria_label, :string, default: nil
+  attr(:title, :string, required: true)
+  attr(:body, :string, required: true)
+  attr(:tone, :string, default: "neutral")
+  attr(:aria_label, :string, default: nil)
 
   def banner(assigns) do
     ~H"""
@@ -17,8 +17,8 @@ defmodule RulesteadAdmin.Components.OperatorComponents do
     """
   end
 
-  attr :items, :list, default: []
-  attr :aria_label, :string, default: "Summary"
+  attr(:items, :list, default: [])
+  attr(:aria_label, :string, default: "Summary")
 
   def summary_grid(assigns) do
     ~H"""
@@ -31,7 +31,7 @@ defmodule RulesteadAdmin.Components.OperatorComponents do
     """
   end
 
-  attr :policy_state, :map, required: true
+  attr(:policy_state, :map, required: true)
 
   def policy_state(assigns) do
     ~H"""
@@ -48,9 +48,9 @@ defmodule RulesteadAdmin.Components.OperatorComponents do
     """
   end
 
-  attr :title, :string, required: true
-  attr :reason, :string, required: true
-  attr :tone, :string, default: "warning"
+  attr(:title, :string, required: true)
+  attr(:reason, :string, required: true)
+  attr(:tone, :string, default: "warning")
 
   def capability_explanation(assigns) do
     ~H"""
@@ -61,9 +61,9 @@ defmodule RulesteadAdmin.Components.OperatorComponents do
     """
   end
 
-  attr :title, :string, required: true
-  attr :summary, :string, required: true
-  attr :rows, :list, default: []
+  attr(:title, :string, required: true)
+  attr(:summary, :string, required: true)
+  attr(:rows, :list, default: [])
 
   def trace_panel(assigns) do
     ~H"""
@@ -80,8 +80,8 @@ defmodule RulesteadAdmin.Components.OperatorComponents do
     """
   end
 
-  attr :title, :string, required: true
-  attr :entries, :list, default: []
+  attr(:title, :string, required: true)
+  attr(:entries, :list, default: [])
 
   def status_list(assigns) do
     ~H"""
@@ -100,8 +100,8 @@ defmodule RulesteadAdmin.Components.OperatorComponents do
     """
   end
 
-  attr :steps, :list, default: []
-  attr :current, :string, default: nil
+  attr(:steps, :list, default: [])
+  attr(:current, :string, default: nil)
 
   def rollout_ladder(assigns) do
     ~H"""
@@ -116,10 +116,10 @@ defmodule RulesteadAdmin.Components.OperatorComponents do
     """
   end
 
-  attr :title, :string, required: true
-  attr :summary, :string, required: true
-  attr :confirmation_hint, :string, required: true
-  attr :action_label, :string, required: true
+  attr(:title, :string, required: true)
+  attr(:summary, :string, required: true)
+  attr(:confirmation_hint, :string, required: true)
+  attr(:action_label, :string, required: true)
 
   def confirm_modal_shell(assigns) do
     ~H"""
@@ -132,8 +132,8 @@ defmodule RulesteadAdmin.Components.OperatorComponents do
     """
   end
 
-  attr :title, :string, required: true
-  attr :entries, :list, default: []
+  attr(:title, :string, required: true)
+  attr(:entries, :list, default: [])
 
   def audit_timeline(assigns) do
     ~H"""
@@ -150,10 +150,10 @@ defmodule RulesteadAdmin.Components.OperatorComponents do
     """
   end
 
-  attr :title, :string, required: true
-  attr :summary, :string, required: true
-  attr :before_value, :string, required: true
-  attr :after_value, :string, required: true
+  attr(:title, :string, required: true)
+  attr(:summary, :string, required: true)
+  attr(:before_value, :string, required: true)
+  attr(:after_value, :string, required: true)
 
   def diff_card(assigns) do
     ~H"""

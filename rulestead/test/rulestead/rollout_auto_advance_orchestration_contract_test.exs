@@ -322,6 +322,7 @@ defmodule Rulestead.RolloutAutoAdvanceOrchestrationContractTest do
       percentage_before = rollout_percentage(adapter, flag_key, "test")
 
       result = StoreFixtures.execute_auto_advance_tick!(adapter, flag_key: flag_key)
+
       assert {:ok, %{scheduled_execution: completed}} = result,
              "execute failed: #{inspect(result)}"
 

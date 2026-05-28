@@ -28,6 +28,7 @@ defmodule RulesteadAdmin.Live.FlagLive.RulesTest do
     previous_policy = Application.get_env(:rulestead, :admin_policy)
     Application.put_env(:rulestead, :store, Rulestead.Fake)
     Application.put_env(:rulestead, :admin_policy, AllowPolicy)
+
     Application.put_env(:rulestead, :admin_lifecycle,
       warning_after_seconds: 1_800,
       stale_after_seconds: 3_600,
@@ -77,7 +78,8 @@ defmodule RulesteadAdmin.Live.FlagLive.RulesTest do
     {:ok, conn: conn}
   end
 
-  test "operators can edit, reorder, target audiences, and save draft rules for the selected environment", %{conn: conn} do
+  test "operators can edit, reorder, target audiences, and save draft rules for the selected environment",
+       %{conn: conn} do
     {:ok, view, html} = live(conn, "/admin/flags/checkout-redesign/rules?env=prod")
 
     assert html =~ "Rules workspace"
@@ -89,7 +91,9 @@ defmodule RulesteadAdmin.Live.FlagLive.RulesTest do
 
     reordered_html =
       view
-      |> element("button[phx-click='move_rule'][phx-value-direction='down'][phx-value-key='allow-vip']")
+      |> element(
+        "button[phx-click='move_rule'][phx-value-direction='down'][phx-value-key='allow-vip']"
+      )
       |> render_click()
 
     assert reordered_html =~ "Rule order updated"
@@ -139,7 +143,9 @@ defmodule RulesteadAdmin.Live.FlagLive.RulesTest do
     assert second_rule.audience_key == "internal-beta"
   end
 
-  test "variant totals validate live and block save plus publish until weights sum to 100", %{conn: conn} do
+  test "variant totals validate live and block save plus publish until weights sum to 100", %{
+    conn: conn
+  } do
     {:ok, view, _html} = live(conn, "/admin/flags/checkout-redesign/rules?env=prod")
 
     invalid_html =
@@ -192,9 +198,10 @@ defmodule RulesteadAdmin.Live.FlagLive.RulesTest do
     assert Rulestead.fetch_flag!("checkout-redesign", "prod").active_ruleset.version == 1
   end
 
-  test "workspace keeps save and publish distinct, warns on existing draft, rejects missing audience, and becomes read-only after archive", %{
-    conn: conn
-  } do
+  test "workspace keeps save and publish distinct, warns on existing draft, rejects missing audience, and becomes read-only after archive",
+       %{
+         conn: conn
+       } do
     {:ok, view, html} = live(conn, "/admin/flags/checkout-redesign/rules?env=prod")
 
     assert html =~ "Draft ruleset ready"
@@ -243,7 +250,8 @@ defmodule RulesteadAdmin.Live.FlagLive.RulesTest do
     assert {:ok, archived} = Rulestead.archive_flag(Command.ArchiveFlag.new("checkout-redesign"))
     assert archived.archived?
 
-    {:ok, archived_view, archived_html} = live(conn, "/admin/flags/checkout-redesign/rules?env=prod")
+    {:ok, archived_view, archived_html} =
+      live(conn, "/admin/flags/checkout-redesign/rules?env=prod")
 
     assert archived_html =~ "This flag is archived"
     assert archived_html =~ "Rules are read-only"
@@ -252,14 +260,21 @@ defmodule RulesteadAdmin.Live.FlagLive.RulesTest do
     refute has_element?(archived_view, "button[phx-click='archive_flag']")
   end
 
-  test "denied draft and publish writes fail closed and leave denied audit rows visible", %{conn: conn} do
+  test "denied draft and publish writes fail closed and leave denied audit rows visible", %{
+    conn: conn
+  } do
     Application.put_env(:rulestead, :admin_policy, DenyWritesPolicy)
 
     denied_conn =
       conn
       |> Phoenix.ConnTest.recycle()
       |> Phoenix.ConnTest.init_test_session(%{
-        "current_actor" => %{id: "viewer-1", email: "viewer@example.com", display: "Viewer", roles: ["viewer"]},
+        "current_actor" => %{
+          id: "viewer-1",
+          email: "viewer@example.com",
+          display: "Viewer",
+          roles: ["viewer"]
+        },
         "rulestead_admin_last_env" => "prod",
         "rulestead_admin_environments" => [
           %{"key" => "dev", "name" => "Development"},
@@ -312,7 +327,8 @@ defmodule RulesteadAdmin.Live.FlagLive.RulesTest do
 
     Application.put_env(:rulestead, :admin_policy, AllowPolicy)
 
-    {:ok, timeline_view, timeline_html} = live(conn, "/admin/flags/checkout-redesign/timeline?env=prod")
+    {:ok, timeline_view, timeline_html} =
+      live(conn, "/admin/flags/checkout-redesign/timeline?env=prod")
 
     assert timeline_html =~ "Ruleset save draft denied"
     assert timeline_html =~ "Viewer"
@@ -380,12 +396,20 @@ defmodule RulesteadAdmin.Live.FlagLive.RulesTest do
       ]
     }
 
-    assert {:ok, _draft} = Rulestead.save_draft_ruleset(Command.SaveDraftRuleset.new(flag_key, environment_key, ruleset))
-    assert {:ok, _published} = Rulestead.publish_ruleset(Command.PublishRuleset.new(flag_key, environment_key))
+    assert {:ok, _draft} =
+             Rulestead.save_draft_ruleset(
+               Command.SaveDraftRuleset.new(flag_key, environment_key, ruleset)
+             )
+
+    assert {:ok, _published} =
+             Rulestead.publish_ruleset(Command.PublishRuleset.new(flag_key, environment_key))
   end
 
   defp save_draft!(flag_key, environment_key, ruleset) do
-    assert {:ok, _draft} = Rulestead.save_draft_ruleset(Command.SaveDraftRuleset.new(flag_key, environment_key, ruleset))
+    assert {:ok, _draft} =
+             Rulestead.save_draft_ruleset(
+               Command.SaveDraftRuleset.new(flag_key, environment_key, ruleset)
+             )
   end
 
   defp put_audience!(key, name) do

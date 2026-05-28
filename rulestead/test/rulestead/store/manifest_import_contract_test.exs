@@ -75,8 +75,11 @@ defmodule Rulestead.Store.ManifestImportContractTest do
 
     def archive_audience!(audience_key) do
       case Repo.get_by(Audience, key: audience_key) do
-        nil -> :ok
-        audience -> audience |> Ecto.Changeset.change(archived_at: DateTime.utc_now()) |> Repo.update!()
+        nil ->
+          :ok
+
+        audience ->
+          audience |> Ecto.Changeset.change(archived_at: DateTime.utc_now()) |> Repo.update!()
       end
     end
 
@@ -145,6 +148,7 @@ defmodule Rulestead.Store.ManifestImportContractTest do
 
     def seed_audience!(attrs) do
       now = Rulestead.Fake.Control.now!()
+
       attrs =
         Map.merge(
           %{
@@ -172,7 +176,11 @@ defmodule Rulestead.Store.ManifestImportContractTest do
 
     def delete_audience!(audience_key) do
       snapshot = Rulestead.Fake.Control.snapshot!()
-      Rulestead.Fake.Control.restore!(%{snapshot | audiences: Map.delete(snapshot.audiences, audience_key)})
+
+      Rulestead.Fake.Control.restore!(%{
+        snapshot
+        | audiences: Map.delete(snapshot.audiences, audience_key)
+      })
     end
 
     def archive_audience!(audience_key) do
@@ -297,6 +305,7 @@ defmodule Rulestead.Store.ManifestImportContractTest do
       control.ensure_started()
       control.reset!()
       Application.put_env(:rulestead, :store, adapter)
+
       control.seed_audience!(%{
         key: "vip-users",
         name: "VIP Users",
@@ -374,6 +383,7 @@ defmodule Rulestead.Store.ManifestImportContractTest do
       control.ensure_started()
       control.reset!()
       Application.put_env(:rulestead, :store, adapter)
+
       control.seed_audience!(%{
         key: "vip-users",
         name: "VIP Users",
@@ -390,7 +400,9 @@ defmodule Rulestead.Store.ManifestImportContractTest do
       mutation_result = mutate!.(control, plan)
 
       plan_to_apply = Map.get(mutation_result, :plan_override, plan)
-      apply_opts = Keyword.merge([reason: "dependencies drifted"], Map.get(mutation_result, :apply_opts, []))
+
+      apply_opts =
+        Keyword.merge([reason: "dependencies drifted"], Map.get(mutation_result, :apply_opts, []))
 
       assert {:ok, apply_result} = Import.apply(plan_to_apply, apply_opts)
       assert apply_result["status"] == "blocked"

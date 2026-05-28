@@ -189,7 +189,9 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
     assert html =~ "Current rollout rule"
   end
 
-  test "page without rollout rule hides preview action and stays on the mounted workflow", %{conn: conn} do
+  test "page without rollout rule hides preview action and stays on the mounted workflow", %{
+    conn: conn
+  } do
     seed_flag!(
       key: "maintenance-mode",
       owner: "platform",
@@ -376,7 +378,12 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
   @tag :auto_advance_save
   test "rollout page saves auto-advance policy via direct upsert", %{conn: conn} do
     seed_healthy_guardrail!()
-    seed_auto_advance_policy!(false, %{observation_window_seconds: nil, next_stage: nil, next_percentage: nil})
+
+    seed_auto_advance_policy!(false, %{
+      observation_window_seconds: nil,
+      next_stage: nil,
+      next_percentage: nil
+    })
 
     {:ok, view, html} = live(conn, "/admin/flags/checkout-redesign/rollouts?env=prod")
 
@@ -837,7 +844,10 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
                    }
                  ]
                },
-               metadata: %{request_id: "req-rollouts-pending-window", source: :guardrail_automation}
+               metadata: %{
+                 request_id: "req-rollouts-pending-window",
+                 source: :guardrail_automation
+               }
              )
   end
 
@@ -886,7 +896,10 @@ defmodule RulesteadAdmin.Live.FlagLive.RolloutsTest do
                    }
                  ]
                },
-               metadata: %{request_id: "req-rollouts-scheduled-healthy", source: :guardrail_automation}
+               metadata: %{
+                 request_id: "req-rollouts-scheduled-healthy",
+                 source: :guardrail_automation
+               }
              )
 
     {:ok, page} =

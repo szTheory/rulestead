@@ -27,7 +27,8 @@ defmodule RulesteadAdmin.Live.WebhookLive.Show do
           current_path: detail_path(socket.assigns.webhook_id),
           page_title: "Webhook Record",
           page_kicker: "Integration visibility",
-          page_summary: "Detailed view of an inbound rejection, inbound accepted event, or outbound delivery."
+          page_summary:
+            "Detailed view of an inbound rejection, inbound accepted event, or outbound delivery."
         )
         |> Map.merge(%{
           navigation_links: navigation_links(socket, :webhooks),
@@ -113,7 +114,11 @@ defmodule RulesteadAdmin.Live.WebhookLive.Show do
   defp navigation_links(socket, current) do
     [
       nav_link("Flags", Session.current_path(socket, mount_path(socket)), current == :flags),
-      nav_link("Change requests", Session.current_path(socket, change_requests_path()), current == :change_requests),
+      nav_link(
+        "Change requests",
+        Session.current_path(socket, change_requests_path()),
+        current == :change_requests
+      ),
       nav_link("Schedule", Session.current_path(socket, schedule_path()), current == :schedule),
       nav_link("Webhooks", Session.current_path(socket, base_path()), current == :webhooks),
       nav_link("Audit", Session.current_path(socket, audit_path()), current == :audit)
@@ -123,6 +128,7 @@ defmodule RulesteadAdmin.Live.WebhookLive.Show do
   defp nav_link(label, path, current?), do: %{label: label, path: path, current?: current?}
 
   defp format_datetime(nil), do: "Not yet recorded"
+
   defp format_datetime(%DateTime{} = datetime) do
     calendar = Calendar.strftime(datetime, "%Y-%m-%d %H:%M")
     "#{calendar} UTC"

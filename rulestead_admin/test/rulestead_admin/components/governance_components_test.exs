@@ -22,9 +22,7 @@ defmodule RulesteadAdmin.Components.GovernanceComponentsTest do
 
   test "above_threshold verdict shows governance required copy" do
     html =
-      render_blast_radius_panel(
-        Map.merge(@base_assessment, %{verdict: :above_threshold})
-      )
+      render_blast_radius_panel(Map.merge(@base_assessment, %{verdict: :above_threshold}))
 
     assert html =~ "Governance required"
     assert html =~ "Exceeds direct-apply limit (update limit: 2, found: 5 references)."
@@ -33,7 +31,11 @@ defmodule RulesteadAdmin.Components.GovernanceComponentsTest do
   test "below_threshold verdict shows direct apply allowed copy" do
     html =
       render_blast_radius_panel(
-        Map.merge(@base_assessment, %{verdict: :below_threshold, reference_count: 1, breach_reasons: []})
+        Map.merge(@base_assessment, %{
+          verdict: :below_threshold,
+          reference_count: 1,
+          breach_reasons: []
+        })
       )
 
     assert html =~ "Direct apply allowed"
@@ -109,7 +111,11 @@ defmodule RulesteadAdmin.Components.GovernanceComponentsTest do
   end
 
   defp render_blast_radius_panel(assessment, opts \\ []) do
-    assigns = [assessment: assessment, frozen?: Keyword.get(opts, :frozen?, false), visibility: Keyword.get(opts, :visibility, :full)]
+    assigns = [
+      assessment: assessment,
+      frozen?: Keyword.get(opts, :frozen?, false),
+      visibility: Keyword.get(opts, :visibility, :full)
+    ]
 
     render_component(&GovernanceComponents.blast_radius_panel/1, assigns)
   end

@@ -39,7 +39,11 @@ defmodule RulesteadAdmin.Live.FlagLive.Explain do
     form =
       @empty_form
       |> Map.put("targeting_key", params["targeting_key"] || "")
-      |> Map.put("tenant_key", params["tenant_key"] || socket.assigns.current_tenant && socket.assigns.current_tenant.key || "")
+      |> Map.put(
+        "tenant_key",
+        params["tenant_key"] ||
+          (socket.assigns.current_tenant && socket.assigns.current_tenant.key) || ""
+      )
       |> Map.put("session_id", params["session_id"] || "")
       |> Map.put("request_id", params["request_id"] || "")
 
@@ -49,7 +53,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Explain do
         current_path: "#{socket.assigns.rulestead_admin_mount_path}/#{key}/explain",
         page_title: "#{key} explain",
         page_kicker: "Decision explainer",
-        page_summary: "Support-safe permalink for why a flag evaluated the way it did, including reusable audience steps."
+        page_summary:
+          "Support-safe permalink for why a flag evaluated the way it did, including reusable audience steps."
       )
       |> Map.put(:flag_key, key)
 
@@ -190,13 +195,13 @@ defmodule RulesteadAdmin.Live.FlagLive.Explain do
   defp humanize_reason(reason), do: to_string(reason)
 
   defp build_context(form, environment_key) do
-  %{
-    targeting_key: form["targeting_key"],
-    tenant_key: blank_to_nil(form["tenant_key"]),
-    session_id: blank_to_nil(form["session_id"]),
-    request_id: blank_to_nil(form["request_id"]),
-    environment_key: environment_key
-  }
+    %{
+      targeting_key: form["targeting_key"],
+      tenant_key: blank_to_nil(form["tenant_key"]),
+      session_id: blank_to_nil(form["session_id"]),
+      request_id: blank_to_nil(form["request_id"]),
+      environment_key: environment_key
+    }
   end
 
   defp explain_path(socket, flag_key, form) do

@@ -1,8 +1,8 @@
 defmodule Rulestead.Manifest.ValidateTest do
   use ExUnit.Case, async: false
 
-  alias Rulestead.Manifest.Validate
   alias Rulestead.Fake
+  alias Rulestead.Manifest.Validate
 
   setup do
     previous_store = Application.get_env(:rulestead, :store)
@@ -69,7 +69,10 @@ defmodule Rulestead.Manifest.ValidateTest do
 
     manifest =
       valid_manifest()
-      |> put_in(["flags", Access.at(0), "active_ruleset", "rules", Access.at(0), "tenant_key"], "other")
+      |> put_in(
+        ["flags", Access.at(0), "active_ruleset", "rules", Access.at(0), "tenant_key"],
+        "other"
+      )
       |> put_in(
         ["flags", Access.at(0), "active_ruleset", "rules", Access.at(0), "audience_key"],
         "vip-users"

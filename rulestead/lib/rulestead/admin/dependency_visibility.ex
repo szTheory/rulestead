@@ -5,22 +5,24 @@ defmodule Rulestead.Admin.DependencyVisibility do
 
   @spec visibility_resolver(term()) :: (map() -> boolean())
   def visibility_resolver(actor) do
-    fn entry ->
-      flag_key = Map.get(entry, :flag_key) || Map.get(entry, "flag_key")
-      environment_key = Map.get(entry, :environment_key) || Map.get(entry, "environment_key")
+    fn entry -> visible_entry?(actor, entry) end
+  end
 
-      case flag_key do
-        key when is_binary(key) and key != "" ->
-          resource = %{resource_type: :flag, resource_key: key}
+  defp visible_entry?(actor, entry) do
+    flag_key = Map.get(entry, :flag_key) || Map.get(entry, "flag_key")
+    environment_key = Map.get(entry, :environment_key) || Map.get(entry, "environment_key")
 
-          case Authorizer.authorize(actor, :read_flags, resource, environment_key) do
-            :ok -> true
-            {:error, _, _} -> false
-          end
+    case flag_key do
+      key when is_binary(key) and key != "" ->
+        resource = %{resource_type: :flag, resource_key: key}
 
-        _ ->
-          true
-      end
+        case Authorizer.authorize(actor, :read_flags, resource, environment_key) do
+          :ok -> true
+          {:error, _, _} -> false
+        end
+
+      _ ->
+        true
     end
   end
 end

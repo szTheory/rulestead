@@ -9,19 +9,19 @@ defmodule Rulestead.Targeting.AudienceReferenceProjection do
   @foreign_key_type :binary_id
 
   schema "audience_reference_projection" do
-    field :environment_key, :string
-    field :tenant_key, :string
-    field :audience_key, :string
-    field :flag_key, :string
-    field :ruleset_version, :integer
-    field :rule_key, :string
-    field :rule_strategy, :string
-    field :ruleset_status, :string
-    field :rollout_context, :map, default: %{}
-    field :lifecycle_context, :map, default: %{}
-    field :visibility, :map, default: %{}
-    field :reference_count, :integer, default: 1
-    field :hidden_reference_count, :integer, default: 0
+    field(:environment_key, :string)
+    field(:tenant_key, :string)
+    field(:audience_key, :string)
+    field(:flag_key, :string)
+    field(:ruleset_version, :integer)
+    field(:rule_key, :string)
+    field(:rule_strategy, :string)
+    field(:ruleset_status, :string)
+    field(:rollout_context, :map, default: %{})
+    field(:lifecycle_context, :map, default: %{})
+    field(:visibility, :map, default: %{})
+    field(:reference_count, :integer, default: 1)
+    field(:hidden_reference_count, :integer, default: 0)
 
     timestamps(type: :utc_datetime_usec)
   end
@@ -82,7 +82,9 @@ defmodule Rulestead.Targeting.AudienceReferenceProjection do
     end
   end
 
-  defp normalize_string(value) when is_atom(value), do: value |> Atom.to_string() |> normalize_string()
+  defp normalize_string(value) when is_atom(value),
+    do: value |> Atom.to_string() |> normalize_string()
+
   defp normalize_string(value), do: value
 
   defp normalize_map(value) when is_map(value), do: value

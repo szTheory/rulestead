@@ -48,7 +48,9 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.ShowTest do
     assert html =~ "tenant"
   end
 
-  test "renders reviewed preview drill-in state from the summary-carried compare token", %{conn: conn} do
+  test "renders reviewed preview drill-in state from the summary-carried compare token", %{
+    conn: conn
+  } do
     {:ok, _summary_view, summary_html} =
       live(
         conn,

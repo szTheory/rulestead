@@ -81,7 +81,11 @@ defmodule Rulestead.Targeting.PreviewEvidenceTest do
   end
 
   test "returns redacted samples from configured stub resolver" do
-    Application.put_env(:rulestead, :preview_evidence_resolver, Rulestead.Test.PreviewEvidenceStub)
+    Application.put_env(
+      :rulestead,
+      :preview_evidence_resolver,
+      Rulestead.Test.PreviewEvidenceStub
+    )
 
     assert {:ok, evidence} =
              PreviewEvidence.resolve(%{

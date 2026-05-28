@@ -68,8 +68,13 @@ defmodule Rulestead.Governance.AudienceMutationChangeRequestTest do
       assert Map.has_key?(metadata, "affected_reference_summary")
       assert metadata["blast_radius_assessment"]["verdict"] == "above_threshold"
       assert metadata["affected_reference_summary"]["reference_count"] == 3
-      assert metadata["preview_evidence_summary"]["preview_fingerprint"] == preview.preview_fingerprint
-      assert metadata["preview_evidence_summary"]["uncertainty"]["authoritative_population_count?"] == false
+
+      assert metadata["preview_evidence_summary"]["preview_fingerprint"] ==
+               preview.preview_fingerprint
+
+      assert metadata["preview_evidence_summary"]["uncertainty"][
+               "authoritative_population_count?"
+             ] == false
     end
   end
 
@@ -93,8 +98,7 @@ defmodule Rulestead.Governance.AudienceMutationChangeRequestTest do
           "preview_schema_version" => ImpactPreview.schema_version(),
           "preview_fingerprint" => preview_fingerprint,
           "preview_basis" => "authored_state_and_explicit_samples",
-          "affected_reference_keys" =>
-            Enum.map(preview.affected_references, & &1.reference_key),
+          "affected_reference_keys" => Enum.map(preview.affected_references, & &1.reference_key),
           "after_definition" => %{
             "conditions" => [%{"attribute" => "plan", "operator" => "eq", "value" => "pro"}]
           }

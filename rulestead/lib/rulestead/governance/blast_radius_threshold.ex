@@ -73,7 +73,8 @@ defmodule Rulestead.Governance.BlastRadiusThreshold do
   end
 
   @spec validate_protected_apply(map(), map(), keyword()) :: :ok | {:error, Rulestead.Error.t()}
-  def validate_protected_apply(command, preview, opts \\ []) when is_map(command) and is_map(preview) do
+  def validate_protected_apply(command, preview, opts \\ [])
+      when is_map(command) and is_map(preview) do
     attrs =
       %{
         environment_key: fetch(command, :environment_key),
@@ -362,7 +363,9 @@ defmodule Rulestead.Governance.BlastRadiusThreshold do
   defp normalize_string(_value), do: nil
 
   defp normalize_string_list(nil), do: []
-  defp normalize_string_list(values) when is_list(values), do: Enum.map(values, &normalize_string/1)
+
+  defp normalize_string_list(values) when is_list(values),
+    do: Enum.map(values, &normalize_string/1)
 
   defp fetch(map, key) when is_map(map) do
     Map.get(map, key) || Map.get(map, Atom.to_string(key))

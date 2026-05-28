@@ -23,7 +23,12 @@ defmodule Rulestead.Manifest.Export do
            ),
          :ok <- validate_requested_flag_keys(page.entries, requested_flag_keys),
          {:ok, flags} <-
-           export_flags(page.entries, environment.key, requested_flag_keys, tenant_key || "global") do
+           export_flags(
+             page.entries,
+             environment.key,
+             requested_flag_keys,
+             tenant_key || "global"
+           ) do
       {:ok,
        %{
          "schema_version" => Manifest.schema_version(),
@@ -121,7 +126,11 @@ defmodule Rulestead.Manifest.Export do
 
   defp export_entry(payload, environment_key, tenant_key) do
     active_ruleset =
-      project_ruleset(payload[:active_ruleset] || payload["active_ruleset"], environment_key, tenant_key)
+      project_ruleset(
+        payload[:active_ruleset] || payload["active_ruleset"],
+        environment_key,
+        tenant_key
+      )
 
     if is_nil(active_ruleset) do
       nil

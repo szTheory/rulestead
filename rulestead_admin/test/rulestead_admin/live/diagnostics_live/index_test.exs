@@ -98,11 +98,14 @@ defmodule RulesteadAdmin.Live.DiagnosticsLive.IndexTest do
     refute loaded_html =~ "FunctionClauseError"
   end
 
-  test "diagnostics switches to host-provided topology copy only when a peer provider is configured", %{
-    conn: conn,
-    previous_runtime: previous_runtime
-  } do
-    Application.put_env(:rulestead, :runtime,
+  test "diagnostics switches to host-provided topology copy only when a peer provider is configured",
+       %{
+         conn: conn,
+         previous_runtime: previous_runtime
+       } do
+    Application.put_env(
+      :rulestead,
+      :runtime,
       Keyword.merge(previous_runtime || [], health_peer_provider: __MODULE__.PeerProvider)
     )
 
@@ -124,7 +127,7 @@ defmodule RulesteadAdmin.Live.DiagnosticsLive.IndexTest do
     def peer_nodes do
       [
         %{
-          node: :"peer@node",
+          node: :peer@node,
           topology_scope: :peer_snapshot,
           environments: [%{environment_key: "prod", refresh_status: :ready}]
         }

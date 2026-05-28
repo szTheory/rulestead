@@ -78,8 +78,11 @@ defmodule Rulestead.Store.PromotionApplyContractTest do
 
     def archive_audience!(audience_key) do
       case Repo.get_by(Audience, key: audience_key) do
-        nil -> :ok
-        audience -> audience |> Ecto.Changeset.change(archived_at: DateTime.utc_now()) |> Repo.update!()
+        nil ->
+          :ok
+
+        audience ->
+          audience |> Ecto.Changeset.change(archived_at: DateTime.utc_now()) |> Repo.update!()
       end
     end
 
@@ -193,7 +196,11 @@ defmodule Rulestead.Store.PromotionApplyContractTest do
 
     def delete_audience!(audience_key) do
       snapshot = Rulestead.Fake.Control.snapshot!()
-      Rulestead.Fake.Control.restore!(%{snapshot | audiences: Map.delete(snapshot.audiences, audience_key)})
+
+      Rulestead.Fake.Control.restore!(%{
+        snapshot
+        | audiences: Map.delete(snapshot.audiences, audience_key)
+      })
     end
 
     def archive_audience!(audience_key) do
@@ -599,7 +606,9 @@ defmodule Rulestead.Store.PromotionApplyContractTest do
       command = build_apply_command(compare) |> Map.put(:tenant_key, "acme")
       mutate!.(control)
 
-      assert {:error, %Rulestead.Error{message: "promotion apply blocked by dependency validation"} = error} =
+      assert {:error,
+              %Rulestead.Error{message: "promotion apply blocked by dependency validation"} =
+                error} =
                adapter.apply_promotion(command)
 
       assert Enum.any?(error.details, &(&1.code == expected_code))

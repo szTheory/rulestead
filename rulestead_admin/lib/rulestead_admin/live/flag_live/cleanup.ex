@@ -14,7 +14,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Cleanup do
      socket
      |> assign(:detail, nil)
      |> assign(:flag_key, nil)
-      |> assign(:current_path, nil)
+     |> assign(:current_path, nil)
      |> assign(:return_to, nil)
      |> assign(:env_links, %{})
      |> assign(:error_message, nil)
@@ -44,7 +44,10 @@ defmodule RulesteadAdmin.Live.FlagLive.Cleanup do
           )
         )
         |> assign(:current_path, Session.current_path(socket, base_path))
-        |> assign(:env_links, Session.env_links(socket, base_path, %{"return_to" => query["return_to"]}))
+        |> assign(
+          :env_links,
+          Session.env_links(socket, base_path, %{"return_to" => query["return_to"]})
+        )
         |> load_detail(key, env)
         |> load_code_references(key)
 
@@ -164,7 +167,12 @@ defmodule RulesteadAdmin.Live.FlagLive.Cleanup do
   defp load_code_references(socket, key) do
     if Code.ensure_loaded?(Rulestead.Repo) do
       try do
-        query = from(c in Rulestead.CodeRefs.CodeReference, where: c.flag_key == ^key, order_by: [asc: c.file, asc: c.line])
+        query =
+          from(c in Rulestead.CodeRefs.CodeReference,
+            where: c.flag_key == ^key,
+            order_by: [asc: c.file, asc: c.line]
+          )
+
         refs = Rulestead.Repo.all(query)
         assign(socket, :code_references, refs)
       rescue
@@ -257,7 +265,10 @@ defmodule RulesteadAdmin.Live.FlagLive.Cleanup do
 
   defp blocker_label(:protected_flag_type), do: "Protected flag type resists archival"
   defp blocker_label(:permanent_posture), do: "Permanent posture keeps this flag active"
-  defp blocker_label(:remote_config_requires_review), do: "Remote config flags require stronger review"
+
+  defp blocker_label(:remote_config_requires_review),
+    do: "Remote config flags require stronger review"
+
   defp blocker_label(:code_refs_present), do: "Code references are still present"
   defp blocker_label(:already_archived), do: "Already archived"
   defp blocker_label(reason), do: humanize(reason)

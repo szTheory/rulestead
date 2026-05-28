@@ -268,7 +268,13 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
     "Inverse write restored #{state_summary(after_state)} and linked this row back to #{event.metadata["rollback_of_event_id"] || "the original event"}."
   end
 
-  defp summary_for(%{event_type: "ruleset.publish"}, _metadata, _before_state, _after_state, diff_state) do
+  defp summary_for(
+         %{event_type: "ruleset.publish"},
+         _metadata,
+         _before_state,
+         _after_state,
+         diff_state
+       ) do
     "Ruleset publish updated ordered rule positions: #{Enum.join(diff_lines("ruleset.publish", diff_state), "; ")}."
   end
 

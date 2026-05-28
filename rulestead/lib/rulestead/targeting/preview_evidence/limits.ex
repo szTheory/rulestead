@@ -51,7 +51,8 @@ defmodule Rulestead.Targeting.PreviewEvidence.Limits do
 
     with :ok <- check_policy_denied(evidence_map),
          {:ok, samples} <- validate_samples(fetch(evidence_map, :samples), max_rows),
-         {:ok, impression_summary} <- validate_impression_summary(fetch(evidence_map, :impression_summary)),
+         {:ok, impression_summary} <-
+           validate_impression_summary(fetch(evidence_map, :impression_summary)),
          normalized <- %{samples: samples, impression_summary: impression_summary},
          :ok <- enforce_payload_size!(normalized) do
       {:ok, normalized}
@@ -112,7 +113,8 @@ defmodule Rulestead.Targeting.PreviewEvidence.Limits do
     with {:ok, window_label} <- optional_string_field(summary, :window_label),
          {:ok, sampled_impressions} <- optional_count_field(summary, :sampled_impressions),
          {:ok, matched_impressions} <- optional_count_field(summary, :matched_impressions),
-         {:ok, variant_breakdown} <- normalize_variant_breakdown(fetch(summary, :variant_breakdown)) do
+         {:ok, variant_breakdown} <-
+           normalize_variant_breakdown(fetch(summary, :variant_breakdown)) do
       impression =
         %{}
         |> maybe_put(:window_label, window_label)
@@ -159,17 +161,7 @@ defmodule Rulestead.Targeting.PreviewEvidence.Limits do
     if length(breakdown) > @max_variant_breakdown_entries do
       {:error, invalid_error()}
     else
-      breakdown
-      |> Enum.reduce_while({:ok, []}, fn entry, {:ok, acc} ->
-        case normalize_variant_entry(entry) do
-          {:ok, normalized} -> {:cont, {:ok, [normalized | acc]}}
-          {:error, _} = error -> {:halt, error}
-        end
-      end)
-      |> case do
-        {:ok, entries} -> {:ok, Enum.reverse(entries)}
-        error -> error
-      end
+      normalize_variant_breakdown_entries(breakdown)
     end
   end
 
@@ -192,22 +184,38 @@ defmodule Rulestead.Targeting.PreviewEvidence.Limits do
 
   defp normalize_variant_entry(_entry), do: {:error, invalid_error()}
 
-  defp dedupe_samples(samples) do
-    Enum.reduce(samples, {[], MapSet.new()}, fn sample, {acc, seen} ->
-      case dedupe_key(sample) do
-        nil ->
-          {[sample | acc], seen}
-
-        key ->
-          if MapSet.member?(seen, key) do
-            {acc, seen}
-          else
-            {[sample | acc], MapSet.put(seen, key)}
-          end
+  defp normalize_variant_breakdown_entries(breakdown) do
+    Enum.reduce_while(breakdown, {:ok, []}, fn entry, {:ok, acc} ->
+      case normalize_variant_entry(entry) do
+        {:ok, normalized} -> {:cont, {:ok, [normalized | acc]}}
+        {:error, _} = error -> {:halt, error}
       end
     end)
+    |> case do
+      {:ok, entries} -> {:ok, Enum.reverse(entries)}
+      error -> error
+    end
+  end
+
+  defp dedupe_samples(samples) do
+    samples
+    |> Enum.reduce({[], MapSet.new()}, &dedupe_sample/2)
     |> elem(0)
     |> Enum.reverse()
+  end
+
+  defp dedupe_sample(sample, {acc, seen}) do
+    case dedupe_key(sample) do
+      nil ->
+        {[sample | acc], seen}
+
+      key ->
+        if MapSet.member?(seen, key) do
+          {acc, seen}
+        else
+          {[sample | acc], MapSet.put(seen, key)}
+        end
+    end
   end
 
   defp dedupe_key(sample) when is_map(sample) do
@@ -279,7 +287,9 @@ defmodule Rulestead.Targeting.PreviewEvidence.Limits do
   defp blank_to_nil(value), do: value
 
   defp invalid_error do
-    StoreError.invalid_command("preview evidence invalid", metadata: %{code: "preview_evidence_invalid"})
+    StoreError.invalid_command("preview evidence invalid",
+      metadata: %{code: "preview_evidence_invalid"}
+    )
   end
 
   defp oversized_error do

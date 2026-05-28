@@ -93,14 +93,8 @@ defmodule Rulestead.Targeting.DependencyInventory do
         if visible?(entry, opts) do
           {[entry | visible], hidden, redacted}
         else
-          next_redacted =
-            if include_redacted_placeholders? do
-              [redacted_placeholder(entry) | redacted]
-            else
-              redacted
-            end
-
-          {visible, hidden + entry.reference_count, next_redacted}
+          {visible, hidden + entry.reference_count,
+           maybe_redacted_placeholder(entry, redacted, include_redacted_placeholders?)}
         end
       end)
 
@@ -114,7 +108,13 @@ defmodule Rulestead.Targeting.DependencyInventory do
   end
 
   def redacted_result(_entries, _opts),
-    do: %{entries: [], reference_count: 0, hidden_reference_count: 0, redacted: false, redacted_entries: []}
+    do: %{
+      entries: [],
+      reference_count: 0,
+      hidden_reference_count: 0,
+      redacted: false,
+      redacted_entries: []
+    }
 
   defp sort_tuple(entry) do
     # Canonical semantic order: environment_key, tenant_key, flag_key, ruleset_version, rule_key, audience_key
@@ -145,7 +145,9 @@ defmodule Rulestead.Targeting.DependencyInventory do
     if map_size(context) == 0 do
       @unavailable_context
     else
-      Map.new(context, fn {key, value} -> {normalize_context_key(key), normalize_context_value(value)} end)
+      Map.new(context, fn {key, value} ->
+        {normalize_context_key(key), normalize_context_value(value)}
+      end)
     end
   end
 
@@ -155,7 +157,10 @@ defmodule Rulestead.Targeting.DependencyInventory do
   defp normalize_context_key(key), do: to_string(key)
 
   defp normalize_context_value(value) when is_map(value), do: normalize_context(value)
-  defp normalize_context_value(value) when is_list(value), do: Enum.map(value, &normalize_context_value/1)
+
+  defp normalize_context_value(value) when is_list(value),
+    do: Enum.map(value, &normalize_context_value/1)
+
   defp normalize_context_value(value), do: value
 
   defp normalize_visibility(nil), do: %{status: "visible"}
@@ -213,31 +218,34 @@ defmodule Rulestead.Targeting.DependencyInventory do
   end
 
   defp normalize_string(nil), do: nil
-  defp normalize_string(value) when is_atom(value), do: value |> Atom.to_string() |> normalize_string()
+
+  defp normalize_string(value) when is_atom(value),
+    do: value |> Atom.to_string() |> normalize_string()
+
   defp normalize_string(value), do: to_string(value) |> normalize_string()
 
   defp visible?(entry, opts) do
-    visibility_resolver = Keyword.get(opts, :visibility_resolver)
+    case Keyword.get(opts, :visibility_resolver) do
+      resolver when is_function(resolver, 1) ->
+        resolver.(entry)
 
-    cond do
-      is_function(visibility_resolver, 1) ->
-        visibility_resolver.(entry)
-
-      true ->
-        visible_audience_keys = Keyword.get(opts, :visible_audience_keys)
-
-        case visible_audience_keys do
-          nil ->
-            true
-
-          keys when is_list(keys) ->
-            entry.audience_key in Enum.map(keys, &normalize_string/1)
-
-          _other ->
-            true
-        end
+      _ ->
+        visible_by_audience_keys?(entry, opts)
     end
   end
+
+  defp visible_by_audience_keys?(entry, opts) do
+    case Keyword.get(opts, :visible_audience_keys) do
+      nil -> true
+      keys when is_list(keys) -> entry.audience_key in Enum.map(keys, &normalize_string/1)
+      _other -> true
+    end
+  end
+
+  defp maybe_redacted_placeholder(entry, redacted, true),
+    do: [redacted_placeholder(entry) | redacted]
+
+  defp maybe_redacted_placeholder(_entry, redacted, false), do: redacted
 
   defp redacted_placeholder(entry) do
     %{
@@ -258,6 +266,8 @@ defmodule Rulestead.Targeting.DependencyInventory do
     }
   end
 
-  defp fetch(map, key) when is_map(map), do: Map.get(map, key) || Map.get(map, Atom.to_string(key))
+  defp fetch(map, key) when is_map(map),
+    do: Map.get(map, key) || Map.get(map, Atom.to_string(key))
+
   defp fetch(_map, _key), do: nil
 end

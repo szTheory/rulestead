@@ -103,8 +103,10 @@ defmodule Rulestead.Targeting.ImpactPreview do
       "preview_fingerprint" => fetch_string(preview, :preview_fingerprint),
       "uncertainty" => normalize_uncertainty_summary(fetch(preview, :uncertainty)),
       "sample_evidence" => normalize_evidence_list(fetch(preview, :sample_evidence)),
-      "impression_evidence" => normalize_impression_evidence_summary(fetch(preview, :impression_evidence)),
-      "affected_reference_keys" => affected_reference_keys(fetch(preview, :affected_references) || [])
+      "impression_evidence" =>
+        normalize_impression_evidence_summary(fetch(preview, :impression_evidence)),
+      "affected_reference_keys" =>
+        affected_reference_keys(fetch(preview, :affected_references) || [])
     }
 
     Enum.reduce(@audit_summary_keys, %{}, fn key, acc ->
@@ -259,7 +261,9 @@ defmodule Rulestead.Targeting.ImpactPreview do
   defp normalize_evidence_list(_samples), do: []
 
   defp normalize_impression_evidence_summary(nil), do: %{}
-  defp normalize_impression_evidence_summary(%{} = evidence), do: redacted_impression_summary(evidence) |> stringify_map_keys()
+
+  defp normalize_impression_evidence_summary(%{} = evidence),
+    do: redacted_impression_summary(evidence) |> stringify_map_keys()
 
   defp normalize_impression_evidence_summary(_evidence), do: %{}
 
@@ -307,8 +311,11 @@ defmodule Rulestead.Targeting.ImpactPreview do
     value |> String.trim() |> blank_to_nil()
   end
 
-  defp normalize_impression_field("sampled_impressions", value), do: normalize_non_negative_integer(value)
-  defp normalize_impression_field("matched_impressions", value), do: normalize_non_negative_integer(value)
+  defp normalize_impression_field("sampled_impressions", value),
+    do: normalize_non_negative_integer(value)
+
+  defp normalize_impression_field("matched_impressions", value),
+    do: normalize_non_negative_integer(value)
 
   defp normalize_impression_field("variant_breakdown", breakdown) when is_list(breakdown) do
     breakdown
@@ -402,7 +409,10 @@ defmodule Rulestead.Targeting.ImpactPreview do
   defp reference_sort_key(reference), do: Map.get(reference, :reference_key, "")
 
   defp normalize_output_value(value) when is_map(value), do: preserve_nested_map(value)
-  defp normalize_output_value(value) when is_list(value), do: Enum.map(value, &normalize_output_value/1)
+
+  defp normalize_output_value(value) when is_list(value),
+    do: Enum.map(value, &normalize_output_value/1)
+
   defp normalize_output_value(value) when is_binary(value), do: normalize_string(value)
   defp normalize_output_value(value), do: value
 
@@ -440,7 +450,9 @@ defmodule Rulestead.Targeting.ImpactPreview do
     end
   end
 
-  defp normalize_string(value) when is_atom(value) and not is_nil(value), do: Atom.to_string(value)
+  defp normalize_string(value) when is_atom(value) and not is_nil(value),
+    do: Atom.to_string(value)
+
   defp normalize_string(value), do: value
 
   defp sort_findings(findings) when is_list(findings) do

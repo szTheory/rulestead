@@ -14,7 +14,12 @@ defmodule Rulestead.Governance.PreviewEvidenceGovernanceContractTest do
 
   setup do
     previous_resolver = Application.get_env(:rulestead, :preview_evidence_resolver)
-    Application.put_env(:rulestead, :preview_evidence_resolver, Rulestead.Fake.PreviewEvidenceResolver)
+
+    Application.put_env(
+      :rulestead,
+      :preview_evidence_resolver,
+      Rulestead.Fake.PreviewEvidenceResolver
+    )
 
     on_exit(fn ->
       case previous_resolver do
@@ -37,7 +42,11 @@ defmodule Rulestead.Governance.PreviewEvidenceGovernanceContractTest do
 
       command = direct_apply_command(preview)
 
-      assert {:error, %Error{type: :invalid_command, metadata: %{verdict: "above_threshold", reference_count: 3}}} =
+      assert {:error,
+              %Error{
+                type: :invalid_command,
+                metadata: %{verdict: "above_threshold", reference_count: 3}
+              }} =
                apply_audience_mutation(adapter, command)
     end)
   end
@@ -58,7 +67,8 @@ defmodule Rulestead.Governance.PreviewEvidenceGovernanceContractTest do
 
       Application.delete_env(:rulestead, :preview_evidence_resolver)
 
-      {:ok, preview_without_resolver} = preview_audience_impact(adapter, production_preview_attrs())
+      {:ok, preview_without_resolver} =
+        preview_audience_impact(adapter, production_preview_attrs())
 
       assert {:ok, %{change_request: without_resolver}} =
                adapter.submit_change_request(
@@ -67,7 +77,11 @@ defmodule Rulestead.Governance.PreviewEvidenceGovernanceContractTest do
                  )
                )
 
-      Application.put_env(:rulestead, :preview_evidence_resolver, Rulestead.Fake.PreviewEvidenceResolver)
+      Application.put_env(
+        :rulestead,
+        :preview_evidence_resolver,
+        Rulestead.Fake.PreviewEvidenceResolver
+      )
 
       assert with_resolver.metadata["blast_radius_assessment"]["verdict"] ==
                without_resolver.metadata["blast_radius_assessment"]["verdict"]
@@ -146,7 +160,8 @@ defmodule Rulestead.Governance.PreviewEvidenceGovernanceContractTest do
           "preview_schema_version" => preview.preview_schema_version,
           "preview_fingerprint" => preview.preview_fingerprint,
           "preview_basis" => preview.preview_basis,
-          "affected_reference_keys" => AudienceDependencies.reference_keys(preview.affected_references),
+          "affected_reference_keys" =>
+            AudienceDependencies.reference_keys(preview.affected_references),
           "after_definition" => %{
             "conditions" => [%{"attribute" => "plan", "operator" => "eq", "value" => "pro"}]
           }
@@ -186,7 +201,9 @@ defmodule Rulestead.Governance.PreviewEvidenceGovernanceContractTest do
   end
 
   defp preview_audience_impact(StoreEcto, attrs) do
-    StoreEcto.preview_audience_impact(Command.PreviewAudienceImpact.new("vip-users", :update, attrs))
+    StoreEcto.preview_audience_impact(
+      Command.PreviewAudienceImpact.new("vip-users", :update, attrs)
+    )
   end
 
   defp adapter_label(Rulestead.Fake), do: "fake"
@@ -266,7 +283,9 @@ defmodule Rulestead.Governance.PreviewEvidenceGovernanceContractTest do
 
       assert {:ok, _flag} =
                StoreEcto.create_flag(
-                 Command.CreateFlag.new(valid_flag_attrs(%{key: flag_key, environment_keys: ["production"]}))
+                 Command.CreateFlag.new(
+                   valid_flag_attrs(%{key: flag_key, environment_keys: ["production"]})
+                 )
                )
 
       ruleset =
@@ -283,7 +302,9 @@ defmodule Rulestead.Governance.PreviewEvidenceGovernanceContractTest do
         })
 
       assert {:ok, _draft} =
-               StoreEcto.save_draft_ruleset(Command.SaveDraftRuleset.new(flag_key, "production", ruleset))
+               StoreEcto.save_draft_ruleset(
+                 Command.SaveDraftRuleset.new(flag_key, "production", ruleset)
+               )
 
       assert {:ok, _published} =
                StoreEcto.publish_ruleset(Command.PublishRuleset.new(flag_key, "production"))

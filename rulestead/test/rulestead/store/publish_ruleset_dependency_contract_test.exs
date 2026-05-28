@@ -216,8 +216,11 @@ defmodule Rulestead.Store.PublishRulesetDependencyContractTest do
 
     def archive_audience!(audience_key) do
       case Repo.get_by(Audience, key: audience_key) do
-        nil -> :ok
-        audience -> audience |> Ecto.Changeset.change(archived_at: DateTime.utc_now()) |> Repo.update!()
+        nil ->
+          :ok
+
+        audience ->
+          audience |> Ecto.Changeset.change(archived_at: DateTime.utc_now()) |> Repo.update!()
       end
     end
 
@@ -285,8 +288,11 @@ defmodule Rulestead.Store.PublishRulesetDependencyContractTest do
 
     defp ensure_environment_keys(environment_keys) do
       case Enum.find(environment_keys, &(Repo.get_by(Environment, key: &1) == nil)) do
-        nil -> :ok
-        missing_environment -> {:error, Rulestead.StoreError.environment_not_found(missing_environment)}
+        nil ->
+          :ok
+
+        missing_environment ->
+          {:error, Rulestead.StoreError.environment_not_found(missing_environment)}
       end
     end
 
@@ -300,9 +306,17 @@ defmodule Rulestead.Store.PublishRulesetDependencyContractTest do
 
     defp default_environments do
       [
-        %{key: "development", name: "Development", description: "Local and developer-owned environments"},
+        %{
+          key: "development",
+          name: "Development",
+          description: "Local and developer-owned environments"
+        },
         %{key: "staging", name: "Staging", description: "Pre-production validation environments"},
-        %{key: "production", name: "Production", description: "Live customer-facing environments"},
+        %{
+          key: "production",
+          name: "Production",
+          description: "Live customer-facing environments"
+        },
         %{key: "test", name: "Test", description: "Automated and ephemeral test environments"}
       ]
     end
@@ -373,11 +387,17 @@ defmodule Rulestead.Store.PublishRulesetDependencyContractTest do
 
         assert {:ok, _draft} =
                  @store_module.save_draft_ruleset(
-                   Command.SaveDraftRuleset.new("checkout-redesign", "test", dependency_ruleset("ghost-users"))
+                   Command.SaveDraftRuleset.new(
+                     "checkout-redesign",
+                     "test",
+                     dependency_ruleset("ghost-users")
+                   )
                  )
 
         assert {:error, %Rulestead.Error{type: :invalid_command, details: details}} =
-                 @store_module.publish_ruleset(Command.PublishRuleset.new("checkout-redesign", "test"))
+                 @store_module.publish_ruleset(
+                   Command.PublishRuleset.new("checkout-redesign", "test")
+                 )
 
         assert Enum.any?(details, &dependency_code?(&1, "missing_reference"))
 
@@ -406,11 +426,17 @@ defmodule Rulestead.Store.PublishRulesetDependencyContractTest do
 
         assert {:ok, _draft} =
                  @store_module.save_draft_ruleset(
-                   Command.SaveDraftRuleset.new("checkout-redesign", "test", dependency_ruleset("vip-users"))
+                   Command.SaveDraftRuleset.new(
+                     "checkout-redesign",
+                     "test",
+                     dependency_ruleset("vip-users")
+                   )
                  )
 
         assert {:ok, payload} =
-                 @store_module.publish_ruleset(Command.PublishRuleset.new("checkout-redesign", "test"))
+                 @store_module.publish_ruleset(
+                   Command.PublishRuleset.new("checkout-redesign", "test")
+                 )
 
         assert published_payload?(payload)
       end
@@ -443,7 +469,9 @@ defmodule Rulestead.Store.PublishRulesetDependencyContractTest do
           "vip-users",
           fn control ->
             control.update_audience_definition!("vip-users", %{
-              conditions: [%{attribute: "plan", operator: "unsupported_operator", value: "enterprise"}]
+              conditions: [
+                %{attribute: "plan", operator: "unsupported_operator", value: "enterprise"}
+              ]
             })
           end
         )
@@ -478,7 +506,15 @@ defmodule Rulestead.Store.PublishRulesetDependencyContractTest do
     )
   end
 
-  defp finding(code, environment_key, tenant_key, flag_key, ruleset_version, rule_key, audience_key) do
+  defp finding(
+         code,
+         environment_key,
+         tenant_key,
+         flag_key,
+         ruleset_version,
+         rule_key,
+         audience_key
+       ) do
     %{
       code: code,
       severity: :blocker,
@@ -541,7 +577,11 @@ defmodule Rulestead.Store.PublishRulesetDependencyContractTest do
 
     assert {:ok, %{version: version_1}} =
              store_module.save_draft_ruleset(
-               Command.SaveDraftRuleset.new("checkout-redesign", "test", dependency_ruleset("vip-users"))
+               Command.SaveDraftRuleset.new(
+                 "checkout-redesign",
+                 "test",
+                 dependency_ruleset("vip-users")
+               )
              )
 
     assert {:ok, _published_v1} =
@@ -562,7 +602,8 @@ defmodule Rulestead.Store.PublishRulesetDependencyContractTest do
                )
              )
 
-    assert {:error, %Rulestead.Error{message: "ruleset publish blocked by dependency validation"} = error} =
+    assert {:error,
+            %Rulestead.Error{message: "ruleset publish blocked by dependency validation"} = error} =
              store_module.publish_ruleset(
                Command.PublishRuleset.new("checkout-redesign", "test", version: blocked_version)
              )
@@ -570,7 +611,9 @@ defmodule Rulestead.Store.PublishRulesetDependencyContractTest do
     assert Enum.any?(error.details, &dependency_code?(&1, expected_code))
 
     # blocked publish does not publish and keeps snapshot unchanged
-    assert {:ok, snapshot_after_block} = store_module.fetch_snapshot(fetch_snapshot_command("test"))
+    assert {:ok, snapshot_after_block} =
+             store_module.fetch_snapshot(fetch_snapshot_command("test"))
+
     assert snapshot_after_block.version == baseline_snapshot.version
 
     assert {:ok, payload_after_block} =

@@ -315,7 +315,10 @@ defmodule Rulestead.Store.EctoAudienceImpactContractTest do
              EctoStore.apply_audience_mutation(command)
 
     assert error.message =~ "Blast radius cannot be evaluated safely" or
-             Enum.any?(error.details, &(&1.code in ["blast_radius_indeterminate", "blast_radius_missing_preview_inputs"]))
+             Enum.any?(
+               error.details,
+               &(&1.code in ["blast_radius_indeterminate", "blast_radius_missing_preview_inputs"])
+             )
   end
 
   test "apply emits incompatible_reference blockers and persists dependency findings in audit metadata" do
@@ -502,7 +505,10 @@ defmodule Rulestead.Store.EctoAudienceImpactContractTest do
 
   defp latest_blocked_audience_event! do
     AuditEvent
-    |> where([event], event.event_type in ["audience.mutation_blocked", "audience.delete_blocked"])
+    |> where(
+      [event],
+      event.event_type in ["audience.mutation_blocked", "audience.delete_blocked"]
+    )
     |> order_by([event], desc: event.inserted_at)
     |> limit(1)
     |> Repo.one!()

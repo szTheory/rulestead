@@ -85,6 +85,8 @@ defmodule Rulestead.RolloutAutoAdvancePolicy do
     end
   end
 
-  defp normalize_string(value) when is_atom(value), do: value |> Atom.to_string() |> normalize_string()
+  defp normalize_string(value) when is_atom(value),
+    do: value |> Atom.to_string() |> normalize_string()
+
   defp normalize_string(value), do: value
 end

@@ -46,7 +46,10 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupConfirm do
             socket.assigns.rulestead_admin_mount_path
           )
         )
-        |> assign(:env_links, Session.env_links(socket, base_path, %{"return_to" => query["return_to"]}))
+        |> assign(
+          :env_links,
+          Session.env_links(socket, base_path, %{"return_to" => query["return_to"]})
+        )
         |> assign(:preview_signature, query["preview_signature"])
         |> load_detail(key, env)
 
@@ -110,8 +113,14 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupConfirm do
     confirmation = String.trim(Map.get(params, "confirmation", ""))
 
     with :ok <- validate_reason(reason),
-         :ok <- validate_confirmation(socket.assigns.flag_key, socket.assigns.current_environment.key, confirmation),
-         {:ok, current_detail} <- Rulestead.fetch_flag(socket.assigns.flag_key, socket.assigns.current_environment.key),
+         :ok <-
+           validate_confirmation(
+             socket.assigns.flag_key,
+             socket.assigns.current_environment.key,
+             confirmation
+           ),
+         {:ok, current_detail} <-
+           Rulestead.fetch_flag(socket.assigns.flag_key, socket.assigns.current_environment.key),
          :ok <- validate_preview_signature(socket.assigns.preview_signature, current_detail),
          {:ok, _payload} <-
            Rulestead.archive_flag(
@@ -283,6 +292,9 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupConfirm do
   defp archive_readiness(detail), do: detail.lifecycle.archive_readiness
 
   defp humanize(value) when is_atom(value), do: humanize(to_string(value))
-  defp humanize(value) when is_binary(value), do: value |> String.replace("_", " ") |> String.capitalize()
+
+  defp humanize(value) when is_binary(value),
+    do: value |> String.replace("_", " ") |> String.capitalize()
+
   defp humanize(value), do: to_string(value)
 end

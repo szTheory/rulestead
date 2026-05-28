@@ -5,7 +5,14 @@ defmodule RulesteadAdmin.Live.AudienceLive.ArchiveConfirm do
   use Phoenix.LiveView
 
   alias Rulestead.Store.Command
-  alias RulesteadAdmin.Components.{FlagComponents, GovernanceComponents, OperatorComponents, Shell}
+
+  alias RulesteadAdmin.Components.{
+    FlagComponents,
+    GovernanceComponents,
+    OperatorComponents,
+    Shell
+  }
+
   alias RulesteadAdmin.Live.{AudienceLive.Governance, AudienceLive.Shared, Session}
 
   @impl true
@@ -152,7 +159,10 @@ defmodule RulesteadAdmin.Live.AudienceLive.ArchiveConfirm do
           {:noreply,
            push_navigate(socket,
              to:
-               Shared.path(socket, "/audiences/#{socket.assigns.audience_key}/archive/preview?drifted=true")
+               Shared.path(
+                 socket,
+                 "/audiences/#{socket.assigns.audience_key}/archive/preview?drifted=true"
+               )
            )}
         else
           {:noreply, assign(socket, :error_message, error.message)}

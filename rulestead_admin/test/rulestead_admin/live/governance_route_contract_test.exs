@@ -82,6 +82,7 @@ defmodule RulesteadAdmin.Live.GovernanceRouteContractTest do
              "Dedicated review queue"
 
     expected_cr_redirect = "/admin/flags/change-requests/#{cr_id}?env=staging"
+
     assert {:error, {:live_redirect, %{to: ^expected_cr_redirect}}} =
              live(conn, "/admin/flags/change-requests/#{cr_id}")
 
@@ -127,7 +128,7 @@ defmodule RulesteadAdmin.Live.GovernanceRouteContractTest do
           "/audiences/:audience_key/archive/preview",
           "/audiences/:audience_key/archive/confirm"
         ] do
-      assert router_source =~ "live(\"#{path}\""
+      assert router_source =~ ~r/live\s*\(\s*"#{Regex.escape(path)}"/
     end
 
     refute router_source =~ ~r/live\("[^"]*governance/

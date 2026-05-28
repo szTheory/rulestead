@@ -178,7 +178,11 @@ defmodule Rulestead.Store.AudienceImpactContractTest do
         assert preview.preview_schema_version == 2
         assert preview.preview_basis == "authored_state_with_host_evidence"
         assert preview.impression_evidence.window_label == "last_24h"
-        assert Enum.any?(preview.sample_evidence, &String.starts_with?(&1.actor_key, "fake-vip-users"))
+
+        assert Enum.any?(
+                 preview.sample_evidence,
+                 &String.starts_with?(&1.actor_key, "fake-vip-users")
+               )
       end)
     end
 
@@ -472,7 +476,10 @@ defmodule Rulestead.Store.AudienceImpactContractTest do
              })
 
     assert error.message =~ "Blast radius cannot be evaluated safely" or
-             Enum.any?(error.details, &(&1.code in ["blast_radius_indeterminate", "blast_radius_missing_preview_inputs"]))
+             Enum.any?(
+               error.details,
+               &(&1.code in ["blast_radius_indeterminate", "blast_radius_missing_preview_inputs"])
+             )
   end
 
   test "apply_audience_mutation blocks above-threshold production mutation via facade" do

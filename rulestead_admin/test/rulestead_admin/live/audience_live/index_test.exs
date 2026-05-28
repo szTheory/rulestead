@@ -62,7 +62,9 @@ defmodule RulesteadAdmin.Live.AudienceLive.IndexTest do
 
     publish_ruleset!("checkout", "test", %{
       salt: "checkout:test",
-      rules: [%{key: "vip-rule", strategy: :segment_match, audience_key: "vip-users", conditions: []}]
+      rules: [
+        %{key: "vip-rule", strategy: :segment_match, audience_key: "vip-users", conditions: []}
+      ]
     })
 
     previous = Application.get_env(:rulestead, :admin_policy)
@@ -103,7 +105,9 @@ defmodule RulesteadAdmin.Live.AudienceLive.IndexTest do
 
     publish_ruleset!("checkout", "test", %{
       salt: "checkout:test",
-      rules: [%{key: "vip-rule", strategy: :segment_match, audience_key: "vip-users", conditions: []}]
+      rules: [
+        %{key: "vip-rule", strategy: :segment_match, audience_key: "vip-users", conditions: []}
+      ]
     })
 
     {:ok, _view, html} = live(conn, "/admin/flags/audiences/vip-users?env=test")
@@ -124,8 +128,12 @@ defmodule RulesteadAdmin.Live.AudienceLive.IndexTest do
     alias Rulestead.Store.Command
 
     %{version: version} =
-      Rulestead.save_draft_ruleset!(Command.SaveDraftRuleset.new(flag_key, environment_key, ruleset))
+      Rulestead.save_draft_ruleset!(
+        Command.SaveDraftRuleset.new(flag_key, environment_key, ruleset)
+      )
 
-    Rulestead.publish_ruleset!(Command.PublishRuleset.new(flag_key, environment_key, version: version))
+    Rulestead.publish_ruleset!(
+      Command.PublishRuleset.new(flag_key, environment_key, version: version)
+    )
   end
 end

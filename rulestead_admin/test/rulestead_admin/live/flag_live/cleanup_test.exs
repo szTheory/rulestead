@@ -31,7 +31,12 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupTest do
       ownership: %{owner_ref: "ops", owner_kind: :team, owner_display: "Ops"},
       tags: ["infra"],
       description: "Ops cleanup candidate",
-      lifecycle: %{mode: :expiring, review_by: ~D[2026-04-20], default_source: :flag_type, default_overridden: false},
+      lifecycle: %{
+        mode: :expiring,
+        review_by: ~D[2026-04-20],
+        default_source: :flag_type,
+        default_overridden: false
+      },
       environment_keys: ["prod"],
       code_reference_count: 0,
       code_refs_scan: %{received_at: DateTime.add(now, -600, :second), reference_count: 0}
@@ -42,7 +47,12 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupTest do
       ownership: %{owner_ref: "ops", owner_kind: :team, owner_display: "Ops"},
       tags: ["config"],
       description: "Remote config needs review",
-      lifecycle: %{mode: :expiring, review_by: ~D[2026-04-20], default_source: :flag_type, default_overridden: false},
+      lifecycle: %{
+        mode: :expiring,
+        review_by: ~D[2026-04-20],
+        default_source: :flag_type,
+        default_overridden: false
+      },
       environment_keys: ["prod"],
       flag_type: :remote_config
     )
@@ -50,7 +60,12 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupTest do
     publish_flag!("ops-cleanup")
     publish_flag!("remote-config-review")
 
-    assert {:ok, _} = Rulestead.record_evaluation("ops-cleanup", "prod", DateTime.add(now, -7_200, :second))
+    assert {:ok, _} =
+             Rulestead.record_evaluation(
+               "ops-cleanup",
+               "prod",
+               DateTime.add(now, -7_200, :second)
+             )
 
     conn =
       conn
@@ -67,7 +82,9 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupTest do
     {:ok, conn: conn}
   end
 
-  test "cleanup is the canonical review surface and links into route-backed archive preview", %{conn: conn} do
+  test "cleanup is the canonical review surface and links into route-backed archive preview", %{
+    conn: conn
+  } do
     {:ok, view, html} =
       live(
         conn,
@@ -82,11 +99,13 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupTest do
     assert html =~ "Archive consequences"
     assert html =~ "No known code references."
     assert has_element?(view, "a[href='/admin/flags?env=prod&owner=ops']", "Back to queue")
+
     assert has_element?(
              view,
              "a[href='/admin/flags/ops-cleanup/cleanup/preview?env=prod&return_to=%2Fadmin%2Fflags%3Fenv%3Dprod%26owner%3Dops']",
              "Preview archive"
            )
+
     refute has_element?(view, "form")
     refute html =~ "Phase 36 keeps cleanup advisory only"
   end
@@ -130,7 +149,12 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupTest do
       |> Map.put_new(:value_type, :boolean)
       |> Map.put_new(:default_value, %{value: false})
       |> Map.put_new(:ownership, %{owner_ref: "ops", owner_kind: :team, owner_display: "Ops"})
-      |> Map.put_new(:lifecycle, %{mode: :permanent, review_by: nil, default_source: :flag_type, default_overridden: false})
+      |> Map.put_new(:lifecycle, %{
+        mode: :permanent,
+        review_by: nil,
+        default_source: :flag_type,
+        default_overridden: false
+      })
       |> Map.put_new(:environment_keys, ["prod"])
       |> Map.put_new(:tags, [])
 
@@ -156,9 +180,7 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupTest do
 
     assert {:ok, _draft} =
              Rulestead.save_draft_ruleset(
-               Command.SaveDraftRuleset.new(flag_key, "prod", ruleset,
-                 actor: @admin_actor
-               )
+               Command.SaveDraftRuleset.new(flag_key, "prod", ruleset, actor: @admin_actor)
              )
 
     assert {:ok, _published} =

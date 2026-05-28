@@ -1871,7 +1871,9 @@ defmodule Rulestead.Store.Command do
         rule_key: GovernanceSupport.normalize_string(rule_key),
         enabled: normalize_enabled(GovernanceSupport.fetch(attrs, :enabled)),
         observation_window_seconds:
-          normalize_observation_window(GovernanceSupport.fetch(attrs, :observation_window_seconds)),
+          normalize_observation_window(
+            GovernanceSupport.fetch(attrs, :observation_window_seconds)
+          ),
         next_stage:
           attrs |> GovernanceSupport.fetch(:next_stage) |> GovernanceSupport.normalize_string(),
         next_percentage: normalize_percentage(GovernanceSupport.fetch(attrs, :next_percentage)),
@@ -1896,7 +1898,10 @@ defmodule Rulestead.Store.Command do
     def validate_required_fields(%__MODULE__{} = command) do
       errors =
         %{}
-        |> maybe_add_required_error(:observation_window_seconds, command.observation_window_seconds)
+        |> maybe_add_required_error(
+          :observation_window_seconds,
+          command.observation_window_seconds
+        )
         |> maybe_add_required_error(:next_stage, command.next_stage)
         |> maybe_add_required_error(:next_percentage, command.next_percentage)
 

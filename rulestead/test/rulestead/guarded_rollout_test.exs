@@ -31,7 +31,9 @@ defmodule Rulestead.GuardedRolloutTest do
                      percentage: 50,
                      monitoring_window_started_at: ~U[2025-12-31 12:00:00Z],
                      monitoring_window_ends_at: ~U[2025-12-31 12:05:00Z]
-                   }, metadata: %{request_id: "req-#{flag_key}-advance-50", source: :admin_ui})
+                   },
+                   metadata: %{request_id: "req-#{flag_key}-advance-50", source: :admin_ui}
+                 )
                )
 
       assert advanced.decision_state == :pending_data
@@ -78,7 +80,9 @@ defmodule Rulestead.GuardedRolloutTest do
                      percentage: 100,
                      monitoring_window_started_at: ~U[2025-12-31 13:00:00Z],
                      monitoring_window_ends_at: ~U[2025-12-31 13:05:00Z]
-                   }, metadata: %{request_id: "req-#{flag_key}-advance-100", source: :admin_ui})
+                   },
+                   metadata: %{request_id: "req-#{flag_key}-advance-100", source: :admin_ui}
+                 )
                )
 
       assert {:ok, %{decision: breached}} =
@@ -148,7 +152,9 @@ defmodule Rulestead.GuardedRolloutTest do
                      percentage: 60,
                      monitoring_window_started_at: ~U[2025-12-31 14:00:00Z],
                      monitoring_window_ends_at: ~U[2025-12-31 14:05:00Z]
-                   }, metadata: %{request_id: "req-#{flag_key}-advance", source: :admin_ui})
+                   },
+                   metadata: %{request_id: "req-#{flag_key}-advance", source: :admin_ui}
+                 )
                )
 
       assert {:ok, %{decision: held}} =
@@ -333,7 +339,9 @@ defmodule Rulestead.GuardedRolloutTest do
                    percentage: percentage,
                    monitoring_window_started_at: ~U[2025-12-31 14:00:00Z],
                    monitoring_window_ends_at: ~U[2025-12-31 14:05:00Z]
-                 }, metadata: %{request_id: "req-#{flag_key}-advance", source: :admin_ui})
+                 },
+                 metadata: %{request_id: "req-#{flag_key}-advance", source: :admin_ui}
+               )
              )
   end
 

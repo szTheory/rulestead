@@ -35,6 +35,10 @@ local_check_requires =
       },
       requires: local_check_requires,
       checks: [
+        # Reason: contract tests call Rulestead.Fake.Control and similar nested
+        # modules inline; per-file aliases add noise without safety gain.
+        # Tracking: permanent (mailglass .credo.exs parity)
+        {Credo.Check.Design.AliasUsage, false},
         {Credo.Check.Design.TagTODO, false},
         {Credo.Check.Design.TagFIXME, false},
         {Credo.Check.Warning.IoInspect, false},

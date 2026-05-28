@@ -303,13 +303,19 @@ defmodule Rulestead.StoreFixtures do
         environment_keys: [environment_key]
       })
 
-    unless match?({:ok, _}, adapter.create_flag(Command.CreateFlag.new(flag_attrs,
-           actor: %{id: "creator", type: "operator", display: "Creator"}
-         ))) do
+    unless match?(
+             {:ok, _},
+             adapter.create_flag(
+               Command.CreateFlag.new(flag_attrs,
+                 actor: %{id: "creator", type: "operator", display: "Creator"}
+               )
+             )
+           ) do
       raise "failed to create flag #{flag_key}"
     end
 
-    unless match?({:ok, _},
+    unless match?(
+             {:ok, _},
              adapter.save_draft_ruleset(
                save_draft_command(flag_key, environment_key, guarded_rollout_ruleset_attrs())
              )
@@ -317,13 +323,15 @@ defmodule Rulestead.StoreFixtures do
       raise "failed to save draft ruleset for #{flag_key}"
     end
 
-    unless match?({:ok, _},
+    unless match?(
+             {:ok, _},
              adapter.publish_ruleset(publish_ruleset_command(flag_key, environment_key))
            ) do
       raise "failed to publish ruleset for #{flag_key}"
     end
 
-    unless match?({:ok, _},
+    unless match?(
+             {:ok, _},
              adapter.upsert_rollout_auto_advance_policy(
                Command.UpsertRolloutAutoAdvancePolicy.new(
                  flag_key,

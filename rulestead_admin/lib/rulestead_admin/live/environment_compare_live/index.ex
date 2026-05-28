@@ -250,7 +250,11 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Index do
 
   defp flag_path(page, flag_key, compare_token) do
     params =
-      %{"env" => page.current_environment.key, "source_env" => page.source_env, "target_env" => page.target_env}
+      %{
+        "env" => page.current_environment.key,
+        "source_env" => page.source_env,
+        "target_env" => page.target_env
+      }
       |> maybe_put_param("tenant", page.current_tenant && page.current_tenant.key)
       |> maybe_put_param("compare_token", compare_token)
 
@@ -308,14 +312,18 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Index do
 
   defp dependency_flag_path(page, finding) do
     params = %{"env" => finding.environment_key || page.current_environment.key}
-    params = if page.current_tenant, do: Map.put(params, "tenant", page.current_tenant.key), else: params
+
+    params =
+      if page.current_tenant, do: Map.put(params, "tenant", page.current_tenant.key), else: params
 
     "#{page.mount_path}/#{finding.flag_key}/rules?#{URI.encode_query(params)}"
   end
 
   defp dependency_audience_path(page, finding) do
     params = %{"env" => finding.environment_key || page.current_environment.key}
-    params = if page.current_tenant, do: Map.put(params, "tenant", page.current_tenant.key), else: params
+
+    params =
+      if page.current_tenant, do: Map.put(params, "tenant", page.current_tenant.key), else: params
 
     "#{page.mount_path}/audiences/#{finding.audience_key}?#{URI.encode_query(params)}"
   end

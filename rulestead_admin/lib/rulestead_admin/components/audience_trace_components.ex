@@ -3,7 +3,7 @@ defmodule RulesteadAdmin.Components.AudienceTraceComponents do
 
   use Phoenix.Component
 
-  attr :rule_traces, :list, default: []
+  attr(:rule_traces, :list, default: [])
 
   def audience_trace_steps(assigns) do
     ~H"""

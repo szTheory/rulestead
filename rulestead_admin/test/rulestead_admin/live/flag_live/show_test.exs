@@ -143,17 +143,39 @@ defmodule RulesteadAdmin.Live.FlagLive.ShowTest do
 
   test "detail links to the dedicated phase 7 routes and keeps audit summary on the read surface",
        %{conn: conn} do
-    {:ok, view, html} = live(conn, "/admin/flags/checkout-redesign?env=prod&return_to=%2Fadmin%2Fflags%3Fenv%3Dprod%26owner%3Dgrowth")
+    {:ok, view, html} =
+      live(
+        conn,
+        "/admin/flags/checkout-redesign?env=prod&return_to=%2Fadmin%2Fflags%3Fenv%3Dprod%26owner%3Dgrowth"
+      )
 
     assert html =~ "Active ruleset"
     assert html =~ "Version 1"
     assert html =~ "Draft ruleset"
     assert html =~ "Version 2"
     assert has_element?(view, "a[href='/admin/flags?env=prod&owner=growth']", "Back to queue")
-    assert has_element?(view, "a[href='/admin/flags/checkout-redesign/rules?env=prod&return_to=%2Fadmin%2Fflags%3Fenv%3Dprod%26owner%3Dgrowth']")
-    assert has_element?(view, "a[href='/admin/flags/checkout-redesign/kill?env=prod&return_to=%2Fadmin%2Fflags%3Fenv%3Dprod%26owner%3Dgrowth']")
-    assert has_element?(view, "a[href='/admin/flags/checkout-redesign/cleanup?env=prod&return_to=%2Fadmin%2Fflags%3Fenv%3Dprod%26owner%3Dgrowth']", "Review cleanup")
-    assert has_element?(view, "a[href='/admin/flags/checkout-redesign/timeline?env=prod&return_to=%2Fadmin%2Fflags%3Fenv%3Dprod%26owner%3Dgrowth']")
+
+    assert has_element?(
+             view,
+             "a[href='/admin/flags/checkout-redesign/rules?env=prod&return_to=%2Fadmin%2Fflags%3Fenv%3Dprod%26owner%3Dgrowth']"
+           )
+
+    assert has_element?(
+             view,
+             "a[href='/admin/flags/checkout-redesign/kill?env=prod&return_to=%2Fadmin%2Fflags%3Fenv%3Dprod%26owner%3Dgrowth']"
+           )
+
+    assert has_element?(
+             view,
+             "a[href='/admin/flags/checkout-redesign/cleanup?env=prod&return_to=%2Fadmin%2Fflags%3Fenv%3Dprod%26owner%3Dgrowth']",
+             "Review cleanup"
+           )
+
+    assert has_element?(
+             view,
+             "a[href='/admin/flags/checkout-redesign/timeline?env=prod&return_to=%2Fadmin%2Fflags%3Fenv%3Dprod%26owner%3Dgrowth']"
+           )
+
     assert html =~ "Open rules workspace"
     assert html =~ "Open kill switch"
     assert html =~ "Open audit timeline"
@@ -231,9 +253,11 @@ defmodule RulesteadAdmin.Live.FlagLive.ShowTest do
   end
 
   test "invalid return_to falls back to the mounted queue path", %{conn: conn} do
-    {:ok, view, _html} = live(conn, "/admin/flags/checkout-redesign?env=prod&return_to=%2Foutside")
+    {:ok, view, _html} =
+      live(conn, "/admin/flags/checkout-redesign?env=prod&return_to=%2Foutside")
 
     assert has_element?(view, "a[href='/admin/flags?env=prod']", "Back to queue")
+
     assert has_element?(
              view,
              "a[href='/admin/flags/checkout-redesign/cleanup?env=prod&return_to=%2Fadmin%2Fflags%3Fenv%3Dprod']",

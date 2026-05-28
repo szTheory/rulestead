@@ -1091,7 +1091,8 @@ defmodule Rulestead do
   Evaluation-only in Phase 61: returns eligibility without mutating rollout
   stage, guardrail decisions, or scheduling governed `advance_rollout`.
   """
-  @spec evaluate_rollout_auto_advance(Command.EvaluateRolloutAutoAdvance.t()) :: Store.result(map())
+  @spec evaluate_rollout_auto_advance(Command.EvaluateRolloutAutoAdvance.t()) ::
+          Store.result(map())
   def evaluate_rollout_auto_advance(%Command.EvaluateRolloutAutoAdvance{} = command) do
     run_store(:evaluate_rollout_auto_advance, [command], command)
   end
@@ -1827,7 +1828,7 @@ defmodule Rulestead do
               :list_audiences,
               :list_audience_dependencies
             ],
-    do: :read
+       do: :read
 
   defp store_event_kind(_operation), do: :write
 
@@ -1962,9 +1963,7 @@ defmodule Rulestead do
           ]
           |> Enum.join("|")
 
-        ManifestResult.finding(finding.code, finding.severity, scope,
-          message: finding[:message]
-        )
+        ManifestResult.finding(finding.code, finding.severity, scope, message: finding[:message])
       end)
 
     per_flag =

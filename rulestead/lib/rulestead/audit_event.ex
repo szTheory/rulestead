@@ -295,7 +295,10 @@ defmodule Rulestead.AuditEvent do
 
   defp normalize_audience_preview_value(nil), do: nil
   defp normalize_audience_preview_value(value) when is_map(value), do: normalize_map(value)
-  defp normalize_audience_preview_value(value) when is_list(value), do: Enum.map(value, &normalize_audience_preview_value/1)
+
+  defp normalize_audience_preview_value(value) when is_list(value),
+    do: Enum.map(value, &normalize_audience_preview_value/1)
+
   defp normalize_audience_preview_value(value) when is_atom(value), do: Atom.to_string(value)
   defp normalize_audience_preview_value(value), do: value
 

@@ -13,7 +13,8 @@ defmodule RulesteadAdmin.Live.AudienceLive.Shared do
     do: "#{fetch_mount_path(socket_or_assigns)}/audiences/#{audience_key}"
 
   @spec path(Socket.t() | map(), String.t()) :: String.t()
-  def path(socket_or_assigns, suffix), do: Session.current_path(socket_or_assigns, "#{fetch_mount_path(socket_or_assigns)}#{suffix}")
+  def path(socket_or_assigns, suffix),
+    do: Session.current_path(socket_or_assigns, "#{fetch_mount_path(socket_or_assigns)}#{suffix}")
 
   @spec scope_opts(Socket.t()) :: keyword()
   def scope_opts(socket) do
@@ -37,8 +38,8 @@ defmodule RulesteadAdmin.Live.AudienceLive.Shared do
 
   @spec dependency_summary(map()) :: String.t()
   def dependency_summary(%{reference_count: count, hidden_reference_count: hidden})
-       when hidden > 0,
-       do: "Used by #{count} authored references (#{hidden} hidden by your permissions)"
+      when hidden > 0,
+      do: "Used by #{count} authored references (#{hidden} hidden by your permissions)"
 
   def dependency_summary(%{reference_count: count}), do: "Used by #{count} authored references"
   def dependency_summary(_), do: "Used by 0 authored references"
@@ -46,7 +47,9 @@ defmodule RulesteadAdmin.Live.AudienceLive.Shared do
   @spec humanize(atom() | String.t() | nil) :: String.t()
   def humanize(nil), do: "unknown"
   def humanize(value) when is_atom(value), do: value |> Atom.to_string() |> humanize()
-  def humanize(value) when is_binary(value), do: value |> String.replace("_", " ") |> String.capitalize()
+
+  def humanize(value) when is_binary(value),
+    do: value |> String.replace("_", " ") |> String.capitalize()
 
   @spec query_params(String.t()) :: map()
   def query_params(uri) do
@@ -60,7 +63,9 @@ defmodule RulesteadAdmin.Live.AudienceLive.Shared do
   end
 
   @spec drift_message(String.t() | nil) :: String.t() | nil
-  def drift_message("true"), do: "Authored state changed since preview — review the latest impact evidence."
+  def drift_message("true"),
+    do: "Authored state changed since preview — review the latest impact evidence."
+
   def drift_message(_), do: nil
 
   @spec stale_preview_error?(term()) :: boolean()

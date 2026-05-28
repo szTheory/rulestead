@@ -46,32 +46,61 @@ defmodule Rulestead.Guardrails.AutoAdvance do
         decision_summary = decision_summary(decision)
         window_closed? = decision.monitoring_window_closed?
 
-        cond do
-          signal_facts == [] and window_closed? ->
-            blocked(policy_snapshot, decision_summary, true, ["monitoring_window_expired"])
-
-          decision.state != :healthy ->
-            blocked(
-              policy_snapshot,
-              decision_summary,
-              window_closed?,
-              ["guardrail_#{decision.state}:#{decision.reason}"]
-            )
-
-          not window_closed? ->
-            blocked(policy_snapshot, decision_summary, false, ["monitoring_window_active"])
-
-          true ->
-            {:ok,
-             %Eligibility{
-               status: :eligible,
-               reasons: [],
-               policy_snapshot: policy_snapshot,
-               decision_summary: decision_summary,
-               monitoring_window_closed?: true
-             }}
-        end
+        eligibility_from_decision(
+          signal_facts,
+          decision,
+          policy_snapshot,
+          decision_summary,
+          window_closed?
+        )
     end
+  end
+
+  defp eligibility_from_decision([], _decision, policy_snapshot, decision_summary, true) do
+    blocked(policy_snapshot, decision_summary, true, ["monitoring_window_expired"])
+  end
+
+  defp eligibility_from_decision(
+         _signal_facts,
+         %{state: state, reason: reason},
+         policy_snapshot,
+         decision_summary,
+         window_closed?
+       )
+       when state != :healthy do
+    blocked(
+      policy_snapshot,
+      decision_summary,
+      window_closed?,
+      ["guardrail_#{state}:#{reason}"]
+    )
+  end
+
+  defp eligibility_from_decision(
+         _signal_facts,
+         _decision,
+         policy_snapshot,
+         decision_summary,
+         false
+       ) do
+    blocked(policy_snapshot, decision_summary, false, ["monitoring_window_active"])
+  end
+
+  defp eligibility_from_decision(
+         _signal_facts,
+         _decision,
+         policy_snapshot,
+         decision_summary,
+         true
+       ) do
+    {:ok,
+     %Eligibility{
+       status: :eligible,
+       reasons: [],
+       policy_snapshot: policy_snapshot,
+       decision_summary: decision_summary,
+       monitoring_window_closed?: true
+     }}
   end
 
   defp blocked(policy_snapshot, decision_summary, window_closed?, reasons) do

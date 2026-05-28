@@ -49,7 +49,7 @@ defmodule Rulestead.Admin.DependencyVisibilityTest do
 
     entry = %{flag_key: "checkout", environment_key: "test"}
 
-  assert resolver.(entry)
+    assert resolver.(entry)
   end
 
   test "visibility_resolver hides entries when read_flags is denied" do

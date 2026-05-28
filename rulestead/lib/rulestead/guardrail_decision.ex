@@ -89,7 +89,10 @@ defmodule Rulestead.GuardrailDecision do
       :action_type,
       :occurred_at
     ])
-    |> validate_number(:effective_percentage, greater_than_or_equal_to: 0, less_than_or_equal_to: 100)
+    |> validate_number(:effective_percentage,
+      greater_than_or_equal_to: 0,
+      less_than_or_equal_to: 100
+    )
   end
 
   @spec serialize(t()) :: map()
@@ -128,8 +131,11 @@ defmodule Rulestead.GuardrailDecision do
 
   defp put_default_occurred_at(changeset) do
     case get_field(changeset, :occurred_at) do
-      nil -> put_change(changeset, :occurred_at, DateTime.utc_now() |> DateTime.truncate(:microsecond))
-      _value -> changeset
+      nil ->
+        put_change(changeset, :occurred_at, DateTime.utc_now() |> DateTime.truncate(:microsecond))
+
+      _value ->
+        changeset
     end
   end
 
@@ -153,6 +159,8 @@ defmodule Rulestead.GuardrailDecision do
     end
   end
 
-  defp normalize_string(value) when is_atom(value), do: value |> Atom.to_string() |> normalize_string()
+  defp normalize_string(value) when is_atom(value),
+    do: value |> Atom.to_string() |> normalize_string()
+
   defp normalize_string(value), do: value
 end

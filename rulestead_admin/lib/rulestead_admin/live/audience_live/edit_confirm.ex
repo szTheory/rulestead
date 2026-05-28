@@ -5,7 +5,14 @@ defmodule RulesteadAdmin.Live.AudienceLive.EditConfirm do
   use Phoenix.LiveView
 
   alias Rulestead.Store.Command
-  alias RulesteadAdmin.Components.{FlagComponents, GovernanceComponents, OperatorComponents, Shell}
+
+  alias RulesteadAdmin.Components.{
+    FlagComponents,
+    GovernanceComponents,
+    OperatorComponents,
+    Shell
+  }
+
   alias RulesteadAdmin.Live.{AudienceLive.Governance, AudienceLive.Shared, Session}
 
   @impl true
@@ -156,7 +163,10 @@ defmodule RulesteadAdmin.Live.AudienceLive.EditConfirm do
           {:noreply,
            push_navigate(socket,
              to:
-               Shared.path(socket, "/audiences/#{socket.assigns.audience_key}/edit/preview?drifted=true")
+               Shared.path(
+                 socket,
+                 "/audiences/#{socket.assigns.audience_key}/edit/preview?drifted=true"
+               )
            )}
         else
           {:noreply, assign(socket, :error_message, error.message)}
@@ -175,7 +185,8 @@ defmodule RulesteadAdmin.Live.AudienceLive.EditConfirm do
          :ok <- Governance.ensure_governance_mode(socket, :change_request),
          approval_requirement <-
            Governance.build_approval_requirement(socket, :apply_audience_mutation, audience_key),
-         command_map <- Governance.audience_mutation_command_map(socket, preview, audience, :update),
+         command_map <-
+           Governance.audience_mutation_command_map(socket, preview, audience, :update),
          {:ok, %{change_request: change_request}} <-
            Rulestead.submit_change_request(
              Command.SubmitChangeRequest.new(
@@ -299,7 +310,8 @@ defmodule RulesteadAdmin.Live.AudienceLive.EditConfirm do
     end
   end
 
-  defp preview_path(assigns), do: Shared.path(assigns, "/audiences/#{assigns.audience_key}/edit/preview")
+  defp preview_path(assigns),
+    do: Shared.path(assigns, "/audiences/#{assigns.audience_key}/edit/preview")
 
   defp ensure_apply_allowed(%{assigns: %{governance_mode: mode}})
        when mode in [:unrestricted, :direct_apply],

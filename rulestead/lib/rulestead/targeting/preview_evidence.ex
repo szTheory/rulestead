@@ -23,7 +23,7 @@ defmodule Rulestead.Targeting.PreviewEvidence do
       resolver when is_atom(resolver) ->
         with {:module, ^resolver} <- Code.ensure_loaded(resolver),
              true <- function_exported?(resolver, :resolve, 1) do
-          normalize_resolver_result(apply(resolver, :resolve, [query]), opts)
+          normalize_resolver_result(resolver.resolve(query), opts)
         else
           _ -> resolver_failed(:invalid_resolver)
         end
@@ -38,7 +38,8 @@ defmodule Rulestead.Targeting.PreviewEvidence do
       Application.get_env(:rulestead, :preview_evidence_resolver)
   end
 
-  defp normalize_resolver_result({:ok, evidence}, opts) when is_map(evidence) or is_list(evidence) do
+  defp normalize_resolver_result({:ok, evidence}, opts)
+       when is_map(evidence) or is_list(evidence) do
     evidence |> Map.new() |> normalize_evidence_map(opts)
   end
 
@@ -49,12 +50,10 @@ defmodule Rulestead.Targeting.PreviewEvidence do
   end
 
   defp normalize_evidence_map(%{} = evidence, opts) do
-    cond do
-      map_size(evidence) == 0 ->
-        Limits.validate_and_redact(%{samples: [], impression_summary: %{}}, opts)
-
-      true ->
-        Limits.validate_and_redact(evidence, opts)
+    if map_size(evidence) == 0 do
+      Limits.validate_and_redact(%{samples: [], impression_summary: %{}}, opts)
+    else
+      Limits.validate_and_redact(evidence, opts)
     end
   end
 

@@ -9,12 +9,12 @@ defmodule RulesteadAdmin.Components.GovernanceComponents do
   @archive_limit 0
   @max_visible_breaches 5
 
-  attr :assessment, :map, required: true
-  attr :variant, :atom, default: :operator, values: [:operator, :reviewer]
-  attr :visibility, :atom, default: :full, values: [:full, :redacted]
-  attr :environment_label, :string, default: nil
-  attr :frozen?, :boolean, default: false
-  slot :impact_preview
+  attr(:assessment, :map, required: true)
+  attr(:variant, :atom, default: :operator, values: [:operator, :reviewer])
+  attr(:visibility, :atom, default: :full, values: [:full, :redacted])
+  attr(:environment_label, :string, default: nil)
+  attr(:frozen?, :boolean, default: false)
+  slot(:impact_preview)
 
   def blast_radius_panel(assigns) do
     reasons = breach_reasons(assigns.assessment)
@@ -106,7 +106,9 @@ defmodule RulesteadAdmin.Components.GovernanceComponents do
   defp verdict_tone(_), do: "critical"
 
   defp threshold_summary(assessment, :above_threshold) do
-    operation = normalize_operation(Map.get(assessment, :operation) || Map.get(assessment, "operation"))
+    operation =
+      normalize_operation(Map.get(assessment, :operation) || Map.get(assessment, "operation"))
+
     count = reference_count(assessment)
     limit = limit_for_operation(operation)
 
@@ -154,8 +156,7 @@ defmodule RulesteadAdmin.Components.GovernanceComponents do
       end
 
     [code, detail, remediation, limit_detail(observed, limit)]
-    |> Enum.reject(&is_nil/1)
-    |> Enum.reject(&(&1 == ""))
+    |> Enum.reject(fn item -> is_nil(item) or item == "" end)
     |> Enum.join(" — ")
   end
 
@@ -178,12 +179,8 @@ defmodule RulesteadAdmin.Components.GovernanceComponents do
   defp observed_detail(observed) when is_map(observed) do
     keys = Map.get(observed, :reference_keys) || Map.get(observed, "reference_keys")
 
-    cond do
-      is_list(keys) and keys != [] ->
-        Enum.join(keys, ", ")
-
-      true ->
-        nil
+    if is_list(keys) and keys != [] do
+      Enum.join(keys, ", ")
     end
   end
 

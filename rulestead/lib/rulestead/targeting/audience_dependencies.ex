@@ -6,7 +6,8 @@ defmodule Rulestead.Targeting.AudienceDependencies do
   @unavailable %{available?: false}
 
   @spec summarize(String.t() | atom() | nil, list()) :: [map()]
-  def summarize(audience_key, authored_flags_or_payloads) when is_list(authored_flags_or_payloads) do
+  def summarize(audience_key, authored_flags_or_payloads)
+      when is_list(authored_flags_or_payloads) do
     target_audience_key = normalize_string(audience_key)
 
     authored_flags_or_payloads
@@ -64,7 +65,8 @@ defmodule Rulestead.Targeting.AudienceDependencies do
       rule_key: rule_key,
       rule_strategy: @segment_match,
       rollout_context: context_or_unavailable(fetch(rule, :rollout)),
-      lifecycle_context: context_or_unavailable(fetch(rule, :lifecycle) || fetch(payload, :lifecycle)),
+      lifecycle_context:
+        context_or_unavailable(fetch(rule, :lifecycle) || fetch(payload, :lifecycle)),
       environment_key: normalize_string(fetch(payload, :environment_key)),
       tenant_key: normalize_string(fetch(payload, :tenant_key))
     }
@@ -103,17 +105,24 @@ defmodule Rulestead.Targeting.AudienceDependencies do
   defp context_or_unavailable(_context), do: @unavailable
 
   defp normalize_context(context) do
-    Map.new(context, fn {key, value} -> {normalize_context_key(key), normalize_context_value(value)} end)
+    Map.new(context, fn {key, value} ->
+      {normalize_context_key(key), normalize_context_value(value)}
+    end)
   end
 
   defp normalize_context_key(key) when is_atom(key), do: key
   defp normalize_context_key(key), do: to_string(key)
 
   defp normalize_context_value(value) when is_map(value), do: normalize_context(value)
-  defp normalize_context_value(value) when is_list(value), do: Enum.map(value, &normalize_context_value/1)
+
+  defp normalize_context_value(value) when is_list(value),
+    do: Enum.map(value, &normalize_context_value/1)
+
   defp normalize_context_value(value), do: value
 
-  defp fetch(map, key) when is_map(map), do: Map.get(map, key) || Map.get(map, Atom.to_string(key))
+  defp fetch(map, key) when is_map(map),
+    do: Map.get(map, key) || Map.get(map, Atom.to_string(key))
+
   defp fetch(_map, _key), do: nil
 
   defp normalize_string(value) when is_binary(value) do
@@ -125,6 +134,8 @@ defmodule Rulestead.Targeting.AudienceDependencies do
     end
   end
 
-  defp normalize_string(value) when is_atom(value) and not is_nil(value), do: Atom.to_string(value)
+  defp normalize_string(value) when is_atom(value) and not is_nil(value),
+    do: Atom.to_string(value)
+
   defp normalize_string(value), do: value
 end

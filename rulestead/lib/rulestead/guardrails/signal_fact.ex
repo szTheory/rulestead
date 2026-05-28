@@ -76,17 +76,17 @@ defmodule Rulestead.Guardrails.SignalFact do
     evaluated_at = normalize_datetime(optional_value(attrs, :evaluated_at)) || DateTime.utc_now()
 
     reason =
-      resolve_reason(
-        optional_value(attrs, :reason),
-        threshold_operator,
-        threshold_value,
-        observed_value,
-        freshness_window_seconds,
-        sample_size,
-        min_sample_size,
-        captured_at,
-        evaluated_at
-      )
+      infer_reason(%{
+        reason: optional_value(attrs, :reason),
+        threshold_operator: threshold_operator,
+        threshold_value: threshold_value,
+        observed_value: observed_value,
+        freshness_window_seconds: freshness_window_seconds,
+        sample_size: sample_size,
+        min_sample_size: min_sample_size,
+        captured_at: captured_at,
+        evaluated_at: evaluated_at
+      })
 
     %__MODULE__{
       signal_key: signal_key,
@@ -193,32 +193,9 @@ defmodule Rulestead.Guardrails.SignalFact do
   @spec reasons() :: [atom()]
   def reasons, do: @reasons
 
-  defp resolve_reason(
-         reason,
-         _operator,
-         _threshold,
-         _observed,
-         _freshness,
-         _sample_size,
-         _min_sample,
-         _captured_at,
-         _evaluated_at
-       )
-       when reason in @reasons,
-       do: reason
+  defp infer_reason(%{reason: reason}) when reason in @reasons, do: reason
 
-  defp resolve_reason(
-         reason,
-         _operator,
-         _threshold,
-         _observed,
-         _freshness,
-         _sample_size,
-         _min_sample,
-         _captured_at,
-         _evaluated_at
-       )
-       when is_binary(reason) do
+  defp infer_reason(%{reason: reason}) when is_binary(reason) do
     case String.trim(reason) do
       "healthy" -> :healthy
       "breached" -> :breached
@@ -231,33 +208,44 @@ defmodule Rulestead.Guardrails.SignalFact do
     end
   end
 
-  defp resolve_reason(
-         _reason,
-         operator,
-         threshold_value,
-         observed_value,
-         freshness_window_seconds,
-         sample_size,
-         min_sample_size,
-         captured_at,
-         evaluated_at
-       ) do
+  defp infer_reason(%{
+         threshold_operator: operator,
+         threshold_value: threshold_value,
+         observed_value: observed_value,
+         freshness_window_seconds: freshness_window_seconds,
+         sample_size: sample_size,
+         min_sample_size: min_sample_size,
+         captured_at: captured_at,
+         evaluated_at: evaluated_at
+       }) do
     cond do
-      is_integer(freshness_window_seconds) and freshness_window_seconds >= 0 and
-        not is_nil(captured_at) and
-          DateTime.diff(evaluated_at, captured_at, :second) > freshness_window_seconds ->
+      stale_signal?(freshness_window_seconds, captured_at, evaluated_at) ->
         :stale
 
-      is_integer(sample_size) and is_integer(min_sample_size) and sample_size < min_sample_size ->
+      insufficient_sample?(sample_size, min_sample_size) ->
         :insufficient_sample
 
-      operator in [:lt, :lte, :gt, :gte] and is_number(threshold_value) and
-          is_number(observed_value) ->
+      comparable_signal?(operator, threshold_value, observed_value) ->
         if breached?(operator, observed_value, threshold_value), do: :breached, else: :healthy
 
       true ->
         :invalid_provider_response
     end
+  end
+
+  defp stale_signal?(freshness_window_seconds, captured_at, evaluated_at) do
+    is_integer(freshness_window_seconds) and freshness_window_seconds >= 0 and
+      not is_nil(captured_at) and
+      DateTime.diff(evaluated_at, captured_at, :second) > freshness_window_seconds
+  end
+
+  defp insufficient_sample?(sample_size, min_sample_size) do
+    is_integer(sample_size) and is_integer(min_sample_size) and sample_size < min_sample_size
+  end
+
+  defp comparable_signal?(operator, threshold_value, observed_value) do
+    operator in [:lt, :lte, :gt, :gte] and is_number(threshold_value) and
+      is_number(observed_value)
   end
 
   defp resolve_status(status, _reason) when status in @statuses, do: status

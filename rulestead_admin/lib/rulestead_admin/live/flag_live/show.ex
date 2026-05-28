@@ -27,8 +27,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
     base_path = detail_base_path(socket, key)
 
     socket =
-     socket
-     |> assign(:flag_key, key)
+      socket
+      |> assign(:flag_key, key)
       |> assign(
         :return_to,
         Session.canonical_return_to(
@@ -38,7 +38,10 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
         )
       )
       |> assign(:current_path, Session.current_path(socket, base_path))
-      |> assign(:env_links, Session.env_links(socket, base_path, %{"return_to" => query["return_to"]}))
+      |> assign(
+        :env_links,
+        Session.env_links(socket, base_path, %{"return_to" => query["return_to"]})
+      )
       |> load_detail(key, env)
 
     {:noreply, socket}
@@ -445,7 +448,10 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
 
   defp blocker_label(:protected_flag_type), do: "Protected flag type resists archival"
   defp blocker_label(:permanent_posture), do: "Permanent posture keeps this flag active"
-  defp blocker_label(:remote_config_requires_review), do: "Remote config flags require stronger review"
+
+  defp blocker_label(:remote_config_requires_review),
+    do: "Remote config flags require stronger review"
+
   defp blocker_label(:code_refs_present), do: "Code references are still present"
   defp blocker_label(:already_archived), do: "Already archived"
   defp blocker_label(reason), do: humanize(reason)

@@ -71,11 +71,19 @@ defmodule Rulestead.AudienceMutationAuditTest do
     assert metadata["tenant"]["tenant_key"] == "tenant-a"
     assert metadata["preview_fingerprint"] == preview.preview_fingerprint
     assert metadata["preview_schema_version"] == ImpactPreview.schema_version()
-    assert metadata["affected_reference_keys"] == ["flag:checkout-redesign:ruleset:1:rule:vip-rule"]
-    assert [%{"reference_key" => "flag:checkout-redesign:ruleset:1:rule:vip-rule"}] = metadata["affected_references"]
+
+    assert metadata["affected_reference_keys"] == [
+             "flag:checkout-redesign:ruleset:1:rule:vip-rule"
+           ]
+
+    assert [%{"reference_key" => "flag:checkout-redesign:ruleset:1:rule:vip-rule"}] =
+             metadata["affected_references"]
+
     assert metadata["preview_basis"] == "authored_state_and_explicit_samples"
     assert metadata["uncertainty"]["authoritative_population_count?"] == false
-    assert [%{"actor_key" => "actor-1", "traits" => %{"plan" => "pro"}}] = metadata["sample_evidence"]
+
+    assert [%{"actor_key" => "actor-1", "traits" => %{"plan" => "pro"}}] =
+             metadata["sample_evidence"]
 
     refute inspect(metadata) =~ "secret-session"
     refute inspect(metadata) =~ "secret-socket"
@@ -101,7 +109,10 @@ defmodule Rulestead.AudienceMutationAuditTest do
     assert event.reason == "apply confirmed update"
     assert event.metadata["preview_fingerprint"] == "audprev_stale"
     assert event.metadata["blockers"] == [%{"code" => "audience_preview_stale"}]
-    assert event.metadata["affected_reference_keys"] == ["flag:checkout-redesign:ruleset:1:rule:vip-rule"]
+
+    assert event.metadata["affected_reference_keys"] == [
+             "flag:checkout-redesign:ruleset:1:rule:vip-rule"
+           ]
 
     refute inspect(event.metadata) =~ "blocked@example.com"
     refute inspect(event.metadata) =~ "+1-555-1111"
@@ -109,7 +120,13 @@ defmodule Rulestead.AudienceMutationAuditTest do
 
   test "accepted audience update carries impression_evidence when resolver configured" do
     previous_resolver = Application.get_env(:rulestead, :preview_evidence_resolver)
-    Application.put_env(:rulestead, :preview_evidence_resolver, Rulestead.Fake.PreviewEvidenceResolver)
+
+    Application.put_env(
+      :rulestead,
+      :preview_evidence_resolver,
+      Rulestead.Fake.PreviewEvidenceResolver
+    )
+
     on_exit(fn -> restore_env(:preview_evidence_resolver, previous_resolver) end)
 
     {:ok, preview} = update_preview()
@@ -125,7 +142,13 @@ defmodule Rulestead.AudienceMutationAuditTest do
 
   test "blocked blast-radius audit carries preview evidence summary" do
     previous_resolver = Application.get_env(:rulestead, :preview_evidence_resolver)
-    Application.put_env(:rulestead, :preview_evidence_resolver, Rulestead.Fake.PreviewEvidenceResolver)
+
+    Application.put_env(
+      :rulestead,
+      :preview_evidence_resolver,
+      Rulestead.Fake.PreviewEvidenceResolver
+    )
+
     on_exit(fn -> restore_env(:preview_evidence_resolver, previous_resolver) end)
 
     seed_production_audience_references!(3)
@@ -203,7 +226,9 @@ defmodule Rulestead.AudienceMutationAuditTest do
         ])
       end
 
-    EctoStore.preview_audience_impact(Command.PreviewAudienceImpact.new("vip-users", :update, attrs))
+    EctoStore.preview_audience_impact(
+      Command.PreviewAudienceImpact.new("vip-users", :update, attrs)
+    )
   end
 
   defp seed_production_audience_references!(count) do
@@ -231,7 +256,9 @@ defmodule Rulestead.AudienceMutationAuditTest do
         })
 
       assert {:ok, _draft} =
-               EctoStore.save_draft_ruleset(Command.SaveDraftRuleset.new(flag_key, "production", ruleset))
+               EctoStore.save_draft_ruleset(
+                 Command.SaveDraftRuleset.new(flag_key, "production", ruleset)
+               )
 
       assert {:ok, _published} =
                EctoStore.publish_ruleset(Command.PublishRuleset.new(flag_key, "production"))
@@ -300,7 +327,9 @@ defmodule Rulestead.AudienceMutationAuditTest do
       })
 
     assert {:ok, _draft} =
-             EctoStore.save_draft_ruleset(Command.SaveDraftRuleset.new("checkout-redesign", "test", ruleset))
+             EctoStore.save_draft_ruleset(
+               Command.SaveDraftRuleset.new("checkout-redesign", "test", ruleset)
+             )
 
     assert {:ok, _published} =
              EctoStore.publish_ruleset(Command.PublishRuleset.new("checkout-redesign", "test"))
@@ -330,7 +359,11 @@ defmodule Rulestead.AudienceMutationAuditTest do
 
   defp default_environments do
     [
-      %{key: "development", name: "Development", description: "Local and developer-owned environments"},
+      %{
+        key: "development",
+        name: "Development",
+        description: "Local and developer-owned environments"
+      },
       %{key: "staging", name: "Staging", description: "Pre-production validation environments"},
       %{key: "production", name: "Production", description: "Live customer-facing environments"},
       %{key: "test", name: "Test", description: "Automated and ephemeral test environments"}

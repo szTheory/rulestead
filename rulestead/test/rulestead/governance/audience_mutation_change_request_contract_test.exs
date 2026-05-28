@@ -33,12 +33,16 @@ defmodule Rulestead.Governance.AudienceMutationChangeRequestContractTest do
 
       assert {:ok, %{change_request: submitted}} =
                adapter.submit_change_request(
-                 audience_submit_command(preview, correlation_id: "corr-audience-happy-#{adapter_label(adapter)}")
+                 audience_submit_command(preview,
+                   correlation_id: "corr-audience-happy-#{adapter_label(adapter)}"
+                 )
                )
 
       assert submitted.state == :submitted
       assert submitted.metadata["blast_radius_assessment"]["verdict"] == "above_threshold"
-      assert submitted.metadata["preview_evidence_summary"]["preview_fingerprint"] == preview.preview_fingerprint
+
+      assert submitted.metadata["preview_evidence_summary"]["preview_fingerprint"] ==
+               preview.preview_fingerprint
 
       assert {:ok, %{change_request: approved}} =
                adapter.approve_change_request(
@@ -74,19 +78,27 @@ defmodule Rulestead.Governance.AudienceMutationChangeRequestContractTest do
 
       assert {:ok, %{change_request: submitted}} =
                adapter.submit_change_request(
-                 audience_submit_command(preview, correlation_id: "corr-audience-stale-#{adapter_label(adapter)}")
+                 audience_submit_command(preview,
+                   correlation_id: "corr-audience-stale-#{adapter_label(adapter)}"
+                 )
                )
 
       assert {:ok, %{change_request: _approved}} =
                adapter.approve_change_request(
-                 Command.ApproveChangeRequest.new(submitted.id, actor: reviewer(), reason: "Approved")
+                 Command.ApproveChangeRequest.new(submitted.id,
+                   actor: reviewer(),
+                   reason: "Approved"
+                 )
                )
 
       drift_audience_definition!(adapter)
 
       assert {:error, %Error{type: :invalid_command, message: message}} =
                adapter.execute_change_request(
-                 Command.ExecuteChangeRequest.new(submitted.id, actor: executor(), reason: "Execute")
+                 Command.ExecuteChangeRequest.new(submitted.id,
+                   actor: executor(),
+                   reason: "Execute"
+                 )
                )
 
       assert message =~ "stale"
@@ -108,7 +120,9 @@ defmodule Rulestead.Governance.AudienceMutationChangeRequestContractTest do
 
       assert {:ok, %{change_request: submitted}} =
                adapter.submit_change_request(
-                 audience_submit_command(preview, correlation_id: "corr-audience-reject-#{adapter_label(adapter)}")
+                 audience_submit_command(preview,
+                   correlation_id: "corr-audience-reject-#{adapter_label(adapter)}"
+                 )
                )
 
       assert {:ok, %{change_request: rejected}} =
@@ -130,7 +144,10 @@ defmodule Rulestead.Governance.AudienceMutationChangeRequestContractTest do
       assert get_in(audit_context_metadata(rejected_event), ["blast_radius_assessment", "verdict"]) ==
                "above_threshold"
 
-      assert get_in(audit_context_metadata(rejected_event), ["preview_evidence_summary", "preview_fingerprint"]) ==
+      assert get_in(audit_context_metadata(rejected_event), [
+               "preview_evidence_summary",
+               "preview_fingerprint"
+             ]) ==
                preview.preview_fingerprint
     end)
   end
@@ -170,7 +187,9 @@ defmodule Rulestead.Governance.AudienceMutationChangeRequestContractTest do
 
       assert {:ok, %{change_request: submitted}} =
                adapter.submit_change_request(
-                 audience_submit_command(preview, correlation_id: "corr-audience-cancel-#{adapter_label(adapter)}")
+                 audience_submit_command(preview,
+                   correlation_id: "corr-audience-cancel-#{adapter_label(adapter)}"
+                 )
                )
 
       assert {:ok, %{change_request: cancelled}} =
@@ -191,7 +210,10 @@ defmodule Rulestead.Governance.AudienceMutationChangeRequestContractTest do
 
       assert Map.has_key?(audit_context_metadata(cancelled_event), "blast_radius_assessment")
 
-      assert get_in(audit_context_metadata(cancelled_event), ["preview_evidence_summary", "preview_fingerprint"]) ==
+      assert get_in(audit_context_metadata(cancelled_event), [
+               "preview_evidence_summary",
+               "preview_fingerprint"
+             ]) ==
                preview.preview_fingerprint
     end)
   end
@@ -211,14 +233,20 @@ defmodule Rulestead.Governance.AudienceMutationChangeRequestContractTest do
 
       assert {:ok, %{change_request: rejected}} =
                adapter.reject_change_request(
-                 Command.RejectChangeRequest.new(submitted.id, actor: reviewer(), reason: "Rejected")
+                 Command.RejectChangeRequest.new(submitted.id,
+                   actor: reviewer(),
+                   reason: "Rejected"
+                 )
                )
 
       assert rejected.state == :rejected
 
       assert {:error, %Error{type: :invalid_command}} =
                adapter.execute_change_request(
-                 Command.ExecuteChangeRequest.new(submitted.id, actor: executor(), reason: "Execute")
+                 Command.ExecuteChangeRequest.new(submitted.id,
+                   actor: executor(),
+                   reason: "Execute"
+                 )
                )
     end)
   end
@@ -253,7 +281,8 @@ defmodule Rulestead.Governance.AudienceMutationChangeRequestContractTest do
           "preview_schema_version" => preview.preview_schema_version,
           "preview_fingerprint" => preview.preview_fingerprint,
           "preview_basis" => preview.preview_basis,
-          "affected_reference_keys" => AudienceDependencies.reference_keys(preview.affected_references),
+          "affected_reference_keys" =>
+            AudienceDependencies.reference_keys(preview.affected_references),
           "after_definition" => %{
             "conditions" => [%{"attribute" => "plan", "operator" => "eq", "value" => "pro"}]
           }
@@ -293,7 +322,9 @@ defmodule Rulestead.Governance.AudienceMutationChangeRequestContractTest do
   end
 
   defp preview_audience_impact(StoreEcto, attrs) do
-    StoreEcto.preview_audience_impact(Command.PreviewAudienceImpact.new("vip-users", :update, attrs))
+    StoreEcto.preview_audience_impact(
+      Command.PreviewAudienceImpact.new("vip-users", :update, attrs)
+    )
   end
 
   defp seed_production_audience_references!(Rulestead.Fake, count) do
@@ -353,7 +384,9 @@ defmodule Rulestead.Governance.AudienceMutationChangeRequestContractTest do
 
       assert {:ok, _flag} =
                StoreEcto.create_flag(
-                 Command.CreateFlag.new(valid_flag_attrs(%{key: flag_key, environment_keys: ["production"]}))
+                 Command.CreateFlag.new(
+                   valid_flag_attrs(%{key: flag_key, environment_keys: ["production"]})
+                 )
                )
 
       ruleset =
@@ -370,7 +403,9 @@ defmodule Rulestead.Governance.AudienceMutationChangeRequestContractTest do
         })
 
       assert {:ok, _draft} =
-               StoreEcto.save_draft_ruleset(Command.SaveDraftRuleset.new(flag_key, "production", ruleset))
+               StoreEcto.save_draft_ruleset(
+                 Command.SaveDraftRuleset.new(flag_key, "production", ruleset)
+               )
 
       assert {:ok, _published} =
                StoreEcto.publish_ruleset(Command.PublishRuleset.new(flag_key, "production"))

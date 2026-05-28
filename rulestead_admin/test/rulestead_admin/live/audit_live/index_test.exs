@@ -43,21 +43,24 @@ defmodule RulesteadAdmin.Live.AuditLive.IndexTest do
     publish_ruleset!("search-ranking", "staging")
 
     assert {:ok, _} =
-             Rulestead.engage_kill_switch("checkout-redesign", "prod", %{id: "op-1", display: "Priya", roles: [:admin]},
-               reason: "incident"
-             )
+             Rulestead.engage_kill_switch(
+               "checkout-redesign",
+               "prod",
+               %{id: "op-1", display: "Priya", roles: [:admin]}, reason: "incident")
 
     assert {:ok, _} =
-             Rulestead.release_kill_switch("checkout-redesign", "prod", %{id: "op-1", display: "Priya", roles: [:admin]},
-               reason: "resolved"
-             )
+             Rulestead.release_kill_switch(
+               "checkout-redesign",
+               "prod",
+               %{id: "op-1", display: "Priya", roles: [:admin]}, reason: "resolved")
 
     Application.put_env(:rulestead, :admin_policy, DenyPolicy)
 
     assert {:error, %Rulestead.Error{type: :unauthorized}} =
-             Rulestead.engage_kill_switch("search-ranking", "staging", %{id: "viewer-1", display: "Sam", roles: [:viewer]},
-               reason: "denied attempt"
-             )
+             Rulestead.engage_kill_switch(
+               "search-ranking",
+               "staging",
+               %{id: "viewer-1", display: "Sam", roles: [:viewer]}, reason: "denied attempt")
 
     Application.put_env(:rulestead, :admin_policy, AllowPolicy)
 
@@ -76,7 +79,8 @@ defmodule RulesteadAdmin.Live.AuditLive.IndexTest do
     {:ok, conn: conn}
   end
 
-  test "global audit filters by actor, environment, date range, and mutation type while keeping denied actions visible", %{conn: conn} do
+  test "global audit filters by actor, environment, date range, and mutation type while keeping denied actions visible",
+       %{conn: conn} do
     {:ok, view, html} = live(conn, "/admin/flags/audit?env_filter=all")
 
     assert html =~ "Kill switch engaged"
@@ -200,8 +204,13 @@ defmodule RulesteadAdmin.Live.AuditLive.IndexTest do
       ]
     }
 
-    assert {:ok, _draft} = Rulestead.save_draft_ruleset(Command.SaveDraftRuleset.new(flag_key, environment_key, ruleset))
-    assert {:ok, _published} = Rulestead.publish_ruleset(Command.PublishRuleset.new(flag_key, environment_key))
+    assert {:ok, _draft} =
+             Rulestead.save_draft_ruleset(
+               Command.SaveDraftRuleset.new(flag_key, environment_key, ruleset)
+             )
+
+    assert {:ok, _published} =
+             Rulestead.publish_ruleset(Command.PublishRuleset.new(flag_key, environment_key))
   end
 
   defp ensure_environment!(key, name) do

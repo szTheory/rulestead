@@ -36,7 +36,9 @@ defmodule RulesteadAdmin.Live.WebhookLive.IndexTest do
     {:ok, conn: conn}
   end
 
-  test "webhook page shows inbound rejections, accepted events, and outbound deliveries", %{conn: conn} do
+  test "webhook page shows inbound rejections, accepted events, and outbound deliveries", %{
+    conn: conn
+  } do
     {:ok, _view, html} = live(conn, "/admin/flags/webhooks?env=prod")
 
     assert html =~ "Webhooks"

@@ -21,7 +21,10 @@ defmodule Rulestead.Governance.BlastRadiusThresholdTest do
                  operation: "update",
                  preview_fingerprint: "audprev_test",
                  preview_schema_version: ImpactPreview.schema_version(),
-                 affected_references: [@reference, %{@reference | reference_key: "flag:b:ruleset:1:rule:r2", flag_key: "b"}]
+                 affected_references: [
+                   @reference,
+                   %{@reference | reference_key: "flag:b:ruleset:1:rule:r2", flag_key: "b"}
+                 ]
                })
 
       assert assessment.verdict == :below_threshold
@@ -89,7 +92,10 @@ defmodule Rulestead.Governance.BlastRadiusThresholdTest do
 
       assert assessment.verdict == :indeterminate
 
-      assert Enum.any?(assessment.breach_reasons, &(&1.code == "blast_radius_missing_preview_inputs"))
+      assert Enum.any?(
+               assessment.breach_reasons,
+               &(&1.code == "blast_radius_missing_preview_inputs")
+             )
     end
 
     test "indeterminate when rollout context is unavailable" do
@@ -133,7 +139,10 @@ defmodule Rulestead.Governance.BlastRadiusThresholdTest do
 
       assert assessment.verdict == :indeterminate
 
-      assert Enum.any?(assessment.breach_reasons, &(&1.code == "blast_radius_unresolved_dependency_truth"))
+      assert Enum.any?(
+               assessment.breach_reasons,
+               &(&1.code == "blast_radius_unresolved_dependency_truth")
+             )
     end
 
     test "assess ignores impression_evidence and sample_evidence for verdict" do
@@ -150,21 +159,26 @@ defmodule Rulestead.Governance.BlastRadiusThresholdTest do
             matched_impressions: 999_999_999
           },
           sample_evidence:
-            for(index <- 1..25,
+            for(
+              index <- 1..25,
               do: %{actor_key: "actor-#{index}", targeting_key: "target-#{index}"}
             )
         })
 
-      assert {:ok, baseline} = assess(Map.drop(base_attrs, [:impression_evidence, :sample_evidence]))
+      assert {:ok, baseline} =
+               assess(Map.drop(base_attrs, [:impression_evidence, :sample_evidence]))
+
       assert {:ok, enriched} = assess(base_attrs)
 
       assert baseline.verdict == enriched.verdict
       assert baseline.reference_count == enriched.reference_count
       assert baseline.verdict == :below_threshold
 
-      above_references = references ++ [
-        %{@reference | reference_key: "flag:c:ruleset:1:rule:r3", flag_key: "c"}
-      ]
+      above_references =
+        references ++
+          [
+            %{@reference | reference_key: "flag:c:ruleset:1:rule:r3", flag_key: "c"}
+          ]
 
       above_base = prod_update_attrs(above_references)
 
@@ -221,7 +235,14 @@ defmodule Rulestead.Governance.BlastRadiusThresholdTest do
 
       assert error.metadata[:verdict] in ["above_threshold", "indeterminate"]
       assert is_integer(error.metadata[:reference_count])
-      assert Enum.any?(error.details, &(Map.get(&1, :code) in ["blast_radius_above_threshold", "blast_radius_indeterminate"]))
+
+      assert Enum.any?(
+               error.details,
+               &(Map.get(&1, :code) in [
+                   "blast_radius_above_threshold",
+                   "blast_radius_indeterminate"
+                 ])
+             )
     end
 
     test "governed_apply bypasses above_threshold in protected environment" do

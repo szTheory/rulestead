@@ -32,11 +32,37 @@ defmodule RulesteadAdmin.Router do
           live("/compare/:key", RulesteadAdmin.Live.EnvironmentCompareLive.Show, :show)
           live("/audiences", RulesteadAdmin.Live.AudienceLive.Index, :index)
           live("/audiences/:audience_key", RulesteadAdmin.Live.AudienceLive.Show, :show)
-          live("/audiences/:audience_key/edit/preview", RulesteadAdmin.Live.AudienceLive.EditPreview, :show)
-          live("/audiences/:audience_key/edit/confirm", RulesteadAdmin.Live.AudienceLive.EditConfirm, :show)
-          live("/audiences/:audience_key/archive/preview", RulesteadAdmin.Live.AudienceLive.ArchivePreview, :show)
-          live("/audiences/:audience_key/archive/confirm", RulesteadAdmin.Live.AudienceLive.ArchiveConfirm, :show)
-          live("/audiences/:audience_key/delete/preview", RulesteadAdmin.Live.AudienceLive.DeletePreview, :show)
+
+          live(
+            "/audiences/:audience_key/edit/preview",
+            RulesteadAdmin.Live.AudienceLive.EditPreview,
+            :show
+          )
+
+          live(
+            "/audiences/:audience_key/edit/confirm",
+            RulesteadAdmin.Live.AudienceLive.EditConfirm,
+            :show
+          )
+
+          live(
+            "/audiences/:audience_key/archive/preview",
+            RulesteadAdmin.Live.AudienceLive.ArchivePreview,
+            :show
+          )
+
+          live(
+            "/audiences/:audience_key/archive/confirm",
+            RulesteadAdmin.Live.AudienceLive.ArchiveConfirm,
+            :show
+          )
+
+          live(
+            "/audiences/:audience_key/delete/preview",
+            RulesteadAdmin.Live.AudienceLive.DeletePreview,
+            :show
+          )
+
           live("/:key", RulesteadAdmin.Live.FlagLive.Show, :show)
           live("/:key/edit", RulesteadAdmin.Live.FlagLive.Form, :edit)
           live("/:key/rules", RulesteadAdmin.Live.FlagLive.Rules, :index)

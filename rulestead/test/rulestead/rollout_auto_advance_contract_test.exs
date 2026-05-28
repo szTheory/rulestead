@@ -203,7 +203,10 @@ defmodule Rulestead.RolloutAutoAdvanceContractTest do
                      monitoring_window_ends_at: ~U[2025-12-31 12:05:00Z],
                      signal_facts: [healthy_signal_fact()]
                    },
-                   metadata: %{request_id: "req-#{flag_key}-healthy", source: :guardrail_automation}
+                   metadata: %{
+                     request_id: "req-#{flag_key}-healthy",
+                     source: :guardrail_automation
+                   }
                  )
                )
 
@@ -316,7 +319,10 @@ defmodule Rulestead.RolloutAutoAdvanceContractTest do
                      monitoring_window_ends_at: ~U[2025-12-31 12:05:00Z],
                      signal_facts: [healthy_signal_fact()]
                    },
-                   metadata: %{request_id: "req-#{flag_key}-healthy", source: :guardrail_automation}
+                   metadata: %{
+                     request_id: "req-#{flag_key}-healthy",
+                     source: :guardrail_automation
+                   }
                  )
                )
 
@@ -360,7 +366,10 @@ defmodule Rulestead.RolloutAutoAdvanceContractTest do
                        }
                      ]
                    },
-                   metadata: %{request_id: "req-#{flag_key}-breach", source: :guardrail_automation}
+                   metadata: %{
+                     request_id: "req-#{flag_key}-breach",
+                     source: :guardrail_automation
+                   }
                  )
                )
 

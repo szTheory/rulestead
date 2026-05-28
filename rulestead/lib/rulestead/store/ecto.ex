@@ -222,7 +222,10 @@ defmodule Rulestead.Store.Ecto do
                tenant_key: command.tenant_key
              )
            ),
-         :ok <- Apply.validate_with_compare(command, compare, allow_protected_target?: allow_protected_target?) do
+         :ok <-
+           Apply.validate_with_compare(command, compare,
+             allow_protected_target?: allow_protected_target?
+           ) do
       published_at = now()
 
       Multi.new()
@@ -698,7 +701,8 @@ defmodule Rulestead.Store.Ecto do
            :ok <- ensure_audience_preview_schema(command),
            {:ok, preview} <- audience_preview_payload(repo, environment.key, audience, command),
            :ok <- ensure_fresh_audience_preview(command, preview),
-           :ok <- validate_blast_radius_threshold(command, preview, governed_apply?: governed_apply?) do
+           :ok <-
+             validate_blast_radius_threshold(command, preview, governed_apply?: governed_apply?) do
         {:ok, preview}
       end
     end)
@@ -1312,7 +1316,10 @@ defmodule Rulestead.Store.Ecto do
         audit_command =
           governance_audit_command(command, updated_change_request, "rejected")
           |> Map.update!(:metadata, fn metadata ->
-            Map.merge(metadata, audience_mutation_terminal_metadata(change_request, command.reason))
+            Map.merge(
+              metadata,
+              audience_mutation_terminal_metadata(change_request, command.reason)
+            )
           end)
           |> Map.update!(:metadata, &Map.put(&1, "approval_id", approval.id))
 
@@ -1368,7 +1375,10 @@ defmodule Rulestead.Store.Ecto do
         audit_command =
           governance_audit_command(command, updated_change_request, "cancelled")
           |> Map.update!(:metadata, fn metadata ->
-            Map.merge(metadata, audience_mutation_terminal_metadata(change_request, command.reason))
+            Map.merge(
+              metadata,
+              audience_mutation_terminal_metadata(change_request, command.reason)
+            )
           end)
 
         repo.insert(
@@ -3282,8 +3292,11 @@ defmodule Rulestead.Store.Ecto do
 
   defp maybe_filter_projection_environment(query, command) do
     case normalize_projection_environment_key(Map.get(command, :environment_key)) do
-      nil -> query
-      environment_key -> where(query, [projection], projection.environment_key == ^environment_key)
+      nil ->
+        query
+
+      environment_key ->
+        where(query, [projection], projection.environment_key == ^environment_key)
     end
   end
 
@@ -3324,7 +3337,8 @@ defmodule Rulestead.Store.Ecto do
   defp normalize_projection_audience_key(nil), do: nil
   defp normalize_projection_audience_key(audience_key), do: to_string(audience_key)
 
-  defp list_audience_dependencies_command(%Command.ListAudienceDependencies{} = command), do: command
+  defp list_audience_dependencies_command(%Command.ListAudienceDependencies{} = command),
+    do: command
 
   defp list_audience_dependencies_command(command) do
     Command.ListAudienceDependencies.new(
@@ -3350,7 +3364,11 @@ defmodule Rulestead.Store.Ecto do
 
     case Map.get(command, :actor) do
       actor when is_map(actor) ->
-        Keyword.put(base, :visibility_resolver, Rulestead.Admin.DependencyVisibility.visibility_resolver(actor))
+        Keyword.put(
+          base,
+          :visibility_resolver,
+          Rulestead.Admin.DependencyVisibility.visibility_resolver(actor)
+        )
 
       _ ->
         base
@@ -4024,17 +4042,15 @@ defmodule Rulestead.Store.Ecto do
     Telemetry.execute(
       Telemetry.scheduled_execution_event(:failed),
       %{count: 1},
-      Telemetry.metadata(
-        %{
-          flag_key: command.flag_key,
-          environment_key: command.environment_key,
-          rule_key: command.rule_key,
-          idempotency_key: idempotency_key,
-          source: "guardrail_automation",
-          phase: "schedule_auto_advance_tick",
-          error_type: auto_advance_schedule_error_type(error)
-        }
-      )
+      Telemetry.metadata(%{
+        flag_key: command.flag_key,
+        environment_key: command.environment_key,
+        rule_key: command.rule_key,
+        idempotency_key: idempotency_key,
+        source: "guardrail_automation",
+        phase: "schedule_auto_advance_tick",
+        error_type: auto_advance_schedule_error_type(error)
+      })
     )
   end
 
@@ -4527,9 +4543,11 @@ defmodule Rulestead.Store.Ecto do
     command.metadata[:request_id] || command.metadata["request_id"] || Ecto.UUID.generate()
   end
 
-  defp prepare_audience_mutation_change_request(%Command.SubmitChangeRequest{
-         action: :apply_audience_mutation
-       } = command) do
+  defp prepare_audience_mutation_change_request(
+         %Command.SubmitChangeRequest{
+           action: :apply_audience_mutation
+         } = command
+       ) do
     apply_command =
       Command.ApplyAudienceMutation.new(
         command.command,
@@ -4582,11 +4600,15 @@ defmodule Rulestead.Store.Ecto do
       affected_reference_keys:
         Map.get(mutation_command, "affected_reference_keys") ||
           Map.get(mutation_command, :affected_reference_keys),
-      tenant_key: Map.get(mutation_command, "tenant_key") || Map.get(mutation_command, :tenant_key)
+      tenant_key:
+        Map.get(mutation_command, "tenant_key") || Map.get(mutation_command, :tenant_key)
     })
   end
 
-  defp audience_mutation_terminal_metadata(%{governed_action: "apply_audience_mutation"} = change_request, reason) do
+  defp audience_mutation_terminal_metadata(
+         %{governed_action: "apply_audience_mutation"} = change_request,
+         reason
+       ) do
     metadata = change_request.metadata || %{}
 
     %{
@@ -5553,7 +5575,9 @@ defmodule Rulestead.Store.Ecto do
          execution_result
        ) do
     finished_at = now()
-    automation_metadata = RolloutAutoAdvance.automation_execution_metadata(execution_result || %{})
+
+    automation_metadata =
+      RolloutAutoAdvance.automation_execution_metadata(execution_result || %{})
 
     Multi.new()
     |> Multi.run(:attempt, fn repo, _changes ->

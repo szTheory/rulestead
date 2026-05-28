@@ -57,12 +57,14 @@ defmodule Rulestead.Targeting.DependencySortPropertyTest do
   end
 
   defp entry_generator do
-    gen all environment_key <- member_of(["production", "staging", "test"]),
-            tenant_key <- member_of(["acme", "global", "tenant-b"]),
-            flag_key <- string(:alphanumeric, min_length: 3, max_length: 12),
-            ruleset_version <- positive_integer(),
-            rule_key <- string(:alphanumeric, min_length: 3, max_length: 12),
-            audience_key <- string(:alphanumeric, min_length: 3, max_length: 12) do
+    gen all(
+          environment_key <- member_of(["production", "staging", "test"]),
+          tenant_key <- member_of(["acme", "global", "tenant-b"]),
+          flag_key <- string(:alphanumeric, min_length: 3, max_length: 12),
+          ruleset_version <- positive_integer(),
+          rule_key <- string(:alphanumeric, min_length: 3, max_length: 12),
+          audience_key <- string(:alphanumeric, min_length: 3, max_length: 12)
+        ) do
       %{
         environment_key: environment_key,
         tenant_key: tenant_key,
@@ -81,20 +83,22 @@ defmodule Rulestead.Targeting.DependencySortPropertyTest do
   end
 
   defp finding_generator do
-    gen all code <-
-              member_of([
-                "missing_reference",
-                "archived_reference",
-                "incompatible_reference",
-                "stale_reference",
-                "tenant_mismatch"
-              ]),
-            environment_key <- member_of(["production", "staging", "test"]),
-            tenant_key <- member_of(["acme", "global", "tenant-b"]),
-            flag_key <- string(:alphanumeric, min_length: 3, max_length: 12),
-            ruleset_version <- positive_integer(),
-            rule_key <- string(:alphanumeric, min_length: 3, max_length: 12),
-            audience_key <- string(:alphanumeric, min_length: 3, max_length: 12) do
+    gen all(
+          code <-
+            member_of([
+              "missing_reference",
+              "archived_reference",
+              "incompatible_reference",
+              "stale_reference",
+              "tenant_mismatch"
+            ]),
+          environment_key <- member_of(["production", "staging", "test"]),
+          tenant_key <- member_of(["acme", "global", "tenant-b"]),
+          flag_key <- string(:alphanumeric, min_length: 3, max_length: 12),
+          ruleset_version <- positive_integer(),
+          rule_key <- string(:alphanumeric, min_length: 3, max_length: 12),
+          audience_key <- string(:alphanumeric, min_length: 3, max_length: 12)
+        ) do
       %{
         code: code,
         severity: :blocker,

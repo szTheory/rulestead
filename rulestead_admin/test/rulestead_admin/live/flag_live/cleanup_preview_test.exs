@@ -31,14 +31,25 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupPreviewTest do
       ownership: %{owner_ref: "ops", owner_kind: :team, owner_display: "Ops"},
       tags: ["infra"],
       description: "Ops cleanup candidate",
-      lifecycle: %{mode: :expiring, review_by: ~D[2026-04-20], default_source: :flag_type, default_overridden: false},
+      lifecycle: %{
+        mode: :expiring,
+        review_by: ~D[2026-04-20],
+        default_source: :flag_type,
+        default_overridden: false
+      },
       environment_keys: ["prod"],
       code_reference_count: 0,
       code_refs_scan: %{received_at: DateTime.add(now, -600, :second), reference_count: 0}
     )
 
     publish_flag!("ops-cleanup")
-    assert {:ok, _} = Rulestead.record_evaluation("ops-cleanup", "prod", DateTime.add(now, -7_200, :second))
+
+    assert {:ok, _} =
+             Rulestead.record_evaluation(
+               "ops-cleanup",
+               "prod",
+               DateTime.add(now, -7_200, :second)
+             )
 
     conn =
       conn
@@ -55,9 +66,10 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupPreviewTest do
     {:ok, conn: conn}
   end
 
-  test "preview shows evidence, archive consequences, return_to carry-through, and confirm navigation", %{
-    conn: conn
-  } do
+  test "preview shows evidence, archive consequences, return_to carry-through, and confirm navigation",
+       %{
+         conn: conn
+       } do
     {:ok, view, html} =
       live(
         conn,
@@ -74,12 +86,20 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupPreviewTest do
     assert html =~ "Evidence quality"
     assert html =~ "Code references"
     assert has_element?(view, "a[href='/admin/flags?env=prod&owner=ops']", "Back to queue")
-    assert has_element?(view, "a[href='/admin/flags/ops-cleanup/cleanup?env=prod&return_to=%2Fadmin%2Fflags%3Fenv%3Dprod%26owner%3Dops']", "Back to cleanup review")
+
+    assert has_element?(
+             view,
+             "a[href='/admin/flags/ops-cleanup/cleanup?env=prod&return_to=%2Fadmin%2Fflags%3Fenv%3Dprod%26owner%3Dops']",
+             "Back to cleanup review"
+           )
+
     assert has_element?(view, "a[href*='/admin/flags/ops-cleanup/cleanup/confirm?']")
     assert html =~ "Continue to archive confirmation"
   end
 
-  test "preview redirects unauthorized operators before destructive review UI renders", %{conn: conn} do
+  test "preview redirects unauthorized operators before destructive review UI renders", %{
+    conn: conn
+  } do
     read_only_conn =
       conn
       |> Phoenix.ConnTest.recycle()
@@ -105,7 +125,12 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupPreviewTest do
       |> Map.put_new(:value_type, :boolean)
       |> Map.put_new(:default_value, %{value: false})
       |> Map.put_new(:ownership, %{owner_ref: "ops", owner_kind: :team, owner_display: "Ops"})
-      |> Map.put_new(:lifecycle, %{mode: :permanent, review_by: nil, default_source: :flag_type, default_overridden: false})
+      |> Map.put_new(:lifecycle, %{
+        mode: :permanent,
+        review_by: nil,
+        default_source: :flag_type,
+        default_overridden: false
+      })
       |> Map.put_new(:environment_keys, ["prod"])
       |> Map.put_new(:tags, [])
 

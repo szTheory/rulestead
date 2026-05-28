@@ -140,27 +140,34 @@ defmodule RulesteadAdmin.Live.ExperimentLive.Show do
 
     control_val = detail.flag.default_value |> default_flag_value() |> to_string()
 
-    control_metric = Enum.find(conversion_metrics, &(&1.variation == control_val)) || %{exposures: 0, conversions: 0}
+    control_metric =
+      Enum.find(conversion_metrics, &(&1.variation == control_val)) ||
+        %{exposures: 0, conversions: 0}
+
     variants = Enum.reject(conversion_metrics, &(&1.variation == control_val))
 
-    results = Enum.map(variants, fn variant ->
-      stats = Rulestead.Analytics.Stats.evaluate(control_metric, variant)
-      %{
-        variation: variant.variation,
-        stats: stats,
-        control_exposures: control_metric.exposures,
-        control_conversions: control_metric.conversions,
-        variant_exposures: variant.exposures,
-        variant_conversions: variant.conversions
-      }
-    end)
+    results =
+      Enum.map(variants, fn variant ->
+        stats = Rulestead.Analytics.Stats.evaluate(control_metric, variant)
+
+        %{
+          variation: variant.variation,
+          stats: stats,
+          control_exposures: control_metric.exposures,
+          control_conversions: control_metric.conversions,
+          variant_exposures: variant.exposures,
+          variant_conversions: variant.conversions
+        }
+      end)
 
     total_errors = Enum.reduce(error_metrics, 0, fn metric, acc -> metric.conversions + acc end)
-    guardrail_warning = if total_errors > 50 do
-      "Elevated error rates detected (#{total_errors} errors). Consider pausing the experiment."
-    else
-      nil
-    end
+
+    guardrail_warning =
+      if total_errors > 50 do
+        "Elevated error rates detected (#{total_errors} errors). Consider pausing the experiment."
+      else
+        nil
+      end
 
     socket
     |> assign(:results, results)

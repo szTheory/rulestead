@@ -27,6 +27,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Rules do
   def handle_params(%{"key" => flag_key}, uri, socket) do
     env = query_params(uri)["env"] || socket.assigns.current_environment.key
     base_path = build_base_path(socket, flag_key)
+
     socket =
       socket
       |> assign(:flag_key, flag_key)
@@ -40,7 +41,9 @@ defmodule RulesteadAdmin.Live.FlagLive.Rules do
   @impl true
   def handle_event("validate", %{"ruleset" => params}, socket) do
     rules = parse_ruleset_params(params, socket.assigns.rules)
-    {:noreply, assign_workspace(socket, socket.assigns.detail, rules, audiences: socket.assigns.audiences)}
+
+    {:noreply,
+     assign_workspace(socket, socket.assigns.detail, rules, audiences: socket.assigns.audiences)}
   end
 
   def handle_event("save_draft", params, socket) do
@@ -78,7 +81,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Rules do
            Command.ArchiveFlag.new(socket.assigns.flag_key,
              actor: socket.assigns.current_actor,
              reason: "Archived from rules workspace",
-             metadata: command_metadata(socket, "rules.archive", "Archived flag from rules workspace")
+             metadata:
+               command_metadata(socket, "rules.archive", "Archived flag from rules workspace")
            )
          ) do
       {:ok, _payload} ->
@@ -190,10 +194,12 @@ defmodule RulesteadAdmin.Live.FlagLive.Rules do
              Rulestead.save_draft_ruleset(
                Command.SaveDraftRuleset.new(detail.flag.key, detail.environment.key, ruleset,
                  actor: socket.assigns.current_actor,
-                 metadata: command_metadata(socket, "rules.save_draft", rules_reason(detail, mode))
+                 metadata:
+                   command_metadata(socket, "rules.save_draft", rules_reason(detail, mode))
                )
              ),
-           {:ok, _published} <- maybe_publish(mode, detail.flag.key, detail.environment.key, socket) do
+           {:ok, _published} <-
+             maybe_publish(mode, detail.flag.key, detail.environment.key, socket) do
         message =
           case mode do
             :draft -> "Draft saved for #{detail.environment.name}"
@@ -217,7 +223,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Rules do
     Rulestead.publish_ruleset(
       Command.PublishRuleset.new(flag_key, environment_key,
         actor: socket.assigns.current_actor,
-        metadata: command_metadata(socket, "rules.publish", "Published ruleset from rules workspace")
+        metadata:
+          command_metadata(socket, "rules.publish", "Published ruleset from rules workspace")
       )
     )
   end
@@ -346,13 +353,16 @@ defmodule RulesteadAdmin.Live.FlagLive.Rules do
 
       %{
         "index" => String.to_integer(index),
-        "key" => present(rule_params["key"]) || existing_rule["key"] || "rule-#{String.to_integer(index) + 1}",
+        "key" =>
+          present(rule_params["key"]) || existing_rule["key"] ||
+            "rule-#{String.to_integer(index) + 1}",
         "name" => rule_params["name"] || "",
         "strategy" => strategy,
         "audience_key" => rule_params["audience_key"] || "",
         "value" => normalize_value(rule_params["value"] || existing_rule["value"]),
         "conditions" => existing_rule["conditions"] || [],
-        "variants" => parse_variants(rule_params["variants"] || %{}, existing_rule["variants"] || []),
+        "variants" =>
+          parse_variants(rule_params["variants"] || %{}, existing_rule["variants"] || []),
         "rollout" => normalize_rollout(strategy, existing_rule["rollout"])
       }
     end)
@@ -366,7 +376,9 @@ defmodule RulesteadAdmin.Live.FlagLive.Rules do
 
       %{
         "index" => String.to_integer(index),
-        "key" => variant_params["key"] || existing_variant["key"] || "variant-#{String.to_integer(index) + 1}",
+        "key" =>
+          variant_params["key"] || existing_variant["key"] ||
+            "variant-#{String.to_integer(index) + 1}",
         "value" => normalize_value(variant_params["value"] || existing_variant["value"]),
         "weight" => variant_params["weight"] || existing_variant["weight"] || "0"
       }
@@ -375,7 +387,9 @@ defmodule RulesteadAdmin.Live.FlagLive.Rules do
 
   defp parse_variants(_variants, existing_variants), do: existing_variants
 
-  defp normalize_rollout("variant_split", nil), do: %{"bucket_by" => :subject, "percentage" => 100}
+  defp normalize_rollout("variant_split", nil),
+    do: %{"bucket_by" => :subject, "percentage" => 100}
+
   defp normalize_rollout("variant_split", rollout) when is_map(rollout), do: rollout
   defp normalize_rollout(_strategy, _rollout), do: nil
 
@@ -402,14 +416,20 @@ defmodule RulesteadAdmin.Live.FlagLive.Rules do
     }
   end
 
-  defp maybe_put_audience(payload, %{"strategy" => "segment_match", "audience_key" => audience_key}) do
+  defp maybe_put_audience(payload, %{
+         "strategy" => "segment_match",
+         "audience_key" => audience_key
+       }) do
     Map.put(payload, :audience_key, blank_to_nil(audience_key))
   end
 
   defp maybe_put_audience(payload, _rule), do: payload
 
   defp maybe_put_rollout(payload, %{"strategy" => "variant_split", "rollout" => rollout}) do
-    Map.put(payload, :rollout, %{bucket_by: rollout["bucket_by"] || :subject, percentage: rollout["percentage"] || 100})
+    Map.put(payload, :rollout, %{
+      bucket_by: rollout["bucket_by"] || :subject,
+      percentage: rollout["percentage"] || 100
+    })
   end
 
   defp maybe_put_rollout(payload, _rule), do: payload
@@ -439,7 +459,10 @@ defmodule RulesteadAdmin.Live.FlagLive.Rules do
 
   defp invalid_variant_total?(_rule), do: false
 
-  defp missing_audience?(%{"strategy" => "segment_match", "audience_key" => audience_key}, audience_keys) do
+  defp missing_audience?(
+         %{"strategy" => "segment_match", "audience_key" => audience_key},
+         audience_keys
+       ) do
     audience = blank_to_nil(audience_key)
     is_nil(audience) or not MapSet.member?(audience_keys, audience)
   end
@@ -460,15 +483,28 @@ defmodule RulesteadAdmin.Live.FlagLive.Rules do
     index = Enum.find_index(rules, &(&1["key"] == key))
 
     cond do
-      is_nil(index) -> rules
-      index + offset < 0 -> rules
-      index + offset >= length(rules) -> rules
-      true -> List.replace_at(List.replace_at(rules, index, Enum.at(rules, index + offset)), index + offset, Enum.at(rules, index))
+      is_nil(index) ->
+        rules
+
+      index + offset < 0 ->
+        rules
+
+      index + offset >= length(rules) ->
+        rules
+
+      true ->
+        List.replace_at(
+          List.replace_at(rules, index, Enum.at(rules, index + offset)),
+          index + offset,
+          Enum.at(rules, index)
+        )
     end
   end
 
   defp normalize_store_errors(%{details: details}) when is_list(details) and details != [] do
-    Enum.map(details, fn detail -> detail[:message] || detail["message"] || "Validation failed" end)
+    Enum.map(details, fn detail ->
+      detail[:message] || detail["message"] || "Validation failed"
+    end)
   end
 
   defp normalize_store_errors(error), do: [error.message]
@@ -537,7 +573,10 @@ defmodule RulesteadAdmin.Live.FlagLive.Rules do
 
   defp blank_to_nil(nil), do: nil
   defp blank_to_nil(""), do: nil
-  defp blank_to_nil(value) when is_binary(value), do: if(String.trim(value) == "", do: nil, else: String.trim(value))
+
+  defp blank_to_nil(value) when is_binary(value),
+    do: if(String.trim(value) == "", do: nil, else: String.trim(value))
+
   defp blank_to_nil(value), do: value
 
   defp present(value), do: blank_to_nil(value)

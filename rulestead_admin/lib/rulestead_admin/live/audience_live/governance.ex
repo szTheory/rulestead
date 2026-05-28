@@ -123,8 +123,9 @@ defmodule RulesteadAdmin.Live.AudienceLive.Governance do
   end
 
   @spec ensure_governance_mode(Socket.t(), governance_mode()) :: :ok | {:error, String.t()}
-  def ensure_governance_mode(%{assigns: %{governance_mode: mode}}, expected) when mode == expected,
-    do: :ok
+  def ensure_governance_mode(%{assigns: %{governance_mode: mode}}, expected)
+      when mode == expected,
+      do: :ok
 
   def ensure_governance_mode(_socket, _expected),
     do: {:error, "This action is not available for the current governance state."}

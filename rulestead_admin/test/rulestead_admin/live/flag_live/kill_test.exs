@@ -71,10 +71,12 @@ defmodule RulesteadAdmin.Live.FlagLive.KillTest do
     {:ok, conn: conn}
   end
 
-  test "engaging the kill switch uses lighter confirmation outside prod and typed-key confirmation in prod", %{
-    conn: conn
-  } do
-    {:ok, staging_view, staging_html} = live(conn, "/admin/flags/checkout-redesign/kill?env=staging")
+  test "engaging the kill switch uses lighter confirmation outside prod and typed-key confirmation in prod",
+       %{
+         conn: conn
+       } do
+    {:ok, staging_view, staging_html} =
+      live(conn, "/admin/flags/checkout-redesign/kill?env=staging")
 
     assert staging_html =~ "Standard confirmation required for non-production environments."
 
@@ -84,7 +86,9 @@ defmodule RulesteadAdmin.Live.FlagLive.KillTest do
       |> render_submit()
 
     assert staging_result =~ "Kill switch engaged for Staging."
-    assert Rulestead.fetch_flag!("checkout-redesign", "staging").flag_environment.status == :killswitched
+
+    assert Rulestead.fetch_flag!("checkout-redesign", "staging").flag_environment.status ==
+             :killswitched
 
     prod_conn =
       conn
@@ -105,7 +109,10 @@ defmodule RulesteadAdmin.Live.FlagLive.KillTest do
 
     invalid_html =
       prod_view
-      |> form("form[aria-label='Kill switch engage form']", %{"reason" => "prod incident", "confirmation" => "wrong-key"})
+      |> form("form[aria-label='Kill switch engage form']", %{
+        "reason" => "prod incident",
+        "confirmation" => "wrong-key"
+      })
       |> render_submit()
 
     assert invalid_html =~ "Type the exact flag key to confirm this production action."
@@ -120,14 +127,17 @@ defmodule RulesteadAdmin.Live.FlagLive.KillTest do
       |> render_submit()
 
     assert valid_html =~ "Kill switch engaged for Production."
-    assert Rulestead.fetch_flag!("checkout-redesign", "prod").flag_environment.status == :killswitched
+
+    assert Rulestead.fetch_flag!("checkout-redesign", "prod").flag_environment.status ==
+             :killswitched
   end
 
   test "detail page shows an active banner with restore affordance", %{conn: conn} do
     assert {:ok, _payload} =
-             Rulestead.engage_kill_switch("checkout-redesign", "prod", %{id: "op-1", roles: [:admin]},
-               reason: "incident"
-             )
+             Rulestead.engage_kill_switch(
+               "checkout-redesign",
+               "prod",
+               %{id: "op-1", roles: [:admin]}, reason: "incident")
 
     {:ok, view, html} = live(conn, "/admin/flags/checkout-redesign?env=prod")
 
@@ -145,11 +155,13 @@ defmodule RulesteadAdmin.Live.FlagLive.KillTest do
     assert Rulestead.fetch_flag!("checkout-redesign", "prod").flag_environment.status == :active
   end
 
-  test "release stays idempotent and returns the flag to authored behavior without replaying history", %{conn: conn} do
+  test "release stays idempotent and returns the flag to authored behavior without replaying history",
+       %{conn: conn} do
     assert {:ok, _payload} =
-             Rulestead.engage_kill_switch("checkout-redesign", "prod", %{id: "op-1", roles: [:admin]},
-               reason: "incident"
-             )
+             Rulestead.engage_kill_switch(
+               "checkout-redesign",
+               "prod",
+               %{id: "op-1", roles: [:admin]}, reason: "incident")
 
     {:ok, view, _html} = live(conn, "/admin/flags/checkout-redesign/kill?env=prod")
 
@@ -166,18 +178,24 @@ defmodule RulesteadAdmin.Live.FlagLive.KillTest do
     assert Rulestead.fetch_flag!("checkout-redesign", "prod").active_ruleset.version == 1
 
     assert {:ok, second_release} =
-             Rulestead.release_kill_switch("checkout-redesign", "prod", %{id: "op-1", roles: [:admin]},
-               reason: "resolved again"
-             )
+             Rulestead.release_kill_switch(
+               "checkout-redesign",
+               "prod",
+               %{id: "op-1", roles: [:admin]}, reason: "resolved again")
 
     assert second_release.flag_environment.status == :active
     assert is_nil(second_release.flag_environment.kill_switch_variant_key)
     assert second_release.active_ruleset.version == 1
   end
 
-  test "kill page uses the current actor for audit reads and hides restricted reasons", %{conn: conn} do
+  test "kill page uses the current actor for audit reads and hides restricted reasons", %{
+    conn: conn
+  } do
     assert {:ok, _payload} =
-             Rulestead.engage_kill_switch("checkout-redesign", "prod", %{id: "op-1", display: "Priya", roles: [:admin]},
+             Rulestead.engage_kill_switch(
+               "checkout-redesign",
+               "prod",
+               %{id: "op-1", display: "Priya", roles: [:admin]},
                reason: "customer checkout incident"
              )
 
@@ -228,8 +246,13 @@ defmodule RulesteadAdmin.Live.FlagLive.KillTest do
       ]
     }
 
-    assert {:ok, _draft} = Rulestead.save_draft_ruleset(Command.SaveDraftRuleset.new(flag_key, environment_key, ruleset))
-    assert {:ok, _published} = Rulestead.publish_ruleset(Command.PublishRuleset.new(flag_key, environment_key))
+    assert {:ok, _draft} =
+             Rulestead.save_draft_ruleset(
+               Command.SaveDraftRuleset.new(flag_key, environment_key, ruleset)
+             )
+
+    assert {:ok, _published} =
+             Rulestead.publish_ruleset(Command.PublishRuleset.new(flag_key, environment_key))
   end
 
   defp ensure_environment!(key, name) do

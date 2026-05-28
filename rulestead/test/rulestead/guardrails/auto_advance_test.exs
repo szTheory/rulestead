@@ -60,7 +60,10 @@ defmodule Rulestead.Guardrails.AutoAdvanceTest do
 
       assert eligibility.status == :blocked
 
-      assert Enum.any?(eligibility.reasons, &String.contains?(&1, "auto_advance_policy_incomplete"))
+      assert Enum.any?(
+               eligibility.reasons,
+               &String.contains?(&1, "auto_advance_policy_incomplete")
+             )
     end
 
     test "blocks when monitoring_window_ends_at is nil" do

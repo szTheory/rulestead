@@ -63,7 +63,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Simulate do
         current_path: "/admin/flags/#{key}/simulate",
         page_title: "#{key} simulation",
         page_kicker: "Simulation",
-        page_summary: "Run one actor context at a time, inspect the summary first, then open trace detail only when needed."
+        page_summary:
+          "Run one actor context at a time, inspect the summary first, then open trace detail only when needed."
       )
       |> Map.put(:flag_key, key)
       |> Map.put(:archetypes, @archetypes)
@@ -100,7 +101,10 @@ defmodule RulesteadAdmin.Live.FlagLive.Simulate do
          |> assign(:form, form)
          |> assign(:simulation_result, result)
          |> assign(:redacted_context, redacted_context)
-         |> assign(:fixture_export, fixture_export(form, socket.assigns.page.current_environment.key))
+         |> assign(
+           :fixture_export,
+           fixture_export(form, socket.assigns.page.current_environment.key)
+         )
          |> assign(:error_message, nil)}
 
       {:error, error} ->
@@ -109,7 +113,10 @@ defmodule RulesteadAdmin.Live.FlagLive.Simulate do
          |> assign(:form, form)
          |> assign(:simulation_result, nil)
          |> assign(:redacted_context, nil)
-         |> assign(:fixture_export, fixture_export(form, socket.assigns.page.current_environment.key))
+         |> assign(
+           :fixture_export,
+           fixture_export(form, socket.assigns.page.current_environment.key)
+         )
          |> assign(:error_message, error.message)}
     end
   end
@@ -135,12 +142,20 @@ defmodule RulesteadAdmin.Live.FlagLive.Simulate do
      |> assign(:selected_archetype, nil)
      |> assign(:simulation_result, nil)
      |> assign(:redacted_context, nil)
-     |> assign(:fixture_export, fixture_export(@empty_form, socket.assigns.page.current_environment.key))
+     |> assign(
+       :fixture_export,
+       fixture_export(@empty_form, socket.assigns.page.current_environment.key)
+     )
      |> assign(:error_message, nil)}
   end
 
   def handle_event("export_fixture", _params, socket) do
-    {:noreply, assign(socket, :fixture_export, fixture_export(socket.assigns.form, socket.assigns.page.current_environment.key))}
+    {:noreply,
+     assign(
+       socket,
+       :fixture_export,
+       fixture_export(socket.assigns.form, socket.assigns.page.current_environment.key)
+     )}
   end
 
   @impl true
@@ -306,7 +321,11 @@ defmodule RulesteadAdmin.Live.FlagLive.Simulate do
     rollout = result.debug_trace[:rollout] || %{}
 
     [
-      %{title: "Matched rule", value: result.matched_rule || "Default path", tone: matched_rule_tone(result)},
+      %{
+        title: "Matched rule",
+        value: result.matched_rule || "Default path",
+        tone: matched_rule_tone(result)
+      },
       %{title: "Returned value", value: inspect(result.value), tone: "neutral"},
       %{title: "Variant", value: result.variant || "None", tone: "neutral"},
       %{title: "Reason", value: humanize(result.reason), tone: "neutral"},
@@ -372,7 +391,10 @@ defmodule RulesteadAdmin.Live.FlagLive.Simulate do
   defp literal(value), do: inspect(value)
 
   defp humanize(value) when is_atom(value), do: humanize(to_string(value))
-  defp humanize(value) when is_binary(value), do: value |> String.replace("_", " ") |> String.capitalize()
+
+  defp humanize(value) when is_binary(value),
+    do: value |> String.replace("_", " ") |> String.capitalize()
+
   defp humanize(value), do: inspect(value)
 
   defp normalize_string(nil), do: ""

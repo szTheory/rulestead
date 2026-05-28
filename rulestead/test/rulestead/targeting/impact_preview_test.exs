@@ -43,12 +43,16 @@ defmodule Rulestead.Targeting.ImpactPreviewTest do
     end
 
     test "accepts atom-key preview map" do
-      preview = ImpactPreview.build(preview_attrs(%{impression_summary: %{"window_label" => "last_24h"}}))
+      preview =
+        ImpactPreview.build(preview_attrs(%{impression_summary: %{"window_label" => "last_24h"}}))
+
       string_summary = ImpactPreview.audit_evidence_summary(preview)
 
       atom_preview =
         preview
-        |> Map.new(fn {key, value} -> {if(is_binary(key), do: String.to_existing_atom(key), else: key), value} end)
+        |> Map.new(fn {key, value} ->
+          {if(is_binary(key), do: String.to_existing_atom(key), else: key), value}
+        end)
 
       assert ImpactPreview.audit_evidence_summary(atom_preview) == string_summary
     end
@@ -77,9 +81,15 @@ defmodule Rulestead.Targeting.ImpactPreviewTest do
       assert fingerprint ==
                ImpactPreview.preview_fingerprint(%{
                  "samples" => [%{"plan" => "pro", "actor_key" => "user-1"}],
-                 "affected_references" => [%{"reference_key" => "flag:checkout:ruleset:7:rule:vip"}],
-                 "after_definition" => %{"conditions" => [%{"field" => "plan", "op" => "eq", "value" => "pro"}]},
-                 "before_definition" => %{"conditions" => [%{"field" => "plan", "op" => "eq", "value" => "basic"}]},
+                 "affected_references" => [
+                   %{"reference_key" => "flag:checkout:ruleset:7:rule:vip"}
+                 ],
+                 "after_definition" => %{
+                   "conditions" => [%{"field" => "plan", "op" => "eq", "value" => "pro"}]
+                 },
+                 "before_definition" => %{
+                   "conditions" => [%{"field" => "plan", "op" => "eq", "value" => "basic"}]
+                 },
                  "operation" => "update",
                  "audience_key" => "vip-users",
                  "tenant_key" => "acme",
@@ -319,6 +329,7 @@ defmodule Rulestead.Targeting.ImpactPreviewTest do
         )
 
       assert preview.affected_references == references
+
       assert AudienceDependencies.reference_keys(references) == [
                "flag:checkout:ruleset:7:rule:vip-checkout",
                "flag:pricing:ruleset:3:rule:vip-pricing"

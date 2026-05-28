@@ -28,7 +28,10 @@ defmodule RulesteadAdmin.Components.AudienceComponentsTest do
       window_label: "last_24h",
       sampled_impressions: 100,
       matched_impressions: 12,
-      variant_breakdown: [%{variant: "control", count: 8}, %{"variant" => "treatment", "count" => 4}]
+      variant_breakdown: [
+        %{variant: "control", count: 8},
+        %{"variant" => "treatment", "count" => 4}
+      ]
     }
   }
 

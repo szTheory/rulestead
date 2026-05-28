@@ -3,9 +3,9 @@ defmodule RulesteadAdmin.Components.RuleEditorComponents do
 
   use Phoenix.Component
 
-  attr :detail, :map, required: true
-  attr :editable?, :boolean, required: true
-  attr :status_message, :string, default: nil
+  attr(:detail, :map, required: true)
+  attr(:editable?, :boolean, required: true)
+  attr(:status_message, :string, default: nil)
 
   def lifecycle_banner(assigns) do
     ~H"""
@@ -27,8 +27,8 @@ defmodule RulesteadAdmin.Components.RuleEditorComponents do
     """
   end
 
-  attr :error_messages, :list, default: []
-  attr :editable?, :boolean, required: true
+  attr(:error_messages, :list, default: [])
+  attr(:editable?, :boolean, required: true)
 
   def validation_notices(assigns) do
     ~H"""
@@ -38,9 +38,9 @@ defmodule RulesteadAdmin.Components.RuleEditorComponents do
     """
   end
 
-  attr :detail, :map, required: true
-  attr :editable?, :boolean, required: true
-  attr :error_messages, :list, default: []
+  attr(:detail, :map, required: true)
+  attr(:editable?, :boolean, required: true)
+  attr(:error_messages, :list, default: [])
 
   def action_bar(assigns) do
     ~H"""
@@ -56,8 +56,8 @@ defmodule RulesteadAdmin.Components.RuleEditorComponents do
     """
   end
 
-  attr :audiences, :list, default: []
-  attr :mount_path, :string, default: nil
+  attr(:audiences, :list, default: [])
+  attr(:mount_path, :string, default: nil)
 
   def audience_library(assigns) do
     ~H"""
@@ -77,11 +77,11 @@ defmodule RulesteadAdmin.Components.RuleEditorComponents do
     """
   end
 
-  attr :index, :integer, required: true
-  attr :rule, :map, required: true
-  attr :audiences, :list, default: []
-  attr :mount_path, :string, default: nil
-  attr :editable?, :boolean, required: true
+  attr(:index, :integer, required: true)
+  attr(:rule, :map, required: true)
+  attr(:audiences, :list, default: [])
+  attr(:mount_path, :string, default: nil)
+  attr(:editable?, :boolean, required: true)
 
   def rule_card(assigns) do
     ~H"""
@@ -159,10 +159,10 @@ defmodule RulesteadAdmin.Components.RuleEditorComponents do
     """
   end
 
-  attr :index, :integer, required: true
-  attr :rule, :map, required: true
-  attr :audiences, :list, default: []
-  attr :editable?, :boolean, required: true
+  attr(:index, :integer, required: true)
+  attr(:rule, :map, required: true)
+  attr(:audiences, :list, default: [])
+  attr(:editable?, :boolean, required: true)
 
   def audience_picker(assigns) do
     ~H"""
@@ -184,7 +184,7 @@ defmodule RulesteadAdmin.Components.RuleEditorComponents do
     """
   end
 
-  attr :rule, :map, required: true
+  attr(:rule, :map, required: true)
 
   def condition_builder(assigns) do
     ~H"""
@@ -200,9 +200,9 @@ defmodule RulesteadAdmin.Components.RuleEditorComponents do
     """
   end
 
-  attr :index, :integer, required: true
-  attr :rule, :map, required: true
-  attr :editable?, :boolean, required: true
+  attr(:index, :integer, required: true)
+  attr(:rule, :map, required: true)
+  attr(:editable?, :boolean, required: true)
 
   def variant_editor(assigns) do
     ~H"""
@@ -247,7 +247,10 @@ defmodule RulesteadAdmin.Components.RuleEditorComponents do
   end
 
   defp humanize(value) when is_atom(value), do: humanize(Atom.to_string(value))
-  defp humanize(value) when is_binary(value), do: value |> String.replace("_", " ") |> String.capitalize()
+
+  defp humanize(value) when is_binary(value),
+    do: value |> String.replace("_", " ") |> String.capitalize()
+
   defp humanize(value), do: to_string(value)
 
   defp blank_to_fallback(nil, fallback), do: fallback

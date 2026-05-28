@@ -121,7 +121,12 @@ defmodule RulesteadAdmin.Live.FlagLive.Kill do
     confirmation = String.trim(Map.get(params, "confirmation", ""))
 
     with :ok <- validate_reason(reason),
-         :ok <- validate_confirmation(socket.assigns.flag_key, socket.assigns.current_environment.key, confirmation),
+         :ok <-
+           validate_confirmation(
+             socket.assigns.flag_key,
+             socket.assigns.current_environment.key,
+             confirmation
+           ),
          {:ok, _payload} <-
            Rulestead.engage_kill_switch(
              socket.assigns.flag_key,
@@ -138,10 +143,16 @@ defmodule RulesteadAdmin.Live.FlagLive.Kill do
        |> load_detail(socket.assigns.flag_key, socket.assigns.current_environment.key)}
     else
       {:error, error} ->
-        {:noreply, assign(socket, :confirmation_error, error.message) |> assign(:reason_value, reason) |> assign(:confirmation_value, confirmation)}
+        {:noreply,
+         assign(socket, :confirmation_error, error.message)
+         |> assign(:reason_value, reason)
+         |> assign(:confirmation_value, confirmation)}
 
       {:validation, message} ->
-        {:noreply, assign(socket, :confirmation_error, message) |> assign(:reason_value, reason) |> assign(:confirmation_value, confirmation)}
+        {:noreply,
+         assign(socket, :confirmation_error, message)
+         |> assign(:reason_value, reason)
+         |> assign(:confirmation_value, confirmation)}
     end
   end
 
@@ -151,7 +162,12 @@ defmodule RulesteadAdmin.Live.FlagLive.Kill do
     confirmation = String.trim(Map.get(params, "confirmation", ""))
 
     with :ok <- validate_reason(reason),
-         :ok <- validate_confirmation(socket.assigns.flag_key, socket.assigns.current_environment.key, confirmation),
+         :ok <-
+           validate_confirmation(
+             socket.assigns.flag_key,
+             socket.assigns.current_environment.key,
+             confirmation
+           ),
          {:ok, _payload} <-
            Rulestead.release_kill_switch(
              socket.assigns.flag_key,
@@ -168,10 +184,16 @@ defmodule RulesteadAdmin.Live.FlagLive.Kill do
        |> load_detail(socket.assigns.flag_key, socket.assigns.current_environment.key)}
     else
       {:error, error} ->
-        {:noreply, assign(socket, :confirmation_error, error.message) |> assign(:reason_value, reason) |> assign(:confirmation_value, confirmation)}
+        {:noreply,
+         assign(socket, :confirmation_error, error.message)
+         |> assign(:reason_value, reason)
+         |> assign(:confirmation_value, confirmation)}
 
       {:validation, message} ->
-        {:noreply, assign(socket, :confirmation_error, message) |> assign(:reason_value, reason) |> assign(:confirmation_value, confirmation)}
+        {:noreply,
+         assign(socket, :confirmation_error, message)
+         |> assign(:reason_value, reason)
+         |> assign(:confirmation_value, confirmation)}
     end
   end
 
@@ -239,7 +261,10 @@ defmodule RulesteadAdmin.Live.FlagLive.Kill do
              actor: actor
            ),
          event when is_map(event) <-
-           Enum.find(page.entries, &(&1.event_type in ["kill_switch.engage", "kill_switch.release"])) do
+           Enum.find(
+             page.entries,
+             &(&1.event_type in ["kill_switch.engage", "kill_switch.release"])
+           ) do
       event.reason
     else
       _ -> nil

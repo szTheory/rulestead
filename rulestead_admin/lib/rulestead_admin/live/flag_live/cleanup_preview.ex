@@ -45,7 +45,10 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupPreview do
             socket.assigns.rulestead_admin_mount_path
           )
         )
-        |> assign(:env_links, Session.env_links(socket, base_path, %{"return_to" => query["return_to"]}))
+        |> assign(
+          :env_links,
+          Session.env_links(socket, base_path, %{"return_to" => query["return_to"]})
+        )
         |> assign(:drift_message, drift_message(query["drifted"]))
         |> load_detail(key, env)
         |> load_code_references(key)
@@ -194,7 +197,8 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupPreview do
   end
 
   defp drift_message("true"),
-    do: "Cleanup evidence changed before archive confirmation. Review the latest preview before archiving."
+    do:
+      "Cleanup evidence changed before archive confirmation. Review the latest preview before archiving."
 
   defp drift_message(_value), do: nil
 
@@ -229,7 +233,10 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupPreview do
   defp freshness(detail), do: detail.lifecycle.freshness
 
   defp humanize(value) when is_atom(value), do: humanize(to_string(value))
-  defp humanize(value) when is_binary(value), do: value |> String.replace("_", " ") |> String.capitalize()
+
+  defp humanize(value) when is_binary(value),
+    do: value |> String.replace("_", " ") |> String.capitalize()
+
   defp humanize(value), do: to_string(value)
 
   defp primary_action_label(%{recommended_next_action: nil}), do: "No primary recommendation yet."
@@ -258,7 +265,10 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupPreview do
 
   defp blocker_label(:protected_flag_type), do: "Protected flag type resists archival"
   defp blocker_label(:permanent_posture), do: "Permanent posture keeps this flag active"
-  defp blocker_label(:remote_config_requires_review), do: "Remote config flags require stronger review"
+
+  defp blocker_label(:remote_config_requires_review),
+    do: "Remote config flags require stronger review"
+
   defp blocker_label(:code_refs_present), do: "Code references are still present"
   defp blocker_label(:already_archived), do: "Already archived"
   defp blocker_label(reason), do: humanize(reason)

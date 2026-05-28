@@ -57,8 +57,18 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
         socket
         |> assign(:current_path, current_path)
         |> assign(:filters, filters)
-        |> assign(:env_links, environment_links(socket.assigns.base_path, filters, socket.assigns.available_environments))
-        |> assign(:outcome_notice, outcome_notice(outcome, socket.assigns.current_environment.name))
+        |> assign(
+          :env_links,
+          environment_links(
+            socket.assigns.base_path,
+            filters,
+            socket.assigns.available_environments
+          )
+        )
+        |> assign(
+          :outcome_notice,
+          outcome_notice(outcome, socket.assigns.current_environment.name)
+        )
         |> assign(:outcome_audit_path, normalize_audit_path(socket, outcome["audit_path"]))
         |> assign(:highlighted_flag_key, outcome["highlight"])
         |> load_flags(filters)
@@ -75,7 +85,14 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
       |> Map.put("after", nil)
       |> Map.put("before", nil)
 
-    {:noreply, push_patch(socket, to: build_index_path(socket.assigns.base_path, normalize_filters(merged_filters, socket.assigns.current_environment.key)))}
+    {:noreply,
+     push_patch(socket,
+       to:
+         build_index_path(
+           socket.assigns.base_path,
+           normalize_filters(merged_filters, socket.assigns.current_environment.key)
+         )
+     )}
   end
 
   @impl true
@@ -353,8 +370,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
       "lifecycle" => normalize_enum(params["lifecycle"], @allowed_lifecycle),
       "stale" => normalize_enum(params["stale"], @allowed_stale),
       "readiness" => normalize_enum(params["readiness"], @allowed_readiness),
-      "evidence_quality" =>
-        normalize_enum(params["evidence_quality"], @allowed_evidence_quality),
+      "evidence_quality" => normalize_enum(params["evidence_quality"], @allowed_evidence_quality),
       "include_archived" => normalize_boolean(params["include_archived"]),
       "limit" => normalize_limit(params["limit"]),
       "after" => if(before_cursor, do: nil, else: after_cursor),
@@ -362,7 +378,9 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
     }
   end
 
-  defp stringify_keys(params) when is_map(params), do: Map.new(params, fn {key, value} -> {to_string(key), value} end)
+  defp stringify_keys(params) when is_map(params),
+    do: Map.new(params, fn {key, value} -> {to_string(key), value} end)
+
   defp stringify_keys(_params), do: %{}
 
   defp normalize_tags(tags) when is_list(tags), do: Enum.join(tags, ", ")
@@ -534,7 +552,10 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
 
   defp path_with_query(uri) do
     parsed = URI.parse(uri)
-    if is_nil(parsed.query), do: parsed.path || "/admin/flags", else: parsed.path <> "?" <> parsed.query
+
+    if is_nil(parsed.query),
+      do: parsed.path || "/admin/flags",
+      else: parsed.path <> "?" <> parsed.query
   end
 
   defp query_params(uri) do
@@ -552,11 +573,19 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
   defp blank_to_nil(value), do: value
 
   defp humanize(value) when is_atom(value), do: humanize(to_string(value))
-  defp humanize(value) when is_binary(value), do: value |> String.replace("_", " ") |> String.capitalize()
+
+  defp humanize(value) when is_binary(value),
+    do: value |> String.replace("_", " ") |> String.capitalize()
+
   defp humanize(value), do: to_string(value)
 
   defp format_last_changed(nil), do: "Not recorded"
-  defp format_last_changed(%DateTime{} = datetime), do: Calendar.strftime(datetime, "%Y-%m-%d %H:%M UTC")
-  defp format_last_changed(%NaiveDateTime{} = datetime), do: Calendar.strftime(datetime, "%Y-%m-%d %H:%M UTC")
+
+  defp format_last_changed(%DateTime{} = datetime),
+    do: Calendar.strftime(datetime, "%Y-%m-%d %H:%M UTC")
+
+  defp format_last_changed(%NaiveDateTime{} = datetime),
+    do: Calendar.strftime(datetime, "%Y-%m-%d %H:%M UTC")
+
   defp format_last_changed(value), do: to_string(value)
 end

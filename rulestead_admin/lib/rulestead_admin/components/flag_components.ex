@@ -3,7 +3,7 @@ defmodule RulesteadAdmin.Components.FlagComponents do
 
   use Phoenix.Component
 
-  attr :state, :any, required: true
+  attr(:state, :any, required: true)
 
   def lifecycle_badge(assigns) do
     assigns =
@@ -25,16 +25,15 @@ defmodule RulesteadAdmin.Components.FlagComponents do
     """
   end
 
-  attr :state, :any, required: true
-  attr :last_evaluated_at, :any, default: nil
+  attr(:state, :any, required: true)
+  attr(:last_evaluated_at, :any, default: nil)
 
   def stale_badge(assigns) do
     state = normalize_state(assigns.state)
 
     assigns =
       assign(assigns,
-        label:
-          if(state == :fresh, do: "Fresh", else: humanize_state(state)),
+        label: if(state == :fresh, do: "Fresh", else: humanize_state(state)),
         title: stale_title(state, assigns.last_evaluated_at)
       )
 
@@ -45,7 +44,7 @@ defmodule RulesteadAdmin.Components.FlagComponents do
     """
   end
 
-  attr :status, :any, required: true
+  attr(:status, :any, required: true)
 
   def environment_status(assigns) do
     status = normalize_state(assigns.status)
@@ -58,7 +57,7 @@ defmodule RulesteadAdmin.Components.FlagComponents do
     """
   end
 
-  attr :readiness, :any, required: true
+  attr(:readiness, :any, required: true)
 
   def readiness_badge(assigns) do
     readiness = normalize_readiness(assigns.readiness)
@@ -76,7 +75,7 @@ defmodule RulesteadAdmin.Components.FlagComponents do
     """
   end
 
-  attr :quality, :any, required: true
+  attr(:quality, :any, required: true)
 
   def evidence_quality_badge(assigns) do
     quality = normalize_quality(assigns.quality)
@@ -94,7 +93,7 @@ defmodule RulesteadAdmin.Components.FlagComponents do
     """
   end
 
-  attr :tags, :list, default: []
+  attr(:tags, :list, default: [])
 
   def tag_list(assigns) do
     ~H"""
@@ -106,15 +105,21 @@ defmodule RulesteadAdmin.Components.FlagComponents do
     """
   end
 
-  attr :page, :map, required: true
-  attr :base_path, :string, required: true
-  attr :params, :map, default: %{}
+  attr(:page, :map, required: true)
+  attr(:base_path, :string, required: true)
+  attr(:params, :map, default: %{})
 
   def pagination(assigns) do
     assigns =
       assigns
-      |> assign(:next_path, pagination_path(assigns.base_path, assigns.params, :next, assigns.page))
-      |> assign(:prev_path, pagination_path(assigns.base_path, assigns.params, :prev, assigns.page))
+      |> assign(
+        :next_path,
+        pagination_path(assigns.base_path, assigns.params, :next, assigns.page)
+      )
+      |> assign(
+        :prev_path,
+        pagination_path(assigns.base_path, assigns.params, :prev, assigns.page)
+      )
 
     ~H"""
     <nav class="rs-pagination" aria-label="Flag inventory pagination">
@@ -131,9 +136,9 @@ defmodule RulesteadAdmin.Components.FlagComponents do
     """
   end
 
-  attr :title, :string, required: true
-  attr :value, :any, required: true
-  attr :tone, :string, default: "neutral"
+  attr(:title, :string, required: true)
+  attr(:value, :any, required: true)
+  attr(:tone, :string, default: "neutral")
 
   def stat(assigns) do
     ~H"""
@@ -144,8 +149,8 @@ defmodule RulesteadAdmin.Components.FlagComponents do
     """
   end
 
-  attr :title, :string, required: true
-  slot :inner_block, required: true
+  attr(:title, :string, required: true)
+  slot(:inner_block, required: true)
 
   def section_card(assigns) do
     ~H"""
@@ -156,9 +161,9 @@ defmodule RulesteadAdmin.Components.FlagComponents do
     """
   end
 
-  attr :title, :string, required: true
-  attr :tone, :string, default: "neutral"
-  slot :inner_block, required: true
+  attr(:title, :string, required: true)
+  attr(:tone, :string, default: "neutral")
+  slot(:inner_block, required: true)
 
   def callout(assigns) do
     ~H"""
@@ -242,17 +247,26 @@ defmodule RulesteadAdmin.Components.FlagComponents do
   end
 
   defp stale_title(state, nil), do: humanize_state(state)
-  defp stale_title(state, %DateTime{} = last_evaluated_at), do: "#{humanize_state(state)}. Last evaluated #{DateTime.to_iso8601(last_evaluated_at)}"
+
+  defp stale_title(state, %DateTime{} = last_evaluated_at),
+    do: "#{humanize_state(state)}. Last evaluated #{DateTime.to_iso8601(last_evaluated_at)}"
+
   defp stale_title(state, _value), do: humanize_state(state)
 
   defp normalize_readiness(%{readiness: readiness}), do: normalize_readiness(readiness)
   defp normalize_readiness(nil), do: :unknown
-  defp normalize_readiness(readiness) when is_binary(readiness), do: Map.get(@known_readiness, readiness, :unknown)
+
+  defp normalize_readiness(readiness) when is_binary(readiness),
+    do: Map.get(@known_readiness, readiness, :unknown)
+
   defp normalize_readiness(readiness) when is_atom(readiness), do: readiness
   defp normalize_readiness(_readiness), do: :unknown
 
   defp normalize_quality(nil), do: :unknown
-  defp normalize_quality(quality) when is_binary(quality), do: Map.get(@known_quality, quality, :unknown)
+
+  defp normalize_quality(quality) when is_binary(quality),
+    do: Map.get(@known_quality, quality, :unknown)
+
   defp normalize_quality(quality) when is_atom(quality), do: quality
   defp normalize_quality(_quality), do: :unknown
 end

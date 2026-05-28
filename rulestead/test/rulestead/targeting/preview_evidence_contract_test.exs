@@ -206,7 +206,9 @@ defmodule Rulestead.Targeting.PreviewEvidenceContractTest do
 
   defp preview_audience_impact(adapter, attrs \\ []) do
     command =
-      Command.PreviewAudienceImpact.new("vip-users", :update,
+      Command.PreviewAudienceImpact.new(
+        "vip-users",
+        :update,
         Keyword.merge(
           [
             environment_key: "test",
@@ -235,8 +237,7 @@ defmodule Rulestead.Targeting.PreviewEvidenceContractTest do
         preview_schema_version: preview.preview_schema_version,
         preview_fingerprint: preview.preview_fingerprint,
         preview_basis: preview.preview_basis,
-        affected_reference_keys:
-          AudienceDependencies.reference_keys(preview.affected_references),
+        affected_reference_keys: AudienceDependencies.reference_keys(preview.affected_references),
         after_definition: %{conditions: [%{attribute: "plan", operator: "eq", value: "pro"}]},
         actor: %{id: "editor-1", roles: [:editor]},
         reason: "apply with stale host evidence"

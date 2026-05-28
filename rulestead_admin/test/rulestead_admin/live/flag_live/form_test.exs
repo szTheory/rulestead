@@ -26,7 +26,12 @@ defmodule RulesteadAdmin.Live.FlagLive.FormTest do
     seed_flag!(
       key: "checkout-redesign",
       ownership: %{owner_ref: "growth", owner_kind: :team, owner_display: "growth"},
-      lifecycle: %{mode: :expiring, review_by: ~D[2026-05-01], default_source: :flag_type, default_overridden: false},
+      lifecycle: %{
+        mode: :expiring,
+        review_by: ~D[2026-05-01],
+        default_source: :flag_type,
+        default_overridden: false
+      },
       tags: ["checkout", "release"]
     )
 

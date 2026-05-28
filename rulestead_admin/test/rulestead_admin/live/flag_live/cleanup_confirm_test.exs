@@ -32,7 +32,12 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupConfirmTest do
       ownership: %{owner_ref: "ops", owner_kind: :team, owner_display: "Ops"},
       tags: ["infra"],
       description: "Ops cleanup candidate",
-      lifecycle: %{mode: :expiring, review_by: ~D[2026-04-20], default_source: :flag_type, default_overridden: false},
+      lifecycle: %{
+        mode: :expiring,
+        review_by: ~D[2026-04-20],
+        default_source: :flag_type,
+        default_overridden: false
+      },
       environment_keys: ["prod", "staging"],
       code_reference_count: 0,
       code_refs_scan: %{received_at: DateTime.add(now, -600, :second), reference_count: 0}
@@ -40,8 +45,20 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupConfirmTest do
 
     publish_flag!("ops-cleanup", "prod")
     publish_flag!("ops-cleanup", "staging")
-    assert {:ok, _} = Rulestead.record_evaluation("ops-cleanup", "prod", DateTime.add(now, -7_200, :second))
-    assert {:ok, _} = Rulestead.record_evaluation("ops-cleanup", "staging", DateTime.add(now, -7_200, :second))
+
+    assert {:ok, _} =
+             Rulestead.record_evaluation(
+               "ops-cleanup",
+               "prod",
+               DateTime.add(now, -7_200, :second)
+             )
+
+    assert {:ok, _} =
+             Rulestead.record_evaluation(
+               "ops-cleanup",
+               "staging",
+               DateTime.add(now, -7_200, :second)
+             )
 
     conn =
       conn
@@ -58,9 +75,10 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupConfirmTest do
     {:ok, conn: conn}
   end
 
-  test "confirm requires a reason in non-production and returns to the queue with archived visibility", %{
-    conn: conn
-  } do
+  test "confirm requires a reason in non-production and returns to the queue with archived visibility",
+       %{
+         conn: conn
+       } do
     confirm_path = confirm_path(conn, "staging")
     {:ok, view, html} = live(conn, confirm_path)
 
@@ -68,13 +86,19 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupConfirmTest do
 
     invalid_html =
       view
-      |> form("form[aria-label='Archive flag confirmation form']", %{"reason" => "", "confirmation" => ""})
+      |> form("form[aria-label='Archive flag confirmation form']", %{
+        "reason" => "",
+        "confirmation" => ""
+      })
       |> render_submit()
 
     assert invalid_html =~ "Reason is required."
 
     view
-    |> form("form[aria-label='Archive flag confirmation form']", %{"reason" => "staging cleanup", "confirmation" => ""})
+    |> form("form[aria-label='Archive flag confirmation form']", %{
+      "reason" => "staging cleanup",
+      "confirmation" => ""
+    })
     |> render_submit()
 
     {redirect_path, _flash} = assert_redirect(view)
@@ -92,7 +116,13 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupConfirmTest do
       end
 
     assert returned_html =~ "Archived ops-cleanup in Staging."
-    assert has_element?(returned_view, "a[href='/admin/flags/ops-cleanup/timeline?env=staging']", "Open audit timeline")
+
+    assert has_element?(
+             returned_view,
+             "a[href='/admin/flags/ops-cleanup/timeline?env=staging']",
+             "Open audit timeline"
+           )
+
     assert has_element?(returned_view, "tr[data-flag-key='ops-cleanup'][data-highlighted='true']")
     assert Rulestead.fetch_flag!("ops-cleanup", "staging").flag.archived_at
   end
@@ -183,7 +213,12 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupConfirmTest do
       |> Map.put_new(:value_type, :boolean)
       |> Map.put_new(:default_value, %{value: false})
       |> Map.put_new(:ownership, %{owner_ref: "ops", owner_kind: :team, owner_display: "Ops"})
-      |> Map.put_new(:lifecycle, %{mode: :permanent, review_by: nil, default_source: :flag_type, default_overridden: false})
+      |> Map.put_new(:lifecycle, %{
+        mode: :permanent,
+        review_by: nil,
+        default_source: :flag_type,
+        default_overridden: false
+      })
       |> Map.put_new(:environment_keys, ["prod"])
       |> Map.put_new(:tags, [])
 
@@ -205,7 +240,9 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupConfirmTest do
 
     assert {:ok, _draft} =
              Rulestead.save_draft_ruleset(
-               Command.SaveDraftRuleset.new(flag_key, environment_key, ruleset, actor: @admin_actor)
+               Command.SaveDraftRuleset.new(flag_key, environment_key, ruleset,
+                 actor: @admin_actor
+               )
              )
 
     assert {:ok, _published} =

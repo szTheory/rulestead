@@ -43,7 +43,14 @@ defmodule RulesteadAdmin.Live.ExperimentLive.Index do
         socket
         |> assign(:current_path, current_path)
         |> assign(:filters, filters)
-        |> assign(:env_links, environment_links(socket.assigns.base_path, filters, socket.assigns.available_environments))
+        |> assign(
+          :env_links,
+          environment_links(
+            socket.assigns.base_path,
+            filters,
+            socket.assigns.available_environments
+          )
+        )
         |> load_experiments(filters)
 
       {:noreply, socket}
@@ -58,7 +65,14 @@ defmodule RulesteadAdmin.Live.ExperimentLive.Index do
       |> Map.put("after", nil)
       |> Map.put("before", nil)
 
-    {:noreply, push_patch(socket, to: build_index_path(socket.assigns.base_path, normalize_filters(merged_filters, socket.assigns.current_environment.key)))}
+    {:noreply,
+     push_patch(socket,
+       to:
+         build_index_path(
+           socket.assigns.base_path,
+           normalize_filters(merged_filters, socket.assigns.current_environment.key)
+         )
+     )}
   end
 
   @impl true
@@ -268,7 +282,9 @@ defmodule RulesteadAdmin.Live.ExperimentLive.Index do
     }
   end
 
-  defp stringify_keys(params) when is_map(params), do: Map.new(params, fn {key, value} -> {to_string(key), value} end)
+  defp stringify_keys(params) when is_map(params),
+    do: Map.new(params, fn {key, value} -> {to_string(key), value} end)
+
   defp stringify_keys(_params), do: %{}
 
   defp normalize_tags(tags) when is_list(tags), do: Enum.join(tags, ", ")
@@ -350,7 +366,10 @@ defmodule RulesteadAdmin.Live.ExperimentLive.Index do
 
   defp path_with_query(uri, default_path) do
     parsed = URI.parse(uri)
-    if is_nil(parsed.query), do: parsed.path || default_path, else: parsed.path <> "?" <> parsed.query
+
+    if is_nil(parsed.query),
+      do: parsed.path || default_path,
+      else: parsed.path <> "?" <> parsed.query
   end
 
   defp query_params(uri) do
@@ -374,11 +393,19 @@ defmodule RulesteadAdmin.Live.ExperimentLive.Index do
   defp blank_to_nil(value), do: value
 
   defp humanize(value) when is_atom(value), do: humanize(to_string(value))
-  defp humanize(value) when is_binary(value), do: value |> String.replace("_", " ") |> String.capitalize()
+
+  defp humanize(value) when is_binary(value),
+    do: value |> String.replace("_", " ") |> String.capitalize()
+
   defp humanize(value), do: to_string(value)
 
   defp format_last_changed(nil), do: "Not recorded"
-  defp format_last_changed(%DateTime{} = datetime), do: Calendar.strftime(datetime, "%Y-%m-%d %H:%M UTC")
-  defp format_last_changed(%NaiveDateTime{} = datetime), do: Calendar.strftime(datetime, "%Y-%m-%d %H:%M UTC")
+
+  defp format_last_changed(%DateTime{} = datetime),
+    do: Calendar.strftime(datetime, "%Y-%m-%d %H:%M UTC")
+
+  defp format_last_changed(%NaiveDateTime{} = datetime),
+    do: Calendar.strftime(datetime, "%Y-%m-%d %H:%M UTC")
+
   defp format_last_changed(value), do: to_string(value)
 end

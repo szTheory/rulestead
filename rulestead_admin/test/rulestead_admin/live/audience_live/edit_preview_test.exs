@@ -3,8 +3,8 @@ defmodule RulesteadAdmin.Live.AudienceLive.EditPreviewTest do
 
   import Phoenix.LiveViewTest
 
-  alias RulesteadAdmin.Test.ForbiddenPreviewCopy
   alias Rulestead.Targeting.ImpactPreview
+  alias RulesteadAdmin.Test.ForbiddenPreviewCopy
 
   setup_all do
     start_supervised!(RulesteadAdmin.TestEndpoint)
@@ -79,7 +79,6 @@ defmodule RulesteadAdmin.Live.AudienceLive.EditPreviewTest do
 
       assert ForbiddenPreviewCopy.offending_phrases(html) == []
     end
-
   end
 
   test "surfaces fail-closed alert when resolver returns policy denied", %{conn: conn} do
@@ -187,7 +186,9 @@ defmodule RulesteadAdmin.Live.AudienceLive.EditPreviewTest do
 
     publish_ruleset!("checkout", "test", %{
       salt: "checkout:test",
-      rules: [%{key: "vip-rule", strategy: :segment_match, audience_key: "vip-users", conditions: []}]
+      rules: [
+        %{key: "vip-rule", strategy: :segment_match, audience_key: "vip-users", conditions: []}
+      ]
     })
   end
 
@@ -216,7 +217,9 @@ defmodule RulesteadAdmin.Live.AudienceLive.EditPreviewTest do
 
       publish_ruleset!(flag_key, "prod", %{
         salt: "#{flag_key}:prod",
-        rules: [%{key: rule_key, strategy: :segment_match, audience_key: "vip-users", conditions: []}]
+        rules: [
+          %{key: rule_key, strategy: :segment_match, audience_key: "vip-users", conditions: []}
+        ]
       })
     end
 
@@ -287,8 +290,12 @@ defmodule RulesteadAdmin.Live.AudienceLive.EditPreviewTest do
     alias Rulestead.Store.Command
 
     %{version: version} =
-      Rulestead.save_draft_ruleset!(Command.SaveDraftRuleset.new(flag_key, environment_key, ruleset))
+      Rulestead.save_draft_ruleset!(
+        Command.SaveDraftRuleset.new(flag_key, environment_key, ruleset)
+      )
 
-    Rulestead.publish_ruleset!(Command.PublishRuleset.new(flag_key, environment_key, version: version))
+    Rulestead.publish_ruleset!(
+      Command.PublishRuleset.new(flag_key, environment_key, version: version)
+    )
   end
 end

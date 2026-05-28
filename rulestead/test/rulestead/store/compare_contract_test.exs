@@ -190,7 +190,11 @@ defmodule Rulestead.Store.CompareContractTest do
 
     def delete_audience!(audience_key) do
       snapshot = Rulestead.Fake.Control.snapshot!()
-      Rulestead.Fake.Control.restore!(%{snapshot | audiences: Map.delete(snapshot.audiences, audience_key)})
+
+      Rulestead.Fake.Control.restore!(%{
+        snapshot
+        | audiences: Map.delete(snapshot.audiences, audience_key)
+      })
     end
   end
 
@@ -436,6 +440,7 @@ defmodule Rulestead.Store.CompareContractTest do
     assert is_binary(ecto_payload.target_fingerprint)
     assert is_binary(fake_payload.target_fingerprint)
     assert normalize_findings(ecto_payload.findings) == normalize_findings(fake_payload.findings)
+
     assert normalize_dependency_findings(ecto_payload.dependency_findings) ==
              normalize_dependency_findings(fake_payload.dependency_findings)
 
@@ -552,9 +557,9 @@ defmodule Rulestead.Store.CompareContractTest do
       ])
     end)
     |> Enum.sort_by(fn finding ->
-      {finding.severity, finding.code, finding.source_environment_key, finding.target_environment_key,
-       finding.tenant_key, finding.flag_key, finding.ruleset_version, finding.rule_key,
-       finding.audience_key}
+      {finding.severity, finding.code, finding.source_environment_key,
+       finding.target_environment_key, finding.tenant_key, finding.flag_key,
+       finding.ruleset_version, finding.rule_key, finding.audience_key}
     end)
   end
 end

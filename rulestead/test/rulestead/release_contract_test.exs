@@ -599,7 +599,9 @@ defmodule Rulestead.ReleaseContractTest do
 
   test "quickstart teaches payload-first evaluation" do
     root_readme = File.read!(@root_readme_path)
-    getting_started = File.read!(Path.expand("../../../guides/introduction/getting-started.md", __DIR__))
+
+    getting_started =
+      File.read!(Path.expand("../../../guides/introduction/getting-started.md", __DIR__))
 
     for doc <- [root_readme, getting_started] do
       assert doc =~ "Rulestead.evaluate"
@@ -612,7 +614,9 @@ defmodule Rulestead.ReleaseContractTest do
 
   test "quickstart Context.new examples use attributes not traits for evaluation inputs" do
     root_readme = File.read!(@root_readme_path)
-    getting_started = File.read!(Path.expand("../../../guides/introduction/getting-started.md", __DIR__))
+
+    getting_started =
+      File.read!(Path.expand("../../../guides/introduction/getting-started.md", __DIR__))
 
     for doc <- [root_readme, getting_started] do
       assert doc =~ "attributes:"

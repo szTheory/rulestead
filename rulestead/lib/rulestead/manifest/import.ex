@@ -75,6 +75,7 @@ defmodule Rulestead.Manifest.Import do
 
     proposed_target_bundle = to_proposed_target_bundle(source_manifest, target_environment_key)
     dependency_closure_keys = Plan.dependency_closure_from_bundle(proposed_target_bundle)
+
     dependency_findings =
       dependency_findings(proposed_target_bundle, target_environment_key, tenant_key || "global")
 

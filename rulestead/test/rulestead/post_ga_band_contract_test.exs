@@ -33,7 +33,9 @@ defmodule Rulestead.PostGaBandContractTest do
 
   test "quickstart does not teach Rulestead.enabled? with string key and conn" do
     root_readme = File.read!(@root_readme)
-    getting_started = File.read!(Path.expand("../../../guides/introduction/getting-started.md", __DIR__))
+
+    getting_started =
+      File.read!(Path.expand("../../../guides/introduction/getting-started.md", __DIR__))
 
     for doc <- [root_readme, getting_started] do
       refute doc =~ ~r/Rulestead\.enabled\?\("[^"]+",\s*conn\)/

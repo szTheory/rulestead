@@ -219,7 +219,14 @@ defmodule RulesteadAdmin.Components.RolloutComponents do
 
   attr(:mode, :atom,
     required: true,
-    values: [:unavailable, :blocked_health, :config_incomplete, :ready, :pending_observation, :scheduled]
+    values: [
+      :unavailable,
+      :blocked_health,
+      :config_incomplete,
+      :ready,
+      :pending_observation,
+      :scheduled
+    ]
   )
 
   attr(:policy, :map, default: nil)
@@ -391,7 +398,8 @@ defmodule RulesteadAdmin.Components.RolloutComponents do
     "Observation window is open. Auto-advance evaluates at window close."
   end
 
-  defp mode_body(:scheduled, _status, %{scheduled_for: scheduled_for}) when not is_nil(scheduled_for) do
+  defp mode_body(:scheduled, _status, %{scheduled_for: scheduled_for})
+       when not is_nil(scheduled_for) do
     "Advance scheduled for #{scheduled_for} if guardrails remain healthy."
   end
 

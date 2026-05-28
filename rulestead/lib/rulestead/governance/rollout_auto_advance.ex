@@ -138,8 +138,9 @@ defmodule Rulestead.Governance.RolloutAutoAdvance do
     live_window_ends = decision_field(decision, :monitoring_window_ends_at)
 
     snapshot_stage =
-      snapshot_rollout["stage"] || snapshot_rollout[:stage]
-      |> to_string()
+      snapshot_rollout["stage"] ||
+        snapshot_rollout[:stage]
+        |> to_string()
 
     snapshot_percentage = snapshot_rollout["percentage"] || snapshot_rollout[:percentage]
 
@@ -275,19 +276,19 @@ defmodule Rulestead.Governance.RolloutAutoAdvance do
         )
 
       if approval_requirement.change_request_required? do
-        submit_protected_change_request(
-          store,
-          scheduled_execution,
-          execute_command,
-          rule_key,
-          next_stage,
-          next_percentage,
-          evaluated_at,
-          window_ends_at,
-          signal_facts,
-          eligibility,
-          approval_requirement
-        )
+        submit_protected_change_request(%{
+          store: store,
+          scheduled_execution: scheduled_execution,
+          execute_command: execute_command,
+          rule_key: rule_key,
+          next_stage: next_stage,
+          next_percentage: next_percentage,
+          evaluated_at: evaluated_at,
+          window_ends_at: window_ends_at,
+          signal_facts: signal_facts,
+          eligibility: eligibility,
+          approval_requirement: approval_requirement
+        })
       else
         advance_command =
           Command.AdvanceRollout.new(
@@ -341,19 +342,19 @@ defmodule Rulestead.Governance.RolloutAutoAdvance do
     end
   end
 
-  defp submit_protected_change_request(
-         store,
-         scheduled_execution,
-         execute_command,
-         rule_key,
-         next_stage,
-         next_percentage,
-         evaluated_at,
-         window_ends_at,
-         signal_facts,
-         eligibility,
-         approval_requirement
-       ) do
+  defp submit_protected_change_request(%{
+         store: store,
+         scheduled_execution: scheduled_execution,
+         execute_command: execute_command,
+         rule_key: rule_key,
+         next_stage: next_stage,
+         next_percentage: next_percentage,
+         evaluated_at: evaluated_at,
+         window_ends_at: window_ends_at,
+         signal_facts: signal_facts,
+         eligibility: eligibility,
+         approval_requirement: approval_requirement
+       }) do
     submit_command =
       Command.SubmitChangeRequest.new(
         %{
@@ -457,15 +458,21 @@ defmodule Rulestead.Governance.RolloutAutoAdvance do
   end
 
   defp find_rollout_rule(flag_payload, rule_key) do
-    active_ruleset = Map.get(flag_payload, :active_ruleset) || Map.get(flag_payload, "active_ruleset")
-    rules = Map.get(active_ruleset || %{}, :rules) || Map.get(active_ruleset || %{}, "rules") || []
-    rule_key = to_string(rule_key || "")
+    active_ruleset =
+      Map.get(flag_payload, :active_ruleset) || Map.get(flag_payload, "active_ruleset")
 
-    Enum.find(rules, fn rule ->
-      key = Map.get(rule, :key) || Map.get(rule, "key")
-      rollout = Map.get(rule, :rollout) || Map.get(rule, "rollout")
-      to_string(key || "") == rule_key and not is_nil(rollout)
-    end)
+    rules =
+      Map.get(active_ruleset || %{}, :rules) || Map.get(active_ruleset || %{}, "rules") || []
+
+    normalized_rule_key = to_string(rule_key || "")
+
+    Enum.find(rules, &rollout_rule_match?(&1, normalized_rule_key))
+  end
+
+  defp rollout_rule_match?(rule, rule_key) do
+    key = Map.get(rule, :key) || Map.get(rule, "key")
+    rollout = Map.get(rule, :rollout) || Map.get(rule, "rollout")
+    to_string(key || "") == rule_key and not is_nil(rollout)
   end
 
   defp guardrail_configured?(guardrail) do

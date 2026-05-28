@@ -75,7 +75,8 @@ defmodule Rulestead.Promotion.Compare do
     dependency_findings = attrs[:dependency_findings] || attrs["dependency_findings"] || []
 
     all_findings =
-      findings ++ dependency_findings ++
+      findings ++
+        dependency_findings ++
         Enum.flat_map(flags, fn flag ->
           Map.get(flag, :findings, Map.get(flag, "findings", []))
         end)
@@ -129,8 +130,13 @@ defmodule Rulestead.Promotion.Compare do
   def compare_projected(attrs) when is_map(attrs) do
     source_flags = attrs[:source_flags] || %{}
     target_flags = attrs[:target_flags] || %{}
-    source_environment_key = get_environment_key(attrs[:source_environment] || attrs["source_environment"])
-    target_environment_key = get_environment_key(attrs[:target_environment] || attrs["target_environment"])
+
+    source_environment_key =
+      get_environment_key(attrs[:source_environment] || attrs["source_environment"])
+
+    target_environment_key =
+      get_environment_key(attrs[:target_environment] || attrs["target_environment"])
+
     tenant_key = normalize_string(attrs[:tenant_key] || attrs["tenant_key"])
 
     requested_flag_keys =
@@ -189,6 +195,7 @@ defmodule Rulestead.Promotion.Compare do
       end)
 
     dependency_closure_keys = dependency_keys |> MapSet.to_list() |> Enum.sort()
+
     dependency_findings =
       compare_dependency_findings(
         scope_keys,
@@ -783,7 +790,8 @@ defmodule Rulestead.Promotion.Compare do
 
         rules
         |> Enum.flat_map(fn rule ->
-          if normalize_string(Map.get(rule, :strategy) || Map.get(rule, "strategy")) == "segment_match" do
+          if normalize_string(Map.get(rule, :strategy) || Map.get(rule, "strategy")) ==
+               "segment_match" do
             [
               DependencyInventory.normalize_entry(%{
                 environment_key: source_environment_key,
@@ -799,7 +807,8 @@ defmodule Rulestead.Promotion.Compare do
                 reference_count: 1,
                 hidden_reference_count: 0,
                 audience_schema_version:
-                  Map.get(rule, :audience_schema_version) || Map.get(rule, "audience_schema_version"),
+                  Map.get(rule, :audience_schema_version) ||
+                    Map.get(rule, "audience_schema_version"),
                 audience_version_hash:
                   Map.get(rule, :audience_version_hash) || Map.get(rule, "audience_version_hash")
               })
@@ -821,10 +830,12 @@ defmodule Rulestead.Promotion.Compare do
          key: normalize_string(key),
          tenant_key:
            normalize_string(
-             Map.get(normalized_audience, :tenant_key) || Map.get(normalized_audience, "tenant_key")
+             Map.get(normalized_audience, :tenant_key) ||
+               Map.get(normalized_audience, "tenant_key")
            ),
          archived_at:
-           Map.get(normalized_audience, :archived_at) || Map.get(normalized_audience, "archived_at"),
+           Map.get(normalized_audience, :archived_at) ||
+             Map.get(normalized_audience, "archived_at"),
          definition:
            Map.get(normalized_audience, :definition) || Map.get(normalized_audience, "definition")
        }}
@@ -849,7 +860,7 @@ defmodule Rulestead.Promotion.Compare do
       }
     end)
     |> hash_term()
-    |> then(&"dep_" <> &1)
+    |> then(&("dep_" <> &1))
   end
 
   defp normalize_string(nil), do: nil

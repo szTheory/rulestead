@@ -42,7 +42,10 @@ defmodule RulesteadAdmin.Live.DiagnosticsLive.Index do
   def handle_event("refresh", _params, socket) do
     socket =
       socket
-      |> assign(:refresh_notice, "Refresh requested for #{socket.assigns.page.current_environment.name}.")
+      |> assign(
+        :refresh_notice,
+        "Refresh requested for #{socket.assigns.page.current_environment.name}."
+      )
       |> assign(:health_snapshot, AsyncResult.loading())
       |> load_health()
 
@@ -170,10 +173,26 @@ defmodule RulesteadAdmin.Live.DiagnosticsLive.Index do
 
   defp summary_items(environment) do
     [
-      %{title: "Cache age", value: human_duration(environment.cache_age_ms), tone: freshness_tone(environment.cache_age_ms)},
-      %{title: "Sync latency", value: human_duration(environment.sync_latency_ms), tone: freshness_tone(environment.sync_latency_ms)},
-      %{title: "Snapshot version", value: to_string(environment.snapshot_version || "none"), tone: "neutral"},
-      %{title: "Refresh state", value: humanize(environment.refresh_status), tone: refresh_tone(environment.refresh_status)}
+      %{
+        title: "Cache age",
+        value: human_duration(environment.cache_age_ms),
+        tone: freshness_tone(environment.cache_age_ms)
+      },
+      %{
+        title: "Sync latency",
+        value: human_duration(environment.sync_latency_ms),
+        tone: freshness_tone(environment.sync_latency_ms)
+      },
+      %{
+        title: "Snapshot version",
+        value: to_string(environment.snapshot_version || "none"),
+        tone: "neutral"
+      },
+      %{
+        title: "Refresh state",
+        value: humanize(environment.refresh_status),
+        tone: refresh_tone(environment.refresh_status)
+      }
     ]
   end
 
@@ -224,10 +243,15 @@ defmodule RulesteadAdmin.Live.DiagnosticsLive.Index do
     }
   end
 
-  defp scope_title(%AsyncResult{ok?: true, result: %{topology_scope: :host_provided}}), do: "Host-provided topology"
+  defp scope_title(%AsyncResult{ok?: true, result: %{topology_scope: :host_provided}}),
+    do: "Host-provided topology"
+
   defp scope_title(_health_snapshot), do: "Current node only"
 
-  defp scope_body(%AsyncResult{ok?: true, result: %{topology_scope: :host_provided}}, _environment) do
+  defp scope_body(
+         %AsyncResult{ok?: true, result: %{topology_scope: :host_provided}},
+         _environment
+       ) do
     "This screen includes host-supplied peer context. Treat only the rendered rows as known health facts."
   end
 
@@ -235,7 +259,9 @@ defmodule RulesteadAdmin.Live.DiagnosticsLive.Index do
     "This screen reports only the connected node for #{environment.name}. It does not imply undiscovered peers are healthy."
   end
 
-  defp scope_tone(%AsyncResult{ok?: true, result: %{topology_scope: :host_provided}}), do: "neutral"
+  defp scope_tone(%AsyncResult{ok?: true, result: %{topology_scope: :host_provided}}),
+    do: "neutral"
+
   defp scope_tone(_health_snapshot), do: "warning"
 
   defp human_duration(nil), do: "Not available"

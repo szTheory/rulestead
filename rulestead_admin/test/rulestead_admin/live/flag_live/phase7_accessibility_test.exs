@@ -26,7 +26,9 @@ defmodule RulesteadAdmin.Live.FlagLive.Phase7AccessibilityTest do
              Rulestead.engage_kill_switch(
                "checkout-redesign",
                "prod",
-               %{id: "op-1", display: "Priya", roles: [:admin]}, reason: "incident")
+               %{id: "op-1", display: "Priya", roles: [:admin]},
+               reason: "incident"
+             )
 
     conn =
       conn

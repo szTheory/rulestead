@@ -153,7 +153,9 @@ defmodule Rulestead.AdminSecurityContractTest do
   test "list_audience_dependencies returns policy-safe hidden_reference_count and redacted placeholders" do
     Application.put_env(:rulestead, :admin_policy, __MODULE__.AllowInventoryPolicy)
 
-    Rulestead.Fake.Control.put_flag!(StoreFixtures.valid_flag_attrs(%{environment_keys: ["test"]}))
+    Rulestead.Fake.Control.put_flag!(
+      StoreFixtures.valid_flag_attrs(%{environment_keys: ["test"]})
+    )
 
     ruleset = %{
       salt: "checkout-redesign:v2",

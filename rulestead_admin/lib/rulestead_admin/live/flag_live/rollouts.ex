@@ -103,7 +103,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
   end
 
   def handle_event("preview", _params, %{assigns: %{editable?: false}} = socket) do
-    {:noreply, assign(socket, :error_message, "No rollout rule is available for this environment.")}
+    {:noreply,
+     assign(socket, :error_message, "No rollout rule is available for this environment.")}
   end
 
   def handle_event("preview", _params, socket) do
@@ -508,7 +509,14 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
     |> assign(:auto_advance_form_error, nil)
   end
 
-  defp assign_auto_advance_load(socket, flag_key, env, rollout_rule_key, definitions, guardrail_status) do
+  defp assign_auto_advance_load(
+         socket,
+         flag_key,
+         env,
+         rollout_rule_key,
+         definitions,
+         guardrail_status
+       ) do
     if is_nil(rollout_rule_key) do
       assign_auto_advance_defaults(socket)
     else
@@ -554,7 +562,9 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
     end
   end
 
-  defp auto_advance_policy_not_found?(%{message: "rollout_auto_advance_policy_not_found"}), do: true
+  defp auto_advance_policy_not_found?(%{message: "rollout_auto_advance_policy_not_found"}),
+    do: true
+
   defp auto_advance_policy_not_found?(_), do: false
 
   defp fetch_auto_advance_scheduled_tick(flag_key, env, rollout_rule_key) do
@@ -729,7 +739,9 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
   defp positive_int?(value) when is_integer(value) and value > 0, do: true
   defp positive_int?(_), do: false
 
-  defp percentage_in_range?(value) when is_integer(value) and value >= 0 and value <= 100, do: true
+  defp percentage_in_range?(value) when is_integer(value) and value >= 0 and value <= 100,
+    do: true
+
   defp percentage_in_range?(_), do: false
 
   defp blank?(nil), do: true
@@ -771,8 +783,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
       id: event.id,
       title: intervention_title_for(event),
       meta: intervention_meta_for(event),
-      summary:
-        intervention_summary_for(event, metadata, before_state, after_state, diff_state),
+      summary: intervention_summary_for(event, metadata, before_state, after_state, diff_state),
       reason: event.reason,
       automatic?: guardrail_automation_event?(event),
       source_label: source_label(metadata),

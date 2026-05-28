@@ -12,16 +12,18 @@ defmodule Rulestead.Governance.AudienceMutationChangeRequest do
 
   @spec validate_submit(Command.SubmitChangeRequest.t(), map()) ::
           :ok | {:error, Rulestead.Error.t()}
-  def validate_submit(%Command.SubmitChangeRequest{action: :apply_audience_mutation} = command, current_preview)
+  def validate_submit(
+        %Command.SubmitChangeRequest{action: :apply_audience_mutation} = command,
+        current_preview
+      )
       when is_map(current_preview) do
     mutation_command = command.command || %{}
 
     with :ok <- ensure_protected_environment(command.environment_key),
          :ok <- ensure_required_command_keys(mutation_command),
          :ok <- ensure_matching_preview_fingerprint(mutation_command, current_preview),
-         {:ok, assessment} <- assess_submission(command, current_preview),
-         :ok <- ensure_above_threshold(assessment) do
-      :ok
+         {:ok, assessment} <- assess_submission(command, current_preview) do
+      ensure_above_threshold(assessment)
     end
   end
 
@@ -34,8 +36,11 @@ defmodule Rulestead.Governance.AudienceMutationChangeRequest do
   end
 
   @spec build_submission_metadata(map(), map()) :: map()
-  def build_submission_metadata(assessment, current_preview) when is_map(assessment) and is_map(current_preview) do
-    references = Map.get(current_preview, :affected_references) || Map.get(current_preview, "affected_references") || []
+  def build_submission_metadata(assessment, current_preview)
+      when is_map(assessment) and is_map(current_preview) do
+    references =
+      Map.get(current_preview, :affected_references) ||
+        Map.get(current_preview, "affected_references") || []
 
     %{
       "blast_radius_assessment" => normalize_assessment(assessment),
@@ -104,7 +109,10 @@ defmodule Rulestead.Governance.AudienceMutationChangeRequest do
 
   defp assess_submission(command, current_preview) do
     mutation_command = command.command || %{}
-    references = Map.get(current_preview, :affected_references) || Map.get(current_preview, "affected_references") || []
+
+    references =
+      Map.get(current_preview, :affected_references) ||
+        Map.get(current_preview, "affected_references") || []
 
     attrs = %{
       environment_key: command.environment_key,
@@ -169,13 +177,13 @@ defmodule Rulestead.Governance.AudienceMutationChangeRequest do
 
   defp rollout_hints(references) do
     references
-    |> Enum.map(&Map.get(&1, :rollout_context) || Map.get(&1, "rollout_context"))
+    |> Enum.map(&(Map.get(&1, :rollout_context) || Map.get(&1, "rollout_context")))
     |> Enum.reject(&is_nil/1)
   end
 
   defp lifecycle_hints(references) do
     references
-    |> Enum.map(&Map.get(&1, :lifecycle_context) || Map.get(&1, "lifecycle_context"))
+    |> Enum.map(&(Map.get(&1, :lifecycle_context) || Map.get(&1, "lifecycle_context")))
     |> Enum.reject(&is_nil/1)
   end
 

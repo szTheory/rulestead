@@ -129,7 +129,10 @@ defmodule RulesteadAdmin.Live.AuditLive.Index do
         value -> value
       end
 
-    case Rulestead.list_audit_events(environment_key: command_env, actor: socket.assigns.current_actor) do
+    case Rulestead.list_audit_events(
+           environment_key: command_env,
+           actor: socket.assigns.current_actor
+         ) do
       {:ok, page} ->
         socket
         |> assign(:entries, page.entries |> Enum.map(&entry_view/1) |> filter_entries(filters))
@@ -154,7 +157,18 @@ defmodule RulesteadAdmin.Live.AuditLive.Index do
       meta: meta_for(event),
       summary: summary_for(event, before_state, after_state, diff_state),
       reason: event.reason,
-      raw: %{event: Map.take(event, [:event_type, :result, :resource_key, :environment_key, :actor_display, :occurred_at]), metadata: metadata},
+      raw: %{
+        event:
+          Map.take(event, [
+            :event_type,
+            :result,
+            :resource_key,
+            :environment_key,
+            :actor_display,
+            :occurred_at
+          ]),
+        metadata: metadata
+      },
       before_summary: state_summary(before_state),
       after_summary: state_summary(after_state),
       diff_lines: diff_lines(event.event_type, diff_state),
@@ -231,12 +245,16 @@ defmodule RulesteadAdmin.Live.AuditLive.Index do
   defp title_for(%{event_type: "kill_switch.engage", result: :ok}), do: "Kill switch engaged"
   defp title_for(%{event_type: "kill_switch.release", result: :ok}), do: "Kill switch released"
   defp title_for(%{event_type: "audit.rollback"}), do: "Rollback applied"
-  defp title_for(%{event_type: event_type, result: :denied}), do: "#{humanize_event(event_type)} denied"
+
+  defp title_for(%{event_type: event_type, result: :denied}),
+    do: "#{humanize_event(event_type)} denied"
+
   defp title_for(%{event_type: event_type}), do: humanize_event(event_type)
 
   defp meta_for(event) do
     actor = event.actor_display || event.actor_id || "Unknown actor"
     result = event.result |> to_string() |> String.upcase()
+
     time =
       if event.occurred_at do
         Calendar.strftime(event.occurred_at, "%Y-%m-%d %H:%M:%S UTC")
@@ -268,7 +286,9 @@ defmodule RulesteadAdmin.Live.AuditLive.Index do
 
     if is_list(rules) and rules != [] do
       rules
-      |> Enum.map(fn rule -> "#{rule["key"] || rule[:key]} @ #{rule["position"] || rule[:position]}" end)
+      |> Enum.map(fn rule ->
+        "#{rule["key"] || rule[:key]} @ #{rule["position"] || rule[:position]}"
+      end)
       |> Enum.join(", ")
     else
       status = state["status"] || state[:status] || "unknown"

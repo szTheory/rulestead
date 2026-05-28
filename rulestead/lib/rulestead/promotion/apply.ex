@@ -205,7 +205,8 @@ defmodule Rulestead.Promotion.Apply do
       active_ruleset
       |> Map.get("rules", Map.get(active_ruleset, :rules, []))
       |> Enum.flat_map(fn rule ->
-        if normalize_string(Map.get(rule, "strategy") || Map.get(rule, :strategy)) == "segment_match" do
+        if normalize_string(Map.get(rule, "strategy") || Map.get(rule, :strategy)) ==
+             "segment_match" do
           metadata = Map.get(rule, "metadata") || Map.get(rule, :metadata) || %{}
 
           [
@@ -254,10 +255,12 @@ defmodule Rulestead.Promotion.Apply do
          key: normalized_key,
          tenant_key:
            normalize_string(
-             Map.get(normalized_audience, :tenant_key) || Map.get(normalized_audience, "tenant_key")
+             Map.get(normalized_audience, :tenant_key) ||
+               Map.get(normalized_audience, "tenant_key")
            ),
          archived_at:
-           Map.get(normalized_audience, :archived_at) || Map.get(normalized_audience, "archived_at"),
+           Map.get(normalized_audience, :archived_at) ||
+             Map.get(normalized_audience, "archived_at"),
          definition:
            Map.get(normalized_audience, :definition) || Map.get(normalized_audience, "definition")
        }}
@@ -274,7 +277,8 @@ defmodule Rulestead.Promotion.Apply do
       else
         Map.put(acc, key, %{
           key: key,
-          tenant_key: normalize_string(Map.get(audience, :tenant_key) || Map.get(audience, "tenant_key")),
+          tenant_key:
+            normalize_string(Map.get(audience, :tenant_key) || Map.get(audience, "tenant_key")),
           archived_at: Map.get(audience, :archived_at) || Map.get(audience, "archived_at"),
           definition: Map.get(audience, :definition) || Map.get(audience, "definition")
         })
@@ -290,8 +294,11 @@ defmodule Rulestead.Promotion.Apply do
       severity: normalize_severity(Map.get(finding, :severity) || Map.get(finding, "severity")),
       message: normalize_string(Map.get(finding, :message) || Map.get(finding, "message")),
       environment_key:
-        normalize_string(Map.get(finding, :environment_key) || Map.get(finding, "environment_key")),
-      tenant_key: normalize_string(Map.get(finding, :tenant_key) || Map.get(finding, "tenant_key")),
+        normalize_string(
+          Map.get(finding, :environment_key) || Map.get(finding, "environment_key")
+        ),
+      tenant_key:
+        normalize_string(Map.get(finding, :tenant_key) || Map.get(finding, "tenant_key")),
       audience_key:
         normalize_string(Map.get(finding, :audience_key) || Map.get(finding, "audience_key")),
       flag_key: normalize_string(Map.get(finding, :flag_key) || Map.get(finding, "flag_key")),
@@ -345,7 +352,10 @@ defmodule Rulestead.Promotion.Apply do
   end
 
   defp normalize_string(nil), do: nil
-  defp normalize_string(value) when is_atom(value), do: value |> Atom.to_string() |> normalize_string()
+
+  defp normalize_string(value) when is_atom(value),
+    do: value |> Atom.to_string() |> normalize_string()
+
   defp normalize_string(value), do: value |> to_string() |> normalize_string()
 
   defp normalize_map(nil), do: %{}

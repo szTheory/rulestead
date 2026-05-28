@@ -235,7 +235,11 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Show do
         current == :change_requests
       ),
       nav_link("Schedule", Session.current_path(socket, schedule_path()), current == :schedule),
-      nav_link("Webhooks", Session.current_path(socket, "/admin/flags/webhooks"), current == :webhooks),
+      nav_link(
+        "Webhooks",
+        Session.current_path(socket, "/admin/flags/webhooks"),
+        current == :webhooks
+      ),
       nav_link("Audit", Session.current_path(socket, audit_path()), current == :audit)
     ]
   end
@@ -464,9 +468,21 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Show do
 
   defp normalize_dependency_inventory({:error, error}) do
     if auth_error?(error) do
-      %{summary: "Dependency list unavailable", entries: [], redacted_entries: [], hidden_count: 0, denied?: true}
+      %{
+        summary: "Dependency list unavailable",
+        entries: [],
+        redacted_entries: [],
+        hidden_count: 0,
+        denied?: true
+      }
     else
-      %{summary: "Dependency list unavailable", entries: [], redacted_entries: [], hidden_count: 0, denied?: false}
+      %{
+        summary: "Dependency list unavailable",
+        entries: [],
+        redacted_entries: [],
+        hidden_count: 0,
+        denied?: false
+      }
     end
   end
 

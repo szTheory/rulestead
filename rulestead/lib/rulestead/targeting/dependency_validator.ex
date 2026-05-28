@@ -142,7 +142,9 @@ defmodule Rulestead.Targeting.DependencyValidator do
     audiences = Map.get(scope, :audiences) || Map.get(scope, "audiences") || %{}
 
     if is_map(audiences) do
-      Map.new(audiences, fn {key, audience} -> {normalize_string(key), normalize_map(audience)} end)
+      Map.new(audiences, fn {key, audience} ->
+        {normalize_string(key), normalize_map(audience)}
+      end)
     else
       %{}
     end
@@ -189,7 +191,8 @@ defmodule Rulestead.Targeting.DependencyValidator do
 
   defp maybe_add_archived_reference(findings, _entry, _audience), do: findings
 
-  defp maybe_add_incompatible_reference(findings, entry, audience, _scope) when is_map(audience) do
+  defp maybe_add_incompatible_reference(findings, entry, audience, _scope)
+       when is_map(audience) do
     case incompatible_reason(entry, audience) do
       nil ->
         findings
@@ -356,7 +359,10 @@ defmodule Rulestead.Targeting.DependencyValidator do
 
   defp tenant_findings(entries, scope) do
     command_tenant = normalize_string(scope.tenant_key)
-    non_nil_tenants = entries |> Enum.map(&normalize_string(&1.tenant_key)) |> Enum.reject(&is_nil/1)
+
+    non_nil_tenants =
+      entries |> Enum.map(&normalize_string(&1.tenant_key)) |> Enum.reject(&is_nil/1)
+
     unique_tenants = non_nil_tenants |> Enum.uniq() |> Enum.sort()
 
     cond do
@@ -455,7 +461,10 @@ defmodule Rulestead.Targeting.DependencyValidator do
   end
 
   defp normalize_string(nil), do: nil
-  defp normalize_string(value) when is_atom(value), do: value |> Atom.to_string() |> normalize_string()
+
+  defp normalize_string(value) when is_atom(value),
+    do: value |> Atom.to_string() |> normalize_string()
+
   defp normalize_string(value), do: value |> to_string() |> normalize_string()
 
   defp normalize_string_list(values) when is_list(values) do
@@ -543,5 +552,6 @@ defmodule Rulestead.Targeting.DependencyValidator do
     end
   end
 
-  defp parse_reference_key(_reference_key), do: %{flag_key: nil, ruleset_version: nil, rule_key: nil}
+  defp parse_reference_key(_reference_key),
+    do: %{flag_key: nil, ruleset_version: nil, rule_key: nil}
 end

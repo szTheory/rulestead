@@ -5,10 +5,10 @@ defmodule RulesteadAdmin.Components.AudienceComponents do
 
   @sample_display_limit 10
 
-  attr :dependencies, :map, required: true
-  attr :mount_path, :string, required: true
-  attr :environment_key, :string, required: true
-  attr :tenant_key, :string, default: nil
+  attr(:dependencies, :map, required: true)
+  attr(:mount_path, :string, required: true)
+  attr(:environment_key, :string, required: true)
+  attr(:tenant_key, :string, default: nil)
 
   def used_by_table(assigns) do
     ~H"""
@@ -62,7 +62,7 @@ defmodule RulesteadAdmin.Components.AudienceComponents do
     """
   end
 
-  attr :preview, :map, required: true
+  attr(:preview, :map, required: true)
 
   def impact_preview(assigns) do
     samples = sample_evidence_list(assigns.preview)
@@ -201,10 +201,7 @@ defmodule RulesteadAdmin.Components.AudienceComponents do
     %{
       actor_key: fetch_preview(row, :actor_key) || "—",
       targeting_key: fetch_preview(row, :targeting_key) || "—",
-      matched?:
-        format_matched?(
-          fetch_preview(row, :matched?) || Map.get(row, "matched?")
-        ),
+      matched?: format_matched?(fetch_preview(row, :matched?) || Map.get(row, "matched?")),
       reason: fetch_preview(row, :reason) || "—"
     }
   end
@@ -232,7 +229,9 @@ defmodule RulesteadAdmin.Components.AudienceComponents do
     fetch_preview(entry, :count) || fetch_preview(entry, "count") || "—"
   end
 
-  defp scope_key(scope, key) when is_map(scope), do: Map.get(scope, key) || Map.get(scope, to_string(key)) || "—"
+  defp scope_key(scope, key) when is_map(scope),
+    do: Map.get(scope, key) || Map.get(scope, to_string(key)) || "—"
+
   defp scope_key(_scope, _key), do: "—"
 
   defp policy_denied?(entry) do

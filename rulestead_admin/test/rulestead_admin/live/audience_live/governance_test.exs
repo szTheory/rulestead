@@ -181,7 +181,9 @@ defmodule RulesteadAdmin.Live.AudienceLive.GovernanceTest do
 
       publish_ruleset!(flag_key, "production", %{
         salt: "#{flag_key}:production",
-        rules: [%{key: rule_key, strategy: :segment_match, audience_key: "vip-users", conditions: []}]
+        rules: [
+          %{key: rule_key, strategy: :segment_match, audience_key: "vip-users", conditions: []}
+        ]
       })
     end
 
@@ -193,7 +195,9 @@ defmodule RulesteadAdmin.Live.AudienceLive.GovernanceTest do
     alias Rulestead.Store.Command
 
     assert {:ok, _} =
-             Fake.save_draft_ruleset(Command.SaveDraftRuleset.new(flag_key, environment_key, ruleset))
+             Fake.save_draft_ruleset(
+               Command.SaveDraftRuleset.new(flag_key, environment_key, ruleset)
+             )
 
     assert {:ok, _} = Fake.publish_ruleset(Command.PublishRuleset.new(flag_key, environment_key))
   end

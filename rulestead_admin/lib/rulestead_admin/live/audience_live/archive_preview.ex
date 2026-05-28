@@ -4,7 +4,13 @@ defmodule RulesteadAdmin.Live.AudienceLive.ArchivePreview do
 
   use Phoenix.LiveView
 
-  alias RulesteadAdmin.Components.{AudienceComponents, FlagComponents, GovernanceComponents, Shell}
+  alias RulesteadAdmin.Components.{
+    AudienceComponents,
+    FlagComponents,
+    GovernanceComponents,
+    Shell
+  }
+
   alias RulesteadAdmin.Live.{AudienceLive.Governance, AudienceLive.Shared, Session}
 
   @impl true

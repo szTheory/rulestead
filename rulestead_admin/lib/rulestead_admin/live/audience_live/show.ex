@@ -28,7 +28,10 @@ defmodule RulesteadAdmin.Live.AudienceLive.Show do
       |> assign(:audience_key, audience_key)
       |> assign(:current_path, Session.current_path(socket, base_path))
       |> assign(:env_links, Session.env_links(socket, base_path))
-      |> assign(:tenant_links, Session.tenant_links(socket, "#{socket.assigns.rulestead_admin_mount_path}/audiences"))
+      |> assign(
+        :tenant_links,
+        Session.tenant_links(socket, "#{socket.assigns.rulestead_admin_mount_path}/audiences")
+      )
       |> load_audience(audience_key)
 
     {:noreply, socket}
@@ -118,15 +121,33 @@ defmodule RulesteadAdmin.Live.AudienceLive.Show do
         }
 
       {:error, %{domain: :auth}} ->
-        %{summary: "Dependency list unavailable", entries: [], redacted_entries: [], hidden_count: 0, denied?: true}
+        %{
+          summary: "Dependency list unavailable",
+          entries: [],
+          redacted_entries: [],
+          hidden_count: 0,
+          denied?: true
+        }
 
       {:error, _error} ->
-        %{summary: "Dependency list unavailable", entries: [], redacted_entries: [], hidden_count: 0, denied?: true}
+        %{
+          summary: "Dependency list unavailable",
+          entries: [],
+          redacted_entries: [],
+          hidden_count: 0,
+          denied?: true
+        }
     end
   end
 
   defp empty_dependencies,
-    do: %{summary: "Used by 0 authored references", entries: [], redacted_entries: [], hidden_count: 0, denied?: false}
+    do: %{
+      summary: "Used by 0 authored references",
+      entries: [],
+      redacted_entries: [],
+      hidden_count: 0,
+      denied?: false
+    }
 
   defp editable?(%{archived_at: nil}), do: true
   defp editable?(_), do: false

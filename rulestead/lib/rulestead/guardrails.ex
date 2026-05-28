@@ -13,7 +13,7 @@ defmodule Rulestead.Guardrails do
 
       provider when is_atom(provider) ->
         if function_exported?(provider, :fetch_signal, 1) do
-          SignalFact.from_query_result(query, apply(provider, :fetch_signal, [query]))
+          SignalFact.from_query_result(query, provider.fetch_signal(query))
         else
           SignalFact.provider_missing(query)
         end
