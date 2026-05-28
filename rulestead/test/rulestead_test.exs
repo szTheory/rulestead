@@ -4,7 +4,7 @@ defmodule RulesteadTest do
   alias Rulestead.Context
 
   test "the package root module loads" do
-    assert Rulestead.version() == "0.1.0"
+    assert Rulestead.version() == to_string(Application.spec(:rulestead)[:vsn])
   end
 
   test "public evaluation helpers project from the canonical evaluator path" do
