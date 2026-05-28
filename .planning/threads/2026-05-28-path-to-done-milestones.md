@@ -14,7 +14,7 @@
 | Order | Milestone | Type | Phases (from 73) | Exit criteria |
 |-------|-----------|------|------------------|---------------|
 | 1 | **v1.10.1 — Support-truth & contract honesty** | Patch | 2–3 | `mix verify.phase73` / `mix verify.adopter` (delegates to phase73) green; release_contract + post_ga guards; INV-API-01/INV-MAINT-01 **Closed** (Phase 75) |
-| 2 | **v1.10.2 / v1.11 — Integration spine (docs)** | Docs only | 2–4 | First-hour Phoenix path (supervision → config → Plug → first flag with lifecycle fields); `evaluation.md` names `Rulestead.Runtime`; intro lifecycle callout |
+| 2 | **v1.10.2 / v1.11 — Integration spine (docs)** | Docs only | 2–4 | First-hour Phoenix path (supervision → config → Plug → first flag with lifecycle fields); `evaluation.md` names `Rulestead.Runtime`; intro lifecycle callout; `mix verify.phase76` / `mix verify.adopter` green; **INV-INTRO-01 Closed** (Phase 78) |
 | 3 | **v2.0 — GOV-02-ext** | Feature (triggered) | ~4 | Named/configurable blast-radius threshold profiles; config + tests + mounted UX; reference-count only |
 | 4 | **v2.1 — ROL-08** | Feature (triggered) | ~4 | Host baseline comparison seam for guarded rollouts; fail-closed |
 | 5 | **v2.2 — ADM-06** | Feature (triggered) | 3–4 | Draft-only targeting presets; no live inheritance |
@@ -30,7 +30,7 @@
 |----|-------|------------------|
 | INV-API-01 | `api_stability.md` vs `release_contract_test` | **Closed** — Phase 74 catalog sync + `mix verify.phase73` |
 | INV-MAINT-01 | MAINTAINING Phase 8 deferral vs existing `api_stability.md` | **Closed** — Phase 73 MAINTAINING live contract + release_contract |
-| INV-INTRO-01 | Intro spine missing Plug/supervision/lifecycle | v1.10.2 / v1.11 |
+| INV-INTRO-01 | Intro spine missing Plug/supervision/lifecycle | **Closed** — Phase 78 (`mix verify.phase76`, intro contract test, spine doc) |
 | INV-CTX-01 | Quickstart `traits:` vs `attributes:` | **Closed** (code + docs) |
 
 ## Graduation candidates
@@ -42,8 +42,8 @@
 
 ## Proof spine
 
-- Adopter smoke: `cd rulestead && mix verify.adopter` (delegates to `mix verify.phase73`)
-- Band closure: `cd rulestead && mix verify.phase73` · `RULESTEAD_TEST_SCOPE=post_ga_band_closure bash scripts/ci/test.sh`
+- Adopter smoke: `cd rulestead && mix verify.adopter` (delegates to `mix verify.phase76`)
+- Band closure: `cd rulestead && mix verify.phase76` · `RULESTEAD_TEST_SCOPE=post_ga_band_closure bash scripts/ci/test.sh`
 - Mounted companion: `RULESTEAD_TEST_SCOPE=mounted_admin_contract bash scripts/ci/test.sh` (re-verified 2026-05-28: 37 tests, 0 failures)
 
 ## Sources
