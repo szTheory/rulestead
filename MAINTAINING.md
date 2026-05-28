@@ -416,10 +416,10 @@ Use this proof when closing v1.10 support truth or validating that docs, release
 contract, and the v1.9 proof superset still align.
 
 ```bash
-cd rulestead && mix verify.phase72
+cd rulestead && mix verify.phase73
 ```
 
-Integrator-facing alias (same suite):
+Integrator-facing alias (delegates to phase73):
 
 ```bash
 cd rulestead && mix verify.adopter
@@ -442,6 +442,8 @@ Proves:
 - v1.9 proof union (phase68 core + mounted admin audience/governance paths)
 - `post_ga_band_contract_test.exs` — band docs exist; no stale “unbuilt” claims
 - quickstart/runtime doc honesty (`Rulestead.Runtime`, not `enabled?(key, conn)`)
+- `context_test.exs` — traits→attributes promotion (v1.10.1)
+- bidirectional `api_stability` catalog guards via `release_contract_test.exs` (v1.10.1 / Phase 74)
 
 Does **not** prove: new v2 features (ADM-06, ROL-08, GOV-02-ext); full browser
 e2e (use `scripts/demo/verify.sh` for Playwright).
@@ -451,10 +453,11 @@ e2e (use `scripts/demo/verify.sh` for Playwright).
 | Command | Proves | Does not prove |
 |---------|--------|----------------|
 | `mix test` (both packages) | Full regression + `release_contract_test` | Faster milestone-only subset |
-| `mix verify.phase72` / `mix verify.adopter` | Post-GA band + v1.9 superset | Historical phase56-only regressions in isolation |
-| `mix verify.phase68` | v1.9 host preview evidence focus | Band-closure doc contracts only in phase72 |
-| `RULESTEAD_TEST_SCOPE=post_ga_band_closure` | Same as phase72 via CI script | Default merge gate (use `all`) |
-| `scripts/demo/proof.sh` | Demo smoke + phase72 | Playwright frontend |
+| `mix verify.phase73` / `mix verify.adopter` | Post-GA band + v1.10.1 context + api_stability contract guards | Historical phase56-only regressions in isolation |
+| `mix verify.phase72` | Historical v1.10.0 gate | Superseded by phase73 for v1.10.1+ |
+| `mix verify.phase68` | v1.9 host preview evidence focus | Band-closure doc contracts only in phase73 |
+| `RULESTEAD_TEST_SCOPE=post_ga_band_closure` | Same as phase73 via CI script | Default merge gate (use `all`) |
+| `scripts/demo/proof.sh` | Demo smoke + phase73 (via adopter) | Playwright frontend |
 | `scripts/demo/verify.sh` | Compose + Playwright e2e | Entire ExUnit suite |
 
 ## Lifecycle Release Surface
