@@ -1,13 +1,15 @@
 # Milestone Arc: Post-v1.6.0 Closeout
 
-**Last updated:** 2026-05-27 after post-v1.7 assessment (see `.planning/threads/2026-05-27-post-v1.7-milestone-assessment.md`)
-**Selection posture:** Default to the highest-priority candidate below unless the user explicitly chooses a materially different direction. Shift low-impact milestone-selection preference left inside GSD instead of re-opening the full tradeoff set every time.
+**Last updated:** 2026-05-28 after path-to-done assessment (see `.planning/threads/2026-05-28-path-to-done-milestones.md`)
+**Selection posture:** Post-GA feature band is **complete**. v1.10.0 shipped. v1.10.x = support-truth + optional integration docs. v2 opens only via triggers in `.planning/DEFERRED.md`.
 
-## Active Milestone
+## Band status
 
-- **Active:** `v1.9.0 — Host-Supplied Preview Evidence` (`IMP-05`) — Phases 65-68 (initialized 2026-05-27)
-- **Last shipped:** `v1.8.0 — Guarded Rollout Auto-Advance` on 2026-05-27 (Phases 61-64)
-- **After v1.9:** defer `ADM-06` presets / `ROL-08` baseline comparison
+- **Shipped:** `v1.10.0 — Post-GA Band Truth & Adopter Closure` — Phases 69-72 (2026-05-28)
+- **Next:** v1.10.1 support-truth → optional v1.11 integration spine (docs) → v2 if triggered → **stop / maintenance**
+- **Done band:** ~91–94% for stated post-GA scope
+- **Feature band:** v1.1.0–v1.9.0 **complete**
+- **v2 candidates:** GOV-02-ext → ROL-08 → ADM-06 (by default trigger order; await trigger)
 
 ## Candidate Ranking
 
@@ -189,6 +191,44 @@
 - Governed + audited stage advancement only; preserve deterministic sticky rollout semantics
 - Do not widen into observability product or time-based gradual rollout
 
+### 8. `v1.10.1 — Support-truth & Contract Honesty`
+
+**Status:** active (Phases 73-75, initialized 2026-05-28)
+**Why it is next:**
+
+- Last adopter-trust leaks before any v2 wedge: `api_stability.md` drift, MAINTAINING contradiction, release-contract alignment
+- Partially in flight: `Context` `traits:` back-compat, quickstart `attributes:` copy, contract guards
+- No new product APIs — patch milestone only
+
+**Recommended shape:**
+
+- Close INV-API-01 / INV-MAINT-01 (sync or generate api_stability from release contract)
+- Green `mix verify.adopter`; stale proof threads closed with CI evidence
+
+**Stop line:** Not required for “done” alone; pairs with v1.11 for first-hour integration honesty.
+
+### 9. `v1.11 — Integration Spine (docs-only, optional)`
+
+**Status:** queued after v1.10.1
+**Why it follows support-truth:**
+
+- Biggest remaining gap is **first-hour Phoenix integration** (supervision, config, Plug, lifecycle-required fields on create) — not missing core evaluation
+- Closes “15-minute quickstart” oversell without widening API surface
+
+**Recommended shape:**
+
+- One intro spine doc or getting-started expansion: supervision → `config :rulestead` → Plug → first flag → optional admin mount
+- `evaluation.md` names `Rulestead.Runtime`; rulestead/README API ordering aligned with footguns
+
+**Guardrails:**
+
+- Docs/guides only — no new runtime or admin product APIs
+- Do not bundle v2 features
+
+### Stop line
+
+After v1.10.1 (+ optional v1.11) and any **triggered** v2 wedges (GOV-02-ext → ROL-08 → ADM-06), treat stated OSS scope as **done enough** — maintenance and patches only unless product direction changes.
+
 ## Cross-Candidate Architecture Guidance
 
 - Preserve `rulestead` as runtime/domain contract and `rulestead_admin` as the mounted operator companion
@@ -203,8 +243,8 @@
 - `.planning/research/V1_2_0_LIFECYCLE_HYGIENE_OWNERSHIP_MEMO.md`
 - `.planning/research/v1.2.0-guarded-rollout-foundations-recommendation.md`
 - `.planning/research/v1.2.0-reusable-targeting-assets-memo.md`
-- `.planning/threads/2026-05-25-next-milestone-assessment.md`
-- `.planning/threads/2026-05-27-next-milestone-assessment.md`
+- `.planning/threads/2026-05-28-path-to-done-milestones.md`
+- `.planning/threads/2026-05-28-milestone-next-step-assessment.md`
 - `prompts/rulestead-admin-ux-and-operator-ia.md`
 - `prompts/rulestead-engineering-dna-from-prior-libs.md`
 - `prompts/rulestead-host-app-integration-seam.md`

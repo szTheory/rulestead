@@ -2,7 +2,7 @@
 
 ## Status
 
-- Closed — superseded by `2026-05-27-post-v1.7-milestone-assessment.md` (v1.7 shipped; GOV-01 and quickstart closed)
+- **Superseded** — 2026-05-28 by `.planning/threads/2026-05-28-path-to-done-milestones.md` (was: post-v1.7 assessment)
 - Updated: 2026-05-27
 
 ## Assessment Lens

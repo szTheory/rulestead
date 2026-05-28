@@ -2,51 +2,30 @@
 
 ## Status
 
-- Open
-- Updated: 2026-05-25
+- **Closed (superseded)** — 2026-05-28
+- Remaining doc-contract items tracked as INV-API-01 / INV-MAINT-01 in v1.10.1
 
 ## Summary
 
-The repo is stronger than the planning docs suggest in product breadth, but weaker than they suggest in proof coherence. This thread tracks the concrete drift that should be closed before new differentiated milestone work.
+Original thread tracked support-truth drift before v1.3–v1.10 closure milestones. Most concrete blockers were addressed across:
 
-## Concrete Drift
+- **v1.3.0** — adopter truth & proof closure
+- **v1.4.0** — mounted companion proof reclosure
+- **v1.10.0** — post-GA band truth (`mix verify.phase72`, product-boundary, release-contract guards)
 
-### 1. Public release messaging drift
+## Closure evidence (2026-05-28)
 
-- `.planning/PROJECT.md` records `v1.0.0` GA shipped on 2026-05-21.
-- `README.md`, `rulestead/README.md`, and `rulestead_admin/README.md` still say the first public Hex release is planned after `v0.6.0`.
+| Original drift item | Current posture |
+|---------------------|-----------------|
+| Mounted proof bar | `mounted_admin_contract` CI scope green (37 tests) |
+| OpenFeature companion | Bounded scope documented; v1.3+ proof path |
+| Release messaging | README/installation document v1.0.0 GA vs Hex `0.1.x` |
+| Schema/migration / admin test drift | Addressed in v1.3 parity work; re-open only if CI regresses |
 
-### 2. Runtime schema / migration drift
+## Remaining work (not this thread)
 
-- `rulestead/lib/rulestead/flag.ex` embeds `ownership` and `lifecycle`.
-- failing runtime tests insert those fields through the Ecto schema.
-- `rulestead/priv/repo/migrations/20260423020100_create_rulestead_authoring_tables.exs` and `20260424210000_add_phase6_admin_lifecycle_fields.exs` do not create matching `flags` columns for those embeds.
+- **INV-API-01:** `api_stability.md` vs `release_contract_test` — v1.10.1
+- **INV-MAINT-01:** MAINTAINING Phase 8 deferral wording — v1.10.1
+- **INV-INTRO-01:** first-hour Phoenix integration docs — v1.11
 
-### 3. Admin product-surface drift
-
-- accessibility test expects `flag[expected_expiration]`, but the rendered lifecycle form currently exposes `flag[review_by]`.
-- rollout permission test expects a propose/save path that the rendered viewer state no longer exposes.
-
-### 4. OpenFeature bridge proof gap
-
-- `open_feature_rulestead` is present as a package surface, but `mix test` currently stops on unavailable dependencies instead of giving an adopter-proof result.
-
-## Why It Matters
-
-- This is support-truth debt, not just internal cleanup.
-- A serious adopter will trust a boring, coherent library more than a broader library with conflicting docs and red proof surfaces.
-- Guarded rollout and reusable targeting both become harder to justify if the repo cannot currently prove its own release posture cleanly.
-
-## Recommended Follow-On Work
-
-- treat this as the first milestone wedge before new differentiated capability
-- keep scope bounded to docs, install truth, migrations/schema parity, and verification honesty
-- do not widen the work into product redesign or new operator features
-
-## 2026-05-25 Update
-
-- The OpenFeature companion proof gap is now closed enough for its bounded package contract:
-  - `RULESTEAD_TEST_SCOPE=openfeature_companion bash scripts/ci/test.sh` passes
-- The mounted companion proof gap remains open and is now the sharper blocker:
-  - `RULESTEAD_TEST_SCOPE=mounted_admin_contract bash scripts/ci/test.sh` currently fails at boot with `UndefinedFunctionError` for `Rulestead.Redis.enabled?/0`
-- Follow-on milestone selection should now center on mounted companion proof reclosure rather than treating proof posture as fully closed already
+See [`.planning/threads/2026-05-28-path-to-done-milestones.md`](2026-05-28-path-to-done-milestones.md).

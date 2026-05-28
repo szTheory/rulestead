@@ -1,9 +1,14 @@
 # JTBD Map: Rulestead Post-GA
 
-**Last reviewed:** 2026-05-27 (delta); body sections partially stale — see Delta Since Last Review
+**Last reviewed:** 2026-05-28 (delta authoritative)
 **Purpose:** Maintain one current map of what user flows Rulestead already
 supports, what serious gaps remain, and where further JTBD research stops being
 worth the time.
+
+> **Staleness notice:** The role-by-role inventory below (dated 2026-05-21) may
+> still mention tenancy, lifecycle, guarded rollout, or reusable targeting as
+> “pending.” Those shipped in v1.1–v1.9. Prefer **Delta Since Last Review**,
+> `guides/introduction/product-boundary.md`, and `.planning/threads/2026-05-28-path-to-done-milestones.md`.
 
 ## Current Shipped JTBD Map
 
@@ -39,9 +44,8 @@ teams.
 
 **Still weak or incomplete**
 
-- flag ownership and lifecycle cleanup loops are documented but not yet a full
-  first-class user-flow system
-- tenancy-aware builder flow remains a pending post-GA completion area
+- first-hour Phoenix integration (supervision, config, Plug) under-explained in intro docs (INV-INTRO-01)
+- lifecycle required fields (`owner`, `expected_expiration`) not called out on quickstart path
 
 ### Tech Lead / Release Owner
 
@@ -56,10 +60,8 @@ teams.
 
 **Still weak or incomplete**
 
-- no metric-driven guarded rollout or automatic rollback loop
 - no stronger top-level flow for "which release strategy should I choose?"
-- lifecycle debt management is present but not yet as visible or opinionated as
-  leading platforms
+- api_stability catalog trails shipped governance/audience APIs (INV-API-01)
 
 ### Operator / PM
 
@@ -71,9 +73,8 @@ teams.
 
 **Still weak or incomplete**
 
-- no explicit ownership-heavy workbench for team, maintainer, or stale-state
-  triage
-- no reusable segment/template system for scaling repeated targeting patterns
+- draft targeting presets deferred (ADM-06, v2 trigger)
+- ownership workbench is advisory (v1.2 shipped); not a full work-management system
 
 ### Support / Success
 
@@ -98,9 +99,8 @@ teams.
 
 **Still weak or incomplete**
 
-- no metric-linked progressive rollback or guarded release loop
-- no broader "fleet health" or org-scale operational control surface, which may
-  be acceptable for the current product shape
+- guardrail baseline comparison not built (ROL-08, v2 trigger)
+- no broader "fleet health" or org-scale operational control surface (acceptable for current shape)
 
 ### Contributor / Platform Extender
 
@@ -314,33 +314,37 @@ research to targeted milestone definition and implementation.
 
 ## Delta Since Last Review
 
-**2026-05-27 update** (post-v1.6.0 assessment; see `.planning/threads/2026-05-27-next-milestone-assessment.md`):
+**2026-05-28 path-to-done update** (see `.planning/threads/2026-05-28-path-to-done-milestones.md`):
 
-**Shipped since initial review (2026-05-21):**
+**Done band:** ~91–94% for stated post-GA scope (near-done).
 
-- Tenancy helpers and validation (v1.1.0)
-- Lifecycle hygiene and ownership (v1.2.0)
-- Adopter truth and proof closure (v1.3.0)
-- Mounted companion proof reclosure (v1.4.0)
-- Guarded rollout foundations — hold/rollback, host-supplied guardrails (v1.5.0)
-- Reusable targeting deepening — impact previews, dependency truth, mounted workflows (v1.6.0)
+**Milestone sequence:** v1.10.1 support-truth → v1.11 integration spine (docs, optional) → v2 wedges if triggered → maintenance.
 
-**Current gaps (important-but-narrow):**
+**Open investigations:** INV-API-01, INV-MAINT-01 (v1.10.1); INV-INTRO-01 (v1.11); INV-CTX-01 closed.
 
-- Automatic guarded rollout stage advancement (ROL-04) — **recommended v1.8.0** (unbuilt; no `auto_advance` / observation-window orchestration in repo)
-- Richer host-supplied preview evidence (IMP-05) and draft presets (ADM-05) — v1.9 or defer
-- Maintainer doc drift: `MAINTAINING.md` mounted proof file list vs CI `session_test.exs` — polish only
+**2026-05-28 update** (post-v1.9 band; see `.planning/threads/2026-05-28-post-v1.9-band-assessment.md`):
 
-**Closed since prior delta:**
+**Post-GA band shipped (v1.1.0–v1.9.0):**
 
-- Protected-environment audience governance (GOV-01) — shipped v1.7.0 (`BlastRadiusThreshold`, change-request integration, mounted governance UX)
-- Quickstart payload-first API truth — shipped v1.7.0 Phase 60 (VER-03 + release-contract guard)
+- Tenancy, lifecycle hygiene, adopter proof closure, mounted companion reclosure
+- Guarded rollouts: foundations (v1.5), auto-advance (v1.8)
+- Reusable targeting: deepening (v1.6), blast-radius governance (v1.7), host preview evidence (v1.9)
 
-**Rough done band:** ~90–92% for stated scope; finish ROL-04 then mostly diminishing returns.
+**v1.10 band closure (shipped 2026-05-28):** docs, proof (`mix verify.phase72`), planning truth — **no new product APIs**. Audit: `band_complete`.
 
-**Assessment thread:** `.planning/threads/2026-05-27-post-v1.7-milestone-assessment.md`
+**v1.10.1 support-truth (queued):** quickstart `attributes:` alignment; deprecated `traits:` alias on `Context.new/1`; release-contract guard. See `.planning/threads/2026-05-28-milestone-next-step-assessment.md`.
 
-**Note:** Body sections above (role inventory, gap matrix ranked 2026-05-21) are partially stale. Prefer this delta section and milestone archives for current truth until a full JTBD refresh is warranted.
+**v2 optional deepening (deferred — see `.planning/DEFERRED.md`):**
+
+- ADM-06 draft targeting presets
+- ROL-08 guardrail baseline comparison
+- GOV-02-ext host-configurable blast-radius profiles
+
+**Rough done band:** ~91–94% for stated post-GA scope (repo-verified 2026-05-28); feature work pauses at v2 unless triggered.
+
+**Assessment threads:** `.planning/threads/2026-05-28-post-v1.9-band-assessment.md`, `.planning/threads/2026-05-28-milestone-next-step-assessment.md`
+
+**Note:** Role inventory body below may still use 2026-05-21 phrasing. Prefer this delta, `guides/introduction/product-boundary.md`, and milestone archives for current truth.
 
 ---
 

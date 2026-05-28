@@ -2,7 +2,7 @@
 
 ## Status
 
-- Open
+- **Superseded** — 2026-05-28 by `.planning/threads/2026-05-28-path-to-done-milestones.md`
 - Updated: 2026-05-25
 
 ## Assessment Lens

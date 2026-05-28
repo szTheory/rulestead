@@ -1,12 +1,12 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.10.0
-milestone_name: Post-GA Band Truth & Adopter Closure
-status: Awaiting next milestone
-last_updated: "2026-05-28T01:30:49.559Z"
-last_activity: 2026-05-28 — Milestone v1.10.0 completed and archived
+milestone: v1.10.1
+milestone_name: Support-truth & Contract Honesty
+status: Defining requirements
+last_updated: "2026-05-28T23:30:00.000Z"
+last_activity: 2026-05-28 — Milestone v1.10.1 initialized (Phases 73-75)
 progress:
-  total_phases: 4
+  total_phases: 3
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,26 +21,28 @@ See: `.planning/PROJECT.md` (updated 2026-05-28)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
 
-**Current focus:** Planning next milestone (v2)
+**Current focus:** v1.10.1 support-truth & contract honesty (Phases 73-75)
 
-**Milestone:** None (v1.10.0 shipped 2026-05-28)
+**Milestone:** v1.10.1 active — no new product APIs
 
 ## Current Position
 
-Phase: Milestone v1.10.0 complete
+Phase: Not started (requirements and roadmap defined — ready for Phase 73)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-05-28 — Milestone v1.10.0 completed and archived
+Status: Defining requirements → execute Phase 73
+Last activity: 2026-05-28 — `/gsd-new-milestone` for v1.10.1 (Phases 73-75)
 
 ## Accumulated Context
 
 ### Decisions
 
-- Post-GA band v1.1–v1.9 is feature-complete; v1.10 is support truth only.
-- `mix verify.phase72` flat-unions phase68 core + `post_ga_band_contract_test.exs`; no subprocess to older verify tasks.
-- `mix verify.adopter` delegates to phase72 for integrators.
-- Quickstart teaches `Rulestead.Runtime` keyed lookup; root `enabled?/2` is payload + context only.
-- v2 backlog: GOV-02-ext → ROL-08 → ADM-06 by default trigger order.
+- Post-GA band v1.1–v1.9 is feature-complete in code; v1.10.0 closed support-truth band.
+- **Done band (repo-verified):** ~91–94% for stated post-GA scope (near-done).
+- **Path-to-done:** v1.10.1 (active) → v1.11 integration docs (optional) → v2 wedges if triggered → maintenance.
+- Open v2.0.0 **only** with a deferred trigger; default wedge order GOV-02-ext → ROL-08 → ADM-06.
+- `mix verify.phase72` / `mix verify.adopter` are the current adopter smoke bar; phase73 will extend.
+- `RULESTEAD_TEST_SCOPE=mounted_admin_contract` re-verified green 2026-05-28 (37 tests, 0 failures).
+- Partial v1.10.1 work in flight: `Context` traits promotion, quickstart guards, verify.adopter task.
 
 ### Deferred Items (v2)
 
@@ -50,6 +52,17 @@ Last activity: 2026-05-28 — Milestone v1.10.0 completed and archived
 | Rollouts | ROL-08 baseline comparison | Host baselines for guarded rollouts |
 | Admin | ADM-06 draft presets | High authoring duplication pain |
 
+### Open investigations
+
+| ID | Topic | Status |
+|----|-------|--------|
+| INV-CTX-01 | Quickstart `traits:` vs `attributes:` | In progress — Phase 73 (code + docs) |
+| INV-API-01 | `api_stability.md` vs `release_contract_test` | Open — Phase 74 |
+| INV-MAINT-01 | MAINTAINING vs existing `api_stability.md` | Open — Phase 73 |
+| INV-INTRO-01 | Intro spine missing Plug/supervision/lifecycle | Open — v1.11 doc milestone |
+
 ## Operator Next Steps
 
-- Run `/gsd-new-milestone` to plan v2 (default wedge order: GOV-02-ext → ROL-08 → ADM-06)
+1. `/gsd-discuss-phase 73` — gather context for Context & maintainer doc truth
+2. `/gsd-plan-phase 73` — skip discussion, plan directly
+3. After v1.10.1 ships, optionally plan **v1.11 integration spine** (docs-only)
