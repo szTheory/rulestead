@@ -37,7 +37,7 @@ flag create).
 > **`owner_ref`** (host-owned team or service reference) and
 > **`expected_expiration`** (review date). Rulestead does not maintain a team
 > directory. See [Flag Lifecycle](../flows/flag-lifecycle.md) and
-> [Create your first flag](phoenix-integration-spine.md#create-your-first-flag-lifecycle-required)
+> [Create your first flag](phoenix-integration-spine.md#6-create-your-first-flag-lifecycle-required)
 > in the spine.
 
 ## 3. Gate a code path
