@@ -33,17 +33,32 @@ core_contents="$(mktemp)"
 admin_contents="$(mktemp)"
 trap 'rm -f "${core_output}" "${admin_output}" "${core_contents}" "${admin_contents}"' EXIT
 
+extract_tarball_name() {
+  local output_file="$1"
+
+  grep -Eo 'Saved to [^[:space:]]+' "${output_file}" | tail -1 | awk '{print $3}'
+}
+
 run_dry_run "rulestead" "${core_output}"
 run_dry_run "rulestead_admin" "${admin_output}"
-list_contents "rulestead" "rulestead-0.1.0.tar" > "${core_contents}"
-list_contents "rulestead_admin" "rulestead_admin-0.1.0.tar" > "${admin_contents}"
 
-if rg -n "^rulestead_admin/" "${core_contents}" >/dev/null; then
+core_tarball="$(extract_tarball_name "${core_output}")"
+admin_tarball="$(extract_tarball_name "${admin_output}")"
+
+if [[ -z "${core_tarball}" || -z "${admin_tarball}" ]]; then
+  echo "failed to detect hex.build tarball names from dry-run output" >&2
+  exit 1
+fi
+
+list_contents "rulestead" "${core_tarball}" > "${core_contents}"
+list_contents "rulestead_admin" "${admin_tarball}" > "${admin_contents}"
+
+if grep -q "^rulestead_admin/" "${core_contents}"; then
   echo "core package dry-run output includes rulestead_admin/ content" >&2
   exit 1
 fi
 
-if rg -n "^rulestead/" "${admin_contents}" >/dev/null; then
+if grep -q "^rulestead/" "${admin_contents}"; then
   echo "admin package dry-run output includes rulestead/ content" >&2
   exit 1
 fi
