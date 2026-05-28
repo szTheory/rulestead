@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.3](https://github.com/szTheory/rulestead/compare/rulestead-v0.1.2...rulestead-v0.1.3) (2026-05-28)
+
+
+### Bug Fixes
+
+* **deps:** require ecto_sql ~&gt; 3.14 for Hex 0.1.3 ([68f5108](https://github.com/szTheory/rulestead/commit/68f5108ace8c6fd6b96a050eaa52515e49b29263))
+
 ## [0.1.2](https://github.com/szTheory/rulestead/compare/rulestead-v0.1.1...rulestead-v0.1.2) (2026-05-28)
 
 
