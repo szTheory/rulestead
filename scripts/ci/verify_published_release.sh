@@ -75,6 +75,18 @@ require_cmd curl
 require_cmd jq
 require_cmd mix
 
+ensure_phx_new_archive() {
+  if mix help phx.new >/dev/null 2>&1; then
+    return 0
+  fi
+
+  echo "Installing phx_new archive for admin consumer fixture generation"
+  mix local.hex --force
+  mix archive.install hex phx_new --force
+}
+
+ensure_phx_new_archive
+
 core_metadata="$(mktemp)"
 admin_metadata="$(mktemp)"
 trap 'rm -f "${core_metadata}" "${admin_metadata}"' EXIT

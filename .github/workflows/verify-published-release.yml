@@ -37,6 +37,10 @@ jobs:
         run: |
           (cd rulestead && mix deps.get)
           (cd rulestead_admin && mix deps.get)
+      - name: Install phx_new archive
+        run: |
+          mix local.hex --force
+          mix archive.install hex phx_new --force
       - id: resolve
         name: Resolve published release version
         env:
