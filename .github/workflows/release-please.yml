@@ -84,6 +84,27 @@ jobs:
           echo "Bootstrap the first linked-versions release PR with a commit footer:"
           echo "Release-As: 0.1.0"
 
+  dispatch-release-pr-ci:
+    name: dispatch-release-pr-ci
+    needs: release-please
+    if: needs.release-please.result == 'success'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Dispatch CI on release-please branch
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          branch="release-please--branches--main"
+
+          if ! gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/${branch}" >/dev/null 2>&1; then
+            echo "No ${branch} ref — skipping CI dispatch."
+            exit 0
+          fi
+
+          gh workflow run ci.yml --ref "${branch}"
+          echo "Dispatched ci.yml on ${branch}."
+
   dispatch-publish:
     name: dispatch-publish
     needs: release-please
@@ -92,7 +113,7 @@ jobs:
     steps:
       - name: Queue gated Hex publish
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}
           GITHUB_API_URL: ${{ github.api_url }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           RELEASE_VERSION: ${{ needs.release-please.outputs.release_version }}

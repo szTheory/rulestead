@@ -164,16 +164,31 @@ jobs:
     name: adopter contract (post-GA band)
     needs: changes
     runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: rulestead_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     env:
       MIX_ENV: test
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGHOST: localhost
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - uses: erlef/setup-beam@8251c48667b97e88a0a24ec512f5b72a039fcea7 # v1
         with:
           version-file: .tool-versions
           version-type: strict
-      - name: Install core deps for adopter proof
-        run: cd rulestead && mix deps.get
       - name: Run post-GA band closure proof bar
         run: RULESTEAD_TEST_SCOPE=post_ga_band_closure scripts/ci/test.sh
 

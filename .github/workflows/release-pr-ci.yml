@@ -1,0 +1,31 @@
+# Re-dispatch merge CI on the release-please PR branch when maintainers push to
+# release-please--branches--main manually (bot pushes do not re-fire pull_request).
+name: release-pr-ci
+
+on:
+  push:
+    branches:
+      - release-please--branches--main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: release-pr-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dispatch-ci:
+    name: dispatch-ci
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Dispatch full CI on release-please branch
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          ref="${GITHUB_REF_NAME}"
+          gh workflow run ci.yml --ref "${ref}"
+          echo "Dispatched ci.yml on ${ref}."
