@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.11
 milestone_name: Integration Spine
-status: Phase 76 context gathered — ready to plan
+status: Phase 76 complete — Phase 77 next
 last_updated: "2026-05-28T13:39:33.705Z"
 last_activity: 2026-05-28 — Milestone v1.11 started
 progress:
   total_phases: 3
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 0
   completed_plans: 0
   percent: 0
@@ -27,10 +27,10 @@ See: `.planning/PROJECT.md` (updated 2026-05-28)
 
 ## Current Position
 
-Phase: 76
+Phase: 77
 Plan: Not started
-Status: Phase 76 context gathered — ready to plan
-Last activity: 2026-05-28 — Phase 76 discuss (assumptions mode)
+Status: Phase 76 complete — evaluation/lifecycle doc alignment next
+Last activity: 2026-05-28 — Phase 76 spine doc shipped
 
 ## Accumulated Context
 
@@ -62,7 +62,7 @@ Last activity: 2026-05-28 — Phase 76 discuss (assumptions mode)
 
 ## Operator Next Steps
 
-1. `/gsd-plan-phase 76` — Phoenix integration spine doc
+1. `/gsd-plan-phase 77` — evaluation.md Runtime + intro lifecycle callouts
 2. `/gsd-progress` — roadmap and milestone status
 
 **Resume:** `.planning/ROADMAP.md` Phase 76

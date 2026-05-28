@@ -9,9 +9,9 @@ Docs-only milestone — no new runtime or admin product APIs. Closes INV-INTRO-0
 
 ### Integration Spine (`INT`)
 
-- [ ] **INT-01**: A first-hour Phoenix integration spine documents supervision → `config :rulestead` → Plug/context seam → first `Rulestead.Runtime` keyed evaluation with explicit `%Rulestead.Context{}`.
-- [ ] **INT-02**: Flag creation in the spine requires lifecycle fields (`owner` + `expected_expiration`) with honest host-owned ownership copy and a link to [flag-lifecycle](../guides/flows/flag-lifecycle.md).
-- [ ] **INT-03**: README, getting-started, and installation cross-link the spine as the canonical first-hour path (installer remains the entry command).
+- [x] **INT-01**: A first-hour Phoenix integration spine documents supervision → `config :rulestead` → Plug/context seam → first `Rulestead.Runtime` keyed evaluation with explicit `%Rulestead.Context{}`.
+- [x] **INT-02**: Flag creation in the spine requires lifecycle fields (`owner` + `expected_expiration`) with honest host-owned ownership copy and a link to [flag-lifecycle](../guides/flows/flag-lifecycle.md).
+- [x] **INT-03**: README, getting-started, and installation cross-link the spine as the canonical first-hour path (installer remains the entry command).
 
 ### Evaluation & Lifecycle Docs (`DOC`)
 
@@ -49,9 +49,9 @@ Docs-only milestone — no new runtime or admin product APIs. Closes INV-INTRO-0
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INT-01 | Phase 76 | Pending |
-| INT-02 | Phase 76 | Pending |
-| INT-03 | Phase 76 | Pending |
+| INT-01 | Phase 76 | Complete |
+| INT-02 | Phase 76 | Complete |
+| INT-03 | Phase 76 | Complete |
 | DOC-01 | Phase 77 | Pending |
 | DOC-02 | Phase 77 | Pending |
 | DOC-03 | Phase 77 | Pending |
