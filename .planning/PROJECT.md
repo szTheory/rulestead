@@ -20,18 +20,27 @@ Rulestead is a batteries-included, Elixir-native feature-flag and remote-config 
 - `v1.10.0` shipped on 2026-05-28 across Phases 69-72: post-GA planning truth, doc/API honesty, `mix verify.phase72` / `mix verify.adopter` proof umbrella, `post_ga_band_closure` CI scope, and public band-complete signaling — no new product APIs.
 - **Phase 73 complete (2026-05-28):** Context `traits:` → `attributes` back-compat, quickstart doc honesty guards, and MAINTAINING.md live public-surface contract (CTX-01, CTX-02, DOC-01; closes INV-MAINT-01).
 
-## Current Milestone: v1.10.1 Support-truth & Contract Honesty
+## Current Milestone: v1.11 Integration Spine (docs-only)
 
-**Goal:** Close the last adopter-trust leaks in docs, API catalog, and contract tests — no new product APIs.
+**Goal:** Close the first-hour Phoenix integration gap (INV-INTRO-01) with a single intro spine — supervision → config → Plug → first flag with lifecycle fields — without new product APIs.
 
 **Target features:**
 
-- ✓ Context `traits:` → `attributes` back-compat and quickstart doc honesty (CTX-01, CTX-02 — Phase 73)
-- ✓ `MAINTAINING.md` aligned with live api_stability (DOC-01 — Phase 73; closes INV-MAINT-01)
-- ✓ `guides/api_stability.md` synced with shipped post-GA surface (INV-API-01 — Phase 74)
-- ✓ `mix verify.phase73` / `mix verify.adopter` proof umbrella extension (Phase 75; VER-01, VER-02)
+- First-hour Phoenix integration spine doc wired from getting-started/README/installation
+- `guides/flows/evaluation.md` names `Rulestead.Runtime` keyed lookup alongside payload-first contract
+- Intro lifecycle callout (`owner` + `expected_expiration` on flag create) with cross-links to flag-lifecycle
+- Doc contract guards + `mix verify.phase76` proof extension; close INV-INTRO-01 in STATE
 
-**Phases:** 73–75 (see `.planning/ROADMAP.md`)
+**Phases:** 76–78 (see `.planning/ROADMAP.md`)
+
+<details>
+<summary>Shipped: v1.10.1 Support-truth & Contract Honesty (2026-05-28)</summary>
+
+**Goal:** Close the last adopter-trust leaks in docs, API catalog, and contract tests — no new product APIs.
+
+**Delivered:** Phases 73–75; see `.planning/v1.10.1-MILESTONE-AUDIT.md`
+
+</details>
 
 ## Post-GA Band Status
 
@@ -44,13 +53,13 @@ v1.1–v1.9 feature band is **complete**. v1.10.x is patches and support truth o
 | Order | Milestone | Notes |
 |-------|-----------|-------|
 | 1 | **v1.10.1 — Support-truth & contract honesty** | **Complete** (2026-05-28) — Phases 73–75; see `v1.10.1-MILESTONE-AUDIT.md` |
-| 2 | **v1.11 — Integration spine (optional, docs-only)** | First-hour Phoenix path; INV-INTRO-01 |
+| 2 | **v1.11 — Integration spine (docs-only)** | **Active** — Phases 76–78; first-hour Phoenix path; INV-INTRO-01 |
 | 3+ | **v2.0+ wedges (triggered only)** | GOV-02-ext → ROL-08 → ADM-06 per `.planning/DEFERRED.md` |
 | — | **Maintenance** | After v1.10.x + optional v2: patches only unless product direction changes |
 
 **Done band (2026-05-28 assessment):** ~91–94% for stated post-GA scope; feature band v1.1–v1.9 verified in `lib/` + contract tests.
 
-**Next action:** Optional `/gsd-discuss-phase` for v1.11 integration spine (INV-INTRO-01) or maintenance mode
+**Next action:** `/gsd-discuss-phase 76` or `/gsd-plan-phase 76` for integration spine (Phase 76)
 
 <details>
 <summary>Latest shipped: v1.10.0 Post-GA Band Truth & Adopter Closure (2026-05-28)</summary>

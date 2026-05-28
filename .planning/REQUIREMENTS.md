@@ -1,45 +1,35 @@
-# Requirements: Rulestead — v1.10.1 Support-truth & Contract Honesty
+# Requirements: Rulestead — v1.11 Integration Spine (docs-only)
 
 **Defined:** 2026-05-28
 **Core Value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
 
-## v1.10.1 Requirements
+## v1.11 Requirements
 
-Patch milestone only — no new runtime or admin product APIs. Closes remaining adopter-trust leaks after v1.10.0 band closure.
+Docs-only milestone — no new runtime or admin product APIs. Closes INV-INTRO-01 (intro spine missing Plug/supervision/lifecycle).
 
-### Context & Quickstart Honesty (`CTX`)
+### Integration Spine (`INT`)
 
-- [x] **CTX-01**: `Rulestead.Context.new/1` promotes deprecated `traits:` to `attributes` with explicit `:attributes` winning key conflicts (back-compat, not a second public field).
-- [x] **CTX-02**: README, getting-started, and package docs teach `attributes:` for evaluation inputs; release-contract test forbids `traits: %{...}` in quickstart examples.
+- [ ] **INT-01**: A first-hour Phoenix integration spine documents supervision → `config :rulestead` → Plug/context seam → first `Rulestead.Runtime` keyed evaluation with explicit `%Rulestead.Context{}`.
+- [ ] **INT-02**: Flag creation in the spine requires lifecycle fields (`owner` + `expected_expiration`) with honest host-owned ownership copy and a link to [flag-lifecycle](../guides/flows/flag-lifecycle.md).
+- [ ] **INT-03**: README, getting-started, and installation cross-link the spine as the canonical first-hour path (installer remains the entry command).
 
-### API Stability Catalog (`API`)
+### Evaluation & Lifecycle Docs (`DOC`)
 
-- [x] **API-01**: `guides/api_stability.md` catalogs shipped post-GA public modules and facades that `release_contract_test.exs` already exercises (closes INV-API-01), or documents an explicit generate-from-contract workflow with CI enforcement.
-- [x] **API-02**: Release-contract test guards api_stability ↔ documented telemetry events, config schema keys, and struct fields without silent drift.
-- [x] **API-03**: `Rulestead.Runtime` and other supported adopter paths are documented in api_stability or `product-boundary.md` with honest semver posture (supported path vs closed module list).
+- [ ] **DOC-01**: `guides/flows/evaluation.md` names `Rulestead.Runtime` keyed lookup APIs with examples; payload-first contract remains primary.
+- [ ] **DOC-02**: Intro docs (getting-started, installation) include a lifecycle-required-fields callout on flag create (closes INV-INTRO-01 narrative).
+- [ ] **DOC-03**: `rulestead/README.md` API ordering aligns with footguns and evaluation spine (Runtime for keyed lookup; root module payload-first).
 
-### Maintainer & Doc Truth (`DOC`)
+### Proof & Contract Guards (`VER`)
 
-- [x] **DOC-01**: `MAINTAINING.md` no longer lists `guides/api_stability.md` as a deferred Phase 8 artifact (closes INV-MAINT-01).
-- [x] **DOC-02**: Maintainer proof matrix and path-to-done thread reference v1.10.1 exit criteria; stale “open gap” copy removed where band features shipped.
-
-### Proof & Support Truth (`VER`)
-
-- [x] **VER-01**: `mix verify.phase73` flat-unions phase72 plus v1.10.1 contract guards (no kitchen-sink verifier).
-- [x] **VER-02**: `mix verify.adopter` delegates to phase73 as the integrator entrypoint.
-- [x] **VER-03**: `release_contract_test.exs` and/or `post_ga_band_contract_test.exs` guard api_stability catalog drift and Context quickstart honesty.
+- [ ] **VER-01**: `release_contract_test.exs` (or dedicated doc contract test) guards intro spine presence and lifecycle-field mention in spine/getting-started.
+- [ ] **VER-02**: `mix verify.phase76` flat-unions phase73 plus v1.11 doc contract guards; `mix verify.adopter` delegates to phase76 (or documents phase76 as successor).
 
 ### Milestone Auditability (`AUD`)
 
-- [x] **AUD-01**: Investigations INV-API-01 and INV-MAINT-01 marked closed in `STATE.md` with CI evidence pointers.
-- [x] **AUD-02**: `v1.10.1-MILESTONE-AUDIT.md` records support-truth closure evidence and proof spine.
+- [ ] **AUD-01**: `STATE.md` marks INV-INTRO-01 **Closed** with proof command pointers.
+- [ ] **AUD-02**: `v1.11-MILESTONE-AUDIT.md` records integration-spine closure evidence and proof spine.
 
 ## Future Requirements (deferred)
-
-### Integration spine — v1.11 (docs-only, optional)
-
-- **INT-01**: First-hour Phoenix path (supervision → config → Plug → first flag with lifecycle fields).
-- **INT-02**: `evaluation.md` names `Rulestead.Runtime`; intro lifecycle callout (INV-INTRO-01).
 
 ### v2 wedges (triggered only)
 
@@ -49,35 +39,33 @@ Patch milestone only — no new runtime or admin product APIs. Closes remaining 
 
 | Feature | Reason |
 |---------|--------|
-| New runtime or admin product APIs | v1.10.x patch posture; feature band complete |
-| v1.11 integration spine implementation | Separate docs-only milestone |
+| New runtime or admin product APIs | v1.11 is docs/guides only |
+| Admin UI redesign or new mounted flows | v2 / separate phase |
 | GOV-02-ext / ROL-08 / ADM-06 | v2; requires deferred trigger |
 | Kitchen-sink `mix verify.all` | Per-phase verify DNA |
-| Hex semver bump to 0.2.0 | Out of band unless explicitly decided |
+| Replacing `mix rulestead.install` UX | Installer ships; spine documents what it wires |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CTX-01 | Phase 73 | Complete |
-| CTX-02 | Phase 73 | Complete |
-| DOC-01 | Phase 73 | Complete |
-| API-01 | Phase 74 | Complete |
-| API-02 | Phase 74 | Complete |
-| API-03 | Phase 74 | Complete |
-| VER-03 | Phase 74 | Complete |
-| VER-01 | Phase 75 | Complete |
-| VER-02 | Phase 75 | Complete |
-| DOC-02 | Phase 75 | Complete |
-| AUD-01 | Phase 75 | Complete |
-| AUD-02 | Phase 75 | Complete |
+| INT-01 | Phase 76 | Pending |
+| INT-02 | Phase 76 | Pending |
+| INT-03 | Phase 76 | Pending |
+| DOC-01 | Phase 77 | Pending |
+| DOC-02 | Phase 77 | Pending |
+| DOC-03 | Phase 77 | Pending |
+| VER-01 | Phase 78 | Pending |
+| VER-02 | Phase 78 | Pending |
+| AUD-01 | Phase 78 | Pending |
+| AUD-02 | Phase 78 | Pending |
 
 **Coverage:**
 
-- v1.10.1 requirements: 12 total
-- Mapped to phases: 12
+- v1.11 requirements: 10 total
+- Mapped to phases: 10
 - Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-05-28*
-*Last updated: 2026-05-28 after v1.10.1 milestone initialization*
+*Last updated: 2026-05-28 — v1.11 milestone initialized*

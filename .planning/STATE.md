@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.10.1
-milestone_name: Support-truth & Contract Honesty
-status: Milestone v1.10.1 support-truth closure
-last_updated: "2026-05-28T13:32:21.029Z"
+milestone: v1.11
+milestone_name: Integration Spine (docs-only)
+status: Defining requirements — Phase 76 next
+last_updated: "2026-05-28T00:00:00.000Z"
 last_activity: 2026-05-28
 progress:
   total_phases: 3
-  completed_phases: 3
-  total_plans: 7
-  completed_plans: 7
-  percent: 100
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # State: Rulestead
@@ -21,27 +21,26 @@ See: `.planning/PROJECT.md` (updated 2026-05-28)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
 
-**Current focus:** v1.10.1 shipped — optional v1.11 integration spine or maintenance mode
+**Current focus:** v1.11 integration spine (docs-only) — first-hour Phoenix path
 
-**Milestone:** v1.10.1 complete — no new product APIs
+**Milestone:** v1.11 active — Phases 76–78
 
 ## Current Position
 
-Phase: 75
+Phase: 76
 Plan: Not started
-Status: Milestone v1.10.1 support-truth closure
-Last activity: 2026-05-28
+Status: Milestone v1.11 initialized — discuss/plan Phase 76
+Last activity: 2026-05-28 — Milestone v1.11 started
 
 ## Accumulated Context
 
 ### Decisions
 
-- Post-GA band v1.1–v1.9 is feature-complete in code; v1.10.0 closed support-truth band.
-- **Done band (repo-verified):** ~91–94% for stated post-GA scope (near-done).
-- **Path-to-done:** v1.10.1 (active) → v1.11 integration docs (optional) → v2 wedges if triggered → maintenance.
+- Post-GA band v1.1–v1.9 is feature-complete in code; v1.10.0–v1.10.1 closed support-truth band.
+- **Done band (repo-verified):** ~91–94% for stated post-GA scope; v1.11 closes remaining first-hour doc gap (INV-INTRO-01).
+- **Path-to-done:** v1.11 (active) → v2 wedges if triggered → maintenance.
 - Open v2.0.0 **only** with a deferred trigger; default wedge order GOV-02-ext → ROL-08 → ADM-06.
-- `mix verify.phase73` / `mix verify.adopter` are the current adopter smoke bar (phase73 flat union).
-- `RULESTEAD_TEST_SCOPE=mounted_admin_contract` re-verified green 2026-05-28 (37 tests, 0 failures).
+- `mix verify.phase73` / `mix verify.adopter` are current adopter smoke bar until Phase 78 extends to phase76.
 - v1.10.1 support-truth band complete: Phases 73–75; see `.planning/v1.10.1-MILESTONE-AUDIT.md`.
 
 ### Deferred Items (v2)
@@ -56,15 +55,14 @@ Last activity: 2026-05-28
 
 | ID | Topic | Status | Proof |
 |----|-------|--------|-------|
-| INV-CTX-01 | Quickstart `traits:` vs `attributes:` | **Closed** | Phase 73 `context_test.exs` + quickstart guards; in `mix verify.phase73` |
-| INV-API-01 | `api_stability.md` vs `release_contract_test` | **Closed** | Phase 74 catalog sync + `mix test test/rulestead/release_contract_test.exs`; adopter gate `mix verify.phase73` |
-| INV-MAINT-01 | MAINTAINING vs existing `api_stability.md` | **Closed** | Phase 73 MAINTAINING live contract + maintainer doc truth in release_contract |
-| INV-INTRO-01 | Intro spine missing Plug/supervision/lifecycle | Open — v1.11 doc milestone | — |
+| INV-CTX-01 | Quickstart `traits:` vs `attributes:` | **Closed** | Phase 73 |
+| INV-API-01 | `api_stability.md` vs release contract | **Closed** | Phase 74–75 |
+| INV-MAINT-01 | MAINTAINING vs `api_stability.md` | **Closed** | Phase 73 |
+| INV-INTRO-01 | Intro spine missing Plug/supervision/lifecycle | **Open** — v1.11 | Phase 78 target |
 
 ## Operator Next Steps
 
-1. `/gsd-discuss-phase` or `/gsd-plan-phase` for **v1.11 integration spine** (optional, docs-only)
+1. `/gsd-discuss-phase 76` or `/gsd-plan-phase 76` — Phoenix integration spine doc
 2. `/gsd-progress` — roadmap and milestone status
-3. Maintenance mode: patches and adopter support unless v2 trigger fires
 
-**Resume:** `.planning/threads/2026-05-28-path-to-done-milestones.md`
+**Resume:** `.planning/ROADMAP.md` Phase 76

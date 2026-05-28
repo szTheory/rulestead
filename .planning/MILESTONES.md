@@ -1,5 +1,18 @@
 # Milestones
 
+## v1.10.1 Support-truth & Contract Honesty (Shipped: 2026-05-28)
+
+**Phases completed:** 3 phases, 7 plans
+
+**Key accomplishments:**
+
+- Context `traits:` → `attributes` back-compat with release-contract quickstart guards
+- `MAINTAINING.md` and `guides/api_stability.md` aligned with shipped post-GA public surface
+- `mix verify.phase73` / `mix verify.adopter` proof umbrella; INV-API-01, INV-MAINT-01, INV-CTX-01 closed
+- `v1.10.1-MILESTONE-AUDIT.md` (`support_truth_complete`)
+
+---
+
 ## v1.10.0 Post-GA Band Truth & Adopter Closure (Shipped: 2026-05-28)
 
 **Phases completed:** 4 phases, 0 plans (verification-driven closure)
