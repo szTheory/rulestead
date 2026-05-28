@@ -23,6 +23,8 @@
 - Host seam and in-place flow guides teach preview evidence boundaries and operator UX.
 - `host_preview_evidence` CI scope, verification artifact, and maintainer handoff checklist close v1.9 proof traceability.
 
+Known deferred items at close: 3 (see STATE.md Deferred Items)
+
 ---
 
 ## v1.8.0 Guarded Rollout Auto-Advance (Shipped: 2026-05-27)
