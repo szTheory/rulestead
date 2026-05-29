@@ -96,11 +96,13 @@ defmodule RulesteadDemoWeb.FlagController do
 
   defp blank_to_nil(nil), do: nil
   defp blank_to_nil(""), do: nil
+
   defp blank_to_nil(value) when is_binary(value) do
     case String.trim(value) do
       "" -> nil
       trimmed -> trimmed
     end
   end
+
   defp blank_to_nil(value), do: value
 end

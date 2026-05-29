@@ -107,14 +107,19 @@ defmodule RulesteadDemoWeb.FlagControllerTest do
         )
 
       {:ok, _published} =
-        Rulestead.publish_ruleset(Command.PublishRuleset.new(flag_key, environment_key, actor: demo_actor))
+        Rulestead.publish_ruleset(
+          Command.PublishRuleset.new(flag_key, environment_key, actor: demo_actor)
+        )
     end
 
     refresh_runtime!()
   end
 
   defp refresh_runtime! do
-    for refresh_name <- [RulesteadDemo.RuntimeRefresh.Staging, RulesteadDemo.RuntimeRefresh.Production] do
+    for refresh_name <- [
+          RulesteadDemo.RuntimeRefresh.Staging,
+          RulesteadDemo.RuntimeRefresh.Production
+        ] do
       if Process.whereis(refresh_name) do
         :ok = Refresh.refresh_now(refresh_name)
       end

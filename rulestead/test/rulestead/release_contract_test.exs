@@ -266,7 +266,8 @@ defmodule Rulestead.ReleaseContractTest do
     assert demo_readme =~ "0.1.3"
     assert demo_readme =~ "verify.release_publish"
     assert demo_readme =~ "verify.release_parity"
-    assert demo_readme =~ "companion proof surface"
+    assert demo_readme =~ "FleetDesk Adoption Lab"
+    assert demo_readme =~ "adoption lab"
   end
 
   test "maintainer guidance matches the shipped release and support truth" do

@@ -85,7 +85,9 @@ defmodule Rulestead.Repo.Migrations.CreateRulesteadAuthoringTables do
 
       add(
         :flag_environment_id,
-        references(:flag_environments, type: :uuid, on_delete: :delete_all), null: false)
+        references(:flag_environments, type: :uuid, on_delete: :delete_all),
+        null: false
+      )
 
       add(:version, :integer, null: false)
       add(:status, :text, null: false, default: "draft")

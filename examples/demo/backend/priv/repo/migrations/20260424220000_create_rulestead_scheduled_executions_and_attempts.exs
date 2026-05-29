@@ -42,7 +42,8 @@ defmodule Rulestead.Repo.Migrations.CreateRulesteadScheduledExecutionsAndAttempt
 
     create(
       constraint(:scheduled_executions, :scheduled_executions_state_must_be_valid,
-        check: "state IN ('scheduled', 'running', 'completed', 'failed', 'quarantined', 'cancelled')"
+        check:
+          "state IN ('scheduled', 'running', 'completed', 'failed', 'quarantined', 'cancelled')"
       )
     )
 

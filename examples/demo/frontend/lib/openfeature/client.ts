@@ -1,4 +1,10 @@
-import { OpenFeature, type Client, type EvaluationDetails } from "@openfeature/web-sdk";
+import {
+  OpenFeature,
+  type Client,
+  type EvaluationDetails,
+  type FlagValue,
+  type JsonValue,
+} from "@openfeature/web-sdk";
 
 import {
   fetchFlagEvaluation,
@@ -61,7 +67,7 @@ export type DemoExplainSnapshot = {
 export const DEMO_FLAG_DEFINITIONS: ReadonlyArray<{
   flagKey: string;
   label: string;
-  defaultValue: boolean | string | Record<string, unknown>;
+  defaultValue: JsonValue;
 }> = [
   {
     flagKey: PRIMARY_FLAG_KEY,
@@ -102,7 +108,7 @@ function runtimeKey(config: DemoRuntimeConfig) {
 }
 
 function readStringMetadata(
-  details: Pick<EvaluationDetails<unknown>, "flagMetadata">,
+  details: Pick<EvaluationDetails<FlagValue>, "flagMetadata">,
   key: string,
 ) {
   const value = details.flagMetadata[key];
@@ -110,7 +116,7 @@ function readStringMetadata(
 }
 
 function readNumberMetadata(
-  details: Pick<EvaluationDetails<unknown>, "flagMetadata">,
+  details: Pick<EvaluationDetails<FlagValue>, "flagMetadata">,
   key: string,
 ) {
   const value = details.flagMetadata[key];
@@ -118,14 +124,14 @@ function readNumberMetadata(
 }
 
 function readVersionMetadata(
-  details: Pick<EvaluationDetails<unknown>, "flagMetadata">,
+  details: Pick<EvaluationDetails<FlagValue>, "flagMetadata">,
 ) {
   const value = details.flagMetadata.flagVersion;
   return typeof value === "string" || typeof value === "number" ? value : null;
 }
 
 function readBooleanMetadata(
-  details: Pick<EvaluationDetails<unknown>, "flagMetadata">,
+  details: Pick<EvaluationDetails<FlagValue>, "flagMetadata">,
   key: string,
 ) {
   const value = details.flagMetadata[key];
@@ -136,7 +142,7 @@ export function toDemoFlagSnapshot(
   flagKey: string,
   label: string,
   details: Pick<
-    EvaluationDetails<unknown>,
+    EvaluationDetails<FlagValue>,
     "value" | "reason" | "variant" | "flagMetadata"
   >,
   environmentKey: string,

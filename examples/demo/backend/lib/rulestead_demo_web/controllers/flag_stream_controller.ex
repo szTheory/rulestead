@@ -84,7 +84,12 @@ defmodule RulesteadDemoWeb.FlagStreamController do
   end
 
   defp configuration_changed(conn, environment_key, version) do
-    payload = Jason.encode!(%{type: "configuration-changed", environmentKey: environment_key, snapshotVersion: version})
+    payload =
+      Jason.encode!(%{
+        type: "configuration-changed",
+        environmentKey: environment_key,
+        snapshotVersion: version
+      })
 
     with {:ok, conn} <- chunk(conn, "event: configuration-changed\n"),
          {:ok, conn} <- chunk(conn, "data: #{payload}\n\n") do
@@ -117,11 +122,13 @@ defmodule RulesteadDemoWeb.FlagStreamController do
 
   defp blank_to_nil(nil), do: nil
   defp blank_to_nil(""), do: nil
+
   defp blank_to_nil(value) when is_binary(value) do
     case String.trim(value) do
       "" -> nil
       trimmed -> trimmed
     end
   end
+
   defp blank_to_nil(value), do: value
 end

@@ -7,7 +7,8 @@ defmodule Rulestead.Repo.Migrations.CreateRulesteadWebhookDestinationsEventsAndD
       add(:name, :text, null: false)
       add(:description, :text)
       add(:url, :text, null: false)
-      add(:secret_id, :text) # Reference to host-managed secret storage
+      # Reference to host-managed secret storage
+      add(:secret_id, :text)
       add(:environment_key, :text, null: false)
       add(:subscriptions, {:array, :text}, null: false, default: [])
       add(:enabled, :boolean, null: false, default: true)
@@ -36,10 +37,17 @@ defmodule Rulestead.Repo.Migrations.CreateRulesteadWebhookDestinationsEventsAndD
 
     create table(:webhook_deliveries, primary_key: false) do
       add(:id, :uuid, primary_key: true, default: fragment("gen_random_uuid()"))
-      add(:webhook_destination_id, references(:webhook_destinations, type: :uuid, on_delete: :delete_all), null: false)
-      add(:webhook_outbound_event_id, references(:webhook_outbound_events, type: :uuid, on_delete: :delete_all), null: false)
 
-      add(:state, :text, null: false) # pending, delivering, succeeded, failed, exhausted
+      add(
+        :webhook_destination_id,
+        references(:webhook_destinations, type: :uuid, on_delete: :delete_all), null: false)
+
+      add(
+        :webhook_outbound_event_id,
+        references(:webhook_outbound_events, type: :uuid, on_delete: :delete_all), null: false)
+
+      # pending, delivering, succeeded, failed, exhausted
+      add(:state, :text, null: false)
       add(:attempt_count, :integer, null: false, default: 0)
       add(:last_attempt_at, :utc_datetime_usec)
       add(:next_attempt_at, :utc_datetime_usec)

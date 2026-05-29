@@ -20,8 +20,7 @@ config :rulestead_demo, RulesteadDemoWeb.Endpoint,
     ]
   ]
 
-config :rulestead_demo, RulesteadDemoWeb.Endpoint,
-  check_origin: ["//localhost", "//127.0.0.1"]
+config :rulestead_demo, RulesteadDemoWeb.Endpoint, check_origin: ["//localhost", "//127.0.0.1"]
 
 # Do not print debug messages in production
 config :logger, level: :info

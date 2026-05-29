@@ -2,9 +2,7 @@ defmodule Rulestead.Repo.Migrations.ExtendRulesteadChangeRequestActionsForPromot
   use Ecto.Migration
 
   def up do
-    drop_if_exists(
-      constraint(:change_requests, :change_requests_governed_action_must_be_valid)
-    )
+    drop_if_exists(constraint(:change_requests, :change_requests_governed_action_must_be_valid))
 
     create(
       constraint(:change_requests, :change_requests_governed_action_must_be_valid,
@@ -15,9 +13,7 @@ defmodule Rulestead.Repo.Migrations.ExtendRulesteadChangeRequestActionsForPromot
   end
 
   def down do
-    drop_if_exists(
-      constraint(:change_requests, :change_requests_governed_action_must_be_valid)
-    )
+    drop_if_exists(constraint(:change_requests, :change_requests_governed_action_must_be_valid))
 
     create(
       constraint(:change_requests, :change_requests_governed_action_must_be_valid,

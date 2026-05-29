@@ -33,7 +33,8 @@ defmodule RulesteadDemo.AdminPolicy do
 
   @impl true
   def change_request_required?(actor, action, _resource, environment_key) do
-    "admin" not in actor_roles(actor) and action in Policy.governance_actions() and production?(environment_key)
+    "admin" not in actor_roles(actor) and action in Policy.governance_actions() and
+      production?(environment_key)
   end
 
   @impl true

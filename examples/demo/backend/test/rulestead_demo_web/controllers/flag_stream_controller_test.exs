@@ -32,14 +32,21 @@ defmodule RulesteadDemoWeb.FlagStreamControllerTest do
 
     {:ok, _draft} =
       Rulestead.save_draft_ruleset(
-        Command.SaveDraftRuleset.new(flag_key, "staging", %{
-          salt: "enable-new-dashboard:stream:v1",
-          rules: [%{key: "always-on", strategy: :forced_value, value: %{value: true}, conditions: []}]
-        }, actor: demo_actor)
+        Command.SaveDraftRuleset.new(
+          flag_key,
+          "staging",
+          %{
+            salt: "enable-new-dashboard:stream:v1",
+            rules: [
+              %{key: "always-on", strategy: :forced_value, value: %{value: true}, conditions: []}
+            ]
+          }, actor: demo_actor)
       )
 
     {:ok, _published} =
-      Rulestead.publish_ruleset(Command.PublishRuleset.new(flag_key, "staging", actor: demo_actor))
+      Rulestead.publish_ruleset(
+        Command.PublishRuleset.new(flag_key, "staging", actor: demo_actor)
+      )
 
     if Process.whereis(RulesteadDemo.RuntimeRefresh.Staging) do
       :ok = Refresh.refresh_now(RulesteadDemo.RuntimeRefresh.Staging)

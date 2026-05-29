@@ -36,8 +36,11 @@ defmodule RulesteadDemo.DataCase do
   Sets up the sandbox based on the test tags.
   """
   def setup_sandbox(tags) do
-    demo_owner = Ecto.Adapters.SQL.Sandbox.start_owner!(RulesteadDemo.Repo, shared: not tags[:async])
-    rulestead_owner = Ecto.Adapters.SQL.Sandbox.start_owner!(Rulestead.Repo, shared: not tags[:async])
+    demo_owner =
+      Ecto.Adapters.SQL.Sandbox.start_owner!(RulesteadDemo.Repo, shared: not tags[:async])
+
+    rulestead_owner =
+      Ecto.Adapters.SQL.Sandbox.start_owner!(Rulestead.Repo, shared: not tags[:async])
 
     on_exit(fn ->
       Ecto.Adapters.SQL.Sandbox.stop_owner(demo_owner)

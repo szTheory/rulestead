@@ -38,14 +38,18 @@ defmodule Rulestead.Repo.Migrations.CreateRulesteadWebhookReceiptsAndReplayClaim
 
     create(
       constraint(:webhook_receipts, :webhook_receipts_verified_state_must_be_valid,
-        check: "verified_state IN ('accepted', 'rejected', 'malformed', 'unsigned', 'stale', 'replayed')"
+        check:
+          "verified_state IN ('accepted', 'rejected', 'malformed', 'unsigned', 'stale', 'replayed')"
       )
     )
 
     create table(:webhook_replay_claims, primary_key: false) do
       add(:provider, :text, primary_key: true)
       add(:delivery_id, :text, primary_key: true)
-      add(:receipt_id, references(:webhook_receipts, type: :uuid, on_delete: :delete_all), null: false)
+
+      add(:receipt_id, references(:webhook_receipts, type: :uuid, on_delete: :delete_all),
+        null: false
+      )
 
       timestamps(type: :utc_datetime_usec, updated_at: false)
     end

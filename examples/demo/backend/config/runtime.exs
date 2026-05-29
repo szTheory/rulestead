@@ -53,8 +53,7 @@ if config_env() == :prod do
       enabled: true,
       url: redis_url
 
-    config :rulestead, :runtime,
-      store: Rulestead.Store.Redis
+    config :rulestead, :runtime, store: Rulestead.Store.Redis
   else
     config :rulestead, :redis, enabled: false
   end
