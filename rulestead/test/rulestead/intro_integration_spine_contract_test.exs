@@ -5,6 +5,7 @@ defmodule Rulestead.IntroIntegrationSpineContractTest do
   @getting_started_path Path.expand("../../../guides/introduction/getting-started.md", __DIR__)
   @installation_path Path.expand("../../../guides/introduction/installation.md", __DIR__)
   @root_readme_path Path.expand("../../../README.md", __DIR__)
+  @evaluation_path Path.expand("../../../guides/flows/evaluation.md", __DIR__)
 
   test "phoenix integration spine documents first-hour Phoenix path" do
     spine = File.read!(@spine_path)
@@ -40,5 +41,13 @@ defmodule Rulestead.IntroIntegrationSpineContractTest do
     root_readme = File.read!(@root_readme_path)
 
     assert root_readme =~ "phoenix-integration-spine"
+  end
+
+  test "evaluation.md documents Runtime keyed lookup APIs (DOC-01)" do
+    evaluation = File.read!(@evaluation_path)
+
+    assert evaluation =~ "Rulestead.Runtime.enabled?/3"
+    assert evaluation =~ "Rulestead.Runtime.evaluate/3"
+    assert evaluation =~ "Rulestead.evaluate/3"
   end
 end
