@@ -1,5 +1,20 @@
 # Milestones
 
+## v1.11.1 Gap Closure (Shipped: 2026-05-29)
+
+**Phases completed:** 3 phases, 3 plans, 8 tasks
+
+**Key accomplishments:**
+
+- Fixed getting-started → spine §6 lifecycle deep-link with numbered GitHub/HexDocs anchor slug (DOC-02, INT-02)
+- Backfilled `76-VERIFICATION.md` and `77-VERIFICATION.md`; refreshed `77-VALIDATION.md` to complete status (INT-01–03, DOC-01–03)
+- Extended intro contract test with DOC-01 `evaluation.md` Runtime API guard; backfilled `76-VALIDATION.md` Nyquist artifact
+- `mix verify.phase76` green throughout gap closure; closes v1.11 audit deferrals from Phase 80/81
+
+**Archive:** [.planning/milestones/v1.11.1-gap-closure-ROADMAP.md](milestones/v1.11.1-gap-closure-ROADMAP.md)
+
+---
+
 ## v1.11 Integration Spine (Shipped: 2026-05-28)
 
 **Phases completed:** 3 phases, 5 plans, 0 tasks

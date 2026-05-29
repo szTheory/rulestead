@@ -2,85 +2,40 @@
 
 ## Milestones
 
+- ✅ **v1.11.1 - Gap Closure** — Phases 79-81 (shipped 2026-05-29) — [.planning/milestones/v1.11.1-gap-closure-ROADMAP.md](milestones/v1.11.1-gap-closure-ROADMAP.md)
 - ✅ **v1.11 - Integration Spine (docs-only)** — Phases 76-78 (shipped 2026-05-28) — [.planning/milestones/v1.11-MILESTONE-AUDIT.md](milestones/v1.11-MILESTONE-AUDIT.md)
 - ✅ **v1.10.1 - Support-truth & Contract Honesty** — Phases 73-75 (shipped 2026-05-28) — [.planning/v1.10.1-MILESTONE-AUDIT.md](v1.10.1-MILESTONE-AUDIT.md)
 - ✅ **v1.10.0 - Post-GA Band Truth & Adopter Closure** — Phases 69-72 (shipped 2026-05-28) — [.planning/milestones/v1.10.0-ROADMAP.md](milestones/v1.10.0-ROADMAP.md)
 - ✅ **v1.9.0 - Host-Supplied Preview Evidence** — Phases 65-68 (shipped 2026-05-28) — [.planning/milestones/v1.9.0-ROADMAP.md](milestones/v1.9.0-ROADMAP.md)
 - ✅ **v1.8.0 - Guarded Rollout Auto-Advance** — Phases 61-64 (shipped 2026-05-27)
 
-## Active: v1.11 Gap Closure (Phases 79–81)
+## Current focus
 
-**Audit gaps:** [.planning/milestones/v1.11-MILESTONE-AUDIT.md](milestones/v1.11-MILESTONE-AUDIT.md) (`gaps_found`, 2026-05-28)
+**Maintenance default** — post-GA band and v1.11 (including gap closure) are shipped. Open v2 wedges only when deferred triggers fire (see `.planning/DEFERRED.md`).
 
-- [x] Phase 79: Lifecycle Deep-Link Anchor Fix — DOC-02, INT-02 (completed 2026-05-28)
-- [x] Phase 80: Phase 76–77 Verification Backfill — INT-01, INT-03, DOC-01, DOC-03 (completed 2026-05-28)
-- [x] Phase 81: Doc Contract Hardening — DOC-01 (contract guards), Nyquist Phase 76 (completed 2026-05-29)
+**Proof spine:** `cd rulestead && mix verify.phase76` · `mix verify.adopter`
 
-**Proof spine (unchanged):** `cd rulestead && mix verify.phase76` · `mix verify.adopter`
-
-### Phase 79: Lifecycle Deep-Link Anchor Fix
-
-**Goal:** Fix broken getting-started → spine §6 lifecycle deep-link on GitHub/HexDocs.
-
-**Depends on:** Phase 78
-
-**Requirements:** DOC-02, INT-02
-
-**Gap Closure:** Closes gaps from v1.11 audit — anchor slug mismatch, first-hour adopter lifecycle deep-link flow
-
-**Success criteria:**
-
-1. `getting-started.md` links to `#6-create-your-first-flag-lifecycle-required` (numbered heading slug).
-2. Historical plan references aligned (77-01-PLAN.md).
-3. Contract test guards correct anchor slug (regression-safe).
-
----
-
-### Phase 80: Phase 76–77 Verification Backfill
-
-**Goal:** Add missing phase-level `VERIFICATION.md` files and refresh stale validation task status for Phases 76–77.
-
-**Depends on:** Phase 79
-
-**Requirements:** INT-01, INT-03, DOC-01, DOC-03
-
-**Gap Closure:** Closes unverified-phase blocker from v1.11 audit (Phases 76–77 complete via SUMMARY only)
-
-**Success criteria:**
-
-1. `76-VERIFICATION.md` records INT-01–03 proof checklist with commands.
-2. `77-VERIFICATION.md` records DOC-01–03 proof checklist with commands.
-3. `77-VALIDATION.md` task rows reflect shipped work (not ⬜ pending).
-4. `mix verify.phase76` green with proof documented in both VERIFICATION files.
-
----
-
-### Phase 81: Doc Contract Hardening
-
-**Goal:** Extend intro contract guards for `evaluation.md` Runtime subsection and add Phase 76 Nyquist validation artifact.
-
-**Depends on:** Phase 80
-
-**Requirements:** DOC-01 (contract guard extension)
-
-**Gap Closure:** Optional audit hardening — evaluation.md Runtime not in contract test union; Phase 76 missing VALIDATION.md
-
-**Success criteria:**
-
-1. `intro_integration_spine_contract_test.exs` asserts `evaluation.md` Runtime strings (DOC-01 regression guard).
-2. `76-VALIDATION.md` present with Nyquist-compliant per-task verification map.
-3. `mix verify.phase76` green including new contract assertions.
-
----
+**Recommended:** `/gsd-audit-milestone` to re-verify v1.11 audit gaps are closed, then maintenance-only work until a v2 trigger.
 
 ## Phase numbering
 
-v1.11 substance shipped (Phases 76–78); gap closure Phases 79–81 close audit findings. After gap closure: `/gsd-audit-milestone` then maintenance default. v2 wedges only when deferred triggers fire (see `.planning/DEFERRED.md`).
+Phases 76–81 complete the v1.11 integration-spine and audit-gap-closure bands. Next milestone phases start at **82** when `/gsd-new-milestone` opens scoped work.
+
+<details>
+<summary>✅ v1.11.1 Gap Closure (Phases 79-81) — SHIPPED 2026-05-29</summary>
+
+- [x] Phase 79: Lifecycle Deep-Link Anchor Fix — DOC-02, INT-02
+- [x] Phase 80: Phase 76–77 Verification Backfill — INT-01, INT-03, DOC-01, DOC-03
+- [x] Phase 81: Doc Contract Hardening — DOC-01 (contract guards), Nyquist Phase 76
+
+**Archive:** [.planning/milestones/v1.11.1-gap-closure-ROADMAP.md](milestones/v1.11.1-gap-closure-ROADMAP.md)
+
+</details>
 
 <details>
 <summary>✅ v1.11 Integration Spine (Phases 76-78) — SHIPPED 2026-05-28</summary>
 
-**Audit:** [.planning/milestones/v1.11-MILESTONE-AUDIT.md](milestones/v1.11-MILESTONE-AUDIT.md) (`integration_spine_complete`)
+**Audit:** [.planning/milestones/v1.11-MILESTONE-AUDIT.md](milestones/v1.11-MILESTONE-AUDIT.md)
 
 - [x] Phase 76: Phoenix Integration Spine Doc — INT-01–03
 - [x] Phase 77: Evaluation And Lifecycle Doc Alignment — DOC-01–03
@@ -93,7 +48,7 @@ v1.11 substance shipped (Phases 76–78); gap closure Phases 79–81 close audit
 <details>
 <summary>✅ v1.10.1 Support-truth & Contract Honesty (Phases 73-75) — SHIPPED 2026-05-28</summary>
 
-**Audit:** [.planning/v1.10.1-MILESTONE-AUDIT.md](v1.10.1-MILESTONE-AUDIT.md) (`support_truth_complete`)
+**Audit:** [.planning/v1.10.1-MILESTONE-AUDIT.md](v1.10.1-MILESTONE-AUDIT.md)
 
 - [x] Phase 73: Context And Maintainer Doc Truth — CTX-01, CTX-02, DOC-01
 - [x] Phase 74: API Stability Catalog Sync — API-01–03, VER-03

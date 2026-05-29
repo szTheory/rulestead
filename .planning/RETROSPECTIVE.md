@@ -2,6 +2,39 @@
 
 *A living document updated after each milestone. Lessons feed forward into future planning.*
 
+## Milestone: v1.11.1 — Gap Closure
+
+**Shipped:** 2026-05-29
+**Phases:** 3 | **Plans:** 3
+
+### What Was Built
+
+- Lifecycle deep-link anchor fix (`#6-create-your-first-flag-lifecycle-required`) with contract test regression guard.
+- Phase 76/77 `VERIFICATION.md` backfill and `77-VALIDATION.md` status refresh.
+- DOC-01 `evaluation.md` Runtime string guard in `intro_integration_spine_contract_test.exs`; `76-VALIDATION.md` Nyquist artifact.
+
+### What Worked
+
+- Thin gap-closure phases (one plan each) closed audit deferrals without guide churn or `verify.phase76.ex` edits.
+- Nyquist VALIDATION backfill pattern from Phases 77/79 applied to Phase 76 without re-running shipped work.
+- Contract test module accumulates per-guide assertions — spine + evaluation — in one merge-gate file.
+
+### What Was Inefficient
+
+- Original v1.11 audit (`gaps_found`) predated gap closure; requires re-audit to flip status to `passed`.
+- `milestone.complete` CLI phase filter would have included archived `<details>` phases if run with `milestone: v1.11` in STATE.
+
+### Patterns Established
+
+- Gap-closure milestones as v1.11.1 patch band separate from v1.11 integration spine (76–78) archive.
+- Defer contract guards to follow-on phase when grep proof ships first (DOC-01 Phase 80 → Phase 81).
+
+### Key Lessons
+
+1. Audit `gaps_found` should spawn a dedicated gap-closure band before declaring milestone maintenance-complete.
+2. Numbered Markdown heading slugs are required for GitHub/HexDocs cross-doc deep links.
+3. VERIFICATION backfill + contract guard extension can ship as docs/test-only without API changes.
+
 ## Milestone: v1.10.0 — Post-GA Band Truth & Adopter Closure
 
 **Shipped:** 2026-05-28

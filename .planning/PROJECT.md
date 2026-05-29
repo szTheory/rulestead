@@ -54,6 +54,7 @@ v1.1–v1.9 feature band is **complete**. v1.10.x–v1.11 doc bands are **shippe
 |-------|-----------|-------|
 | 1 | **v1.10.1 — Support-truth & contract honesty** | **Complete** (2026-05-28) |
 | 2 | **v1.11 — Integration spine (docs-only)** | **Complete** (2026-05-28) — `mix verify.phase76`; INV-INTRO-01 closed |
+| 2b | **v1.11.1 — Gap closure** | **Complete** (2026-05-29) — audit deferrals (Phases 79–81) |
 | 3+ | **v2.0+ wedges (triggered only)** | GOV-02-ext → ROL-08 → ADM-06 per `.planning/DEFERRED.md` |
 | — | **Maintenance** | Patches and adopter support until a v2 trigger fires |
 
@@ -324,4 +325,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-28 after Phase 73 completion (CTX-01, CTX-02, DOC-01)*
+*Last updated: 2026-05-29 after Phase 81 completion (DOC-01 contract guard, 76-VALIDATION Nyquist backfill)*
