@@ -21,13 +21,15 @@ This is the primary runnable end-to-end proof path for the current `0.1.3` Hex p
 | Remote config | Priya (operator) | `ops-banner-config` | Storm advisory banner |
 | Explain decision | Sam (support) | `enable-new-dashboard` | `/api/flags/explain` trace |
 | Kill switch | Shiori (SRE) | `enable-new-dashboard` | Admin kill → frontend flips |
+| Guarded rollout | Tova / Shiori | `dispatch-guarded-rollout` | Rollout panel + guardrail copy |
+| Audience preview | Tova / Priya | `ops-audience-preview` | Host resolver stub + impact preview |
 
 ## Seeded fixtures
 
 After `mix run priv/repo/seeds.exs` (also run by compose entrypoint):
 
 - **Personas:** dispatch operator (pro), fleet manager (enterprise), beta dispatcher (starter)
-- **Flags:** `enable-new-dashboard`, `fleet-map-v2`, `dispatch-ops-copy`, `ops-banner-config`
+- **Flags:** `enable-new-dashboard`, `fleet-map-v2`, `dispatch-ops-copy`, `ops-banner-config`, `dispatch-guarded-rollout`, `ops-audience-preview`
 - **Environments:** staging + production
 
 Persona metadata: `GET /api/demo/personas`
@@ -64,13 +66,22 @@ Smoke verification:
 scripts/demo/smoke.sh
 ```
 
-Browser proof (kill switch + adoption journeys):
+Browser proof (kill switch + adoption journeys + admin depth):
 
 ```bash
 cd examples/demo/frontend
 npm install
 npx playwright install chromium
 DEMO_BACKEND_URL=http://127.0.0.1:4000 DEMO_FRONTEND_URL=http://127.0.0.1:3000 npm run test:e2e
+```
+
+Curated Playwright specs: `flag-inventory`, `rollout-advance`, `explain-admin`,
+`audit-timeline`, `guarded-rollout`, plus `adoption-journeys` and `demo-toggle`.
+
+Fresh-install journey (no FleetDesk UI):
+
+```bash
+scripts/demo/install_journey.sh
 ```
 
 Bounded adopter proof (smoke + `mix verify.adopter`):
@@ -87,7 +98,8 @@ If you need the package-local OpenFeature companion proof first:
 RULESTEAD_TEST_SCOPE=openfeature_companion bash scripts/ci/test.sh
 ```
 
-That command proves the Elixir provider package directly. This adoption lab shows the secondary, host-owned browser path built on separate backend HTTP and frontend glue.
+See [guides/introduction/adoption-lab.md](../../guides/introduction/adoption-lab.md)
+for persona-oriented evaluation guidance.
 
 ## Published-release checks
 

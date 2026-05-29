@@ -49,6 +49,22 @@ mix ecto.migrate
 surface. If you mount `rulestead_admin`, follow the router seam documented in
 [rulestead_admin/README.md](../../rulestead_admin/README.md).
 
+## Two adoption paths
+
+Choose the path that matches where you are:
+
+1. **Evaluate first** — run the [Adoption Lab](adoption-lab.md) (FleetDesk) with
+   `docker compose up --build`. Pre-installed host with seeded flags; no changes
+   to your app.
+2. **Install into your app** — follow the steps below, then
+   [Getting Started](getting-started.md) and the [Phoenix Integration Spine](phoenix-integration-spine.md).
+
+Fresh-install wiring proof (installer golden-diff, no FleetDesk UI):
+
+```bash
+scripts/demo/install_journey.sh
+```
+
 ## What happens next
 
 - **Phoenix integrators:** [Phoenix Integration Spine](phoenix-integration-spine.md)
@@ -59,5 +75,6 @@ surface. If you mount `rulestead_admin`, follow the router seam documented in
 - Follow [Getting Started](getting-started.md) for the first-success path
 - Use [Evaluation](../flows/evaluation.md) for runtime usage patterns
 - Use [Admin UI](../flows/admin-ui.md) if your app mounts the operator surface
-- Use [../../examples/demo/README.md](../../examples/demo/README.md) when you
-  want the bounded runnable demo proof path
+- Use [Adoption Lab](adoption-lab.md) for the persona-oriented evaluation guide
+- Use [../../examples/demo/README.md](../../examples/demo/README.md) for compose
+  and Playwright command reference

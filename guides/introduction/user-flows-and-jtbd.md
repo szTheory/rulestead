@@ -262,6 +262,10 @@ rules.
 
 ## Where To Go Next
 
+If you are **evaluating** Rulestead before integrating, start with the
+[Adoption Lab](adoption-lab.md) — run FleetDesk locally and walk the six flows
+above with seeded personas and flags.
+
 If you are adopting Rulestead in your own app, the usual reading path is:
 
 1. [Getting Started](getting-started.md) for the first-success loop

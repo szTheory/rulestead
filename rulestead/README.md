@@ -123,9 +123,10 @@ Run `cd rulestead && mix verify.phase68` before changing preview evidence
 resolver wiring, redaction, fingerprint/stale rejection, governance boundary, or
 support-truth docs in the v1.9 milestone.
 
-**Post-GA band closure:** `mix verify.adopter` (alias `mix verify.phase76`) runs
-the v1.11 adopter bar: v1.10.1 support-truth contracts plus integration-spine
-doc checks. Phoenix integrators:
+**Post-GA band closure:** `mix verify.adopter` (alias `mix verify.phase82`) runs
+the v1.12 adopter bar: v1.10.1 support-truth contracts, integration-spine doc
+checks, and adoption-lab contract guards. Evaluators:
+[Adoption Lab](../guides/introduction/adoption-lab.md). Phoenix integrators:
 [Phoenix Integration Spine](../guides/introduction/phoenix-integration-spine.md).
 See the root [README](../README.md) proof section.
 

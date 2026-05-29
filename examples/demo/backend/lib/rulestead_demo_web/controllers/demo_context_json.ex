@@ -29,6 +29,16 @@ defmodule RulesteadDemoWeb.DemoContextJSON do
           key: "ops-banner-config",
           label: "Operations banner",
           journey: "remote-config"
+        },
+        %{
+          key: "dispatch-guarded-rollout",
+          label: "Guarded dispatch routing",
+          journey: "guarded-rollout"
+        },
+        %{
+          key: "ops-audience-preview",
+          label: "Dispatcher audience panel",
+          journey: "audience-preview"
         }
       ]
     }

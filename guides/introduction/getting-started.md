@@ -40,6 +40,10 @@ flag create).
 > [Create your first flag](phoenix-integration-spine.md#6-create-your-first-flag-lifecycle-required)
 > in the spine.
 
+> **Evaluating first?** Run the [Adoption Lab](adoption-lab.md) (FleetDesk) to
+> see Rulestead with realistic seeds and operator screens before installing into
+> your app. Use `docker compose up --build` or `scripts/demo/proof.sh`.
+
 ## 3. Gate a code path
 
 For the ordered Plug → snapshot runtime path, follow the
@@ -106,4 +110,5 @@ selector. The package-local details are in
 - Rules and precedence: [../flows/rulesets.md](../flows/rulesets.md)
 - Explain and support workflows: [../flows/explainability.md](../flows/explainability.md)
 - Testing and fake-backed helpers: [../recipes/testing.md](../recipes/testing.md)
+- Adoption lab (evaluate before integrate): [Adoption Lab](adoption-lab.md)
 - Runnable proof path: [../../examples/demo/README.md](../../examples/demo/README.md)

@@ -31,6 +31,7 @@ defmodule Rulestead.MixProject do
         {:"verify.phase72", :test},
         {:"verify.phase73", :test},
         {:"verify.phase76", :test},
+        {:"verify.phase82", :test},
         {:"verify.adopter", :test}
       ]
     ]

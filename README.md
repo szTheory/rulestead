@@ -20,7 +20,7 @@ The post-GA release-control band is **feature-complete** for serious Phoenix Saa
 Optional v2 deepening (presets, baseline comparison, threshold profiles) is listed in
 [product-boundary.md](guides/introduction/product-boundary.md).
 
-**Prove it locally:** `scripts/demo/proof.sh` or `cd rulestead && mix verify.adopter`.
+**Prove it locally:** `scripts/demo/proof.sh`, [Adoption Lab](guides/introduction/adoption-lab.md), or `cd rulestead && mix verify.adopter`.
 
 ## What this is (60 seconds)
 
@@ -264,12 +264,15 @@ The repo's current proof posture is intentionally bounded:
   policy-denied evidence **fail closed**.
 - `RULESTEAD_TEST_SCOPE=host_preview_evidence bash scripts/ci/test.sh`
   reruns the v1.9 host preview evidence proof bar in CI.
-- **Post-GA band closure (v1.11):** `cd rulestead && mix verify.adopter` (alias:
-  `mix verify.phase76`) runs the v1.11 adopter bar: v1.10.1 support-truth
-  contracts plus integration-spine doc checks. See
+- **Post-GA band closure (v1.12):** `cd rulestead && mix verify.adopter` (alias:
+  `mix verify.phase82`) runs the v1.12 adopter bar: v1.10.1 support-truth
+  contracts, integration-spine doc checks, and adoption-lab contract guards. See
+  [Adoption Lab](guides/introduction/adoption-lab.md) and
   [Phoenix Integration Spine](guides/introduction/phoenix-integration-spine.md).
   `RULESTEAD_TEST_SCOPE=post_ga_band_closure bash scripts/ci/test.sh`
   reruns that bar in CI. `scripts/demo/proof.sh` runs demo smoke + band verify.
+  `RULESTEAD_TEST_SCOPE=install_journey bash scripts/ci/test.sh` runs the
+  fresh-install golden-diff journey.
 - `RULESTEAD_TEST_SCOPE=openfeature_companion bash scripts/ci/test.sh` proves the
   optional `open_feature_rulestead` companion package's Elixir provider contract:
   `context_mapper_test` and `provider_test`.

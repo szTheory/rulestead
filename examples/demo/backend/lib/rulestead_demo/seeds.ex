@@ -2,15 +2,28 @@ defmodule RulesteadDemo.Seeds do
   @moduledoc """
   Idempotent FleetDesk adoption-lab seed data.
 
-  Exercises boolean rollout, variant copy, JSON remote config, and the primary
-  kill-switch flag used by compose smoke + Playwright proofs.
+  Exercises boolean rollout, variant copy, JSON remote config, guarded rollout,
+  audience preview, and the primary kill-switch flag used by compose smoke +
+  Playwright proofs.
   """
 
+  alias Rulestead.Audience
+  alias Rulestead.Repo
   alias Rulestead.Store.Command
   alias Rulestead.Runtime.Refresh
   alias RulesteadDemo.Fixtures
 
   @seed_metadata %{seed: "fleetdesk-adoption-lab"}
+
+  @audience_specs [
+    %{
+      key: "fleet-ops-dispatchers",
+      description: "Pro-plan dispatch operators for audience preview journeys.",
+      definition: %{
+        conditions: [%{attribute: "plan", operator: "eq", value: "pro"}]
+      }
+    }
+  ]
 
   @flag_specs [
     %{
@@ -122,6 +135,67 @@ defmodule RulesteadDemo.Seeds do
           }
         ]
       }
+    },
+    %{
+      key: "dispatch-guarded-rollout",
+      description: "Dispatch routing experiment with host-supplied guardrails.",
+      flag_type: :experiment,
+      value_type: :string,
+      default_value: %{value: "standard-route"},
+      owner: "fleetdesk-platform",
+      tags: ["demo", "adoption-lab", "guarded-rollout"],
+      ruleset: %{
+        salt: "dispatch-guarded-rollout:fleetdesk:v1",
+        rules: [
+          %{
+            key: "priority-routes-split",
+            name: "Priority routes split",
+            strategy: :variant_split,
+            rollout: %{
+              bucket_by: :subject,
+              percentage: 100,
+              salt: "dispatch-guarded-rollout:split",
+              guardrails: [
+                %{
+                  signal_key: "dispatch_error_rate",
+                  threshold_operator: :gte,
+                  threshold_value: 0.05,
+                  freshness_window_seconds: 300,
+                  min_sample_size: 100,
+                  environment_scope: :environment,
+                  tenant_scope: :required
+                }
+              ]
+            },
+            variants: [
+              %{key: "control", weight: 50, value: %{value: "standard-route"}},
+              %{key: "treatment", weight: 50, value: %{value: "priority-route"}}
+            ]
+          }
+        ]
+      }
+    },
+    %{
+      key: "ops-audience-preview",
+      description: "Audience-targeted ops panel for impact preview journeys.",
+      flag_type: :release,
+      value_type: :boolean,
+      default_value: %{value: false},
+      owner: "fleetdesk-ops",
+      tags: ["demo", "adoption-lab", "audience-preview"],
+      ruleset: %{
+        salt: "ops-audience-preview:fleetdesk:v1",
+        rules: [
+          %{
+            key: "dispatcher-audience",
+            name: "Fleet dispatchers audience",
+            strategy: :segment_match,
+            audience_key: "fleet-ops-dispatchers",
+            value: %{value: true},
+            conditions: []
+          }
+        ]
+      }
     }
   ]
 
@@ -131,6 +205,8 @@ defmodule RulesteadDemo.Seeds do
   @spec run!() :: :ok
   def run! do
     actor = Fixtures.demo_actor()
+
+    Enum.each(@audience_specs, &ensure_audience!/1)
 
     Enum.each(@flag_specs, fn spec ->
       ensure_flag!(spec, actor)
@@ -144,6 +220,24 @@ defmodule RulesteadDemo.Seeds do
     )
 
     :ok
+  end
+
+  defp ensure_audience!(%{key: key} = spec) do
+    case Repo.get_by(Audience, key: key) do
+      %Audience{} ->
+        :ok
+
+      nil ->
+        %Audience{}
+        |> Audience.changeset(%{
+          key: key,
+          description: spec.description,
+          definition: spec.definition
+        })
+        |> Repo.insert!()
+
+        :ok
+    end
   end
 
   defp ensure_flag!(%{key: key} = spec, actor) do

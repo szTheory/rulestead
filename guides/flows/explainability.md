@@ -62,6 +62,10 @@ Use it like this:
 The URL and environment convention are stable. Internal LiveView implementation
 details are not.
 
+**Try it in FleetDesk:** open the adoption lab UI at `http://localhost:3000` and
+read the **Support journey · explain API** panel, or use `/admin/flags/:key/simulate`
+after signing in at `/demo/sign-in`. See [Adoption Lab](../introduction/adoption-lab.md).
+
 ## Lifecycle Evidence For Support And SRE
 
 Support and SRE should not use explainability in isolation when lifecycle
