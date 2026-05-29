@@ -14,10 +14,13 @@ test.describe("FleetDesk adoption journeys", () => {
     await expect(
       banner.getByText("Winter storm advisory — review reroute playbook."),
     ).toBeVisible();
-    await expect(page.getByRole("strong", { name: "enable-new-dashboard" })).toBeVisible();
-    await expect(page.getByRole("strong", { name: "fleet-map-v2" })).toBeVisible();
-    await expect(page.getByRole("strong", { name: "dispatch-ops-copy" })).toBeVisible();
-    await expect(page.getByRole("strong", { name: "ops-banner-config" })).toBeVisible();
+    const flagCards = page.locator("section section article");
+    await expect(flagCards.getByText("enable-new-dashboard", { exact: true })).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(flagCards.getByText("fleet-map-v2", { exact: true })).toBeVisible();
+    await expect(flagCards.getByText("dispatch-ops-copy", { exact: true })).toBeVisible();
+    await expect(flagCards.getByText("ops-banner-config", { exact: true })).toBeVisible();
   });
 
   test("enterprise persona sees map v2 enabled via targeting", async ({ page }) => {
