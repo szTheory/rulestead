@@ -20,6 +20,7 @@ Rulestead is a batteries-included, Elixir-native feature-flag and remote-config 
 - `v1.10.0` shipped on 2026-05-28 across Phases 69-72: post-GA planning truth, doc/API honesty, `mix verify.phase72` / `mix verify.adopter` proof umbrella, `post_ga_band_closure` CI scope, and public band-complete signaling — no new product APIs.
 - `v1.10.1` shipped on 2026-05-28 across Phases 73–75: support-truth doc/API catalog alignment, `mix verify.phase73` proof umbrella — no new product APIs.
 - `v1.11` shipped on 2026-05-28 across Phases 76–78: first-hour Phoenix integration spine, evaluation/lifecycle doc alignment, `mix verify.phase76` contract guards — closes INV-INTRO-01; no new product APIs.
+- `v1.11` gap closure completed 2026-05-29 across Phases 79–81: lifecycle deep-link anchor fix, Phase 76/77 verification backfill, DOC-01 `evaluation.md` contract guard + `76-VALIDATION.md` Nyquist artifact.
 
 <details>
 <summary>Shipped: v1.11 Integration Spine (2026-05-28)</summary>
