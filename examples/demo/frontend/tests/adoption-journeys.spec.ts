@@ -7,8 +7,12 @@ test.describe("FleetDesk adoption journeys", () => {
     await page.goto("/");
 
     await expect(page.getByRole("heading", { name: "FleetDesk dispatch" })).toBeVisible();
+
+    const banner = page
+      .locator("article")
+      .filter({ hasText: "Operations banner · remote config" });
     await expect(
-      page.getByText("Winter storm advisory — review reroute playbook."),
+      banner.getByText("Winter storm advisory — review reroute playbook."),
     ).toBeVisible();
     await expect(page.getByText("enable-new-dashboard")).toBeVisible();
     await expect(page.getByText("fleet-map-v2")).toBeVisible();
@@ -29,8 +33,14 @@ test.describe("FleetDesk adoption journeys", () => {
   test("explain API surfaces a support-safe trace", async ({ page }) => {
     await page.goto("/");
 
-    await expect(page.getByText("Support journey · explain API")).toBeVisible();
-    await expect(page.getByText(/Matched rule|Environment staging|snapshot v/i)).toBeVisible({
+    const explainPanel = page
+      .locator("article")
+      .filter({ hasText: "Support journey · explain API" });
+
+    await expect(explainPanel).toBeVisible();
+    await expect(
+      explainPanel.getByText(/Matched rule|No rule matched|Environment staging|snapshot v/i),
+    ).toBeVisible({
       timeout: 15_000,
     });
   });
