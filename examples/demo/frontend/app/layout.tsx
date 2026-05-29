@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import type { CSSProperties, ReactNode } from "react";
 
 export const metadata: Metadata = {
-  title: "Rulestead Demo Frontend",
-  description: "External Next.js sample app backed by the Rulestead demo bridge.",
+  title: "FleetDesk · Rulestead adoption lab",
+  description:
+    "Minimal fleet-ops host app exercising Rulestead rollouts, experiments, remote config, explain, and kill-switch journeys.",
 };
 
 const bodyStyle: CSSProperties = {

@@ -179,7 +179,7 @@ jobs:
         run: scripts/ci/test.sh
 
   integration-placeholder:
-    name: integration (compose demo verification)
+    name: integration (FleetDesk adoption lab)
     needs: changes
     if: needs.changes.outputs.docs-only != 'true'
     runs-on: ubuntu-24.04
@@ -189,7 +189,7 @@ jobs:
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
           node-version: "22"
-      - name: Run Phase 28 integration lane
+      - name: Run FleetDesk adoption lab (compose + Playwright)
         run: scripts/ci/integration_placeholder.sh
 
   adopter-contract:

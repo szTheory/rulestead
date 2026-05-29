@@ -3,8 +3,8 @@ defmodule RulesteadDemoWeb.DemoSessionController do
 
   @demo_actor %{
     id: "demo-operator",
-    email: "demo-operator@rulestead.local",
-    display: "Demo Operator",
+    email: "demo-operator@fleetdesk.local",
+    display: "FleetDesk Demo Operator",
     roles: ["admin"]
   }
 

@@ -5,7 +5,7 @@ const backendUrl = process.env.DEMO_BACKEND_URL ?? "http://localhost:4000";
 test("demo sign-in, kill switch, and frontend refresh loop", async ({ browser, page }) => {
   await page.goto("/");
   await expect(
-    page.getByText("The new operator cockpit is live."),
+    page.getByText("Fleet map v2 is live for your dispatch desk."),
   ).toBeVisible();
 
   const adminPage = await browser.newPage();
@@ -23,6 +23,6 @@ test("demo sign-in, kill switch, and frontend refresh loop", async ({ browser, p
   ).toBeVisible();
 
   await expect(
-    page.getByText("The classic cockpit is holding."),
+    page.getByText("Classic dispatch map is holding steady."),
   ).toBeVisible({ timeout: 20_000 });
 });

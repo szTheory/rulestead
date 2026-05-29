@@ -23,7 +23,8 @@ defmodule RulesteadDemoWeb.FlagController do
     end
   end
 
-  defp fetch_environment_key(params) do
+  @doc false
+  def fetch_environment_key(params) do
     with {:ok, environment_key} <- fetch_required_param(params, "env"),
          true <- environment_key in configured_environment_keys() do
       {:ok, environment_key}
@@ -42,7 +43,8 @@ defmodule RulesteadDemoWeb.FlagController do
     end
   end
 
-  defp fetch_required_param(params, key) do
+  @doc false
+  def fetch_required_param(params, key) do
     params[key]
     |> blank_to_nil()
     |> case do
@@ -60,7 +62,8 @@ defmodule RulesteadDemoWeb.FlagController do
     end
   end
 
-  defp request_context(params, environment_key) do
+  @doc false
+  def request_context(params, environment_key) do
     targeting_key = blank_to_nil(params["targeting_key"])
 
     Context.new(
@@ -85,10 +88,11 @@ defmodule RulesteadDemoWeb.FlagController do
     RulesteadDemo.demo_environment_keys()
   end
 
-  defp error_status(%Error{plug_status: status}) when is_integer(status), do: status
-  defp error_status(%Error{type: :flag_not_found}), do: 404
-  defp error_status(%Error{type: :environment_not_found}), do: 404
-  defp error_status(_error), do: 422
+  @doc false
+  def error_status(%Error{plug_status: status}) when is_integer(status), do: status
+  def error_status(%Error{type: :flag_not_found}), do: 404
+  def error_status(%Error{type: :environment_not_found}), do: 404
+  def error_status(_error), do: 422
 
   defp blank_to_nil(nil), do: nil
   defp blank_to_nil(""), do: nil

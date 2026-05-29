@@ -27,10 +27,14 @@ defmodule RulesteadDemoWeb.Router do
   scope "/api", RulesteadDemoWeb do
     pipe_through :api
 
+    get "/demo/personas", DemoContextController, :personas
+
     options "/flags", FlagController, :preflight
     get "/flags", FlagController, :show
     options "/flags/stream", FlagStreamController, :preflight
     get "/flags/stream", FlagStreamController, :show
+    options "/flags/explain", ExplainController, :preflight
+    get "/flags/explain", ExplainController, :show
   end
 
   scope "/admin" do

@@ -266,6 +266,16 @@ export function buildFlagRequestUrl(
     url.searchParams.set("targeting_key", targetingKey);
   }
 
+  for (const [key, value] of Object.entries(context)) {
+    if (key === "targetingKey" || value === undefined || value === null) {
+      continue;
+    }
+
+    if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+      url.searchParams.set(key, String(value));
+    }
+  }
+
   return url.toString();
 }
 

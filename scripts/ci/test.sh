@@ -503,6 +503,7 @@ case "${TEST_SCOPE}" in
     run_mix rulestead test --warnings-as-errors --exclude install_integration
     run_mix rulestead_admin deps.get
     run_mix rulestead_admin test --warnings-as-errors
+    bash "${RULESTEAD_REPO}/scripts/demo/test_backend.sh"
     ;;
   mounted_admin_contract)
     echo "Running mounted lifecycle/admin contract proof bar"

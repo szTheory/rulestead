@@ -74,11 +74,14 @@ defmodule RulesteadDemo.MixProject do
   #
   # See the documentation for `Mix` for more info on aliases.
   defp aliases do
+    rulestead_migrations =
+      "ecto.migrate -r Rulestead.Repo --migrations-path ../../../rulestead/priv/repo/migrations"
+
     [
       setup: ["deps.get", "ecto.setup", "assets.setup", "assets.build"],
-      "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
+      "ecto.setup": ["ecto.create", rulestead_migrations, "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
-      test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
+      test: ["ecto.create --quiet", "#{rulestead_migrations} --quiet", "test"],
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
       "assets.build": ["compile", "tailwind rulestead_demo", "esbuild rulestead_demo"],
       "assets.deploy": [
