@@ -15,6 +15,19 @@ Use this guide when you want to **see Rulestead working** with realistic data,
 personas, and operator screens — not when you are ready to install into your app
 (that path is [Getting Started](getting-started.md) and [Installation](installation.md)).
 
+## Start here (30 seconds)
+
+You want to see Rulestead working before installing into your app. From the repo
+root, run `docker compose up --build`, wait until all services are healthy, then
+open:
+
+- **Host app:** `http://localhost:3000`
+- **Operator admin:** `http://localhost:4000/demo/sign-in`
+- **API host:** `http://localhost:4000`
+
+The sections below walk through boot, connect, and persona-specific click paths.
+For automation only, run `scripts/demo/proof.sh`.
+
 ## Who this is for
 
 | Persona | Question | What to try in FleetDesk |
@@ -39,15 +52,78 @@ confidence before integrating.
 Best for: evaluators, operators, and support personas who want a browser-ready
 system with seeded flags, personas, and mounted admin.
 
+#### Boot and wait
+
+From the repo root:
+
 ```bash
 docker compose up --build
 ```
 
-Services:
+Wait until compose shows `postgres`, `redis`, `backend`, and `frontend` as
+**healthy**. First boot usually takes one to three minutes (image build + seed).
 
-- Admin + backend: `http://localhost:4000`
-- Deterministic sign-in: `http://localhost:4000/demo/sign-in`
-- Adoption lab UI: `http://localhost:3000`
+Keep this terminal open while you browse. If you run `scripts/demo/smoke.sh` on
+its own, it tears the stack down when it finishes unless you set
+`DEMO_SMOKE_KEEP_STACK=1`. Use `scripts/demo/proof.sh` for bounded automation
+without losing a stack you are clicking through.
+
+#### Connect
+
+Once services are healthy, open these URLs in your browser:
+
+| URL | You are… | What you'll see |
+|-----|----------|-----------------|
+| `http://localhost:3000` | Evaluating the host app | FleetDesk dispatch dashboard, persona switcher, flag cards, explain panel |
+| `http://localhost:4000/demo/sign-in` | Trying operator workflows | Mounted admin (auto sign-in): inventory, rollouts, kill switch, audit |
+| `http://localhost:4000` | Checking the API host | Phoenix backend home |
+
+Optional API sanity checks (for integrators — not required for the UI demo):
+
+```bash
+curl http://localhost:4000/api/demo/personas
+curl "http://localhost:4000/api/flags?env=staging&flag_key=enable-new-dashboard"
+```
+
+Postgres (`localhost:5432`) and Redis (`localhost:6379`) are exposed for
+debugging but not needed to use the UI.
+
+#### Persona click paths
+
+Pick the path that matches your question. Each is a few minutes in the browser.
+
+#### Evaluator — 5-minute adoption loop
+
+1. Open `http://localhost:3000` — note the seeded banner and flag cards.
+2. Switch persona to **Fleet manager** — map renderer flips to vector v2.
+3. Read the **explain API** panel for the support journey trace.
+4. Open `http://localhost:4000/demo/sign-in` → kill `enable-new-dashboard` on staging.
+5. Return to the frontend — headline changes to **Classic dispatch map is holding steady.**
+
+#### Operator — admin feel
+
+1. Open `http://localhost:4000/demo/sign-in`.
+2. Browse flag inventory at `/admin/flags?env=staging`.
+3. Open rollouts for `fleet-map-v2` or `dispatch-guarded-rollout`.
+4. Filter audit at `/admin/flags/audit`.
+
+#### Support — explain one outcome
+
+1. Open `http://localhost:3000` and read the explain API panel.
+2. In admin, open simulate for `enable-new-dashboard` and compare the trace.
+
+#### SRE — kill switch
+
+1. Open `http://localhost:4000/demo/sign-in`.
+2. Engage the kill switch for `enable-new-dashboard` on staging.
+3. Confirm the frontend at `http://localhost:3000` flips.
+4. Review the audit timeline for the kill event.
+
+#### When something doesn't load
+
+- Run `docker compose ps` — are all four services healthy?
+- Run `scripts/demo/smoke.sh` for automated health checks (see teardown note above).
+- See [examples/demo/README.md](../../examples/demo/README.md) for Playwright and CI commands.
 
 Bounded automation (smoke + contract tests, no browser):
 
@@ -93,14 +169,6 @@ After `mix run priv/repo/seeds.exs` (also run by the compose entrypoint):
 Persona metadata: `GET /api/demo/personas`
 
 Implementation detail lives in [examples/demo/README.md](../../examples/demo/README.md).
-
-## Expected demo loop
-
-1. Open `http://localhost:3000` — FleetDesk dispatch dashboard with seeded banner and flag cards
-2. Switch persona to **Fleet manager** — map renderer flips to vector v2
-3. Read the **explain API** panel for the support journey trace
-4. Open `http://localhost:4000/demo/sign-in` → review rollouts or kill `enable-new-dashboard` on staging
-5. Return to frontend — headline updates after kill switch
 
 ## Journey map
 

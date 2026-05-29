@@ -40,7 +40,7 @@ flag create).
 > [Create your first flag](phoenix-integration-spine.md#6-create-your-first-flag-lifecycle-required)
 > in the spine.
 
-> **Evaluating first?** Run the [Adoption Lab](adoption-lab.md) (FleetDesk) to
+> **Evaluating first?** Run the [Adoption Lab](adoption-lab.md#connect) (FleetDesk) to
 > see Rulestead with realistic seeds and operator screens before installing into
 > your app. Use `docker compose up --build` or `scripts/demo/proof.sh`.
 

@@ -97,7 +97,7 @@ implementation.
 
 ## Operator sandbox (FleetDesk)
 
-The [Adoption Lab](../introduction/adoption-lab.md) mounts the same operator
+The [Adoption Lab](../introduction/adoption-lab.md#operator--admin-feel) mounts the same operator
 routes in a runnable FleetDesk host. Use it to click through bounded workflows
 before wiring `rulestead_admin` into your app:
 

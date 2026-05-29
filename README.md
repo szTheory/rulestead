@@ -181,31 +181,24 @@ itself or integrating it into a larger release process.
 
 - `rulestead/` — runtime package
 - `rulestead_admin/` — optional admin package
-- `examples/demo/` — Phase 28 local demo backend/frontend stack
+- `examples/demo/` — FleetDesk adoption lab (backend + frontend)
 - `guides/` — shared HexDocs guides
 - `prompts/` — product and engineering reference docs
 
 ## Local demo
 
-The runnable local demo lives under `examples/demo/`:
+The **FleetDesk adoption lab** under `examples/demo/` is the runnable end-to-end
+proof path. From the repo root:
 
 ```bash
 docker compose up --build
 ```
 
-That boots Postgres, Redis, the Phoenix demo backend at `http://localhost:4000`,
-the mounted Admin sign-in route at `http://localhost:4000/demo/sign-in`, and the
-Next.js sample frontend at `http://localhost:3000`.
+**Full runbook** (boot, URLs, persona click paths, troubleshooting):
+[Adoption Lab](guides/introduction/adoption-lab.md#connect).
 
-The shortest end-to-end proof is:
-
-1. Open `http://localhost:3000` and confirm `The new operator cockpit is live.`
-2. Open `http://localhost:4000/demo/sign-in`.
-3. In the Admin UI, engage the kill switch for `enable-new-dashboard` in `staging`.
-4. Confirm the frontend flips to `The classic cockpit is holding.`
-
-See [examples/demo/README.md](examples/demo/README.md) for the smoke script and
-Playwright path.
+Bounded automation without a browser: `scripts/demo/proof.sh`.
+Implementation and CI commands: [examples/demo/README.md](examples/demo/README.md).
 
 ## Proof today
 

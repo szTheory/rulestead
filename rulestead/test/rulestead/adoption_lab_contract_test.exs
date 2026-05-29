@@ -42,6 +42,25 @@ defmodule Rulestead.AdoptionLabContractTest do
     assert guide =~ "GOV-05"
   end
 
+  test "adoption lab runbook documents connect URLs and troubleshooting" do
+    guide = File.read!(@adoption_lab_path)
+
+    assert guide =~ "localhost:3000"
+    assert guide =~ "/demo/sign-in"
+    assert guide =~ "localhost:4000"
+    assert guide =~ "docker compose ps" or guide =~ "smoke.sh"
+    assert guide =~ "Fleet manager"
+    assert guide =~ "enable-new-dashboard"
+    assert guide =~ "Classic dispatch map is holding steady"
+  end
+
+  test "root readme does not ship stale FleetDesk demo copy" do
+    root_readme = File.read!(@root_readme_path)
+
+    refute root_readme =~ "new operator cockpit"
+    refute root_readme =~ "classic cockpit is holding"
+  end
+
   test "intro and flow guides cross-link the adoption lab" do
     getting_started = File.read!(@getting_started_path)
     installation = File.read!(@installation_path)

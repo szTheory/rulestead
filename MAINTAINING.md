@@ -483,6 +483,12 @@ e2e (use `scripts/demo/verify.sh` for Playwright).
 | `scripts/demo/proof.sh` | Demo smoke + phase82 (via adopter) | Playwright frontend |
 | `scripts/demo/verify.sh` | Compose + Playwright e2e | Entire ExUnit suite |
 
+### When you change FleetDesk
+
+1. Update seeds, compose, or Playwright → sync [examples/demo/README.md](../examples/demo/README.md).
+2. Update persona paths and connect URLs in [guides/introduction/adoption-lab.md](../guides/introduction/adoption-lab.md).
+3. Run `cd rulestead && mix test test/rulestead/adoption_lab_contract_test.exs`.
+
 ## Lifecycle Release Surface
 
 Phase 38 adds a lifecycle release surface that maintainers must verify

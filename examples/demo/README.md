@@ -1,5 +1,11 @@
 # FleetDesk Adoption Lab
 
+> **Evaluating Rulestead?** Start with the persona-oriented runbook:
+> [Adoption Lab](../../guides/introduction/adoption-lab.md).
+>
+> **Maintaining the demo?** This file is the implementation reference (seeds,
+> compose, Playwright, CI).
+
 This directory contains the Rulestead **adoption lab** — a realistic-but-minimal B2B fleet-ops host app that exercises Rulestead across the main adopter journeys.
 
 **Domain:** FleetDesk helps logistics teams dispatch drivers, monitor routes, and respond to operations alerts.
@@ -50,13 +56,10 @@ Services:
 - Postgres: `localhost:5432`
 - Redis: `localhost:6379`
 
-## Expected demo loop
+## Click-through paths
 
-1. Open `http://localhost:3000` — FleetDesk dispatch dashboard with seeded banner + flag cards
-2. Switch persona to **Fleet manager** — map renderer flips to vector v2
-3. Read the **explain API** panel for the support journey trace
-4. Open `http://localhost:4000/demo/sign-in` → kill `enable-new-dashboard` on staging
-5. Return to frontend — headline changes to **Classic dispatch map is holding steady.**
+Persona-oriented browser paths (evaluator loop, operator, support, SRE) live in
+the [Adoption Lab runbook](../../guides/introduction/adoption-lab.md#persona-click-paths).
 
 ## Automation
 
@@ -98,8 +101,8 @@ If you need the package-local OpenFeature companion proof first:
 RULESTEAD_TEST_SCOPE=openfeature_companion bash scripts/ci/test.sh
 ```
 
-See [guides/introduction/adoption-lab.md](../../guides/introduction/adoption-lab.md)
-for persona-oriented evaluation guidance.
+See [Adoption Lab](../../guides/introduction/adoption-lab.md) for the evaluator
+runbook; this file covers automation and CI.
 
 ## Published-release checks
 

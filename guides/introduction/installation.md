@@ -53,7 +53,7 @@ surface. If you mount `rulestead_admin`, follow the router seam documented in
 
 Choose the path that matches where you are:
 
-1. **Evaluate first** — run the [Adoption Lab](adoption-lab.md) (FleetDesk) with
+1. **Evaluate first** — run the [Adoption Lab](adoption-lab.md#connect) (FleetDesk) with
    `docker compose up --build`. Pre-installed host with seeded flags; no changes
    to your app.
 2. **Install into your app** — follow the steps below, then

@@ -181,7 +181,7 @@ host-shaped confidence only when you need it.
 |-------|-------------|----------------|
 | Fake helpers | Every app unit test | `import Rulestead.TestHelpers` |
 | Installer golden-diff | First-hour Phoenix wiring | `scripts/demo/install_journey.sh` |
-| FleetDesk adoption lab | Full stack + admin + browser glue | `scripts/demo/proof.sh` or `scripts/demo/verify.sh` |
+| FleetDesk adoption lab | Full stack + admin + browser glue | [Adoption Lab](../introduction/adoption-lab.md#connect) · `scripts/demo/proof.sh` or `scripts/demo/verify.sh` |
 | Library contract | Pre-merge / release bar | `cd rulestead && mix verify.adopter` |
 
 See [Adoption Lab](../introduction/adoption-lab.md) for persona-oriented guidance
