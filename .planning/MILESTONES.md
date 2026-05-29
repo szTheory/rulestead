@@ -13,6 +13,8 @@
 
 **Archive:** [.planning/milestones/v1.11.1-gap-closure-ROADMAP.md](milestones/v1.11.1-gap-closure-ROADMAP.md)
 
+**Audit:** [.planning/milestones/v1.11.1-MILESTONE-AUDIT.md](milestones/v1.11.1-MILESTONE-AUDIT.md) (`passed`, supersedes v1.11 `gaps_found`)
+
 ---
 
 ## v1.11 Integration Spine (Shipped: 2026-05-28)
