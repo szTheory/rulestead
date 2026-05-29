@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.11
 milestone_name: Gap Closure
 status: executing
-last_updated: "2026-05-28T23:30:09.658Z"
+last_updated: "2026-05-29T00:24:35.436Z"
 last_activity: 2026-05-28
 progress:
   total_phases: 3
@@ -21,7 +21,7 @@ See: `.planning/PROJECT.md` (updated 2026-05-28)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
 
-**Current focus:** Phase 80 — Phase 76–77 Verification Backfill
+**Current focus:** Phase 81 — Doc Contract Hardening
 
 **Milestone:** v1.11 archived (2026-05-28) — see `.planning/milestones/v1.11-MILESTONE-AUDIT.md`
 
@@ -31,9 +31,9 @@ See: `.planning/PROJECT.md` (updated 2026-05-28)
 
 Phase: 81
 Plan: Not started
-Status: Executing Phase 80
+Status: Context gathered — ready for planning
 Last activity: 2026-05-28
-Resume: `.planning/phases/80-phase-76-77-verification-backfill/80-CONTEXT.md`
+Resume: `.planning/phases/81-doc-contract-hardening/81-CONTEXT.md`
 
 ## Accumulated Context
 
