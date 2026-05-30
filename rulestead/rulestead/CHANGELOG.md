@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.6](https://github.com/szTheory/rulestead/compare/rulestead-v0.1.5...rulestead-v0.1.6) (2026-05-30)
+
+
+### Documentation
+
+* cut 0.1.6 for contributor hygiene and guide updates ([#28](https://github.com/szTheory/rulestead/issues/28)) ([301e64a](https://github.com/szTheory/rulestead/commit/301e64ada1362e89720d3a24b99c39945d6c7b31))
+
 ## [0.1.5](https://github.com/szTheory/rulestead/compare/rulestead-v0.1.4...rulestead-v0.1.5) (2026-05-30)
 
 
