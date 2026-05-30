@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.5](https://github.com/szTheory/rulestead/compare/rulestead-v0.1.4...rulestead-v0.1.5) (2026-05-30)
+
+
+### Bug Fixes
+
+* **release:** align manifest with 0.1.4 and prep Unreleased changelog ([673a7df](https://github.com/szTheory/rulestead/commit/673a7dfba9404329b9267c6e2076b2e79e925f0e))
+
 ## [Unreleased]
 
 ### Features
