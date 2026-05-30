@@ -51,13 +51,26 @@ defmodule Rulestead.AdoptionLabContractTest do
   test "adoption lab runbook documents connect URLs and troubleshooting" do
     guide = File.read!(@adoption_lab_path)
 
+    assert guide =~ "At a glance"
+    assert guide =~ "Developer tools"
     assert guide =~ "localhost:3000"
     assert guide =~ "/demo/sign-in"
     assert guide =~ "localhost:4000"
     assert guide =~ "docker compose ps" or guide =~ "smoke.sh"
-    assert guide =~ "Fleet manager"
+    assert guide =~ "Morgan Chen"
     assert guide =~ "enable-new-dashboard"
     assert guide =~ "Classic dispatch map is holding steady"
+  end
+
+  test "rulestead admin stylesheet ships in package priv static" do
+    css_path =
+      Path.expand("../../../rulestead_admin/priv/static/css/rulestead_admin.css", __DIR__)
+
+    assert File.regular?(css_path)
+    css = File.read!(css_path)
+    assert byte_size(css) > 1000
+    assert css =~ ".rs-shell"
+    assert css =~ ".rs-table"
   end
 
   test "root readme does not ship stale FleetDesk demo copy" do

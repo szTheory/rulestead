@@ -185,7 +185,7 @@ end
 ```
 
 Provide the host `policy:` module and session keys documented in
-[rulestead_admin/README.md](../../rulestead_admin/README.md). Rulestead does not
+[rulestead_admin on HexDocs](https://hexdocs.pm/rulestead_admin). Rulestead does not
 bundle authentication — your app owns identity.
 
 ## 8. Next steps
@@ -194,5 +194,5 @@ bundle authentication — your app owns identity.
 - [Footguns](../recipes/footguns.md) — targeting_key, Runtime vs root API, snapshots
 - [Product Boundary](product-boundary.md) — in-scope vs deferred surfaces
 - [Multi-environment](../flows/multi-env.md) — environment keys across deploys
-- [../../examples/demo/README.md](../../examples/demo/README.md) — bounded demo proof
+- [FleetDesk demo (examples/demo)](https://github.com/szTheory/rulestead/tree/main/examples/demo) — bounded demo proof
 - **Prove the band:** `cd rulestead && mix verify.adopter`

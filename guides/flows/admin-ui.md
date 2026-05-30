@@ -47,6 +47,19 @@ The host application also owns:
 That split is intentional. `rulestead_admin` is a mounted package, not a
 bundled auth system.
 
+## Stylesheet
+
+Admin LiveViews render semantic `rs-*` classes. Include the packaged stylesheet in
+your host root layout (alongside your own app CSS):
+
+```heex
+<link phx-track-static rel="stylesheet" href={~p"/assets/css/rulestead_admin.css"} />
+```
+
+Copy `priv/static/css/rulestead_admin.css` from the `rulestead_admin` Hex package into
+your host asset pipeline during build (see the FleetDesk demo under
+`examples/demo/backend/` for a reference `assets.copy_admin` alias).
+
 ## Stable Mounted Seam
 
 Operators and host apps can treat these URL shapes as the stable v0.1.0
@@ -108,7 +121,7 @@ before wiring `rulestead_admin` into your app:
 - filter audit at `/admin/flags/audit`
 
 Run `docker compose up --build` from the repo root, or see
-[examples/demo/README.md](../../examples/demo/README.md) for automation commands.
+[FleetDesk demo (examples/demo)](https://github.com/szTheory/rulestead/tree/main/examples/demo) for automation commands.
 
 ## Lifecycle Review Workflow
 
@@ -295,5 +308,5 @@ runtime behavior.
 - [Rollout](rollout.md) for staged release workflows
 - [Explainability](explainability.md) for support and simulation usage
 - [Multi-env](multi-env.md) for environment selection and promotion habits
-- [rulestead_admin README](../../rulestead_admin/README.md) for the package-local
+- [rulestead_admin on HexDocs](https://hexdocs.pm/rulestead_admin) for the package-local
   host contract

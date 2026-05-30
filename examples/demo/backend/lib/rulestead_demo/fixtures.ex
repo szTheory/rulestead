@@ -18,25 +18,25 @@ defmodule RulesteadDemo.Fixtures do
   @personas [
     %{
       id: "demo-user",
-      label: "Dispatch operator",
+      label: "Jordan Lee · Acme Logistics (Pro)",
       company: "Acme Logistics",
       tenant_key: "acme-logistics",
       plan: "pro",
       targeting_key: "demo-user",
-      summary: "Default staging operator on the pro plan."
+      summary: "Dispatch lead managing weekday routes on the pro plan."
     },
     %{
       id: "fleet-manager",
-      label: "Fleet manager",
+      label: "Morgan Chen · Acme Logistics (Enterprise)",
       company: "Acme Logistics",
       tenant_key: "acme-logistics",
       plan: "enterprise",
       targeting_key: "fleet-manager-acme",
-      summary: "Enterprise fleet manager with map-v2 targeting."
+      summary: "Fleet manager with enterprise map-v2 rollout access."
     },
     %{
       id: "beta-dispatcher",
-      label: "Beta dispatcher",
+      label: "Riley Park · Beta Fleet Co (Starter)",
       company: "Beta Fleet Co",
       tenant_key: "beta-fleet",
       plan: "starter",

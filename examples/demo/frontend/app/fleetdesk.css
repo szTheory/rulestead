@@ -1,0 +1,332 @@
+/* FleetDesk — sample customer dispatch app */
+
+.fd-app {
+  min-height: 100vh;
+  background: #f8fafc;
+  color: #0f172a;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  line-height: 1.5;
+}
+
+.fd-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 1.25rem;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.fd-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.fd-brand-mark {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  background: linear-gradient(135deg, #0f766e, #164e63);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.fd-brand-name {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.fd-nav {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.fd-nav-link {
+  padding: 0.4rem 0.75rem;
+  border-radius: 0.45rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #64748b;
+  text-decoration: none;
+}
+
+.fd-nav-link--active {
+  background: #ecfdf5;
+  color: #0f766e;
+  font-weight: 600;
+}
+
+.fd-nav-link--disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.fd-user-area {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem;
+}
+
+.fd-view-as label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #64748b;
+  margin-bottom: 0.25rem;
+}
+
+.fd-view-as select {
+  min-width: 260px;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
+  padding: 0.45rem 0.65rem;
+  font-size: 0.875rem;
+  background: #fff;
+}
+
+.fd-view-as-summary {
+  margin: 0.25rem 0 0;
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.fd-main {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 1.25rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.fd-alert {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border-radius: 0.65rem;
+  border: 1px solid #fcd34d;
+  background: #fffbeb;
+}
+
+.fd-alert strong {
+  display: block;
+  font-size: 0.95rem;
+}
+
+.fd-alert button {
+  border: 1px solid #d97706;
+  background: #fff;
+  color: #92400e;
+  border-radius: 0.45rem;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.fd-hero {
+  border-radius: 1rem;
+  padding: 1.5rem;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+}
+
+.fd-hero--live {
+  background: linear-gradient(135deg, #0f766e 0%, #164e63 100%);
+  color: #f8fafc;
+}
+
+.fd-hero--steady {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  color: #0f172a;
+}
+
+.fd-hero h1 {
+  margin: 0 0 0.5rem;
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.fd-hero-sub {
+  margin: 0;
+  opacity: 0.9;
+  max-width: 52ch;
+}
+
+.fd-workspace {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 900px) {
+  .fd-workspace {
+    grid-template-columns: 1.4fr 1fr;
+  }
+}
+
+.fd-map-panel,
+.fd-routes-panel {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.85rem;
+  padding: 1rem;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+}
+
+.fd-map-panel h2,
+.fd-routes-panel h2 {
+  margin: 0 0 0.75rem;
+  font-size: 0.95rem;
+  font-weight: 650;
+}
+
+.fd-map-preview {
+  min-height: 220px;
+  border-radius: 0.65rem;
+  border: 1px dashed #cbd5e1;
+  background:
+    linear-gradient(180deg, rgba(15, 118, 110, 0.08), rgba(15, 118, 110, 0.02)),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 24px,
+      rgba(148, 163, 184, 0.15) 24px,
+      rgba(148, 163, 184, 0.15) 25px
+    );
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 1rem;
+}
+
+.fd-map-preview span {
+  display: block;
+  font-size: 0.82rem;
+  color: #64748b;
+  margin-top: 0.35rem;
+}
+
+.fd-route-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.fd-route-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.55rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.fd-route-item strong {
+  display: block;
+  font-size: 0.875rem;
+}
+
+.fd-route-item span {
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+.fd-status-pill {
+  align-self: center;
+  font-size: 0.72rem;
+  font-weight: 650;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: #dcfce7;
+  color: #15803d;
+  white-space: nowrap;
+}
+
+.fd-dev-toggle {
+  margin-top: 0.5rem;
+  text-align: center;
+}
+
+.fd-dev-toggle button {
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #475569;
+  border-radius: 999px;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.fd-dev-toggle button:hover {
+  border-color: #94a3b8;
+  background: #f1f5f9;
+}
+
+.fd-dev-panel {
+  margin-top: 0.75rem;
+  padding: 1rem;
+  border-radius: 0.85rem;
+  border: 1px solid #cbd5e1;
+  background: #f1f5f9;
+  display: grid;
+  gap: 0.85rem;
+}
+
+.fd-dev-panel h3 {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.fd-dev-panel p {
+  margin: 0.35rem 0 0;
+  font-size: 0.875rem;
+  color: #334155;
+  line-height: 1.6;
+}
+
+.fd-flag-grid {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.fd-flag-card {
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.55rem;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  font-size: 0.82rem;
+}
+
+.fd-flag-card code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.78rem;
+  color: #0f766e;
+}
+
+.fd-flag-card p {
+  margin: 0.25rem 0 0;
+  color: #64748b;
+}

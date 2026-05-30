@@ -1,12 +1,16 @@
 Package tarball guide placeholder.
 
-The authoritative shared guides live at the monorepo root in `guides/`.
+The authoritative shared guides ship on HexDocs:
+[hexdocs.pm/rulestead](https://hexdocs.pm/rulestead)
+
 Start the lifecycle story with
-[`guides/flows/flag-lifecycle.md`](../../guides/flows/flag-lifecycle.md), which
-teaches the canonical flag flow from birth to retirement.
+[Flag Lifecycle](https://hexdocs.pm/rulestead/flag-lifecycle.html).
 
 Package-local readers usually want one of these next:
 
-- [Getting Started](../../guides/introduction/getting-started.md)
-- [Evaluation](../../guides/flows/evaluation.md)
-- [Testing](../../guides/recipes/testing.md)
+- [Getting Started](https://hexdocs.pm/rulestead/getting-started.html)
+- [Evaluation](https://hexdocs.pm/rulestead/evaluation.html)
+- [Testing](https://hexdocs.pm/rulestead/testing.html)
+
+Monorepo guides (GitHub):
+[github.com/szTheory/rulestead/tree/main/guides](https://github.com/szTheory/rulestead/tree/main/guides)

@@ -1,7 +1,11 @@
 # Getting Started
 
-This is the first-success path for the current `0.1.3` package line on Hex: install
+This is the first-success path for the current `0.1.5` package line on Hex: install
 the runtime, gate one code path, and optionally mount the admin UI.
+
+> **Two version lines:** GitHub repo milestones (e.g. `v1.0.0` GA, May 2026)
+> track project delivery. **Hex packages** use `0.1.x` semver until a future `1.0`
+> API freeze. Install with `{:rulestead, "~> 0.1"}`.
 
 ## 1. Add dependencies
 
@@ -40,9 +44,9 @@ flag create).
 > [Create your first flag](phoenix-integration-spine.md#6-create-your-first-flag-lifecycle-required)
 > in the spine.
 
-> **Evaluating first?** Run the [Adoption Lab](adoption-lab.md#connect) (FleetDesk) to
-> see Rulestead with realistic seeds and operator screens before installing into
-> your app. Use `docker compose up --build` or `scripts/demo/proof.sh`.
+> **Evaluating first?** See the [Adoption Lab **At a glance**](adoption-lab.md#at-a-glance)
+> section (FleetDesk) to run Rulestead with realistic seeds and operator screens before
+> installing into your app. Use `docker compose up --build` or `scripts/demo/proof.sh`.
 
 ## 3. Gate a code path
 
@@ -98,7 +102,7 @@ end
 The host contract is intentionally narrow: provide the required `policy:`
 module, the documented session keys, and preserve the canonical `?env=`
 selector. The package-local details are in
-[../../rulestead_admin/README.md](../../rulestead_admin/README.md).
+[rulestead_admin on HexDocs](https://hexdocs.pm/rulestead_admin).
 
 ## 5. Continue from here
 
@@ -111,4 +115,4 @@ selector. The package-local details are in
 - Explain and support workflows: [../flows/explainability.md](../flows/explainability.md)
 - Testing and fake-backed helpers: [../recipes/testing.md](../recipes/testing.md)
 - Adoption lab (evaluate before integrate): [Adoption Lab](adoption-lab.md)
-- Runnable proof path: [../../examples/demo/README.md](../../examples/demo/README.md)
+- Runnable proof path: [FleetDesk demo (examples/demo)](https://github.com/szTheory/rulestead/tree/main/examples/demo)

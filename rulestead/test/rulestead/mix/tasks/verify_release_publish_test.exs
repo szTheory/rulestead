@@ -196,7 +196,7 @@ defmodule Rulestead.Mix.Tasks.VerifyReleasePublishTest do
            }
   end
 
-  @published_smoke_version "0.1.3"
+  @published_smoke_version "0.1.4"
 
   test "admin consumer fixture compiles against published Hex packages" do
     tmp_dir = tmp_dir()
@@ -238,49 +238,44 @@ defmodule Rulestead.Mix.Tasks.VerifyReleasePublishTest do
     root_readme = File.read!(@root_readme_path)
     runtime_readme = File.read!(@runtime_readme_path)
     admin_readme = File.read!(@admin_readme_path)
+    maintaining = File.read!(Path.expand("../../../../../MAINTAINING.md", __DIR__))
 
     assert root_readme =~ "guides/flows/flag-lifecycle.md"
-    assert root_readme =~ "RULESTEAD_TEST_SCOPE=mounted_admin_contract bash scripts/ci/test.sh"
+    assert maintaining =~ "RULESTEAD_TEST_SCOPE=mounted_admin_contract bash scripts/ci/test.sh"
     refute root_readme =~ "flag_live/form_test"
     refute root_readme =~ "admin_mount_test"
     assert runtime_readme =~ "flag-lifecycle"
     assert admin_readme =~ "mounted companion"
-    assert admin_readme =~ "fails closed"
-    assert admin_readme =~ "fallback-only convenience"
+    assert admin_readme =~ "hexdocs.pm/rulestead/admin-ui"
+    refute runtime_readme =~ ~r/\]\(\.\.\//
   end
 
   test "published release verification keeps guarded rollout support truth bounded" do
     root_readme = File.read!(@root_readme_path)
     runtime_readme = File.read!(@runtime_readme_path)
     admin_readme = File.read!(@admin_readme_path)
+    maintaining = File.read!(Path.expand("../../../../../MAINTAINING.md", __DIR__))
+    product_boundary = File.read!(Path.expand("../../../../../guides/introduction/product-boundary.md", __DIR__))
 
-    assert root_readme =~ "guarded rollout foundations"
-    assert root_readme =~ "host-supplied normalized guardrail facts"
-    assert root_readme =~ "fail closed"
-    assert root_readme =~ "pending_data"
-    assert root_readme =~ "held"
-    assert root_readme =~ "rollback_triggered"
-    assert root_readme =~ "audited hold and rollback"
+    assert root_readme =~ ~r/guarded\s+rollouts/i
+    assert root_readme =~ "product-boundary.md"
+    refute root_readme =~ "mix verify.phase"
 
-    assert root_readme =~
+    assert product_boundary =~ "Guarded rollouts"
+    assert product_boundary =~ "fail-closed"
+
+    assert maintaining =~ "guarded rollout foundations proof"
+
+    assert maintaining =~
              "RULESTEAD_TEST_SCOPE=guarded_rollout_foundations bash scripts/ci/test.sh"
 
-    assert runtime_readme =~ "host-owned metrics provider seam"
-    assert runtime_readme =~ "deterministic sticky rollout decisions"
-    assert runtime_readme =~ "audited hold and rollback"
-    assert runtime_readme =~ "no metrics ingestion"
-    assert runtime_readme =~ "no dashboards"
-    assert runtime_readme =~ "no statistics engine"
-    assert runtime_readme =~ "no built-in provider adapters"
+    refute runtime_readme =~ "mix verify.phase"
+    refute runtime_readme =~ ~r/\]\(\.\.\//
 
-    assert admin_readme =~ "mounted companion status contract"
-    assert admin_readme =~ "reads core guardrail status and audit truth"
-    assert admin_readme =~ "thresholds, freshness, and reasons"
-    assert admin_readme =~ "fails closed on missing prerequisites"
-    assert admin_readme =~ "not a standalone admin"
+    assert admin_readme =~ "mounted companion"
+    assert admin_readme =~ "not a standalone"
 
     refute root_readme =~ "built-in observability"
-    refute runtime_readme =~ "real-time dashboards"
     refute admin_readme =~ "standalone rulestead_admin"
   end
 

@@ -83,8 +83,18 @@ defmodule RulesteadDemo.MixProject do
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.create --quiet", "#{rulestead_migrations} --quiet", "test"],
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
-      "assets.build": ["compile", "tailwind rulestead_demo", "esbuild rulestead_demo"],
+      "assets.copy_admin": [
+        "cmd mkdir -p priv/static/assets/css",
+        "cmd cp ../../../rulestead_admin/priv/static/css/rulestead_admin.css priv/static/assets/css/rulestead_admin.css"
+      ],
+      "assets.build": [
+        "compile",
+        "assets.copy_admin",
+        "tailwind rulestead_demo",
+        "esbuild rulestead_demo"
+      ],
       "assets.deploy": [
+        "assets.copy_admin",
         "tailwind rulestead_demo --minify",
         "esbuild rulestead_demo --minify",
         "phx.digest"

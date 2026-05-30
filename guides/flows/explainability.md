@@ -62,9 +62,9 @@ Use it like this:
 The URL and environment convention are stable. Internal LiveView implementation
 details are not.
 
-**Try it in FleetDesk:** open the adoption lab UI at `http://localhost:3000` and
-read the **Support journey · explain API** panel, or use `/admin/flags/:key/simulate`
-after signing in at `/demo/sign-in`. See [Adoption Lab](../introduction/adoption-lab.md#support--explain-one-outcome).
+**Try it in FleetDesk:** open `http://localhost:3000`, expand **Developer tools**, and
+read the explain trace — or use `/admin/flags/:key/simulate` after signing in at
+`/demo/sign-in`. See [Adoption Lab](../introduction/adoption-lab.md#support--explain-one-outcome).
 
 ## Lifecycle Evidence For Support And SRE
 

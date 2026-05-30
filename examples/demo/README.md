@@ -1,7 +1,8 @@
 # FleetDesk Adoption Lab
 
 > **Evaluating Rulestead?** Start with the persona-oriented runbook:
-> [Adoption Lab](../../guides/introduction/adoption-lab.md).
+> [Adoption Lab](../../guides/introduction/adoption-lab.md) (**At a glance** and
+> **Quick start** at the top).
 >
 > **Maintaining the demo?** This file is the implementation reference (seeds,
 > compose, Playwright, CI).
@@ -15,7 +16,7 @@ This directory contains the Rulestead **adoption lab** — a realistic-but-minim
 - `backend/` — Phoenix host embedding `rulestead` + mounted `rulestead_admin`
 - `frontend/` — external Next.js app consuming flags through a custom OpenFeature web provider
 
-This is the primary runnable end-to-end proof path for the current `0.1.3` Hex package line.
+This is the primary runnable end-to-end proof path for the current `0.1.5` Hex package line.
 
 ## What this proves
 

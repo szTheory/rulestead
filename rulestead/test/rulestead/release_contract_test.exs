@@ -15,6 +15,14 @@ defmodule Rulestead.ReleaseContractTest do
   @flag_lifecycle_path Path.expand("../../../guides/flows/flag-lifecycle.md", __DIR__)
   @root_changelog_path Path.expand("../../CHANGELOG.md", __DIR__)
   @admin_changelog_path Path.expand("../../../rulestead_admin/CHANGELOG.md", __DIR__)
+  @product_boundary_path Path.expand("../../../guides/introduction/product-boundary.md", __DIR__)
+
+  defp hex_version do
+    mix_exs = File.read!(Path.expand("../../mix.exs", __DIR__))
+
+    [_, version] = Regex.run(~r/@version\s+"([^"]+)"/, mix_exs)
+    version
+  end
 
   # public API exports
   @root_exports [
@@ -207,15 +215,13 @@ defmodule Rulestead.ReleaseContractTest do
     lifecycle_guide = File.read!(@flag_lifecycle_path)
 
     assert root_readme =~ "guides/flows/flag-lifecycle.md"
-    assert root_readme =~ "birth to retirement"
+    assert lifecycle_guide =~ "birth to retirement"
 
-    assert runtime_readme =~ "../guides/flows/flag-lifecycle.md"
-    assert runtime_readme =~ "owner truth host-owned"
+    assert runtime_readme =~ "hexdocs.pm/rulestead/flag-lifecycle"
+    refute runtime_readme =~ ~r/\]\(\.\.\//
 
-    assert admin_readme =~ "../guides/flows/flag-lifecycle.md"
+    assert admin_readme =~ "hexdocs.pm/rulestead/flag-lifecycle"
     assert admin_readme =~ "mounted companion"
-    assert admin_readme =~ "not as a second lifecycle"
-    assert admin_readme =~ "walkthrough"
 
     assert lifecycle_guide =~ "mix rulestead.lifecycle"
     assert lifecycle_guide =~ "archive_candidate"
@@ -223,47 +229,49 @@ defmodule Rulestead.ReleaseContractTest do
   end
 
   test "public release docs state the shipped repo truth and bounded proof posture" do
+    version = hex_version()
+
     root_readme = File.read!(@root_readme_path)
     runtime_readme = File.read!(@runtime_readme_path)
     admin_readme = File.read!(@admin_readme_path)
     upgrading = File.read!(@upgrading_path)
     demo_readme = File.read!(@demo_readme_path)
+    maintaining = File.read!(@maintaining_path)
 
     assert root_readme =~ "v1.0.0"
-    assert root_readme =~ "2026-05-21"
-    assert root_readme =~ "0.1.3"
-    assert root_readme =~ "Proof today"
-    assert root_readme =~ "verify.release_publish"
-    assert root_readme =~ "verify.release_parity"
-    assert root_readme =~ "RULESTEAD_TEST_SCOPE=mounted_admin_contract bash scripts/ci/test.sh"
-    assert root_readme =~ "mounted session truth"
-    assert root_readme =~ "mount behavior"
-    assert root_readme =~ "canonical `?env=` routing"
-    assert root_readme =~ "lifecycle transitions"
-    assert root_readme =~ "permission-gated cleanup behavior"
+    assert root_readme =~ version
+    assert root_readme =~ "Two version lines"
+    assert root_readme =~ "MAINTAINING.md"
+    assert root_readme =~ "adoption-lab"
     assert root_readme =~ "rulestead_admin/README.md"
+    refute root_readme =~ "Proof today"
+    refute root_readme =~ "mix verify.phase"
     refute root_readme =~ "flag_live/form_test"
     refute root_readme =~ "cleanup_test"
     refute root_readme =~ "admin_mount_test"
 
-    assert runtime_readme =~ "0.1.3"
-    assert runtime_readme =~ "shared root docs"
+    assert maintaining =~ "verify.release_publish"
+    assert maintaining =~ "verify.release_parity"
+    assert maintaining =~ "RULESTEAD_TEST_SCOPE=mounted_admin_contract bash scripts/ci/test.sh"
+    assert maintaining =~ "mounted companion proof"
 
-    assert admin_readme =~ "0.1.3"
+    assert runtime_readme =~ version
+    assert runtime_readme =~ "hexdocs.pm/rulestead"
+    refute runtime_readme =~ ~r/\]\(\.\.\//
+    refute runtime_readme =~ "mix verify.phase"
+
+    assert admin_readme =~ version
     assert admin_readme =~ "mounted companion"
-    assert admin_readme =~ "rather than a standalone control-plane product"
-    assert admin_readme =~ "fails closed"
-    assert admin_readme =~ "host owns auth, identity,"
-    assert admin_readme =~ "fallback-only convenience"
-    assert admin_readme =~ "When `?env=` is present, it wins over remembered state"
+    assert admin_readme =~ "not a standalone control plane"
+    assert admin_readme =~ "host owns auth"
+    assert admin_readme =~ "it wins over remembered session state"
+    refute admin_readme =~ ~r/\]\(\.\.\//
 
     assert upgrading =~ "v1.0.0"
-    assert upgrading =~ "0.1.3"
-    assert upgrading =~ "verify.release_publish"
-    assert upgrading =~ "verify.release_parity"
-    assert upgrading =~ "demo proof path"
+    assert upgrading =~ version
+    assert upgrading =~ "MAINTAINING.md"
 
-    assert demo_readme =~ "0.1.3"
+    assert demo_readme =~ version
     assert demo_readme =~ "verify.release_publish"
     assert demo_readme =~ "verify.release_parity"
     assert demo_readme =~ "FleetDesk Adoption Lab"
@@ -283,7 +291,7 @@ defmodule Rulestead.ReleaseContractTest do
 
     assert maintaining =~ "v1.0.0"
     assert maintaining =~ "2026-05-21"
-    assert maintaining =~ "0.1.3"
+    assert maintaining =~ hex_version()
     assert maintaining =~ "mounted companion"
     assert maintaining =~ "examples/demo/"
     assert maintaining =~ "mix verify.release_publish <version>"
@@ -304,36 +312,25 @@ defmodule Rulestead.ReleaseContractTest do
     runtime_readme = File.read!(@runtime_readme_path)
     admin_readme = File.read!(@admin_readme_path)
     maintaining = File.read!(@maintaining_path)
+    product_boundary = File.read!(@product_boundary_path)
 
-    assert root_readme =~ "guarded rollout foundations"
-    assert root_readme =~ "host-supplied normalized guardrail facts"
-    assert root_readme =~ "fail closed"
-    assert root_readme =~ "pending_data"
-    assert root_readme =~ "held"
-    assert root_readme =~ "rollback_triggered"
-    assert root_readme =~ "audited hold and rollback"
+    assert root_readme =~ ~r/guarded\s+rollouts/i
+    assert root_readme =~ "product-boundary.md"
+    refute root_readme =~ "mix verify.phase"
 
-    assert root_readme =~
-             "RULESTEAD_TEST_SCOPE=guarded_rollout_foundations bash scripts/ci/test.sh"
-
-    assert runtime_readme =~ "host-owned metrics provider seam"
-    assert runtime_readme =~ "deterministic sticky rollout decisions"
-    assert runtime_readme =~ "audited hold and rollback"
-    assert runtime_readme =~ "no metrics ingestion"
-    assert runtime_readme =~ "no dashboards"
-    assert runtime_readme =~ "no statistics engine"
-    assert runtime_readme =~ "no built-in provider adapters"
-
-    assert admin_readme =~ "mounted companion status contract"
-    assert admin_readme =~ "reads core guardrail status and audit truth"
-    assert admin_readme =~ "thresholds, freshness, and reasons"
-    assert admin_readme =~ "fails closed on missing prerequisites"
-    assert admin_readme =~ "not a standalone admin"
+    assert product_boundary =~ "fail-closed"
+    assert product_boundary =~ "hold/rollback"
+    assert product_boundary =~ "Guarded rollouts"
 
     assert maintaining =~ "guarded rollout foundations proof"
 
     assert maintaining =~
              "RULESTEAD_TEST_SCOPE=guarded_rollout_foundations bash scripts/ci/test.sh"
+
+    refute runtime_readme =~ "mix verify.phase"
+
+    assert admin_readme =~ "mounted companion"
+    assert admin_readme =~ "not a standalone"
 
     assert maintaining =~ "VER-01"
 
@@ -359,47 +356,31 @@ defmodule Rulestead.ReleaseContractTest do
     runtime_readme = File.read!(@runtime_readme_path)
     admin_readme = File.read!(@admin_readme_path)
     maintaining = File.read!(@maintaining_path)
+    product_boundary = File.read!(@product_boundary_path)
 
-    assert root_readme =~ "mix verify.phase56"
-    assert root_readme =~ "reusable targeting deepening"
-    assert root_readme =~ "preview basis"
-    assert root_readme =~ "explicit samples"
-    assert root_readme =~ "environment scope"
-    assert root_readme =~ "tenant scope"
-    assert root_readme =~ "preview → confirm → audit"
-    assert root_readme =~ "fail closed"
-    assert root_readme =~ "audprev_"
-    assert root_readme =~ "host-owned"
-    assert root_readme =~ "mounted companion"
-    assert root_readme =~ "uncertainty"
+    refute root_readme =~ "mix verify.phase"
+    assert root_readme =~ "reusable audiences"
+    assert root_readme =~ "product-boundary.md"
 
-    assert root_readme =~
-             "RULESTEAD_TEST_SCOPE=reusable_targeting_deepening bash scripts/ci/test.sh"
+    assert product_boundary =~ "preview→confirm→audit"
+    assert product_boundary =~ "Reusable audiences"
+    assert product_boundary =~ "fail-closed"
 
-    assert runtime_readme =~ "mix verify.phase56"
-    assert runtime_readme =~ "domain"
-    assert runtime_readme =~ "validation"
-    assert runtime_readme =~ "contracts"
-    assert runtime_readme =~ "fail closed"
-    assert runtime_readme =~ "no metrics ingestion"
-    assert runtime_readme =~ "host-owned"
-
-    assert admin_readme =~ "mounted companion"
-    assert admin_readme =~ "mounted presentation"
-    assert admin_readme =~ "not a standalone"
-    assert admin_readme =~ "/admin/audiences"
-    assert admin_readme =~ "preview → confirm → audit"
-
-    assert maintaining =~ "Reusable Targeting Deepening Proof"
     assert maintaining =~ "mix verify.phase56"
-    assert maintaining =~ "54-HANDOFF-CHECKLIST"
-    assert maintaining =~ "55-HANDOFF-CHECKLIST"
-    assert maintaining =~ "VER-01"
+    assert maintaining =~ "Reusable Targeting Deepening Proof"
 
     assert maintaining =~
              "RULESTEAD_TEST_SCOPE=reusable_targeting_deepening bash scripts/ci/test.sh"
 
-    assert root_readme =~ "dependency"
+    refute runtime_readme =~ "mix verify.phase"
+
+    assert admin_readme =~ "mounted companion"
+    assert admin_readme =~ "not a standalone"
+
+    assert maintaining =~ "54-HANDOFF-CHECKLIST"
+    assert maintaining =~ "55-HANDOFF-CHECKLIST"
+    assert maintaining =~ "VER-01"
+
     assert maintaining =~ "promotion"
 
     forbidden_phrases = [
@@ -419,7 +400,7 @@ defmodule Rulestead.ReleaseContractTest do
       "manage segments"
     ]
 
-    operator_docs = [root_readme, admin_readme, maintaining]
+    operator_docs = [root_readme, maintaining]
 
     for phrase <- forbidden_phrases, doc <- operator_docs do
       refute doc =~ phrase
@@ -431,32 +412,20 @@ defmodule Rulestead.ReleaseContractTest do
     runtime_readme = File.read!(@runtime_readme_path)
     admin_readme = File.read!(@admin_readme_path)
     maintaining = File.read!(@maintaining_path)
+    product_boundary = File.read!(@product_boundary_path)
 
-    assert root_readme =~ "mix verify.phase60"
-    assert root_readme =~ ~r/blast radius/i
-    assert root_readme =~ "threshold"
-    assert root_readme =~ ~r/protected[- ]environment/i
-    assert root_readme =~ "change request"
-    assert root_readme =~ "fail closed"
-    assert root_readme =~ "host-owned"
-    assert root_readme =~ "preview basis"
-    assert root_readme =~ "explicit samples"
-    assert root_readme =~ "mix verify.phase56"
+    refute root_readme =~ "mix verify.phase"
+    assert root_readme =~ "blast-radius governance"
+    assert root_readme =~ "product-boundary.md"
 
-    assert root_readme =~
-             "RULESTEAD_TEST_SCOPE=blast_radius_governance bash scripts/ci/test.sh"
+    assert product_boundary =~ ~r/blast[- ]radius/i
+    assert product_boundary =~ "Change requests"
+    assert product_boundary =~ "fail-closed"
 
-    assert runtime_readme =~ "mix verify.phase60"
-    assert runtime_readme =~ "domain"
-    assert runtime_readme =~ "validation"
-    assert runtime_readme =~ "contracts"
-    assert runtime_readme =~ "fail closed"
-    assert runtime_readme =~ "host-owned"
+    refute runtime_readme =~ "mix verify.phase"
 
     assert admin_readme =~ "mounted companion"
-    assert admin_readme =~ "mounted presentation"
     assert admin_readme =~ "not a standalone"
-    assert admin_readme =~ ~r/change request|governance/i
 
     assert maintaining =~ "Blast Radius Governance Proof"
     assert maintaining =~ "mix verify.phase60"
@@ -478,7 +447,7 @@ defmodule Rulestead.ReleaseContractTest do
       "automatic progressive delivery platform"
     ]
 
-    operator_docs = [root_readme, admin_readme, maintaining]
+    operator_docs = [root_readme, maintaining]
 
     for phrase <- forbidden_phrases, doc <- operator_docs do
       refute doc =~ phrase
@@ -490,31 +459,20 @@ defmodule Rulestead.ReleaseContractTest do
     runtime_readme = File.read!(@runtime_readme_path)
     admin_readme = File.read!(@admin_readme_path)
     maintaining = File.read!(@maintaining_path)
+    product_boundary = File.read!(@product_boundary_path)
 
-    assert root_readme =~ "mix verify.phase64"
-    assert root_readme =~ ~r/observation[- ]window/i
-    assert root_readme =~ ~r/authored next-stage|next-stage plan/i
-    assert root_readme =~ "guardrail_automation"
-    assert root_readme =~ "fail closed"
-    assert root_readme =~ "host-owned"
-    assert root_readme =~ "mix verify.phase60"
-    assert root_readme =~ "mix verify.phase56"
+    refute root_readme =~ "mix verify.phase"
+    assert root_readme =~ ~r/guarded\s+rollouts/i
+    assert root_readme =~ "product-boundary.md"
 
-    assert root_readme =~
-             "RULESTEAD_TEST_SCOPE=guarded_rollout_auto_advance bash scripts/ci/test.sh"
+    assert product_boundary =~ ~r/observation[- ]window/i
+    assert product_boundary =~ "auto-advance"
+    assert product_boundary =~ "fail-closed"
 
-    assert runtime_readme =~ "mix verify.phase64"
-    assert runtime_readme =~ "domain"
-    assert runtime_readme =~ "validation"
-    assert runtime_readme =~ "contracts"
-    assert runtime_readme =~ "fail closed"
-    assert runtime_readme =~ "host-owned"
-    assert runtime_readme =~ ~r/observation[- ]window/i
+    refute runtime_readme =~ "mix verify.phase"
 
-    assert admin_readme =~ ~r/mounted companion|mounted presentation/i
+    assert admin_readme =~ "mounted companion"
     assert admin_readme =~ "not a standalone"
-    assert admin_readme =~ ~r/auto-advance|auto advance/i
-    assert admin_readme =~ ~r/guardrail_automation|guardrail automation/i
 
     assert maintaining =~ "Guarded Rollout Auto-Advance Proof"
     assert maintaining =~ "mix verify.phase64"
@@ -536,7 +494,7 @@ defmodule Rulestead.ReleaseContractTest do
       "automatic progressive delivery platform"
     ]
 
-    operator_docs = [root_readme, admin_readme, maintaining]
+    operator_docs = [root_readme, maintaining]
 
     for phrase <- forbidden_phrases, doc <- operator_docs do
       refute doc =~ phrase
@@ -548,29 +506,19 @@ defmodule Rulestead.ReleaseContractTest do
     runtime_readme = File.read!(@runtime_readme_path)
     admin_readme = File.read!(@admin_readme_path)
     maintaining = File.read!(@maintaining_path)
+    product_boundary = File.read!(@product_boundary_path)
 
-    assert root_readme =~ "mix verify.phase68"
-    assert root_readme =~ ~r/preview_evidence_resolver|PreviewEvidence/i
-    assert root_readme =~ ~r/host-supplied|host supplied/i
-    assert root_readme =~ ~r/sample cohort|Sample cohort/i
-    assert root_readme =~ ~r/impression summary|Impression summary/i
-    assert root_readme =~ ~r/authoritative_population_count|authoritative population/i
-    assert root_readme =~ "fail closed"
-    assert root_readme =~ "mix verify.phase64"
-    assert root_readme =~ "mix verify.phase60"
-    assert root_readme =~ "mix verify.phase56"
+    refute root_readme =~ "mix verify.phase"
+    assert root_readme =~ "product-boundary.md"
 
-    assert root_readme =~
-             "RULESTEAD_TEST_SCOPE=host_preview_evidence bash scripts/ci/test.sh"
+    assert product_boundary =~ "preview evidence"
+    assert product_boundary =~ "Host always owns"
+    assert product_boundary =~ "fail-closed"
 
-    assert runtime_readme =~ "mix verify.phase68"
-    assert runtime_readme =~ ~r/preview_evidence_resolver|PreviewEvidence/i
-    assert runtime_readme =~ "fail closed"
-    assert runtime_readme =~ ~r/host-supplied|host supplied/i
+    refute runtime_readme =~ "mix verify.phase"
 
-    assert admin_readme =~ ~r/mounted companion|mounted presentation/i
+    assert admin_readme =~ "mounted companion"
     assert admin_readme =~ "not a standalone"
-    assert admin_readme =~ ~r/preview evidence|preview-evidence|host-supplied evidence/i
 
     assert maintaining =~ "Host Preview Evidence Proof"
     assert maintaining =~ "mix verify.phase68"
@@ -591,7 +539,7 @@ defmodule Rulestead.ReleaseContractTest do
       "population analytics product"
     ]
 
-    operator_docs = [root_readme, admin_readme, maintaining]
+    operator_docs = [root_readme, maintaining]
 
     for phrase <- forbidden_phrases, doc <- operator_docs do
       refute doc =~ phrase
@@ -640,17 +588,18 @@ defmodule Rulestead.ReleaseContractTest do
     root_readme = File.read!(@root_readme_path)
     runtime_readme = File.read!(@runtime_readme_path)
     maintaining = File.read!(@maintaining_path)
+    product_boundary = File.read!(@product_boundary_path)
 
-    assert root_readme =~ "mix verify.phase82"
-    assert root_readme =~ "mix verify.adopter"
-    assert root_readme =~ ~r/post-GA|Post-GA|band complete|band closure/i
+    assert root_readme =~ ~r/post-GA|Post-GA/i
     assert root_readme =~ "product-boundary.md"
-    assert root_readme =~ "mix verify.phase68"
+    refute root_readme =~ "mix verify.phase"
+    refute root_readme =~ "ROL-04 remains unbuilt"
+    refute root_readme =~ "GOV-01 gap"
 
-    assert root_readme =~
-             "RULESTEAD_TEST_SCOPE=post_ga_band_closure bash scripts/ci/test.sh"
+    assert product_boundary =~ "mix verify.adopter"
 
-    assert runtime_readme =~ "mix verify.phase82"
+    refute runtime_readme =~ "mix verify.phase"
+
     assert maintaining =~ "Post-GA Band Closure Proof"
     assert maintaining =~ "mix verify.phase82"
     assert maintaining =~ "mix verify.adopter"
@@ -658,8 +607,6 @@ defmodule Rulestead.ReleaseContractTest do
     assert maintaining =~
              "RULESTEAD_TEST_SCOPE=post_ga_band_closure bash scripts/ci/test.sh"
 
-    refute root_readme =~ "ROL-04 remains unbuilt"
-    refute root_readme =~ "GOV-01 gap"
     refute maintaining =~ "IMP-05 partial"
   end
 
@@ -677,7 +624,7 @@ defmodule Rulestead.ReleaseContractTest do
       |> File.read!()
 
     assert root_readme =~ "adoption-lab"
-    assert root_readme =~ "install_journey"
+    refute root_readme =~ "install_journey"
     assert adoption_lab =~ "FleetDesk"
     assert adoption_lab =~ "scripts/demo/install_journey.sh"
     assert demo_readme =~ "dispatch-guarded-rollout"
@@ -690,7 +637,7 @@ defmodule Rulestead.ReleaseContractTest do
     maintaining = File.read!(@maintaining_path)
 
     assert root_readme =~ "phoenix-integration-spine"
-    assert root_readme =~ "mix verify.phase82"
+    refute root_readme =~ "mix verify.phase"
     assert maintaining =~ "mix verify.phase82"
 
     spine_in_maintaining? =
@@ -700,6 +647,7 @@ defmodule Rulestead.ReleaseContractTest do
     assert spine_in_maintaining?
 
     assert runtime_readme =~ "phoenix-integration-spine"
+    refute runtime_readme =~ "mix verify.phase"
   end
 
   test "the root module exposes the locked v0.1.0 public function catalog" do

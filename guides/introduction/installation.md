@@ -6,7 +6,10 @@ Rulestead ships as two sibling packages:
 - `rulestead_admin` for the optional mounted admin UI
 
 Repo GA shipped in `v1.0.0` on 2026-05-21, and the current installable package
-line on Hex is **`0.1.3`** (`~> 0.1`). Install only the package boundary your app needs.
+line on Hex is **`0.1.5`** (`~> 0.1`). Install only the package boundary your app needs.
+
+> **Two version lines:** GitHub repo milestones track project delivery. **Hex
+> packages** use `0.1.x` semver until a future `1.0` API freeze.
 
 ## Runtime-only apps
 
@@ -47,13 +50,13 @@ mix ecto.migrate
 
 `mix rulestead.install` adds the package-owned setup needed for the runtime
 surface. If you mount `rulestead_admin`, follow the router seam documented in
-[rulestead_admin/README.md](../../rulestead_admin/README.md).
+[rulestead_admin on HexDocs](https://hexdocs.pm/rulestead_admin).
 
 ## Two adoption paths
 
 Choose the path that matches where you are:
 
-1. **Evaluate first** — run the [Adoption Lab](adoption-lab.md#connect) (FleetDesk) with
+1. **Evaluate first** — run the [Adoption Lab](adoption-lab.md#at-a-glance) (FleetDesk) with
    `docker compose up --build`. Pre-installed host with seeded flags; no changes
    to your app.
 2. **Install into your app** — follow the steps below, then
@@ -76,5 +79,5 @@ scripts/demo/install_journey.sh
 - Use [Evaluation](../flows/evaluation.md) for runtime usage patterns
 - Use [Admin UI](../flows/admin-ui.md) if your app mounts the operator surface
 - Use [Adoption Lab](adoption-lab.md) for the persona-oriented evaluation guide
-- Use [../../examples/demo/README.md](../../examples/demo/README.md) for compose
+- Use [FleetDesk demo (examples/demo)](https://github.com/szTheory/rulestead/tree/main/examples/demo) for compose
   and Playwright command reference
