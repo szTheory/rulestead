@@ -36,16 +36,23 @@ defmodule RulesteadAdmin.Components.OperatorComponents do
   def policy_state(assigns) do
     ~H"""
     <aside class="rs-policy-state" data-tone={@policy_state.tone}>
-      <p class="rs-policy-state__label"><%= @policy_state.label %></p>
-      <p><%= @policy_state.summary %></p>
-      <ul class="rs-policy-capabilities" :if={Map.has_key?(@policy_state, :capabilities)}>
-        <li data-allowed={to_string(@policy_state.capabilities.read?)}>Read</li>
-        <li data-allowed={to_string(@policy_state.capabilities.execute?)}>Execute</li>
-        <li data-allowed={to_string(@policy_state.capabilities.propose?)}>Propose</li>
-        <li data-allowed={to_string(@policy_state.capabilities.admin?)}>Admin</li>
-      </ul>
+      <div class="rs-policy-state__badge" title={capability_summary(Map.get(@policy_state, :capabilities))}>
+        <span aria-hidden="true">🛡️</span> Env Policy: <%= highest_capability(Map.get(@policy_state, :capabilities)) %>
+      </div>
+      <p class="rs-sr-only"><%= @policy_state.summary %></p>
     </aside>
     """
+  end
+
+  defp highest_capability(%{admin?: true}), do: "Admin"
+  defp highest_capability(%{execute?: true}), do: "Execute"
+  defp highest_capability(%{propose?: true}), do: "Propose"
+  defp highest_capability(%{read?: true}), do: "Read-Only"
+  defp highest_capability(_), do: "None"
+
+  defp capability_summary(nil), do: "No capabilities defined"
+  defp capability_summary(caps) do
+    "Permissions - Read: #{caps.read?}, Execute: #{caps.execute?}, Propose: #{caps.propose?}, Admin: #{caps.admin?}"
   end
 
   attr(:title, :string, required: true)

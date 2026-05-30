@@ -120,6 +120,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
         <label>
           <span>Key</span>
           <input type="text" name="flag[key]" value={@form_data["key"]} disabled={@mode == :edit} />
+          <p class="rs-form-help" style="font-size: 0.85em; color: var(--rs-color-text-muted, #666);">Unique identifier used in code, e.g. <code>new_checkout_flow</code></p>
         </label>
         <p :if={@errors["key"]} role="alert"><%= @errors["key"] %></p>
 
@@ -168,18 +169,21 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
           <input type="text" name="flag[owner_display]" value={@form_data["owner_display"]} />
         </label>
 
-        <label>
-          <span>Flag type</span>
-          <select name="flag[flag_type]" disabled={@mode == :edit}>
-            <option
-              :for={{label, value} <- @flag_type_options}
-              value={value}
-              selected={@form_data["flag_type"] == value}
-            >
+        <fieldset class="rs-radio-group" style="margin-bottom: 1rem; border: none; padding: 0;">
+          <legend style="font-weight: 600; margin-bottom: 0.5rem;">Flag type</legend>
+          <div :for={{label, value} <- @flag_type_options} style="margin-bottom: 0.5rem;">
+            <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal;">
+              <input 
+                type="radio" 
+                name="flag[flag_type]" 
+                value={value} 
+                checked={@form_data["flag_type"] == value} 
+                disabled={@mode == :edit} 
+              />
               <%= label %>
-            </option>
-          </select>
-        </label>
+            </label>
+          </div>
+        </fieldset>
 
         <label>
           <span>Value type</span>
@@ -194,10 +198,22 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
           </select>
         </label>
 
-        <label>
+        <fieldset class="rs-radio-group" style="margin-bottom: 1rem; border: none; padding: 0;" :if={@form_data["value_type"] == "boolean"}>
+          <legend style="font-weight: 600; margin-bottom: 0.5rem;">Default value</legend>
+          <div style="display: flex; gap: 1rem;">
+            <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal;">
+              <input type="radio" name="flag[default_value]" value="true" checked={@form_data["default_value"] in ["true", true]} disabled={@mode == :edit} /> True
+            </label>
+            <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal;">
+              <input type="radio" name="flag[default_value]" value="false" checked={@form_data["default_value"] in ["false", false]} disabled={@mode == :edit} /> False
+            </label>
+          </div>
+        </fieldset>
+
+        <label :if={@form_data["value_type"] != "boolean"}>
           <span>Default value</span>
           <input
-            type="text"
+            type={if @form_data["value_type"] == "integer", do: "number", else: "text"}
             name="flag[default_value]"
             value={@form_data["default_value"]}
             disabled={@mode == :edit}
@@ -211,23 +227,23 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
           <p :if={@lifecycle_suggestion.default_overridden}>Operator override recorded.</p>
         </section>
 
-        <label>
-          <span>Lifecycle posture</span>
-          <select name="flag[lifecycle_mode]">
-            <option value="">Choose lifecycle posture</option>
-            <option value="expiring" selected={@form_data["lifecycle_mode"] == "expiring"}>
-              Expiring
-            </option>
-            <option value="permanent" selected={@form_data["lifecycle_mode"] == "permanent"}>
-              Permanent
-            </option>
-          </select>
-        </label>
+        <fieldset class="rs-radio-group" style="margin-bottom: 1rem; border: none; padding: 0;">
+          <legend style="font-weight: 600; margin-bottom: 0.5rem;">Lifecycle posture</legend>
+          <div style="display: flex; gap: 1rem;">
+            <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal;">
+              <input type="radio" name="flag[lifecycle_mode]" value="expiring" checked={@form_data["lifecycle_mode"] == "expiring"} /> Expiring
+            </label>
+            <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal;">
+              <input type="radio" name="flag[lifecycle_mode]" value="permanent" checked={@form_data["lifecycle_mode"] == "permanent"} /> Permanent
+            </label>
+          </div>
+        </fieldset>
         <p :if={@errors["lifecycle_mode"]} role="alert"><%= @errors["lifecycle_mode"] %></p>
 
         <label>
-          <span>Review by</span>
+          <span>Review by date</span>
           <input type="date" name="flag[review_by]" value={@form_data["review_by"]} />
+          <p class="rs-form-help" style="font-size: 0.85em; color: var(--rs-color-text-muted, #666);">Required for expiring flags. Sets the expected lifetime.</p>
         </label>
         <p :if={@errors["review_by"]} role="alert"><%= @errors["review_by"] %></p>
 

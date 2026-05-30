@@ -129,7 +129,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
         <nav aria-label="Lifecycle preset strip" class="rs-filter-presets">
           <div>
             <h3>Lifecycle presets</h3>
-            <p>Each lifecycle preset resolves into the same shareable queue URL.</p>
+            <p>Quick filters to manage technical debt. "Archive candidates" finds fully rolled-out, stale flags.</p>
           </div>
           <div class="rs-filter-presets__links">
             <.link

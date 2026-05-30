@@ -1,6 +1,7 @@
 /* Rulestead admin — mounted operator UI stylesheet */
 
 :root {
+  --rs-font-display: "Sora", "Inter", ui-sans-serif, system-ui, sans-serif;
   --rs-font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --rs-font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
   --rs-bg: #f4f6f8;
@@ -66,7 +67,6 @@
 .rs-shell textarea {
   font: inherit;
 }
-
 .rs-shell button {
   cursor: pointer;
   border: 1px solid var(--rs-border);
@@ -74,6 +74,16 @@
   color: var(--rs-text);
   border-radius: var(--rs-radius-sm);
   padding: 0.45rem 0.85rem;
+}
+
+.rs-shell h1,
+.rs-shell h2,
+.rs-shell h3,
+.rs-shell h4,
+.rs-shell h5,
+.rs-shell h6 {
+  font-family: var(--rs-font-display);
+  font-weight: 600;
 }
 
 .rs-shell button:hover:not(:disabled) {
