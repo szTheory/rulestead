@@ -13,10 +13,38 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
   @allowed_readiness ~w(keep_active needs_review archive_candidate)
   @allowed_evidence_quality ~w(strong partial weak)
   @lifecycle_presets [
-    {"All flags", %{}},
-    {"Archive candidates", %{"readiness" => "archive_candidate", "include_archived" => "true"}},
-    {"Needs review", %{"readiness" => "needs_review"}},
-    {"Recently stale", %{"stale" => "stale"}}
+    {"All flags",
+     %{
+       "readiness" => "",
+       "stale" => "",
+       "lifecycle" => "",
+       "evidence_quality" => "",
+       "include_archived" => "false"
+     }},
+    {"Archive candidates",
+     %{
+       "readiness" => "archive_candidate",
+       "include_archived" => "true",
+       "stale" => "",
+       "lifecycle" => "",
+       "evidence_quality" => ""
+     }},
+    {"Needs review",
+     %{
+       "readiness" => "needs_review",
+       "stale" => "",
+       "lifecycle" => "",
+       "evidence_quality" => "",
+       "include_archived" => "false"
+     }},
+    {"Recently stale",
+     %{
+       "stale" => "stale",
+       "readiness" => "",
+       "lifecycle" => "",
+       "evidence_quality" => "",
+       "include_archived" => "false"
+     }}
   ]
 
   @impl true
@@ -135,6 +163,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
             <.link
               :for={{label, params} <- @lifecycle_presets}
               patch={preset_path(@base_path, @filters, params)}
+              aria-current={if active_preset?(@filters, params), do: "page", else: nil}
+              class={if active_preset?(@filters, params), do: "rs-filter-preset--active", else: ""}
             >
               <%= label %>
             </.link>
@@ -268,7 +298,17 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
               </td>
             </tr>
             <tr :if={Enum.empty?(@page.entries)} id="flags-empty">
-              <td colspan="10">No flags matched the current environment and filters.</td>
+              <td colspan="11" class="rs-table__empty-cell">
+                <div class="rs-empty-state">
+                  <div class="rs-empty-state__icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                  </div>
+                  <h3 class="rs-empty-state__title">No flags found</h3>
+                  <p class="rs-empty-state__text">Try adjusting your filters or search query, or create a new flag.</p>
+                </div>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -518,6 +558,13 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
 
   defp empty_page do
     %Rulestead.Store.Command.Page{entries: [], limit: @default_limit}
+  end
+
+  defp active_preset?(filters, params) do
+    Enum.all?(params, fn {key, value} ->
+      current = Map.get(filters, key)
+      current == value or (value == "" and current in [nil, ""])
+    end)
   end
 
   defp preset_path(base_path, filters, params) do

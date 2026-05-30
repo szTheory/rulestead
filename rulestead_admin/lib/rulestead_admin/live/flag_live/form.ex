@@ -230,6 +230,35 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
           </fieldset>
         </div>
 
+        <div phx-feedback-for="flag_lifecycle_mode" class="rs-form-field">
+          <fieldset class="rs-radio-group" style="margin-bottom: 1rem; border: none; padding: 0;">
+            <legend style="font-weight: 600; margin-bottom: 0.5rem;">Flag lifespan</legend>
+            <p class="rs-form-help" style="font-size: 0.85em; color: var(--rs-color-text-muted, #666); margin-bottom: 0.5rem;">
+              Suggestion: <strong><%= humanize(@lifecycle_suggestion.mode || "explicit choice required") %></strong>.
+              <%= @lifecycle_suggestion.rationale %>
+              <span :if={@lifecycle_suggestion.default_overridden}>(Operator override recorded).</span>
+            </p>
+            <div style="display: flex; gap: 1rem;">
+              <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal;">
+                <input type="radio" id="flag_lifecycle_mode_expiring" name="flag[lifecycle_mode]" value="expiring" checked={@form_data["lifecycle_mode"] == "expiring"} /> Expiring
+              </label>
+              <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal;">
+                <input type="radio" id="flag_lifecycle_mode_permanent" name="flag[lifecycle_mode]" value="permanent" checked={@form_data["lifecycle_mode"] == "permanent"} /> Permanent
+              </label>
+            </div>
+          </fieldset>
+          <p :if={@errors["lifecycle_mode"]} class="rs-form-error" role="alert"><%= @errors["lifecycle_mode"] %></p>
+        </div>
+
+        <div phx-feedback-for="flag_review_by" class="rs-form-field" :if={@form_data["lifecycle_mode"] == "expiring"}>
+          <label>
+            <span>Review by date</span>
+            <input type="date" id="flag_review_by" name="flag[review_by]" value={@form_data["review_by"]} />
+            <p class="rs-form-help" style="font-size: 0.85em; color: var(--rs-color-text-muted, #666); margin-top: 0.5rem;">Required for expiring flags. Sets the expected lifetime.</p>
+          </label>
+          <p :if={@errors["review_by"]} class="rs-form-error" role="alert"><%= @errors["review_by"] %></p>
+        </div>
+
         <div phx-feedback-for="flag_value_type" class="rs-form-field">
           <label>
             <span>Data type</span>
@@ -278,35 +307,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
               style="font-family: var(--rs-font-mono); min-height: 80px;"
             ><%= @form_data["default_value"] %></textarea>
           </label>
-        </div>
-
-        <div phx-feedback-for="flag_lifecycle_mode" class="rs-form-field">
-          <fieldset class="rs-radio-group" style="margin-bottom: 1rem; border: none; padding: 0;">
-            <legend style="font-weight: 600; margin-bottom: 0.5rem;">Flag lifespan</legend>
-            <p class="rs-form-help" style="font-size: 0.85em; color: var(--rs-color-text-muted, #666); margin-bottom: 0.5rem;">
-              Suggestion: <strong><%= humanize(@lifecycle_suggestion.mode || "explicit choice required") %></strong>.
-              <%= @lifecycle_suggestion.rationale %>
-              <span :if={@lifecycle_suggestion.default_overridden}>(Operator override recorded).</span>
-            </p>
-            <div style="display: flex; gap: 1rem;">
-              <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal;">
-                <input type="radio" id="flag_lifecycle_mode_expiring" name="flag[lifecycle_mode]" value="expiring" checked={@form_data["lifecycle_mode"] == "expiring"} /> Expiring
-              </label>
-              <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal;">
-                <input type="radio" id="flag_lifecycle_mode_permanent" name="flag[lifecycle_mode]" value="permanent" checked={@form_data["lifecycle_mode"] == "permanent"} /> Permanent
-              </label>
-            </div>
-          </fieldset>
-          <p :if={@errors["lifecycle_mode"]} class="rs-form-error" role="alert"><%= @errors["lifecycle_mode"] %></p>
-        </div>
-
-        <div phx-feedback-for="flag_review_by" class="rs-form-field">
-          <label>
-            <span>Review by date</span>
-            <input type="date" id="flag_review_by" name="flag[review_by]" value={@form_data["review_by"]} />
-            <p class="rs-form-help" style="font-size: 0.85em; color: var(--rs-color-text-muted, #666); margin-top: 0.5rem;">Required for expiring flags. Sets the expected lifetime.</p>
-          </label>
-          <p :if={@errors["review_by"]} class="rs-form-error" role="alert"><%= @errors["review_by"] %></p>
+          <p :if={@form_data["value_type"] == "json" and @form_data["default_value"] not in [nil, ""] and match?({:error, _}, Jason.decode(@form_data["default_value"]))} class="rs-form-error" role="alert">Invalid JSON format</p>
         </div>
 
         <div phx-feedback-for="flag_tags" class="rs-form-field">

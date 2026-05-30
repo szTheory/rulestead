@@ -197,6 +197,51 @@
   }
 }
 
+.rs-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+  background: var(--rs-surface-muted);
+  border-radius: var(--rs-radius-lg);
+  border: 1px dashed var(--rs-border-strong);
+  margin: 1rem;
+}
+
+.rs-table__empty-cell {
+  padding: 0 !important;
+  border-bottom: none !important;
+}
+
+.rs-empty-state__icon {
+  width: 3rem;
+  height: 3rem;
+  color: var(--rs-text-muted);
+  margin-bottom: 1rem;
+}
+
+.rs-empty-state__title {
+  margin: 0 0 0.5rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--rs-text);
+}
+
+.rs-empty-state__text {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--rs-text-muted);
+  max-width: 40ch;
+}
+
+.rs-filter-preset--active {
+  background: var(--rs-primary) !important;
+  color: #fff !important;
+  border-color: var(--rs-primary) !important;
+}
+
 .rs-shell input:focus,
 .rs-shell select:focus,
 .rs-shell textarea:focus {
