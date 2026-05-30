@@ -9,8 +9,14 @@ defmodule Rulestead.AdoptionLabContractTest do
   @admin_ui_path Path.expand("../../../guides/flows/admin-ui.md", __DIR__)
   @explainability_path Path.expand("../../../guides/flows/explainability.md", __DIR__)
   @root_readme_path Path.expand("../../../README.md", __DIR__)
-  @demo_seeds_path Path.expand("../../../examples/demo/backend/lib/rulestead_demo/seeds.ex", __DIR__)
-  @demo_rulestead_config_path Path.expand("../../../examples/demo/backend/config/rulestead.exs", __DIR__)
+  @demo_seeds_path Path.expand(
+                     "../../../examples/demo/backend/lib/rulestead_demo/seeds.ex",
+                     __DIR__
+                   )
+  @demo_rulestead_config_path Path.expand(
+                                "../../../examples/demo/backend/config/rulestead.exs",
+                                __DIR__
+                              )
   @install_journey_path Path.expand("../../../scripts/demo/install_journey.sh", __DIR__)
 
   @playwright_specs [
@@ -70,7 +76,15 @@ defmodule Rulestead.AdoptionLabContractTest do
     explainability = File.read!(@explainability_path)
     root_readme = File.read!(@root_readme_path)
 
-    for doc <- [getting_started, installation, user_flows, testing, admin_ui, explainability, root_readme] do
+    for doc <- [
+          getting_started,
+          installation,
+          user_flows,
+          testing,
+          admin_ui,
+          explainability,
+          root_readme
+        ] do
       assert doc =~ "adoption-lab"
     end
   end

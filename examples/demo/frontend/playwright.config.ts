@@ -8,6 +8,8 @@ export default defineConfig({
   testMatch: ["**/*.spec.ts"],
   timeout: 30_000,
   retries: 0,
+  workers: process.env.CI ? 1 : undefined,
+  fullyParallel: false,
   use: {
     baseURL: frontendUrl,
     trace: "on-first-retry",

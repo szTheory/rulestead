@@ -665,10 +665,13 @@ defmodule Rulestead.ReleaseContractTest do
 
   test "v1.12 adoption lab support truth routes evaluators to FleetDesk proof paths" do
     root_readme = File.read!(@root_readme_path)
+
     adoption_lab =
       Path.expand("../../../guides/introduction/adoption-lab.md", __DIR__)
       |> File.read!()
+
     demo_readme = File.read!(@demo_readme_path)
+
     install_journey =
       Path.expand("../../../scripts/demo/install_journey.sh", __DIR__)
       |> File.read!()

@@ -13,7 +13,7 @@ test("admin explain permalink renders support-safe trace", async ({ browser }) =
 
   await expect(adminPage.getByText("Decision explainer")).toBeVisible({ timeout: 15_000 });
   await expect(adminPage.getByText("Traits are never stored")).toBeVisible();
-  await expect(adminPage.getByText(/Matched rule|No rule matched|default/i)).toBeVisible({
-    timeout: 15_000,
-  });
+
+  const explainSummary = adminPage.getByRole("region", { name: "Explain summary" });
+  await expect(explainSummary.getByText("Matched rule")).toBeVisible({ timeout: 15_000 });
 });
