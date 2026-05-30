@@ -24,7 +24,9 @@ defmodule RulesteadAdmin.Components.Shell do
     <div class="rs-shell" data-env-tone={@env_tone}>
       <header class="rs-shell__header">
         <div>
-          <nav :if={@breadcrumbs != []} aria-label="Breadcrumb" class="rs-shell__breadcrumbs" style="margin-bottom: 0.5rem; font-size: 0.85rem;">
+          <p class="rs-shell__kicker"><%= @page_kicker %></p>
+          <h1 class="rs-shell__title"><%= @page_title %></h1>
+          <nav :if={@breadcrumbs != []} aria-label="Breadcrumb" class="rs-shell__breadcrumbs" style="margin-top: 0.5rem; margin-bottom: 0.5rem; font-size: 0.85rem;">
             <ol style="list-style: none; padding: 0; margin: 0; display: flex; gap: 0.5rem;">
               <li :for={{crumb, index} <- Enum.with_index(@breadcrumbs)}>
                 <a href={crumb.path} class="rs-shell__breadcrumb-link" style="color: var(--rs-text-muted); text-decoration: none;"><%= crumb.label %></a>
@@ -32,14 +34,12 @@ defmodule RulesteadAdmin.Components.Shell do
               </li>
             </ol>
           </nav>
-          <p class="rs-shell__kicker"><%= @page_kicker %></p>
-          <h1 class="rs-shell__title"><%= @page_title %></h1>
           <p class="rs-shell__summary"><%= @page_summary %></p>
           <div :if={@header_actions != []} class="rs-shell__header-actions">
             <%= render_slot(@header_actions) %>
           </div>
         </div>
-        <section class="rs-shell__env" aria-label="Environment">
+        <section :if={@environments != []} class="rs-shell__env" aria-label="Environment">
           <p class="rs-shell__env-label">Environment</p>
           <div class="rs-shell__env-picker" role="list">
             <%= for environment <- @environments do %>

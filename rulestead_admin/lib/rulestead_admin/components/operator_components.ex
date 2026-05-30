@@ -39,7 +39,6 @@ defmodule RulesteadAdmin.Components.OperatorComponents do
       <div class="rs-policy-state__badge" title={capability_summary(Map.get(@policy_state, :capabilities))}>
         <span aria-hidden="true">🛡️</span> Env Policy: <%= highest_capability(Map.get(@policy_state, :capabilities)) %>
       </div>
-      <p class="rs-sr-only"><%= @policy_state.summary %></p>
     </aside>
     """
   end

@@ -213,7 +213,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
           <caption class="sr-only">Flag inventory table</caption>
           <thead>
             <tr>
-              <th scope="col">Monospace key</th>
+              <th scope="col">Key</th>
               <th scope="col">Type</th>
               <th scope="col">Owner</th>
               <th scope="col">Lifecycle</th>
@@ -588,4 +588,6 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
     do: Calendar.strftime(datetime, "%Y-%m-%d %H:%M UTC")
 
   defp format_last_changed(value), do: to_string(value)
+end
+t_changed(value), do: to_string(value)
 end

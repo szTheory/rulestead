@@ -73,6 +73,18 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
   end
 
   @impl true
+  def handle_event("validate", %{"flag" => attrs}, socket) do
+    form_data =
+      socket.assigns.form_data
+      |> merge_form_data(attrs)
+      |> apply_picker_defaults(socket.assigns.owner_picker_options)
+
+    errors = validate(form_data, socket.assigns.mode)
+
+    {:noreply, socket |> assign(:errors, errors) |> assign_form_state(form_data)}
+  end
+
+  @impl true
   def handle_event("save", %{"flag" => attrs}, socket) do
     form_data =
       socket.assigns.form_data
@@ -187,6 +199,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
                     "release" -> "Temporary toggles for rolling out new features safely. Expected to be removed once fully rolled out."
                     "experiment" -> "Multivariate flags used to measure outcomes and test hypotheses. Expected to be removed after conclusion."
                     "kill_switch" -> "Long-lived operational toggles to quickly disable broken features or dependencies in an emergency."
+                    "permission" -> "Long-lived toggles used to grant specific capabilities or tier access to actors."
+                    "remote_config" -> "Long-lived settings used to dynamically configure system behavior without redeploying."
                     "migration" -> "Long-lived toggles used to incrementally route traffic between old and new systems or databases."
                     _ -> ""
                   end %>
@@ -554,6 +568,20 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
   defp query_params(uri) do
     uri
     |> URI.parse()
+    |> Map.get(:query)
+    |> case do
+      nil -> %{}
+      query -> URI.decode_query(query)
+    end
+  end
+
+  defp blank?(value), do: String.trim(to_string(value || "")) == ""
+  defp blank_to_nil(value), do: if(blank?(value), do: nil, else: value)
+
+  defp humanize(value),
+    do: value |> to_string() |> String.replace("_", " ") |> String.capitalize()
+end
+parse()
     |> Map.get(:query)
     |> case do
       nil -> %{}
