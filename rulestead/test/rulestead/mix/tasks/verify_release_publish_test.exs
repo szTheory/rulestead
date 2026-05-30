@@ -255,7 +255,8 @@ defmodule Rulestead.Mix.Tasks.VerifyReleasePublishTest do
     runtime_readme = File.read!(@runtime_readme_path)
     admin_readme = File.read!(@admin_readme_path)
     maintaining = File.read!(Path.expand("../../../../../MAINTAINING.md", __DIR__))
-    product_boundary = File.read!(Path.expand("../../../../../guides/introduction/product-boundary.md", __DIR__))
+    product_boundary =
+      File.read!(Path.expand("../../../../../guides/introduction/product-boundary.md", __DIR__))
 
     assert root_readme =~ ~r/guarded\s+rollouts/i
     assert root_readme =~ "product-boundary.md"

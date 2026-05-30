@@ -1,5 +1,15 @@
 # Changelog
 
+## [Unreleased]
+
+### Bug Fixes
+
+* ship packaged `rulestead_admin.css` for mounted admin UI styling
+
+### Documentation
+
+* **docs:** evaluator-first package README with absolute HexDocs links
+
 ## [0.1.4](https://github.com/szTheory/rulestead/compare/rulestead_admin-v0.1.3...rulestead_admin-v0.1.4) (2026-05-30)
 
 

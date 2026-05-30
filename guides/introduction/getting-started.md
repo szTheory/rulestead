@@ -1,6 +1,6 @@
 # Getting Started
 
-This is the first-success path for the current `0.1.5` package line on Hex: install
+This is the first-success path for the current `0.1.4` package line on Hex: install
 the runtime, gate one code path, and optionally mount the admin UI.
 
 > **Two version lines:** GitHub repo milestones (e.g. `v1.0.0` GA, May 2026)
