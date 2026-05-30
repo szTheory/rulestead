@@ -108,7 +108,8 @@ COOKIE_JAR="$cookie_jar" retry_command 15 sh -c '
 
 echo "[smoke] checking frontend render"
 retry_command 15 sh -c '
-  curl -fsS http://127.0.0.1:3000 | grep -q "FleetDesk dispatch"
+  curl -fsS http://127.0.0.1:3000 | grep -q "FleetDesk" &&
+    curl -fsS http://127.0.0.1:3000 | grep -q "View as"
 ' || {
   dump_failure_logs
   exit 1

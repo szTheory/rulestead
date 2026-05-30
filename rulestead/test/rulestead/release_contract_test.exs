@@ -17,13 +17,6 @@ defmodule Rulestead.ReleaseContractTest do
   @admin_changelog_path Path.expand("../../../rulestead_admin/CHANGELOG.md", __DIR__)
   @product_boundary_path Path.expand("../../../guides/introduction/product-boundary.md", __DIR__)
 
-  defp hex_version do
-    mix_exs = File.read!(Path.expand("../../mix.exs", __DIR__))
-
-    [_, version] = Regex.run(~r/@version\s+"([^"]+)"/, mix_exs)
-    version
-  end
-
   # public API exports
   @root_exports [
     archive_flag: 1,
