@@ -54,14 +54,11 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
       page_title={page_title(assigns)}
       page_kicker="Flag detail"
       page_summary="Calm read surface for flag metadata, lifecycle, and environment rules status."
+      breadcrumbs={[%{label: "Back to queue", path: @return_to}]}
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}
     >
-      <:header_actions>
-        <a href={@return_to}>Back to queue</a>
-      </:header_actions>
-
       <OperatorComponents.policy_state policy_state={@rulestead_admin_policy_state} />
 
       <p :if={@error_message} role="alert"><%= @error_message %></p>
@@ -96,23 +93,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
             <FlagComponents.tag_list tags={@detail.flag.tags} />
           </div>
           <div class="rs-detail__stats">
-            <FlagComponents.stat title="Lifecycle" value={humanize(@detail.lifecycle.state)} tone="neutral" />
-            <FlagComponents.stat
-              title="Archive readiness"
-              value={humanize(archive_readiness(@detail).readiness)}
-              tone="neutral"
-            />
-            <FlagComponents.stat
-              title="Evidence quality"
-              value={humanize(archive_readiness(@detail).evidence_quality)}
-              tone="neutral"
-            />
-            <FlagComponents.stat title="Owner" value={@detail.flag.ownership.owner_display || @detail.flag.ownership.owner_ref} tone="neutral" />
-            <FlagComponents.stat
-              title="Review by"
-              value={@detail.lifecycle.review_by || "Not scheduled"}
-              tone="neutral"
-            />
+            <FlagComponents.stat title="Environment status" value={humanize(@detail.flag_environment.status)} tone="neutral" />
             <FlagComponents.stat title="Type" value={humanize(@detail.flag.flag_type)} tone="neutral" />
             <FlagComponents.stat title="Value type" value={humanize(@detail.flag.value_type)} tone="neutral" />
             <FlagComponents.stat
@@ -120,12 +101,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
               value={inspect(default_flag_value(@detail.flag.default_value))}
               tone="neutral"
             />
-            <FlagComponents.stat
-              title="Code references"
-              value={humanize(freshness(@detail).code_references)}
-              tone="neutral"
-            />
-            <FlagComponents.stat title="Environment status" value={humanize(@detail.flag_environment.status)} tone="neutral" />
+            <FlagComponents.stat title="Owner" value={@detail.flag.ownership.owner_display || @detail.flag.ownership.owner_ref} tone="neutral" />
           </div>
         </div>
 
@@ -141,18 +117,29 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
             <% end %>
             <span>Owner: <%= @detail.flag.ownership.owner_display || @detail.flag.ownership.owner_ref %></span>
           </p>
-          <p>
-            Lifecycle posture: <%= humanize(@detail.lifecycle.mode) %>
-          </p>
-          <p>
-            Review by: <%= @detail.lifecycle.review_by || "Not scheduled" %>
-          </p>
-          <p>
-            Suggested by: <%= humanize(@detail.lifecycle.default_source) %>
-          </p>
-          <p :if={@detail.lifecycle.default_overridden}>
-            The operator overrode the suggested lifecycle default.
-          </p>
+          <div class="rs-detail__stats" style="margin-top: 1rem;">
+            <FlagComponents.stat title="Lifecycle posture" value={humanize(@detail.lifecycle.mode)} tone="neutral" />
+            <FlagComponents.stat
+              title="Review by"
+              value={@detail.lifecycle.review_by || "Not scheduled"}
+              tone="neutral"
+            />
+            <FlagComponents.stat
+              title="Archive readiness"
+              value={humanize(archive_readiness(@detail).readiness)}
+              tone="neutral"
+            />
+            <FlagComponents.stat
+              title="Evidence quality"
+              value={humanize(archive_readiness(@detail).evidence_quality)}
+              tone="neutral"
+            />
+            <FlagComponents.stat
+              title="Code references"
+              value={humanize(freshness(@detail).code_references)}
+              tone="neutral"
+            />
+          </div>
         </FlagComponents.section_card>
 
         <FlagComponents.section_card title="Archive readiness guidance">

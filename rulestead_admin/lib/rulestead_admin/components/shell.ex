@@ -26,14 +26,6 @@ defmodule RulesteadAdmin.Components.Shell do
         <div>
           <p class="rs-shell__kicker"><%= @page_kicker %></p>
           <h1 class="rs-shell__title"><%= @page_title %></h1>
-          <nav :if={@breadcrumbs != []} aria-label="Breadcrumb" class="rs-shell__breadcrumbs" style="margin-top: 0.5rem; margin-bottom: 0.5rem; font-size: 0.85rem;">
-            <ol style="list-style: none; padding: 0; margin: 0; display: flex; gap: 0.5rem;">
-              <li :for={{crumb, index} <- Enum.with_index(@breadcrumbs)}>
-                <a href={crumb.path} class="rs-shell__breadcrumb-link" style="color: var(--rs-text-muted); text-decoration: none;"><%= crumb.label %></a>
-                <span :if={index < length(@breadcrumbs) - 1} style="color: var(--rs-border-strong); margin-left: 0.5rem;" aria-hidden="true">/</span>
-              </li>
-            </ol>
-          </nav>
           <p class="rs-shell__summary"><%= @page_summary %></p>
           <div :if={@header_actions != []} class="rs-shell__header-actions">
             <%= render_slot(@header_actions) %>
@@ -74,6 +66,15 @@ defmodule RulesteadAdmin.Components.Shell do
           </p>
         </section>
       </header>
+
+      <nav :if={@breadcrumbs != []} aria-label="Breadcrumb" class="rs-shell__breadcrumbs" style="margin-top: 1rem; margin-bottom: 0.5rem; font-size: 0.85rem; padding: 0 var(--rs-shell-px);">
+        <ol style="list-style: none; padding: 0; margin: 0; display: flex; gap: 0.5rem;">
+          <li :for={{crumb, index} <- Enum.with_index(@breadcrumbs)}>
+            <a href={crumb.path} class="rs-shell__breadcrumb-link" style="color: var(--rs-text-muted); text-decoration: none;"><%= crumb.label %></a>
+            <span :if={index < length(@breadcrumbs) - 1} style="color: var(--rs-border-strong); margin-left: 0.5rem;" aria-hidden="true">/</span>
+          </li>
+        </ol>
+      </nav>
 
       <nav :if={@navigation_links != []} class="rs-shell__nav" aria-label="Governance navigation">
         <a

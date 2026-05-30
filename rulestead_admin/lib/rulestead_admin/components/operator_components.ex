@@ -50,6 +50,7 @@ defmodule RulesteadAdmin.Components.OperatorComponents do
   defp highest_capability(_), do: "None"
 
   defp capability_summary(nil), do: "No capabilities defined"
+
   defp capability_summary(caps) do
     "Permissions - Read: #{caps.read?}, Execute: #{caps.execute?}, Propose: #{caps.propose?}, Admin: #{caps.admin?}"
   end

@@ -130,160 +130,187 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
       <form aria-label="Flag metadata form" phx-change="validate" phx-submit="save">
         <p :if={@errors["base"]} role="alert"><%= @errors["base"] %></p>
 
-        <label>
-          <span>Key</span>
-          <input type="text" name="flag[key]" value={@form_data["key"]} disabled={@mode == :edit} />
-          <p class="rs-form-help" style="font-size: 0.85em; color: var(--rs-color-text-muted, #666);">Unique identifier used in code, e.g. <code>new_checkout_flow</code></p>
-        </label>
-        <p :if={@errors["key"]} role="alert"><%= @errors["key"] %></p>
+        <div phx-feedback-for="flag_key">
+          <label>
+            <span>Key</span>
+            <input type="text" id="flag_key" name="flag[key]" value={@form_data["key"]} disabled={@mode == :edit} />
+            <p class="rs-form-help" style="font-size: 0.85em; color: var(--rs-color-text-muted, #666); margin-top: 0.5rem;">Unique identifier used in code, e.g. <code>new_checkout_flow</code></p>
+          </label>
+          <p :if={@errors["key"]} class="rs-form-error" role="alert"><%= @errors["key"] %></p>
+        </div>
 
-        <label>
-          <span>Description</span>
-          <textarea name="flag[description]"><%= @form_data["description"] %></textarea>
-        </label>
+        <div phx-feedback-for="flag_description">
+          <label>
+            <span>Description</span>
+            <textarea id="flag_description" name="flag[description]"><%= @form_data["description"] %></textarea>
+          </label>
+        </div>
 
-        <label :if={@owner_picker_options != []}>
-          <span>Host owner picker</span>
-          <select name="flag[owner_picker_ref]">
-            <option value="">Manual entry</option>
-            <option
-              :for={option <- @owner_picker_options}
-              value={option.owner_ref}
-              selected={@form_data["owner_picker_ref"] == option.owner_ref}
-            >
-              <%= option.owner_display || option.owner_ref %>
-            </option>
-          </select>
-        </label>
+        <div phx-feedback-for="flag_owner_picker_ref">
+          <label :if={@owner_picker_options != []}>
+            <span>Host owner picker</span>
+            <select id="flag_owner_picker_ref" name="flag[owner_picker_ref]">
+              <option value="">Manual entry</option>
+              <option
+                :for={option <- @owner_picker_options}
+                value={option.owner_ref}
+                selected={@form_data["owner_picker_ref"] == option.owner_ref}
+              >
+                <%= option.owner_display || option.owner_ref %>
+              </option>
+            </select>
+          </label>
+        </div>
 
-        <label>
-          <span>Owner reference</span>
-          <input type="text" name="flag[owner_ref]" value={@form_data["owner_ref"]} />
-          <p class="rs-form-help" style="font-size: 0.85em; color: var(--rs-color-text-muted, #666);">Stable system identifier (e.g., GitHub team slug, Jira ID, or email).</p>
-        </label>
-        <p :if={@errors["owner_ref"]} role="alert"><%= @errors["owner_ref"] %></p>
+        <div phx-feedback-for="flag_owner_ref">
+          <label>
+            <span>Owner reference</span>
+            <input type="text" id="flag_owner_ref" name="flag[owner_ref]" value={@form_data["owner_ref"]} />
+            <p class="rs-form-help" style="font-size: 0.85em; color: var(--rs-color-text-muted, #666); margin-top: 0.5rem;">Stable system identifier (e.g., GitHub team slug, Jira ID, or email).</p>
+          </label>
+          <p :if={@errors["owner_ref"]} class="rs-form-error" role="alert"><%= @errors["owner_ref"] %></p>
+        </div>
 
-        <fieldset class="rs-radio-group" style="margin-bottom: 1rem; border: none; padding: 0;">
-          <legend style="font-weight: 600; margin-bottom: 0.5rem;">Owner kind</legend>
-          <div style="display: flex; gap: 1.5rem;">
-            <label :for={{label, value} <- @owner_kind_options} style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal;">
-              <input type="radio" name="flag[owner_kind]" value={value} checked={@form_data["owner_kind"] == value} />
-              <%= label %>
-            </label>
-          </div>
-        </fieldset>
-        <p :if={@errors["owner_kind"]} role="alert"><%= @errors["owner_kind"] %></p>
+        <div phx-feedback-for="flag_owner_kind">
+          <fieldset class="rs-radio-group" style="margin-bottom: 1rem; border: none; padding: 0;">
+            <legend style="font-weight: 600; margin-bottom: 0.5rem;">Owner kind</legend>
+            <div style="display: flex; gap: 1.5rem;">
+              <label :for={{label, value} <- @owner_kind_options} style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal;">
+                <input type="radio" id={"flag_owner_kind_#{value}"} name="flag[owner_kind]" value={value} checked={@form_data["owner_kind"] == value} />
+                <%= label %>
+              </label>
+            </div>
+          </fieldset>
+          <p :if={@errors["owner_kind"]} class="rs-form-error" role="alert"><%= @errors["owner_kind"] %></p>
+        </div>
 
-        <label>
-          <span>Owner display</span>
-          <input type="text" name="flag[owner_display]" value={@form_data["owner_display"]} />
-          <p class="rs-form-help" style="font-size: 0.85em; color: var(--rs-color-text-muted, #666);">Human-readable name to show in the UI (e.g., "Checkout Team").</p>
-        </label>
+        <div phx-feedback-for="flag_owner_display">
+          <label>
+            <span>Owner display</span>
+            <input type="text" id="flag_owner_display" name="flag[owner_display]" value={@form_data["owner_display"]} />
+            <p class="rs-form-help" style="font-size: 0.85em; color: var(--rs-color-text-muted, #666); margin-top: 0.5rem;">Human-readable name to show in the UI (e.g., "Checkout Team").</p>
+          </label>
+        </div>
 
-        <fieldset class="rs-radio-group" style="margin-bottom: 1rem; border: none; padding: 0;">
-          <legend style="font-weight: 600; margin-bottom: 0.5rem;">Flag type</legend>
-          <div :for={{label, value} <- @flag_type_options} style="margin-bottom: 0.75rem;">
-            <label style="display: flex; align-items: flex-start; gap: 0.5rem; font-weight: normal;">
-              <input 
-                type="radio" 
-                name="flag[flag_type]" 
-                value={value} 
-                checked={@form_data["flag_type"] == value} 
-                disabled={@mode == :edit} 
-                style="margin-top: 0.25rem;"
-              />
-              <div>
-                <strong style="display: block; font-weight: 500;"><%= label %></strong>
-                <span class="rs-form-help" style="font-size: 0.85em; color: var(--rs-color-text-muted, #666);">
-                  <%= case value do
-                    "release" -> "Temporary toggles for rolling out new features safely. Expected to be removed once fully rolled out."
-                    "experiment" -> "Multivariate flags used to measure outcomes and test hypotheses. Expected to be removed after conclusion."
-                    "kill_switch" -> "Long-lived operational toggles to quickly disable broken features or dependencies in an emergency."
-                    "permission" -> "Long-lived toggles used to grant specific capabilities or tier access to actors."
-                    "remote_config" -> "Long-lived settings used to dynamically configure system behavior without redeploying."
-                    "migration" -> "Long-lived toggles used to incrementally route traffic between old and new systems or databases."
-                    _ -> ""
-                  end %>
-                </span>
-              </div>
-            </label>
-          </div>
-        </fieldset>
+        <div phx-feedback-for="flag_type">
+          <fieldset class="rs-radio-group" style="margin-bottom: 1rem; border: none; padding: 0;">
+            <legend style="font-weight: 600; margin-bottom: 0.5rem;">Flag type</legend>
+            <div :for={{label, value} <- @flag_type_options} style="margin-bottom: 0.75rem;">
+              <label style="display: flex; align-items: flex-start; gap: 0.5rem; font-weight: normal;">
+                <input 
+                  type="radio" 
+                  id={"flag_type_#{value}"}
+                  name="flag[flag_type]" 
+                  value={value} 
+                  checked={@form_data["flag_type"] == value} 
+                  disabled={@mode == :edit} 
+                  style="margin-top: 0.25rem;"
+                />
+                <div>
+                  <strong style="display: block; font-weight: 500;"><%= label %></strong>
+                  <span class="rs-form-help" style="font-size: 0.85em; color: var(--rs-color-text-muted, #666); display: block; margin-top: 0.25rem;">
+                    <%= case value do
+                      "release" -> "Temporary toggles for rolling out new features safely. Expected to be removed once fully rolled out."
+                      "experiment" -> "Multivariate flags used to measure outcomes and test hypotheses. Expected to be removed after conclusion."
+                      "kill_switch" -> "Long-lived operational toggles to quickly disable broken features or dependencies in an emergency."
+                      "permission" -> "Long-lived toggles used to grant specific capabilities or tier access to actors."
+                      "remote_config" -> "Long-lived settings used to dynamically configure system behavior without redeploying."
+                      "migration" -> "Long-lived toggles used to incrementally route traffic between old and new systems or databases."
+                      _ -> ""
+                    end %>
+                  </span>
+                </div>
+              </label>
+            </div>
+          </fieldset>
+        </div>
 
-        <label>
-          <span>Value type</span>
-          <select name="flag[value_type]" disabled={@mode == :edit}>
-            <option
-              :for={{label, value} <- @value_type_options}
-              value={value}
-              selected={@form_data["value_type"] == value}
-            >
-              <%= label %>
-            </option>
-          </select>
-        </label>
+        <div phx-feedback-for="flag_value_type">
+          <label>
+            <span>Value type</span>
+            <select id="flag_value_type" name="flag[value_type]" disabled={@mode == :edit}>
+              <option
+                :for={{label, value} <- @value_type_options}
+                value={value}
+                selected={@form_data["value_type"] == value}
+              >
+                <%= label %>
+              </option>
+            </select>
+          </label>
+        </div>
 
-        <fieldset class="rs-radio-group" style="margin-bottom: 1rem; border: none; padding: 0;" :if={@form_data["value_type"] == "boolean"}>
-          <legend style="font-weight: 600; margin-bottom: 0.5rem;">Default value</legend>
-          <div style="display: flex; gap: 1rem;">
-            <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal;">
-              <input type="radio" name="flag[default_value]" value="true" checked={@form_data["default_value"] in ["true", true]} disabled={@mode == :edit} /> True
-            </label>
-            <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal;">
-              <input type="radio" name="flag[default_value]" value="false" checked={@form_data["default_value"] in ["false", false]} disabled={@mode == :edit} /> False
-            </label>
-          </div>
-        </fieldset>
+        <div phx-feedback-for="flag_default_value">
+          <fieldset class="rs-radio-group" style="margin-bottom: 1rem; border: none; padding: 0;" :if={@form_data["value_type"] == "boolean"}>
+            <legend style="font-weight: 600; margin-bottom: 0.5rem;">Default value</legend>
+            <div style="display: flex; gap: 1rem;">
+              <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal;">
+                <input type="radio" id="flag_default_value_true" name="flag[default_value]" value="true" checked={@form_data["default_value"] in ["true", true]} disabled={@mode == :edit} /> True
+              </label>
+              <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal;">
+                <input type="radio" id="flag_default_value_false" name="flag[default_value]" value="false" checked={@form_data["default_value"] in ["false", false]} disabled={@mode == :edit} /> False
+              </label>
+            </div>
+          </fieldset>
 
-        <label :if={@form_data["value_type"] not in ["boolean", "json"]}>
-          <span>Default value</span>
-          <input
-            type={if @form_data["value_type"] == "integer", do: "number", else: "text"}
-            name="flag[default_value]"
-            value={@form_data["default_value"]}
-            disabled={@mode == :edit}
-          />
-        </label>
+          <label :if={@form_data["value_type"] not in ["boolean", "json"]}>
+            <span>Default value</span>
+            <input
+              type={if @form_data["value_type"] == "integer", do: "number", else: "text"}
+              id="flag_default_value_input"
+              name="flag[default_value]"
+              value={@form_data["default_value"]}
+              disabled={@mode == :edit}
+            />
+          </label>
 
-        <label :if={@form_data["value_type"] == "json"}>
-          <span>Default value</span>
-          <textarea
-            name="flag[default_value]"
-            disabled={@mode == :edit}
-            style="font-family: var(--rs-font-mono); min-height: 80px;"
-          ><%= @form_data["default_value"] %></textarea>
-        </label>
+          <label :if={@form_data["value_type"] == "json"}>
+            <span>Default value</span>
+            <textarea
+              id="flag_default_value_textarea"
+              name="flag[default_value]"
+              disabled={@mode == :edit}
+              style="font-family: var(--rs-font-mono); min-height: 80px;"
+            ><%= @form_data["default_value"] %></textarea>
+          </label>
+        </div>
 
-        <fieldset class="rs-radio-group" style="margin-bottom: 1rem; border: none; padding: 0;">
-          <legend style="font-weight: 600; margin-bottom: 0.5rem;">Lifecycle posture</legend>
-          <p class="rs-form-help" style="font-size: 0.85em; color: var(--rs-color-text-muted, #666); margin-bottom: 0.5rem;">
-            Suggestion: <strong><%= humanize(@lifecycle_suggestion.mode || "explicit choice required") %></strong>.
-            <%= @lifecycle_suggestion.rationale %>
-            <span :if={@lifecycle_suggestion.default_overridden}>(Operator override recorded).</span>
-          </p>
-          <div style="display: flex; gap: 1rem;">
-            <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal;">
-              <input type="radio" name="flag[lifecycle_mode]" value="expiring" checked={@form_data["lifecycle_mode"] == "expiring"} /> Expiring
-            </label>
-            <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal;">
-              <input type="radio" name="flag[lifecycle_mode]" value="permanent" checked={@form_data["lifecycle_mode"] == "permanent"} /> Permanent
-            </label>
-          </div>
-        </fieldset>
-        <p :if={@errors["lifecycle_mode"]} role="alert"><%= @errors["lifecycle_mode"] %></p>
+        <div phx-feedback-for="flag_lifecycle_mode">
+          <fieldset class="rs-radio-group" style="margin-bottom: 1rem; border: none; padding: 0;">
+            <legend style="font-weight: 600; margin-bottom: 0.5rem;">Lifecycle posture</legend>
+            <p class="rs-form-help" style="font-size: 0.85em; color: var(--rs-color-text-muted, #666); margin-bottom: 0.5rem;">
+              Suggestion: <strong><%= humanize(@lifecycle_suggestion.mode || "explicit choice required") %></strong>.
+              <%= @lifecycle_suggestion.rationale %>
+              <span :if={@lifecycle_suggestion.default_overridden}>(Operator override recorded).</span>
+            </p>
+            <div style="display: flex; gap: 1rem;">
+              <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal;">
+                <input type="radio" id="flag_lifecycle_mode_expiring" name="flag[lifecycle_mode]" value="expiring" checked={@form_data["lifecycle_mode"] == "expiring"} /> Expiring
+              </label>
+              <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal;">
+                <input type="radio" id="flag_lifecycle_mode_permanent" name="flag[lifecycle_mode]" value="permanent" checked={@form_data["lifecycle_mode"] == "permanent"} /> Permanent
+              </label>
+            </div>
+          </fieldset>
+          <p :if={@errors["lifecycle_mode"]} class="rs-form-error" role="alert"><%= @errors["lifecycle_mode"] %></p>
+        </div>
 
-        <label>
-          <span>Review by date</span>
-          <input type="date" name="flag[review_by]" value={@form_data["review_by"]} />
-          <p class="rs-form-help" style="font-size: 0.85em; color: var(--rs-color-text-muted, #666);">Required for expiring flags. Sets the expected lifetime.</p>
-        </label>
-        <p :if={@errors["review_by"]} role="alert"><%= @errors["review_by"] %></p>
+        <div phx-feedback-for="flag_review_by">
+          <label>
+            <span>Review by date</span>
+            <input type="date" id="flag_review_by" name="flag[review_by]" value={@form_data["review_by"]} />
+            <p class="rs-form-help" style="font-size: 0.85em; color: var(--rs-color-text-muted, #666); margin-top: 0.5rem;">Required for expiring flags. Sets the expected lifetime.</p>
+          </label>
+          <p :if={@errors["review_by"]} class="rs-form-error" role="alert"><%= @errors["review_by"] %></p>
+        </div>
 
-        <label>
-          <span>Tags</span>
-          <input type="text" name="flag[tags]" value={@form_data["tags"]} />
-          <p class="rs-form-help" style="font-size: 0.85em; color: var(--rs-color-text-muted, #666);">Comma-separated values (e.g., "checkout, billing"). Used for filtering.</p>
-        </label>
+        <div phx-feedback-for="flag_tags">
+          <label>
+            <span>Tags</span>
+            <input type="text" id="flag_tags" name="flag[tags]" value={@form_data["tags"]} />
+            <p class="rs-form-help" style="font-size: 0.85em; color: var(--rs-color-text-muted, #666); margin-top: 0.5rem;">Comma-separated values (e.g., "checkout, billing"). Used for filtering.</p>
+          </label>
+        </div>
 
         <button type="submit" class="rs-button rs-button--primary"><%= if @mode == :new, do: "Create flag", else: "Save metadata" %></button>
       </form>

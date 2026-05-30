@@ -7,7 +7,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
   alias RulesteadAdmin.Components.{FlagComponents, OperatorComponents, Shell}
   alias RulesteadAdmin.Live.Session
 
-  @default_limit 25
+  @default_limit 10
   @allowed_lifecycle ~w(active potentially_stale stale archived)
   @allowed_stale ~w(fresh potentially_stale stale)
   @allowed_readiness ~w(keep_active needs_review archive_candidate)
@@ -178,7 +178,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
           <label>
             <span>Rows</span>
             <select name="filters[limit]">
-              <option :for={limit <- [1, 10, 25, 50]} value={limit} selected={Integer.to_string(limit) == @filters["limit"]}>
+              <option :for={limit <- [10, 25, 50, 100]} value={limit} selected={Integer.to_string(limit) == @filters["limit"]}>
                 <%= limit %>
               </option>
             </select>
@@ -215,7 +215,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
             <tr>
               <th scope="col">Key</th>
               <th scope="col">Type</th>
-              <th scope="col">Owner</th>
+              <th scope="col">Tags</th>
+              <th scope="col" title="Stable owner reference or display name">Owner</th>
               <th scope="col">Lifecycle</th>
               <th scope="col">Environment status</th>
               <th scope="col">Stale indicator</th>
@@ -237,9 +238,9 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
                 <a href={flag_path(assigns, entry.flag.key)}>
                   <code><%= entry.flag.key %></code>
                 </a>
-                <FlagComponents.tag_list tags={entry.flag.tags} />
               </td>
               <td><%= humanize(entry.flag.flag_type) %></td>
+              <td><FlagComponents.tag_list tags={entry.flag.tags} /></td>
               <td><%= entry.flag.ownership.owner_display || entry.flag.ownership.owner_ref %></td>
               <td><FlagComponents.lifecycle_badge state={entry.lifecycle} /></td>
               <td><FlagComponents.environment_status status={entry.environment_status || entry.flag_environment.status || :draft} /></td>
@@ -260,7 +261,11 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
                   Review cleanup
                 </a>
               </td>
-              <td><%= format_last_changed(entry.flag.updated_at || entry.flag.inserted_at) %></td>
+              <td>
+                <span title={format_last_changed_utc(entry.flag.updated_at || entry.flag.inserted_at)}>
+                  <%= format_last_changed_relative(entry.flag.updated_at || entry.flag.inserted_at) %>
+                </span>
+              </td>
             </tr>
             <tr :if={Enum.empty?(@page.entries)} id="flags-empty">
               <td colspan="10">No flags matched the current environment and filters.</td>
@@ -401,7 +406,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
     value
     |> parse_integer()
     |> case do
-      limit when limit in [1, 10, 25, 50] -> Integer.to_string(limit)
+      limit when limit in [10, 25, 50, 100] -> Integer.to_string(limit)
       _limit -> Integer.to_string(@default_limit)
     end
   end
@@ -579,13 +584,51 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
 
   defp humanize(value), do: to_string(value)
 
-  defp format_last_changed(nil), do: "Not recorded"
+  defp format_last_changed_utc(nil), do: "Not recorded"
 
-  defp format_last_changed(%DateTime{} = datetime),
+  defp format_last_changed_utc(%DateTime{} = datetime),
     do: Calendar.strftime(datetime, "%Y-%m-%d %H:%M UTC")
 
-  defp format_last_changed(%NaiveDateTime{} = datetime),
+  defp format_last_changed_utc(%NaiveDateTime{} = datetime),
     do: Calendar.strftime(datetime, "%Y-%m-%d %H:%M UTC")
 
-  defp format_last_changed(value), do: to_string(value)
+  defp format_last_changed_utc(value), do: to_string(value)
+
+  defp format_last_changed_relative(nil), do: "Unknown"
+
+  defp format_last_changed_relative(%DateTime{} = datetime) do
+    now = DateTime.utc_now()
+    diff = DateTime.diff(now, datetime)
+    relative_time(diff)
+  end
+
+  defp format_last_changed_relative(%NaiveDateTime{} = datetime) do
+    now = NaiveDateTime.utc_now()
+    diff = NaiveDateTime.diff(now, datetime)
+    relative_time(diff)
+  end
+
+  defp format_last_changed_relative(value), do: to_string(value)
+
+  defp relative_time(diff) when diff < 60, do: "just now"
+
+  defp relative_time(diff) when diff < 3600 do
+    mins = div(diff, 60)
+    "#{mins} minute#{if mins == 1, do: "", else: "s"} ago"
+  end
+
+  defp relative_time(diff) when diff < 86400 do
+    hours = div(diff, 3600)
+    "#{hours} hour#{if hours == 1, do: "", else: "s"} ago"
+  end
+
+  defp relative_time(diff) when diff < 2_592_000 do
+    days = div(diff, 86400)
+    "#{days} day#{if days == 1, do: "", else: "s"} ago"
+  end
+
+  defp relative_time(diff) do
+    months = div(diff, 2_592_000)
+    "#{months} month#{if months == 1, do: "", else: "s"} ago"
+  end
 end
