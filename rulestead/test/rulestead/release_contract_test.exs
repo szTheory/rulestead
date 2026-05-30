@@ -289,7 +289,7 @@ defmodule Rulestead.ReleaseContractTest do
 
     assert maintaining =~ "v1.0.0"
     assert maintaining =~ "2026-05-21"
-    assert maintaining =~ hex_version()
+    assert maintaining =~ "0.1.x"
     assert maintaining =~ "mounted companion"
     assert maintaining =~ "examples/demo/"
     assert maintaining =~ "mix verify.release_publish <version>"
