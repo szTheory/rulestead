@@ -42,12 +42,9 @@ test.describe("FleetDesk adoption journeys", () => {
 
     const devPanel = page.getByLabel("Developer tools");
     await expect(devPanel.getByRole("heading", { name: "Explain trace" })).toBeVisible();
-    await expect(devPanel.getByText("Environment staging")).toBeVisible({
-      timeout: 15_000,
-    });
-    await expect(
-      devPanel.getByText(/Matched rule|No rule matched|Explain trace will appear after/i).first(),
-    ).toBeVisible({
+    await expect(devPanel.getByRole("heading", { name: "Flag snapshots" })).toBeVisible();
+    await expect(devPanel.getByRole("heading", { name: "Bridge status" })).toBeVisible();
+    await expect(devPanel.getByText("enable-new-dashboard", { exact: true })).toBeVisible({
       timeout: 15_000,
     });
   });
