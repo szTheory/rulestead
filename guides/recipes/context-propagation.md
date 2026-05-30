@@ -110,6 +110,6 @@ Every step is visible in application code. That is the point.
 
 - Hidden process-dictionary propagation
 - Reading context from unrelated process state
-- Serializing raw `Plug.Conn`, `Phoenix.LiveView.Socket`, or `Oban.Job` structs into telemetry or job payloads
+- Serializing raw Plug.Conn, Phoenix.LiveView.Socket, or Oban job structs into telemetry or job payloads
 - Bypassing the keyed runtime layer from LiveView helpers
 - Reconstructing context from private runtime cache or store internals

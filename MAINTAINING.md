@@ -62,6 +62,47 @@ Document these settings exactly on `main`:
 
 Cache keys intentionally exclude `.planning/`, `prompts/`, and guide-only edits.
 
+## Shift-left contributor gate
+
+Run the same checks CI runs before you push. This is the default local loop
+(lattice_stripe / accrue DNA):
+
+```bash
+# Fast core gate (rulestead package)
+cd rulestead && mix ci
+
+# Full monorepo gate (lint + test scopes + adopter contract)
+bash scripts/ci/local.sh
+
+# Faster iteration (skips mounted + openfeature companion scopes)
+bash scripts/ci/local.sh --fast
+```
+
+Maintainer release-prep hygiene (repo truth + optional local gate rerun):
+
+```bash
+./scripts/maintainer/repo_hygiene_check.sh
+./scripts/maintainer/repo_hygiene_check.sh --skip-mix-ci   # repo checks only
+```
+
+`mix ci` covers format, compile, credo, tests (excluding `install_integration`),
+and docs. `scripts/ci/local.sh` adds sibling-package lint/test scopes and
+`mix verify.adopter`. GitHub branch protection still requires the aggregated
+`release_gate` job — local gates catch failures earlier.
+
+Optional demo smoke after the core gate:
+
+```bash
+scripts/demo/proof.sh
+```
+
+Peer/integration dep bumps: follow
+[`prompts/bump-peer-sztheory-deps-prompt.txt`](prompts/bump-peer-sztheory-deps-prompt.txt).
+
+Release Please PRs auto-merge when `release_gate` is green on the release branch
+(`.github/workflows/release-pr-automerge.yml`). Hex publish still requires manual
+`hex-publish` environment approval.
+
 ## Release Please flow
 
 The repository uses a linked-version sibling-package setup:

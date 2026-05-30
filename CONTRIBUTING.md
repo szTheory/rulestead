@@ -33,19 +33,35 @@ This is a sibling-package monorepo:
 - `rulestead/` is the core package
 - `rulestead_admin/` is the optional admin package
 
-Run repo-level checks from the root when possible. As the package surface
-lands, per-package commands should also work from each sibling directory.
+### Local contributor gate
 
-Current Phase 1 baseline commands:
+Before opening a PR, run:
 
 ```bash
-mix format
-mix credo --strict
-mix docs
+cd rulestead && mix ci
+bash scripts/ci/local.sh          # full monorepo mirror of merge CI
+bash scripts/ci/local.sh --fast   # skip mounted/openfeature companion scopes
 ```
 
-When the package skeletons and CI aliases land later in the phase, the
-maintainer path is expected to converge on a root `mix ci.all` style flow.
+GitHub requires the aggregated `release_gate` check on merge. The local gate
+catches the same failures earlier.
+
+Maintainers preparing a release should also run:
+
+```bash
+bash scripts/maintainer/repo_hygiene_check.sh
+```
+
+See [`MAINTAINING.md`](MAINTAINING.md) for publish choreography and post-publish
+verification.
+
+### Formatting and docs
+
+```bash
+cd rulestead && mix format
+cd rulestead && mix credo --strict
+cd rulestead && mix docs
+```
 
 ## Tests
 

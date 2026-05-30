@@ -1,0 +1,63 @@
+# Weekly repo hygiene drift check — opens/updates a single rolling maintenance issue.
+
+name: repo-hygiene
+
+on:
+  schedule:
+    - cron: '0 10 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  hygiene-check:
+    name: repo-hygiene
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Ensure hygiene issue labels exist
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh label create "repo-hygiene" \
+            --color "#5319e7" \
+            --description "Rolling repo hygiene / release-prep drift tracker" \
+            -R "${{ github.repository }}" 2>/dev/null || true
+
+      - name: Run repo hygiene check
+        id: hygiene
+        continue-on-error: true
+        run: |
+          set +e
+          bash scripts/maintainer/repo_hygiene_check.sh --ci 2>&1 | tee /tmp/repo_hygiene_summary.txt
+          echo "exit_code=$?" >> "$GITHUB_OUTPUT"
+
+      - name: Create or update hygiene issue
+        if: steps.hygiene.outputs.exit_code != '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          EXISTING=$(gh issue list \
+            --label "repo-hygiene" \
+            --state open \
+            --json number \
+            --jq '.[0].number // empty' \
+            -R "${{ github.repository }}")
+
+          SUMMARY=$(cat /tmp/repo_hygiene_summary.txt)
+          TITLE="Rulestead repo hygiene tracker (maintenance)"
+
+          if [ -n "$EXISTING" ]; then
+            gh issue comment "$EXISTING" --body "$SUMMARY" -R "${{ github.repository }}"
+          else
+            gh issue create \
+              --title "$TITLE" \
+              --body "$SUMMARY" \
+              --label "repo-hygiene" \
+              --label "maintenance" \
+              -R "${{ github.repository }}"
+          fi

@@ -30,7 +30,7 @@ defmodule RulesteadAdmin.MixProject do
 
   defp deps do
     [
-      {:a11y_audit, "~> 0.3.1", only: :test},
+      {:a11y_audit, "~> 0.3.4", only: :test},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:lazy_html, ">= 0.0.0", only: :test},
       {:phoenix, "~> 1.8.1"},
