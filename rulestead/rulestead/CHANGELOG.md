@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.1.4](https://github.com/szTheory/rulestead/compare/rulestead-v0.1.3...rulestead-v0.1.4) (2026-05-30)
+
+
+### Features
+
+* **adoption-lab:** ship v1.12 adoption evidence depth ([52751c5](https://github.com/szTheory/rulestead/commit/52751c5e942f741981f84f856b0782e4a619fa3a))
+
+
+### Bug Fixes
+
+* **ci:** unblock FleetDesk adoption lab pipeline ([c012c6e](https://github.com/szTheory/rulestead/commit/c012c6e0e7e8f747836af7580fad5ab892e1f7b2))
+* **ci:** unblock FleetDesk Playwright proofs on PR [#21](https://github.com/szTheory/rulestead/issues/21) ([32bec5f](https://github.com/szTheory/rulestead/commit/32bec5f979e4f87817b78da1565ff566626d3835))
+
 ## [0.1.3](https://github.com/szTheory/rulestead/compare/rulestead-v0.1.2...rulestead-v0.1.3) (2026-05-28)
 
 
