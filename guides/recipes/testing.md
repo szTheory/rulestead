@@ -171,3 +171,21 @@ delivery, or operator workflows.
 
 Those are integration concerns. They should not replace the Fake-backed
 contract as your default application test surface.
+
+## Integration and E2E confidence
+
+Fake-backed tests should remain your default application test surface. Add
+host-shaped confidence only when you need it.
+
+| Layer | When to use | Command / path |
+|-------|-------------|----------------|
+| Fake helpers | Every app unit test | `import Rulestead.TestHelpers` |
+| Installer golden-diff | First-hour Phoenix wiring | `scripts/demo/install_journey.sh` |
+| FleetDesk adoption lab | Full stack + admin + browser glue | [Adoption Lab](../introduction/adoption-lab.md#connect) · `scripts/demo/proof.sh` or `scripts/demo/verify.sh` |
+| Library contract | Pre-merge / release bar | `cd rulestead && mix verify.adopter` |
+
+See [Adoption Lab](../introduction/adoption-lab.md) for persona-oriented guidance
+on when to run FleetDesk vs the install journey vs contract tests alone.
+
+CI runs FleetDesk compose + Playwright on every merge (`integration (FleetDesk
+adoption lab)`). Install journey runs on the `install_journey` scoped lane.

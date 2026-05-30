@@ -20,7 +20,7 @@ The post-GA release-control band is **feature-complete** for serious Phoenix Saa
 Optional v2 deepening (presets, baseline comparison, threshold profiles) is listed in
 [product-boundary.md](guides/introduction/product-boundary.md).
 
-**Prove it locally:** `scripts/demo/proof.sh` or `cd rulestead && mix verify.adopter`.
+**Prove it locally:** `scripts/demo/proof.sh`, [Adoption Lab](guides/introduction/adoption-lab.md), or `cd rulestead && mix verify.adopter`.
 
 ## What this is (60 seconds)
 
@@ -181,31 +181,24 @@ itself or integrating it into a larger release process.
 
 - `rulestead/` — runtime package
 - `rulestead_admin/` — optional admin package
-- `examples/demo/` — Phase 28 local demo backend/frontend stack
+- `examples/demo/` — FleetDesk adoption lab (backend + frontend)
 - `guides/` — shared HexDocs guides
 - `prompts/` — product and engineering reference docs
 
 ## Local demo
 
-The runnable local demo lives under `examples/demo/`:
+The **FleetDesk adoption lab** under `examples/demo/` is the runnable end-to-end
+proof path. From the repo root:
 
 ```bash
 docker compose up --build
 ```
 
-That boots Postgres, Redis, the Phoenix demo backend at `http://localhost:4000`,
-the mounted Admin sign-in route at `http://localhost:4000/demo/sign-in`, and the
-Next.js sample frontend at `http://localhost:3000`.
+**Full runbook** (boot, URLs, persona click paths, troubleshooting):
+[Adoption Lab](guides/introduction/adoption-lab.md#connect).
 
-The shortest end-to-end proof is:
-
-1. Open `http://localhost:3000` and confirm `The new operator cockpit is live.`
-2. Open `http://localhost:4000/demo/sign-in`.
-3. In the Admin UI, engage the kill switch for `enable-new-dashboard` in `staging`.
-4. Confirm the frontend flips to `The classic cockpit is holding.`
-
-See [examples/demo/README.md](examples/demo/README.md) for the smoke script and
-Playwright path.
+Bounded automation without a browser: `scripts/demo/proof.sh`.
+Implementation and CI commands: [examples/demo/README.md](examples/demo/README.md).
 
 ## Proof today
 
@@ -264,12 +257,15 @@ The repo's current proof posture is intentionally bounded:
   policy-denied evidence **fail closed**.
 - `RULESTEAD_TEST_SCOPE=host_preview_evidence bash scripts/ci/test.sh`
   reruns the v1.9 host preview evidence proof bar in CI.
-- **Post-GA band closure (v1.11):** `cd rulestead && mix verify.adopter` (alias:
-  `mix verify.phase76`) runs the v1.11 adopter bar: v1.10.1 support-truth
-  contracts plus integration-spine doc checks. See
+- **Post-GA band closure (v1.12):** `cd rulestead && mix verify.adopter` (alias:
+  `mix verify.phase82`) runs the v1.12 adopter bar: v1.10.1 support-truth
+  contracts, integration-spine doc checks, and adoption-lab contract guards. See
+  [Adoption Lab](guides/introduction/adoption-lab.md) and
   [Phoenix Integration Spine](guides/introduction/phoenix-integration-spine.md).
   `RULESTEAD_TEST_SCOPE=post_ga_band_closure bash scripts/ci/test.sh`
   reruns that bar in CI. `scripts/demo/proof.sh` runs demo smoke + band verify.
+  `RULESTEAD_TEST_SCOPE=install_journey bash scripts/ci/test.sh` runs the
+  fresh-install golden-diff journey.
 - `RULESTEAD_TEST_SCOPE=openfeature_companion bash scripts/ci/test.sh` proves the
   optional `open_feature_rulestead` companion package's Elixir provider contract:
   `context_mapper_test` and `provider_test`.

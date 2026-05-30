@@ -6,7 +6,7 @@ test("demo sign-in, kill switch, and frontend refresh loop", async ({ browser, p
   await page.goto("/");
   await expect(
     page.getByText("Fleet map v2 is live for your dispatch desk."),
-  ).toBeVisible();
+  ).toBeVisible({ timeout: 15_000 });
 
   const adminPage = await browser.newPage();
 

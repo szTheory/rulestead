@@ -2,6 +2,7 @@ import Config
 
 config :rulestead, :store, Rulestead.Store.Ecto
 config :rulestead, :admin_policy, RulesteadDemo.AdminPolicy
+config :rulestead, :preview_evidence_resolver, RulesteadDemo.PreviewEvidenceResolver
 
 config :rulestead, :runtime, environment_keys: []
 

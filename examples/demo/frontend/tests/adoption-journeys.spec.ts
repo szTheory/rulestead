@@ -55,6 +55,6 @@ test.describe("FleetDesk adoption journeys", () => {
     const payload = await response.json();
     expect(payload.product).toBe("FleetDesk");
     expect(payload.personas).toHaveLength(3);
-    expect(payload.flags).toHaveLength(4);
+    expect(payload.flags).toHaveLength(6);
   });
 });

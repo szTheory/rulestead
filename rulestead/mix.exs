@@ -31,6 +31,7 @@ defmodule Rulestead.MixProject do
         {:"verify.phase72", :test},
         {:"verify.phase73", :test},
         {:"verify.phase76", :test},
+        {:"verify.phase82", :test},
         {:"verify.adopter", :test}
       ]
     ]
@@ -93,6 +94,7 @@ defmodule Rulestead.MixProject do
         "../guides/introduction/phoenix-integration-spine.md",
         "../guides/introduction/product-boundary.md",
         "../guides/introduction/user-flows-and-jtbd.md",
+        "../guides/introduction/adoption-lab.md",
         "../guides/introduction/upgrading.md",
         "../guides/cheatsheet.cheatmd",
         "../guides/api_stability.md",

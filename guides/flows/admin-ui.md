@@ -95,6 +95,21 @@ The shipped package supports these bounded workflows:
 These are package-level workflows. They do not freeze the internal LiveView
 implementation.
 
+## Operator sandbox (FleetDesk)
+
+The [Adoption Lab](../introduction/adoption-lab.md#operator--admin-feel) mounts the same operator
+routes in a runnable FleetDesk host. Use it to click through bounded workflows
+before wiring `rulestead_admin` into your app:
+
+- sign in at `/demo/sign-in` (deterministic demo session)
+- browse `/admin/flags?env=staging`
+- advance rollouts at `/admin/flags/:key/rollouts`
+- engage kill switch at `/admin/flags/:key/kill`
+- filter audit at `/admin/flags/audit`
+
+Run `docker compose up --build` from the repo root, or see
+[examples/demo/README.md](../../examples/demo/README.md) for automation commands.
+
 ## Lifecycle Review Workflow
 
 The mounted companion is the canonical queue-first lifecycle surface for host

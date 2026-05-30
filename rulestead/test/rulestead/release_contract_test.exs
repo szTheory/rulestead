@@ -641,7 +641,7 @@ defmodule Rulestead.ReleaseContractTest do
     runtime_readme = File.read!(@runtime_readme_path)
     maintaining = File.read!(@maintaining_path)
 
-    assert root_readme =~ "mix verify.phase76"
+    assert root_readme =~ "mix verify.phase82"
     assert root_readme =~ "mix verify.adopter"
     assert root_readme =~ ~r/post-GA|Post-GA|band complete|band closure/i
     assert root_readme =~ "product-boundary.md"
@@ -650,9 +650,9 @@ defmodule Rulestead.ReleaseContractTest do
     assert root_readme =~
              "RULESTEAD_TEST_SCOPE=post_ga_band_closure bash scripts/ci/test.sh"
 
-    assert runtime_readme =~ "mix verify.phase76"
+    assert runtime_readme =~ "mix verify.phase82"
     assert maintaining =~ "Post-GA Band Closure Proof"
-    assert maintaining =~ "mix verify.phase76"
+    assert maintaining =~ "mix verify.phase82"
     assert maintaining =~ "mix verify.adopter"
 
     assert maintaining =~
@@ -663,14 +663,35 @@ defmodule Rulestead.ReleaseContractTest do
     refute maintaining =~ "IMP-05 partial"
   end
 
+  test "v1.12 adoption lab support truth routes evaluators to FleetDesk proof paths" do
+    root_readme = File.read!(@root_readme_path)
+
+    adoption_lab =
+      Path.expand("../../../guides/introduction/adoption-lab.md", __DIR__)
+      |> File.read!()
+
+    demo_readme = File.read!(@demo_readme_path)
+
+    install_journey =
+      Path.expand("../../../scripts/demo/install_journey.sh", __DIR__)
+      |> File.read!()
+
+    assert root_readme =~ "adoption-lab"
+    assert root_readme =~ "install_journey"
+    assert adoption_lab =~ "FleetDesk"
+    assert adoption_lab =~ "scripts/demo/install_journey.sh"
+    assert demo_readme =~ "dispatch-guarded-rollout"
+    assert install_journey =~ "install_contract.sh"
+  end
+
   test "v1.11 integration spine support truth routes adopters to first-hour path" do
     root_readme = File.read!(@root_readme_path)
     runtime_readme = File.read!(@runtime_readme_path)
     maintaining = File.read!(@maintaining_path)
 
     assert root_readme =~ "phoenix-integration-spine"
-    assert root_readme =~ "mix verify.phase76"
-    assert maintaining =~ "mix verify.phase76"
+    assert root_readme =~ "mix verify.phase82"
+    assert maintaining =~ "mix verify.phase82"
 
     spine_in_maintaining? =
       maintaining =~ "phoenix-integration-spine" or

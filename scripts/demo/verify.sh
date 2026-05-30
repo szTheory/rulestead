@@ -33,7 +33,7 @@ echo "[verify] installing Playwright browser dependencies"
 echo "[verify] running FleetDesk adoption lab browser proof (kill switch + journeys)"
 (
   cd examples/demo/frontend
-  npm run test:e2e
+  CI=true npm run test:e2e
 )
 
 echo "[verify] compose smoke and browser proof passed"

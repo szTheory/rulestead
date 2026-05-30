@@ -109,7 +109,7 @@ The expected release path for the current shipped `0.1.x` line (currently `0.1.3
 Publish no longer fakes merge CI success in preflight. `gate-ci-green` polls for up
 to ~15 minutes for a green `ci.yml` run on the release tag SHA (handles the
 release-please race where publish dispatches before merge CI finishes), including the
-`adopter contract (post-GA band)` job (`mix verify.phase76` via
+`adopter contract (post-GA band)` job (`mix verify.phase82` via
 `post_ga_band_closure` scope).
 
 ## Manual recovery path
@@ -432,12 +432,13 @@ Use this proof when closing v1.10 support truth or validating that docs, release
 contract, and the v1.9 proof superset still align.
 
 ```bash
-cd rulestead && mix verify.phase76
+cd rulestead && mix verify.phase82
 ```
 
-Integrator-facing alias (delegates to phase76):
+Integrator-facing alias (delegates to phase82):
 
-> Historical v1.10.1 gate: `mix verify.phase73` (unchanged task; superseded by phase76 for current merges).
+> Historical v1.10.1 gate: `mix verify.phase73` (unchanged task; superseded by phase82 for current merges).
+> Historical v1.11 gate: `mix verify.phase76` (unchanged task; superseded by phase82 for current merges).
 
 ```bash
 cd rulestead && mix verify.adopter
@@ -472,13 +473,21 @@ e2e (use `scripts/demo/verify.sh` for Playwright).
 | Command | Proves | Does not prove |
 |---------|--------|----------------|
 | `mix test` (both packages) | Full regression + `release_contract_test` | Faster milestone-only subset |
-| `mix verify.phase76` / `mix verify.adopter` | Post-GA band + v1.10.1 context + v1.11 intro-spine contract guards | Historical phase56-only regressions in isolation |
-| `mix verify.phase73` | Historical v1.10.1 gate (reproducibility) | Superseded by phase76 for current merges |
+| `mix verify.phase82` / `mix verify.adopter` | Post-GA band + v1.10.1 context + v1.11 intro-spine + v1.12 adoption-lab contract guards | Historical phase56-only regressions in isolation |
+| `mix verify.phase76` | Historical v1.11 gate (reproducibility) | Superseded by phase82 for current merges |
+| `mix verify.phase73` | Historical v1.10.1 gate (reproducibility) | Superseded by phase82 for current merges |
 | `mix verify.phase72` | Historical v1.10.0 gate | Superseded by phase73 for v1.10.1+ |
-| `mix verify.phase68` | v1.9 host preview evidence focus | Band-closure doc contracts only in phase76 |
-| `RULESTEAD_TEST_SCOPE=post_ga_band_closure` | Same as phase76 via CI script | Default merge gate (use `all`) |
-| `scripts/demo/proof.sh` | Demo smoke + phase76 (via adopter) | Playwright frontend |
+| `mix verify.phase68` | v1.9 host preview evidence focus | Band-closure doc contracts only in phase82 |
+| `RULESTEAD_TEST_SCOPE=post_ga_band_closure` | Same as phase82 via CI script | Default merge gate (use `all`) |
+| `RULESTEAD_TEST_SCOPE=install_journey` | Fresh-install golden-diff journey | FleetDesk compose/Playwright |
+| `scripts/demo/proof.sh` | Demo smoke + phase82 (via adopter) | Playwright frontend |
 | `scripts/demo/verify.sh` | Compose + Playwright e2e | Entire ExUnit suite |
+
+### When you change FleetDesk
+
+1. Update seeds, compose, or Playwright → sync [examples/demo/README.md](../examples/demo/README.md).
+2. Update persona paths and connect URLs in [guides/introduction/adoption-lab.md](../guides/introduction/adoption-lab.md).
+3. Run `cd rulestead && mix test test/rulestead/adoption_lab_contract_test.exs`.
 
 ## Lifecycle Release Surface
 

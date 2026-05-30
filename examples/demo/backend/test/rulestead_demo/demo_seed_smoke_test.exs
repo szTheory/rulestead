@@ -9,7 +9,9 @@ defmodule RulesteadDemo.DemoSeedSmokeTest do
     "enable-new-dashboard",
     "fleet-map-v2",
     "dispatch-ops-copy",
-    "ops-banner-config"
+    "ops-banner-config",
+    "dispatch-guarded-rollout",
+    "ops-audience-preview"
   ]
 
   setup do
@@ -51,7 +53,38 @@ defmodule RulesteadDemo.DemoSeedSmokeTest do
     payload = json_response(conn, 200)
     assert payload["product"] == "FleetDesk"
     assert length(payload["personas"]) == length(Fixtures.personas())
-    assert length(payload["flags"]) == 4
+    assert length(payload["flags"]) == 6
+  end
+
+  test "preview evidence resolver returns support-safe audience preview", %{conn: _conn} do
+    actor = Fixtures.demo_actor()
+
+    assert {:ok, preview} =
+             Rulestead.preview_audience_impact(
+               "fleet-ops-dispatchers",
+               :update,
+               environment_key: "staging",
+               tenant_key: "acme-logistics",
+               after_definition: %{
+                 conditions: [%{attribute: "plan", operator: "eq", value: "enterprise"}]
+               },
+               actor: actor,
+               reason: "adoption lab audience preview smoke"
+             )
+
+    assert preview.preview_basis == "authored_state_with_host_evidence"
+    assert preview.uncertainty.authoritative_population_count? == false
+    assert [%{actor_key: "fleetdesk-fleet-ops-dispatchers"}] = preview.sample_evidence
+    assert preview.impression_evidence[:window_label] == "last_24h"
+  end
+
+  test "guarded rollout flag is visible on admin mount", %{conn: conn} do
+    sign_in_conn = get(conn, ~p"/demo/sign-in")
+    recycled_conn = Phoenix.ConnTest.recycle(sign_in_conn)
+    {:ok, _view, html} = live(recycled_conn, "/admin/flags/dispatch-guarded-rollout/rollouts?env=staging")
+
+    assert html =~ "Rollout controls"
+    assert html =~ "dispatch_error_rate"
   end
 
   test "explain API returns support-safe trace for primary flag", %{conn: conn} do
