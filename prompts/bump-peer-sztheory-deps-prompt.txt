@@ -1,0 +1,50 @@
+bump-peer-sztheory-deps-prompt.txt
+---
+
+Systematically bump optional and integration dependencies published under
+https://hex.pm/users/sztheory (and third-party integration deps used in this
+repo). Silence on the wire: if everything is already current, say so and stop.
+
+## Inventory (run first)
+
+1. Grep all `mix.exs` and `mix.lock` under the repo root for declared deps:
+   - `rulestead/mix.exs`
+   - `rulestead_admin/mix.exs`
+   - `open_feature_rulestead/mix.exs`
+   - `examples/demo/backend/mix.exs`
+
+2. Cross-reference against https://hex.pm/users/sztheory for latest versions.
+   Local clones live in `~/projects/*` when API/changelog context is needed.
+
+3. Known integration deps (may not be szTheory-owned):
+   - `a11y_audit` — rulestead_admin test-only a11y gate
+   - `open_feature` — open_feature_rulestead companion provider
+
+4. Do NOT add speculative optional deps (`sigra`, `mailglass`, `accrue`,
+   `threadline`, etc.) unless they already appear in a `mix.exs`. Those are
+   design-only in `prompts/rulestead-engineering-dna-from-prior-libs.md`.
+
+## Bump procedure
+
+For each package with a stale constraint:
+
+```bash
+cd rulestead_admin && mix deps.update a11y_audit && mix test
+cd ../open_feature_rulestead && mix deps.get && mix test test/open_feature_rulestead/
+cd ../rulestead && mix ci && mix verify.adopter
+bash scripts/ci/local.sh
+```
+
+Fix API breakages at call sites in the same change set. Prefer narrow diffs.
+
+## Verification before claiming done
+
+- `bash scripts/maintainer/repo_hygiene_check.sh` — no BLOCK results
+- `cd rulestead && mix ci && mix verify.adopter`
+- If release-please manifest bumped: confirm linked versions in both packages
+
+## Out of scope
+
+- Reopening GOV-01, ROL-04, IMP-05 as unbuilt work
+- Adding new szTheory optional deps without an explicit requirement
+- Publishing `open_feature_rulestead` to Hex (companion proof only)

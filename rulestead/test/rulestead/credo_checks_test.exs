@@ -10,7 +10,12 @@ defmodule Rulestead.CredoChecksTest do
   @fixtures_dir Path.expand("../support/credo_fixtures", __DIR__)
 
   setup_all do
-    {:ok, _} = Application.ensure_all_started(:credo)
+    case Application.ensure_all_started(:credo) do
+      {:ok, _} -> :ok
+      {:error, {:credo, {:already_started, _}}} -> :ok
+      other -> raise "failed to start :credo: #{inspect(other)}"
+    end
+
     :ok
   end
 

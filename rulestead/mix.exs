@@ -15,13 +15,15 @@ defmodule Rulestead.MixProject do
       deps: deps(),
       package: package(),
       docs: docs(),
-      dialyzer: dialyzer()
+      dialyzer: dialyzer(),
+      aliases: aliases()
     ]
   end
 
   def cli do
     [
       preferred_envs: [
+        {:ci, :test},
         {:"verify.phase54", :test},
         {:"verify.phase55", :test},
         {:"verify.phase56", :test},
@@ -57,7 +59,7 @@ defmodule Rulestead.MixProject do
       {:stream_data, "~> 1.1", only: :test},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
-      {:ex_doc, "~> 0.38", only: :dev, runtime: false}
+      {:ex_doc, "~> 0.38", only: [:dev, :test], runtime: false}
     ]
   end
 
@@ -160,6 +162,12 @@ defmodule Rulestead.MixProject do
       flags: [:error_handling, :extra_return, :missing_return],
       ignore_warnings: ".dialyzer_ignore.exs",
       list_unused_filters: true
+    ]
+  end
+
+  defp aliases do
+    [
+      ci: ["cmd bash ../scripts/ci/contributor.sh"]
     ]
   end
 end
