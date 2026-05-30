@@ -41,9 +41,12 @@ test.describe("FleetDesk adoption journeys", () => {
     await page.getByRole("button", { name: "Developer tools" }).click();
 
     const devPanel = page.getByLabel("Developer tools");
-    await expect(devPanel.getByText("Explain trace")).toBeVisible();
+    await expect(devPanel.getByRole("heading", { name: "Explain trace" })).toBeVisible();
+    await expect(devPanel.getByText("Environment staging")).toBeVisible({
+      timeout: 15_000,
+    });
     await expect(
-      devPanel.getByText(/Matched rule|No rule matched|Environment staging|snapshot v/i),
+      devPanel.getByText(/Matched rule|No rule matched|Explain trace will appear after/i).first(),
     ).toBeVisible({
       timeout: 15_000,
     });
