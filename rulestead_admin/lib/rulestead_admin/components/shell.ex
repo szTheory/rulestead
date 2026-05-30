@@ -6,6 +6,7 @@ defmodule RulesteadAdmin.Components.Shell do
   attr(:page_title, :string, required: true)
   attr(:page_kicker, :string, required: true)
   attr(:page_summary, :string, required: true)
+  attr(:breadcrumbs, :list, default: [])
   attr(:current_environment, :map, required: true)
   attr(:environments, :list, default: [])
   attr(:env_links, :map, default: %{})
@@ -23,6 +24,14 @@ defmodule RulesteadAdmin.Components.Shell do
     <div class="rs-shell" data-env-tone={@env_tone}>
       <header class="rs-shell__header">
         <div>
+          <nav :if={@breadcrumbs != []} aria-label="Breadcrumb" class="rs-shell__breadcrumbs" style="margin-bottom: 0.5rem; font-size: 0.85rem;">
+            <ol style="list-style: none; padding: 0; margin: 0; display: flex; gap: 0.5rem;">
+              <li :for={{crumb, index} <- Enum.with_index(@breadcrumbs)}>
+                <a href={crumb.path} class="rs-shell__breadcrumb-link" style="color: var(--rs-text-muted); text-decoration: none;"><%= crumb.label %></a>
+                <span :if={index < length(@breadcrumbs) - 1} style="color: var(--rs-border-strong); margin-left: 0.5rem;" aria-hidden="true">/</span>
+              </li>
+            </ol>
+          </nav>
           <p class="rs-shell__kicker"><%= @page_kicker %></p>
           <h1 class="rs-shell__title"><%= @page_title %></h1>
           <p class="rs-shell__summary"><%= @page_summary %></p>

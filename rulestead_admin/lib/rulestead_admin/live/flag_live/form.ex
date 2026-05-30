@@ -109,12 +109,13 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
     <Shell.page
       page_title={if @mode == :new, do: "Create flag", else: "Edit flag"}
       page_kicker="Flag metadata"
-      page_summary="Create or update owner, lifecycle metadata, description, tags, type, and default value."
+      page_summary={if @mode == :new, do: "Create a new runtime decision point.", else: "Update flag metadata."}
+      breadcrumbs={[%{label: "Back to flags", path: "/admin/flags?env=" <> @current_environment.key}]}
       current_environment={@current_environment}
-      environments={@available_environments}
+      environments={[]}
       env_links={%{}}
     >
-      <form aria-label="Flag metadata form" phx-submit="save">
+      <form aria-label="Flag metadata form" phx-change="validate" phx-submit="save">
         <p :if={@errors["base"]} role="alert"><%= @errors["base"] %></p>
 
         <label>
@@ -146,41 +147,51 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
         <label>
           <span>Owner reference</span>
           <input type="text" name="flag[owner_ref]" value={@form_data["owner_ref"]} />
+          <p class="rs-form-help" style="font-size: 0.85em; color: var(--rs-color-text-muted, #666);">Stable system identifier (e.g., GitHub team slug, Jira ID, or email).</p>
         </label>
         <p :if={@errors["owner_ref"]} role="alert"><%= @errors["owner_ref"] %></p>
 
-        <label>
-          <span>Owner kind</span>
-          <select name="flag[owner_kind]">
-            <option value="">Choose owner kind</option>
-            <option
-              :for={{label, value} <- @owner_kind_options}
-              value={value}
-              selected={@form_data["owner_kind"] == value}
-            >
+        <fieldset class="rs-radio-group" style="margin-bottom: 1rem; border: none; padding: 0;">
+          <legend style="font-weight: 600; margin-bottom: 0.5rem;">Owner kind</legend>
+          <div style="display: flex; gap: 1.5rem;">
+            <label :for={{label, value} <- @owner_kind_options} style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal;">
+              <input type="radio" name="flag[owner_kind]" value={value} checked={@form_data["owner_kind"] == value} />
               <%= label %>
-            </option>
-          </select>
-        </label>
+            </label>
+          </div>
+        </fieldset>
         <p :if={@errors["owner_kind"]} role="alert"><%= @errors["owner_kind"] %></p>
 
         <label>
           <span>Owner display</span>
           <input type="text" name="flag[owner_display]" value={@form_data["owner_display"]} />
+          <p class="rs-form-help" style="font-size: 0.85em; color: var(--rs-color-text-muted, #666);">Human-readable name to show in the UI (e.g., "Checkout Team").</p>
         </label>
 
         <fieldset class="rs-radio-group" style="margin-bottom: 1rem; border: none; padding: 0;">
           <legend style="font-weight: 600; margin-bottom: 0.5rem;">Flag type</legend>
-          <div :for={{label, value} <- @flag_type_options} style="margin-bottom: 0.5rem;">
-            <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal;">
+          <div :for={{label, value} <- @flag_type_options} style="margin-bottom: 0.75rem;">
+            <label style="display: flex; align-items: flex-start; gap: 0.5rem; font-weight: normal;">
               <input 
                 type="radio" 
                 name="flag[flag_type]" 
                 value={value} 
                 checked={@form_data["flag_type"] == value} 
                 disabled={@mode == :edit} 
+                style="margin-top: 0.25rem;"
               />
-              <%= label %>
+              <div>
+                <strong style="display: block; font-weight: 500;"><%= label %></strong>
+                <span class="rs-form-help" style="font-size: 0.85em; color: var(--rs-color-text-muted, #666);">
+                  <%= case value do
+                    "release" -> "Temporary toggles for rolling out new features safely. Expected to be removed once fully rolled out."
+                    "experiment" -> "Multivariate flags used to measure outcomes and test hypotheses. Expected to be removed after conclusion."
+                    "kill_switch" -> "Long-lived operational toggles to quickly disable broken features or dependencies in an emergency."
+                    "migration" -> "Long-lived toggles used to incrementally route traffic between old and new systems or databases."
+                    _ -> ""
+                  end %>
+                </span>
+              </div>
             </label>
           </div>
         </fieldset>
@@ -210,7 +221,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
           </div>
         </fieldset>
 
-        <label :if={@form_data["value_type"] != "boolean"}>
+        <label :if={@form_data["value_type"] not in ["boolean", "json"]}>
           <span>Default value</span>
           <input
             type={if @form_data["value_type"] == "integer", do: "number", else: "text"}
@@ -220,15 +231,22 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
           />
         </label>
 
-        <section aria-label="Lifecycle suggestion">
-          <strong>Suggested lifecycle</strong>
-          <p><%= humanize(@lifecycle_suggestion.mode || "explicit choice required") %></p>
-          <p><%= @lifecycle_suggestion.rationale %></p>
-          <p :if={@lifecycle_suggestion.default_overridden}>Operator override recorded.</p>
-        </section>
+        <label :if={@form_data["value_type"] == "json"}>
+          <span>Default value</span>
+          <textarea
+            name="flag[default_value]"
+            disabled={@mode == :edit}
+            style="font-family: var(--rs-font-mono); min-height: 80px;"
+          ><%= @form_data["default_value"] %></textarea>
+        </label>
 
         <fieldset class="rs-radio-group" style="margin-bottom: 1rem; border: none; padding: 0;">
           <legend style="font-weight: 600; margin-bottom: 0.5rem;">Lifecycle posture</legend>
+          <p class="rs-form-help" style="font-size: 0.85em; color: var(--rs-color-text-muted, #666); margin-bottom: 0.5rem;">
+            Suggestion: <strong><%= humanize(@lifecycle_suggestion.mode || "explicit choice required") %></strong>.
+            <%= @lifecycle_suggestion.rationale %>
+            <span :if={@lifecycle_suggestion.default_overridden}>(Operator override recorded).</span>
+          </p>
           <div style="display: flex; gap: 1rem;">
             <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal;">
               <input type="radio" name="flag[lifecycle_mode]" value="expiring" checked={@form_data["lifecycle_mode"] == "expiring"} /> Expiring
@@ -250,9 +268,10 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
         <label>
           <span>Tags</span>
           <input type="text" name="flag[tags]" value={@form_data["tags"]} />
+          <p class="rs-form-help" style="font-size: 0.85em; color: var(--rs-color-text-muted, #666);">Comma-separated values (e.g., "checkout, billing"). Used for filtering.</p>
         </label>
 
-        <button type="submit">{if @mode == :new, do: "Create flag", else: "Save metadata"}</button>
+        <button type="submit" class="rs-button rs-button--primary"><%= if @mode == :new, do: "Create flag", else: "Save metadata" %></button>
       </form>
     </Shell.page>
     """

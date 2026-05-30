@@ -122,7 +122,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
             <p>Monospace key, lifecycle, stale status, and environment state stay visible for fast scanning.</p>
           </div>
           <div :if={@rulestead_admin_policy_state.capabilities.edit? or @rulestead_admin_policy_state.capabilities.admin?}>
-            <a href={@base_path <> "/new?env=" <> @current_environment.key}>Create flag</a>
+            <a href={@base_path <> "/new?env=" <> @current_environment.key} class="rs-button rs-button--primary">Create flag</a>
           </div>
         </div>
 
