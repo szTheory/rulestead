@@ -76,7 +76,7 @@
   padding: 0.45rem 0.85rem;
 }
 
-.rs-button {
+.rs-shell .rs-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -90,22 +90,22 @@
   text-decoration: none;
 }
 
-.rs-button:hover:not(:disabled) {
+.rs-shell .rs-button:hover:not(:disabled) {
   border-color: var(--rs-border-strong);
   background: var(--rs-surface-muted);
   text-decoration: none;
 }
 
-.rs-button--primary {
+.rs-shell .rs-button--primary {
   background: var(--rs-primary);
   border-color: var(--rs-primary);
-  color: #ffffff !important;
+  color: #ffffff;
 }
 
-.rs-button--primary:hover:not(:disabled) {
+.rs-shell .rs-button--primary:hover:not(:disabled) {
   background: var(--rs-primary-hover);
   border-color: var(--rs-primary-hover);
-  color: #ffffff !important;
+  color: #ffffff;
 }
 
 .rs-shell h1,

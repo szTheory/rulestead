@@ -589,5 +589,3 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
 
   defp format_last_changed(value), do: to_string(value)
 end
-t_changed(value), do: to_string(value)
-end
