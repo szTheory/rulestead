@@ -148,6 +148,7 @@
 .rs-shell input[type="search"],
 .rs-shell input[type="number"],
 .rs-shell input[type="email"],
+.rs-shell input[type="date"],
 .rs-shell select,
 .rs-shell textarea {
   width: 100%;
@@ -156,6 +157,44 @@
   padding: 0.45rem 0.65rem;
   background: var(--rs-surface);
   color: var(--rs-text);
+}
+
+.rs-form-field {
+  margin-bottom: 1.5rem;
+}
+
+.rs-form-field label > span:first-child {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+  color: var(--rs-text);
+}
+
+.rs-fieldset {
+  margin-bottom: 1.5rem;
+  padding: 1.25rem;
+  border: 1px solid var(--rs-border);
+  border-radius: var(--rs-radius-md);
+  background: var(--rs-surface-muted);
+}
+.rs-fieldset > legend {
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 0 0.5rem;
+  color: var(--rs-text);
+}
+
+.rs-shell__breadcrumbs {
+  max-width: var(--rs-shell-max);
+  margin: 1rem auto 0.5rem;
+  padding: 0 1.25rem;
+  font-size: 0.85rem;
+}
+
+@media (min-width: 900px) {
+  .rs-shell__breadcrumbs {
+    padding: 0 2rem;
+  }
 }
 
 .rs-shell input:focus,

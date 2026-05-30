@@ -5,7 +5,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
   use Phoenix.LiveView
 
   alias Rulestead.Admin.LifecycleDefaults
-  alias RulesteadAdmin.Components.Shell
+  alias RulesteadAdmin.Components.{FlagComponents, Shell}
 
   @owner_kind_options [
     {"Person", "person"},
@@ -130,7 +130,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
       <form aria-label="Flag metadata form" phx-change="validate" phx-submit="save">
         <p :if={@errors["base"]} role="alert"><%= @errors["base"] %></p>
 
-        <div phx-feedback-for="flag_key">
+        <div phx-feedback-for="flag_key" class="rs-form-field">
           <label>
             <span>Key</span>
             <input type="text" id="flag_key" name="flag[key]" value={@form_data["key"]} disabled={@mode == :edit} />
@@ -139,60 +139,64 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
           <p :if={@errors["key"]} class="rs-form-error" role="alert"><%= @errors["key"] %></p>
         </div>
 
-        <div phx-feedback-for="flag_description">
+        <div phx-feedback-for="flag_description" class="rs-form-field">
           <label>
             <span>Description</span>
             <textarea id="flag_description" name="flag[description]"><%= @form_data["description"] %></textarea>
           </label>
         </div>
 
-        <div phx-feedback-for="flag_owner_picker_ref">
-          <label :if={@owner_picker_options != []}>
-            <span>Host owner picker</span>
-            <select id="flag_owner_picker_ref" name="flag[owner_picker_ref]">
-              <option value="">Manual entry</option>
-              <option
-                :for={option <- @owner_picker_options}
-                value={option.owner_ref}
-                selected={@form_data["owner_picker_ref"] == option.owner_ref}
-              >
-                <%= option.owner_display || option.owner_ref %>
-              </option>
-            </select>
-          </label>
-        </div>
+        <fieldset class="rs-fieldset">
+          <legend>Owner details</legend>
 
-        <div phx-feedback-for="flag_owner_ref">
-          <label>
-            <span>Owner reference</span>
-            <input type="text" id="flag_owner_ref" name="flag[owner_ref]" value={@form_data["owner_ref"]} />
-            <p class="rs-form-help" style="font-size: 0.85em; color: var(--rs-color-text-muted, #666); margin-top: 0.5rem;">Stable system identifier (e.g., GitHub team slug, Jira ID, or email).</p>
-          </label>
-          <p :if={@errors["owner_ref"]} class="rs-form-error" role="alert"><%= @errors["owner_ref"] %></p>
-        </div>
+          <div phx-feedback-for="flag_owner_picker_ref" class="rs-form-field">
+            <label :if={@owner_picker_options != []}>
+              <span>Host owner picker</span>
+              <select id="flag_owner_picker_ref" name="flag[owner_picker_ref]">
+                <option value="">Manual entry</option>
+                <option
+                  :for={option <- @owner_picker_options}
+                  value={option.owner_ref}
+                  selected={@form_data["owner_picker_ref"] == option.owner_ref}
+                >
+                  <%= option.owner_display || option.owner_ref %>
+                </option>
+              </select>
+            </label>
+          </div>
 
-        <div phx-feedback-for="flag_owner_kind">
-          <fieldset class="rs-radio-group" style="margin-bottom: 1rem; border: none; padding: 0;">
-            <legend style="font-weight: 600; margin-bottom: 0.5rem;">Owner kind</legend>
-            <div style="display: flex; gap: 1.5rem;">
-              <label :for={{label, value} <- @owner_kind_options} style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal;">
-                <input type="radio" id={"flag_owner_kind_#{value}"} name="flag[owner_kind]" value={value} checked={@form_data["owner_kind"] == value} />
-                <%= label %>
-              </label>
-            </div>
-          </fieldset>
-          <p :if={@errors["owner_kind"]} class="rs-form-error" role="alert"><%= @errors["owner_kind"] %></p>
-        </div>
+          <div phx-feedback-for="flag_owner_ref" class="rs-form-field">
+            <label>
+              <span>Owner ID</span>
+              <input type="text" id="flag_owner_ref" name="flag[owner_ref]" value={@form_data["owner_ref"]} />
+              <p class="rs-form-help" style="font-size: 0.85em; color: var(--rs-color-text-muted, #666); margin-top: 0.5rem;">Stable system identifier (e.g., GitHub team slug, Jira ID, or email).</p>
+            </label>
+            <p :if={@errors["owner_ref"]} class="rs-form-error" role="alert"><%= @errors["owner_ref"] %></p>
+          </div>
 
-        <div phx-feedback-for="flag_owner_display">
-          <label>
-            <span>Owner display</span>
-            <input type="text" id="flag_owner_display" name="flag[owner_display]" value={@form_data["owner_display"]} />
-            <p class="rs-form-help" style="font-size: 0.85em; color: var(--rs-color-text-muted, #666); margin-top: 0.5rem;">Human-readable name to show in the UI (e.g., "Checkout Team").</p>
-          </label>
-        </div>
+          <div phx-feedback-for="flag_owner_kind" class="rs-form-field">
+            <fieldset class="rs-radio-group" style="margin-bottom: 0.5rem; border: none; padding: 0;">
+              <legend style="font-weight: 600; margin-bottom: 0.5rem;">Owner type</legend>
+              <div style="display: flex; gap: 1.5rem;">
+                <label :for={{label, value} <- @owner_kind_options} style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal;">
+                  <input type="radio" id={"flag_owner_kind_#{value}"} name="flag[owner_kind]" value={value} checked={@form_data["owner_kind"] == value} />
+                  <%= label %>
+                </label>
+              </div>
+            </fieldset>
+            <p :if={@errors["owner_kind"]} class="rs-form-error" role="alert"><%= @errors["owner_kind"] %></p>
+          </div>
 
-        <div phx-feedback-for="flag_type">
+          <div phx-feedback-for="flag_owner_display" class="rs-form-field" style="margin-bottom: 0;">
+            <label>
+              <span>Display name</span>
+              <input type="text" id="flag_owner_display" name="flag[owner_display]" value={@form_data["owner_display"]} />
+              <p class="rs-form-help" style="font-size: 0.85em; color: var(--rs-color-text-muted, #666); margin-top: 0.5rem;">Human-readable name to show in the UI (e.g., "Checkout Team").</p>
+            </label>
+          </div>
+        </fieldset>
+
+        <div phx-feedback-for="flag_type" class="rs-form-field">
           <fieldset class="rs-radio-group" style="margin-bottom: 1rem; border: none; padding: 0;">
             <legend style="font-weight: 600; margin-bottom: 0.5rem;">Flag type</legend>
             <div :for={{label, value} <- @flag_type_options} style="margin-bottom: 0.75rem;">
@@ -212,7 +216,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
                     <%= case value do
                       "release" -> "Temporary toggles for rolling out new features safely. Expected to be removed once fully rolled out."
                       "experiment" -> "Multivariate flags used to measure outcomes and test hypotheses. Expected to be removed after conclusion."
-                      "kill_switch" -> "Long-lived operational toggles to quickly disable broken features or dependencies in an emergency."
+                      "kill_switch" -> "Long-lived emergency toggles to quickly disable broken features or dependencies."
+                      "operational" -> "Long-lived toggles used for operational control and infrastructure management."
                       "permission" -> "Long-lived toggles used to grant specific capabilities or tier access to actors."
                       "remote_config" -> "Long-lived settings used to dynamically configure system behavior without redeploying."
                       "migration" -> "Long-lived toggles used to incrementally route traffic between old and new systems or databases."
@@ -225,9 +230,9 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
           </fieldset>
         </div>
 
-        <div phx-feedback-for="flag_value_type">
+        <div phx-feedback-for="flag_value_type" class="rs-form-field">
           <label>
-            <span>Value type</span>
+            <span>Data type</span>
             <select id="flag_value_type" name="flag[value_type]" disabled={@mode == :edit}>
               <option
                 :for={{label, value} <- @value_type_options}
@@ -240,7 +245,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
           </label>
         </div>
 
-        <div phx-feedback-for="flag_default_value">
+        <div phx-feedback-for="flag_default_value" class="rs-form-field">
           <fieldset class="rs-radio-group" style="margin-bottom: 1rem; border: none; padding: 0;" :if={@form_data["value_type"] == "boolean"}>
             <legend style="font-weight: 600; margin-bottom: 0.5rem;">Default value</legend>
             <div style="display: flex; gap: 1rem;">
@@ -275,9 +280,9 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
           </label>
         </div>
 
-        <div phx-feedback-for="flag_lifecycle_mode">
+        <div phx-feedback-for="flag_lifecycle_mode" class="rs-form-field">
           <fieldset class="rs-radio-group" style="margin-bottom: 1rem; border: none; padding: 0;">
-            <legend style="font-weight: 600; margin-bottom: 0.5rem;">Lifecycle posture</legend>
+            <legend style="font-weight: 600; margin-bottom: 0.5rem;">Flag lifespan</legend>
             <p class="rs-form-help" style="font-size: 0.85em; color: var(--rs-color-text-muted, #666); margin-bottom: 0.5rem;">
               Suggestion: <strong><%= humanize(@lifecycle_suggestion.mode || "explicit choice required") %></strong>.
               <%= @lifecycle_suggestion.rationale %>
@@ -295,7 +300,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
           <p :if={@errors["lifecycle_mode"]} class="rs-form-error" role="alert"><%= @errors["lifecycle_mode"] %></p>
         </div>
 
-        <div phx-feedback-for="flag_review_by">
+        <div phx-feedback-for="flag_review_by" class="rs-form-field">
           <label>
             <span>Review by date</span>
             <input type="date" id="flag_review_by" name="flag[review_by]" value={@form_data["review_by"]} />
@@ -304,10 +309,13 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
           <p :if={@errors["review_by"]} class="rs-form-error" role="alert"><%= @errors["review_by"] %></p>
         </div>
 
-        <div phx-feedback-for="flag_tags">
+        <div phx-feedback-for="flag_tags" class="rs-form-field">
           <label>
             <span>Tags</span>
             <input type="text" id="flag_tags" name="flag[tags]" value={@form_data["tags"]} />
+            <div style="margin-top: 0.5rem;" :if={@form_data["tags"] != "" and @form_data["tags"] != nil}>
+              <FlagComponents.tag_list tags={parse_tags(@form_data["tags"])} />
+            </div>
             <p class="rs-form-help" style="font-size: 0.85em; color: var(--rs-color-text-muted, #666); margin-top: 0.5rem;">Comma-separated values (e.g., "checkout, billing"). Used for filtering.</p>
           </label>
         </div>

@@ -67,7 +67,7 @@ defmodule RulesteadAdmin.Components.Shell do
         </section>
       </header>
 
-      <nav :if={@breadcrumbs != []} aria-label="Breadcrumb" class="rs-shell__breadcrumbs" style="margin-top: 1rem; margin-bottom: 0.5rem; font-size: 0.85rem; padding: 0 var(--rs-shell-px);">
+      <nav :if={@breadcrumbs != []} aria-label="Breadcrumb" class="rs-shell__breadcrumbs">
         <ol style="list-style: none; padding: 0; margin: 0; display: flex; gap: 0.5rem;">
           <li :for={{crumb, index} <- Enum.with_index(@breadcrumbs)}>
             <a href={crumb.path} class="rs-shell__breadcrumb-link" style="color: var(--rs-text-muted); text-decoration: none;"><%= crumb.label %></a>
