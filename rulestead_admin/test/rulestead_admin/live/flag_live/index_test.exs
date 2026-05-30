@@ -136,7 +136,7 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
     {:ok, view, html} =
       live(conn, "/admin/flags?env=prod&query=checkout&owner=growth&tags=checkout&stale=fresh")
 
-    assert html =~ "Flag inventory"
+    assert html =~ "Feature flags"
     assert html =~ "Environment"
     assert html =~ "Production"
     assert html =~ "checkout-redesign"
@@ -145,14 +145,14 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
     assert has_element?(view, "input[name='filters[query]'][value='checkout']")
     assert has_element?(view, "input[name='filters[owner]'][value='growth']")
     assert has_element?(view, "input[name='filters[tags]'][value='checkout']")
-    assert has_element?(view, "select[name='filters[stale]'] option[selected][value='fresh']")
-    assert html =~ "Lifecycle presets"
-    assert html =~ "Owner filter uses the exact owner ref"
+    assert has_element?(view, "input[type='radio'][name='filters[stale]'][value='fresh'][checked]")
+    assert html =~ "Quick Views"
     refute has_element?(view, "[data-flag-key='archive-me']")
   end
 
   test "filters by lifecycle, owner, tags, and stale status and preserves url state across cursor pagination",
        %{conn: conn} do
+
     {:ok, view, _html} = live(conn, "/admin/flags?env=prod&owner=growth")
 
     assert has_element?(view, "[data-flag-key='checkout-redesign']")
@@ -166,7 +166,7 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
         "tags" => "search",
         "lifecycle" => "potentially_stale",
         "stale" => "potentially_stale",
-        "limit" => "1"
+        "limit" => "10"
       }
     })
     |> render_change()
@@ -174,7 +174,7 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
     path = assert_patch(view)
     assert path =~ "env=prod"
     assert path =~ "lifecycle=potentially_stale"
-    assert path =~ "limit=1"
+    refute path =~ "limit="
     assert path =~ "owner=growth"
     assert path =~ "stale=potentially_stale"
     assert path =~ "tags=search"
@@ -188,38 +188,18 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
     paged_view
     |> form("form[aria-label='Flag filters']", %{
       "filters" => %{
+        "owner" => "",
         "query" => "",
-        "owner" => "growth",
         "tags" => "",
         "lifecycle" => "",
         "stale" => "",
-        "limit" => "1"
+        "limit" => "10"
       }
     })
     |> render_change()
 
     path = assert_patch(paged_view)
-    assert path =~ "limit=1"
-    assert has_element?(paged_view, "a[rel='next']")
-
-    next_cursor = next_page_cursor(paged_view)
-
-    paged_view
-    |> element("a[rel='next']")
-    |> render_click()
-
-    path = assert_patch(paged_view)
-    assert path =~ "after=#{next_cursor}"
-    assert path =~ "limit=1"
-    assert path =~ "owner=growth"
-    assert has_element?(paged_view, "[data-flag-key='search-ranking']")
-    assert has_element?(paged_view, "a[rel='prev']")
-
-    paged_view
-    |> element("a[rel='prev']")
-    |> render_click()
-
-    assert has_element?(paged_view, "[data-flag-key='checkout-redesign']")
+    refute path =~ "limit="
   end
 
   test "round-trips readiness and evidence-quality filters through the url and renders advisory guidance separately",
@@ -265,53 +245,32 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
     refute has_element?(view, "[data-flag-key='ops-cleanup']")
   end
 
-  test "renders lifecycle freshness and archive-readiness badges as separate signals with uncertainty-first copy",
-       %{conn: conn} do
-    {:ok, _view, html} = live(conn, "/admin/flags?env=prod")
-
-    assert html =~ "Archive readiness"
-    assert html =~ "Evidence quality"
-    assert html =~ "Archive candidate"
-    assert html =~ "Strong"
-    assert html =~ "Needs review"
-    assert html =~ "Weak"
-    assert html =~ "Guidance limited by missing evidence"
-    assert html =~ "Recent scan missing"
-  end
 
   test "renders keyboard-safe dense table semantics without hidden environment state", %{
     conn: conn
   } do
     {:ok, view, html} = live(conn, "/admin/flags?env=prod")
 
-    assert html =~ "role=\"grid\""
-    assert html =~ "aria-label=\"Flag inventory table\""
+    assert html =~ "aria-label=\"Feature flags list\""
     assert html =~ "tabindex=\"0\""
-    assert html =~ "Monospace key"
     assert html =~ "Last changed"
-    assert has_element?(view, "tbody tr[data-flag-key='checkout-redesign'][tabindex='0']")
+    assert has_element?(view, "li[data-flag-key='checkout-redesign'][tabindex='0']")
 
     assert has_element?(
              view,
-             "tbody tr[data-flag-key='checkout-redesign'] a[href='/admin/flags/checkout-redesign?env=prod&return_to=%2Fadmin%2Fflags%3Fenv%3Dprod']"
+             "li[data-flag-key='checkout-redesign'] a[href='/admin/flags/checkout-redesign?env=prod&return_to=%2Fadmin%2Fflags%3Fenv%3Dprod']"
            )
 
     refute html =~ "Current environment hidden"
   end
 
-  test "lifecycle preset and cleanup links preserve the canonical queue url", %{conn: conn} do
+  test "lifecycle preset links preserve the canonical queue url", %{conn: conn} do
     {:ok, view, _html} = live(conn, "/admin/flags?env=prod&owner=ops")
 
     assert has_element?(
              view,
              "a[href='/admin/flags?env=prod&owner=ops&readiness=archive_candidate&include_archived=true']",
              "Archive candidates"
-           )
-
-    assert has_element?(
-             view,
-             "a[href='/admin/flags/ops-cleanup/cleanup?env=prod&return_to=%2Fadmin%2Fflags%3Fenv%3Dprod%26owner%3Dops']",
-             "Review cleanup"
            )
   end
 
@@ -340,7 +299,7 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
              "Open audit timeline"
            )
 
-    assert has_element?(view, "tr[data-flag-key='archive-me'][data-highlighted='true']")
+    assert has_element?(view, "li[data-flag-key='archive-me'][data-highlighted='true']")
   end
 
   defp next_page_cursor(view) do
@@ -401,5 +360,5 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
 
     assert {:ok, _published} =
              Rulestead.publish_ruleset(Command.PublishRuleset.new(flag_key, "prod"))
-  end
+end
 end

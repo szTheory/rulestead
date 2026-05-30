@@ -64,6 +64,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
       |> assign(:allowed_readiness, @allowed_readiness)
       |> assign(:allowed_evidence_quality, @allowed_evidence_quality)
       |> assign(:lifecycle_presets, @lifecycle_presets)
+      |> assign(:show_advanced_filters, false)
       |> stream_configure(:flags, dom_id: &"flag-#{&1.flag.key}")
       |> stream(:flags, [])
 
@@ -106,6 +107,11 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
   end
 
   @impl true
+  def handle_event("toggle_advanced_filters", _, socket) do
+    {:noreply, assign(socket, :show_advanced_filters, !socket.assigns.show_advanced_filters)}
+  end
+
+  @impl true
   def handle_event("filters_changed", %{"filters" => filters}, socket) do
     merged_filters =
       socket.assigns.filters
@@ -144,137 +150,164 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
       </FlagComponents.callout>
 
       <section class="rs-inventory">
-        <div class="rs-inventory__toolbar">
+        <div class="rs-inventory__toolbar" style="margin-bottom: 1rem;">
           <div>
-            <h2>Flag inventory</h2>
-            <p>Monospace key, lifecycle, stale status, and environment state stay visible for fast scanning.</p>
+            <h2 class="sr-only">Feature flags filters and actions</h2>
           </div>
           <div :if={@rulestead_admin_policy_state.capabilities.edit? or @rulestead_admin_policy_state.capabilities.admin?}>
             <a href={@base_path <> "/new?env=" <> @current_environment.key} class="rs-button rs-button--primary">Create flag</a>
           </div>
         </div>
 
-        <nav aria-label="Lifecycle preset strip" class="rs-filter-presets">
-          <div>
-            <h3>Lifecycle presets</h3>
-            <p>Quick filters to manage technical debt. "Archive candidates" finds fully rolled-out, stale flags.</p>
-          </div>
-          <div class="rs-filter-presets__links">
-            <.link
-              :for={{label, params} <- @lifecycle_presets}
-              patch={preset_path(@base_path, @filters, params)}
-              aria-current={if active_preset?(@filters, params), do: "page", else: nil}
-              class={if active_preset?(@filters, params), do: "rs-filter-preset--active", else: ""}
-            >
-              <%= label %>
-            </.link>
-          </div>
-        </nav>
+        <div class="rs-filter-panel" style="background: var(--rs-color-surface, #fff); border: 1px solid var(--rs-color-border, #e5e7eb); border-radius: 0.5rem; margin-bottom: 2rem; overflow: hidden;">
+          <nav aria-label="Lifecycle preset strip" class="rs-filter-presets" style="padding: 1rem 1.5rem; border-bottom: 1px solid var(--rs-color-border, #e5e7eb); background: var(--rs-color-bg-subtle, #f9fafb);">
+            <div style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between;">
+              <h3 style="margin: 0; font-size: 0.875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--rs-color-text-muted, #6b7280);">Quick Views</h3>
+              <div class="rs-filter-presets__links" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                <.link
+                  :for={{label, params} <- @lifecycle_presets}
+                  patch={preset_path(@base_path, @filters, params)}
+                  aria-current={if active_preset?(@filters, params), do: "page", else: nil}
+                  class={if active_preset?(@filters, params), do: "rs-filter-preset--active", else: ""}
+                  style="padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.875rem; text-decoration: none; border: 1px solid transparent;"
+                >
+                  <%= label %>
+                </.link>
+              </div>
+            </div>
+            <p style="margin: 0.5rem 0 0; font-size: 0.875rem; color: var(--rs-color-text-muted, #6b7280);">
+              <strong>Archive candidates</strong> are fully rolled-out flags that haven't been evaluated recently. <strong>Needs review</strong> highlights flags past their intended review date. <strong>Recently stale</strong> shows flags that recently stopped receiving traffic.
+            </p>
+          </nav>
 
-        <form aria-label="Flag filters" phx-change="filters_changed" class="rs-filter-grid">
-          <input type="hidden" name="filters[env]" value={@current_environment.key} />
-          <label>
-            <span>Search</span>
-            <input type="text" name="filters[query]" value={@filters["query"]} phx-debounce="300" />
-            <small>Search covers owner display and legacy labels without changing the owner filter.</small>
-          </label>
-          <label>
-            <span>Owner ref</span>
-            <input type="text" name="filters[owner]" value={@filters["owner"]} phx-debounce="300" />
-            <small>Owner filter uses the exact owner ref. Use Search for broader owner discovery.</small>
-          </label>
-          <label>
-            <span>Tags</span>
-            <input type="text" name="filters[tags]" value={@filters["tags"]} placeholder="checkout, infra" phx-debounce="300" />
-          </label>
-          <label>
-            <span>Lifecycle</span>
-            <select name="filters[lifecycle]">
-              <option value="">All lifecycle states</option>
-              <option :for={state <- @allowed_lifecycle} value={state} selected={@filters["lifecycle"] == state}>
-                <%= humanize(state) %>
-              </option>
-            </select>
-          </label>
-          <label>
-            <span>Stale status</span>
-            <select name="filters[stale]">
-              <option value="">All freshness states</option>
-              <option :for={state <- @allowed_stale} value={state} selected={@filters["stale"] == state}>
-                <%= humanize(state) %>
-              </option>
-            </select>
-          </label>
-          <label>
-            <span>Rows</span>
-            <select name="filters[limit]">
-              <option :for={limit <- [10, 25, 50, 100]} value={limit} selected={Integer.to_string(limit) == @filters["limit"]}>
-                <%= limit %>
-              </option>
-            </select>
-          </label>
-          <label>
-            <span>Archive readiness</span>
-            <select name="filters[readiness]">
-              <option value="">All readiness states</option>
-              <option :for={state <- @allowed_readiness} value={state} selected={@filters["readiness"] == state}>
-                <%= humanize(state) %>
-              </option>
-            </select>
-          </label>
-          <label>
-            <span>Evidence quality</span>
-            <select name="filters[evidence_quality]">
-              <option value="">All evidence states</option>
-              <option :for={state <- @allowed_evidence_quality} value={state} selected={@filters["evidence_quality"] == state}>
-                <%= humanize(state) %>
-              </option>
-            </select>
-          </label>
-          <label class="rs-filter-grid__checkbox">
-            <input type="checkbox" name="filters[include_archived]" value="true" checked={@filters["include_archived"] == "true"} />
-            <span>Include archived</span>
-          </label>
+          <form id="flag-filters-form" aria-label="Flag filters" phx-change="filters_changed" phx-submit="filters_changed" class="rs-filters" style="padding: 1.5rem;" onsubmit="return false;">
+            <div class="rs-filter-grid rs-filter-grid--primary">
+              <input type="hidden" name="filters[env]" value={@current_environment.key} />
+              
+              <div style="display: grid; grid-template-columns: 1fr max-content; gap: 1.5rem; grid-column: 1 / -1; margin-bottom: 1.5rem; align-items: center;">
+                <label style="margin: 0;">
+                  <span class="sr-only">Search</span>
+                  <input type="text" name="filters[query]" value={@filters["query"]} placeholder="Search flags by key, tags, or description..." phx-debounce="300" style="width: 100%;" />
+                </label>
+                <label style="margin: 0; display: flex; align-items: center; gap: 0.75rem;">
+                  <span style="font-weight: 500; font-size: 0.875rem; color: var(--rs-color-text-muted, #4b5563); white-space: nowrap;">Sort by</span>
+                  <select name="filters[sort]" style="width: auto; margin: 0;">
+                    <option value="flag_key" selected={@filters["sort"] == "flag_key"}>Key (A-Z)</option>
+                    <option value="updated_at" selected={@filters["sort"] == "updated_at"}>Recently updated</option>
+                    <option value="inserted_at" selected={@filters["sort"] == "inserted_at"}>Newest first</option>
+                  </select>
+                </label>
+              </div>
+
+              <div style="grid-column: 1 / -1; display: flex; flex-direction: column; gap: 1.5rem;">
+                <fieldset class="rs-radio-group" style="margin: 0; padding: 0; border: none;">
+                  <legend style="font-weight: 600; font-size: 0.875rem; margin-bottom: 0.75rem;">Lifecycle state</legend>
+                  <div style="display: flex; flex-wrap: wrap; gap: 1.5rem;">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: 400; margin: 0; cursor: pointer;">
+                      <input type="radio" name="filters[lifecycle]" value="" checked={@filters["lifecycle"] == ""} /> All
+                    </label>
+                    <label :for={state <- @allowed_lifecycle} style="display: flex; align-items: center; gap: 0.5rem; font-weight: 400; margin: 0; cursor: pointer;">
+                      <input type="radio" name="filters[lifecycle]" value={state} checked={@filters["lifecycle"] == state} /> <%= humanize(state) %>
+                    </label>
+                  </div>
+                </fieldset>
+                
+                <fieldset class="rs-radio-group" style="margin: 0; padding: 0; border: none;">
+                  <legend style="font-weight: 600; font-size: 0.875rem; margin-bottom: 0.75rem;">Stale status</legend>
+                  <div style="display: flex; flex-wrap: wrap; gap: 1.5rem;">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: 400; margin: 0; cursor: pointer;">
+                      <input type="radio" name="filters[stale]" value="" checked={@filters["stale"] == ""} /> All
+                    </label>
+                    <label :for={state <- @allowed_stale} style="display: flex; align-items: center; gap: 0.5rem; font-weight: 400; margin: 0; cursor: pointer;">
+                      <input type="radio" name="filters[stale]" value={state} checked={@filters["stale"] == state} /> <%= humanize(state) %>
+                    </label>
+                  </div>
+                </fieldset>
+              </div>
+
+              <div class="rs-filter-grid__actions" style="grid-column: 1 / -1; margin-top: 1rem;">
+                <button type="button" phx-click="toggle_advanced_filters" class="rs-link" style="background: none; border: none; padding: 0; color: var(--rs-color-primary, #2563eb); cursor: pointer; font-size: 0.875rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.375rem;">
+                  <%= if @show_advanced_filters do %>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 1.25rem; height: 1.25rem;"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5" /></svg>
+                    Hide advanced filters
+                  <% else %>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 1.25rem; height: 1.25rem;"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
+                    Show advanced filters
+                  <% end %>
+                </button>
+              </div>
+            </div>
+
+            <div class={["rs-filter-grid rs-filter-grid--advanced", not @show_advanced_filters && "hidden"]} style={"margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--rs-color-border, #e5e7eb);" <> (if not @show_advanced_filters, do: " display: none;", else: "")}>
+            <label>
+              <span>Owner ref</span>
+              <input type="text" name="filters[owner]" value={@filters["owner"]} phx-debounce="300" />
+            </label>
+            <label>
+              <span>Tags</span>
+              <input type="text" name="filters[tags]" value={@filters["tags"]} placeholder="checkout, infra" phx-debounce="300" />
+            </label>
+            <label>
+              <span>Rows</span>
+              <select name="filters[limit]">
+                <option :for={limit <- [10, 25, 50, 100]} value={limit} selected={Integer.to_string(limit) == @filters["limit"]}>
+                  <%= limit %>
+                </option>
+              </select>
+            </label>
+            <label>
+              <span>Archive readiness</span>
+              <select name="filters[readiness]">
+                <option value="">All readiness states</option>
+                <option :for={state <- @allowed_readiness} value={state} selected={@filters["readiness"] == state}>
+                  <%= humanize(state) %>
+                </option>
+              </select>
+            </label>
+            <label>
+              <span>Evidence quality</span>
+              <select name="filters[evidence_quality]">
+                <option value="">All evidence states</option>
+                <option :for={state <- @allowed_evidence_quality} value={state} selected={@filters["evidence_quality"] == state}>
+                  <%= humanize(state) %>
+                </option>
+              </select>
+            </label>
+            <label class="rs-filter-grid__checkbox" style="align-self: flex-end; padding-bottom: 0.5rem;">
+              <input type="hidden" name="filters[include_archived]" value="false" />
+              <input type="checkbox" name="filters[include_archived]" value="true" checked={@filters["include_archived"] == "true"} />
+              <span>Include archived</span>
+            </label>
+          </div>
         </form>
+        </div>
 
         <p :if={@error_message} role="alert"><%= @error_message %></p>
 
-        <table role="grid" aria-label="Flag inventory table" class="rs-table">
-          <caption class="sr-only">Flag inventory table</caption>
-          <thead>
-            <tr>
-              <th scope="col">Key</th>
-              <th scope="col">Type</th>
-              <th scope="col">Tags</th>
-              <th scope="col" title="Stable owner reference or display name">Owner</th>
-              <th scope="col">Lifecycle</th>
-              <th scope="col">Environment status</th>
-              <th scope="col">Stale indicator</th>
-              <th scope="col">Archive readiness</th>
-              <th scope="col">Evidence quality</th>
-              <th scope="col">Advisory note</th>
-              <th scope="col">Last changed</th>
-            </tr>
-          </thead>
-          <tbody id="flags" phx-update="stream">
-            <tr
-              :for={{dom_id, entry} <- @streams.flags}
-              id={dom_id}
-              data-flag-key={entry.flag.key}
-              data-highlighted={to_string(@highlighted_flag_key == entry.flag.key)}
-              tabindex="0"
-            >
-              <td>
-                <a href={flag_path(assigns, entry.flag.key)}>
+        <div class="rs-results-header" style="margin-bottom: 1rem;">
+          <h3 style="margin: 0; font-size: 1rem; font-weight: 600; color: var(--rs-color-text, #111827);">
+            Feature flags (<%= length(@page.entries) %><%= if @page.has_next_page?, do: "+", else: "" %>)
+          </h3>
+        </div>
+
+        <ul id="flags" phx-update="stream" aria-label="Feature flags list" class="rs-card-list">
+          <li
+            :for={{dom_id, entry} <- @streams.flags}
+            id={dom_id}
+            data-flag-key={entry.flag.key}
+            data-highlighted={to_string(@highlighted_flag_key == entry.flag.key)}
+            tabindex="0"
+            class="rs-card rs-card--flag"
+            style="margin-bottom: 1rem; padding: 1.5rem; border: 1px solid var(--rs-color-border, #e5e7eb); border-radius: 0.5rem; background: var(--rs-color-surface, #fff);"
+          >
+            <div class="rs-card__header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+              <div class="rs-card__title-group" style="display: flex; align-items: center; gap: 0.75rem;">
+                <a href={flag_path(assigns, entry.flag.key)} style="font-size: 1.125rem; font-weight: 600; text-decoration: none;">
                   <code><%= entry.flag.key %></code>
                 </a>
-              </td>
-              <td><%= humanize(entry.flag.flag_type) %></td>
-              <td><FlagComponents.tag_list tags={entry.flag.tags} /></td>
-              <td><%= entry.flag.ownership.owner_display || entry.flag.ownership.owner_ref %></td>
-              <td><FlagComponents.lifecycle_badge state={entry.lifecycle} /></td>
-              <td><FlagComponents.environment_status status={entry.environment_status || entry.flag_environment.status || :draft} /></td>
-              <td>
+                <FlagComponents.environment_status status={entry.environment_status || entry.flag_environment.status || :draft} />
+              </div>
+              <div class="rs-card__actions">
                 <%= if stale_state(entry.lifecycle) in [:stale, :potentially_stale] do %>
                   <a href={cleanup_path(assigns, entry.flag.key)}>
                     <FlagComponents.stale_badge state={stale_state(entry.lifecycle)} last_evaluated_at={entry.lifecycle.last_evaluated_at} />
@@ -282,36 +315,50 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
                 <% else %>
                   <FlagComponents.stale_badge state={stale_state(entry.lifecycle)} last_evaluated_at={entry.lifecycle.last_evaluated_at} />
                 <% end %>
-              </td>
-              <td><FlagComponents.readiness_badge readiness={entry.lifecycle.archive_readiness.readiness} /></td>
-              <td><FlagComponents.evidence_quality_badge quality={entry.lifecycle.archive_readiness.evidence_quality} /></td>
-              <td>
-                <p><%= advisory_note(entry.lifecycle) %></p>
-                <a :if={show_cleanup_link?(entry.lifecycle)} href={cleanup_path(assigns, entry.flag.key)}>
-                  Review cleanup
-                </a>
-              </td>
-              <td>
-                <span title={format_last_changed_utc(entry.flag.updated_at || entry.flag.inserted_at)}>
-                  <%= format_last_changed_relative(entry.flag.updated_at || entry.flag.inserted_at) %>
+              </div>
+            </div>
+            
+            <div class="rs-card__body" style="margin-bottom: 1.25rem;">
+              <p class="rs-card__description" style="color: var(--rs-color-text-muted, #4b5563); margin: 0;">
+                <%= entry.flag.description || "No description provided." %>
+              </p>
+            </div>
+
+            <div class="rs-card__footer" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; border-top: 1px solid var(--rs-color-border-light, #f3f4f6); padding-top: 1rem; font-size: 0.875rem; color: var(--rs-color-text-muted, #6b7280);">
+              <div class="rs-card__meta" style="display: flex; flex-wrap: wrap; gap: 1.5rem;">
+                <span class="rs-card__meta-item" title="Lifecycle" style="display: flex; align-items: center; gap: 0.375rem;">
+                  <strong>Lifecycle:</strong> <%= humanize(entry.lifecycle.mode) %>
                 </span>
-              </td>
-            </tr>
-            <tr :if={Enum.empty?(@page.entries)} id="flags-empty">
-              <td colspan="11" class="rs-table__empty-cell">
-                <div class="rs-empty-state">
-                  <div class="rs-empty-state__icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                  </div>
-                  <h3 class="rs-empty-state__title">No flags found</h3>
-                  <p class="rs-empty-state__text">Try adjusting your filters or search query, or create a new flag.</p>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+                <span class="rs-card__meta-item" title="Owner" style="display: flex; align-items: center; gap: 0.375rem;">
+                  <strong>Owner:</strong> <%= entry.flag.ownership.owner_display || entry.flag.ownership.owner_ref %>
+                </span>
+                <span class="rs-card__meta-item" title="Type" style="display: flex; align-items: center; gap: 0.375rem;">
+                  <strong>Type:</strong> <%= humanize(entry.flag.flag_type) %>
+                </span>
+                <span class="rs-card__meta-item" title="Last changed" style="display: flex; align-items: center; gap: 0.375rem;">
+                  <strong>Last changed:</strong>
+                  <span title={format_last_changed_utc(entry.flag.updated_at || entry.flag.inserted_at)}>
+                    <%= format_last_changed_relative(entry.flag.updated_at || entry.flag.inserted_at) %>
+                  </span>
+                </span>
+              </div>
+              <div class="rs-card__tags">
+                <FlagComponents.tag_list tags={entry.flag.tags} />
+              </div>
+            </div>
+          </li>
+          <li :if={Enum.empty?(@page.entries)} id="flags-empty" class="rs-card rs-card--empty" style="padding: 3rem 1rem; text-align: center; border: 1px dashed var(--rs-color-border, #e5e7eb); border-radius: 0.5rem;">
+            <div class="rs-empty-state">
+              <div class="rs-empty-state__icon" style="margin: 0 auto 1rem; width: 3rem; height: 3rem; color: var(--rs-color-text-muted, #9ca3af);">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <h3 class="rs-empty-state__title" style="font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem;">No flags found</h3>
+              <p class="rs-empty-state__text" style="color: var(--rs-color-text-muted, #6b7280);">Try adjusting your filters or search query, or create a new flag.</p>
+            </div>
+          </li>
+        </ul>
 
         <FlagComponents.pagination page={@page} base_path={@base_path} params={pagination_params(@filters)} />
       </section>
@@ -349,6 +396,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
       evidence_quality: maybe_atom(filters["evidence_quality"]),
       include_archived?: filters["include_archived"] == "true",
       limit: String.to_integer(filters["limit"]),
+      sort: maybe_atom(filters["sort"]),
       after: blank_to_nil(filters["after"]),
       before: blank_to_nil(filters["before"])
     ]
@@ -484,25 +532,6 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
   defp stale_state(%{state: _state}), do: :fresh
   defp stale_state(_value), do: :fresh
 
-  defp advisory_note(%{archive_readiness: archive_readiness, freshness: freshness}) do
-    cond do
-      freshness.code_references == :scan_unknown ->
-        "Guidance limited by missing evidence. Recent scan missing."
-
-      freshness.code_references == :scan_stale ->
-        "Guidance limited by missing evidence. Recent scan is stale."
-
-      archive_readiness.readiness == :archive_candidate ->
-        "Ready for explicit cleanup review."
-
-      archive_readiness.readiness == :keep_active ->
-        "Keep active until stronger archive evidence appears."
-
-      true ->
-        "Manual review recommended before cleanup."
-    end
-  end
-
   defp normalize_outcome_params(params) do
     params
     |> stringify_keys()
@@ -532,12 +561,6 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
     end
   end
 
-  defp show_cleanup_link?(%{archive_readiness: %{readiness: readiness}})
-       when readiness in [:archive_candidate, :needs_review],
-       do: true
-
-  defp show_cleanup_link?(%{state: state}) when state in [:stale, :potentially_stale], do: true
-  defp show_cleanup_link?(_lifecycle), do: false
 
   defp default_filters do
     %{

@@ -36,8 +36,8 @@ defmodule RulesteadAdmin.Components.OperatorComponents do
   def policy_state(assigns) do
     ~H"""
     <aside class="rs-policy-state" data-tone={@policy_state.tone}>
-      <div class="rs-policy-state__badge" title={capability_summary(Map.get(@policy_state, :capabilities))}>
-        <span aria-hidden="true">🛡️</span> Env Policy: <%= highest_capability(Map.get(@policy_state, :capabilities)) %>
+      <div class="rs-policy-state__badge" title={"You have #{highest_capability(Map.get(@policy_state, :capabilities))} access in this environment. " <> capability_summary(Map.get(@policy_state, :capabilities))}>
+        <span aria-hidden="true">🛡️</span> Your access: <%= highest_capability(Map.get(@policy_state, :capabilities)) %>
       </div>
     </aside>
     """

@@ -56,7 +56,7 @@ defmodule RulesteadAdmin.Live.FlagLive.AccessibilityTest do
   test "list page passes the package accessibility audit", %{conn: conn} do
     {:ok, _view, html} = live(conn, "/admin/flags?env=prod")
     assert_accessible(html)
-    assert html =~ "Flag inventory table"
+    assert html =~ "Feature flags list"
     assert html =~ "Flag filters"
   end
 

@@ -28,11 +28,11 @@ defmodule RulesteadDemo.Seeds do
   @flag_specs [
     %{
       key: "enable-new-dashboard",
-      description: "Fleet map v2 cockpit for dispatch operators.",
+      description: "Controls the new Fleet Map v2 cockpit layout for dispatch operators. Allows safe rollback if the new interface causes latency spikes or dispatch errors.",
       flag_type: :release,
       value_type: :boolean,
       default_value: %{value: false},
-      owner: "fleetdesk-platform",
+      owner: "platform-team",
       tags: ["demo", "adoption-lab", "kill-switch"],
       ruleset: %{
         salt: "enable-new-dashboard:fleetdesk:v1",
@@ -49,11 +49,11 @@ defmodule RulesteadDemo.Seeds do
     },
     %{
       key: "fleet-map-v2",
-      description: "Roll out the vector map renderer to fleet operators.",
+      description: "Gradual release of the WebGL vector map renderer. Enables high-performance rendering for dense fleet routes, actively monitored for client-side crash rates.",
       flag_type: :release,
       value_type: :boolean,
       default_value: %{value: false},
-      owner: "fleetdesk-maps",
+      owner: "maps-team",
       tags: ["demo", "adoption-lab", "rollout"],
       ruleset: %{
         salt: "fleet-map-v2:fleetdesk:v1",
@@ -90,11 +90,11 @@ defmodule RulesteadDemo.Seeds do
     },
     %{
       key: "dispatch-ops-copy",
-      description: "Dispatch queue headline copy experiment.",
+      description: "A/B testing the primary headline on the dispatch queue. Evaluates 'Urgent' vs 'Standard' framing to see if it reduces time-to-first-dispatch for critical routes.",
       flag_type: :experiment,
       value_type: :string,
       default_value: %{value: "Standard dispatch queue"},
-      owner: "fleetdesk-growth",
+      owner: "growth-team",
       tags: ["demo", "adoption-lab", "experiment"],
       ruleset: %{
         salt: "dispatch-ops-copy:fleetdesk:v1",
@@ -111,11 +111,11 @@ defmodule RulesteadDemo.Seeds do
     },
     %{
       key: "ops-banner-config",
-      description: "Remote config banner for operations alerts.",
+      description: "Dynamically controls the global operations alert banner via JSON payload. Used for broadcasting real-time system degradations or severe weather advisories to all dispatchers.",
       flag_type: :remote_config,
       value_type: :json,
       default_value: %{value: %{"message" => nil, "severity" => "info", "cta" => nil}},
-      owner: "fleetdesk-ops",
+      owner: "ops-team",
       tags: ["demo", "adoption-lab", "remote-config"],
       ruleset: %{
         salt: "ops-banner-config:fleetdesk:v1",
@@ -138,11 +138,11 @@ defmodule RulesteadDemo.Seeds do
     },
     %{
       key: "dispatch-guarded-rollout",
-      description: "Dispatch routing experiment with host-supplied guardrails.",
+      description: "Tests a new priority routing algorithm against the standard route. Monitored by a host-supplied guardrail that automatically halts the rollout if dispatch error rates exceed 5%.",
       flag_type: :experiment,
       value_type: :string,
       default_value: %{value: "standard-route"},
-      owner: "fleetdesk-platform",
+      owner: "platform-team",
       tags: ["demo", "adoption-lab", "guarded-rollout"],
       ruleset: %{
         salt: "dispatch-guarded-rollout:fleetdesk:v1",
@@ -177,11 +177,11 @@ defmodule RulesteadDemo.Seeds do
     },
     %{
       key: "ops-audience-preview",
-      description: "Audience-targeted ops panel for impact preview journeys.",
+      description: "Gates the new operational dashboard specifically for Pro-plan dispatchers. Utilizes Rulestead's audience segmentation to ensure precise targeting during the beta phase.",
       flag_type: :release,
       value_type: :boolean,
       default_value: %{value: false},
-      owner: "fleetdesk-ops",
+      owner: "ops-team",
       tags: ["demo", "adoption-lab", "audience-preview"],
       ruleset: %{
         salt: "ops-audience-preview:fleetdesk:v1",
