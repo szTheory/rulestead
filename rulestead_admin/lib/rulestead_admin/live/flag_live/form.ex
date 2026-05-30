@@ -581,17 +581,3 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
   defp humanize(value),
     do: value |> to_string() |> String.replace("_", " ") |> String.capitalize()
 end
-parse()
-    |> Map.get(:query)
-    |> case do
-      nil -> %{}
-      query -> URI.decode_query(query)
-    end
-  end
-
-  defp blank?(value), do: String.trim(to_string(value || "")) == ""
-  defp blank_to_nil(value), do: if(blank?(value), do: nil, else: value)
-
-  defp humanize(value),
-    do: value |> to_string() |> String.replace("_", " ") |> String.capitalize()
-end
