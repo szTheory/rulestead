@@ -6,7 +6,7 @@
 
 > **Two version lines:** GitHub repo milestones (e.g. `v1.0.0` GA, May 2026)
 > track project delivery. **Hex packages** use `0.1.x` semver (currently
-> **0.1.4** on Hex) until a future `1.0` API freeze. Install with
+> **0.1.x** on Hex) until a future `1.0` API freeze. Install with
 > `{:rulestead, "~> 0.1"}`.
 
 ## What this is (60 seconds)

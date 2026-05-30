@@ -229,8 +229,6 @@ defmodule Rulestead.ReleaseContractTest do
   end
 
   test "public release docs state the shipped repo truth and bounded proof posture" do
-    version = hex_version()
-
     root_readme = File.read!(@root_readme_path)
     runtime_readme = File.read!(@runtime_readme_path)
     admin_readme = File.read!(@admin_readme_path)
@@ -239,7 +237,7 @@ defmodule Rulestead.ReleaseContractTest do
     maintaining = File.read!(@maintaining_path)
 
     assert root_readme =~ "v1.0.0"
-    assert root_readme =~ version
+    assert root_readme =~ "0.1.x"
     assert root_readme =~ "Two version lines"
     assert root_readme =~ "MAINTAINING.md"
     assert root_readme =~ "adoption-lab"
@@ -255,12 +253,12 @@ defmodule Rulestead.ReleaseContractTest do
     assert maintaining =~ "RULESTEAD_TEST_SCOPE=mounted_admin_contract bash scripts/ci/test.sh"
     assert maintaining =~ "mounted companion proof"
 
-    assert runtime_readme =~ version
+    assert runtime_readme =~ "0.1.x"
     assert runtime_readme =~ "hexdocs.pm/rulestead"
     refute runtime_readme =~ ~r/\]\(\.\.\//
     refute runtime_readme =~ "mix verify.phase"
 
-    assert admin_readme =~ version
+    assert admin_readme =~ "0.1.x"
     assert admin_readme =~ "mounted companion"
     assert admin_readme =~ "not a standalone control plane"
     assert admin_readme =~ "host owns auth"
@@ -268,10 +266,10 @@ defmodule Rulestead.ReleaseContractTest do
     refute admin_readme =~ ~r/\]\(\.\.\//
 
     assert upgrading =~ "v1.0.0"
-    assert upgrading =~ version
+    assert upgrading =~ "0.1.x"
     assert upgrading =~ "MAINTAINING.md"
 
-    assert demo_readme =~ version
+    assert demo_readme =~ "0.1.x"
     assert demo_readme =~ "verify.release_publish"
     assert demo_readme =~ "verify.release_parity"
     assert demo_readme =~ "FleetDesk Adoption Lab"

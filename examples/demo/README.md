@@ -16,7 +16,7 @@ This directory contains the Rulestead **adoption lab** — a realistic-but-minim
 - `backend/` — Phoenix host embedding `rulestead` + mounted `rulestead_admin`
 - `frontend/` — external Next.js app consuming flags through a custom OpenFeature web provider
 
-This is the primary runnable end-to-end proof path for the current `0.1.4` Hex package line.
+This is the primary runnable end-to-end proof path for the current `0.1.x` Hex package line.
 
 ## What this proves
 

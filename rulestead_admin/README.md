@@ -6,7 +6,7 @@ Optional sibling package for host apps that need an operator surface — flag
 inventory, rollouts, kill switch, audit, audiences, and governance workflows.
 Your app owns auth, policy, and session; this package renders inside your router.
 
-Install `{:rulestead_admin, "~> 0.1"}` alongside `rulestead` (currently **0.1.4**
+Install `{:rulestead_admin, "~> 0.1"}` alongside `rulestead` (currently **0.1.x**
 on Hex).
 
 > **Two version lines:** GitHub repo milestones track project delivery. **Hex

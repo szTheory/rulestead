@@ -6,13 +6,6 @@ defmodule Rulestead.DocLinkContractTest do
   @getting_started_path Path.expand("../../../guides/introduction/getting-started.md", __DIR__)
   @guides_dir Path.expand("../../../guides", __DIR__)
 
-  defp hex_version do
-    mix_exs = File.read!(Path.expand("../../mix.exs", __DIR__))
-
-    [_, version] = Regex.run(~r/@version\s+"([^"]+)"/, mix_exs)
-    version
-  end
-
   defp guide_paths do
     @guides_dir
     |> Path.join("**/*.md")
@@ -46,13 +39,11 @@ defmodule Rulestead.DocLinkContractTest do
     end
   end
 
-  test "adopter docs mention current Hex version" do
-    version = hex_version()
-
+  test "adopter docs mention current Hex version family" do
     for path <- [@runtime_readme_path, @getting_started_path] do
       content = File.read!(path)
-      assert content =~ version
       assert content =~ "~> 0.1"
+      assert content =~ "0.1.x"
     end
   end
 end

@@ -1,7 +1,7 @@
 # Upgrading
 
 Repo GA shipped in `v1.0.0` on 2026-05-21, while the current installable
-packages on Hex are at **`0.1.4`** (`~> 0.1`). Most teams will still be adopting rather
+packages on Hex are at **`0.1.x`** (`~> 0.1`). Most teams will still be adopting rather
 than upgrading, but the compatibility posture is still important:
 
 > **Two version lines:** GitHub repo milestones track project delivery. **Hex
