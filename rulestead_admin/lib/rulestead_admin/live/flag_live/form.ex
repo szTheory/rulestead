@@ -126,6 +126,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
       current_environment={@current_environment}
       environments={[]}
       env_links={%{}}
+      policy_state={@rulestead_admin_policy_state}
     >
       <form aria-label="Flag metadata form" phx-change="validate" phx-submit="save">
         <p :if={@errors["base"]} role="alert"><%= @errors["base"] %></p>

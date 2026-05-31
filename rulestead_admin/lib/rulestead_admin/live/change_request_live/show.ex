@@ -99,6 +99,7 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Show do
       environments={@page.environments}
       env_links={@page.env_links}
       navigation_links={@page.navigation_links}
+      policy_state={@page.policy_state}
     >
       <p :if={@page.error_message} role="alert"><%= @page.error_message %></p>
 

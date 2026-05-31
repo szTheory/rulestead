@@ -97,16 +97,16 @@ defmodule RulesteadAdmin.Integration.AdminMountTest do
 
   test "host-style mount honors the public env and route conventions without leaking internals",
        %{conn: conn} do
-    assert {:error, {:live_redirect, %{to: "/admin/flags?env=prod", flash: %{}}}} =
+    assert {:error, {:live_redirect, %{to: "/admin/flags?env=prod&view=all", flash: %{}}}} =
              live(conn, "/admin/flags")
 
     redirected_conn = conn |> Phoenix.ConnTest.recycle() |> host_conn()
-    {:ok, _list_view, list_html} = live(redirected_conn, "/admin/flags?env=prod")
-    assert list_html =~ "Flag inventory"
+    {:ok, _list_view, list_html} = live(redirected_conn, "/admin/flags?env=prod&view=all")
+    assert list_html =~ "Feature flags"
     assert list_html =~ "Environment"
     assert list_html =~ "Production"
-    assert list_html =~ ~s(href="/admin/flags?env=dev")
-    assert list_html =~ ~s(href="/admin/flags?env=prod")
+    assert list_html =~ ~s(href="/admin/flags?env=dev&amp;view=all")
+    assert list_html =~ ~s(href="/admin/flags?env=prod&amp;view=all")
     assert list_html =~ "/admin/flags/checkout-redesign"
 
     detail_conn = conn |> Phoenix.ConnTest.recycle() |> host_conn()
@@ -152,11 +152,17 @@ defmodule RulesteadAdmin.Integration.AdminMountTest do
     lifecycle_conn = conn |> Phoenix.ConnTest.recycle() |> host_conn()
 
     {:ok, _view, lifecycle_html} =
-      live(lifecycle_conn, "/admin/flags?env=prod&readiness=archive_candidate")
+      case live(lifecycle_conn, "/admin/flags?env=prod&readiness=archive_candidate") do
+        {:ok, view, html} ->
+          {:ok, view, html}
 
-    assert lifecycle_html =~ "Flag inventory"
+        {:error, {:live_redirect, %{to: redirected_path}}} ->
+          live(lifecycle_conn, redirected_path)
+      end
+
+    assert lifecycle_html =~ "Feature flags"
     assert lifecycle_html =~ "Production"
-    assert lifecycle_html =~ "/admin/flags?env=prod"
+    assert lifecycle_html =~ "/admin/flags?env=prod&amp;view=archive_candidates"
 
     cleanup_conn = conn |> Phoenix.ConnTest.recycle() |> host_conn()
 

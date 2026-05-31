@@ -3,7 +3,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
 
   use Phoenix.LiveView
 
-  alias RulesteadAdmin.Components.{AuditComponents, FlagComponents, OperatorComponents, Shell}
+  alias RulesteadAdmin.Components.{AuditComponents, FlagComponents, Shell}
   alias RulesteadAdmin.Live.Session
 
   @impl true
@@ -58,9 +58,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}
+      policy_state={@rulestead_admin_policy_state}
     >
-      <OperatorComponents.policy_state policy_state={@rulestead_admin_policy_state} />
-
       <p :if={@error_message} role="alert"><%= @error_message %></p>
 
       <div :if={@detail} class="rs-detail">

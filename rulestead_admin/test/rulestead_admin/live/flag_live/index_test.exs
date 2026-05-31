@@ -134,122 +134,291 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
   test "defaults to the current environment, excludes archived flags, and keeps filter state in the URL",
        %{conn: conn} do
     {:ok, view, html} =
-      live(conn, "/admin/flags?env=prod&query=checkout&owner=growth&tags=checkout&stale=fresh")
+      case live(
+             conn,
+             "/admin/flags?env=prod&view=custom&query=checkout&owner=growth&tags=checkout&stale=fresh"
+           ) do
+        {:ok, view, html} ->
+          {:ok, view, html}
+
+        {:error, {:live_redirect, %{to: redirected_path}}} ->
+          live(conn, redirected_path)
+      end
 
     assert html =~ "Feature flags"
     assert html =~ "Environment"
     assert html =~ "Production"
+    assert has_element?(view, ".rs-shell__header [aria-label='Access']", "Admin")
+    refute html =~ ~s(class="rs-shell__context-item" data-tone=)
+    refute has_element?(view, "main aside.rs-policy-state")
     assert html =~ "checkout-redesign"
     refute html =~ "archive-me"
     assert has_element?(view, "form[aria-label='Flag filters']")
-    assert has_element?(view, "input[name='filters[query]'][value='checkout']")
-    assert has_element?(view, "input[name='filters[owner]'][value='growth']")
-    assert has_element?(view, "input[name='filters[tags]'][value='checkout']")
-    assert has_element?(view, "input[type='radio'][name='filters[stale]'][value='fresh'][checked]")
-    assert html =~ "Quick Views"
+    assert has_element?(view, "form.rs-filter-panel[aria-label='Flag filters']")
+    refute has_element?(view, "form.rs-filter-panel a", "Create flag")
+    assert has_element?(view, "input[name='filters[query]'][value='checkout growth']")
+    assert has_element?(view, ".rs-omnisearch__token", "checkout")
+    assert has_element?(view, ".rs-omnisearch__token", "growth")
+    refute has_element?(view, "input[name='filters[owner]']")
+    refute has_element?(view, "input[name='filters[tags]']")
+
+    assert has_element?(
+             view,
+             ".rs-results-header form[aria-label='Sort flags'] select[name='filters[sort]']"
+           )
+
+    refute has_element?(view, "form.rs-filter-panel label", "Sort")
+
+    refute has_element?(view, "button[phx-click='toggle_advanced_filters']")
+    refute has_element?(view, ".rs-filter-panel__more")
+
+    assert has_element?(
+             view,
+             "nav[aria-label='Flag inventory views'] a[aria-current='page']",
+             "Custom"
+           )
+
+    refute has_element?(view, "fieldset.rs-view-selector")
+    refute html =~ "<legend>View</legend>"
+    refute html =~ "Quick Views"
     refute has_element?(view, "[data-flag-key='archive-me']")
   end
 
-  test "filters by lifecycle, owner, tags, and stale status and preserves url state across cursor pagination",
+  test "omnisearch matches owners and tags", %{conn: conn} do
+    {:ok, owner_view, _html} = live(conn, "/admin/flags?env=prod&view=all&query=ops")
+
+    assert has_element?(owner_view, "[data-flag-key='ops-cleanup']")
+    assert has_element?(owner_view, "[data-flag-key='remote-config-review']")
+    refute has_element?(owner_view, "[data-flag-key='checkout-redesign']")
+
+    {:ok, tag_view, _html} = live(conn, "/admin/flags?env=prod&view=all&query=infra")
+
+    assert has_element?(tag_view, "[data-flag-key='ops-cleanup']")
+    refute has_element?(tag_view, "[data-flag-key='remote-config-review']")
+  end
+
+  test "filters by inventory view and omnisearch terms while preserving url state",
        %{conn: conn} do
+    {:ok, view, _html} = live(conn, "/admin/flags?env=prod&view=all&query=ops")
 
-    {:ok, view, _html} = live(conn, "/admin/flags?env=prod&owner=growth")
+    assert has_element?(view, "[data-flag-key='ops-cleanup']")
+    assert has_element?(view, "[data-flag-key='remote-config-review']")
+    refute has_element?(view, "#flags-empty")
 
-    assert has_element?(view, "[data-flag-key='checkout-redesign']")
-    assert has_element?(view, "[data-flag-key='search-ranking']")
+    {:ok, view, _html} = live(conn, "/admin/flags?env=prod&view=all&query=ops+infra")
 
     view
-    |> form("form[aria-label='Flag filters']", %{
-      "filters" => %{
-        "query" => "",
-        "owner" => "growth",
-        "tags" => "search",
-        "lifecycle" => "potentially_stale",
-        "stale" => "potentially_stale",
-        "limit" => "10"
-      }
-    })
-    |> render_change()
+    |> element("nav[aria-label='Flag inventory views'] a", "Recently stale")
+    |> render_click()
 
     path = assert_patch(view)
     assert path =~ "env=prod"
-    assert path =~ "lifecycle=potentially_stale"
+    assert path =~ "view=recently_stale"
+    assert path =~ "query=ops+infra"
+    refute path =~ "lifecycle="
+    refute path =~ "stale="
     refute path =~ "limit="
-    assert path =~ "owner=growth"
-    assert path =~ "stale=potentially_stale"
-    assert path =~ "tags=search"
+    refute path =~ "owner="
+    refute path =~ "tags="
 
-    assert has_element?(view, "[data-flag-key='search-ranking']")
-    refute has_element?(view, "[data-flag-key='checkout-redesign']")
+    assert has_element?(view, "[data-flag-key='ops-cleanup']")
+    refute has_element?(view, "[data-flag-key='remote-config-review']")
     refute has_element?(view, "a[rel='next']")
 
-    {:ok, paged_view, _html} = live(conn, "/admin/flags?env=prod&owner=growth")
+    {:ok, paged_view, _html} = live(conn, "/admin/flags?env=prod&view=all&query=growth")
 
     paged_view
-    |> form("form[aria-label='Flag filters']", %{
-      "filters" => %{
-        "owner" => "",
-        "query" => "",
-        "tags" => "",
-        "lifecycle" => "",
-        "stale" => "",
-        "limit" => "10"
-      }
-    })
-    |> render_change()
+    |> element("a[aria-label='Remove growth']")
+    |> render_click()
 
     path = assert_patch(paged_view)
     refute path =~ "limit="
+    refute path =~ "query="
   end
 
-  test "round-trips readiness and evidence-quality filters through the url and renders advisory guidance separately",
+  test "removes the empty state after a filtered stream resets to matching results", %{conn: conn} do
+    {:ok, view, _html} = live(conn, "/admin/flags?env=prod&view=all&query=missing")
+
+    assert has_element?(view, "#flags-empty", "No flags found")
+
+    view
+    |> element("a[aria-label='Remove missing']")
+    |> render_click()
+
+    assert_patch(view)
+
+    view
+    |> element("input[name='filters[query_text]']")
+    |> render_change(%{"value" => "growth"})
+
+    assert has_element?(view, "[data-flag-key='checkout-redesign']")
+    refute has_element?(view, "#flags-empty")
+  end
+
+  test "typed omnisearch text filters transiently without committing URL state", %{conn: conn} do
+    {:ok, view, _html} = live(conn, "/admin/flags?env=prod&view=all")
+
+    view
+    |> element("input[name='filters[query_text]']")
+    |> render_change(%{"value" => "op"})
+
+    assert has_element?(view, ".rs-omnisearch__group", "Owners")
+    assert has_element?(view, "[data-flag-key='ops-cleanup']")
+    assert has_element?(view, "[data-flag-key='remote-config-review']")
+    refute has_element?(view, "[data-flag-key='checkout-redesign']")
+    refute has_element?(view, ".rs-omnisearch__token", "op")
+    assert has_element?(view, "input[name='filters[query]'][value='']")
+    assert has_element?(view, "input[name='filters[query_text]'][value='op']")
+  end
+
+  test "typed omnisearch accepts browser form payload without committing URL state", %{
+    conn: conn
+  } do
+    {:ok, view, _html} = live(conn, "/admin/flags?env=prod&view=all")
+
+    render_change(view, "omnisearch_changed", %{
+      "_target" => ["filters", "query_text"],
+      "filters" => %{"query_text" => "op"}
+    })
+
+    assert has_element?(view, ".rs-omnisearch__group", "Owners")
+    assert has_element?(view, "[data-flag-key='ops-cleanup']")
+    assert has_element?(view, "[data-flag-key='remote-config-review']")
+    refute has_element?(view, "[data-flag-key='checkout-redesign']")
+    refute has_element?(view, ".rs-omnisearch__token", "op")
+    assert has_element?(view, "input[name='filters[query]'][value='']")
+    assert has_element?(view, "input[name='filters[query_text]'][value='op']")
+  end
+
+  test "omnisearch suggestions update the query URL", %{conn: conn} do
+    {:ok, view, _html} = live(conn, "/admin/flags?env=prod&view=all")
+
+    view
+    |> element("input[name='filters[query_text]']")
+    |> render_change(%{"value" => "op"})
+
+    assert has_element?(view, ".rs-omnisearch__group", "Owners")
+    assert has_element?(view, "[data-flag-key='ops-cleanup']")
+    assert has_element?(view, "[data-flag-key='remote-config-review']")
+    refute has_element?(view, "[data-flag-key='checkout-redesign']")
+
+    view
+    |> element("a.rs-omnisearch__option[href$='query=owner%3Aops']", "ops")
+    |> render_click()
+
+    path = assert_patch(view)
+    assert path =~ "query=owner%3Aops"
+    refute path =~ "owner="
+    assert has_element?(view, ".rs-omnisearch__token", "owner")
+    assert has_element?(view, ".rs-omnisearch__token", "ops")
+    assert has_element?(view, "input[name='filters[query_text]'][value='']")
+    assert has_element?(view, "[data-flag-key='ops-cleanup']")
+    assert has_element?(view, "[data-flag-key='remote-config-review']")
+    refute has_element?(view, "[data-flag-key='checkout-redesign']")
+
+    view
+    |> element("input[name='filters[query_text]']")
+    |> render_change(%{"value" => "in"})
+
+    assert has_element?(view, ".rs-omnisearch__group", "Tags")
+
+    view
+    |> element("a.rs-omnisearch__option[href*='query=owner%3Aops+tag%3Ainfra']", "infra")
+    |> render_click()
+
+    path = assert_patch(view)
+    assert path =~ "query=owner%3Aops+tag%3Ainfra"
+    refute path =~ "tags="
+    assert has_element?(view, ".rs-omnisearch__token", "owner")
+    assert has_element?(view, ".rs-omnisearch__token", "ops")
+    assert has_element?(view, ".rs-omnisearch__token", "tag")
+    assert has_element?(view, ".rs-omnisearch__token", "infra")
+    assert has_element?(view, "[data-flag-key='ops-cleanup']")
+    refute has_element?(view, "[data-flag-key='remote-config-review']")
+
+    view
+    |> element("a[aria-label='Remove owner:ops']")
+    |> render_click()
+
+    path = assert_patch(view)
+    assert path =~ "query=tag%3Ainfra"
+    refute path =~ "owner%3Aops"
+    refute has_element?(view, ".rs-omnisearch__token", "owner")
+    refute has_element?(view, ".rs-omnisearch__token", "ops")
+    assert has_element?(view, ".rs-omnisearch__token", "tag")
+    assert has_element?(view, ".rs-omnisearch__token", "infra")
+  end
+
+  test "omnisearch suggestion chips distinguish flags owners and tags", %{conn: conn} do
+    {:ok, view, _html} = live(conn, "/admin/flags?env=prod&view=all")
+
+    view
+    |> element("input[name='filters[query_text]']")
+    |> render_change(%{"value" => "checkout"})
+
+    view
+    |> element("a.rs-omnisearch__option[href$='query=key%3Acheckout-redesign']")
+    |> render_click()
+
+    path = assert_patch(view)
+    assert path =~ "query=key%3Acheckout-redesign"
+    assert has_element?(view, ".rs-omnisearch__token", "key")
+    assert has_element?(view, ".rs-omnisearch__token", "checkout-redesign")
+    assert has_element?(view, "[data-flag-key='checkout-redesign']")
+    refute has_element?(view, "[data-flag-key='search-ranking']")
+  end
+
+  test "submitting typed omnisearch text commits it as a removable token", %{conn: conn} do
+    {:ok, view, _html} = live(conn, "/admin/flags?env=prod&view=all")
+
+    view
+    |> form("form[aria-label='Flag filters']", %{
+      "filters" => %{"view" => "all", "query" => "", "query_text" => "growth"}
+    })
+    |> render_submit()
+
+    path = assert_patch(view)
+    assert path =~ "query=growth"
+    assert has_element?(view, ".rs-omnisearch__token", "growth")
+    assert has_element?(view, "[data-flag-key='checkout-redesign']")
+    assert has_element?(view, "[data-flag-key='search-ranking']")
+    refute has_element?(view, "[data-flag-key='ops-cleanup']")
+  end
+
+  test "legacy readiness and evidence-quality filters render as a custom view",
        %{
          conn: conn
        } do
     {:ok, view, _html} =
-      live(conn, "/admin/flags?env=prod&readiness=archive_candidate&evidence_quality=strong")
+      case live(conn, "/admin/flags?env=prod&readiness=archive_candidate&evidence_quality=strong") do
+        {:ok, view, html} ->
+          {:ok, view, html}
+
+        {:error, {:live_redirect, %{to: redirected_path}}} ->
+          live(conn, redirected_path)
+      end
 
     assert has_element?(
              view,
-             "select[name='filters[readiness]'] option[selected][value='archive_candidate']"
-           )
-
-    assert has_element?(
-             view,
-             "select[name='filters[evidence_quality]'] option[selected][value='strong']"
+             "nav[aria-label='Flag inventory views'] a[aria-current='page']",
+             "Custom"
            )
 
     assert has_element?(view, "[data-flag-key='ops-cleanup']")
     refute has_element?(view, "[data-flag-key='checkout-redesign']")
 
-    view
-    |> form("form[aria-label='Flag filters']", %{
-      "filters" => %{
-        "query" => "",
-        "owner" => "",
-        "tags" => "",
-        "lifecycle" => "",
-        "stale" => "",
-        "readiness" => "needs_review",
-        "evidence_quality" => "weak",
-        "limit" => "25"
-      }
-    })
-    |> render_change()
+    {:ok, custom_view, _html} =
+      live(conn, "/admin/flags?env=prod&view=custom&readiness=needs_review&evidence_quality=weak")
 
-    path = assert_patch(view)
-    assert path =~ "readiness=needs_review"
-    assert path =~ "evidence_quality=weak"
-    assert has_element?(view, "[data-flag-key='search-ranking']")
-    refute has_element?(view, "[data-flag-key='remote-config-review']")
-    refute has_element?(view, "[data-flag-key='ops-cleanup']")
+    assert has_element?(custom_view, "[data-flag-key='search-ranking']")
+    refute has_element?(custom_view, "[data-flag-key='remote-config-review']")
+    refute has_element?(custom_view, "[data-flag-key='ops-cleanup']")
   end
-
 
   test "renders keyboard-safe dense table semantics without hidden environment state", %{
     conn: conn
   } do
-    {:ok, view, html} = live(conn, "/admin/flags?env=prod")
+    {:ok, view, html} = live(conn, "/admin/flags?env=prod&view=all")
 
     assert html =~ "aria-label=\"Feature flags list\""
     assert html =~ "tabindex=\"0\""
@@ -258,20 +427,55 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
 
     assert has_element?(
              view,
-             "li[data-flag-key='checkout-redesign'] a[href='/admin/flags/checkout-redesign?env=prod&return_to=%2Fadmin%2Fflags%3Fenv%3Dprod']"
+             "li[data-flag-key='checkout-redesign'] [data-meta='lifecycle']",
+             "Permanent"
+           )
+
+    assert has_element?(
+             view,
+             "li[data-flag-key='search-ranking'] [data-meta='lifecycle']",
+             "Expires Apr 28, 2026"
+           )
+
+    assert has_element?(
+             view,
+             "li[data-flag-key='checkout-redesign'] [data-meta='owner']",
+             "Growth"
+           )
+
+    assert has_element?(
+             view,
+             "li[data-flag-key='checkout-redesign'] [data-meta='type']",
+             "Release"
+           )
+
+    refute html =~ "<strong>Lifecycle:</strong>"
+    refute html =~ "<strong>Owner:</strong>"
+    refute html =~ "<strong>Type:</strong>"
+
+    assert has_element?(
+             view,
+             "li[data-flag-key='checkout-redesign'] a[href='/admin/flags/checkout-redesign?env=prod&return_to=%2Fadmin%2Fflags%3Fenv%3Dprod%26view%3Dall']"
            )
 
     refute html =~ "Current environment hidden"
   end
 
-  test "lifecycle preset links preserve the canonical queue url", %{conn: conn} do
-    {:ok, view, _html} = live(conn, "/admin/flags?env=prod&owner=ops")
+  test "inventory view selector preserves queue context and canonicalizes triage intent", %{
+    conn: conn
+  } do
+    {:ok, view, _html} = live(conn, "/admin/flags?env=prod&view=all&query=ops")
 
-    assert has_element?(
-             view,
-             "a[href='/admin/flags?env=prod&owner=ops&readiness=archive_candidate&include_archived=true']",
-             "Archive candidates"
-           )
+    view
+    |> element("nav[aria-label='Flag inventory views'] a", "Archive candidates")
+    |> render_click()
+
+    path = assert_patch(view)
+    assert path =~ "env=prod"
+    assert path =~ "view=archive_candidates"
+    assert path =~ "query=ops"
+    refute path =~ "readiness="
+    refute path =~ "include_archived="
   end
 
   test "renders archive return messaging with archived visibility and an audit timeline link", %{
@@ -300,13 +504,6 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
            )
 
     assert has_element?(view, "li[data-flag-key='archive-me'][data-highlighted='true']")
-  end
-
-  defp next_page_cursor(view) do
-    html = render(view)
-
-    [_, cursor] = Regex.run(~r/after=([^"&]+).*rel="next"/s, html)
-    cursor
   end
 
   defp seed_flag!(attrs) do
@@ -360,5 +557,5 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
 
     assert {:ok, _published} =
              Rulestead.publish_ruleset(Command.PublishRuleset.new(flag_key, "prod"))
-end
+  end
 end

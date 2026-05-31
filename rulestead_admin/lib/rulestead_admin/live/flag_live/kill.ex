@@ -53,6 +53,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Kill do
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}
+      policy_state={@rulestead_admin_policy_state}
     >
       <:header_actions>
         <a :if={@flag_key} href={path_for(assigns, "/#{@flag_key}")}>Back to detail</a>

@@ -31,30 +31,6 @@ defmodule RulesteadAdmin.Components.OperatorComponents do
     """
   end
 
-  attr(:policy_state, :map, required: true)
-
-  def policy_state(assigns) do
-    ~H"""
-    <aside class="rs-policy-state" data-tone={@policy_state.tone}>
-      <div class="rs-policy-state__badge" title={"You have #{highest_capability(Map.get(@policy_state, :capabilities))} access in this environment. " <> capability_summary(Map.get(@policy_state, :capabilities))}>
-        <span aria-hidden="true">🛡️</span> Your access: <%= highest_capability(Map.get(@policy_state, :capabilities)) %>
-      </div>
-    </aside>
-    """
-  end
-
-  defp highest_capability(%{admin?: true}), do: "Admin"
-  defp highest_capability(%{execute?: true}), do: "Execute"
-  defp highest_capability(%{propose?: true}), do: "Propose"
-  defp highest_capability(%{read?: true}), do: "Read-Only"
-  defp highest_capability(_), do: "None"
-
-  defp capability_summary(nil), do: "No capabilities defined"
-
-  defp capability_summary(caps) do
-    "Permissions - Read: #{caps.read?}, Execute: #{caps.execute?}, Propose: #{caps.propose?}, Admin: #{caps.admin?}"
-  end
-
   attr(:title, :string, required: true)
   attr(:reason, :string, required: true)
   attr(:tone, :string, default: "warning")

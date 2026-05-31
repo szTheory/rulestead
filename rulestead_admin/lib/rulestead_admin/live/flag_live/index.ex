@@ -4,7 +4,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
 
   use Phoenix.LiveView
 
-  alias RulesteadAdmin.Components.{FlagComponents, OperatorComponents, Shell}
+  alias RulesteadAdmin.Components.{FlagComponents, Shell}
   alias RulesteadAdmin.Live.Session
 
   @default_limit 10
@@ -12,8 +12,9 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
   @allowed_stale ~w(fresh potentially_stale stale)
   @allowed_readiness ~w(keep_active needs_review archive_candidate)
   @allowed_evidence_quality ~w(strong partial weak)
-  @lifecycle_presets [
-    {"All flags",
+  @allowed_views ~w(all needs_review archive_candidates recently_stale archived custom)
+  @inventory_views [
+    {"all", "All flags",
      %{
        "readiness" => "",
        "stale" => "",
@@ -21,15 +22,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
        "evidence_quality" => "",
        "include_archived" => "false"
      }},
-    {"Archive candidates",
-     %{
-       "readiness" => "archive_candidate",
-       "include_archived" => "true",
-       "stale" => "",
-       "lifecycle" => "",
-       "evidence_quality" => ""
-     }},
-    {"Needs review",
+    {"needs_review", "Needs review",
      %{
        "readiness" => "needs_review",
        "stale" => "",
@@ -37,13 +30,29 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
        "evidence_quality" => "",
        "include_archived" => "false"
      }},
-    {"Recently stale",
+    {"archive_candidates", "Archive candidates",
+     %{
+       "readiness" => "archive_candidate",
+       "stale" => "",
+       "lifecycle" => "",
+       "evidence_quality" => "",
+       "include_archived" => "false"
+     }},
+    {"recently_stale", "Recently stale",
      %{
        "stale" => "stale",
        "readiness" => "",
        "lifecycle" => "",
        "evidence_quality" => "",
        "include_archived" => "false"
+     }},
+    {"archived", "Archived",
+     %{
+       "lifecycle" => "archived",
+       "include_archived" => "true",
+       "stale" => "",
+       "readiness" => "",
+       "evidence_quality" => ""
      }}
   ]
 
@@ -63,8 +72,9 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
       |> assign(:allowed_stale, @allowed_stale)
       |> assign(:allowed_readiness, @allowed_readiness)
       |> assign(:allowed_evidence_quality, @allowed_evidence_quality)
-      |> assign(:lifecycle_presets, @lifecycle_presets)
-      |> assign(:show_advanced_filters, false)
+      |> assign(:inventory_views, @inventory_views)
+      |> assign(:omnisearch_suggestions, %{flags: [], owners: [], tags: []})
+      |> assign(:omnisearch_input, "")
       |> stream_configure(:flags, dom_id: &"flag-#{&1.flag.key}")
       |> stream(:flags, [])
 
@@ -86,6 +96,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
         socket
         |> assign(:current_path, current_path)
         |> assign(:filters, filters)
+        |> assign(:omnisearch_input, "")
         |> assign(
           :env_links,
           environment_links(
@@ -107,12 +118,26 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
   end
 
   @impl true
-  def handle_event("toggle_advanced_filters", _, socket) do
-    {:noreply, assign(socket, :show_advanced_filters, !socket.assigns.show_advanced_filters)}
+  def handle_event("omnisearch_changed", params, socket) do
+    input = omnisearch_input_from_params(params)
+
+    {:noreply, apply_transient_omnisearch(socket, input)}
   end
 
   @impl true
   def handle_event("filters_changed", %{"filters" => filters}, socket) do
+    filters =
+      case Map.get(filters, "query_text") do
+        nil ->
+          filters
+
+        "" ->
+          filters
+
+        query_text ->
+          Map.put(filters, "query", combined_query(socket.assigns.filters["query"], query_text))
+      end
+
     merged_filters =
       socket.assigns.filters
       |> Map.merge(filters)
@@ -130,18 +155,40 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
   end
 
   @impl true
+  def handle_event("filters_changed", _params, socket), do: {:noreply, socket}
+
+  @impl true
+  def handle_event("select_omnisearch_suggestion", %{"value" => value}, socket) do
+    filters =
+      socket.assigns.filters
+      |> Map.put("query", combined_query(socket.assigns.filters["query"], value))
+      |> reset_pagination()
+
+    {:noreply, patch_filters(socket, filters)}
+  end
+
+  @impl true
+  def handle_event("remove_omnisearch_token", %{"value" => value}, socket) do
+    filters =
+      socket.assigns.filters
+      |> Map.put("query", remove_query_token(socket.assigns.filters["query"], value))
+      |> reset_pagination()
+
+    {:noreply, patch_filters(socket, filters)}
+  end
+
+  @impl true
   def render(assigns) do
     ~H"""
     <Shell.page
       page_title="Flags"
-      page_kicker="Flag inventory"
-      page_summary="Dense operator inventory scoped to the current environment."
+      page_kicker="Feature flags"
+      page_summary="Operator view scoped to the current environment."
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}
+      policy_state={@rulestead_admin_policy_state}
     >
-      <OperatorComponents.policy_state policy_state={@rulestead_admin_policy_state} />
-
       <FlagComponents.callout :if={@outcome_notice} title="Archive result" tone="positive">
         <p><%= @outcome_notice %></p>
         <p :if={@outcome_audit_path}>
@@ -150,144 +197,143 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
       </FlagComponents.callout>
 
       <section class="rs-inventory">
-        <div class="rs-inventory__toolbar" style="margin-bottom: 1rem;">
+        <div class="rs-inventory__toolbar">
           <div>
-            <h2 class="sr-only">Feature flags filters and actions</h2>
+            <h2>Feature flags</h2>
+            <p>Showing <%= length(@page.entries) %><%= if @page.has_next_page?, do: "+", else: "" %> in this view</p>
           </div>
-          <div :if={@rulestead_admin_policy_state.capabilities.edit? or @rulestead_admin_policy_state.capabilities.admin?}>
-            <a href={@base_path <> "/new?env=" <> @current_environment.key} class="rs-button rs-button--primary">Create flag</a>
-          </div>
+          <a
+            :if={@rulestead_admin_policy_state.capabilities.edit? or @rulestead_admin_policy_state.capabilities.admin?}
+            href={@base_path <> "/new?env=" <> @current_environment.key}
+            class="rs-button rs-button--primary"
+          >
+            Create flag
+          </a>
         </div>
 
-        <div class="rs-filter-panel" style="background: var(--rs-color-surface, #fff); border: 1px solid var(--rs-color-border, #e5e7eb); border-radius: 0.5rem; margin-bottom: 2rem; overflow: hidden;">
-          <nav aria-label="Lifecycle preset strip" class="rs-filter-presets" style="padding: 1rem 1.5rem; border-bottom: 1px solid var(--rs-color-border, #e5e7eb); background: var(--rs-color-bg-subtle, #f9fafb);">
-            <div style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between;">
-              <h3 style="margin: 0; font-size: 0.875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--rs-color-text-muted, #6b7280);">Quick Views</h3>
-              <div class="rs-filter-presets__links" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                <.link
-                  :for={{label, params} <- @lifecycle_presets}
-                  patch={preset_path(@base_path, @filters, params)}
-                  aria-current={if active_preset?(@filters, params), do: "page", else: nil}
-                  class={if active_preset?(@filters, params), do: "rs-filter-preset--active", else: ""}
-                  style="padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.875rem; text-decoration: none; border: 1px solid transparent;"
+        <form
+          id="flag-filters-form"
+          aria-label="Flag filters"
+          phx-submit="filters_changed"
+          class="rs-filter-panel"
+          onsubmit="return false;"
+        >
+          <input type="hidden" name="filters[env]" value={@current_environment.key} />
+          <input :if={@filters["view"] == "custom"} type="hidden" name="filters[lifecycle]" value={@filters["lifecycle"]} />
+          <input :if={@filters["view"] == "custom"} type="hidden" name="filters[stale]" value={@filters["stale"]} />
+          <input :if={@filters["view"] == "custom"} type="hidden" name="filters[readiness]" value={@filters["readiness"]} />
+          <input :if={@filters["view"] == "custom"} type="hidden" name="filters[evidence_quality]" value={@filters["evidence_quality"]} />
+          <input :if={@filters["view"] == "custom"} type="hidden" name="filters[include_archived]" value={@filters["include_archived"]} />
+          <input type="hidden" name="filters[view]" value={@filters["view"]} />
+          <input type="hidden" name="filters[sort]" value={@filters["sort"]} />
+          <input type="hidden" name="filters[query]" value={@filters["query"]} />
+
+          <div class="rs-filter-panel__header">
+            <div class="rs-filter-panel__search rs-omnisearch">
+              <label for="flag-omnisearch-input" class="sr-only">Search</label>
+              <div class="rs-omnisearch__control">
+                <span
+                  :for={token <- query_tokens(@filters["query"])}
+                  class="rs-omnisearch__token"
+                  data-token={token}
                 >
-                  <%= label %>
-                </.link>
+                  <span :if={scoped_query_token?(token)} class="rs-omnisearch__token-scope">
+                    <%= query_token_scope(token) %>
+                  </span>
+                  <span class="rs-omnisearch__token-value"><%= query_token_value(token) %></span>
+                  <.link
+                    patch={omnisearch_remove_token_path(assigns, token)}
+                    aria-label={"Remove #{query_token_label(token)}"}
+                    class="rs-omnisearch__token-remove"
+                  >
+                    <svg viewBox="0 0 16 16" aria-hidden="true">
+                      <path d="M4.5 4.5 11.5 11.5M11.5 4.5 4.5 11.5" />
+                    </svg>
+                  </.link>
+                </span>
+                <input id="flag-omnisearch-input" type="text" name="filters[query_text]" value={@omnisearch_input} placeholder="Search key, owner, tag, or description..." phx-change="omnisearch_changed" phx-debounce="300" />
+              </div>
+              <div :if={show_omnisearch_suggestions?(@omnisearch_input, @omnisearch_suggestions)} class="rs-omnisearch__menu" role="listbox" aria-label="Search suggestions">
+                <div :if={@omnisearch_suggestions.flags != []} class="rs-omnisearch__group">
+                  <p>Flags</p>
+                  <.link
+                    :for={flag <- @omnisearch_suggestions.flags}
+                    patch={omnisearch_suggestion_path(assigns, "key", flag)}
+                    role="option"
+                    class="rs-omnisearch__option"
+                  >
+                    <span class="rs-omnisearch__option-scope">key</span>
+                    <code><%= flag %></code>
+                  </.link>
+                </div>
+                <div :if={@omnisearch_suggestions.owners != []} class="rs-omnisearch__group">
+                  <p>Owners</p>
+                  <.link
+                    :for={owner <- @omnisearch_suggestions.owners}
+                    patch={omnisearch_suggestion_path(assigns, "owner", owner)}
+                    role="option"
+                    class="rs-omnisearch__option"
+                  >
+                    <span class="rs-omnisearch__option-scope">owner</span>
+                    <span><%= owner %></span>
+                  </.link>
+                </div>
+                <div :if={@omnisearch_suggestions.tags != []} class="rs-omnisearch__group">
+                  <p>Tags</p>
+                  <.link
+                    :for={tag <- @omnisearch_suggestions.tags}
+                    patch={omnisearch_suggestion_path(assigns, "tag", tag)}
+                    role="option"
+                    class="rs-omnisearch__option"
+                  >
+                    <span class="rs-omnisearch__option-scope">tag</span>
+                    <span><%= tag %></span>
+                  </.link>
+                </div>
               </div>
             </div>
-            <p style="margin: 0.5rem 0 0; font-size: 0.875rem; color: var(--rs-color-text-muted, #6b7280);">
-              <strong>Archive candidates</strong> are fully rolled-out flags that haven't been evaluated recently. <strong>Needs review</strong> highlights flags past their intended review date. <strong>Recently stale</strong> shows flags that recently stopped receiving traffic.
-            </p>
+          </div>
+
+          <nav class="rs-inventory-views" aria-label="Flag inventory views">
+            <.link
+              :for={{view, label, _params} <- @inventory_views}
+              patch={inventory_view_path(assigns, view)}
+              data-current={to_string(@filters["view"] == view)}
+              aria-current={if @filters["view"] == view, do: "page", else: nil}
+            >
+              <%= label %>
+            </.link>
+            <.link
+              :if={@filters["view"] == "custom"}
+              patch={build_index_path(@base_path, @filters)}
+              data-current="true"
+              aria-current="page"
+            >
+              Custom
+            </.link>
           </nav>
 
-          <form id="flag-filters-form" aria-label="Flag filters" phx-change="filters_changed" phx-submit="filters_changed" class="rs-filters" style="padding: 1.5rem;" onsubmit="return false;">
-            <div class="rs-filter-grid rs-filter-grid--primary">
-              <input type="hidden" name="filters[env]" value={@current_environment.key} />
-              
-              <div style="display: grid; grid-template-columns: 1fr max-content; gap: 1.5rem; grid-column: 1 / -1; margin-bottom: 1.5rem; align-items: center;">
-                <label style="margin: 0;">
-                  <span class="sr-only">Search</span>
-                  <input type="text" name="filters[query]" value={@filters["query"]} placeholder="Search flags by key, tags, or description..." phx-debounce="300" style="width: 100%;" />
-                </label>
-                <label style="margin: 0; display: flex; align-items: center; gap: 0.75rem;">
-                  <span style="font-weight: 500; font-size: 0.875rem; color: var(--rs-color-text-muted, #4b5563); white-space: nowrap;">Sort by</span>
-                  <select name="filters[sort]" style="width: auto; margin: 0;">
-                    <option value="flag_key" selected={@filters["sort"] == "flag_key"}>Key (A-Z)</option>
-                    <option value="updated_at" selected={@filters["sort"] == "updated_at"}>Recently updated</option>
-                    <option value="inserted_at" selected={@filters["sort"] == "inserted_at"}>Newest first</option>
-                  </select>
-                </label>
-              </div>
-
-              <div style="grid-column: 1 / -1; display: flex; flex-direction: column; gap: 1.5rem;">
-                <fieldset class="rs-radio-group" style="margin: 0; padding: 0; border: none;">
-                  <legend style="font-weight: 600; font-size: 0.875rem; margin-bottom: 0.75rem;">Lifecycle state</legend>
-                  <div style="display: flex; flex-wrap: wrap; gap: 1.5rem;">
-                    <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: 400; margin: 0; cursor: pointer;">
-                      <input type="radio" name="filters[lifecycle]" value="" checked={@filters["lifecycle"] == ""} /> All
-                    </label>
-                    <label :for={state <- @allowed_lifecycle} style="display: flex; align-items: center; gap: 0.5rem; font-weight: 400; margin: 0; cursor: pointer;">
-                      <input type="radio" name="filters[lifecycle]" value={state} checked={@filters["lifecycle"] == state} /> <%= humanize(state) %>
-                    </label>
-                  </div>
-                </fieldset>
-                
-                <fieldset class="rs-radio-group" style="margin: 0; padding: 0; border: none;">
-                  <legend style="font-weight: 600; font-size: 0.875rem; margin-bottom: 0.75rem;">Stale status</legend>
-                  <div style="display: flex; flex-wrap: wrap; gap: 1.5rem;">
-                    <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: 400; margin: 0; cursor: pointer;">
-                      <input type="radio" name="filters[stale]" value="" checked={@filters["stale"] == ""} /> All
-                    </label>
-                    <label :for={state <- @allowed_stale} style="display: flex; align-items: center; gap: 0.5rem; font-weight: 400; margin: 0; cursor: pointer;">
-                      <input type="radio" name="filters[stale]" value={state} checked={@filters["stale"] == state} /> <%= humanize(state) %>
-                    </label>
-                  </div>
-                </fieldset>
-              </div>
-
-              <div class="rs-filter-grid__actions" style="grid-column: 1 / -1; margin-top: 1rem;">
-                <button type="button" phx-click="toggle_advanced_filters" class="rs-link" style="background: none; border: none; padding: 0; color: var(--rs-color-primary, #2563eb); cursor: pointer; font-size: 0.875rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.375rem;">
-                  <%= if @show_advanced_filters do %>
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 1.25rem; height: 1.25rem;"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5" /></svg>
-                    Hide advanced filters
-                  <% else %>
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 1.25rem; height: 1.25rem;"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
-                    Show advanced filters
-                  <% end %>
-                </button>
-              </div>
-            </div>
-
-            <div class={["rs-filter-grid rs-filter-grid--advanced", not @show_advanced_filters && "hidden"]} style={"margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--rs-color-border, #e5e7eb);" <> (if not @show_advanced_filters, do: " display: none;", else: "")}>
-            <label>
-              <span>Owner ref</span>
-              <input type="text" name="filters[owner]" value={@filters["owner"]} phx-debounce="300" />
-            </label>
-            <label>
-              <span>Tags</span>
-              <input type="text" name="filters[tags]" value={@filters["tags"]} placeholder="checkout, infra" phx-debounce="300" />
-            </label>
-            <label>
-              <span>Rows</span>
-              <select name="filters[limit]">
-                <option :for={limit <- [10, 25, 50, 100]} value={limit} selected={Integer.to_string(limit) == @filters["limit"]}>
-                  <%= limit %>
-                </option>
-              </select>
-            </label>
-            <label>
-              <span>Archive readiness</span>
-              <select name="filters[readiness]">
-                <option value="">All readiness states</option>
-                <option :for={state <- @allowed_readiness} value={state} selected={@filters["readiness"] == state}>
-                  <%= humanize(state) %>
-                </option>
-              </select>
-            </label>
-            <label>
-              <span>Evidence quality</span>
-              <select name="filters[evidence_quality]">
-                <option value="">All evidence states</option>
-                <option :for={state <- @allowed_evidence_quality} value={state} selected={@filters["evidence_quality"] == state}>
-                  <%= humanize(state) %>
-                </option>
-              </select>
-            </label>
-            <label class="rs-filter-grid__checkbox" style="align-self: flex-end; padding-bottom: 0.5rem;">
-              <input type="hidden" name="filters[include_archived]" value="false" />
-              <input type="checkbox" name="filters[include_archived]" value="true" checked={@filters["include_archived"] == "true"} />
-              <span>Include archived</span>
-            </label>
-          </div>
+          <span :if={@filters["view"] == "custom"} class="rs-filter-panel__hint">
+            Custom view from URL filters
+          </span>
         </form>
-        </div>
 
         <p :if={@error_message} role="alert"><%= @error_message %></p>
 
-        <div class="rs-results-header" style="margin-bottom: 1rem;">
-          <h3 style="margin: 0; font-size: 1rem; font-weight: 600; color: var(--rs-color-text, #111827);">
+        <div class="rs-results-header">
+          <h3>
             Feature flags (<%= length(@page.entries) %><%= if @page.has_next_page?, do: "+", else: "" %>)
           </h3>
+          <form class="rs-results-sort" aria-label="Sort flags" phx-change="filters_changed">
+            <label>
+              <span>Sort</span>
+              <select name="filters[sort]">
+                <option value="flag_key" selected={@filters["sort"] == "flag_key"}>Key A-Z</option>
+                <option value="updated_at" selected={@filters["sort"] == "updated_at"}>Recently updated</option>
+                <option value="inserted_at" selected={@filters["sort"] == "inserted_at"}>Newest first</option>
+              </select>
+            </label>
+          </form>
         </div>
 
         <ul id="flags" phx-update="stream" aria-label="Feature flags list" class="rs-card-list">
@@ -326,14 +372,20 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
 
             <div class="rs-card__footer" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; border-top: 1px solid var(--rs-color-border-light, #f3f4f6); padding-top: 1rem; font-size: 0.875rem; color: var(--rs-color-text-muted, #6b7280);">
               <div class="rs-card__meta" style="display: flex; flex-wrap: wrap; gap: 1.5rem;">
-                <span class="rs-card__meta-item" title="Lifecycle" style="display: flex; align-items: center; gap: 0.375rem;">
-                  <strong>Lifecycle:</strong> <%= humanize(entry.lifecycle.mode) %>
+                <span class="rs-card__meta-item" data-meta="lifecycle" title="Lifecycle" style="display: flex; align-items: center; gap: 0.375rem;">
+                  <.meta_icon name="lifecycle" />
+                  <span class="sr-only">Lifecycle:</span>
+                  <%= lifecycle_label(entry.lifecycle) %>
                 </span>
-                <span class="rs-card__meta-item" title="Owner" style="display: flex; align-items: center; gap: 0.375rem;">
-                  <strong>Owner:</strong> <%= entry.flag.ownership.owner_display || entry.flag.ownership.owner_ref %>
+                <span class="rs-card__meta-item" data-meta="owner" title="Owner" style="display: flex; align-items: center; gap: 0.375rem;">
+                  <.meta_icon name="owner" />
+                  <span class="sr-only">Owner:</span>
+                  <%= entry.flag.ownership.owner_display || entry.flag.ownership.owner_ref %>
                 </span>
-                <span class="rs-card__meta-item" title="Type" style="display: flex; align-items: center; gap: 0.375rem;">
-                  <strong>Type:</strong> <%= humanize(entry.flag.flag_type) %>
+                <span class="rs-card__meta-item" data-meta="type" title="Type" style="display: flex; align-items: center; gap: 0.375rem;">
+                  <.meta_icon name="type" />
+                  <span class="sr-only">Type:</span>
+                  <%= humanize(entry.flag.flag_type) %>
                 </span>
                 <span class="rs-card__meta-item" title="Last changed" style="display: flex; align-items: center; gap: 0.375rem;">
                   <strong>Last changed:</strong>
@@ -347,18 +399,19 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
               </div>
             </div>
           </li>
-          <li :if={Enum.empty?(@page.entries)} id="flags-empty" class="rs-card rs-card--empty" style="padding: 3rem 1rem; text-align: center; border: 1px dashed var(--rs-color-border, #e5e7eb); border-radius: 0.5rem;">
-            <div class="rs-empty-state">
-              <div class="rs-empty-state__icon" style="margin: 0 auto 1rem; width: 3rem; height: 3rem; color: var(--rs-color-text-muted, #9ca3af);">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-              </div>
-              <h3 class="rs-empty-state__title" style="font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem;">No flags found</h3>
-              <p class="rs-empty-state__text" style="color: var(--rs-color-text-muted, #6b7280);">Try adjusting your filters or search query, or create a new flag.</p>
-            </div>
-          </li>
         </ul>
+
+        <div :if={Enum.empty?(@page.entries)} id="flags-empty" class="rs-card rs-card--empty" style="padding: 3rem 1rem; text-align: center; border: 1px dashed var(--rs-color-border, #e5e7eb); border-radius: 0.5rem;">
+          <div class="rs-empty-state">
+            <div class="rs-empty-state__icon" style="margin: 0 auto 1rem; width: 3rem; height: 3rem; color: var(--rs-color-text-muted, #9ca3af);">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <h3 class="rs-empty-state__title" style="font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem;">No flags found</h3>
+            <p class="rs-empty-state__text" style="color: var(--rs-color-text-muted, #6b7280);">Try adjusting your filters or search query, or create a new flag.</p>
+          </div>
+        </div>
 
         <FlagComponents.pagination page={@page} base_path={@base_path} params={pagination_params(@filters)} />
       </section>
@@ -366,36 +419,167 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
     """
   end
 
-  defp load_flags(socket, filters) do
+  defp load_flags(socket, filters, suggestion_query \\ nil) do
     opts = list_opts(filters)
+    suggestion_query = if is_nil(suggestion_query), do: filters["query"], else: suggestion_query
 
     case Rulestead.list_flags(opts) do
       {:ok, page} ->
         socket
         |> assign(:page, page)
         |> assign(:error_message, nil)
+        |> assign_omnisearch_suggestions(filters, suggestion_query)
         |> stream(:flags, page.entries, reset: true)
 
       {:error, error} ->
         socket
         |> assign(:page, empty_page())
         |> assign(:error_message, error.message)
+        |> assign(:omnisearch_suggestions, %{flags: [], owners: [], tags: []})
         |> stream(:flags, [], reset: true)
     end
+  end
+
+  defp assign_omnisearch_suggestions(socket, filters, suggestion_query) do
+    suggestions =
+      filters
+      |> suggestion_opts()
+      |> Rulestead.list_flags()
+      |> case do
+        {:ok, page} -> build_omnisearch_suggestions(page.entries, suggestion_query)
+        {:error, _error} -> %{flags: [], owners: [], tags: []}
+      end
+
+    assign(socket, :omnisearch_suggestions, suggestions)
+  end
+
+  defp suggestion_opts(filters) do
+    filters
+    |> Map.put("query", "")
+    |> Map.put("limit", "100")
+    |> Map.put("after", nil)
+    |> Map.put("before", nil)
+    |> list_opts()
+  end
+
+  defp build_omnisearch_suggestions(entries, query) do
+    %{
+      flags:
+        entries
+        |> Enum.map(& &1.flag.key)
+        |> matching_suggestions(query, 5),
+      owners:
+        entries
+        |> Enum.flat_map(fn entry ->
+          ownership = entry.flag.ownership || %{}
+          [ownership.owner_ref, ownership.owner_display]
+        end)
+        |> matching_suggestions(query, 5),
+      tags:
+        entries
+        |> Enum.flat_map(&(&1.flag.tags || []))
+        |> matching_suggestions(query, 5)
+    }
+  end
+
+  defp compact_sorted(values) do
+    values
+    |> Enum.reject(&(is_nil(&1) or &1 == ""))
+    |> Enum.uniq()
+    |> Enum.sort()
+  end
+
+  defp apply_transient_omnisearch(socket, input) do
+    effective_filters =
+      socket.assigns.filters
+      |> Map.put("query", combined_query(socket.assigns.filters["query"], input))
+      |> reset_pagination()
+
+    socket
+    |> assign(:omnisearch_input, input)
+    |> load_flags(effective_filters, input)
+  end
+
+  defp omnisearch_input_from_params(%{"filters" => %{"query_text" => query_text}})
+       when query_text != "",
+       do: query_text
+
+  defp omnisearch_input_from_params(%{"value" => value}) when is_binary(value), do: value
+  defp omnisearch_input_from_params(%{"filters" => %{"query_text" => query_text}}), do: query_text
+  defp omnisearch_input_from_params(_params), do: ""
+
+  defp combined_query(committed_query, input) do
+    [committed_query, input]
+    |> Enum.flat_map(&query_tokens/1)
+    |> compact_unique()
+    |> Enum.join(" ")
+  end
+
+  defp scoped_query_token?(token) do
+    match?(
+      {scope, value} when scope in ["key", "owner", "tag"] and value != "",
+      split_scoped_query_token(token)
+    )
+  end
+
+  defp query_token_scope(token) do
+    case split_scoped_query_token(token) do
+      {scope, value} when scope in ["key", "owner", "tag"] and value != "" -> scope
+      _other -> nil
+    end
+  end
+
+  defp query_token_value(token) do
+    case split_scoped_query_token(token) do
+      {scope, value} when scope in ["key", "owner", "tag"] and value != "" -> value
+      _other -> token
+    end
+  end
+
+  defp query_token_label(token) do
+    case split_scoped_query_token(token) do
+      {scope, value} when scope in ["key", "owner", "tag"] and value != "" -> "#{scope}:#{value}"
+      _other -> token
+    end
+  end
+
+  defp scoped_query_value(scope, value) do
+    scope = scope |> to_string() |> String.downcase()
+    value = value |> to_string() |> String.trim()
+
+    if scope in ["key", "owner", "tag"] and value != "" do
+      "#{scope}:#{value}"
+    else
+      value
+    end
+  end
+
+  defp split_scoped_query_token(token) when is_binary(token) do
+    case String.split(token, ":", parts: 2) do
+      [scope, value] -> {String.downcase(scope), value}
+      _other -> nil
+    end
+  end
+
+  defp split_scoped_query_token(_token), do: nil
+
+  defp remove_query_token(query, token) do
+    query
+    |> query_tokens()
+    |> Enum.reject(&(&1 == token))
+    |> Enum.join(" ")
   end
 
   defp list_opts(filters) do
     [
       environment_key: filters["env"],
       query: blank_to_nil(filters["query"]),
-      owner: blank_to_nil(filters["owner"]),
-      tags: split_tags(filters["tags"]),
       lifecycle: maybe_atom(filters["lifecycle"]),
       stale: maybe_atom(filters["stale"]),
       readiness: maybe_atom(filters["readiness"]),
       evidence_quality: maybe_atom(filters["evidence_quality"]),
       include_archived?: filters["include_archived"] == "true",
-      limit: String.to_integer(filters["limit"]),
+      limit: String.to_integer(filters["limit"] || Integer.to_string(@default_limit)),
       sort: maybe_atom(filters["sort"]),
       after: blank_to_nil(filters["after"]),
       before: blank_to_nil(filters["before"])
@@ -421,6 +605,22 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
     |> Map.new()
   end
 
+  defp patch_filters(socket, filters) do
+    push_patch(socket,
+      to:
+        build_index_path(
+          socket.assigns.base_path,
+          normalize_filters(filters, socket.assigns.current_environment.key)
+        )
+    )
+  end
+
+  defp reset_pagination(filters) do
+    filters
+    |> Map.put("after", nil)
+    |> Map.put("before", nil)
+  end
+
   defp build_index_path(base_path, filters, extras \\ %{}) do
     query =
       filters
@@ -435,15 +635,15 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
   defp ordered_query_params(filters) do
     [
       {"env", filters["env"]},
+      {"view", filters["view"]},
       {"query", filters["query"]},
-      {"owner", filters["owner"]},
-      {"tags", filters["tags"]},
-      {"lifecycle", filters["lifecycle"]},
-      {"stale", filters["stale"]},
-      {"readiness", filters["readiness"]},
-      {"evidence_quality", filters["evidence_quality"]},
-      {"include_archived", filters["include_archived"]},
+      {"lifecycle", custom_filter_param(filters, "lifecycle")},
+      {"stale", custom_filter_param(filters, "stale")},
+      {"readiness", custom_filter_param(filters, "readiness")},
+      {"evidence_quality", custom_filter_param(filters, "evidence_quality")},
+      {"include_archived", custom_filter_param(filters, "include_archived")},
       {"limit", serialize_limit(filters["limit"])},
+      {"sort", serialize_sort(filters["sort"])},
       {"after", filters["after"]},
       {"before", filters["before"]}
     ]
@@ -454,21 +654,24 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
 
     after_cursor = blank_to_nil(params["after"])
     before_cursor = blank_to_nil(params["before"])
+    query = normalize_query(params)
 
-    %{
+    filters = %{
       "env" => blank_to_nil(params["env"]) || default_env,
-      "query" => params["query"] || "",
-      "owner" => params["owner"] || "",
-      "tags" => normalize_tags(params["tags"]),
+      "query" => query,
+      "view" => normalize_enum(params["view"], @allowed_views),
       "lifecycle" => normalize_enum(params["lifecycle"], @allowed_lifecycle),
       "stale" => normalize_enum(params["stale"], @allowed_stale),
       "readiness" => normalize_enum(params["readiness"], @allowed_readiness),
       "evidence_quality" => normalize_enum(params["evidence_quality"], @allowed_evidence_quality),
       "include_archived" => normalize_boolean(params["include_archived"]),
       "limit" => normalize_limit(params["limit"]),
+      "sort" => normalize_sort(params["sort"]),
       "after" => if(before_cursor, do: nil, else: after_cursor),
       "before" => if(after_cursor, do: nil, else: before_cursor)
     }
+
+    normalize_view_filters(filters, Map.has_key?(params, "view"))
   end
 
   defp stringify_keys(params) when is_map(params),
@@ -476,9 +679,36 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
 
   defp stringify_keys(_params), do: %{}
 
-  defp normalize_tags(tags) when is_list(tags), do: Enum.join(tags, ", ")
-  defp normalize_tags(tags) when is_binary(tags), do: tags |> split_tags() |> Enum.join(", ")
-  defp normalize_tags(_tags), do: ""
+  defp normalize_query(params) do
+    [
+      params["query"],
+      params["owner"],
+      params["tags"]
+    ]
+    |> Enum.flat_map(&query_tokens/1)
+    |> compact_unique()
+    |> Enum.join(" ")
+  end
+
+  defp compact_unique(values) do
+    Enum.reduce(values, [], fn value, acc ->
+      cond do
+        is_nil(value) or value == "" -> acc
+        value in acc -> acc
+        true -> acc ++ [value]
+      end
+    end)
+  end
+
+  defp query_tokens(value) when is_binary(value) do
+    value
+    |> String.split([",", " "])
+    |> Enum.map(&String.trim/1)
+    |> Enum.reject(&(&1 == ""))
+  end
+
+  defp query_tokens(value) when is_list(value), do: Enum.flat_map(value, &query_tokens/1)
+  defp query_tokens(_value), do: []
 
   defp normalize_enum(value, allowed) when is_binary(value) do
     normalized = blank_to_nil(value)
@@ -514,14 +744,14 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
     if limit == Integer.to_string(@default_limit), do: nil, else: limit
   end
 
-  defp split_tags(tags) when is_binary(tags) do
-    tags
-    |> String.split(",")
-    |> Enum.map(&String.trim/1)
-    |> Enum.reject(&(&1 == ""))
-  end
+  defp normalize_sort(sort) when sort in ["flag_key", "updated_at", "inserted_at"], do: sort
+  defp normalize_sort(_sort), do: "flag_key"
 
-  defp split_tags(_tags), do: []
+  defp serialize_sort("flag_key"), do: nil
+  defp serialize_sort(sort), do: sort
+
+  defp custom_filter_param(%{"view" => "custom"} = filters, key), do: Map.get(filters, key)
+  defp custom_filter_param(_filters, _key), do: nil
 
   defp maybe_atom(""), do: nil
   defp maybe_atom(nil), do: nil
@@ -561,19 +791,18 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
     end
   end
 
-
   defp default_filters do
     %{
       "env" => nil,
       "query" => "",
-      "owner" => "",
-      "tags" => "",
+      "view" => "all",
       "lifecycle" => "",
       "stale" => "",
       "readiness" => "",
       "evidence_quality" => "",
       "include_archived" => "false",
       "limit" => Integer.to_string(@default_limit),
+      "sort" => "flag_key",
       "after" => nil,
       "before" => nil
     }
@@ -583,20 +812,100 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
     %Rulestead.Store.Command.Page{entries: [], limit: @default_limit}
   end
 
-  defp active_preset?(filters, params) do
-    Enum.all?(params, fn {key, value} ->
-      current = Map.get(filters, key)
-      current == value or (value == "" and current in [nil, ""])
+  defp normalize_view_filters(%{"view" => view} = filters, true)
+       when view in ["all", "needs_review", "archive_candidates", "recently_stale", "archived"] do
+    filters
+    |> apply_view(view)
+    |> Map.put("view", view)
+  end
+
+  defp normalize_view_filters(%{"view" => "custom"} = filters, true), do: filters
+
+  defp normalize_view_filters(filters, _view_provided?) do
+    case matching_inventory_view(filters) do
+      nil -> Map.put(filters, "view", "custom")
+      view -> filters |> apply_view(view) |> Map.put("view", view)
+    end
+  end
+
+  defp apply_view(filters, view) do
+    filters
+    |> Map.merge(inventory_view_params(view))
+    |> Map.put("after", nil)
+    |> Map.put("before", nil)
+  end
+
+  defp matching_inventory_view(filters) do
+    Enum.find_value(@inventory_views, fn {view, _label, params} ->
+      if view_params_match?(filters, params), do: view
     end)
   end
 
-  defp preset_path(base_path, filters, params) do
-    merged_filters =
-      filters
-      |> Map.merge(%{"after" => nil, "before" => nil})
-      |> Map.merge(params)
+  defp matching_suggestions(suggestions, query, limit) do
+    query =
+      query
+      |> query_token_value()
+      |> to_string()
+      |> String.downcase()
+      |> String.trim()
 
-    build_index_path(base_path, merged_filters)
+    suggestions
+    |> compact_sorted()
+    |> Enum.filter(fn suggestion ->
+      query == "" or String.contains?(String.downcase(suggestion), query)
+    end)
+    |> Enum.take(limit)
+  end
+
+  defp show_omnisearch_suggestions?(query, suggestions) do
+    query != "" and
+      Enum.any?([suggestions.flags, suggestions.owners, suggestions.tags], &(&1 != []))
+  end
+
+  defp view_params_match?(filters, params) do
+    Enum.all?(
+      ["lifecycle", "stale", "readiness", "evidence_quality", "include_archived"],
+      fn key ->
+        Map.get(filters, key) == Map.get(params, key, "")
+      end
+    )
+  end
+
+  defp inventory_view_params(view) do
+    @inventory_views
+    |> Enum.find_value(%{}, fn
+      {^view, _label, params} -> params
+      _other -> nil
+    end)
+  end
+
+  defp inventory_view_path(assigns, view) do
+    filters =
+      assigns.filters
+      |> apply_view(view)
+      |> Map.put("view", view)
+
+    build_index_path(assigns.base_path, filters)
+  end
+
+  defp omnisearch_suggestion_path(assigns, scope, value) do
+    scoped_value = scoped_query_value(scope, value)
+
+    filters =
+      assigns.filters
+      |> Map.put("query", combined_query(assigns.filters["query"], scoped_value))
+      |> reset_pagination()
+
+    build_index_path(assigns.base_path, filters)
+  end
+
+  defp omnisearch_remove_token_path(assigns, token) do
+    filters =
+      assigns.filters
+      |> Map.put("query", remove_query_token(assigns.filters["query"], token))
+      |> reset_pagination()
+
+    build_index_path(assigns.base_path, filters)
   end
 
   defp outcome_query_params(extras) do
@@ -623,6 +932,30 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
       "#{socket_or_assigns.base_path}/#{key}/cleanup",
       socket_or_assigns.current_path
     )
+  end
+
+  attr(:name, :string, required: true)
+
+  defp meta_icon(assigns) do
+    ~H"""
+    <span class="rs-card__meta-icon" aria-hidden="true">
+      <svg :if={@name == "lifecycle"} viewBox="0 0 20 20" fill="none">
+        <path d="M5 5.5h2.25M12.75 14.5H15" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+        <path d="M8 5.5h1.5c2.2 0 4 1.8 4 4v1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+        <path d="M12 14.5h-1.5c-2.2 0-4-1.8-4-4v-1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+        <circle cx="5" cy="5.5" r="1.35" fill="currentColor" />
+        <circle cx="15" cy="14.5" r="1.35" fill="currentColor" />
+      </svg>
+      <svg :if={@name == "owner"} viewBox="0 0 20 20" fill="none">
+        <path d="M10 10.15a3.25 3.25 0 1 0 0-6.5 3.25 3.25 0 0 0 0 6.5Z" stroke="currentColor" stroke-width="1.6" />
+        <path d="M4.5 16.35c.75-2.25 2.75-3.55 5.5-3.55s4.75 1.3 5.5 3.55" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+      </svg>
+      <svg :if={@name == "type"} viewBox="0 0 20 20" fill="none">
+        <path d="M4 6.5h12M4 13.5h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+        <path d="M7.5 8.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4ZM12.5 15.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" fill="currentColor" />
+      </svg>
+    </span>
+    """
   end
 
   defp path_with_query(uri) do
@@ -653,6 +986,13 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
     do: value |> String.replace("_", " ") |> String.capitalize()
 
   defp humanize(value), do: to_string(value)
+
+  defp lifecycle_label(%{mode: :expiring, review_by: %Date{} = review_by}),
+    do: "Expires #{Calendar.strftime(review_by, "%b %-d, %Y")}"
+
+  defp lifecycle_label(%{mode: :expiring}), do: "Expiring"
+  defp lifecycle_label(%{mode: mode}), do: humanize(mode)
+  defp lifecycle_label(value), do: humanize(value)
 
   defp format_last_changed_utc(nil), do: "Not recorded"
 

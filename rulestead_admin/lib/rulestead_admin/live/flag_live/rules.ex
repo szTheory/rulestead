@@ -5,7 +5,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Rules do
   use Phoenix.LiveView
 
   alias Rulestead.Store.Command
-  alias RulesteadAdmin.Components.{OperatorComponents, RuleEditorComponents, Shell}
+  alias RulesteadAdmin.Components.{RuleEditorComponents, Shell}
   alias RulesteadAdmin.Live.Session
 
   @impl true
@@ -108,9 +108,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Rules do
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}
+      policy_state={@rulestead_admin_policy_state}
     >
-      <OperatorComponents.policy_state policy_state={@rulestead_admin_policy_state} />
-
       <div :if={@detail} class="rs-rules-workspace">
         <div class="rs-rules-workspace__header">
           <div>

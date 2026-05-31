@@ -786,8 +786,8 @@ defmodule Rulestead.Fake do
           |> Enum.reject(fn entry ->
             archived?(entry.flag) and not command.include_archived?
           end)
-          |> Enum.filter(&matches_query?(&1, command.query))
           |> Enum.map(&build_list_entry(state, &1))
+          |> Enum.filter(&matches_query?(&1, command.query))
           |> maybe_filter_owner(command.owner)
           |> maybe_filter_tags(command.tags)
           |> maybe_filter_lifecycle(command.lifecycle)
@@ -6186,15 +6186,79 @@ defmodule Rulestead.Fake do
   defp matches_query?(_entry, ""), do: true
 
   defp matches_query?(entry, query) do
-    normalized_query =
-      query
-      |> to_string()
-      |> String.trim()
-      |> String.downcase()
+    terms = query_terms(query)
 
-    normalized_query == "" or
-      String.contains?(String.downcase(entry.flag.key), normalized_query) or
-      String.contains?(String.downcase(entry.flag.description || ""), normalized_query)
+    terms == [] or entry_matches_query?(entry, terms)
+  end
+
+  defp entry_matches_query?(entry, terms) do
+    Enum.all?(terms, fn term ->
+      entry_matches_query_term?(entry, term)
+    end)
+  end
+
+  defp entry_matches_query_term?(entry, {:key, term}) do
+    entry.flag.key
+    |> normalized_search_value()
+    |> String.contains?(term)
+  end
+
+  defp entry_matches_query_term?(entry, {:owner, term}) do
+    ownership = entry.flag.ownership || %{}
+
+    [ownership.owner_ref, ownership.owner_display]
+    |> Enum.map(&normalized_search_value/1)
+    |> Enum.any?(&String.contains?(&1, term))
+  end
+
+  defp entry_matches_query_term?(entry, {:tag, term}) do
+    entry.flag.tags
+    |> List.wrap()
+    |> Enum.map(&normalized_search_value/1)
+    |> Enum.any?(&String.contains?(&1, term))
+  end
+
+  defp entry_matches_query_term?(entry, {:any, term}) do
+    entry
+    |> searchable_entry_values()
+    |> Enum.any?(&String.contains?(&1, term))
+  end
+
+  defp searchable_entry_values(entry) do
+    ownership = entry.flag.ownership || %{}
+
+    ([entry.flag.key, entry.flag.description, ownership.owner_ref, ownership.owner_display] ++
+       (entry.flag.tags || []))
+    |> Enum.map(&normalized_search_value/1)
+  end
+
+  defp normalized_search_value(value), do: value |> to_string() |> String.downcase()
+
+  defp query_term(term) do
+    case String.split(term, ":", parts: 2) do
+      ["key", value] when value != "" ->
+        {:key, value}
+
+      ["owner", value] when value != "" ->
+        {:owner, value}
+
+      ["tag", value] when value != "" ->
+        {:tag, value}
+
+      _other ->
+        {:any, term}
+    end
+  end
+
+  defp query_terms(query) do
+    query
+    |> to_string()
+    |> String.downcase()
+    |> String.split([",", " "])
+    |> Enum.map(&String.trim/1)
+    |> Enum.reject(&(&1 == ""))
+    |> Enum.uniq()
+    |> Enum.map(&query_term/1)
   end
 
   defp sort_entries(entries, :inserted_at),

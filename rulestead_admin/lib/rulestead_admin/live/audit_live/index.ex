@@ -5,7 +5,7 @@ defmodule RulesteadAdmin.Live.AuditLive.Index do
   use Phoenix.LiveView
 
   alias Rulestead.Admin.Redaction
-  alias RulesteadAdmin.Components.{AuditComponents, FlagComponents, OperatorComponents, Shell}
+  alias RulesteadAdmin.Components.{AuditComponents, FlagComponents, Shell}
   alias RulesteadAdmin.Live.Session
 
   @impl true
@@ -52,9 +52,8 @@ defmodule RulesteadAdmin.Live.AuditLive.Index do
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}
+      policy_state={@rulestead_admin_policy_state}
     >
-      <OperatorComponents.policy_state policy_state={@rulestead_admin_policy_state} />
-
       <p :if={@error_message} role="alert">{@error_message}</p>
       <p :if={@notice} role="status">{@notice}</p>
 

@@ -99,13 +99,12 @@ defmodule RulesteadAdmin.Live.FlagLive.Explain do
       current_environment={@page.current_environment}
       environments={@page.environments}
       env_links={@page.env_links}
+      policy_state={@page.policy_state}
     >
       <:header_actions>
         <a href={flag_detail_path(assigns)}>Back to flag</a>
         <a href={simulate_path(assigns)}>Open simulate</a>
       </:header_actions>
-
-      <OperatorComponents.policy_state policy_state={@page.policy_state} />
 
       <p :if={@error_message} role="alert"><%= @error_message %></p>
 

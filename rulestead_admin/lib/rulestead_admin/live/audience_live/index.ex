@@ -4,7 +4,7 @@ defmodule RulesteadAdmin.Live.AudienceLive.Index do
 
   use Phoenix.LiveView
 
-  alias RulesteadAdmin.Components.{FlagComponents, OperatorComponents, Shell}
+  alias RulesteadAdmin.Components.{FlagComponents, Shell}
   alias RulesteadAdmin.Live.{AudienceLive.Shared, Session}
 
   @impl true
@@ -44,9 +44,8 @@ defmodule RulesteadAdmin.Live.AudienceLive.Index do
       current_tenant={@current_tenant}
       tenants={@available_tenants}
       tenant_links={@tenant_links}
+      policy_state={@rulestead_admin_policy_state}
     >
-      <OperatorComponents.policy_state policy_state={@rulestead_admin_policy_state} />
-
       <p :if={@error_message} role="alert"><%= @error_message %></p>
 
       <FlagComponents.section_card title="Audience library">

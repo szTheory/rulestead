@@ -57,6 +57,7 @@ defmodule RulesteadAdmin.Live.WebhookLive.Show do
       environments={@page.environments}
       env_links={@page.env_links}
       navigation_links={@page.navigation_links}
+      policy_state={@page.policy_state}
     >
       <section>
         <h2>Webhook Details</h2>

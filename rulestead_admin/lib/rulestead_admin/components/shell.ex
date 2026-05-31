@@ -14,6 +14,7 @@ defmodule RulesteadAdmin.Components.Shell do
   attr(:tenants, :list, default: [])
   attr(:tenant_links, :map, default: %{})
   attr(:navigation_links, :list, default: [])
+  attr(:policy_state, :map, default: nil)
   slot(:header_actions)
   slot(:inner_block, required: true)
 
@@ -31,8 +32,17 @@ defmodule RulesteadAdmin.Components.Shell do
             <%= render_slot(@header_actions) %>
           </div>
         </div>
-        <section :if={@environments != []} class="rs-shell__env" aria-label="Environment">
-          <p class="rs-shell__env-label">Environment</p>
+        <section :if={@policy_state} class="rs-shell__context" aria-label="Access">
+          <p class="rs-shell__context-label">Access</p>
+          <div
+            class="rs-shell__context-item"
+            title={"You have #{highest_capability(Map.get(@policy_state, :capabilities))} access in this environment. " <> capability_summary(Map.get(@policy_state, :capabilities))}
+          >
+            <span><%= highest_capability(Map.get(@policy_state, :capabilities)) %></span>
+          </div>
+        </section>
+        <section :if={@environments != []} class="rs-shell__context" aria-label="Environment">
+          <p class="rs-shell__context-label">Environment</p>
           <div class="rs-shell__env-picker" role="list">
             <%= for environment <- @environments do %>
               <a
@@ -47,8 +57,8 @@ defmodule RulesteadAdmin.Components.Shell do
             <% end %>
           </div>
         </section>
-        <section :if={show_tenant_scope?(assigns)} class="rs-shell__env" aria-label="Tenant scope">
-          <p class="rs-shell__env-label">Tenant</p>
+        <section :if={show_tenant_scope?(assigns)} class="rs-shell__context" aria-label="Tenant scope">
+          <p class="rs-shell__context-label">Tenant</p>
           <div :if={length(@tenants) > 1} class="rs-shell__env-picker" role="list">
             <%= for tenant <- @tenants do %>
               <a
@@ -97,6 +107,18 @@ defmodule RulesteadAdmin.Components.Shell do
   defp env_tone(%{key: "prod"}), do: "production"
   defp env_tone(%{key: "production"}), do: "production"
   defp env_tone(_environment), do: "standard"
+
+  defp highest_capability(%{admin?: true}), do: "Admin"
+  defp highest_capability(%{execute?: true}), do: "Execute"
+  defp highest_capability(%{propose?: true}), do: "Propose"
+  defp highest_capability(%{read?: true}), do: "Read-only"
+  defp highest_capability(_capabilities), do: "No access"
+
+  defp capability_summary(nil), do: "No capabilities defined"
+
+  defp capability_summary(caps) do
+    "Permissions - Read: #{caps.read?}, Execute: #{caps.execute?}, Propose: #{caps.propose?}, Admin: #{caps.admin?}"
+  end
 
   defp current_tenant?(%{current_tenant: %{key: current_key}}, %{key: tenant_key}),
     do: current_key == tenant_key

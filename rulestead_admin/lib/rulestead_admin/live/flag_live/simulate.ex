@@ -174,6 +174,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Simulate do
       current_environment={@page.current_environment}
       environments={@page.environments}
       env_links={@page.env_links}
+      policy_state={@page.policy_state}
     >
       <:header_actions>
         <a href={"/admin/flags/#{@page.flag_key}?env=#{@page.current_environment.key}"}>Back to detail</a>
@@ -184,8 +185,6 @@ defmodule RulesteadAdmin.Live.FlagLive.Simulate do
         body="Use one targeting key and one trait payload, read the decision summary first, then expand trace detail only if the summary does not answer the question."
         tone="accent"
       />
-
-      <OperatorComponents.policy_state policy_state={@page.policy_state} />
 
       <FlagComponents.section_card title="Simulation inputs">
         <form aria-label="Simulation form" phx-change="validate" phx-submit="run_simulation">

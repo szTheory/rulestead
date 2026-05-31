@@ -3,7 +3,7 @@ defmodule RulesteadAdmin.Live.WebhookLive.Index do
 
   use Phoenix.LiveView
 
-  alias RulesteadAdmin.Components.{OperatorComponents, Shell}
+  alias RulesteadAdmin.Components.Shell
   alias RulesteadAdmin.Live.Session
 
   @impl true
@@ -59,9 +59,8 @@ defmodule RulesteadAdmin.Live.WebhookLive.Index do
       environments={@page.environments}
       env_links={@page.env_links}
       navigation_links={@page.navigation_links}
+      policy_state={@page.policy_state}
     >
-      <OperatorComponents.policy_state policy_state={@page.policy_state} />
-
       <section>
         <h2>Webhook list</h2>
         <p>

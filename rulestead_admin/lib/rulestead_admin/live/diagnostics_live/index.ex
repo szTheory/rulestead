@@ -63,6 +63,7 @@ defmodule RulesteadAdmin.Live.DiagnosticsLive.Index do
         current_environment={@page.current_environment}
         environments={@page.environments}
         env_links={@page.env_links}
+        policy_state={@page.policy_state}
       >
         <:header_actions>
           <button type="button" phx-click="refresh" aria-label="Refresh diagnostics">Refresh diagnostics</button>
@@ -74,8 +75,6 @@ defmodule RulesteadAdmin.Live.DiagnosticsLive.Index do
           tone={scope_tone(@health_snapshot)}
           aria_label="Topology scope"
         />
-
-        <OperatorComponents.policy_state policy_state={@page.policy_state} />
 
         <p :if={@refresh_notice} role="status"><%= @refresh_notice %></p>
 

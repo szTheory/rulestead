@@ -42,6 +42,7 @@ defmodule RulesteadAdmin.Live.AudienceLive.DeletePreview do
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}
+      policy_state={@rulestead_admin_policy_state}
     >
       <FlagComponents.callout title="Delete is unsupported" tone="warning">
         <p>Audience delete is not available in mounted admin. Use archive when you need to retire an audience.</p>

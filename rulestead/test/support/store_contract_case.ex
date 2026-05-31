@@ -234,6 +234,63 @@ defmodule Rulestead.StoreContractCase do
         assert entry.flag.key == "pricing-page"
         assert entry.environment.key == "staging"
       end
+
+      test "flag query searches owner and tags" do
+        @store_control.put_flag!(
+          valid_flag_attrs(%{
+            key: "dispatch-routing",
+            description: "Route batching",
+            ownership: %{owner_ref: "platform-team", owner_kind: :team, owner_display: "Platform"},
+            tags: ["dispatch", "routing"]
+          })
+        )
+
+        @store_control.put_flag!(
+          valid_flag_attrs(%{
+            key: "checkout-redesign",
+            ownership: %{owner_ref: "growth-team", owner_kind: :team, owner_display: "Growth"},
+            tags: ["checkout"]
+          })
+        )
+
+        assert {:ok, %Rulestead.Store.Command.Page{entries: [owner_entry]}} =
+                 @store_module.list_flags(list_flags_command(query: "platform-team"))
+
+        assert owner_entry.flag.key == "dispatch-routing"
+
+        assert {:ok, %Rulestead.Store.Command.Page{entries: [tag_entry]}} =
+                 @store_module.list_flags(list_flags_command(query: "routing"))
+
+        assert tag_entry.flag.key == "dispatch-routing"
+
+        assert {:ok, %Rulestead.Store.Command.Page{entries: [multi_term_entry]}} =
+                 @store_module.list_flags(list_flags_command(query: "platform-team routing"))
+
+        assert multi_term_entry.flag.key == "dispatch-routing"
+
+        assert {:ok, %Rulestead.Store.Command.Page{entries: [key_entry]}} =
+                 @store_module.list_flags(list_flags_command(query: "key:dispatch"))
+
+        assert key_entry.flag.key == "dispatch-routing"
+
+        assert {:ok, %Rulestead.Store.Command.Page{entries: [owner_scoped_entry]}} =
+                 @store_module.list_flags(list_flags_command(query: "owner:platform-team"))
+
+        assert owner_scoped_entry.flag.key == "dispatch-routing"
+
+        assert {:ok, %Rulestead.Store.Command.Page{entries: [tag_scoped_entry]}} =
+                 @store_module.list_flags(list_flags_command(query: "tag:routing"))
+
+        assert tag_scoped_entry.flag.key == "dispatch-routing"
+
+        assert {:ok, %Rulestead.Store.Command.Page{entries: [scoped_multi_entry]}} =
+                 @store_module.list_flags(list_flags_command(query: "key:dispatch tag:routing"))
+
+        assert scoped_multi_entry.flag.key == "dispatch-routing"
+
+        assert {:ok, %Rulestead.Store.Command.Page{entries: []}} =
+                 @store_module.list_flags(list_flags_command(query: "tag:platform-team"))
+      end
     end
   end
 end

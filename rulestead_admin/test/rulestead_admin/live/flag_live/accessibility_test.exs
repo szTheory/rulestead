@@ -54,7 +54,15 @@ defmodule RulesteadAdmin.Live.FlagLive.AccessibilityTest do
   end
 
   test "list page passes the package accessibility audit", %{conn: conn} do
-    {:ok, _view, html} = live(conn, "/admin/flags?env=prod")
+    {:ok, _view, html} =
+      case live(conn, "/admin/flags?env=prod") do
+        {:ok, view, html} ->
+          {:ok, view, html}
+
+        {:error, {:live_redirect, %{to: redirected_path}}} ->
+          live(conn, redirected_path)
+      end
+
     assert_accessible(html)
     assert html =~ "Feature flags list"
     assert html =~ "Flag filters"
