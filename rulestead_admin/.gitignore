@@ -15,3 +15,8 @@
 
 # Ignore generated package tarballs.
 /rulestead_admin-*.tar
+
+# Local debugging scratch output.
+/debug_out.txt
+/form_failures.txt
+/test_failures.txt
