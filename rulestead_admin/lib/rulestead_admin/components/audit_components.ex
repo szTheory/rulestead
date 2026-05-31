@@ -122,9 +122,9 @@ defmodule RulesteadAdmin.Components.AuditComponents do
         <div class="rs-event-panel__meta" aria-label={"Audit metadata for #{@entry.title}"}>
           <span>{Map.get(@entry, :actor_label) || "Unknown actor"}</span>
           <span :if={@automatic?}>
-            Automatic<span :if={Map.get(@entry, :source_label)}> source {@entry.source_label}</span>
+            Run by {Map.get(@entry, :source_label) || "automation"}
           </span>
-          <span :if={!@automatic? and @rollout_event?}>Manual rollout action</span>
+          <span :if={!@automatic? and @rollout_event?}>Run by operator</span>
           <span :if={Map.get(@entry, :resource_key)}>Flag <code>{@entry.resource_key}</code></span>
         </div>
 
@@ -152,7 +152,9 @@ defmodule RulesteadAdmin.Components.AuditComponents do
         <.readable_diff
           :if={Map.get(@entry, :show_diff?, false)}
           entry={@entry}
-          structured_label="Review before / after"
+          source_label={Map.get(@entry, :source_diff_label) || "Previous state"}
+          proposed_target_label={Map.get(@entry, :proposed_target_diff_label) || "New state"}
+          structured_label="What changed"
         />
 
         <.raw_detail entry={@entry} />
@@ -217,7 +219,8 @@ defmodule RulesteadAdmin.Components.AuditComponents do
 
     ~H"""
     <details class="rs-raw-detail" aria-label={"Raw detail for #{@entry.title}"}>
-      <summary>Show raw detail</summary>
+      <summary>Show redacted JSON</summary>
+      <p>Debug view. Sensitive or non-allowlisted fields may be hidden.</p>
       <pre><code class="rs-json" aria-label={"JSON raw detail for #{@entry.title}"}><span
         :for={token <- @tokens}
         class={"rs-json-token rs-json-token--#{token.type}"}
@@ -259,6 +262,9 @@ defmodule RulesteadAdmin.Components.AuditComponents do
     <details class="rs-readable-diff" aria-label={@structured_label}>
       <summary>{@structured_label}</summary>
       <section class="rs-diff-card rs-diff-card--inline" aria-label={"Diff for #{@entry.title}"}>
+        <p :if={Map.get(@entry, :change_label)} class="rs-diff-card__label">
+          {@entry.change_label}
+        </p>
         <.diff_values
           entry={@entry}
           source_label={@source_label}
@@ -305,8 +311,8 @@ defmodule RulesteadAdmin.Components.AuditComponents do
     |> String.starts_with?("rollout.")
   end
 
-  defp result_label(:ok), do: "OK"
-  defp result_label("ok"), do: "OK"
+  defp result_label(:ok), do: "Applied"
+  defp result_label("ok"), do: "Applied"
   defp result_label(:denied), do: "Denied"
   defp result_label("denied"), do: "Denied"
   defp result_label(result), do: result |> to_string() |> String.upcase()

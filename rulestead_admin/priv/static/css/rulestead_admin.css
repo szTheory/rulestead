@@ -3,6 +3,17 @@
 .rs-form-help {
   display: block;
   margin-top: 0.5rem;
+  color: var(--rs-text-muted);
+  font-size: 0.86rem;
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+
+.rs-form-help--advice {
+  padding: 0.7rem 0.8rem;
+  border-radius: var(--rs-radius-sm);
+  background: #f7f9fc;
+  border: 1px solid var(--rs-border);
 }
 
 .rs-form-error {
@@ -24,6 +35,7 @@
   --rs-surface: #ffffff;
   --rs-surface-muted: #eef1f5;
   --rs-border: #d8dee6;
+  --rs-border-subtle: #e7ebf0;
   --rs-border-strong: #b8c2cf;
   --rs-text: #1a2332;
   --rs-text-muted: #5c6b7a;
@@ -37,6 +49,7 @@
   --rs-warning: #b45309;
   --rs-warning-soft: #fef3c7;
   --rs-error: #b91c1c;
+  --rs-critical: #b91c1c;
   --rs-error-soft: #fee2e2;
   --rs-radius-sm: 6px;
   --rs-radius-md: 10px;
@@ -57,6 +70,7 @@
   background: var(--rs-bg);
   min-height: 100vh;
   line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
 
 .rs-shell a {
@@ -192,6 +206,36 @@
   margin-bottom: 1.5rem;
 }
 
+.rs-form-summary {
+  margin: 0 0 1.25rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--rs-radius-md);
+  border: 1px solid var(--rs-error-soft);
+  border-left: 4px solid var(--rs-error);
+  background: #fff7f7;
+  color: var(--rs-text);
+  box-shadow: 0 1px 2px rgba(26, 35, 50, 0.04);
+}
+
+.rs-form-summary strong,
+.rs-form-summary p {
+  margin: 0;
+}
+
+.rs-form-summary p {
+  color: var(--rs-text-muted);
+  font-size: 0.9rem;
+}
+
+.rs-form-summary p + p,
+.rs-form-summary strong + p {
+  margin-top: 0.2rem;
+}
+
+.rs-form-preview {
+  margin-top: 0.5rem;
+}
+
 .rs-form-field label > span:first-child {
   display: block;
   font-weight: 600;
@@ -211,6 +255,284 @@
   font-size: 0.95rem;
   padding: 0 0.5rem;
   color: var(--rs-text);
+}
+
+.rs-radio-card-group {
+  margin: 0 0 1rem;
+  padding: 0;
+  border: 0;
+}
+
+.rs-radio-card-group > legend {
+  margin-bottom: 0.4rem;
+  color: var(--rs-text);
+  font-weight: 650;
+}
+
+.rs-radio-card-group--compact {
+  margin-bottom: 0.5rem;
+}
+
+.rs-radio-card-grid,
+.rs-radio-card-stack {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 0.65rem;
+}
+
+.rs-radio-card-grid--two,
+.rs-radio-card-grid--three,
+.rs-radio-card-grid--value-types {
+  grid-template-columns: 1fr;
+}
+
+.rs-radio-card {
+  position: relative;
+  display: block;
+  min-height: 48px;
+  cursor: pointer;
+}
+
+.rs-radio-card input {
+  position: absolute;
+  inset: 0.85rem auto auto 0.85rem;
+  margin: 0;
+  accent-color: var(--rs-primary);
+}
+
+.rs-radio-card__body {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  min-height: 100%;
+  padding: 0.78rem 0.85rem 0.78rem 2.25rem;
+  border: 1px solid var(--rs-border);
+  border-radius: var(--rs-radius-md);
+  background: var(--rs-surface);
+  box-shadow: 0 1px 1px rgba(26, 35, 50, 0.03);
+  transition-property: border-color, box-shadow, background-color, transform;
+  transition-duration: 150ms;
+  transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+
+.rs-radio-card:hover .rs-radio-card__body {
+  border-color: var(--rs-border-strong);
+  box-shadow: 0 4px 14px rgba(26, 35, 50, 0.07);
+}
+
+.rs-radio-card:active .rs-radio-card__body {
+  transform: scale(0.99);
+}
+
+.rs-radio-card input:focus-visible + .rs-radio-card__body {
+  outline: 3px solid rgba(37, 99, 235, 0.18);
+  outline-offset: 2px;
+}
+
+.rs-radio-card input:checked + .rs-radio-card__body {
+  border-color: var(--rs-primary);
+  background: #f8fbff;
+  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.18), 0 8px 20px rgba(37, 99, 235, 0.08);
+}
+
+.rs-radio-card input:disabled + .rs-radio-card__body {
+  cursor: not-allowed;
+  opacity: 0.65;
+  box-shadow: none;
+}
+
+.rs-radio-card__text {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.rs-radio-card__text strong {
+  color: var(--rs-text);
+  font-size: 0.94rem;
+  font-weight: 650;
+  line-height: 1.25;
+}
+
+.rs-radio-card__text span {
+  color: var(--rs-text-muted);
+  font-size: 0.82rem;
+  line-height: 1.35;
+  text-wrap: pretty;
+}
+
+.rs-owner-kind-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 1.45rem;
+  height: 1.45rem;
+  margin-top: -0.05rem;
+  color: var(--rs-primary);
+}
+
+.rs-owner-kind-icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.rs-date-picker label {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: var(--rs-text);
+  font-weight: 650;
+}
+
+.rs-date-picker__entry {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.5rem;
+  align-items: start;
+}
+
+.rs-date-picker__entry input {
+  font-variant-numeric: tabular-nums;
+}
+
+.rs-date-picker__calendar {
+  position: relative;
+}
+
+.rs-date-picker__calendar summary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 6.25rem;
+  min-height: 40px;
+  border: 1px solid var(--rs-border);
+  border-radius: var(--rs-radius-sm);
+  background: var(--rs-surface);
+  color: var(--rs-text);
+  cursor: pointer;
+  font-size: 0.88rem;
+  font-weight: 600;
+  list-style: none;
+  transition-property: border-color, background-color, box-shadow;
+  transition-duration: 150ms;
+  transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+
+.rs-date-picker__calendar summary::-webkit-details-marker {
+  display: none;
+}
+
+.rs-date-picker__calendar summary:hover {
+  border-color: var(--rs-border-strong);
+  background: var(--rs-surface-muted);
+}
+
+.rs-date-calendar {
+  position: absolute;
+  z-index: 20;
+  right: 0;
+  top: calc(100% + 0.45rem);
+  width: min(19.5rem, calc(100vw - 2rem));
+  padding: 0.8rem;
+  border-radius: var(--rs-radius-md);
+  background: var(--rs-surface);
+  box-shadow: 0 18px 45px rgba(26, 35, 50, 0.16), 0 0 0 1px rgba(26, 35, 50, 0.08);
+}
+
+.rs-date-calendar__header,
+.rs-date-calendar__weekdays,
+.rs-date-calendar__grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.25rem;
+}
+
+.rs-date-calendar__header {
+  grid-template-columns: 2.3rem 1fr 2.3rem;
+  align-items: center;
+  margin-bottom: 0.65rem;
+}
+
+.rs-date-calendar__header strong {
+  text-align: center;
+  font-size: 0.92rem;
+}
+
+.rs-date-calendar__header button {
+  min-height: 2.25rem;
+  padding: 0;
+  font-size: 1.15rem;
+}
+
+.rs-date-calendar__weekdays {
+  margin-bottom: 0.3rem;
+}
+
+.rs-date-calendar__weekdays span {
+  color: var(--rs-text-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.rs-date-calendar__day {
+  min-width: 0;
+  min-height: 2rem;
+  padding: 0;
+  border: 0;
+  border-radius: var(--rs-radius-sm);
+  background: transparent;
+  color: #99a3af;
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.rs-date-calendar__day.is-current-month {
+  color: var(--rs-text);
+}
+
+.rs-date-calendar__day:hover {
+  background: var(--rs-surface-muted);
+}
+
+.rs-date-calendar__day.is-selected {
+  background: var(--rs-primary);
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.rs-date-picker__presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.6rem;
+}
+
+.rs-date-picker__presets button {
+  min-height: 2rem;
+  padding: 0.3rem 0.6rem;
+  color: var(--rs-text-muted);
+  font-size: 0.82rem;
+}
+
+@media (min-width: 720px) {
+  .rs-radio-card-grid--two {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .rs-radio-card-grid--three {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .rs-radio-card-grid--value-types {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1040px) {
+  .rs-radio-card-grid--value-types {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
 }
 
 .rs-shell__breadcrumbs {
@@ -1492,6 +1814,12 @@
   font-weight: 650;
 }
 
+.rs-raw-detail > p {
+  margin: 0.35rem 0 0;
+  color: var(--rs-text-muted);
+  font-size: 0.86rem;
+}
+
 .rs-audit-timeline ul {
   list-style: none;
   margin: 0.75rem 0 0;
@@ -1524,6 +1852,13 @@
   align-items: stretch;
   gap: 0.6rem;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+}
+
+.rs-diff-card__label {
+  margin: 0 0 0.55rem;
+  color: var(--rs-text);
+  font-size: 0.86rem;
+  font-weight: 750;
 }
 
 .rs-diff-card__value {

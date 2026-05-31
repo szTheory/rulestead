@@ -81,12 +81,17 @@ defmodule RulesteadAdmin.Live.FlagLive.TimelineTest do
 
     assert html =~ "Kill switch engage denied"
     assert html =~ "Kill switch engaged"
-    assert html =~ "Denied action remains visible in the audit ledger."
+    assert html =~ "Request was denied. No serving change was applied."
+    assert html =~ "History for this flag in the selected environment."
+    assert html =~ "Use this timeline to see when"
+    refute html =~ "redacted ledger"
+    refute html =~ "projects into this per-flag view"
     refute html =~ "viewer@example.com"
-    assert html =~ "Show raw detail"
+    assert html =~ "Show redacted JSON"
     assert has_element?(view, "ol.rs-event-timeline[aria-label='Flag audit events']")
     assert has_element?(view, "li.rs-event-timeline__item[data-result='denied']")
     assert has_element?(view, ".rs-event-panel__result", "Denied")
+    assert has_element?(view, ".rs-event-panel__result", "Applied")
 
     rollback_html =
       view
@@ -96,6 +101,7 @@ defmodule RulesteadAdmin.Live.FlagLive.TimelineTest do
     assert rollback_html =~ "Rollback appended as audit event"
     assert rollback_html =~ "Rollback applied"
     assert rollback_html =~ "Rollback of audit event"
+    assert rollback_html =~ "Restored Active and linked this correction"
   end
 
   test "timeline row disclosure keeps readable diff first and raw data behind details", %{
@@ -103,20 +109,26 @@ defmodule RulesteadAdmin.Live.FlagLive.TimelineTest do
   } do
     {:ok, _view, html} = live(conn, "/admin/flags/checkout-redesign/timeline?env=prod")
 
-    assert html =~ "Review before / after"
-    assert html =~ "status active"
-    assert html =~ "status killswitched"
-    assert html =~ "Show raw detail"
+    assert html =~ "What changed"
+    assert html =~ "Serving state"
+    assert html =~ "Active; fallback variant None"
+    assert html =~ "Kill switch on; fallback variant default"
+    assert html =~ "Rules"
+    assert html =~ "No published rules"
+    assert html =~ "checkout-canary at position 1"
+    assert html =~ "Added checkout-canary as the first rule."
+    assert html =~ "Show redacted JSON"
+    assert html =~ "Debug view. Sensitive or non-allowlisted fields may be hidden."
     assert html =~ "rs-json-token rs-json-token--key"
     assert html =~ "&quot;event&quot;"
     assert html =~ "&quot;metadata&quot;"
     refute html =~ "%{event:"
 
-    {diff_index, _length} = :binary.match(html, "Review before / after")
+    {diff_index, _length} = :binary.match(html, "What changed")
     diff_item_html = binary_part(html, diff_index, byte_size(html) - diff_index)
 
-    assert :binary.match(diff_item_html, "Review before / after") <
-             :binary.match(diff_item_html, "Show raw detail")
+    assert :binary.match(diff_item_html, "What changed") <
+             :binary.match(diff_item_html, "Show redacted JSON")
   end
 
   @tag :auto_advance
@@ -144,8 +156,8 @@ defmodule RulesteadAdmin.Live.FlagLive.TimelineTest do
     assert html =~ "Automatic guardrail hold"
     assert html =~ "Automatic rollout advance"
     assert html =~ "Automatic"
-    assert html =~ "source guardrail_automation"
-    assert html =~ "Manual rollout action"
+    assert html =~ "Run by Guardrail automation"
+    assert html =~ "Run by operator"
     refute html =~ "provider-secret-timeline"
   end
 
@@ -160,9 +172,9 @@ defmodule RulesteadAdmin.Live.FlagLive.TimelineTest do
     assert html =~ "Automatic guardrail rollback"
     assert html =~ "Guardrail evaluated"
     assert html =~ "Automatic"
-    assert html =~ "source guardrail_automation"
-    assert html =~ "Manual rollout action"
-    assert html =~ "Show raw detail"
+    assert html =~ "Run by Guardrail automation"
+    assert html =~ "Run by operator"
+    assert html =~ "Show redacted JSON"
     assert html =~ "[REDACTED]"
     refute html =~ "provider-secret-timeline"
   end

@@ -57,6 +57,23 @@ defmodule RulesteadAdmin.Live.FlagLive.FormTest do
 
     assert html =~ "Create flag"
     assert has_element?(view, "form[aria-label='Flag metadata form']")
+    assert html =~ "dispatch-priority-routing"
+    assert html =~ "Routes urgent jobs through the priority dispatch queue"
+    assert html =~ "Release (most common)"
+    assert html =~ "Boolean (most common)"
+    assert html =~ "team:dispatch-ops"
+    assert has_element?(view, "input[name='flag[owner_kind]'][value='person']")
+    assert has_element?(view, "input[name='flag[owner_kind]'][value='team']")
+    assert has_element?(view, "input[name='flag[owner_kind]'][value='service']")
+    assert has_element?(view, "input[name='flag[value_type]'][value='json']")
+    refute has_element?(view, "select[name='flag[value_type]']")
+
+    preset_html =
+      view
+      |> element("button[phx-click='set_review_by'][phx-value-days='30']")
+      |> render_click()
+
+    assert preset_html =~ ~s(value="2026-05-23")
 
     invalid_html =
       view
@@ -105,6 +122,33 @@ defmodule RulesteadAdmin.Live.FlagLive.FormTest do
     assert detail.flag.flag_type == :release
     assert detail.flag.default_value == %{value: true}
     assert detail.flag.tags == ["admin", "inventory"]
+  end
+
+  test "new flag explains invalid review dates without crashing", %{conn: conn} do
+    {:ok, view, _html} = live(conn, "/admin/flags/new?env=prod")
+
+    invalid_html =
+      view
+      |> form("form[aria-label='Flag metadata form']", %{
+        "flag" => %{
+          "key" => "dispatch-priority-routing",
+          "description" => "Routes urgent jobs through the priority dispatch queue.",
+          "flag_type" => "release",
+          "value_type" => "boolean",
+          "default_value" => "false",
+          "owner_ref" => "team:dispatch-ops",
+          "owner_kind" => "team",
+          "owner_display" => "Dispatch Ops",
+          "lifecycle_mode" => "expiring",
+          "review_by" => "2026-99-99",
+          "tags" => "dispatch, ops, release"
+        }
+      })
+      |> render_submit()
+
+    assert invalid_html =~ "Flag was not created"
+    assert invalid_html =~ "Use a real review date in YYYY-MM-DD format"
+    assert {:error, _error} = Rulestead.fetch_flag("dispatch-priority-routing", "prod")
   end
 
   test "edit flag updates authored ownership and lifecycle metadata while keeping immutable fields visible",

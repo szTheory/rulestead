@@ -90,6 +90,12 @@ defmodule RulesteadDemo.DemoSeedSmokeTest do
     assert archived_html =~ "Ruleset publish"
     assert archived_html =~ "Flag archive"
     assert archived_html =~ "Retired after ops-banner-config replaced"
+    assert archived_html =~ "Inventory state"
+    assert archived_html =~ "Active"
+    assert archived_html =~ "Archived"
+    assert archived_html =~ "No published rules"
+    assert archived_html =~ "legacy-banner at position 1"
+    assert archived_html =~ "Added legacy-banner as the first rule."
     assert timeline_event_count(archived_html) >= 2
 
     {:ok, _view, kill_switch_html} =
