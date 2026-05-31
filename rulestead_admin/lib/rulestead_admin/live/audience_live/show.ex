@@ -4,7 +4,7 @@ defmodule RulesteadAdmin.Live.AudienceLive.Show do
 
   use Phoenix.LiveView
 
-  alias RulesteadAdmin.Components.{AudienceComponents, FlagComponents, OperatorComponents, Shell}
+  alias RulesteadAdmin.Components.{AudienceComponents, FlagComponents, Shell}
   alias RulesteadAdmin.Live.{AudienceLive.Shared, Session}
 
   @impl true
@@ -50,12 +50,11 @@ defmodule RulesteadAdmin.Live.AudienceLive.Show do
       current_tenant={@current_tenant}
       tenants={@available_tenants}
       tenant_links={@tenant_links}
+      policy_state={@rulestead_admin_policy_state}
     >
       <:header_actions>
         <a href={Shared.path(assigns, "/audiences")}>Back to audiences</a>
       </:header_actions>
-
-      <OperatorComponents.policy_state policy_state={@rulestead_admin_policy_state} />
 
       <p :if={@error_message} role="alert"><%= @error_message %></p>
 

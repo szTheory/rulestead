@@ -10,11 +10,12 @@ defmodule RulesteadAdmin.Router do
   defmacro rulestead_admin(path, opts \\ []) do
     quote bind_quoted: [path: path, opts: opts] do
       policy = Keyword.fetch!(opts, :policy)
+      mount_path = Keyword.get(opts, :mount_path, path)
       live_session_name = Module.concat(policy, AdminSession)
 
       scope path, as: :rulestead_admin do
         live_session live_session_name,
-          session: {RulesteadAdmin.Router, :live_session, [path, policy]},
+          session: {RulesteadAdmin.Router, :live_session, [mount_path, policy]},
           on_mount: [{RulesteadAdmin.Live.Session, :default}] do
           live("/", RulesteadAdmin.Live.FlagLive.Index, :index)
           live("/new", RulesteadAdmin.Live.FlagLive.Form, :new)

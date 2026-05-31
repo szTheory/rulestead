@@ -76,6 +76,7 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Show do
       environments={@page.environments}
       env_links={@page.env_links}
       navigation_links={@page.navigation_links}
+      policy_state={@page.policy_state}
     >
       <section :if={@page.error_message}>
         <p role="alert"><%= @page.error_message %></p>

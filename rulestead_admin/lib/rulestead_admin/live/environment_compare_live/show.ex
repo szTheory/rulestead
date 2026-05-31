@@ -55,9 +55,8 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Show do
       current_tenant={@page.current_tenant}
       tenants={@page.tenants}
       tenant_links={@page.tenant_links}
+      policy_state={@page.policy_state}
     >
-      <OperatorComponents.policy_state policy_state={@page.policy_state} />
-
       <OperatorComponents.banner
         :if={stale?(@compare)}
         title="Staleness conflict"

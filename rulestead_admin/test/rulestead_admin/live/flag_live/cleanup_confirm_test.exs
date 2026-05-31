@@ -123,7 +123,7 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupConfirmTest do
              "Open audit timeline"
            )
 
-    assert has_element?(returned_view, "tr[data-flag-key='ops-cleanup'][data-highlighted='true']")
+    assert has_element?(returned_view, "li[data-flag-key='ops-cleanup'][data-highlighted='true']")
     assert Rulestead.fetch_flag!("ops-cleanup", "staging").flag.archived_at
   end
 

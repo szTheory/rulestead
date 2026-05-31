@@ -47,6 +47,7 @@ defmodule RulesteadAdmin.Live.ExperimentLive.Show do
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}
+      policy_state={@rulestead_admin_policy_state}
     >
       <p :if={@error_message} role="alert"><%= @error_message %></p>
 

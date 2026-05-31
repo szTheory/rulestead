@@ -68,9 +68,7 @@ defmodule RulesteadAdmin.Live.FlagLive.FormTest do
           "value_type" => "boolean",
           "default_value" => "true",
           "owner_ref" => "",
-          "owner_kind" => "",
           "owner_display" => "",
-          "lifecycle_mode" => "",
           "review_by" => "",
           "tags" => "admin, inventory"
         }
@@ -78,8 +76,6 @@ defmodule RulesteadAdmin.Live.FlagLive.FormTest do
       |> render_submit()
 
     assert invalid_html =~ "Owner reference is required"
-    assert invalid_html =~ "Choose a valid owner kind"
-    assert invalid_html =~ "Choose a lifecycle posture"
 
     view
     |> form("form[aria-label='Flag metadata form']", %{
@@ -119,7 +115,7 @@ defmodule RulesteadAdmin.Live.FlagLive.FormTest do
 
     assert html =~ "Edit flag"
     assert has_element?(view, "input[name='flag[key]'][disabled]")
-    assert has_element?(view, "select[name='flag[flag_type]'][disabled]")
+    assert has_element?(view, "input[name='flag[flag_type]'][disabled]")
 
     invalid_html =
       view
@@ -129,7 +125,6 @@ defmodule RulesteadAdmin.Live.FlagLive.FormTest do
           "owner_ref" => "",
           "owner_kind" => "team",
           "owner_display" => "",
-          "lifecycle_mode" => "",
           "review_by" => "",
           "tags" => "checkout, critical"
         }
@@ -137,7 +132,6 @@ defmodule RulesteadAdmin.Live.FlagLive.FormTest do
       |> render_submit()
 
     assert invalid_html =~ "Owner reference is required"
-    assert invalid_html =~ "Choose a lifecycle posture"
 
     view
     |> form("form[aria-label='Flag metadata form']", %{

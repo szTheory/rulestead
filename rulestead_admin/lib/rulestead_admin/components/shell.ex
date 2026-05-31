@@ -6,6 +6,7 @@ defmodule RulesteadAdmin.Components.Shell do
   attr(:page_title, :string, required: true)
   attr(:page_kicker, :string, required: true)
   attr(:page_summary, :string, required: true)
+  attr(:breadcrumbs, :list, default: [])
   attr(:current_environment, :map, required: true)
   attr(:environments, :list, default: [])
   attr(:env_links, :map, default: %{})
@@ -13,6 +14,7 @@ defmodule RulesteadAdmin.Components.Shell do
   attr(:tenants, :list, default: [])
   attr(:tenant_links, :map, default: %{})
   attr(:navigation_links, :list, default: [])
+  attr(:policy_state, :map, default: nil)
   slot(:header_actions)
   slot(:inner_block, required: true)
 
@@ -30,8 +32,17 @@ defmodule RulesteadAdmin.Components.Shell do
             <%= render_slot(@header_actions) %>
           </div>
         </div>
-        <section class="rs-shell__env" aria-label="Environment">
-          <p class="rs-shell__env-label">Environment</p>
+        <section :if={@policy_state} class="rs-shell__context" aria-label="Access">
+          <p class="rs-shell__context-label">Access</p>
+          <div
+            class="rs-shell__context-item"
+            title={"You have #{highest_capability(Map.get(@policy_state, :capabilities))} access in this environment. " <> capability_summary(Map.get(@policy_state, :capabilities))}
+          >
+            <span><%= highest_capability(Map.get(@policy_state, :capabilities)) %></span>
+          </div>
+        </section>
+        <section :if={@environments != []} class="rs-shell__context" aria-label="Environment">
+          <p class="rs-shell__context-label">Environment</p>
           <div class="rs-shell__env-picker" role="list">
             <%= for environment <- @environments do %>
               <a
@@ -46,8 +57,8 @@ defmodule RulesteadAdmin.Components.Shell do
             <% end %>
           </div>
         </section>
-        <section :if={show_tenant_scope?(assigns)} class="rs-shell__env" aria-label="Tenant scope">
-          <p class="rs-shell__env-label">Tenant</p>
+        <section :if={show_tenant_scope?(assigns)} class="rs-shell__context" aria-label="Tenant scope">
+          <p class="rs-shell__context-label">Tenant</p>
           <div :if={length(@tenants) > 1} class="rs-shell__env-picker" role="list">
             <%= for tenant <- @tenants do %>
               <a
@@ -65,6 +76,15 @@ defmodule RulesteadAdmin.Components.Shell do
           </p>
         </section>
       </header>
+
+      <nav :if={@breadcrumbs != []} aria-label="Breadcrumb" class="rs-shell__breadcrumbs">
+        <ol style="list-style: none; padding: 0; margin: 0; display: flex; gap: 0.5rem;">
+          <li :for={{crumb, index} <- Enum.with_index(@breadcrumbs)}>
+            <a href={crumb.path} class="rs-shell__breadcrumb-link" style="color: var(--rs-text-muted); text-decoration: none;"><%= crumb.label %></a>
+            <span :if={index < length(@breadcrumbs) - 1} style="color: var(--rs-border-strong); margin-left: 0.5rem;" aria-hidden="true">/</span>
+          </li>
+        </ol>
+      </nav>
 
       <nav :if={@navigation_links != []} class="rs-shell__nav" aria-label="Governance navigation">
         <a
@@ -87,6 +107,18 @@ defmodule RulesteadAdmin.Components.Shell do
   defp env_tone(%{key: "prod"}), do: "production"
   defp env_tone(%{key: "production"}), do: "production"
   defp env_tone(_environment), do: "standard"
+
+  defp highest_capability(%{admin?: true}), do: "Admin"
+  defp highest_capability(%{execute?: true}), do: "Execute"
+  defp highest_capability(%{propose?: true}), do: "Propose"
+  defp highest_capability(%{read?: true}), do: "Read-only"
+  defp highest_capability(_capabilities), do: "No access"
+
+  defp capability_summary(nil), do: "No capabilities defined"
+
+  defp capability_summary(caps) do
+    "Permissions - Read: #{caps.read?}, Execute: #{caps.execute?}, Propose: #{caps.propose?}, Admin: #{caps.admin?}"
+  end
 
   defp current_tenant?(%{current_tenant: %{key: current_key}}, %{key: tenant_key}),
     do: current_key == tenant_key

@@ -51,6 +51,7 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Index do
       current_tenant={@page.current_tenant}
       tenants={@page.tenants}
       tenant_links={@page.tenant_links}
+      policy_state={@page.policy_state}
     >
       <OperatorComponents.banner
         :if={production_target?(@target_env)}
@@ -59,8 +60,6 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Index do
         tone="critical"
         aria_label="Production target warning"
       />
-
-      <OperatorComponents.policy_state policy_state={@page.policy_state} />
 
       <FlagComponents.section_card title="Compare context">
         <p>

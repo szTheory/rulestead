@@ -5,7 +5,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
   use Phoenix.LiveView
 
   alias Rulestead.Admin.Redaction
-  alias RulesteadAdmin.Components.{AuditComponents, FlagComponents, OperatorComponents, Shell}
+  alias RulesteadAdmin.Components.{AuditComponents, FlagComponents, Shell}
   alias RulesteadAdmin.Live.Session
 
   @impl true
@@ -46,6 +46,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}
+      policy_state={@rulestead_admin_policy_state}
     >
       <:header_actions>
         <a :if={@flag_key} href={path_for(assigns, "/#{@flag_key}")}>Back to detail</a>
@@ -53,8 +54,6 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
           Open global audit
         </a>
       </:header_actions>
-
-      <OperatorComponents.policy_state policy_state={@rulestead_admin_policy_state} />
 
       <p :if={@error_message} role="alert">{@error_message}</p>
       <p :if={@notice} role="status">{@notice}</p>

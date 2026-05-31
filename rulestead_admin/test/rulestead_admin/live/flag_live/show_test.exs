@@ -124,9 +124,11 @@ defmodule RulesteadAdmin.Live.FlagLive.ShowTest do
 
   test "detail shows description, type, default value, owner, tags, lifecycle, and per-environment status",
        %{conn: conn} do
-    {:ok, _view, html} = live(conn, "/admin/flags/checkout-redesign?env=prod")
+    {:ok, view, html} = live(conn, "/admin/flags/checkout-redesign?env=prod")
 
     assert html =~ "Checkout experiment for the new payment flow"
+    assert has_element?(view, ".rs-shell__header [aria-label='Access']", "Admin")
+    refute has_element?(view, "main aside.rs-policy-state")
     assert html =~ "Release"
     assert html =~ "Boolean"
     assert html =~ "false"

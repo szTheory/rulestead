@@ -67,6 +67,7 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupConfirm do
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}
+      policy_state={@rulestead_admin_policy_state}
     >
       <:header_actions>
         <a :if={@return_to} href={@return_to}>Back to queue</a>

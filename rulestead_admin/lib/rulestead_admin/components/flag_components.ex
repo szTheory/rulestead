@@ -48,14 +48,20 @@ defmodule RulesteadAdmin.Components.FlagComponents do
 
   def environment_status(assigns) do
     status = normalize_state(assigns.status)
-    assigns = assign(assigns, label: humanize_state(status))
+    assigns = assign(assigns, label: humanize_state(status), tone: state_tone(status))
 
     ~H"""
-    <span class="rs-badge rs-badge--environment" data-tone={state_tone(normalize_state(@status))}>
+    <span class="rs-status-indicator" title={"Environment is " <> @label} style="display: inline-flex; align-items: center; gap: 0.375rem; font-size: 0.875rem; font-weight: 500; color: var(--rs-color-text-muted, #4b5563);">
+      <span class="rs-status-dot" style={"width: 0.5rem; height: 0.5rem; border-radius: 9999px; " <> dot_color(@tone)}></span>
       <%= @label %>
     </span>
     """
   end
+
+  defp dot_color("positive"), do: "background-color: var(--rs-color-positive-600, #16a34a);"
+  defp dot_color("warning"), do: "background-color: var(--rs-color-warning-500, #f59e0b);"
+  defp dot_color("critical"), do: "background-color: var(--rs-color-critical-600, #dc2626);"
+  defp dot_color(_), do: "background-color: var(--rs-color-neutral-400, #9ca3af);"
 
   attr(:readiness, :any, required: true)
 

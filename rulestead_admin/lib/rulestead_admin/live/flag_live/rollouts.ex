@@ -239,6 +239,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}
+      policy_state={@rulestead_admin_policy_state}
     >
       <:header_actions>
         <a href={path_for(assigns, "/#{@flag_key}")}>Back to detail</a>
@@ -250,8 +251,6 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
         body="This page adjusts rollout percentage only. Variant composition stays fixed here, draft and publish remain separate, and preview feedback never writes behind your back."
         tone="warning"
       />
-
-      <OperatorComponents.policy_state policy_state={@rulestead_admin_policy_state} />
 
       <p :if={@error_message} role="alert"><%= @error_message %></p>
 

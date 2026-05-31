@@ -39,6 +39,6 @@ defmodule RulesteadDemoWeb.Router do
 
   scope "/admin" do
     pipe_through :browser
-    rulestead_admin("/flags", policy: RulesteadDemo.AdminPolicy)
+    rulestead_admin("/flags", policy: RulesteadDemo.AdminPolicy, mount_path: "/admin/flags")
   end
 end
