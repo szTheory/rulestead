@@ -58,22 +58,25 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
       <p :if={@error_message} role="alert">{@error_message}</p>
       <p :if={@notice} role="status">{@notice}</p>
 
-      <FlagComponents.section_card :if={@detail} title="Timeline summary">
+      <section :if={@detail} class="rs-timeline-context" aria-label="Timeline context">
         <p>
           One redacted ledger projects into this per-flag view for <code>{@detail.flag.key}</code> in
           {@detail.environment.name}.
         </p>
         <p>Rollback writes a new inverse event linked to the original row. Earlier history remains intact.</p>
-      </FlagComponents.section_card>
+      </section>
 
       <FlagComponents.section_card :if={@entries == []} title="Empty state">
         <p>No audit entries are available for this flag in the current environment.</p>
       </FlagComponents.section_card>
 
-      <div :for={entry <- @entries}>
-        <AuditComponents.timeline_row entry={entry} show_rollback={entry.rollback_allowed? and (@rulestead_admin_policy_state.capabilities.edit? or @rulestead_admin_policy_state.capabilities.admin?)} />
-        <AuditComponents.diff_card :if={entry.show_diff?} entry={entry} />
-      </div>
+      <ol :if={@entries != []} class="rs-event-timeline" aria-label="Flag audit events">
+        <AuditComponents.timeline_item
+          :for={entry <- @entries}
+          entry={entry}
+          show_rollback={entry.rollback_allowed? and (@rulestead_admin_policy_state.capabilities.edit? or @rulestead_admin_policy_state.capabilities.admin?)}
+        />
+      </ol>
     </Shell.page>
     """
   end
@@ -134,6 +137,10 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
       id: event.id,
       title: title_for(event),
       meta: meta_for(event),
+      actor_label: event.actor_display || event.actor_id || "Unknown actor",
+      environment_key: event.environment_key,
+      occurred_at_iso: occurred_at_iso(event.occurred_at),
+      occurred_at_label: occurred_at_label(event.occurred_at),
       summary: summary_for(event, metadata, before_state, after_state, diff_state),
       reason: event.reason,
       automatic?: guardrail_automation_event?(event),
@@ -256,6 +263,14 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
 
     "#{actor} • #{event.environment_key} • #{result} • #{time}"
   end
+
+  defp occurred_at_iso(%DateTime{} = occurred_at), do: DateTime.to_iso8601(occurred_at)
+  defp occurred_at_iso(_occurred_at), do: nil
+
+  defp occurred_at_label(%DateTime{} = occurred_at),
+    do: Calendar.strftime(occurred_at, "%b %d, %Y %H:%M UTC")
+
+  defp occurred_at_label(_occurred_at), do: "Unknown time"
 
   defp summary_for(
          %{event_type: "audit.rollback"} = event,

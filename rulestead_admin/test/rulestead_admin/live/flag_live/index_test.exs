@@ -208,7 +208,7 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
     {:ok, view, _html} = live(conn, "/admin/flags?env=prod&view=all&query=ops+infra")
 
     view
-    |> element("nav[aria-label='Flag inventory views'] a", "Recently stale")
+    |> element("nav[aria-label='Flag inventory views'] a", "Stale signal")
     |> render_click()
 
     path = assert_patch(view)
@@ -234,6 +234,42 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
     path = assert_patch(paged_view)
     refute path =~ "limit="
     refute path =~ "query="
+  end
+
+  test "triage views explain why matching flags appear", %{conn: conn} do
+    {:ok, needs_review_view, _html} = live(conn, "/admin/flags?env=prod&view=needs_review")
+
+    assert has_element?(
+             needs_review_view,
+             ".rs-results-header__hint",
+             "Flags with incomplete cleanup evidence"
+           )
+
+    assert has_element?(needs_review_view, "[data-flag-key='search-ranking']")
+    assert has_element?(needs_review_view, ".rs-triage-note", "Review needed")
+    assert has_element?(needs_review_view, ".rs-triage-note", "Refresh code refs")
+
+    {:ok, archive_view, _html} = live(conn, "/admin/flags?env=prod&view=archive_candidates")
+
+    assert has_element?(archive_view, ".rs-results-header__hint", "strong evidence")
+    assert has_element?(archive_view, "[data-flag-key='ops-cleanup']")
+    assert has_element?(archive_view, ".rs-triage-note", "Ready to archive")
+    assert has_element?(archive_view, ".rs-triage-note", "No code references found")
+    assert has_element?(archive_view, ".rs-triage-note a", "Review cleanup")
+
+    {:ok, stale_view, _html} = live(conn, "/admin/flags?env=prod&view=recently_stale")
+
+    assert has_element?(stale_view, ".rs-results-header__hint", "stale evaluation")
+    assert has_element?(stale_view, "[data-flag-key='ops-cleanup']")
+    assert has_element?(stale_view, ".rs-triage-note", "Stale signal")
+    assert has_element?(stale_view, ".rs-triage-note", "Last evaluated")
+
+    {:ok, archived_view, _html} = live(conn, "/admin/flags?env=prod&view=archived")
+
+    assert has_element?(archived_view, ".rs-results-header__hint", "removed from active")
+    assert has_element?(archived_view, "[data-flag-key='archive-me']")
+    assert has_element?(archived_view, ".rs-triage-note", "Archived")
+    assert has_element?(archived_view, ".rs-triage-note a", "Open timeline")
   end
 
   test "removes the empty state after a filtered stream resets to matching results", %{conn: conn} do
@@ -467,7 +503,7 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
     {:ok, view, _html} = live(conn, "/admin/flags?env=prod&view=all&query=ops")
 
     view
-    |> element("nav[aria-label='Flag inventory views'] a", "Archive candidates")
+    |> element("nav[aria-label='Flag inventory views'] a", "Ready to archive")
     |> render_click()
 
     path = assert_patch(view)

@@ -84,6 +84,9 @@ defmodule RulesteadAdmin.Live.FlagLive.TimelineTest do
     assert html =~ "Denied action remains visible in the audit ledger."
     refute html =~ "viewer@example.com"
     assert html =~ "Show raw detail"
+    assert has_element?(view, "ol.rs-event-timeline[aria-label='Flag audit events']")
+    assert has_element?(view, "li.rs-event-timeline__item[data-result='denied']")
+    assert has_element?(view, ".rs-event-panel__result", "Denied")
 
     rollback_html =
       view
@@ -100,10 +103,20 @@ defmodule RulesteadAdmin.Live.FlagLive.TimelineTest do
   } do
     {:ok, _view, html} = live(conn, "/admin/flags/checkout-redesign/timeline?env=prod")
 
-    assert html =~ "Readable diff"
+    assert html =~ "Review before / after"
     assert html =~ "status active"
     assert html =~ "status killswitched"
     assert html =~ "Show raw detail"
+    assert html =~ "rs-json-token rs-json-token--key"
+    assert html =~ "&quot;event&quot;"
+    assert html =~ "&quot;metadata&quot;"
+    refute html =~ "%{event:"
+
+    {diff_index, _length} = :binary.match(html, "Review before / after")
+    diff_item_html = binary_part(html, diff_index, byte_size(html) - diff_index)
+
+    assert :binary.match(diff_item_html, "Review before / after") <
+             :binary.match(diff_item_html, "Show raw detail")
   end
 
   @tag :auto_advance

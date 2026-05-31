@@ -22,7 +22,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
        "evidence_quality" => "",
        "include_archived" => "false"
      }},
-    {"needs_review", "Needs review",
+    {"needs_review", "Review needed",
      %{
        "readiness" => "needs_review",
        "stale" => "",
@@ -30,7 +30,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
        "evidence_quality" => "",
        "include_archived" => "false"
      }},
-    {"archive_candidates", "Archive candidates",
+    {"archive_candidates", "Ready to archive",
      %{
        "readiness" => "archive_candidate",
        "stale" => "",
@@ -38,7 +38,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
        "evidence_quality" => "",
        "include_archived" => "false"
      }},
-    {"recently_stale", "Recently stale",
+    {"recently_stale", "Stale signal",
      %{
        "stale" => "stale",
        "readiness" => "",
@@ -197,13 +197,11 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
       </FlagComponents.callout>
 
       <section class="rs-inventory">
-        <div class="rs-inventory__toolbar">
-          <div>
-            <h2>Feature flags</h2>
-            <p>Showing <%= length(@page.entries) %><%= if @page.has_next_page?, do: "+", else: "" %> in this view</p>
-          </div>
+        <div
+          :if={@rulestead_admin_policy_state.capabilities.edit? or @rulestead_admin_policy_state.capabilities.admin?}
+          class="rs-inventory__toolbar"
+        >
           <a
-            :if={@rulestead_admin_policy_state.capabilities.edit? or @rulestead_admin_policy_state.capabilities.admin?}
             href={@base_path <> "/new?env=" <> @current_environment.key}
             class="rs-button rs-button--primary"
           >
@@ -321,9 +319,14 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
         <p :if={@error_message} role="alert"><%= @error_message %></p>
 
         <div class="rs-results-header">
-          <h3>
-            Feature flags (<%= length(@page.entries) %><%= if @page.has_next_page?, do: "+", else: "" %>)
-          </h3>
+          <div>
+            <h3>
+              Feature flags (<%= length(@page.entries) %><%= if @page.has_next_page?, do: "+", else: "" %>)
+            </h3>
+            <p :if={view_explanation(@filters["view"])} class="rs-results-header__hint">
+              <%= view_explanation(@filters["view"]) %>
+            </p>
+          </div>
           <form class="rs-results-sort" aria-label="Sort flags" phx-change="filters_changed">
             <label>
               <span>Sort</span>
@@ -369,6 +372,13 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
                 <%= entry.flag.description || "No description provided." %>
               </p>
             </div>
+
+            <.triage_note
+              view={@filters["view"]}
+              entry={entry}
+              cleanup_path={cleanup_path(assigns, entry.flag.key)}
+              timeline_path={timeline_path(assigns, entry.flag.key)}
+            />
 
             <div class="rs-card__footer" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; border-top: 1px solid var(--rs-color-border-light, #f3f4f6); padding-top: 1rem; font-size: 0.875rem; color: var(--rs-color-text-muted, #6b7280);">
               <div class="rs-card__meta" style="display: flex; flex-wrap: wrap; gap: 1.5rem;">
@@ -934,17 +944,217 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
     )
   end
 
+  defp timeline_path(socket_or_assigns, key) do
+    Session.path_with_return_to(
+      socket_or_assigns,
+      "#{socket_or_assigns.base_path}/#{key}/timeline",
+      socket_or_assigns.current_path
+    )
+  end
+
+  attr(:view, :string, required: true)
+  attr(:entry, :map, required: true)
+  attr(:cleanup_path, :string, required: true)
+  attr(:timeline_path, :string, required: true)
+
+  defp triage_note(assigns) do
+    assigns = assign(assigns, :summary, triage_summary(assigns.view, assigns.entry))
+
+    ~H"""
+    <div :if={@summary} class="rs-triage-note" data-tone={@summary.tone}>
+      <div class="rs-triage-note__copy">
+        <strong><%= @summary.title %></strong>
+        <span><%= @summary.detail %></span>
+      </div>
+      <a :if={@summary.action == :cleanup} href={@cleanup_path}>Review cleanup</a>
+      <a :if={@summary.action == :timeline} href={@timeline_path}>Open timeline</a>
+    </div>
+    """
+  end
+
+  defp triage_summary("needs_review", entry) do
+    readiness = entry.lifecycle.archive_readiness
+
+    detail =
+      [
+        first_reason_label(readiness),
+        first_unknown_or_blocker_label(readiness),
+        next_action_label(readiness)
+      ]
+      |> compact_sentence_parts()
+
+    %{
+      title: "Review needed",
+      detail: detail || "Lifecycle evidence needs an operator decision.",
+      tone: "warning",
+      action: :cleanup
+    }
+  end
+
+  defp triage_summary("archive_candidates", entry) do
+    readiness = entry.lifecycle.archive_readiness
+
+    detail =
+      [
+        first_reason_label(readiness),
+        evidence_label(readiness.evidence_quality),
+        next_action_label(readiness)
+      ]
+      |> compact_sentence_parts()
+
+    %{
+      title: "Ready to archive",
+      detail: detail || "Strong cleanup evidence is available.",
+      tone: "critical",
+      action: :cleanup
+    }
+  end
+
+  defp triage_summary("recently_stale", entry) do
+    freshness = entry.lifecycle.freshness
+
+    detail =
+      [
+        freshness_label(freshness.evaluation),
+        last_evaluated_label(entry.lifecycle.last_evaluated_at),
+        code_reference_label(freshness.code_references)
+      ]
+      |> compact_sentence_parts()
+
+    %{
+      title: "Stale signal",
+      detail: detail || "Evaluation evidence is no longer current.",
+      tone: "warning",
+      action: :cleanup
+    }
+  end
+
+  defp triage_summary("archived", _entry) do
+    %{
+      title: "Archived",
+      detail: "Removed from active inventory; review the audit timeline for context.",
+      tone: "muted",
+      action: :timeline
+    }
+  end
+
+  defp triage_summary(_view, _entry), do: nil
+
+  defp view_explanation("needs_review"),
+    do: "Flags with incomplete cleanup evidence, past review dates, or manual review required."
+
+  defp view_explanation("archive_candidates"),
+    do: "Flags with strong evidence that they can be cleaned up."
+
+  defp view_explanation("recently_stale"),
+    do: "Flags with stale evaluation or rollout activity."
+
+  defp view_explanation("archived"),
+    do: "Flags already removed from active runtime posture."
+
+  defp view_explanation(_view), do: nil
+
+  defp compact_sentence_parts(parts) do
+    parts
+    |> Enum.reject(&(is_nil(&1) or &1 == ""))
+    |> Enum.uniq()
+    |> case do
+      [] -> nil
+      values -> Enum.join(values, " · ")
+    end
+  end
+
+  defp first_reason_label(%{reasons: reasons}) do
+    reasons = List.wrap(reasons)
+
+    [
+      :no_code_refs,
+      :review_horizon_passed,
+      :stale_evaluation,
+      :never_evaluated,
+      :expiring_posture
+    ]
+    |> Enum.find(&(&1 in reasons))
+    |> reason_label()
+  end
+
+  defp first_reason_label(_readiness), do: nil
+
+  defp first_unknown_or_blocker_label(%{unknowns: [unknown | _]}), do: unknown_label(unknown)
+  defp first_unknown_or_blocker_label(%{blockers: [blocker | _]}), do: blocker_label(blocker)
+  defp first_unknown_or_blocker_label(_readiness), do: nil
+
+  defp next_action_label(%{recommended_next_action: nil, secondary_actions: [action | _]}),
+    do: action_label(action)
+
+  defp next_action_label(%{recommended_next_action: action}), do: action_label(action)
+  defp next_action_label(_readiness), do: nil
+
+  defp evidence_label(:strong), do: "Strong evidence"
+  defp evidence_label(:partial), do: "Partial evidence"
+  defp evidence_label(:weak), do: "Evidence incomplete"
+  defp evidence_label(_quality), do: nil
+
+  defp freshness_label(:not_evaluated_recently), do: "No recent evaluations"
+  defp freshness_label(:never_evaluated), do: "Never evaluated"
+  defp freshness_label(:recently_evaluated), do: "Recently evaluated"
+  defp freshness_label(_evaluation), do: nil
+
+  defp last_evaluated_label(%DateTime{} = datetime),
+    do: "Last evaluated #{format_last_changed_relative(datetime)}"
+
+  defp last_evaluated_label(_datetime), do: nil
+
+  defp code_reference_label(:fresh_refs_absent), do: "No code references found"
+  defp code_reference_label(:refs_present), do: "Code references still present"
+  defp code_reference_label(:scan_unknown), do: "Code-reference scan missing"
+  defp code_reference_label(:scan_stale), do: "Code-reference scan stale"
+  defp code_reference_label(_value), do: nil
+
+  defp reason_label(:expiring_posture), do: "Expiring flag"
+  defp reason_label(:review_horizon_passed), do: "Review date passed"
+  defp reason_label(:stale_evaluation), do: "Stale evaluation"
+  defp reason_label(:never_evaluated), do: "No evaluation yet"
+  defp reason_label(:no_code_refs), do: "No code references found"
+  defp reason_label(:already_archived), do: "Already archived"
+  defp reason_label(nil), do: nil
+  defp reason_label(reason), do: humanize(reason)
+
+  defp unknown_label(:code_refs_scan_missing), do: "Refresh code refs"
+  defp unknown_label(:code_refs_scan_stale), do: "Refresh code refs"
+  defp unknown_label(:evaluation_missing), do: "Collect evaluation evidence"
+  defp unknown_label(nil), do: nil
+  defp unknown_label(unknown), do: humanize(unknown)
+
+  defp blocker_label(:protected_flag_type), do: "Protected flag type"
+  defp blocker_label(:permanent_posture), do: "Marked permanent"
+  defp blocker_label(:remote_config_requires_review), do: "Remote config requires review"
+  defp blocker_label(:code_refs_present), do: "Code references still present"
+  defp blocker_label(:already_archived), do: "Already archived"
+  defp blocker_label(nil), do: nil
+  defp blocker_label(blocker), do: humanize(blocker)
+
+  defp action_label(:archive_ready), do: "Archive ready"
+  defp action_label(:keep_active), do: "Keep active"
+  defp action_label(:review_manually), do: "Review manually"
+  defp action_label(:refresh_code_refs), do: "Refresh code refs"
+  defp action_label(:collect_eval_evidence), do: "Collect evaluation evidence"
+  defp action_label(:remove_code_refs), do: "Remove code references"
+  defp action_label(:mark_permanent), do: "Confirm permanent posture"
+  defp action_label(nil), do: nil
+  defp action_label(action), do: humanize(action)
+
   attr(:name, :string, required: true)
 
   defp meta_icon(assigns) do
     ~H"""
     <span class="rs-card__meta-icon" aria-hidden="true">
       <svg :if={@name == "lifecycle"} viewBox="0 0 20 20" fill="none">
-        <path d="M5 5.5h2.25M12.75 14.5H15" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
-        <path d="M8 5.5h1.5c2.2 0 4 1.8 4 4v1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
-        <path d="M12 14.5h-1.5c-2.2 0-4-1.8-4-4v-1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
-        <circle cx="5" cy="5.5" r="1.35" fill="currentColor" />
-        <circle cx="15" cy="14.5" r="1.35" fill="currentColor" />
+        <path d="M4 10h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+        <path d="M10 6.75v6.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+        <circle cx="4" cy="10" r="1.35" fill="currentColor" />
+        <circle cx="10" cy="10" r="1.35" fill="currentColor" />
+        <circle cx="16" cy="10" r="1.35" fill="currentColor" />
       </svg>
       <svg :if={@name == "owner"} viewBox="0 0 20 20" fill="none">
         <path d="M10 10.15a3.25 3.25 0 1 0 0-6.5 3.25 3.25 0 0 0 0 6.5Z" stroke="currentColor" stroke-width="1.6" />

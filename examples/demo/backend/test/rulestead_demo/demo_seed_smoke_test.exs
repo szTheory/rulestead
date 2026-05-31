@@ -4,14 +4,16 @@ defmodule RulesteadDemo.DemoSeedSmokeTest do
   import Ecto.Query
   import Phoenix.LiveViewTest
 
-  alias Rulestead.{Audience, Flag, Repo}
+  alias Rulestead.{AuditEvent, Audience, Flag, Repo}
   alias RulesteadDemo.Fixtures
 
   @adoption_lab_flags [
     "enable-new-dashboard",
     "fleet-map-v2",
     "dispatch-ops-copy",
+    "route-eta-legacy",
     "ops-banner-config",
+    "ops-banner-legacy",
     "dispatch-guarded-rollout",
     "ops-audience-preview"
   ]
@@ -48,6 +50,77 @@ defmodule RulesteadDemo.DemoSeedSmokeTest do
     assert html =~ "fleet-map-v2"
     assert html =~ "urgent-route prioritization"
     assert html =~ "Staging"
+  end
+
+  test "seed script provides examples for every flag inventory triage view", %{conn: conn} do
+    sign_in_conn = get(conn, ~p"/demo/sign-in")
+    recycled_conn = Phoenix.ConnTest.recycle(sign_in_conn)
+
+    {:ok, _view, needs_review_html} =
+      live(recycled_conn, "/admin/flags?env=staging&view=needs_review")
+
+    assert needs_review_html =~ "Review needed"
+    assert needs_review_html =~ "dispatch-ops-copy"
+
+    {:ok, _view, archive_html} =
+      live(recycled_conn, "/admin/flags?env=staging&view=archive_candidates")
+
+    assert archive_html =~ "Ready to archive"
+    assert archive_html =~ "route-eta-legacy"
+
+    {:ok, _view, stale_html} =
+      live(recycled_conn, "/admin/flags?env=staging&view=recently_stale")
+
+    assert stale_html =~ "Stale signal"
+    assert stale_html =~ "dispatch-guarded-rollout"
+
+    {:ok, _view, archived_html} = live(recycled_conn, "/admin/flags?env=staging&view=archived")
+
+    assert archived_html =~ "Archived"
+    assert archived_html =~ "ops-banner-legacy"
+  end
+
+  test "seed script provides intentional multi-event flag timelines", %{conn: conn} do
+    sign_in_conn = get(conn, ~p"/demo/sign-in")
+    recycled_conn = Phoenix.ConnTest.recycle(sign_in_conn)
+
+    {:ok, _view, archived_html} =
+      live(recycled_conn, "/admin/flags/ops-banner-legacy/timeline?env=staging")
+
+    assert archived_html =~ "Ruleset publish"
+    assert archived_html =~ "Flag archive"
+    assert archived_html =~ "Retired after ops-banner-config replaced"
+    assert timeline_event_count(archived_html) >= 2
+
+    {:ok, _view, kill_switch_html} =
+      live(recycled_conn, "/admin/flags/enable-new-dashboard/timeline?env=staging")
+
+    assert kill_switch_html =~ "Kill switch engaged"
+    assert kill_switch_html =~ "Rollback applied"
+    assert kill_switch_html =~ "elevated latency"
+
+    {:ok, _view, guardrail_html} =
+      live(recycled_conn, "/admin/flags/dispatch-guarded-rollout/timeline?env=staging")
+
+    assert guardrail_html =~ "Guardrail evaluated"
+    assert guardrail_html =~ "Automatic guardrail hold"
+    assert guardrail_html =~ "Automatic guardrail rollback"
+    assert guardrail_html =~ "dispatch_error_rate"
+
+    {:ok, _view, denied_html} =
+      live(recycled_conn, "/admin/flags/ops-audience-preview/timeline?env=staging")
+
+    assert denied_html =~ "Ruleset publish denied"
+    assert denied_html =~ "Viewer attempted to widen beta access"
+  end
+
+  test "seed script keeps intentional timeline events idempotent" do
+    prefix = "fleetdesk-adoption-lab:v2:%"
+    initial_count = seed_audit_event_count(prefix)
+
+    Code.eval_file(Path.expand("../../priv/repo/seeds.exs", __DIR__))
+
+    assert seed_audit_event_count(prefix) == initial_count
   end
 
   test "seed script refreshes existing FleetDesk descriptions" do
@@ -133,5 +206,17 @@ defmodule RulesteadDemo.DemoSeedSmokeTest do
     assert payload["flagKey"] == "enable-new-dashboard"
     assert is_binary(payload["explanation"])
     assert payload["explanation"] =~ "Matched rule"
+  end
+
+  defp timeline_event_count(html) do
+    Regex.scan(~r/class="[^"]*rs-event-timeline__item/, html)
+    |> length()
+  end
+
+  defp seed_audit_event_count(prefix) do
+    Repo.aggregate(
+      from(event in AuditEvent, where: like(event.correlation_id, ^prefix)),
+      :count
+    )
   end
 end
