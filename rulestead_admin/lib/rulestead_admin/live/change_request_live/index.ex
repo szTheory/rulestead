@@ -252,10 +252,7 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Index do
     ]
   end
 
-  defp change_request_tone(:submitted), do: "warning"
-  defp change_request_tone(:approved), do: "positive"
-  defp change_request_tone(:rejected), do: "critical"
-  defp change_request_tone(_state), do: "neutral"
+  defp change_request_tone(state), do: RulesteadAdmin.StatusTone.tone(:change_request, state)
 
   defp matches_resource_filter?(_entry, value) when value in [nil, ""], do: true
 

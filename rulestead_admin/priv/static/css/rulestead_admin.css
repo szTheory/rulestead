@@ -2179,6 +2179,20 @@ a.rs-shell__env-link:active {
   color: var(--rs-text-muted);
 }
 
+.rs-badge[data-tone="muted"],
+.rs-badge[data-tone="archived"] {
+  border-color: var(--rs-border);
+  background: var(--rs-surface-faint);
+  color: var(--rs-text-placeholder);
+}
+
+.rs-badge[data-tone="accent"],
+.rs-badge[data-tone="draft"] {
+  border-color: var(--rs-accent);
+  background: var(--rs-accent-soft);
+  color: var(--rs-accent);
+}
+
 .rs-tag-list {
   list-style: none;
   margin: 0;

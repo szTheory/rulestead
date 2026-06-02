@@ -281,10 +281,7 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Index do
   defp executed_by_label(%{executed_at: %DateTime{}}), do: "executed by scheduler"
   defp executed_by_label(_scheduled_execution), do: nil
 
-  defp state_tone(:failed), do: "critical"
-  defp state_tone(:quarantined), do: "warning"
-  defp state_tone(:completed), do: "positive"
-  defp state_tone(_state), do: "neutral"
+  defp state_tone(state), do: RulesteadAdmin.StatusTone.tone(:schedule, state)
 
   defp actor_name(actor) when is_map(actor),
     do: Map.get(actor, "display") || Map.get(actor, "id") || "Unknown actor"

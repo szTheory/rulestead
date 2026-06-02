@@ -66,7 +66,11 @@ defmodule RulesteadAdmin.Live.AudienceLive.Index do
                 <a href={Shared.path(assigns, "/audiences/#{audience.key}")}><code><%= audience.key %></code></a>
               </td>
               <td><%= audience.description || "—" %></td>
-              <td><%= if audience.archived_at, do: "Archived", else: "Active" %></td>
+              <td>
+                <span class="rs-badge" data-tone={audience_tone(audience)}>
+                  {audience_label(audience)}
+                </span>
+              </td>
               <td><%= format_time(audience.updated_at) %></td>
             </tr>
           </tbody>
@@ -95,4 +99,13 @@ defmodule RulesteadAdmin.Live.AudienceLive.Index do
 
   defp format_time(%DateTime{} = dt), do: Calendar.strftime(dt, "%Y-%m-%d %H:%M")
   defp format_time(_), do: "—"
+
+  defp audience_state(%{archived_at: archived_at}) when not is_nil(archived_at), do: :archived
+  defp audience_state(_audience), do: :active
+
+  defp audience_tone(audience),
+    do: RulesteadAdmin.StatusTone.tone(:audience, audience_state(audience))
+
+  defp audience_label(audience),
+    do: RulesteadAdmin.StatusTone.label(:audience, audience_state(audience))
 end

@@ -222,18 +222,8 @@ defmodule RulesteadAdmin.Components.FlagComponents do
   defp normalize_state(state) when is_atom(state), do: state
   defp normalize_state(_state), do: :unknown
 
-  defp state_tone(:active), do: "positive"
-  defp state_tone(:fresh), do: "positive"
-  defp state_tone(:potentially_stale), do: "warning"
-  defp state_tone(:stale), do: "critical"
-  defp state_tone(:archived), do: "muted"
-  defp state_tone(:draft), do: "accent"
-  defp state_tone(_state), do: "neutral"
-
-  defp readiness_tone(:keep_active), do: "positive"
-  defp readiness_tone(:needs_review), do: "warning"
-  defp readiness_tone(:archive_candidate), do: "critical"
-  defp readiness_tone(_readiness), do: "neutral"
+  defp state_tone(state), do: RulesteadAdmin.StatusTone.tone(:flag_lifecycle, state)
+  defp readiness_tone(state), do: RulesteadAdmin.StatusTone.tone(:flag_readiness, state)
 
   defp quality_tone(:strong), do: "positive"
   defp quality_tone(:partial), do: "warning"
