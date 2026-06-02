@@ -51,14 +51,6 @@ defmodule RulesteadAdmin.Navigation do
   ]
 
   @doc """
-  Returns the grouped navigation for the left rail.
-
-  Each group is `%{title, items}` where each item carries a resolved `path`
-  (scoped to the current environment) and a `current?` flag.
-
-  `current` is the active section key (e.g. `:flags`) or `nil`.
-  """
-  @doc """
   The standalone Overview (home console) destination, rendered above the groups.
   """
   def overview(base_path, env_key, current \\ nil) when is_binary(base_path) do
@@ -70,6 +62,14 @@ defmodule RulesteadAdmin.Navigation do
     }
   end
 
+  @doc """
+  Returns the grouped navigation for the left rail.
+
+  Each group is `%{title, items}` where each item carries a resolved `path`
+  (scoped to the current environment) and a `current?` flag.
+
+  `current` is the active section key (e.g. `:flags`) or `nil`.
+  """
   def groups(base_path, env_key, current \\ nil) when is_binary(base_path) do
     env_q = env_query(env_key)
 

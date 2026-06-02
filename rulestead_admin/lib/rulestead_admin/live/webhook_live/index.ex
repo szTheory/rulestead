@@ -153,26 +153,6 @@ defmodule RulesteadAdmin.Live.WebhookLive.Index do
     end
   end
 
-  defp webhook_rows(webhook) do
-    rows = [
-      %{label: "Time", value: format_datetime(webhook.inserted_at)}
-    ]
-
-    if webhook.actor do
-      rows ++ [%{label: "Actor", value: webhook.actor}]
-    else
-      rows
-    end
-  end
-
-  defp webhook_tone(%{status_label: status}) do
-    cond do
-      String.contains?(status, "Rejected") -> "critical"
-      String.contains?(status, "Delivered") -> "positive"
-      true -> "neutral"
-    end
-  end
-
   defp related_links(page) do
     [
       %{label: "Open schedule", path: page.schedule_path},
@@ -220,13 +200,6 @@ defmodule RulesteadAdmin.Live.WebhookLive.Index do
         current?: true
       }
     ]
-  end
-
-  defp format_datetime(nil), do: "Not yet recorded"
-
-  defp format_datetime(%DateTime{} = datetime) do
-    calendar = Calendar.strftime(datetime, "%Y-%m-%d %H:%M")
-    "#{calendar} UTC"
   end
 
   defp apply_resolved(socket, params) do

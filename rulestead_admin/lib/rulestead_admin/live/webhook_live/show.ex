@@ -100,16 +100,6 @@ defmodule RulesteadAdmin.Live.WebhookLive.Show do
     }
   end
 
-  defp webhook_rows(webhook) do
-    [
-      %{label: "Record ID", value: webhook.id},
-      %{label: "Type", value: webhook.type_label},
-      %{label: "Status", value: webhook.status_label},
-      %{label: "Time", value: format_datetime(webhook.inserted_at)},
-      %{label: "Actor", value: webhook.actor || "Not recorded"}
-    ]
-  end
-
   defp related_links(page) do
     [
       %{label: "Back to webhooks", path: page.webhooks_path},
@@ -118,13 +108,6 @@ defmodule RulesteadAdmin.Live.WebhookLive.Show do
       %{label: "Open audit timeline", path: page.audit_path},
       %{label: "Back to flag inventory", path: page.flags_path}
     ]
-  end
-
-  defp format_datetime(nil), do: "Not yet recorded"
-
-  defp format_datetime(%DateTime{} = datetime) do
-    calendar = Calendar.strftime(datetime, "%Y-%m-%d %H:%M")
-    "#{calendar} UTC"
   end
 
   defp apply_resolved(socket, params) do
