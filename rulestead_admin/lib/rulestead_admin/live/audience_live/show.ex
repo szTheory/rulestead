@@ -46,6 +46,7 @@ defmodule RulesteadAdmin.Live.AudienceLive.Show do
       page_summary="Lifecycle context, authored used-by references, and governed mutation entry points."
       base_path={@rulestead_admin_mount_path}
       current_section={:audiences}
+      breadcrumbs={Shared.breadcrumbs(assigns)}
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}

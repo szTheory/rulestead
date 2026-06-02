@@ -46,6 +46,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
       page_summary="History for this flag in the selected environment."
       base_path={@rulestead_admin_mount_path}
       current_section={:flags}
+      breadcrumbs={breadcrumbs(assigns)}
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}
@@ -696,4 +697,22 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
     do: socket.assigns.rulestead_admin_mount_path
 
   defp fetch_mount_path(%{rulestead_admin_mount_path: mount_path}), do: mount_path
+
+  defp breadcrumbs(%{flag_key: nil} = assigns) do
+    mount = assigns.rulestead_admin_mount_path
+    env = assigns.current_environment.key
+    [%{label: "Flags", path: mount <> "/flags?env=" <> env}]
+  end
+
+  defp breadcrumbs(assigns) do
+    mount = assigns.rulestead_admin_mount_path
+    env = assigns.current_environment.key
+    key = assigns.flag_key
+
+    [
+      %{label: "Flags", path: mount <> "/flags?env=" <> env},
+      %{label: key, path: mount <> "/" <> key <> "?env=" <> env},
+      %{label: "Timeline", path: mount <> "/" <> key <> "/timeline?env=" <> env}
+    ]
+  end
 end

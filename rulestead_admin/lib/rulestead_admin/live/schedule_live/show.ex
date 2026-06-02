@@ -80,6 +80,10 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Show do
       tenant_links={@page.tenant_links}
       base_path={@rulestead_admin_mount_path}
       current_section={:schedule}
+      breadcrumbs={[
+        %{label: "Schedule", path: @rulestead_admin_mount_path <> "/schedule?env=" <> @page.current_environment.key},
+        %{label: schedule_crumb_label(@scheduled_execution_id), path: @rulestead_admin_mount_path <> "/schedule/" <> @scheduled_execution_id <> "?env=" <> @page.current_environment.key}
+      ]}
       policy_state={@page.policy_state}
     >
       <section :if={@page.error_message} class="rs-page-section">
@@ -145,6 +149,11 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Show do
     </Shell.page>
     """
   end
+
+  defp schedule_crumb_label(id) when is_binary(id) and byte_size(id) > 12,
+    do: "Execution " <> String.slice(id, 0, 8)
+
+  defp schedule_crumb_label(id), do: "Execution " <> to_string(id)
 
   defp index_path, do: "/admin/flags/schedule"
   defp change_requests_path, do: "/admin/flags/change-requests"

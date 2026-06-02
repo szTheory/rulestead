@@ -59,6 +59,7 @@ defmodule RulesteadAdmin.Live.AudienceLive.ArchiveConfirm do
       page_summary="Archive only after preview evidence and an operator reason are recorded."
       base_path={@rulestead_admin_mount_path}
       current_section={:audiences}
+      breadcrumbs={Shared.breadcrumbs(assigns, "Archive confirm")}
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}

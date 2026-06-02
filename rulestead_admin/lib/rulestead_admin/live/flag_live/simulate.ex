@@ -173,6 +173,11 @@ defmodule RulesteadAdmin.Live.FlagLive.Simulate do
       page_summary={@page.page_summary}
       base_path={@rulestead_admin_mount_path}
       current_section={:flags}
+      breadcrumbs={[
+        %{label: "Flags", path: @rulestead_admin_mount_path <> "/flags?env=" <> @page.current_environment.key},
+        %{label: @page.flag_key, path: @rulestead_admin_mount_path <> "/" <> @page.flag_key <> "?env=" <> @page.current_environment.key},
+        %{label: "Simulate", path: @rulestead_admin_mount_path <> "/" <> @page.flag_key <> "/simulate?env=" <> @page.current_environment.key}
+      ]}
       current_environment={@page.current_environment}
       environments={@page.environments}
       env_links={@page.env_links}

@@ -60,6 +60,7 @@ defmodule RulesteadAdmin.Live.AudienceLive.EditConfirm do
       page_summary="Apply an audience update only after reviewing preview evidence and entering a reason."
       base_path={@rulestead_admin_mount_path}
       current_section={:audiences}
+      breadcrumbs={Shared.breadcrumbs(assigns, "Edit confirm")}
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}

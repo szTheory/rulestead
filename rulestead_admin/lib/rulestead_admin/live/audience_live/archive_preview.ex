@@ -50,6 +50,7 @@ defmodule RulesteadAdmin.Live.AudienceLive.ArchivePreview do
       page_summary="Review dependency blockers and impact evidence before archiving a reusable audience."
       base_path={@rulestead_admin_mount_path}
       current_section={:audiences}
+      breadcrumbs={Shared.breadcrumbs(assigns, "Archive preview")}
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}

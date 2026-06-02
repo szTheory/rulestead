@@ -50,6 +50,7 @@ defmodule RulesteadAdmin.Live.AudienceLive.EditPreview do
       page_summary="Review authored blast radius before confirming an audience update."
       base_path={@rulestead_admin_mount_path}
       current_section={:audiences}
+      breadcrumbs={Shared.breadcrumbs(assigns, "Edit preview")}
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}

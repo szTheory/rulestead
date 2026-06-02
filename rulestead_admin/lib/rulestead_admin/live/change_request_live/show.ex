@@ -103,6 +103,10 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Show do
       tenant_links={@page.tenant_links}
       base_path={@rulestead_admin_mount_path}
       current_section={:change_requests}
+      breadcrumbs={[
+        %{label: "Change requests", path: @rulestead_admin_mount_path <> "/change-requests?env=" <> @page.current_environment.key},
+        %{label: "Request " <> @change_request_id, path: @rulestead_admin_mount_path <> "/change-requests/" <> @change_request_id <> "?env=" <> @page.current_environment.key}
+      ]}
       policy_state={@page.policy_state}
     >
       <p :if={@page.error_message} role="alert"><%= @page.error_message %></p>

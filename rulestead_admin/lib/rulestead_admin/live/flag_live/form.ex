@@ -201,7 +201,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
       page_summary={if @mode == :new, do: "Create a new runtime decision point.", else: "Update flag metadata."}
       base_path={@rulestead_admin_mount_path}
       current_section={:flags}
-      breadcrumbs={[%{label: "Back to flags", path: "/admin/flags/flags?env=" <> @current_environment.key}]}
+      breadcrumbs={breadcrumbs(assigns)}
       current_environment={@current_environment}
       environments={[]}
       env_links={%{}}
@@ -481,6 +481,28 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
       </form>
     </Shell.page>
     """
+  end
+
+  defp breadcrumbs(%{mode: :edit} = assigns) do
+    mount = assigns.rulestead_admin_mount_path
+    env = assigns.current_environment.key
+    key = assigns.flag_key
+
+    [
+      %{label: "Flags", path: mount <> "/flags?env=" <> env},
+      %{label: key, path: mount <> "/" <> key <> "?env=" <> env},
+      %{label: "Edit", path: mount <> "/" <> key <> "/edit?env=" <> env}
+    ]
+  end
+
+  defp breadcrumbs(assigns) do
+    mount = assigns.rulestead_admin_mount_path
+    env = assigns.current_environment.key
+
+    [
+      %{label: "Flags", path: mount <> "/flags?env=" <> env},
+      %{label: "New flag", path: mount <> "/new?env=" <> env}
+    ]
   end
 
   attr(:kind, :string, required: true)

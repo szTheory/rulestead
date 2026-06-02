@@ -107,6 +107,11 @@ defmodule RulesteadAdmin.Live.FlagLive.Rules do
       page_summary="Dedicated environment-scoped rule authoring with explicit draft and publish actions."
       base_path={@rulestead_admin_mount_path}
       current_section={:flags}
+      breadcrumbs={[
+        %{label: "Flags", path: @rulestead_admin_mount_path <> "/flags?env=" <> @current_environment.key},
+        %{label: @flag_key, path: @rulestead_admin_mount_path <> "/" <> @flag_key <> "?env=" <> @current_environment.key},
+        %{label: "Rules", path: @rulestead_admin_mount_path <> "/" <> @flag_key <> "/rules?env=" <> @current_environment.key}
+      ]}
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}

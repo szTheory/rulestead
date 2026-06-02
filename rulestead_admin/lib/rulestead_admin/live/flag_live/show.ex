@@ -59,7 +59,10 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
       page_summary="Operator hub for current behavior, evidence, ownership, and the next safest action."
       base_path={@rulestead_admin_mount_path}
       current_section={:flags}
-      breadcrumbs={[%{label: "Back to flags", path: @return_to}]}
+      breadcrumbs={[
+        %{label: "Flags", path: @rulestead_admin_mount_path <> "/flags?env=" <> @current_environment.key},
+        %{label: @flag_key, path: @rulestead_admin_mount_path <> "/" <> @flag_key <> "?env=" <> @current_environment.key}
+      ]}
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}

@@ -46,6 +46,7 @@ defmodule RulesteadAdmin.Live.ExperimentLive.Show do
       page_summary="Calm read surface for experiment results, metrics, and lifecycle."
       base_path={@rulestead_admin_mount_path}
       current_section={:experiments}
+      breadcrumbs={breadcrumbs(assigns)}
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}
@@ -232,4 +233,18 @@ defmodule RulesteadAdmin.Live.ExperimentLive.Show do
     do: socket.assigns.rulestead_admin_mount_path
 
   defp fetch_mount_path(%{rulestead_admin_mount_path: mount_path}), do: mount_path
+
+  defp breadcrumbs(assigns) do
+    mount = assigns.rulestead_admin_mount_path
+    env = assigns.current_environment.key
+    key = assigns.flag_key
+
+    base = [%{label: "Experiments", path: mount <> "/experiments?env=" <> env}]
+
+    if is_binary(key) and key != "" do
+      base ++ [%{label: key, path: mount <> "/experiments/" <> key <> "?env=" <> env}]
+    else
+      base
+    end
+  end
 end

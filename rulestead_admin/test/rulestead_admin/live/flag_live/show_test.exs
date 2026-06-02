@@ -202,7 +202,8 @@ defmodule RulesteadAdmin.Live.FlagLive.ShowTest do
     assert html =~ "Version 1"
     assert html =~ "Draft ruleset"
     assert html =~ "Version 2"
-    assert has_element?(view, "a[href='/admin/flags?env=prod&owner=growth']", "Back to flags")
+    assert has_element?(view, "a[href='/admin/flags/flags?env=prod']", "Flags")
+    assert has_element?(view, "a[href='/admin/flags/checkout-redesign?env=prod']", "checkout-redesign")
 
     assert has_element?(
              view,
@@ -318,7 +319,7 @@ defmodule RulesteadAdmin.Live.FlagLive.ShowTest do
     {:ok, view, _html} =
       live(conn, "/admin/flags/checkout-redesign?env=prod&return_to=%2Foutside")
 
-    assert has_element?(view, "a[href='/admin/flags/flags?env=prod']", "Back to flags")
+    assert has_element?(view, "a[href='/admin/flags/flags?env=prod']", "Flags")
 
     assert has_element?(
              view,

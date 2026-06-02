@@ -51,6 +51,7 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Show do
       page_summary={@page.page_summary}
       base_path={@rulestead_admin_mount_path}
       current_section={:compare}
+      breadcrumbs={breadcrumbs(assigns)}
       current_environment={@page.current_environment}
       environments={@page.environments}
       env_links={@page.env_links}
@@ -267,4 +268,18 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Show do
   end
 
   defp format_state(state), do: inspect(state, pretty: true)
+
+  defp breadcrumbs(assigns) do
+    mount = assigns.rulestead_admin_mount_path
+    env = assigns.page.current_environment.key
+    key = assigns.flag_key
+
+    base = [%{label: "Compare", path: mount <> "/compare?env=" <> env}]
+
+    if is_binary(key) and key != "" do
+      base ++ [%{label: key, path: mount <> "/compare/" <> key <> "?env=" <> env}]
+    else
+      base
+    end
+  end
 end

@@ -66,6 +66,7 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupConfirm do
       page_summary="Governed archive confirmation with required reason, production typed key checks, and revalidation before mutation."
       base_path={@rulestead_admin_mount_path}
       current_section={:flags}
+      breadcrumbs={breadcrumbs(assigns)}
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}
@@ -292,6 +293,25 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupConfirm do
 
   defp fetch_return_to(%Phoenix.LiveView.Socket{} = socket), do: socket.assigns.return_to
   defp fetch_return_to(%{return_to: return_to}), do: return_to
+
+  defp breadcrumbs(%{flag_key: nil} = assigns) do
+    mount = assigns.rulestead_admin_mount_path
+    env = assigns.current_environment.key
+    [%{label: "Flags", path: mount <> "/flags?env=" <> env}]
+  end
+
+  defp breadcrumbs(assigns) do
+    mount = assigns.rulestead_admin_mount_path
+    env = assigns.current_environment.key
+    key = assigns.flag_key
+
+    [
+      %{label: "Flags", path: mount <> "/flags?env=" <> env},
+      %{label: key, path: mount <> "/" <> key <> "?env=" <> env},
+      %{label: "Cleanup", path: mount <> "/" <> key <> "/cleanup?env=" <> env},
+      %{label: "Confirm", path: mount <> "/" <> key <> "/cleanup/confirm?env=" <> env}
+    ]
+  end
 
   defp archive_readiness(detail), do: detail.lifecycle.archive_readiness
 
