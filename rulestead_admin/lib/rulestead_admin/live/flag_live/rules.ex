@@ -5,7 +5,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Rules do
   use Phoenix.LiveView
 
   alias Rulestead.Store.Command
-  alias RulesteadAdmin.Components.{RuleEditorComponents, Shell}
+  alias RulesteadAdmin.Components.{FlagComponents, RuleEditorComponents, Shell}
   alias RulesteadAdmin.Live.Session
 
   @impl true
@@ -118,6 +118,18 @@ defmodule RulesteadAdmin.Live.FlagLive.Rules do
       env_context_help="Shows this flag key's rules in the selected environment. Promotion uses Compare."
       policy_state={@rulestead_admin_policy_state}
     >
+      <FlagComponents.flag_sub_nav
+        :if={@flag_key}
+        flag_key={@flag_key}
+        base_path={@rulestead_admin_mount_path}
+        env_key={@current_environment.key}
+        current={:rules}
+        show_kill?={
+          @rulestead_admin_policy_state.capabilities.execute? or
+            @rulestead_admin_policy_state.capabilities.admin?
+        }
+      />
+
       <div :if={@detail} class="rs-rules-workspace">
         <div class="rs-rules-workspace__header">
           <div>

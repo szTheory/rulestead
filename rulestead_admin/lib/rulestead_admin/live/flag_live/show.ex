@@ -71,6 +71,18 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
       policy_state={@rulestead_admin_policy_state}
       flash={@flash}
     >
+      <FlagComponents.flag_sub_nav
+        :if={@flag_key}
+        flag_key={@flag_key}
+        base_path={@rulestead_admin_mount_path}
+        env_key={@current_environment.key}
+        current={:overview}
+        show_kill?={
+          @rulestead_admin_policy_state.capabilities.execute? or
+            @rulestead_admin_policy_state.capabilities.admin?
+        }
+      />
+
       <p :if={@error_message} role="alert"><%= @error_message %></p>
 
       <OperatorComponents.empty_state

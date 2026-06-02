@@ -112,7 +112,18 @@ defmodule RulesteadAdmin.Live.FlagLive.Explain do
       <:header_actions>
         <a href={flag_detail_path(assigns)}>Back to flag</a>
         <a href={simulate_path(assigns)}>Open simulate</a>
+        <a href={timeline_path(assigns)}>Open timeline</a>
       </:header_actions>
+
+      <FlagComponents.flag_sub_nav
+        flag_key={@page.flag_key}
+        base_path={@rulestead_admin_mount_path}
+        env_key={@page.current_environment.key}
+        current={:explain}
+        show_kill?={
+          @page.policy_state.capabilities.execute? or @page.policy_state.capabilities.admin?
+        }
+      />
 
       <p :if={@error_message} role="alert"><%= @error_message %></p>
 
@@ -251,6 +262,13 @@ defmodule RulesteadAdmin.Live.FlagLive.Explain do
     Session.current_path(
       assigns,
       "#{assigns.rulestead_admin_mount_path}/#{assigns.page.flag_key}/simulate"
+    )
+  end
+
+  defp timeline_path(assigns) do
+    Session.current_path(
+      assigns,
+      "#{assigns.rulestead_admin_mount_path}/#{assigns.page.flag_key}/timeline"
     )
   end
 

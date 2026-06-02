@@ -188,6 +188,16 @@ defmodule RulesteadAdmin.Live.FlagLive.Simulate do
         <a href={"#{@rulestead_admin_mount_path}/#{@page.flag_key}?env=#{@page.current_environment.key}"}>Back to flag</a>
       </:header_actions>
 
+      <FlagComponents.flag_sub_nav
+        flag_key={@page.flag_key}
+        base_path={@rulestead_admin_mount_path}
+        env_key={@page.current_environment.key}
+        current={:simulate}
+        show_kill?={
+          @page.policy_state.capabilities.execute? or @page.policy_state.capabilities.admin?
+        }
+      />
+
       <OperatorComponents.banner
         title="Single-context simulation"
         body="Use one targeting key and one trait payload, read the decision summary first, then expand trace detail only if the summary does not answer the question."

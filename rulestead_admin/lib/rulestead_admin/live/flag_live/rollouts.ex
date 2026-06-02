@@ -254,6 +254,18 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
         <a href={path_for(assigns, "/#{@flag_key}/rules")}>Open rules workspace</a>
       </:header_actions>
 
+      <FlagComponents.flag_sub_nav
+        :if={@flag_key}
+        flag_key={@flag_key}
+        base_path={@rulestead_admin_mount_path}
+        env_key={@current_environment.key}
+        current={:rollouts}
+        show_kill?={
+          @rulestead_admin_policy_state.capabilities.execute? or
+            @rulestead_admin_policy_state.capabilities.admin?
+        }
+      />
+
       <OperatorComponents.banner
         title="Safe rollout ramps stay explicit"
         body="This page adjusts rollout percentage only. Variant composition stays fixed here, draft and publish remain separate, and preview feedback never writes behind your back."

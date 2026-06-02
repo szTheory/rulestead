@@ -175,6 +175,57 @@ defmodule RulesteadAdmin.Components.FlagComponents do
     """
   end
 
+  @flag_subnav_tabs [
+    {:overview, "Overview", ""},
+    {:rules, "Rules", "/rules"},
+    {:simulate, "Simulate", "/simulate"},
+    {:explain, "Explain", "/explain"},
+    {:rollouts, "Rollouts", "/rollouts"},
+    {:timeline, "Timeline", "/timeline"}
+  ]
+
+  @doc """
+  Persistent sub-navigation for a single flag, threading its lifecycle views
+  (Overview · Rules · Simulate · Explain · Rollouts · Timeline) together. The
+  destructive Kill switch is rendered as a fenced, right-aligned critical action
+  rather than a peer tab, so it stays one click away (and bookmarkable) without
+  sitting in the path of routine browsing. Cleanup/Edit are governed flows, not
+  views, and intentionally stay off the strip.
+  """
+  attr(:flag_key, :string, required: true)
+  attr(:base_path, :string, required: true)
+  attr(:env_key, :string, required: true)
+  attr(:current, :atom, default: :overview)
+  attr(:show_kill?, :boolean, default: false)
+
+  def flag_sub_nav(assigns) do
+    assigns = assign(assigns, :tabs, @flag_subnav_tabs)
+
+    ~H"""
+    <nav class="rs-flag-subnav" aria-label="Flag views">
+      <div class="rs-flag-subnav__tabs">
+        <a
+          :for={{key, label, suffix} <- @tabs}
+          href={"#{@base_path}/#{@flag_key}#{suffix}?env=#{@env_key}"}
+          class="rs-flag-subnav__tab"
+          data-current={to_string(key == @current)}
+          aria-current={if(key == @current, do: "page", else: nil)}
+        >
+          {label}
+        </a>
+      </div>
+      <a
+        :if={@show_kill?}
+        href={"#{@base_path}/#{@flag_key}/kill?env=#{@env_key}"}
+        class="rs-flag-subnav__kill"
+        data-tone="critical"
+      >
+        Kill switch
+      </a>
+    </nav>
+    """
+  end
+
   defp pagination_path(base_path, params, :next, %{next_cursor: cursor}) when is_binary(cursor) do
     build_path(base_path, Map.merge(params, %{"after" => cursor, "before" => nil}))
   end
