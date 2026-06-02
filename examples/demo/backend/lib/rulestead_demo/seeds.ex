@@ -15,6 +15,7 @@ defmodule RulesteadDemo.Seeds do
   alias Rulestead.CodeRefs.{CodeReference, ScanReceipt}
   alias Rulestead.FlagEnvironment
   alias Rulestead.Governance.ApprovalRequirement
+  alias Rulestead.GuardrailDecision
   alias Rulestead.Repo
   alias Rulestead.Store.Command
   alias Rulestead.Runtime.Refresh
@@ -32,6 +33,26 @@ defmodule RulesteadDemo.Seeds do
       definition: %{
         conditions: [%{attribute: "plan", operator: "eq", value: "pro"}]
       }
+    },
+    %{
+      key: "night-shift-dispatchers",
+      description:
+        "Draft cohort scoping the after-hours dispatch desk. Still under review, so it is not yet wired into any flag rule.",
+      definition: %{
+        conditions: [
+          %{attribute: "plan", operator: "in", value: ["pro", "enterprise"]},
+          %{attribute: "shift", operator: "eq", value: "night"}
+        ]
+      }
+    },
+    %{
+      key: "legacy-eta-beta-fleet",
+      description:
+        "Retired beta cohort that previewed the legacy ETA wording experiment. Archived once route-eta-legacy was retired.",
+      definition: %{
+        conditions: [%{attribute: "tenant", operator: "eq", value: "beta-fleet"}]
+      },
+      archived?: true
     }
   ]
 
@@ -263,6 +284,107 @@ defmodule RulesteadDemo.Seeds do
           }
         ]
       }
+    },
+    %{
+      key: "dispatch-kill-switch",
+      description:
+        "Standing kill switch that instantly forces all dispatch traffic back onto the safe legacy router. SREs engage it in production during incidents so the new routing path can be cut over in one click.",
+      flag_type: :kill_switch,
+      value_type: :boolean,
+      default_value: %{value: false},
+      owner: "platform-team",
+      tags: ["demo", "adoption-lab", "kill-switch"],
+      ruleset: %{
+        salt: "dispatch-kill-switch:fleetdesk:v1",
+        rules: [
+          %{
+            key: "incident-cutover",
+            name: "Force safe legacy routing during incidents",
+            strategy: :forced_value,
+            value: %{value: true},
+            conditions: []
+          }
+        ]
+      }
+    },
+    %{
+      key: "dispatcher-only-access",
+      description:
+        "Permission gate that limits the live route-override console to verified dispatchers. Targets the Pro-plan dispatcher audience so non-dispatch roles never see the override controls.",
+      flag_type: :permission,
+      value_type: :boolean,
+      default_value: %{value: false},
+      owner: "platform-team",
+      tags: ["demo", "adoption-lab", "permission"],
+      ruleset: %{
+        salt: "dispatcher-only-access:fleetdesk:v1",
+        rules: [
+          %{
+            key: "dispatchers-only",
+            name: "Verified dispatchers only",
+            strategy: :segment_match,
+            audience_key: "fleet-ops-dispatchers",
+            value: %{value: true},
+            conditions: []
+          }
+        ]
+      }
+    },
+    %{
+      key: "route-solver-migration",
+      description:
+        "Migrates the route solver from the legacy nearest-neighbor heuristic to the v2 constraint solver. Staging already serves the v2 solver while production stays on the legacy path, giving Compare a real cross-environment difference to promote.",
+      flag_type: :migration,
+      value_type: :string,
+      default_value: %{value: "legacy-solver"},
+      owner: "maps-team",
+      tags: ["demo", "adoption-lab", "migration"],
+      ruleset: %{
+        salt: "route-solver-migration:fleetdesk:v1",
+        rules: [
+          %{
+            key: "v2-solver-cutover",
+            name: "Route solver v2 cutover",
+            strategy: :forced_value,
+            value: %{value: "v2-solver"},
+            conditions: []
+          }
+        ]
+      },
+      production_ruleset: %{
+        salt: "route-solver-migration:fleetdesk:v1",
+        rules: [
+          %{
+            key: "legacy-solver-hold",
+            name: "Hold on legacy solver in production",
+            strategy: :forced_value,
+            value: %{value: "legacy-solver"},
+            conditions: []
+          }
+        ]
+      }
+    },
+    %{
+      key: "dispatch-queue-throttle",
+      description:
+        "Operational throttle that caps how many concurrent route assignments the dispatch queue worker drains per tick. Ops tunes the integer ceiling to protect downstream routing during traffic spikes.",
+      flag_type: :operational,
+      value_type: :integer,
+      default_value: %{value: 25},
+      owner: "ops-team",
+      tags: ["demo", "adoption-lab", "operational"],
+      ruleset: %{
+        salt: "dispatch-queue-throttle:fleetdesk:v1",
+        rules: [
+          %{
+            key: "spike-throttle",
+            name: "Throttle drain rate during spikes",
+            strategy: :forced_value,
+            value: %{value: 10},
+            conditions: []
+          }
+        ]
+      }
     }
   ]
 
@@ -296,8 +418,11 @@ defmodule RulesteadDemo.Seeds do
 
     seed_evidence!(now)
     seed_governance_workflows!(actor, now)
+    seed_scheduled_execution_states!(actor, now)
+    seed_guardrail_decisions!(now)
     seed_experiment_analytics!(now)
     archive_seed_flags!(actor)
+    engage_production_kill_switch!(actor)
     seed_audit_timelines!(actor, now)
     refresh_runtime!()
 
@@ -309,12 +434,15 @@ defmodule RulesteadDemo.Seeds do
   end
 
   defp ensure_audience!(%{key: key} = spec) do
+    archived_at = audience_archived_at(spec)
+
     case Repo.get_by(Audience, key: key) do
       %Audience{} = audience ->
         audience
         |> Audience.changeset(%{
           description: spec.description,
-          definition: spec.definition
+          definition: spec.definition,
+          archived_at: archived_at || audience.archived_at
         })
         |> Repo.update!()
 
@@ -325,11 +453,20 @@ defmodule RulesteadDemo.Seeds do
         |> Audience.changeset(%{
           key: key,
           description: spec.description,
-          definition: spec.definition
+          definition: spec.definition,
+          archived_at: archived_at
         })
         |> Repo.insert!()
 
         :ok
+    end
+  end
+
+  defp audience_archived_at(spec) do
+    if Map.get(spec, :archived?, false) do
+      DateTime.utc_now()
+      |> DateTime.add(-5 * 86_400, :second)
+      |> DateTime.truncate(:microsecond)
     end
   end
 
@@ -377,31 +514,41 @@ defmodule RulesteadDemo.Seeds do
 
   defp flag_permanent?(spec), do: Map.get(spec, :permanent, true)
 
-  defp publish_ruleset!(%{key: key, ruleset: ruleset}, actor) do
+  defp publish_ruleset!(%{key: key} = spec, actor) do
     if archived_seed_flag?(key) and archived_flag?(key) do
       :ok
     else
-      do_publish_ruleset!(key, ruleset, actor)
+      do_publish_ruleset!(spec, actor)
     end
   end
 
-  defp do_publish_ruleset!(key, ruleset, actor) do
-    Enum.each(Fixtures.environment_keys(), fn environment_key ->
-      {:ok, _draft} =
-        Rulestead.save_draft_ruleset(
-          Command.SaveDraftRuleset.new(key, environment_key, ruleset,
-            actor: actor,
-            metadata: @seed_metadata
-          )
-        )
+  defp do_publish_ruleset!(%{key: key, ruleset: ruleset} = spec, actor) do
+    production_ruleset = Map.get(spec, :production_ruleset, ruleset)
 
-      {:ok, _published} =
-        Rulestead.publish_ruleset(
-          Command.PublishRuleset.new(key, environment_key,
-            actor: actor,
-            metadata: @seed_metadata
+    Enum.each(Fixtures.environment_keys(), fn environment_key ->
+      # Republishing resets an engaged kill switch back to active, which would
+      # make the standing production kill-switch fixture non-idempotent. Skip any
+      # environment that is currently killswitched so the override survives reruns.
+      unless killswitched?(key, environment_key) do
+        environment_ruleset =
+          if environment_key == "production", do: production_ruleset, else: ruleset
+
+        {:ok, _draft} =
+          Rulestead.save_draft_ruleset(
+            Command.SaveDraftRuleset.new(key, environment_key, environment_ruleset,
+              actor: actor,
+              metadata: @seed_metadata
+            )
           )
-        )
+
+        {:ok, _published} =
+          Rulestead.publish_ruleset(
+            Command.PublishRuleset.new(key, environment_key,
+              actor: actor,
+              metadata: @seed_metadata
+            )
+          )
+      end
     end)
   end
 
@@ -410,6 +557,131 @@ defmodule RulesteadDemo.Seeds do
     seed_kill_switch_timeline!(actor)
     seed_guardrail_timeline!(actor, now)
     seed_denied_audience_preview!(actor, now)
+    seed_rollout_rollback_timeline!(actor, now)
+    seed_change_request_rollback_timeline!(actor, now)
+  end
+
+  # rollback_audit_event/2 only inverts kill-switch engage/release events, so the
+  # rollout- and change-request-rollback timelines are authored directly as linked
+  # inverse audit events with before/after + diff so the timeline diff cards render.
+  defp seed_rollout_rollback_timeline!(actor, now) do
+    flag_key = "fleet-map-v2"
+    environment_key = "production"
+    advance_request_id = seed_request_id(flag_key, environment_key, "rollout.advance:v1")
+    rollback_request_id = seed_request_id(flag_key, environment_key, "rollout.rollback:v1")
+    occurred_at = DateTime.add(now, -1_800, :second)
+
+    seed_rollout_advance_event!(flag_key, environment_key, actor, advance_request_id, occurred_at)
+    advance_event = find_seed_audit_event!(advance_request_id)
+
+    ensure_seed_audit_event!(%{
+      event_type: "rollout.advance",
+      resource_key: flag_key,
+      environment_key: environment_key,
+      actor: actor,
+      reason: "Rolled back the 75% ramp after client crash rate ticked up during validation.",
+      correlation_id: rollback_request_id,
+      occurred_at: DateTime.add(occurred_at, 900, :second),
+      metadata: %{
+        request_id: rollback_request_id,
+        scenario: "rollout.rollback:v1",
+        rollback_of_event_id: advance_event.id,
+        links: %{"inverse_event_type" => "rollout.advance"},
+        before: %{
+          "status" => "active",
+          "rules" => [%{"key" => "pro-percentage-rollout", "position" => 2, "percentage" => 75}]
+        },
+        after: %{
+          "status" => "active",
+          "rules" => [%{"key" => "pro-percentage-rollout", "position" => 2, "percentage" => 50}]
+        },
+        diff: %{
+          "rollout_percentage" => %{"from" => 75, "to" => 50}
+        }
+      }
+    })
+  end
+
+  defp seed_rollout_advance_event!(flag_key, environment_key, actor, request_id, occurred_at) do
+    ensure_seed_audit_event!(%{
+      event_type: "rollout.advance",
+      resource_key: flag_key,
+      environment_key: environment_key,
+      actor: actor,
+      reason: "Widened the Pro-plan rollout to 75% during the release window.",
+      correlation_id: request_id,
+      occurred_at: occurred_at,
+      metadata: %{
+        request_id: request_id,
+        scenario: "rollout.advance:v1",
+        before: %{
+          "status" => "active",
+          "rules" => [%{"key" => "pro-percentage-rollout", "position" => 2, "percentage" => 50}]
+        },
+        after: %{
+          "status" => "active",
+          "rules" => [%{"key" => "pro-percentage-rollout", "position" => 2, "percentage" => 75}]
+        },
+        diff: %{
+          "rollout_percentage" => %{"from" => 50, "to" => 75}
+        }
+      }
+    })
+  end
+
+  defp seed_change_request_rollback_timeline!(actor, now) do
+    flag_key = "ops-banner-config"
+    environment_key = "staging"
+    merge_request_id = seed_request_id(flag_key, environment_key, "change_request.executed:v1")
+
+    rollback_request_id =
+      seed_request_id(flag_key, environment_key, "change_request.rollback:v1")
+
+    merge_event = find_change_request_merge_event(merge_request_id)
+
+    if merge_event do
+      ensure_seed_audit_event!(%{
+        event_type: "change_request.rollback",
+        resource_key: flag_key,
+        environment_key: environment_key,
+        actor: actor,
+        reason:
+          "Reverted the merged banner publish after ops flagged the advisory copy as premature.",
+        correlation_id: rollback_request_id,
+        occurred_at: DateTime.add(now, -600, :second),
+        metadata: %{
+          request_id: rollback_request_id,
+          scenario: "change_request.rollback:v1",
+          rollback_of_event_id: merge_event.id,
+          change_request_id: merge_event.metadata["change_request_id"],
+          links: %{"inverse_event_type" => "change_request.merged"},
+          before: %{
+            "status" => "active",
+            "rules" => [%{"key" => "winter-storm-banner", "position" => 1}]
+          },
+          after: %{
+            "status" => "active",
+            "rules" => [%{"key" => "winter-storm-banner", "position" => 1}]
+          },
+          diff: %{
+            "banner_severity" => %{"from" => "warning", "to" => "info"},
+            "banner_message" => %{
+              "from" => "Winter storm advisory — review reroute playbook.",
+              "to" => nil
+            }
+          }
+        }
+      })
+    end
+  end
+
+  defp find_change_request_merge_event(correlation_id) do
+    from(event in AuditEvent,
+      where:
+        event.correlation_id == ^correlation_id and event.event_type == "change_request.merged",
+      limit: 1
+    )
+    |> Repo.one()
   end
 
   defp seed_archived_banner_timeline!(actor, now) do
@@ -669,6 +941,120 @@ defmodule RulesteadDemo.Seeds do
           change_request_required?: false
         )
     })
+
+    seed_rejected_change_request!(actor, reviewer)
+    seed_executed_change_request!(actor, reviewer)
+  end
+
+  defp seed_rejected_change_request!(actor, reviewer) do
+    rejected =
+      ensure_seed_change_request!(%{
+        action: :publish_ruleset,
+        flag_key: "dispatch-ops-copy",
+        environment_key: "production",
+        actor: actor,
+        reason: "Promote the urgent-routes headline copy to production.",
+        request_id:
+          seed_request_id("dispatch-ops-copy", "production", "change_request.rejected:v1"),
+        command: %{
+          "diff" => %{
+            "title" => "Dispatch ops headline copy",
+            "summary" => "Ship the urgent-routes experiment winner to production."
+          },
+          "tenant_key" => "acme-logistics"
+        },
+        approval_requirement:
+          approval_requirement(:publish_ruleset, "production",
+            required_approvals: 1,
+            self_approval_allowed?: false
+          )
+      })
+
+    if rejected && change_request_state(rejected) == "submitted" do
+      {:ok, %{change_request: _rejected}} =
+        Rulestead.reject_change_request(
+          Command.RejectChangeRequest.new(rejected.id,
+            actor: reviewer,
+            reason:
+              "Holding promotion — the experiment has not cleared the significance bar yet, revisit after the next read.",
+            metadata:
+              seed_command_metadata(rejected.correlation_id, "change_request.rejected.review:v1")
+          )
+        )
+    end
+
+    :ok
+  end
+
+  defp seed_executed_change_request!(actor, reviewer) do
+    request_id = seed_request_id("ops-banner-config", "staging", "change_request.executed:v1")
+
+    # Executing a publish_ruleset change request requires a publishable draft to
+    # exist. Stage one (idempotently) before submitting so the merge can run.
+    unless fetch_seed_change_request(request_id) do
+      ops_banner_spec = Enum.find(@flag_specs, &(&1.key == "ops-banner-config"))
+
+      {:ok, _draft} =
+        Rulestead.save_draft_ruleset(
+          Command.SaveDraftRuleset.new(
+            "ops-banner-config",
+            "staging",
+            ops_banner_spec.ruleset,
+            actor: actor,
+            metadata: seed_command_metadata(request_id, "change_request.executed.draft:v1")
+          )
+        )
+    end
+
+    executed =
+      ensure_seed_change_request!(%{
+        action: :publish_ruleset,
+        flag_key: "ops-banner-config",
+        environment_key: "staging",
+        actor: actor,
+        reason: "Republish the reviewed storm advisory payload in staging.",
+        request_id: request_id,
+        command: %{
+          "diff" => %{
+            "title" => "Ops banner advisory copy",
+            "summary" => "Republish the reviewed warning payload in staging."
+          },
+          "tenant_key" => "acme-logistics"
+        },
+        approval_requirement:
+          approval_requirement(:publish_ruleset, "staging",
+            required_approvals: 1,
+            self_approval_allowed?: false
+          )
+      })
+
+    if executed && change_request_state(executed) == "submitted" do
+      {:ok, %{change_request: _approved}} =
+        Rulestead.approve_change_request(
+          Command.ApproveChangeRequest.new(executed.id,
+            actor: reviewer,
+            reason: "Advisory copy reviewed for staging republish.",
+            metadata:
+              seed_command_metadata(executed.correlation_id, "change_request.executed.approve:v1")
+          )
+        )
+    end
+
+    executed = executed && fetch_seed_change_request(executed.correlation_id)
+
+    if executed && change_request_state(executed) == "approved" do
+      {:ok, %{change_request: _executed}} =
+        Rulestead.execute_change_request(
+          Command.ExecuteChangeRequest.new(executed.id,
+            actor: reviewer,
+            reason: "Executed during the staging release window.",
+            metadata:
+              seed_command_metadata(executed.correlation_id, "change_request.executed.merge:v1")
+          )
+        )
+    end
+
+    :ok
   end
 
   defp ensure_seed_change_request!(attrs) do
@@ -748,6 +1134,204 @@ defmodule RulesteadDemo.Seeds do
     |> Repo.one()
     |> then(&(&1 > 0))
   end
+
+  defp seed_scheduled_execution_states!(actor, now) do
+    naive_now = DateTime.utc_now() |> DateTime.to_naive() |> NaiveDateTime.truncate(:second)
+
+    [
+      %{
+        state: "running",
+        flag_key: "fleet-map-v2",
+        environment_key: "production",
+        scheduled_for: DateTime.add(now, -60, :second),
+        failure_reason: nil,
+        attempt_count: 1,
+        reason: "Promoting the reviewed Fleet Map v2 rollout during the release window.",
+        scenario: "scheduled_execution.running:v1"
+      },
+      %{
+        state: "failed",
+        flag_key: "dispatch-guarded-rollout",
+        environment_key: "production",
+        scheduled_for: DateTime.add(now, -3_600, :second),
+        failure_reason:
+          "Guardrail dispatch_error_rate breached threshold during execution; publish aborted fail-closed.",
+        attempt_count: 3,
+        reason: "Advance the priority-route split after the observation window.",
+        scenario: "scheduled_execution.failed:v1"
+      },
+      %{
+        state: "quarantined",
+        flag_key: "ops-banner-config",
+        environment_key: "production",
+        scheduled_for: DateTime.add(now, -7_200, :second),
+        failure_reason:
+          "Quarantined after repeated execution failures; awaiting operator requeue decision.",
+        attempt_count: 5,
+        reason: "Publish the storm advisory payload ahead of the weather window.",
+        scenario: "scheduled_execution.quarantined:v1"
+      }
+    ]
+    |> Enum.each(fn entry ->
+      request_id = seed_request_id(entry.flag_key, entry.environment_key, entry.scenario)
+
+      unless seed_scheduled_execution_exists?(request_id) do
+        insert_seed_scheduled_execution!(entry, actor, request_id, naive_now)
+      end
+    end)
+
+    :ok
+  end
+
+  defp insert_seed_scheduled_execution!(entry, actor, request_id, naive_now) do
+    scheduled_for =
+      entry.scheduled_for |> DateTime.to_naive() |> NaiveDateTime.truncate(:second)
+
+    Repo.insert_all("scheduled_executions", [
+      %{
+        state: entry.state,
+        governed_action: "publish_ruleset",
+        environment_key: entry.environment_key,
+        resource_type: "flag",
+        resource_key: entry.flag_key,
+        execution_mode: "change_request",
+        scheduled_by_id: actor_value(actor, "id") || "demo-operator",
+        scheduled_by_type: actor_value(actor, "type") || "operator",
+        scheduled_by_display: actor_value(actor, "display"),
+        approved_by_snapshot: [],
+        execution_metadata: %{"reason" => entry.reason},
+        scheduled_for: scheduled_for,
+        attempt_count: entry.attempt_count,
+        failure_reason: entry.failure_reason,
+        command_snapshot: %{
+          "flag_key" => entry.flag_key,
+          "environment_key" => entry.environment_key,
+          "tenant_key" => "acme-logistics"
+        },
+        approval_requirement_snapshot: %{},
+        metadata: %{
+          "seed" => @seed_name,
+          "seed_version" => @seed_version,
+          "scenario" => entry.scenario,
+          "request_id" => request_id
+        },
+        correlation_id: request_id,
+        idempotency_key: "seed:#{request_id}",
+        inserted_at: naive_now,
+        updated_at: naive_now
+      }
+    ])
+  end
+
+  defp seed_guardrail_decisions!(now) do
+    base_time = DateTime.add(now, -2_700, :second) |> DateTime.truncate(:microsecond)
+
+    [
+      %{
+        flag_key: "dispatch-guarded-rollout",
+        environment_key: "staging",
+        rule_key: "priority-routes-split",
+        stage: "treatment-50",
+        decision_state: :healthy,
+        action_type: :evaluate,
+        decision_reason: "Dispatch error rate within threshold; stage healthy.",
+        effective_percentage: 50,
+        observed_value: 0.031,
+        occurred_at: base_time,
+        scenario: "guardrail_decision.healthy:v1"
+      },
+      %{
+        flag_key: "dispatch-guarded-rollout",
+        environment_key: "production",
+        rule_key: "priority-routes-split",
+        stage: "treatment-50",
+        decision_state: :held,
+        action_type: :hold,
+        decision_reason:
+          "Dispatch error rate crossed the rollout hold threshold; advancement paused awaiting operator decision.",
+        effective_percentage: 50,
+        observed_value: 0.057,
+        occurred_at: DateTime.add(base_time, 900, :second),
+        scenario: "guardrail_decision.held:v1"
+      },
+      %{
+        flag_key: "fleet-map-v2",
+        environment_key: "production",
+        rule_key: "pro-percentage-rollout",
+        stage: "full-100",
+        decision_state: :healthy,
+        action_type: :advance,
+        decision_reason: "Crash rate stable across the full rollout; ramp completed at 100%.",
+        effective_percentage: 100,
+        observed_value: 0.004,
+        occurred_at: DateTime.add(base_time, 1_200, :second),
+        scenario: "guardrail_decision.completed:v1"
+      }
+    ]
+    |> Enum.each(fn decision ->
+      request_id =
+        seed_request_id(decision.flag_key, decision.environment_key, decision.scenario)
+
+      unless seed_guardrail_decision_exists?(request_id) do
+        insert_seed_guardrail_decision!(decision, request_id)
+      end
+    end)
+
+    :ok
+  end
+
+  defp seed_guardrail_decision_exists?(correlation_id) do
+    from(decision in GuardrailDecision,
+      where: decision.correlation_id == ^correlation_id,
+      select: count()
+    )
+    |> Repo.one()
+    |> then(&(&1 > 0))
+  end
+
+  defp insert_seed_guardrail_decision!(decision, request_id) do
+    window_started = DateTime.add(decision.occurred_at, -300, :second)
+
+    %GuardrailDecision{}
+    |> GuardrailDecision.changeset(%{
+      flag_key: decision.flag_key,
+      environment_key: decision.environment_key,
+      rule_key: decision.rule_key,
+      stage: decision.stage,
+      tenant_key: "acme-logistics",
+      decision_state: decision.decision_state,
+      action_type: decision.action_type,
+      decision_reason: decision.decision_reason,
+      effective_percentage: decision.effective_percentage,
+      rollout_salt: "#{decision.flag_key}:split",
+      monitoring_window_started_at: window_started,
+      monitoring_window_ends_at: decision.occurred_at,
+      occurred_at: decision.occurred_at,
+      guardrail_evidence: %{
+        "signal_key" => "dispatch_error_rate",
+        "status" => guardrail_evidence_status(decision.decision_state),
+        "reason" => decision.decision_reason,
+        "threshold_operator" => "gte",
+        "threshold_value" => 0.05,
+        "observed_value" => decision.observed_value,
+        "freshness_window_seconds" => 300,
+        "sample_size" => 148,
+        "min_sample_size" => 100,
+        "evaluated_at" => DateTime.to_iso8601(decision.occurred_at)
+      },
+      correlation_id: request_id,
+      metadata: %{
+        "seed" => @seed_name,
+        "seed_version" => @seed_version,
+        "scenario" => decision.scenario,
+        "request_id" => request_id
+      }
+    })
+    |> Repo.insert!()
+  end
+
+  defp guardrail_evidence_status(:healthy), do: "healthy"
+  defp guardrail_evidence_status(_state), do: "breached"
 
   defp approval_requirement(action, environment_key, opts) do
     opts
@@ -982,6 +1566,52 @@ defmodule RulesteadDemo.Seeds do
           )
       end
     end)
+  end
+
+  defp engage_production_kill_switch!(actor) do
+    flag_key = "dispatch-kill-switch"
+    environment_key = "production"
+
+    request_id = seed_request_id(flag_key, environment_key, "kill_switch.engage:v1")
+
+    if not killswitched?(flag_key, environment_key) and
+         not seed_kill_switch_engaged_before?(flag_key, environment_key) do
+      {:ok, _flag} =
+        Rulestead.engage_kill_switch(
+          flag_key,
+          environment_key,
+          actor,
+          reason:
+            "Production incident drill — dispatch traffic forced back onto the safe legacy router.",
+          metadata: seed_command_metadata(request_id, "kill_switch.engage:v1")
+        )
+    end
+
+    :ok
+  end
+
+  defp seed_kill_switch_engaged_before?(flag_key, environment_key) do
+    from(event in AuditEvent,
+      where:
+        event.resource_key == ^flag_key and event.environment_key == ^environment_key and
+          event.event_type == "kill_switch.engage",
+      select: count()
+    )
+    |> Repo.one()
+    |> then(&(&1 > 0))
+  end
+
+  defp killswitched?(flag_key, environment_key) do
+    from(flag_environment in FlagEnvironment,
+      join: flag in assoc(flag_environment, :flag),
+      join: environment in assoc(flag_environment, :environment),
+      where:
+        flag.key == ^flag_key and environment.key == ^environment_key and
+          flag_environment.status == :killswitched,
+      select: count()
+    )
+    |> Repo.one()
+    |> then(&(&1 > 0))
   end
 
   defp archived_seed_flag?(key) do
