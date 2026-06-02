@@ -43,7 +43,7 @@ defmodule RulesteadDemo.DemoSeedSmokeTest do
     assert redirected_to(sign_in_conn) == "/admin/flags?env=staging"
 
     recycled_conn = Phoenix.ConnTest.recycle(sign_in_conn)
-    {:ok, _view, html} = live(recycled_conn, "/admin/flags?env=staging&view=all")
+    {:ok, _view, html} = live(recycled_conn, "/admin/flags/flags?env=staging&view=all")
 
     assert html =~ "Feature flags"
     assert html =~ "enable-new-dashboard"
@@ -57,24 +57,24 @@ defmodule RulesteadDemo.DemoSeedSmokeTest do
     recycled_conn = Phoenix.ConnTest.recycle(sign_in_conn)
 
     {:ok, _view, needs_review_html} =
-      live(recycled_conn, "/admin/flags?env=staging&view=needs_review")
+      live(recycled_conn, "/admin/flags/flags?env=staging&view=needs_review")
 
     assert needs_review_html =~ "Review needed"
     assert needs_review_html =~ "dispatch-ops-copy"
 
     {:ok, _view, archive_html} =
-      live(recycled_conn, "/admin/flags?env=staging&view=archive_candidates")
+      live(recycled_conn, "/admin/flags/flags?env=staging&view=archive_candidates")
 
     assert archive_html =~ "Ready to archive"
     assert archive_html =~ "route-eta-legacy"
 
     {:ok, _view, stale_html} =
-      live(recycled_conn, "/admin/flags?env=staging&view=recently_stale")
+      live(recycled_conn, "/admin/flags/flags?env=staging&view=recently_stale")
 
     assert stale_html =~ "Stale signal"
     assert stale_html =~ "dispatch-guarded-rollout"
 
-    {:ok, _view, archived_html} = live(recycled_conn, "/admin/flags?env=staging&view=archived")
+    {:ok, _view, archived_html} = live(recycled_conn, "/admin/flags/flags?env=staging&view=archived")
 
     assert archived_html =~ "Archived"
     assert archived_html =~ "ops-banner-legacy"
