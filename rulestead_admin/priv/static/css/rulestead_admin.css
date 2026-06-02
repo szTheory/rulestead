@@ -1452,6 +1452,61 @@ a.rs-shell__env-link:active {
   color: var(--rs-text);
 }
 
+.rs-mutation-confirm {
+  display: grid;
+  gap: var(--rs-space-4);
+  max-width: 42rem;
+}
+
+.rs-mutation-confirm__scope {
+  display: grid;
+  gap: var(--rs-space-2);
+  margin: 0;
+  padding: var(--rs-space-3) var(--rs-space-4);
+  border: 1px solid var(--rs-border-subtle);
+  border-radius: var(--rs-radius-md);
+  background: var(--rs-surface-faint);
+}
+
+.rs-mutation-confirm__scope > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rs-space-2);
+  align-items: baseline;
+}
+
+.rs-mutation-confirm__scope dt {
+  min-width: 6rem;
+  color: var(--rs-text-muted);
+  font-size: var(--rs-text-2xs);
+  font-weight: var(--rs-weight-medium);
+  letter-spacing: var(--rs-tracking-wider);
+  text-transform: uppercase;
+}
+
+.rs-mutation-confirm__scope dd {
+  margin: 0;
+}
+
+.rs-mutation-confirm__evidence {
+  display: grid;
+  gap: var(--rs-space-3);
+}
+
+.rs-mutation-confirm__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rs-space-3);
+  align-items: center;
+}
+
+/* A destructive confirm tints its left edge so the danger reads before the
+   button does. */
+.rs-mutation-confirm[data-danger="true"] {
+  padding-inline-start: var(--rs-space-4);
+  border-inline-start: 3px solid var(--rs-error);
+}
+
 .rs-inline-action-form {
   display: grid;
   gap: 0.75rem;
