@@ -2,7 +2,8 @@ defmodule Rulestead.Repo.Migrations.CreateObanJobsSupportTable do
   use Ecto.Migration
 
   def up do
-    create table(:oban_jobs) do
+    create table(:oban_jobs, primary_key: false) do
+      add(:id, :bigserial, primary_key: true)
       add(:state, :text, null: false, default: "scheduled")
       add(:queue, :text, null: false, default: "default")
       add(:worker, :text, null: false)
@@ -14,12 +15,14 @@ defmodule Rulestead.Repo.Migrations.CreateObanJobsSupportTable do
       add(:max_attempts, :integer, null: false, default: 3)
       add(:priority, :integer, null: false, default: 0)
       add(:attempted_by, {:array, :text})
-      add(:attempted_at, :utc_datetime_usec)
-      add(:cancelled_at, :utc_datetime_usec)
-      add(:completed_at, :utc_datetime_usec)
-      add(:discarded_at, :utc_datetime_usec)
-      add(:inserted_at, :utc_datetime_usec, null: false)
-      add(:scheduled_at, :utc_datetime_usec, null: false)
+      # oban_jobs is queried schemaless (raw insert_all/from), so timestamps must be
+      # `timestamptz` to read back as DateTime — matching the test-support DDL exactly.
+      add(:attempted_at, :timestamptz)
+      add(:cancelled_at, :timestamptz)
+      add(:completed_at, :timestamptz)
+      add(:discarded_at, :timestamptz)
+      add(:inserted_at, :timestamptz, null: false)
+      add(:scheduled_at, :timestamptz, null: false)
     end
 
     create(index(:oban_jobs, [:queue, :state, :scheduled_at]))
