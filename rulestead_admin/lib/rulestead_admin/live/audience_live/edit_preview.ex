@@ -83,13 +83,21 @@ defmodule RulesteadAdmin.Live.AudienceLive.EditPreview do
       <AudienceComponents.impact_preview :if={@preview} preview={@preview} />
 
       <FlagComponents.section_card :if={@preview} title="Continue">
-        <p>
-          <a :if={@governance_mode != :blocked} href={confirm_path(assigns)}>
+        <div class="rs-mutation-confirm__actions">
+          <a
+            :if={@governance_mode != :blocked}
+            href={confirm_path(assigns)}
+            class="rs-button rs-button--primary"
+          >
             {continue_link_text(@governance_mode)}
           </a>
-          <span :if={@governance_mode != :blocked}> · </span>
-          <a href={Shared.path(assigns, "/audiences/#{@audience_key}")}>Back to audience</a>
-        </p>
+          <a
+            href={Shared.path(assigns, "/audiences/#{@audience_key}")}
+            class="rs-button rs-button--text"
+          >
+            Back to audience
+          </a>
+        </div>
       </FlagComponents.section_card>
     </Shell.page>
     """

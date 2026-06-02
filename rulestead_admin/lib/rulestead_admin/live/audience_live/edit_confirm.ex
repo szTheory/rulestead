@@ -7,6 +7,7 @@ defmodule RulesteadAdmin.Live.AudienceLive.EditConfirm do
   alias Rulestead.Store.Command
 
   alias RulesteadAdmin.Components.{
+    ConfirmComponents,
     FlagComponents,
     GovernanceComponents,
     OperatorComponents,
@@ -106,31 +107,29 @@ defmodule RulesteadAdmin.Live.AudienceLive.EditConfirm do
           reason="You do not have permission to submit a change request for this audience."
         />
 
-        <form
+        <ConfirmComponents.mutation_confirm
           :if={@governance_mode == :change_request && @can_submit?}
-          phx-submit="submit_change_request"
-          aria-label="Submit audience update change request"
-        >
-          <label>
-            <span>Reason (required)</span>
-            <textarea name="reason"><%= @reason_value %></textarea>
-          </label>
-          <button type="submit">Submit change request</button>
-        </form>
+          submit_event="submit_change_request"
+          submit_label="Submit change request"
+          reason_value={@reason_value}
+          back_href={preview_path(assigns)}
+          back_label="Back to preview"
+          aria_label="Submit audience update change request"
+        />
 
-        <form
+        <ConfirmComponents.mutation_confirm
           :if={show_apply_form?(@governance_mode)}
-          phx-submit="apply"
-          aria-label="Confirm audience update"
-        >
-          <label>
-            <span>Reason (required)</span>
-            <textarea name="reason"><%= @reason_value %></textarea>
-          </label>
-          <button type="submit">Apply update</button>
-        </form>
+          submit_event="apply"
+          submit_label="Apply update"
+          reason_value={@reason_value}
+          back_href={preview_path(assigns)}
+          back_label="Back to preview"
+          aria_label="Confirm audience update"
+        />
 
-        <p><a href={preview_path(assigns)}>Back to preview</a></p>
+        <p :if={no_confirm_form?(@governance_mode, @can_submit?)}>
+          <a href={preview_path(assigns)}>Back to preview</a>
+        </p>
       </FlagComponents.section_card>
 
       <p :if={is_nil(@preview)}>Run impact preview before confirming.</p>
@@ -326,6 +325,12 @@ defmodule RulesteadAdmin.Live.AudienceLive.EditConfirm do
 
   defp show_apply_form?(mode) when mode in [:unrestricted, :direct_apply], do: true
   defp show_apply_form?(_), do: false
+
+  # The confirm forms carry their own "Back to preview" link; render a standalone
+  # one only when no form is shown (blocked, or change-request without submit
+  # rights) so there is always a way back.
+  defp no_confirm_form?(:change_request, can_submit?), do: not can_submit?
+  defp no_confirm_form?(mode, _can_submit?), do: not show_apply_form?(mode)
 
   defp visibility_attr(:full), do: :full
   defp visibility_attr(_), do: :redacted
