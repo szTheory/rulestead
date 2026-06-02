@@ -24,7 +24,7 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Index do
     socket = apply_resolved(socket, params)
 
     if params["env"] != socket.assigns.current_environment.key do
-      {:noreply, push_patch(socket, to: Session.current_path(socket, base_path()))}
+      {:noreply, push_patch(socket, to: Session.current_path(socket, base_path(socket)))}
     else
       filters = filters_from_params(params)
       filter_params = query_filters(filters)
@@ -32,18 +32,18 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Index do
       page =
         socket.assigns
         |> Session.placeholder_assigns(
-          current_path: base_path(),
+          current_path: base_path(socket),
           page_title: "Change requests",
           page_kicker: "Governance",
           page_summary:
             "Dedicated review queue for governed mutations, approvals, and explicit execution follow-through."
         )
         |> Map.merge(%{
-          env_links: Session.env_links(socket, base_path(), filter_params),
-          schedule_path: Session.current_path(socket, schedule_base_path()),
-          audit_path: Session.current_path(socket, audit_base_path()),
+          env_links: Session.env_links(socket, base_path(socket), filter_params),
+          schedule_path: Session.current_path(socket, schedule_base_path(socket)),
+          audit_path: Session.current_path(socket, audit_base_path(socket)),
           flags_path: Session.current_path(socket, mount_path(socket) <> "/flags"),
-          current_path: Session.current_path(socket, base_path(), filter_params),
+          current_path: Session.current_path(socket, base_path(socket), filter_params),
           filter_action_options: filter_action_options(),
           filter_status_options: filter_status_options()
         })
@@ -84,7 +84,7 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Index do
       />
 
       <section>
-        <form method="get" action={base_path()} class="rs-filter-grid">
+        <form method="get" action={@rulestead_admin_mount_path <> "/change-requests"} class="rs-filter-grid">
           <input type="hidden" name="env" value={@page.current_environment.key} />
 
           <label>
@@ -156,9 +156,9 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Index do
     """
   end
 
-  defp base_path, do: "/admin/flags/change-requests"
-  defp schedule_base_path, do: "/admin/flags/schedule"
-  defp audit_base_path, do: "/admin/flags/audit"
+  defp base_path(socket), do: "#{mount_path(socket)}/change-requests"
+  defp schedule_base_path(socket), do: "#{mount_path(socket)}/schedule"
+  defp audit_base_path(socket), do: "#{mount_path(socket)}/audit"
 
   defp mount_path(socket), do: socket.assigns.rulestead_admin_mount_path
 
@@ -194,7 +194,8 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Index do
       resource_key: entry.resource_key,
       submitted_by: entry.submitted_by,
       preview_title: preview_title(entry),
-      detail_path: Session.current_path(socket, "#{base_path()}/#{entry.id}", filter_params),
+      detail_path:
+        Session.current_path(socket, "#{base_path(socket)}/#{entry.id}", filter_params),
       flag_path:
         if(entry.resource_key,
           do: Session.current_path(socket, "#{mount_path(socket)}/#{entry.resource_key}")

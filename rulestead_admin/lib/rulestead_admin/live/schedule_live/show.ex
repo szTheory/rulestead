@@ -21,7 +21,7 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Show do
   @impl true
   def handle_params(%{"scheduled_execution_id" => id} = params, uri, socket) do
     params = Map.merge(params, query_params(uri))
-    base_path = "#{index_path()}/#{id}"
+    base_path = "#{index_path(socket)}/#{id}"
     socket = apply_resolved(socket, params)
 
     if params["env"] != socket.assigns.current_environment.key do
@@ -155,14 +155,14 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Show do
 
   defp schedule_crumb_label(id), do: "Execution " <> to_string(id)
 
-  defp index_path, do: "/admin/flags/schedule"
-  defp change_requests_path, do: "/admin/flags/change-requests"
-  defp audit_path, do: "/admin/flags/audit"
+  defp index_path(socket), do: "#{mount_path(socket)}/schedule"
+  defp change_requests_path(socket), do: "#{mount_path(socket)}/change-requests"
+  defp audit_path(socket), do: "#{mount_path(socket)}/audit"
 
   defp mount_path(socket), do: socket.assigns.rulestead_admin_mount_path
 
   defp build_page(socket, scheduled_execution, id) do
-    base_path = "#{index_path()}/#{id}"
+    base_path = "#{index_path(socket)}/#{id}"
 
     socket.assigns
     |> Session.placeholder_assigns(
@@ -173,9 +173,9 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Show do
         "Execution detail route for state, actor chain, related change request, and explicit follow-up actions."
     )
     |> Map.merge(%{
-      schedule_path: Session.current_path(socket, index_path()),
-      change_requests_path: Session.current_path(socket, change_requests_path()),
-      audit_path: Session.current_path(socket, audit_path()),
+      schedule_path: Session.current_path(socket, index_path(socket)),
+      change_requests_path: Session.current_path(socket, change_requests_path(socket)),
+      audit_path: Session.current_path(socket, audit_path(socket)),
       error_message: nil,
       scheduled_execution_id: id,
       change_request_path:
@@ -183,7 +183,7 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Show do
           do:
             Session.current_path(
               socket,
-              "#{change_requests_path()}/#{scheduled_execution.change_request_id}"
+              "#{change_requests_path(socket)}/#{scheduled_execution.change_request_id}"
             )
         ),
       flag_path:
@@ -194,7 +194,7 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Show do
               "#{mount_path(socket)}/#{scheduled_execution.resource_key}"
             )
         ),
-      webhooks_path: Session.current_path(socket, "/admin/flags/webhooks")
+      webhooks_path: Session.current_path(socket, "#{mount_path(socket)}/webhooks")
     })
   end
 

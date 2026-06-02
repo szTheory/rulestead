@@ -60,7 +60,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Simulate do
     page =
       socket.assigns
       |> Session.placeholder_assigns(
-        current_path: "/admin/flags/#{key}/simulate",
+        current_path: "#{socket.assigns.rulestead_admin_mount_path}/#{key}/simulate",
         page_title: "#{key} simulation",
         page_kicker: "Simulation",
         page_summary:
@@ -185,7 +185,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Simulate do
       policy_state={@page.policy_state}
     >
       <:header_actions>
-        <a href={"/admin/flags/#{@page.flag_key}?env=#{@page.current_environment.key}"}>Back to flag</a>
+        <a href={"#{@rulestead_admin_mount_path}/#{@page.flag_key}?env=#{@page.current_environment.key}"}>Back to flag</a>
       </:header_actions>
 
       <OperatorComponents.banner

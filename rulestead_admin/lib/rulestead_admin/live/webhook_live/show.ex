@@ -24,7 +24,7 @@ defmodule RulesteadAdmin.Live.WebhookLive.Show do
       page =
         socket.assigns
         |> Session.placeholder_assigns(
-          current_path: detail_path(socket.assigns.webhook_id),
+          current_path: detail_path(socket, socket.assigns.webhook_id),
           page_title: "Webhook record",
           page_kicker: "Integration visibility",
           page_summary:
@@ -32,11 +32,11 @@ defmodule RulesteadAdmin.Live.WebhookLive.Show do
         )
         |> Map.merge(%{
           webhook: webhook,
-          change_requests_path: Session.current_path(socket, change_requests_path()),
-          audit_path: Session.current_path(socket, audit_path()),
-          schedule_path: Session.current_path(socket, schedule_path()),
+          change_requests_path: Session.current_path(socket, change_requests_path(socket)),
+          audit_path: Session.current_path(socket, audit_path(socket)),
+          schedule_path: Session.current_path(socket, schedule_path(socket)),
           flags_path: Session.current_path(socket, mount_path(socket) <> "/flags"),
-          webhooks_path: Session.current_path(socket, base_path())
+          webhooks_path: Session.current_path(socket, base_path(socket))
         })
 
       {:noreply, assign(socket, :page, page)}
@@ -75,18 +75,18 @@ defmodule RulesteadAdmin.Live.WebhookLive.Show do
     """
   end
 
-  defp base_path, do: "/admin/flags/webhooks"
-  defp schedule_path, do: "/admin/flags/schedule"
-  defp change_requests_path, do: "/admin/flags/change-requests"
-  defp audit_path, do: "/admin/flags/audit"
+  defp base_path(socket), do: "#{mount_path(socket)}/webhooks"
+  defp schedule_path(socket), do: "#{mount_path(socket)}/schedule"
+  defp change_requests_path(socket), do: "#{mount_path(socket)}/change-requests"
+  defp audit_path(socket), do: "#{mount_path(socket)}/audit"
 
   defp mount_path(socket), do: socket.assigns.rulestead_admin_mount_path
 
-  defp detail_path(id), do: "#{base_path()}/#{id}"
+  defp detail_path(socket, id), do: "#{base_path(socket)}/#{id}"
 
   defp current_path(socket, params) do
     query = URI.encode_query(%{"env" => socket.assigns.current_environment.key})
-    "#{detail_path(params["id"])}?#{query}"
+    "#{detail_path(socket, params["id"])}?#{query}"
   end
 
   defp get_webhook(_socket, id) do

@@ -17,7 +17,7 @@ defmodule RulesteadAdmin.Live.WebhookLive.Index do
     socket = apply_resolved(socket, params)
 
     if params["env"] != socket.assigns.current_environment.key do
-      {:noreply, push_patch(socket, to: Session.current_path(socket, base_path()))}
+      {:noreply, push_patch(socket, to: Session.current_path(socket, base_path(socket)))}
     else
       filters = normalize_filters(params)
       webhooks = list_webhooks(socket, filters)
@@ -25,7 +25,7 @@ defmodule RulesteadAdmin.Live.WebhookLive.Index do
       page =
         socket.assigns
         |> Session.placeholder_assigns(
-          current_path: base_path(),
+          current_path: base_path(socket),
           page_title: "Webhooks",
           page_kicker: "Integration visibility",
           page_summary:
@@ -35,9 +35,9 @@ defmodule RulesteadAdmin.Live.WebhookLive.Index do
           filter_links: filter_links(socket, filters),
           filters: filters,
           webhooks: webhooks,
-          change_requests_path: Session.current_path(socket, change_requests_path()),
-          audit_path: Session.current_path(socket, audit_path()),
-          schedule_path: Session.current_path(socket, schedule_path()),
+          change_requests_path: Session.current_path(socket, change_requests_path(socket)),
+          audit_path: Session.current_path(socket, audit_path(socket)),
+          schedule_path: Session.current_path(socket, schedule_path(socket)),
           flags_path: Session.current_path(socket, mount_path(socket) <> "/flags")
         })
 
@@ -77,15 +77,12 @@ defmodule RulesteadAdmin.Live.WebhookLive.Index do
     """
   end
 
-  defp base_path, do: "/admin/flags/webhooks"
-  defp schedule_path, do: "/admin/flags/schedule"
-  defp change_requests_path, do: "/admin/flags/change-requests"
-  defp audit_path, do: "/admin/flags/audit"
+  defp base_path(socket), do: "#{mount_path(socket)}/webhooks"
+  defp schedule_path(socket), do: "#{mount_path(socket)}/schedule"
+  defp change_requests_path(socket), do: "#{mount_path(socket)}/change-requests"
+  defp audit_path(socket), do: "#{mount_path(socket)}/audit"
 
   defp mount_path(socket), do: socket.assigns.rulestead_admin_mount_path
-
-  defp detail_path(environment_key, id),
-    do: "#{base_path()}/#{id}?env=#{environment_key}"
 
   defp list_webhooks(_socket, filters) do
     # Fake list for UI routing. In a real integration this calls `Rulestead.list_webhooks/1`.
@@ -191,20 +188,20 @@ defmodule RulesteadAdmin.Live.WebhookLive.Index do
 
   defp filter_links(socket, %{"type" => nil}) do
     [
-      %{label: "All", path: Session.current_path(socket, base_path()), current?: true},
+      %{label: "All", path: Session.current_path(socket, base_path(socket)), current?: true},
       %{
         label: "Inbound rejections",
-        path: Session.current_path(socket, base_path(), %{"type" => "inbound_rejection"}),
+        path: Session.current_path(socket, base_path(socket), %{"type" => "inbound_rejection"}),
         current?: false
       },
       %{
         label: "Inbound accepted",
-        path: Session.current_path(socket, base_path(), %{"type" => "inbound_accepted"}),
+        path: Session.current_path(socket, base_path(socket), %{"type" => "inbound_accepted"}),
         current?: false
       },
       %{
         label: "Outbound deliveries",
-        path: Session.current_path(socket, base_path(), %{"type" => "outbound_delivery"}),
+        path: Session.current_path(socket, base_path(socket), %{"type" => "outbound_delivery"}),
         current?: false
       }
     ]
@@ -212,10 +209,14 @@ defmodule RulesteadAdmin.Live.WebhookLive.Index do
 
   defp filter_links(socket, %{"type" => type}) when is_binary(type) do
     [
-      %{label: "Clear filter", path: Session.current_path(socket, base_path()), current?: false},
+      %{
+        label: "Clear filter",
+        path: Session.current_path(socket, base_path(socket)),
+        current?: false
+      },
       %{
         label: "Current: #{type}",
-        path: Session.current_path(socket, base_path(), %{"type" => type}),
+        path: Session.current_path(socket, base_path(socket), %{"type" => type}),
         current?: true
       }
     ]

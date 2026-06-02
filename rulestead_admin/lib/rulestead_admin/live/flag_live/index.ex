@@ -61,7 +61,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
     socket =
       socket
       |> assign(:screen_action, :index)
-      |> assign(:base_path, "/admin/flags/flags")
+      |> assign(:base_path, "#{socket.assigns.rulestead_admin_mount_path}/flags")
       |> assign(:filters, default_filters())
       |> assign(:page, empty_page())
       |> assign(:error_message, nil)
@@ -86,7 +86,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
     merged_params = Map.merge(query_params(uri), stringify_keys(params))
     filters = normalize_filters(merged_params, socket.assigns.current_environment.key)
     outcome = normalize_outcome_params(merged_params)
-    current_path = path_with_query(uri)
+    current_path = path_with_query(uri, socket.assigns.base_path)
     canonical_path = build_index_path(socket.assigns.base_path, filters, outcome)
 
     if canonical_path != current_path do
@@ -1166,11 +1166,11 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
     """
   end
 
-  defp path_with_query(uri) do
+  defp path_with_query(uri, fallback_path) do
     parsed = URI.parse(uri)
 
     if is_nil(parsed.query),
-      do: parsed.path || "/admin/flags/flags",
+      do: parsed.path || fallback_path,
       else: parsed.path <> "?" <> parsed.query
   end
 

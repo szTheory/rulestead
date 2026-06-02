@@ -22,7 +22,7 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Index do
     socket = apply_resolved(socket, params)
 
     if params["env"] != socket.assigns.current_environment.key do
-      {:noreply, push_patch(socket, to: Session.current_path(socket, base_path()))}
+      {:noreply, push_patch(socket, to: Session.current_path(socket, base_path(socket)))}
     else
       filters = normalize_filters(params)
       scheduled_executions = list_scheduled_executions(socket, filters)
@@ -30,7 +30,7 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Index do
       page =
         socket.assigns
         |> Session.placeholder_assigns(
-          current_path: base_path(),
+          current_path: base_path(socket),
           page_title: "Schedule",
           page_kicker: "Scheduled changes",
           page_summary:
@@ -41,8 +41,8 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Index do
           filters: filters,
           grouped_scheduled_executions: grouped_scheduled_executions(scheduled_executions),
           related_links: related_links(socket),
-          change_requests_path: Session.current_path(socket, change_requests_path()),
-          audit_path: Session.current_path(socket, audit_path()),
+          change_requests_path: Session.current_path(socket, change_requests_path(socket)),
+          audit_path: Session.current_path(socket, audit_path(socket)),
           flags_path: Session.current_path(socket, mount_path(socket) <> "/flags")
         })
 
@@ -102,15 +102,15 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Index do
             <OperatorComponents.record_row
               :for={scheduled_execution <- group.entries}
               title={scheduled_execution.resource_key}
-              href={detail_path(@page.current_environment.key, scheduled_execution.id)}
+              href={detail_path(@rulestead_admin_mount_path, @page.current_environment.key, scheduled_execution.id)}
               meta={"#{state_label(scheduled_execution.state)} · #{action_label(scheduled_execution.action)}"}
               tone={state_tone(scheduled_execution.state)}
             >
               <:actions>
-                <a href={flag_path(@page.current_environment.key, scheduled_execution.resource_key)}>Open flag</a>
+                <a href={flag_path(@rulestead_admin_mount_path, @page.current_environment.key, scheduled_execution.resource_key)}>Open flag</a>
                 <a
                   :if={scheduled_execution.change_request_id}
-                  href={change_request_path(@page.current_environment.key, scheduled_execution.change_request_id)}
+                  href={change_request_path(@rulestead_admin_mount_path, @page.current_environment.key, scheduled_execution.change_request_id)}
                 >
                   Open change request
                 </a>
@@ -132,20 +132,20 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Index do
     """
   end
 
-  defp base_path, do: "/admin/flags/schedule"
-  defp change_requests_path, do: "/admin/flags/change-requests"
-  defp audit_path, do: "/admin/flags/audit"
+  defp base_path(socket), do: "#{mount_path(socket)}/schedule"
+  defp change_requests_path(socket), do: "#{mount_path(socket)}/change-requests"
+  defp audit_path(socket), do: "#{mount_path(socket)}/audit"
 
   defp mount_path(socket), do: socket.assigns.rulestead_admin_mount_path
 
-  defp detail_path(environment_key, scheduled_execution_id),
-    do: "#{base_path()}/#{scheduled_execution_id}?env=#{environment_key}"
+  defp detail_path(mount_path, environment_key, scheduled_execution_id),
+    do: "#{mount_path}/schedule/#{scheduled_execution_id}?env=#{environment_key}"
 
-  defp flag_path(environment_key, resource_key),
-    do: "/admin/flags/#{resource_key}?env=#{environment_key}"
+  defp flag_path(mount_path, environment_key, resource_key),
+    do: "#{mount_path}/#{resource_key}?env=#{environment_key}"
 
-  defp change_request_path(environment_key, change_request_id),
-    do: "#{change_requests_path()}/#{change_request_id}?env=#{environment_key}"
+  defp change_request_path(mount_path, environment_key, change_request_id),
+    do: "#{mount_path}/change-requests/#{change_request_id}?env=#{environment_key}"
 
   defp grouped_scheduled_executions(entries) do
     Enum.map(@states, fn state ->
@@ -177,7 +177,11 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Index do
   end
 
   defp filter_links(socket, %{"state" => nil}) do
-    all_link = %{label: "All", path: Session.current_path(socket, base_path()), current?: true}
+    all_link = %{
+      label: "All",
+      path: Session.current_path(socket, base_path(socket)),
+      current?: true
+    }
 
     state_links =
       Enum.map(@states, fn state ->
@@ -185,7 +189,7 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Index do
 
         %{
           label: state_label(state),
-          path: Session.current_path(socket, base_path(), %{"state" => state_string}),
+          path: Session.current_path(socket, base_path(socket), %{"state" => state_string}),
           current?: false
         }
       end)
@@ -195,10 +199,14 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Index do
 
   defp filter_links(socket, %{"state" => state}) when is_binary(state) do
     [
-      %{label: "Clear filter", path: Session.current_path(socket, base_path()), current?: false},
+      %{
+        label: "Clear filter",
+        path: Session.current_path(socket, base_path(socket)),
+        current?: false
+      },
       %{
         label: "Current: #{state}",
-        path: Session.current_path(socket, base_path(), %{"state" => state}),
+        path: Session.current_path(socket, base_path(socket), %{"state" => state}),
         current?: true
       }
     ]
@@ -208,13 +216,15 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Index do
     [
       %{
         label: "Open change requests",
-        path: Session.current_path(socket, change_requests_path())
+        path: Session.current_path(socket, change_requests_path(socket))
       },
-      %{label: "Open audit timeline", path: Session.current_path(socket, audit_path())},
-      %{label: "Back to flag inventory", path: Session.current_path(socket, mount_path(socket) <> "/flags")}
+      %{label: "Open audit timeline", path: Session.current_path(socket, audit_path(socket))},
+      %{
+        label: "Back to flag inventory",
+        path: Session.current_path(socket, mount_path(socket) <> "/flags")
+      }
     ]
   end
-
 
   defp state_label(state),
     do: state |> Atom.to_string() |> String.replace("_", " ") |> String.capitalize()

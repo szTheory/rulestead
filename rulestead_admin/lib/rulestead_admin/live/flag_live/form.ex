@@ -40,7 +40,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
      |> assign(:errors, %{})
      |> assign(:submitted?, false)
      |> assign(:touched_fields, MapSet.new())
-     |> assign(:current_path, "/admin/flags/new")
+     |> assign(:current_path, "#{socket.assigns.rulestead_admin_mount_path}/new")
      |> assign(:env_links, %{})
      |> assign(:owner_kind_options, @owner_kind_options)
      |> assign(:flag_type_options, @flag_type_options)
@@ -65,7 +65,10 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
             |> assign(:errors, %{})
             |> assign(:submitted?, false)
             |> assign(:touched_fields, MapSet.new())
-            |> assign(:current_path, "/admin/flags/new?env=#{env}")
+            |> assign(
+              :current_path,
+              "#{socket.assigns.rulestead_admin_mount_path}/new?env=#{env}"
+            )
             |> assign_form_state(Map.put(default_form_data(), "environment_keys", [env]))
 
           :edit ->
@@ -133,7 +136,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
            |> assign_form_state(to_form_data(payload.flag))
            |> put_flash(:info, success_flash(socket.assigns.mode, payload.flag.key))
            |> redirect(
-             to: "/admin/flags/#{payload.flag.key}?env=#{socket.assigns.current_environment.key}"
+             to:
+               "#{socket.assigns.rulestead_admin_mount_path}/#{payload.flag.key}?env=#{socket.assigns.current_environment.key}"
            )}
 
         {:error, error} ->
@@ -593,7 +597,10 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
         |> assign(:errors, %{})
         |> assign(:submitted?, false)
         |> assign(:touched_fields, MapSet.new())
-        |> assign(:current_path, "/admin/flags/#{key}/edit?env=#{env}")
+        |> assign(
+          :current_path,
+          "#{socket.assigns.rulestead_admin_mount_path}/#{key}/edit?env=#{env}"
+        )
         |> assign_form_state(to_form_data(detail.flag))
 
       {:error, error} ->
@@ -603,7 +610,10 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
         |> assign(:errors, %{"base" => error.message})
         |> assign(:submitted?, false)
         |> assign(:touched_fields, MapSet.new())
-        |> assign(:current_path, "/admin/flags/#{key}/edit?env=#{env}")
+        |> assign(
+          :current_path,
+          "#{socket.assigns.rulestead_admin_mount_path}/#{key}/edit?env=#{env}"
+        )
     end
   end
 

@@ -21,7 +21,7 @@ defmodule RulesteadAdmin.Live.DiagnosticsLive.Index do
   def handle_params(_params, _uri, socket) do
     page =
       Session.placeholder_assigns(socket,
-        current_path: "/admin/flags/diagnostics",
+        current_path: "#{socket.assigns.rulestead_admin_mount_path}/diagnostics",
         page_title: "Infrastructure health",
         page_kicker: "Diagnostics",
         page_summary:

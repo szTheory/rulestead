@@ -380,11 +380,16 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
   end
 
   defp load_detail(socket, key, env) do
+    mount_path = socket.assigns.rulestead_admin_mount_path
+
     case Rulestead.fetch_flag(key, env) do
       {:ok, detail} ->
         assign(socket, :detail, detail)
-        |> assign(:change_request_preview, load_change_request_preview(key, env))
-        |> assign(:scheduled_execution_preview, load_scheduled_execution_preview(key, env))
+        |> assign(:change_request_preview, load_change_request_preview(mount_path, key, env))
+        |> assign(
+          :scheduled_execution_preview,
+          load_scheduled_execution_preview(mount_path, key, env)
+        )
         |> assign(:missing_environment, nil)
         |> assign(:environment_state_cards, environment_state_cards(socket, detail, key, env))
         |> assign(:env_options, flag_env_options(socket, detail.environment_cards, key, env))
@@ -407,7 +412,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
     end
   end
 
-  defp load_change_request_preview(flag_key, env) do
+  defp load_change_request_preview(mount_path, flag_key, env) do
     case Rulestead.list_change_requests(environment_key: env, resource_key: flag_key) do
       {:ok, page} ->
         page.entries
@@ -417,7 +422,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
           %{
             state: entry.state,
             title: get_in(entry.command, ["diff", "title"]) || humanize(entry.action),
-            path: "/admin/flags/change-requests/#{entry.id}?env=#{env}"
+            path: "#{mount_path}/change-requests/#{entry.id}?env=#{env}"
           }
         end)
 
@@ -430,7 +435,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
   defp default_flag_value(%{"value" => value}), do: value
   defp default_flag_value(value), do: value
 
-  defp load_scheduled_execution_preview(flag_key, env) do
+  defp load_scheduled_execution_preview(mount_path, flag_key, env) do
     case Rulestead.list_scheduled_executions(environment_key: env, resource_key: flag_key) do
       {:ok, page} ->
         page.entries
@@ -439,7 +444,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
           %{
             state: entry.state,
             title: "#{humanize(entry.action)} at #{format_schedule(entry.scheduled_for)}",
-            path: "/admin/flags/schedule/#{entry.id}?env=#{env}"
+            path: "#{mount_path}/schedule/#{entry.id}?env=#{env}"
           }
         end)
 
