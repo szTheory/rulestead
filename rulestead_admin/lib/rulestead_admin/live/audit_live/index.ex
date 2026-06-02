@@ -135,13 +135,18 @@ defmodule RulesteadAdmin.Live.AuditLive.Index do
         value -> value
       end
 
+    mount_path = socket.assigns.rulestead_admin_mount_path
+
     case Rulestead.list_audit_events(
            environment_key: command_env,
            actor: socket.assigns.current_actor
          ) do
       {:ok, page} ->
         socket
-        |> assign(:entries, page.entries |> Enum.map(&entry_view/1) |> filter_entries(filters))
+        |> assign(
+          :entries,
+          page.entries |> Enum.map(&entry_view(&1, mount_path)) |> filter_entries(filters)
+        )
         |> assign(:error_message, nil)
 
       {:error, error} ->
@@ -151,7 +156,7 @@ defmodule RulesteadAdmin.Live.AuditLive.Index do
     end
   end
 
-  defp entry_view(event) do
+  defp entry_view(event, mount_path) do
     metadata = redacted_metadata(event.metadata)
     before_state = metadata["before"] || %{}
     after_state = metadata["after"] || %{}
@@ -159,6 +164,8 @@ defmodule RulesteadAdmin.Live.AuditLive.Index do
 
     %{
       id: event.id,
+      resource_type: event.resource_type,
+      resource_nav: resource_nav(mount_path, event),
       title: title_for(event),
       meta: meta_for(event),
       summary: summary_for(event, before_state, after_state, diff_state),
@@ -168,6 +175,7 @@ defmodule RulesteadAdmin.Live.AuditLive.Index do
           Map.take(event, [
             :event_type,
             :result,
+            :resource_type,
             :resource_key,
             :environment_key,
             :actor_display,
@@ -328,6 +336,45 @@ defmodule RulesteadAdmin.Live.AuditLive.Index do
       {environment.key, build_path(socket, Map.put(filters, "env_filter", environment.key))}
     end)
   end
+
+  # Resolve a row's resource into navigable links so the cross-flag audit ledger
+  # is never a dead end (Support/SRE land here and need to jump to the flag, its
+  # timeline, or the decision explainer). Only resources with detail routes are
+  # linked; environment-scoped rows render as a plain label.
+  defp resource_nav(_mount_path, %{resource_key: key}) when key in [nil, ""], do: nil
+
+  defp resource_nav(mount_path, %{resource_type: "flag", resource_key: key} = event) do
+    env_q = env_query(event.environment_key)
+
+    %{
+      label: "Flag",
+      key: key,
+      primary: "#{mount_path}/#{key}#{env_q}",
+      actions: [
+        %{label: "Timeline", href: "#{mount_path}/#{key}/timeline#{env_q}"},
+        %{label: "Explain", href: "#{mount_path}/#{key}/explain#{env_q}"}
+      ]
+    }
+  end
+
+  defp resource_nav(mount_path, %{resource_type: "audience", resource_key: key} = event) do
+    %{
+      label: "Audience",
+      key: key,
+      primary: "#{mount_path}/audiences/#{key}#{env_query(event.environment_key)}",
+      actions: []
+    }
+  end
+
+  defp resource_nav(_mount_path, %{resource_type: resource_type, resource_key: key}) do
+    %{label: resource_label(resource_type), key: key, primary: nil, actions: []}
+  end
+
+  defp resource_label(nil), do: "Resource"
+  defp resource_label(resource_type), do: resource_type |> to_string() |> String.capitalize()
+
+  defp env_query(env_key) when env_key in [nil, ""], do: ""
+  defp env_query(env_key), do: "?env=#{env_key}"
 
   defp diff_lines("ruleset.publish", %{"rules" => rules}) when is_list(rules) do
     Enum.map(rules, fn rule ->

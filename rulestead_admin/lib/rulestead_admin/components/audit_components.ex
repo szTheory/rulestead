@@ -189,7 +189,20 @@ defmodule RulesteadAdmin.Components.AuditComponents do
         Manual rollout action
       </p>
       <p>{@entry.summary}</p>
-      <p :if={@show_flag} class="rs-audit-row__flag">Flag: <code>{@entry.resource_key}</code></p>
+      <% nav = @show_flag && Map.get(@entry, :resource_nav) %>
+      <p :if={@show_flag and is_nil(nav)} class="rs-audit-row__flag">
+        Flag: <code>{@entry.resource_key}</code>
+      </p>
+      <div :if={nav} class="rs-audit-row__resource">
+        <span class="rs-audit-row__resource-label">{nav.label}</span>
+        <a :if={nav.primary} href={nav.primary} class="rs-audit-row__resource-key">
+          <code>{nav.key}</code>
+        </a>
+        <code :if={is_nil(nav.primary)} class="rs-audit-row__resource-key">{nav.key}</code>
+        <span :if={nav.actions != []} class="rs-audit-row__resource-actions">
+          <a :for={action <- nav.actions} href={action.href}>{action.label}</a>
+        </span>
+      </div>
       <p :if={@entry.reason} class="rs-audit-row__reason">Reason: {@entry.reason}</p>
       <p :if={@entry.rollback_of_event_id} class="rs-audit-row__link">
         Rollback of audit event <code>{@entry.rollback_of_event_id}</code>

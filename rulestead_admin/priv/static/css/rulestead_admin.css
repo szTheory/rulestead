@@ -3173,6 +3173,30 @@ a.rs-env-state:active {
   margin-top: 0.35rem;
 }
 
+.rs-audit-row__resource {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--rs-space-2);
+}
+
+.rs-audit-row__resource-label {
+  font-size: var(--rs-text-2xs);
+  font-weight: var(--rs-weight-medium);
+  letter-spacing: var(--rs-tracking-wider);
+  text-transform: uppercase;
+  color: var(--rs-text-muted);
+}
+
+.rs-audit-row__resource-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--rs-space-3);
+  margin-inline-start: var(--rs-space-2);
+  padding-inline-start: var(--rs-space-2);
+  border-inline-start: 1px solid var(--rs-border-subtle);
+}
+
 .rs-diff-card__values {
   display: grid;
   align-items: stretch;
