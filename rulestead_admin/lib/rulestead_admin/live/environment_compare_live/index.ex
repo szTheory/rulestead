@@ -51,6 +51,7 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Index do
       current_tenant={@page.current_tenant}
       tenants={@page.tenants}
       tenant_links={@page.tenant_links}
+      env_context_help="Sets the page scope only. Source and target environments are selected below."
       policy_state={@page.policy_state}
     >
       <OperatorComponents.banner

@@ -67,10 +67,11 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupConfirm do
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}
+      env_context_help="Shows this flag key's archive confirmation in the selected environment. Promotion uses Compare."
       policy_state={@rulestead_admin_policy_state}
     >
       <:header_actions>
-        <a :if={@return_to} href={@return_to}>Back to queue</a>
+        <a :if={@return_to} href={@return_to}>Back to flags</a>
         <a :if={@flag_key} href={preview_path(assigns)}>Back to archive preview</a>
       </:header_actions>
 

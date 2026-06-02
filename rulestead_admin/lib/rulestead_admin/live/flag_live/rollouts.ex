@@ -239,10 +239,11 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}
+      env_context_help="Shows this flag key's rollout state in the selected environment. Promotion uses Compare."
       policy_state={@rulestead_admin_policy_state}
     >
       <:header_actions>
-        <a href={path_for(assigns, "/#{@flag_key}")}>Back to detail</a>
+        <a href={path_for(assigns, "/#{@flag_key}")}>Back to flag</a>
         <a href={path_for(assigns, "/#{@flag_key}/rules")}>Open rules workspace</a>
       </:header_actions>
 

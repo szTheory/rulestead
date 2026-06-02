@@ -77,7 +77,7 @@ defmodule RulesteadAdmin.Live.FlagLive.SimulateTest do
       )
       |> render_submit()
 
-    assert result_html =~ "Simulation summary"
+    assert result_html =~ "Decision summary"
     assert result_html =~ "Matched rule"
     assert result_html =~ "enterprise-rollout"
     assert result_html =~ "enterprise-on"
@@ -85,10 +85,10 @@ defmodule RulesteadAdmin.Live.FlagLive.SimulateTest do
     assert result_html =~ "Bucket result"
     assert result_html =~ "Snapshot version"
     assert result_html =~ "Cache age"
-    assert String.contains?(result_html, "Simulation summary")
+    assert String.contains?(result_html, "Decision summary")
     assert String.contains?(result_html, "Trace detail")
 
-    assert :binary.match(result_html, "Simulation summary") <
+    assert :binary.match(result_html, "Decision summary") <
              :binary.match(result_html, "Trace detail")
   end
 

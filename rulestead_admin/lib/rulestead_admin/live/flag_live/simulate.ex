@@ -174,10 +174,11 @@ defmodule RulesteadAdmin.Live.FlagLive.Simulate do
       current_environment={@page.current_environment}
       environments={@page.environments}
       env_links={@page.env_links}
+      env_context_help="Shows this flag key's simulation context in the selected environment. Promotion uses Compare."
       policy_state={@page.policy_state}
     >
       <:header_actions>
-        <a href={"/admin/flags/#{@page.flag_key}?env=#{@page.current_environment.key}"}>Back to detail</a>
+        <a href={"/admin/flags/#{@page.flag_key}?env=#{@page.current_environment.key}"}>Back to flag</a>
       </:header_actions>
 
       <OperatorComponents.banner
@@ -186,72 +187,101 @@ defmodule RulesteadAdmin.Live.FlagLive.Simulate do
         tone="accent"
       />
 
-      <FlagComponents.section_card title="Simulation inputs">
-        <form aria-label="Simulation form" phx-change="validate" phx-submit="run_simulation">
-          <div class="rs-simulate-form">
-            <div>
-              <label for="simulation-targeting-key">Targeting key</label>
-              <input id="simulation-targeting-key" name="simulation[targeting_key]" value={@form["targeting_key"]} />
-            </div>
+      <section class="rs-tool-layout" aria-label="Simulation workspace">
+        <div class="rs-tool-layout__main">
+          <FlagComponents.section_card title="Context builder">
+            <p>Build the exact actor context you want to test. Start with a targeting key, add tenant or session details when they affect rules, then run the decision.</p>
+            <form class="rs-form" aria-label="Simulation form" phx-change="validate" phx-submit="run_simulation">
+              <div class="rs-form-grid rs-form-grid--two">
+                <div class="rs-form-field">
+                  <label for="simulation-targeting-key">Targeting key</label>
+                  <input
+                    id="simulation-targeting-key"
+                    type="text"
+                    name="simulation[targeting_key]"
+                    value={@form["targeting_key"]}
+                  />
+                  <p class="rs-field-help">The actor or subject key used for targeting and bucketing.</p>
+                </div>
 
-            <div>
-              <label for="simulation-tenant-key">Tenant key</label>
-              <input id="simulation-tenant-key" name="simulation[tenant_key]" value={@form["tenant_key"]} />
-            </div>
+                <div class="rs-form-field">
+                  <label for="simulation-tenant-key">Tenant key</label>
+                  <input
+                    id="simulation-tenant-key"
+                    type="text"
+                    name="simulation[tenant_key]"
+                    value={@form["tenant_key"]}
+                  />
+                  <p class="rs-field-help">Optional account, workspace, or tenant boundary.</p>
+                </div>
 
-            <div>
-              <label for="simulation-session-id">Session ID</label>
-              <input id="simulation-session-id" name="simulation[session_id]" value={@form["session_id"]} />
-            </div>
+                <div class="rs-form-field">
+                  <label for="simulation-session-id">Session ID</label>
+                  <input
+                    id="simulation-session-id"
+                    type="text"
+                    name="simulation[session_id]"
+                    value={@form["session_id"]}
+                  />
+                  <p class="rs-field-help">Useful when anonymous or session-scoped behavior is being tested.</p>
+                </div>
 
-            <div>
-              <label for="simulation-request-id">Request ID</label>
-              <input id="simulation-request-id" name="simulation[request_id]" value={@form["request_id"]} />
-            </div>
+                <div class="rs-form-field">
+                  <label for="simulation-request-id">Request ID</label>
+                  <input
+                    id="simulation-request-id"
+                    type="text"
+                    name="simulation[request_id]"
+                    value={@form["request_id"]}
+                  />
+                  <p class="rs-field-help">Optional trace handle for reproducing a support or rollout question.</p>
+                </div>
 
-            <div>
-              <label for="simulation-traits">Traits</label>
-              <textarea id="simulation-traits" name="simulation[traits]" rows="6"><%= @form["traits"] %></textarea>
-              <p>One <code>key=value</code> pair per line. Visible metadata stays redacted by default.</p>
-            </div>
+                <div class="rs-form-field rs-form-field--wide">
+                  <label for="simulation-traits">Traits</label>
+                  <textarea id="simulation-traits" name="simulation[traits]" rows="6"><%= @form["traits"] %></textarea>
+                  <p class="rs-field-help">One <code>key=value</code> pair per line. Visible metadata stays redacted by default.</p>
+                </div>
 
-            <div class="rs-simulate-form__actions">
-              <button type="submit">Run simulation</button>
-              <button type="button" phx-click="export_fixture">Copy as test fixture</button>
-            </div>
-          </div>
-        </form>
-      </FlagComponents.section_card>
+                <div class="rs-form-actions rs-form-field--wide">
+                  <button class="rs-button rs-button--primary" type="submit">Run simulation</button>
+                  <button class="rs-button" type="button" phx-click="export_fixture">Regenerate fixture export</button>
+                </div>
+              </div>
+            </form>
+          </FlagComponents.section_card>
+        </div>
 
-      <SimulateComponents.archetype_chips
-        title="Saved archetypes"
-        archetypes={@page.archetypes}
-        selected_archetype={@selected_archetype}
-      />
+        <aside class="rs-tool-layout__side" aria-label="Simulation shortcuts">
+          <SimulateComponents.archetype_chips
+            title="Saved archetypes"
+            archetypes={@page.archetypes}
+            selected_archetype={@selected_archetype}
+          />
+        </aside>
+      </section>
 
       <p :if={@error_message} role="alert"><%= @error_message %></p>
 
-      <FlagComponents.section_card title="Simulation summary">
-        <p :if={is_nil(@simulation_result)}>Run simulation to load the matched rule, bucket result, and reproducible fixture export for this environment.</p>
-        <OperatorComponents.summary_grid :if={@simulation_result} items={@summary_items} />
+      <FlagComponents.section_card :if={@simulation_result} title="Decision summary">
+        <OperatorComponents.summary_grid items={@summary_items} />
       </FlagComponents.section_card>
+
+      <OperatorComponents.empty_state
+        :if={is_nil(@simulation_result)}
+        title="Run a simulation to see the decision"
+        body="The result will show the matched rule, returned value, bucket details, and fixture export for this environment."
+        icon="->"
+        variant="compact"
+      />
 
       <FlagComponents.section_card title="Visible metadata">
         <p>Non-fixture UI metadata uses the admin redaction helper before it is displayed.</p>
-        <dl>
-          <div>
-            <dt>Environment</dt>
-            <dd><code><%= @page.current_environment.key %></code></dd>
-          </div>
-          <div>
-            <dt>Targeting key</dt>
-            <dd><code><%= blank(@form["targeting_key"]) %></code></dd>
-          </div>
-          <div>
-            <dt>Traits</dt>
-            <dd><code><%= @visible_traits %></code></dd>
-          </div>
-        </dl>
+        <OperatorComponents.detail_grid rows={[
+          %{label: "Environment", value: @page.current_environment.key},
+          %{label: "Targeting key", value: blank(@form["targeting_key"])},
+          %{label: "Traits", value: @visible_traits}
+        ]} />
       </FlagComponents.section_card>
 
       <SimulateComponents.fixture_export

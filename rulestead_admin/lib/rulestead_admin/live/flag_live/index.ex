@@ -4,7 +4,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
 
   use Phoenix.LiveView
 
-  alias RulesteadAdmin.Components.{FlagComponents, Shell}
+  alias RulesteadAdmin.Components.{FlagComponents, OperatorComponents, Shell}
   alias RulesteadAdmin.Live.Session
 
   @default_limit 10
@@ -347,11 +347,10 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
             data-highlighted={to_string(@highlighted_flag_key == entry.flag.key)}
             tabindex="0"
             class="rs-card rs-card--flag"
-            style="margin-bottom: 1rem; padding: 1.5rem; border: 1px solid var(--rs-color-border, #e5e7eb); border-radius: 0.5rem; background: var(--rs-color-surface, #fff);"
           >
-            <div class="rs-card__header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
-              <div class="rs-card__title-group" style="display: flex; align-items: center; gap: 0.75rem;">
-                <a href={flag_path(assigns, entry.flag.key)} style="font-size: 1.125rem; font-weight: 600; text-decoration: none;">
+            <div class="rs-card__header">
+              <div class="rs-card__title-group">
+                <a href={flag_path(assigns, entry.flag.key)} class="rs-card__title-link">
                   <code><%= entry.flag.key %></code>
                 </a>
                 <FlagComponents.environment_status status={entry.environment_status || entry.flag_environment.status || :draft} />
@@ -366,9 +365,9 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
                 <% end %>
               </div>
             </div>
-            
-            <div class="rs-card__body" style="margin-bottom: 1.25rem;">
-              <p class="rs-card__description" style="color: var(--rs-color-text-muted, #4b5563); margin: 0;">
+
+            <div class="rs-card__body">
+              <p class="rs-card__description">
                 <%= entry.flag.description || "No description provided." %>
               </p>
             </div>
@@ -380,24 +379,24 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
               timeline_path={timeline_path(assigns, entry.flag.key)}
             />
 
-            <div class="rs-card__footer" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; border-top: 1px solid var(--rs-color-border-light, #f3f4f6); padding-top: 1rem; font-size: 0.875rem; color: var(--rs-color-text-muted, #6b7280);">
-              <div class="rs-card__meta" style="display: flex; flex-wrap: wrap; gap: 1.5rem;">
-                <span class="rs-card__meta-item" data-meta="lifecycle" title="Lifecycle" style="display: flex; align-items: center; gap: 0.375rem;">
+            <div class="rs-card__footer">
+              <div class="rs-card__meta">
+                <span class="rs-card__meta-item" data-meta="lifecycle" title="Lifecycle">
                   <.meta_icon name="lifecycle" />
                   <span class="sr-only">Lifecycle:</span>
                   <%= lifecycle_label(entry.lifecycle) %>
                 </span>
-                <span class="rs-card__meta-item" data-meta="owner" title="Owner" style="display: flex; align-items: center; gap: 0.375rem;">
+                <span class="rs-card__meta-item" data-meta="owner" title="Owner">
                   <.meta_icon name="owner" />
                   <span class="sr-only">Owner:</span>
                   <%= entry.flag.ownership.owner_display || entry.flag.ownership.owner_ref %>
                 </span>
-                <span class="rs-card__meta-item" data-meta="type" title="Type" style="display: flex; align-items: center; gap: 0.375rem;">
+                <span class="rs-card__meta-item" data-meta="type" title="Type">
                   <.meta_icon name="type" />
                   <span class="sr-only">Type:</span>
                   <%= humanize(entry.flag.flag_type) %>
                 </span>
-                <span class="rs-card__meta-item" title="Last changed" style="display: flex; align-items: center; gap: 0.375rem;">
+                <span class="rs-card__meta-item" title="Last changed">
                   <strong>Last changed:</strong>
                   <span title={format_last_changed_utc(entry.flag.updated_at || entry.flag.inserted_at)}>
                     <%= format_last_changed_relative(entry.flag.updated_at || entry.flag.inserted_at) %>
@@ -411,17 +410,14 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
           </li>
         </ul>
 
-        <div :if={Enum.empty?(@page.entries)} id="flags-empty" class="rs-card rs-card--empty" style="padding: 3rem 1rem; text-align: center; border: 1px dashed var(--rs-color-border, #e5e7eb); border-radius: 0.5rem;">
-          <div class="rs-empty-state">
-            <div class="rs-empty-state__icon" style="margin: 0 auto 1rem; width: 3rem; height: 3rem; color: var(--rs-color-text-muted, #9ca3af);">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-            </div>
-            <h3 class="rs-empty-state__title" style="font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem;">No flags found</h3>
-            <p class="rs-empty-state__text" style="color: var(--rs-color-text-muted, #6b7280);">Try adjusting your filters or search query, or create a new flag.</p>
-          </div>
-        </div>
+        <OperatorComponents.empty_state
+          :if={Enum.empty?(@page.entries)}
+          id="flags-empty"
+          title="No flags found"
+          body="Try adjusting your filters or search query, or create a new flag."
+          icon="!"
+          variant="hero"
+        />
 
         <FlagComponents.pagination page={@page} base_path={@base_path} params={pagination_params(@filters)} />
       </section>

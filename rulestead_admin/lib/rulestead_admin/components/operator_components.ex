@@ -70,6 +70,58 @@ defmodule RulesteadAdmin.Components.OperatorComponents do
     """
   end
 
+  attr(:title, :string, required: true)
+  attr(:summary, :string, default: nil)
+  attr(:href, :string, required: true)
+  attr(:tone, :string, default: "neutral")
+  attr(:primary?, :boolean, default: false)
+
+  def task_link(assigns) do
+    ~H"""
+    <a
+      class={["rs-task-link", @primary? && "rs-task-link--primary"]}
+      data-tone={@tone}
+      href={@href}
+    >
+      <strong><%= @title %></strong>
+      <span :if={@summary}><%= @summary %></span>
+    </a>
+    """
+  end
+
+  attr(:label, :string, required: true)
+  attr(:value, :any, required: true)
+  attr(:tone, :string, default: "neutral")
+
+  def signal(assigns) do
+    ~H"""
+    <div class="rs-signal" data-tone={@tone}>
+      <span><%= @label %></span>
+      <strong><%= @value %></strong>
+    </div>
+    """
+  end
+
+  attr(:title, :string, required: true)
+  attr(:body, :string, required: true)
+  attr(:icon, :string, default: nil)
+  attr(:id, :string, default: nil)
+  attr(:variant, :string, default: "default")
+  slot(:actions)
+
+  def empty_state(assigns) do
+    ~H"""
+    <section id={@id} class="rs-empty-state" data-variant={@variant} aria-label={@title}>
+      <div :if={@icon} class="rs-empty-state__icon" aria-hidden="true"><%= @icon %></div>
+      <h2 class="rs-empty-state__title"><%= @title %></h2>
+      <p class="rs-empty-state__text"><%= @body %></p>
+      <div :if={@actions != []} class="rs-empty-state__actions">
+        <%= render_slot(@actions) %>
+      </div>
+    </section>
+    """
+  end
+
   attr(:links, :list, default: [])
 
   def related_links(assigns) do

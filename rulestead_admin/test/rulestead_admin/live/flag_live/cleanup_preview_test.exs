@@ -85,7 +85,7 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupPreviewTest do
     assert html =~ "Archive readiness"
     assert html =~ "Evidence quality"
     assert html =~ "Code references"
-    assert has_element?(view, "a[href='/admin/flags?env=prod&owner=ops']", "Back to queue")
+    assert has_element?(view, "a[href='/admin/flags?env=prod&owner=ops']", "Back to flags")
 
     assert has_element?(
              view,

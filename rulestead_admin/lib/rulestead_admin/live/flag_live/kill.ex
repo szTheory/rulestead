@@ -4,7 +4,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Kill do
 
   use Phoenix.LiveView
 
-  alias RulesteadAdmin.Components.{AuditComponents, FlagComponents, Shell}
+  alias RulesteadAdmin.Components.{AuditComponents, Shell}
+  alias RulesteadAdmin.Components.OperatorComponents
   alias RulesteadAdmin.Live.Session
 
   @impl true
@@ -12,6 +13,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Kill do
     {:ok,
      socket
      |> assign(:detail, nil)
+     |> assign(:recent_events, [])
      |> assign(:flag_key, nil)
      |> assign(:current_path, nil)
      |> assign(:env_links, %{})
@@ -53,16 +55,17 @@ defmodule RulesteadAdmin.Live.FlagLive.Kill do
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}
+      env_context_help="Shows this flag key's kill-switch state in the selected environment. Promotion uses Compare."
       policy_state={@rulestead_admin_policy_state}
     >
       <:header_actions>
-        <a :if={@flag_key} href={path_for(assigns, "/#{@flag_key}")}>Back to detail</a>
+        <a :if={@flag_key} href={path_for(assigns, "/#{@flag_key}")}>Back to flag</a>
       </:header_actions>
 
       <p :if={@error_message} role="alert">{@error_message}</p>
       <p :if={@notice} role="status">{@notice}</p>
 
-      <div :if={@detail}>
+      <div :if={@detail} class="rs-runbook">
         <AuditComponents.kill_switch_banner
           active?={kill_switch_active?(@detail)}
           flag_key={@detail.flag.key}
@@ -72,36 +75,46 @@ defmodule RulesteadAdmin.Live.FlagLive.Kill do
           timeline_path={path_for(assigns, "/#{@detail.flag.key}/timeline")}
         />
 
-        <div class="rs-summary-grid" aria-label="Kill switch summary">
-          <FlagComponents.stat title="Route" value={@current_path} tone="neutral" />
-          <FlagComponents.stat
-            title="Override state"
-            value={if(kill_switch_active?(@detail), do: "Active", else: "Inactive")}
-            tone={if(kill_switch_active?(@detail), do: "critical", else: "positive")}
-          />
-          <FlagComponents.stat
-            title="Confirmation"
-            value={confirmation_hint(@current_environment.key)}
-            tone={if(production_env?(@current_environment.key), do: "critical", else: "warning")}
-          />
-          <FlagComponents.stat
-            title="Default value"
-            value={inspect(default_flag_value(@detail.flag.default_value))}
-            tone="neutral"
-          />
-        </div>
+        <section class="rs-runbook__state" aria-label="Kill switch state">
+          <div>
+            <p class="rs-eyebrow">Emergency state</p>
+            <h2><%= if kill_switch_active?(@detail), do: "Override active", else: "Authored behavior active" %></h2>
+            <p>
+              <%= if kill_switch_active?(@detail) do %>
+                <code><%= @detail.flag.key %></code> is forcing the default value in <%= @detail.environment.name %>.
+              <% else %>
+                <code><%= @detail.flag.key %></code> is following authored rules in <%= @detail.environment.name %>.
+              <% end %>
+            </p>
+          </div>
+          <div class="rs-runbook__signals">
+            <OperatorComponents.signal
+              label="Override state"
+              value={if(kill_switch_active?(@detail), do: "Active", else: "Inactive")}
+              tone={if(kill_switch_active?(@detail), do: "critical", else: "positive")}
+            />
+            <OperatorComponents.signal label="Environment" value={@detail.environment.name} />
+            <OperatorComponents.signal label="Default served on kill" value={inspect(default_flag_value(@detail.flag.default_value))} />
+            <OperatorComponents.signal
+              label="Confirmation"
+              value={confirmation_hint(@current_environment.key)}
+              tone={if(production_env?(@current_environment.key), do: "critical", else: "warning")}
+            />
+          </div>
+        </section>
 
-        <FlagComponents.section_card title="State">
-          <p>Underlying rules stay untouched. This route only manages the environment override record.</p>
-          <p>
-            Current environment status:
-            <FlagComponents.environment_status status={@detail.flag_environment.status} />
-          </p>
-        </FlagComponents.section_card>
-
-        <FlagComponents.section_card
-          title={if(kill_switch_active?(@detail), do: "Release override", else: "Engage override")}
+        <section
+          class="rs-runbook__action"
+          data-mode={if(kill_switch_active?(@detail), do: "release", else: "engage")}
+          aria-label={if(kill_switch_active?(@detail), do: "Release override", else: "Engage override")}
         >
+          <div class="rs-runbook__action-copy">
+            <p class="rs-eyebrow">Operator action</p>
+            <h2><%= if(kill_switch_active?(@detail), do: "Release override", else: "Engage override") %></h2>
+            <p>
+              Underlying rules stay untouched. This route only manages the environment override record and writes an audit event.
+            </p>
+          </div>
           <AuditComponents.kill_switch_form
             mode={if(kill_switch_active?(@detail), do: :release, else: :engage)}
             flag_key={@detail.flag.key}
@@ -110,7 +123,29 @@ defmodule RulesteadAdmin.Live.FlagLive.Kill do
             reason_value={@reason_value}
             error={@confirmation_error}
           />
-        </FlagComponents.section_card>
+        </section>
+
+        <section class="rs-runbook__context" aria-label="After-action context">
+          <div class="rs-runbook__note">
+            <h2>After action</h2>
+            <p>Verify diagnostics, then use the audit timeline as the incident handoff trail.</p>
+            <div class="rs-inline-actions">
+              <a class="rs-button" href={path_for(assigns, "/diagnostics")}>Open diagnostics</a>
+              <a class="rs-button" href={path_for(assigns, "/#{@detail.flag.key}/timeline")}>Open audit timeline</a>
+            </div>
+          </div>
+          <div class="rs-runbook__history">
+            <h2>Recent override history</h2>
+            <p :if={@recent_events == []}>No kill switch engage or release events are visible for this flag.</p>
+            <ol :if={@recent_events != []}>
+              <li :for={event <- @recent_events}>
+                <strong><%= event.title %></strong>
+                <span><%= event.meta %></span>
+                <p :if={event.reason}><%= event.reason %></p>
+              </li>
+            </ol>
+          </div>
+        </section>
       </div>
     </Shell.page>
     """
@@ -203,14 +238,46 @@ defmodule RulesteadAdmin.Live.FlagLive.Kill do
       {:ok, detail} ->
         socket
         |> assign(:detail, detail)
+        |> assign(:recent_events, recent_override_events(detail, socket.assigns.current_actor))
         |> assign(:error_message, nil)
 
       {:error, error} ->
         socket
         |> assign(:detail, nil)
+        |> assign(:recent_events, [])
         |> assign(:error_message, error.message)
     end
   end
+
+  defp recent_override_events(detail, actor) do
+    with {:ok, page} <-
+           Rulestead.list_audit_events(
+             flag_key: detail.flag.key,
+             environment_key: detail.environment.key,
+             actor: actor
+           ) do
+      page.entries
+      |> Enum.filter(&(&1.event_type in ["kill_switch.engage", "kill_switch.release"]))
+      |> Enum.take(5)
+      |> Enum.map(fn event ->
+        %{
+          title:
+            event.event_type
+            |> String.replace("_", " ")
+            |> String.replace(".", " ")
+            |> String.capitalize(),
+          meta:
+            "#{event.actor_display || event.actor_id || "Unknown actor"} · #{format_time(event.occurred_at)}",
+          reason: event.reason
+        }
+      end)
+    else
+      _ -> []
+    end
+  end
+
+  defp format_time(%DateTime{} = datetime), do: Calendar.strftime(datetime, "%Y-%m-%d %H:%M UTC")
+  defp format_time(_value), do: "Unknown time"
 
   defp query_params(uri) do
     uri

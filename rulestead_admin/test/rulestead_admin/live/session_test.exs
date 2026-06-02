@@ -257,9 +257,11 @@ defmodule RulesteadAdmin.Live.SessionTest do
         ]
       )
 
-    assert html =~ "Environment"
+    assert html =~ "Viewing environment"
+    assert html =~ "Switches the admin view scope."
     assert html =~ "Tenant"
     assert html =~ "Production"
+    assert html =~ "Viewing"
     assert html =~ "Scoped to"
     assert html =~ "Acme"
     assert html =~ "Flag list placeholder"

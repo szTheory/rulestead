@@ -97,8 +97,8 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupTest do
     assert html =~ "Archive when the review is complete"
     assert html =~ "Fresh scan found no code references"
     assert html =~ "Archive consequences"
-    assert html =~ "No known code references."
-    assert has_element?(view, "a[href='/admin/flags?env=prod&owner=ops']", "Back to queue")
+    assert html =~ "No code references found"
+    assert has_element?(view, "a[href='/admin/flags?env=prod&owner=ops']", "Back to flags")
 
     assert has_element?(
              view,
@@ -114,7 +114,7 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupTest do
     {:ok, _view, html} = live(conn, "/admin/flags/remote-config-review/cleanup?env=prod")
 
     assert html =~ "Guidance limited by missing evidence"
-    assert html =~ "Primary recommendation:"
+    assert html =~ "Primary recommendation"
     assert html =~ "Keep active"
     assert html =~ "Code-reference scan receipt is missing"
     assert html =~ "Remote config flags require stronger review"
@@ -136,7 +136,7 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupTest do
 
     {:ok, _view, html} = live(read_only_conn, "/admin/flags/ops-cleanup/cleanup?env=prod")
 
-    assert html =~ "Cleanup review"
+    assert html =~ "Cleanup verdict"
     assert html =~ "Archive candidate"
     refute html =~ "Preview archive"
   end

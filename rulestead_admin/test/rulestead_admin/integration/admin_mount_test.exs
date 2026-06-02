@@ -103,7 +103,7 @@ defmodule RulesteadAdmin.Integration.AdminMountTest do
     redirected_conn = conn |> Phoenix.ConnTest.recycle() |> host_conn()
     {:ok, _list_view, list_html} = live(redirected_conn, "/admin/flags?env=prod&view=all")
     assert list_html =~ "Feature flags"
-    assert list_html =~ "Environment"
+    assert list_html =~ "Viewing environment"
     assert list_html =~ "Production"
     assert list_html =~ ~s(href="/admin/flags?env=dev&amp;view=all")
     assert list_html =~ ~s(href="/admin/flags?env=prod&amp;view=all")
@@ -172,9 +172,9 @@ defmodule RulesteadAdmin.Integration.AdminMountTest do
         "/admin/flags/checkout-redesign/cleanup?env=prod&return_to=%2Fadmin%2Fflags%3Fenv%3Dprod"
       )
 
-    assert cleanup_html =~ "Cleanup review"
+    assert cleanup_html =~ "Cleanup verdict"
     assert cleanup_html =~ "Production"
-    assert cleanup_html =~ "Back to queue"
+    assert cleanup_html =~ "Back to flags"
 
     preview_conn = conn |> Phoenix.ConnTest.recycle() |> host_conn()
 

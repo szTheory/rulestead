@@ -85,8 +85,14 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Show do
         <p role="alert"><%= @page.error_message %></p>
       </section>
 
-      <section :if={@scheduled_execution} class="rs-card">
-        <h2>Scheduled execution <code><%= @scheduled_execution.id %></code></h2>
+      <section :if={@scheduled_execution} class="rs-hub-section">
+        <header class="rs-section-header">
+          <div>
+            <p class="rs-eyebrow">Execution</p>
+            <h2>Scheduled execution <code><%= @scheduled_execution.id %></code></h2>
+          </div>
+          <a href={@page.schedule_path}>Back to schedule</a>
+        </header>
         <p>Execution detail remains route-backed so retries, quarantine context, and audit links stay explicit.</p>
         <OperatorComponents.detail_grid rows={detail_rows(@scheduled_execution, @page)} />
       </section>
@@ -96,16 +102,19 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Show do
         <p><%= @scheduled_execution.failure_reason %></p>
       </section>
 
-      <section :if={@scheduled_execution && @scheduled_execution.executed_at} class="rs-card">
+      <section :if={@scheduled_execution && @scheduled_execution.executed_at} class="rs-hub-section">
         <h2>Executed at</h2>
         <p><%= format_datetime(@scheduled_execution.executed_at) %></p>
       </section>
 
-      <section :if={@scheduled_execution} class="rs-card">
-        <h2><%= action_panel_title(@scheduled_execution) %></h2>
-        <p :if={!@action_notice}><%= action_panel_copy(@scheduled_execution) %></p>
-        <p :if={@action_notice} role="status"><%= @action_notice %></p>
-        <p :if={@action_error} role="alert"><%= @action_error %></p>
+      <section :if={@scheduled_execution} class="rs-runbook__action" data-mode="schedule">
+        <div class="rs-runbook__action-copy">
+          <p class="rs-eyebrow">Follow-up</p>
+          <h2><%= action_panel_title(@scheduled_execution) %></h2>
+          <p :if={!@action_notice}><%= action_panel_copy(@scheduled_execution) %></p>
+          <p :if={@action_notice} role="status"><%= @action_notice %></p>
+          <p :if={@action_error} role="alert"><%= @action_error %></p>
+        </div>
 
         <form
           :if={show_action_form?(@scheduled_execution) and (@rulestead_admin_policy_state.capabilities.execute? or @rulestead_admin_policy_state.capabilities.admin?)}

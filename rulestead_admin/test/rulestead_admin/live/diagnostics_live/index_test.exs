@@ -72,7 +72,7 @@ defmodule RulesteadAdmin.Live.DiagnosticsLive.IndexTest do
     initial_html = render_async(view)
 
     assert has_element?(view, "button[phx-click='refresh'][aria-label='Refresh diagnostics']")
-    assert initial_html =~ "Current</span>"
+    assert initial_html =~ "Viewing</span>"
 
     refreshed_html =
       view
@@ -81,7 +81,7 @@ defmodule RulesteadAdmin.Live.DiagnosticsLive.IndexTest do
 
     assert refreshed_html =~ "Refresh requested"
     assert refreshed_html =~ "Current node only"
-    assert refreshed_html =~ "Environment"
+    assert refreshed_html =~ "Viewing environment"
   end
 
   test "diagnostics renders warning copy when selected environment has no health snapshot", %{

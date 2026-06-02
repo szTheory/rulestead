@@ -10,6 +10,9 @@ defmodule RulesteadAdmin.Components.Shell do
   attr(:current_environment, :map, required: true)
   attr(:environments, :list, default: [])
   attr(:env_links, :map, default: %{})
+  attr(:env_options, :list, default: nil)
+  attr(:env_context_label, :string, default: "Viewing environment")
+  attr(:env_context_help, :string, default: "Switches the admin view scope.")
   attr(:current_tenant, :map, default: nil)
   attr(:tenants, :list, default: [])
   attr(:tenant_links, :map, default: %{})
@@ -23,6 +26,7 @@ defmodule RulesteadAdmin.Components.Shell do
     assigns =
       assigns
       |> assign(:env_tone, env_tone(assigns.current_environment))
+      |> assign(:resolved_env_options, env_options(assigns))
       |> assign(:flash_entries, flash_entries(assigns.flash))
 
     ~H"""
@@ -45,21 +49,37 @@ defmodule RulesteadAdmin.Components.Shell do
             <span><%= highest_capability(Map.get(@policy_state, :capabilities)) %></span>
           </div>
         </section>
-        <section :if={@environments != []} class="rs-shell__context" aria-label="Environment">
-          <p class="rs-shell__context-label">Environment</p>
+        <section :if={@resolved_env_options != []} class="rs-shell__context" aria-label={@env_context_label}>
+          <p class="rs-shell__context-label"><%= @env_context_label %></p>
           <div class="rs-shell__env-picker" role="list">
-            <%= for environment <- @environments do %>
+            <%= for option <- @resolved_env_options do %>
               <a
-                href={Map.get(@env_links, environment.key, "#")}
+                :if={option.available?}
+                href={option.href}
                 class="rs-shell__env-link"
-                data-current={to_string(environment.key == @current_environment.key)}
-                data-env-tone={env_tone(environment)}
+                data-current={to_string(option.current?)}
+                data-env-tone={option.tone}
+                title={option.title}
               >
-                <span><%= environment.name %></span>
-                <span :if={environment.key == @current_environment.key}>Current</span>
+                <span><%= option.name %></span>
+                <span :if={option.current?}>Viewing</span>
               </a>
+              <span
+                :if={!option.available?}
+                class="rs-shell__env-link"
+                data-current={to_string(option.current?)}
+                data-env-tone={option.tone}
+                data-available="false"
+                aria-disabled="true"
+                role="listitem"
+                title={option.title}
+              >
+                <span><%= option.name %></span>
+                <span>Not configured</span>
+              </span>
             <% end %>
           </div>
+          <p :if={@env_context_help} class="rs-shell__context-help"><%= @env_context_help %></p>
         </section>
         <section :if={show_tenant_scope?(assigns)} class="rs-shell__context" aria-label="Tenant scope">
           <p class="rs-shell__context-label">Tenant</p>
@@ -124,6 +144,36 @@ defmodule RulesteadAdmin.Components.Shell do
   defp env_tone(%{key: "prod"}), do: "production"
   defp env_tone(%{key: "production"}), do: "production"
   defp env_tone(_environment), do: "standard"
+
+  defp env_options(%{env_options: options}) when is_list(options) do
+    Enum.map(options, fn option ->
+      environment = Map.fetch!(option, :environment)
+
+      %{
+        key: environment.key,
+        name: environment.name,
+        href: Map.get(option, :href, "#"),
+        current?: Map.get(option, :current?, false),
+        available?: Map.get(option, :available?, true),
+        tone: Map.get(option, :tone, env_tone(environment)),
+        title: Map.get(option, :title)
+      }
+    end)
+  end
+
+  defp env_options(assigns) do
+    Enum.map(assigns.environments, fn environment ->
+      %{
+        key: environment.key,
+        name: environment.name,
+        href: Map.get(assigns.env_links, environment.key, "#"),
+        current?: environment.key == assigns.current_environment.key,
+        available?: true,
+        tone: env_tone(environment),
+        title: "View #{environment.name}"
+      }
+    end)
+  end
 
   defp highest_capability(%{admin?: true}), do: "Admin"
   defp highest_capability(%{execute?: true}), do: "Execute"

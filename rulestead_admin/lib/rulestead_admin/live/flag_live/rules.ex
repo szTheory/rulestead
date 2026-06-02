@@ -108,6 +108,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Rules do
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}
+      env_context_help="Shows this flag key's rules in the selected environment. Promotion uses Compare."
       policy_state={@rulestead_admin_policy_state}
     >
       <div :if={@detail} class="rs-rules-workspace">
@@ -119,7 +120,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Rules do
             </p>
           </div>
           <div class="rs-rules-workspace__links">
-            <a href={path_for(assigns, "/#{@detail.flag.key}")}>Back to detail</a>
+            <a href={path_for(assigns, "/#{@detail.flag.key}")}>Back to flag</a>
           </div>
         </div>
 

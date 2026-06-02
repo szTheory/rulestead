@@ -5,7 +5,7 @@ defmodule RulesteadAdmin.Live.AuditLive.Index do
   use Phoenix.LiveView
 
   alias Rulestead.Admin.Redaction
-  alias RulesteadAdmin.Components.{AuditComponents, FlagComponents, Shell}
+  alias RulesteadAdmin.Components.{AuditComponents, FlagComponents, OperatorComponents, Shell}
   alias RulesteadAdmin.Live.Session
 
   @impl true
@@ -101,9 +101,13 @@ defmodule RulesteadAdmin.Live.AuditLive.Index do
         <p>Global audit reads the same append-only ledger as the per-flag timeline, but projects it across flags for investigation.</p>
       </FlagComponents.section_card>
 
-      <FlagComponents.section_card :if={@entries == []} title="Empty state">
-        <p>No audit entries match the selected filters.</p>
-      </FlagComponents.section_card>
+      <OperatorComponents.empty_state
+        :if={@entries == []}
+        title="No audit events match these filters"
+        body="Try widening the actor, environment, mutation type, or date filters to inspect more of the append-only ledger."
+        icon="0"
+        variant="compact"
+      />
 
       <div :for={entry <- @entries}>
         <AuditComponents.timeline_row entry={entry} show_flag={true} />

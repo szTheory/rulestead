@@ -67,10 +67,11 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupPreview do
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}
+      env_context_help="Shows this flag key's archive preview in the selected environment. Promotion uses Compare."
       policy_state={@rulestead_admin_policy_state}
     >
       <:header_actions>
-        <a :if={@return_to} href={@return_to}>Back to queue</a>
+        <a :if={@return_to} href={@return_to}>Back to flags</a>
         <a :if={@flag_key} href={path_for(assigns, "/#{@flag_key}/cleanup")}>Back to cleanup review</a>
       </:header_actions>
 

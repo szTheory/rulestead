@@ -104,35 +104,39 @@ defmodule RulesteadAdmin.Live.DiagnosticsLive.Index do
           </:failed>
 
           <%= if health_view.environment do %>
-          <FlagComponents.section_card title="Current health summary">
-            <OperatorComponents.summary_grid
-              items={health_view.summary_items}
-              aria_label="Infrastructure health summary"
-            />
-          </FlagComponents.section_card>
+            <section class="rs-hub-section" aria-label="Current health summary">
+              <header class="rs-section-header">
+                <div>
+                  <p class="rs-eyebrow">Runtime health</p>
+                  <h2>Current health summary</h2>
+                </div>
+              </header>
+              <OperatorComponents.summary_grid
+                items={health_view.summary_items}
+                aria_label="Infrastructure health summary"
+              />
+            </section>
 
-            <FlagComponents.section_card title="Freshness details">
+            <div class="rs-hub-grid">
               <OperatorComponents.trace_panel
                 title="Freshness details"
                 summary="Current-node cache freshness and refresh timing for the selected environment."
                 rows={health_view.freshness_rows}
               />
-            </FlagComponents.section_card>
 
-            <FlagComponents.section_card title="Sync and invalidation">
               <OperatorComponents.trace_panel
                 title="Sync and invalidation"
                 summary="Use refresh state first, then inspect worker backoff and invalidation timing if freshness drifts."
                 rows={health_view.sync_rows}
               />
-            </FlagComponents.section_card>
+            </div>
 
-            <FlagComponents.section_card title="Adapter health">
+            <section class="rs-hub-section" aria-label="Adapter health">
               <OperatorComponents.status_list
                 title="Adapter health"
                 entries={health_view.adapter_entries}
               />
-            </FlagComponents.section_card>
+            </section>
           <% else %>
             <OperatorComponents.banner
               title="Health snapshot unavailable"

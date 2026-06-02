@@ -5,7 +5,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
   use Phoenix.LiveView
 
   alias Rulestead.Admin.Redaction
-  alias RulesteadAdmin.Components.{AuditComponents, FlagComponents, Shell}
+  alias RulesteadAdmin.Components.{AuditComponents, FlagComponents, OperatorComponents, Shell}
   alias RulesteadAdmin.Live.Session
 
   @impl true
@@ -47,10 +47,11 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}
+      env_context_help="Shows this flag key's audit history in the selected environment. Promotion uses Compare."
       policy_state={@rulestead_admin_policy_state}
     >
       <:header_actions>
-        <a :if={@flag_key} href={path_for(assigns, "/#{@flag_key}")}>Back to detail</a>
+        <a :if={@flag_key} href={path_for(assigns, "/#{@flag_key}")}>Back to flag</a>
         <a href={Session.current_path(assigns, admin_base_path(assigns, "/audit"), %{"env_filter" => @current_environment.key})}>
           Open global audit
         </a>
@@ -59,20 +60,31 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
       <p :if={@error_message} role="alert">{@error_message}</p>
       <p :if={@notice} role="status">{@notice}</p>
 
-      <section :if={@detail} class="rs-timeline-context" aria-label="Timeline context">
-        <p>
-          Use this timeline to see when <code>{@detail.flag.key}</code> changed in
-          {@detail.environment.name}, who changed it, and the recorded reason.
-        </p>
-        <p :if={@show_rollback_guidance?}>
-          Rollback creates a new audit event that reverses the selected change. The original event
-          stays in history.
-        </p>
-      </section>
+      <OperatorComponents.banner
+        :if={@detail}
+        title="Append-only flag history"
+        body={"Use this timeline to see when #{@detail.flag.key} changed in #{@detail.environment.name}, who changed it, and the recorded reason."}
+        tone="neutral"
+      />
 
-      <FlagComponents.section_card :if={@entries == []} title="Empty state">
-        <p>No audit entries are available for this flag in the current environment.</p>
-      </FlagComponents.section_card>
+      <FlagComponents.callout :if={@show_rollback_guidance?} title="Rollback appends history" tone="warning">
+        <p>Rollback creates a new audit event that reverses the selected change. The original event stays in history.</p>
+      </FlagComponents.callout>
+
+      <OperatorComponents.empty_state
+        :if={@entries == []}
+        title="No audit events yet"
+        body={"This flag has no recorded changes in #{@current_environment.name}."}
+        icon="0"
+        variant="hero"
+      >
+        <:actions>
+          <a :if={@flag_key} class="rs-button" href={path_for(assigns, "/#{@flag_key}")}>Back to flag</a>
+          <a class="rs-button" href={Session.current_path(assigns, admin_base_path(assigns, "/audit"), %{"env_filter" => @current_environment.key})}>
+            Open global audit
+          </a>
+        </:actions>
+      </OperatorComponents.empty_state>
 
       <ol :if={@entries != []} class="rs-event-timeline" aria-label="Flag audit events">
         <AuditComponents.timeline_item
