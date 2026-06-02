@@ -91,7 +91,7 @@ defmodule RulesteadAdmin.Live.ExperimentLive.Index do
         <div class="rs-inventory__toolbar">
           <div>
             <h2>Experiment inventory</h2>
-            <p>Monospace key, lifecycle, stale status, and environment state stay visible for fast scanning.</p>
+            <p>Flag key, lifecycle, freshness, and environment state stay visible for fast experiment review.</p>
           </div>
         </div>
 
@@ -148,7 +148,7 @@ defmodule RulesteadAdmin.Live.ExperimentLive.Index do
           <caption class="sr-only">Experiment inventory table</caption>
           <thead>
             <tr>
-              <th scope="col">Monospace key</th>
+              <th scope="col">Flag key</th>
               <th scope="col">Type</th>
               <th scope="col">Owner</th>
               <th scope="col">Lifecycle</th>

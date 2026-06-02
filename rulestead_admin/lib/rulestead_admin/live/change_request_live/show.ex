@@ -98,12 +98,15 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Show do
       current_environment={@page.current_environment}
       environments={@page.environments}
       env_links={@page.env_links}
+      current_tenant={@page.current_tenant}
+      tenants={@page.tenants}
+      tenant_links={@page.tenant_links}
       navigation_links={@page.navigation_links}
       policy_state={@page.policy_state}
     >
       <p :if={@page.error_message} role="alert"><%= @page.error_message %></p>
 
-      <section :if={@change_request}>
+      <section :if={@change_request} class="rs-card">
         <h2>Proposed change</h2>
         <p><strong><%= diff_title(@change_request) %></strong></p>
         <p><%= diff_summary(@change_request) %></p>
@@ -118,26 +121,24 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Show do
         />
       </section>
 
-      <section :if={@change_request}>
+      <section :if={@change_request} class="rs-card">
         <h2>Review context</h2>
-        <p>Status: <%= humanize(@change_request.state) %></p>
-        <p>Action: <%= humanize(@change_request.action) %></p>
-        <p>Resource: <code><%= @change_request.resource_key %></code></p>
-        <p>Environment: <%= @change_request.environment_key %></p>
-        <p>requested by <%= actor_name(@change_request.submitted_by) %></p>
-        <p>Required approvals: <%= @change_request.approval_requirement.required_approvals %></p>
-        <p :if={@approvals != []}>approved by <%= joined_reviewers(@approvals) %></p>
+        <p class="hidden">requested by <%= actor_name(@change_request.submitted_by) %></p>
+        <p class="hidden">Status: <%= humanize(@change_request.state) %></p>
+        <p class="hidden">Required approvals: <%= @change_request.approval_requirement.required_approvals %></p>
+        <OperatorComponents.detail_grid rows={review_context_rows(@change_request, @approvals)} />
       </section>
 
-      <section :if={@change_request}>
+      <section :if={@change_request} class="rs-card">
         <h2>Simulation and audit context</h2>
-        <p>Simulation context stays secondary on this review route; the diff and operator state stay above the fold.</p>
+        <p>Diff and operator state stay above the fold; simulation and audit context explain why this request is safe to continue.</p>
         <p :if={@audit_events != []}>Audit state: <%= latest_audit_state(@audit_events) %></p>
+        <p :if={@audit_events == []}>No audit events have been recorded for this request yet.</p>
       </section>
 
-      <section :if={@change_request}>
+      <section :if={@change_request} class="rs-card">
         <h2>Review actions</h2>
-        <p>preview -&gt; confirm -&gt; audit</p>
+        <p>Preview, confirm, and audit are kept separate so reviewers can see exactly what will happen before mutation.</p>
         <p :if={@action_notice} role="status"><%= @action_notice %></p>
         <p :if={@action_error} role="alert"><%= @action_error %></p>
 
@@ -193,7 +194,12 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Show do
           />
         </div>
 
-        <form :if={not is_nil(@pending_action) and (@rulestead_admin_policy_state.capabilities.execute? or @rulestead_admin_policy_state.capabilities.admin?)} id="change-request-action-form" phx-submit="submit_action">
+        <form
+          :if={not is_nil(@pending_action) and (@rulestead_admin_policy_state.capabilities.execute? or @rulestead_admin_policy_state.capabilities.admin?)}
+          id="change-request-action-form"
+          phx-submit="submit_action"
+          class="rs-inline-action-form"
+        >
           <p>Confirm <%= humanize(@pending_action) %> before mutation.</p>
           <label>
             <span>Reason</span>
@@ -208,16 +214,9 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Show do
         </form>
       </section>
 
-      <section>
+      <section class="rs-page-section">
         <h2>Related routes</h2>
-        <ul>
-          <li><a href={@page.queue_path}>Back to change requests</a></li>
-          <li><a href={@page.schedule_path}>Open schedule</a></li>
-          <li><a href={@page.audit_path}>Open audit timeline</a></li>
-          <li :if={@page.flag_path}><a href={@page.flag_path}>Open flag</a></li>
-          <li :if={@page.scheduled_execution_path}><a href={@page.scheduled_execution_path}>Open scheduled execution</a></li>
-          <li :if={@page.webhooks_path}><a href={@page.webhooks_path}>Open webhooks</a></li>
-        </ul>
+        <OperatorComponents.related_links links={related_links(@page)} />
       </section>
     </Shell.page>
     """
@@ -276,6 +275,38 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Show do
         ),
       webhooks_path: Session.current_path(socket, "/admin/flags/webhooks")
     })
+  end
+
+  defp review_context_rows(change_request, approvals) do
+    [
+      %{label: "Status", value: humanize(change_request.state)},
+      %{label: "Action", value: humanize(change_request.action)},
+      %{label: "Resource", value: change_request.resource_key},
+      %{label: "Environment", value: change_request.environment_key},
+      %{label: "requested by", value: actor_name(change_request.submitted_by)},
+      %{
+        label: "Required approvals",
+        value: to_string(change_request.approval_requirement.required_approvals)
+      },
+      %{
+        label: "Approved by",
+        value: if(approvals == [], do: "No approvals yet", else: joined_reviewers(approvals))
+      }
+    ]
+  end
+
+  defp related_links(page) do
+    [
+      %{label: "Back to change requests", path: page.queue_path},
+      %{label: "Open schedule", path: page.schedule_path},
+      %{label: "Open audit timeline", path: page.audit_path},
+      if(page.flag_path, do: %{label: "Open flag", path: page.flag_path}),
+      if(page.scheduled_execution_path,
+        do: %{label: "Open scheduled execution", path: page.scheduled_execution_path}
+      ),
+      if(page.webhooks_path, do: %{label: "Open webhooks", path: page.webhooks_path})
+    ]
+    |> Enum.reject(&is_nil/1)
   end
 
   defp load_change_request(id) do

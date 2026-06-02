@@ -17,6 +17,69 @@ defmodule RulesteadAdmin.Components.OperatorComponents do
     """
   end
 
+  attr(:title, :string, required: true)
+  attr(:summary, :string, default: nil)
+  slot(:inner_block)
+
+  def page_section(assigns) do
+    ~H"""
+    <section class="rs-page-section">
+      <h2><%= @title %></h2>
+      <p :if={@summary}><%= @summary %></p>
+      <%= render_slot(@inner_block) %>
+    </section>
+    """
+  end
+
+  attr(:title, :string, required: true)
+  attr(:href, :string, required: true)
+  attr(:meta, :string, default: nil)
+  attr(:tone, :string, default: "neutral")
+  slot(:inner_block)
+  slot(:actions)
+
+  def record_row(assigns) do
+    ~H"""
+    <article class="rs-record-row" data-tone={@tone}>
+      <header class="rs-record-row__header">
+        <div>
+          <h3 class="rs-record-row__title"><a href={@href}><%= @title %></a></h3>
+          <p :if={@meta} class="rs-record-row__meta"><%= @meta %></p>
+        </div>
+        <div :if={@actions != []} class="rs-record-row__actions">
+          <%= render_slot(@actions) %>
+        </div>
+      </header>
+      <div :if={@inner_block != []} class="rs-record-row__body">
+        <%= render_slot(@inner_block) %>
+      </div>
+    </article>
+    """
+  end
+
+  attr(:rows, :list, default: [])
+
+  def detail_grid(assigns) do
+    ~H"""
+    <dl class="rs-kv-grid">
+      <div :for={row <- @rows}>
+        <dt><%= row.label %></dt>
+        <dd><%= row.value %></dd>
+      </div>
+    </dl>
+    """
+  end
+
+  attr(:links, :list, default: [])
+
+  def related_links(assigns) do
+    ~H"""
+    <nav class="rs-related-links" aria-label="Related routes">
+      <a :for={link <- @links} href={link.path}><%= link.label %></a>
+    </nav>
+    """
+  end
+
   attr(:items, :list, default: [])
   attr(:aria_label, :string, default: "Summary")
 

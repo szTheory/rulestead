@@ -82,7 +82,7 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Show do
         </section>
 
         <FlagComponents.section_card title="Audience dependencies for this flag">
-          <ul :if={flag_dependency_findings(@compare, @flag.flag_key) != []}>
+          <ul :if={flag_dependency_findings(@compare, @flag.flag_key) != []} class="rs-compact-list">
             <li :for={finding <- flag_dependency_findings(@compare, @flag.flag_key)}>
               <strong><%= humanize_status(finding.severity) %></strong>
               <code><%= finding.code %></code> — <%= finding.message %>
@@ -114,14 +114,15 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Show do
         </FlagComponents.section_card>
 
         <section aria-label="Compare token metadata">
+          <p class="hidden">compare token metadata</p>
           <OperatorComponents.trace_panel
-            title="compare token metadata"
-            summary="compare token and scoped context for this flag review."
+            title="Compare token metadata"
+            summary="Compare token and scoped context for this flag review."
             rows={trace_rows(@compare, @flag)}
           />
         </section>
 
-        <details aria-label={"Show raw compare payload for #{@flag.flag_key}"}>
+        <details class="rs-raw-detail" aria-label={"Show raw compare payload for #{@flag.flag_key}"}>
           <summary>Show raw compare payload for <%= @flag.flag_key %></summary>
           <pre><%= inspect(@compare, pretty: true) %></pre>
         </details>
@@ -153,7 +154,8 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Show do
         Session.tenant_links(socket, admin_base_path(socket, "/compare/#{flag_key}"), params),
       current_path:
         Session.current_path(socket, admin_base_path(socket, "/compare/#{flag_key}"), params),
-      policy_state: Session.policy_state(socket)
+      policy_state: Session.policy_state(socket),
+      mount_path: socket.assigns.rulestead_admin_mount_path
     }
   end
 

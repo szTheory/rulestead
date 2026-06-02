@@ -47,6 +47,9 @@ defmodule RulesteadAdmin.Live.ExperimentLive.Show do
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}
+      current_tenant={@current_tenant}
+      tenants={@available_tenants}
+      tenant_links={Session.tenant_links(assigns, detail_base_path(assigns, @flag_key || ""))}
       policy_state={@rulestead_admin_policy_state}
     >
       <p :if={@error_message} role="alert"><%= @error_message %></p>
@@ -80,25 +83,14 @@ defmodule RulesteadAdmin.Live.ExperimentLive.Show do
         <FlagComponents.section_card title="Experiment Results">
           <p :if={Enum.empty?(@results)}>No significant data collected yet for this experiment.</p>
 
-          <div :for={result <- @results} class="rs-experiment-result" style="margin-bottom: 2rem;">
+          <div :for={result <- @results} class="rs-experiment-result">
             <h3>Variant: <code><%= result.variation %></code> vs Control</h3>
             <OperatorComponents.summary_grid items={[
               %{title: "Lift", value: format_percent(result.stats.lift), tone: tone_for_lift(result.stats.lift)},
               %{title: "P-Value", value: Float.round(result.stats.p_value, 4) |> to_string(), tone: tone_for_pvalue(result.stats.p_value)},
               %{title: "Significant", value: if(result.stats.significant, do: "Yes", else: "No"), tone: if(result.stats.significant, do: "positive", else: "neutral")}
             ]} />
-            <div style="display: flex; gap: 2rem; margin-top: 1rem;">
-              <div>
-                <strong>Control</strong>
-                <p>Exposures: <%= result.control_exposures %></p>
-                <p>Conversions: <%= result.control_conversions %></p>
-              </div>
-              <div>
-                <strong>Variant</strong>
-                <p>Exposures: <%= result.variant_exposures %></p>
-                <p>Conversions: <%= result.variant_conversions %></p>
-              </div>
-            </div>
+            <OperatorComponents.detail_grid rows={experiment_result_rows(result)} />
           </div>
         </FlagComponents.section_card>
 
@@ -193,6 +185,15 @@ defmodule RulesteadAdmin.Live.ExperimentLive.Show do
 
   defp tone_for_pvalue(p) when p < 0.05, do: "positive"
   defp tone_for_pvalue(_), do: "neutral"
+
+  defp experiment_result_rows(result) do
+    [
+      %{label: "Control exposures", value: to_string(result.control_exposures)},
+      %{label: "Control conversions", value: to_string(result.control_conversions)},
+      %{label: "Variant exposures", value: to_string(result.variant_exposures)},
+      %{label: "Variant conversions", value: to_string(result.variant_conversions)}
+    ]
+  end
 
   defp default_flag_value(%{value: value}), do: value
   defp default_flag_value(%{"value" => value}), do: value

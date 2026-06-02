@@ -49,7 +49,7 @@ defmodule RulesteadAdmin.Live.AudienceLive.Index do
       <p :if={@error_message} role="alert"><%= @error_message %></p>
 
       <FlagComponents.section_card title="Audience library">
-        <table :if={@audiences != []} aria-label="Audience list">
+        <table :if={@audiences != []} aria-label="Audience list" class="rs-table">
           <thead>
             <tr>
               <th>Key</th>

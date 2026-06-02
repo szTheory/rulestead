@@ -5,7 +5,7 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Index do
 
   alias Rulestead.Governance.ChangeRequest
   alias Rulestead.Store.Command
-  alias RulesteadAdmin.Components.Shell
+  alias RulesteadAdmin.Components.{OperatorComponents, Shell}
   alias RulesteadAdmin.Live.Session
 
   @impl true
@@ -72,16 +72,16 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Index do
       current_environment={@page.current_environment}
       environments={@page.environments}
       env_links={@page.env_links}
+      current_tenant={@page.current_tenant}
+      tenants={@page.tenants}
+      tenant_links={@page.tenant_links}
       navigation_links={@page.navigation_links}
       policy_state={@page.policy_state}
     >
-      <section>
-        <h2>Review queue</h2>
-        <p>
-          Operators can scan governed work here without overloading audit history or turning flag detail
-          into a workflow hub.
-        </p>
-      </section>
+      <OperatorComponents.page_section
+        title="Review queue"
+        summary="Governed work waiting for review, approval, execution, or follow-up in the selected environment."
+      />
 
       <section>
         <form method="get" action={base_path()} class="rs-filter-grid">
@@ -126,38 +126,31 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Index do
 
       <p :if={@error_message} role="alert"><%= @error_message %></p>
 
-      <section>
+      <section class="rs-page-section">
         <h2>Open review items</h2>
 
         <p :if={@entries == []}>No change requests match this environment and filter set.</p>
 
-        <ul :if={@entries != []} class="rs-change-request-list">
-          <li :for={entry <- @entries} class="rs-change-request-row">
-            <div>
-              <p>
-                <span class="rs-badge"><%= humanize(entry.state) %></span>
-                <strong><%= humanize(entry.action) %></strong>
-                <code><%= entry.resource_key %></code>
-              </p>
-              <p><%= entry.preview_title %></p>
-              <p>Requested by <%= actor_display(entry.submitted_by) %></p>
-            </div>
-
-            <div>
+        <div :if={@entries != []} class="rs-record-list">
+          <OperatorComponents.record_row
+            :for={entry <- @entries}
+            title={entry.preview_title}
+            href={entry.detail_path}
+            meta={"#{humanize(entry.state)} · #{humanize(entry.action)} · #{entry.resource_key}"}
+            tone={change_request_tone(entry.state)}
+          >
+            <:actions>
               <a href={entry.detail_path}>Review change request</a>
               <a :if={entry.flag_path} href={entry.flag_path}>Open flag</a>
-            </div>
-          </li>
-        </ul>
+            </:actions>
+            <p>Requested by <%= actor_display(entry.submitted_by) %>.</p>
+          </OperatorComponents.record_row>
+        </div>
       </section>
 
-      <section>
+      <section class="rs-page-section">
         <h2>Related routes</h2>
-        <ul>
-          <li><a href={@page.schedule_path}>Open schedule</a></li>
-          <li><a href={@page.audit_path}>Open audit timeline</a></li>
-          <li><a href={@page.flags_path}>Back to flag inventory</a></li>
-        </ul>
+        <OperatorComponents.related_links links={related_links(@page)} />
       </section>
     </Shell.page>
     """
@@ -273,6 +266,19 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Index do
   defp actor_display(actor) do
     actor["display"] || actor[:display] || actor["id"] || actor[:id] || "Unknown operator"
   end
+
+  defp related_links(page) do
+    [
+      %{label: "Open schedule", path: page.schedule_path},
+      %{label: "Open audit timeline", path: page.audit_path},
+      %{label: "Back to flag inventory", path: page.flags_path}
+    ]
+  end
+
+  defp change_request_tone(:submitted), do: "warning"
+  defp change_request_tone(:approved), do: "positive"
+  defp change_request_tone(:rejected), do: "critical"
+  defp change_request_tone(_state), do: "neutral"
 
   defp matches_resource_filter?(_entry, value) when value in [nil, ""], do: true
 

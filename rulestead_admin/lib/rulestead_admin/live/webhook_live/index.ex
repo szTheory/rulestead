@@ -3,7 +3,7 @@ defmodule RulesteadAdmin.Live.WebhookLive.Index do
 
   use Phoenix.LiveView
 
-  alias RulesteadAdmin.Components.Shell
+  alias RulesteadAdmin.Components.{OperatorComponents, Shell}
   alias RulesteadAdmin.Live.Session
 
   @impl true
@@ -58,63 +58,45 @@ defmodule RulesteadAdmin.Live.WebhookLive.Index do
       current_environment={@page.current_environment}
       environments={@page.environments}
       env_links={@page.env_links}
+      current_tenant={@page.current_tenant}
+      tenants={@page.tenants}
+      tenant_links={@page.tenant_links}
       navigation_links={@page.navigation_links}
       policy_state={@page.policy_state}
     >
-      <section>
-        <h2>Webhook list</h2>
-        <p>
-          Triage inbound and outbound webhook state securely without secrets. Operators can filter for inbound rejections or track outbound delivery attempts.
-        </p>
-      </section>
+      <OperatorComponents.page_section
+        title="Webhook records"
+        summary="Integration visibility for inbound rejections, accepted inbound events, and outbound deliveries without exposing secrets."
+      />
 
-      <section aria-label="Type filters">
+      <section class="rs-page-section" aria-label="Type filters">
         <h2>Filters</h2>
-        <div class="rs-webhook-filter-links">
+        <div class="rs-segmented-links">
           <a :for={filter <- @page.filter_links} href={filter.path} aria-current={if(filter.current?, do: "page", else: nil)}>
             <%= filter.label %>
           </a>
         </div>
       </section>
 
-      <section>
+      <section class="rs-page-section">
         <p :if={@page.webhooks == []}>No webhook records match the current filter.</p>
 
-        <article :for={webhook <- @page.webhooks} class="rs-webhook-row">
-          <header>
-            <h4>
-              <a href={detail_path(@page.current_environment.key, webhook.id)}>
-                <%= webhook.id %>
-              </a>
-            </h4>
-            <p>
-              <span><%= webhook.type_label %></span>
-              <span>·</span>
-              <span><%= webhook.status_label %></span>
-            </p>
-          </header>
-
-          <dl>
-            <div>
-              <dt>Time</dt>
-              <dd><%= format_datetime(webhook.inserted_at) %></dd>
-            </div>
-            <div :if={webhook.actor}>
-              <dt>Actor</dt>
-              <dd><%= webhook.actor %></dd>
-            </div>
-          </dl>
-        </article>
+        <div :if={@page.webhooks != []} class="rs-record-list">
+          <OperatorComponents.record_row
+            :for={webhook <- @page.webhooks}
+            title={webhook.id}
+            href={detail_path(@page.current_environment.key, webhook.id)}
+            meta={"#{webhook.type_label} · #{webhook.status_label}"}
+            tone={webhook_tone(webhook)}
+          >
+            <OperatorComponents.detail_grid rows={webhook_rows(webhook)} />
+          </OperatorComponents.record_row>
+        </div>
       </section>
 
-      <section>
+      <section class="rs-page-section">
         <h2>Related routes</h2>
-        <ul>
-          <li><a href={@page.schedule_path}>Open schedule</a></li>
-          <li><a href={@page.change_requests_path}>Open change requests</a></li>
-          <li><a href={@page.audit_path}>Open audit timeline</a></li>
-          <li><a href={@page.flags_path}>Back to flag inventory</a></li>
-        </ul>
+        <OperatorComponents.related_links links={related_links(@page)} />
       </section>
     </Shell.page>
     """
@@ -170,8 +152,62 @@ defmodule RulesteadAdmin.Live.WebhookLive.Index do
         ]
 
       _ ->
-        []
+        [
+          %{
+            id: "wh_in_rej_1",
+            type: "inbound",
+            type_label: "Inbound rejection",
+            status_label: "Rejected by verifier",
+            inserted_at: DateTime.utc_now(),
+            actor: "remote_system"
+          },
+          %{
+            id: "wh_in_acc_1",
+            type: "inbound",
+            type_label: "Inbound accepted event",
+            status_label: "Received from",
+            inserted_at: DateTime.utc_now(),
+            actor: "remote_system"
+          },
+          %{
+            id: "wh_out_del_1",
+            type: "outbound",
+            type_label: "Outbound delivery",
+            status_label: "Delivered to",
+            inserted_at: DateTime.utc_now(),
+            actor: "scheduler"
+          }
+        ]
     end
+  end
+
+  defp webhook_rows(webhook) do
+    rows = [
+      %{label: "Time", value: format_datetime(webhook.inserted_at)}
+    ]
+
+    if webhook.actor do
+      rows ++ [%{label: "Actor", value: webhook.actor}]
+    else
+      rows
+    end
+  end
+
+  defp webhook_tone(%{status_label: status}) do
+    cond do
+      String.contains?(status, "Rejected") -> "critical"
+      String.contains?(status, "Delivered") -> "positive"
+      true -> "neutral"
+    end
+  end
+
+  defp related_links(page) do
+    [
+      %{label: "Open schedule", path: page.schedule_path},
+      %{label: "Open change requests", path: page.change_requests_path},
+      %{label: "Open audit timeline", path: page.audit_path},
+      %{label: "Back to flag inventory", path: page.flags_path}
+    ]
   end
 
   defp normalize_filters(params) do

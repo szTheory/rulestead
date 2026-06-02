@@ -184,6 +184,19 @@ defmodule RulesteadAdmin.Live.FlagLive.ShowTest do
     assert html =~ "Use the dedicated timeline for append-only history"
   end
 
+  test "detail renders success flash above the action row", %{conn: conn} do
+    conn =
+      conn
+      |> Phoenix.Controller.fetch_flash()
+      |> Phoenix.Controller.put_flash(:info, "Flag checkout-redesign was created.")
+
+    {:ok, view, html} = live(conn, "/admin/flags/checkout-redesign?env=prod")
+
+    assert has_element?(view, ".rs-flash[role='status'][data-kind='info']", "Done")
+    assert has_element?(view, ".rs-flash", "Flag checkout-redesign was created.")
+    assert occurs_before?(html, "Flag checkout-redesign was created.", "Edit metadata")
+  end
+
   test "detail reads audit data with the current session actor and hides restricted reasons", %{
     conn: conn
   } do
@@ -386,5 +399,11 @@ defmodule RulesteadAdmin.Live.FlagLive.ShowTest do
                  reason: "Wait for low-traffic window"
                })
              )
+  end
+
+  defp occurs_before?(html, before_text, after_text) do
+    {before_index, _length} = :binary.match(html, before_text)
+    {after_index, _length} = :binary.match(html, after_text)
+    before_index < after_index
   end
 end

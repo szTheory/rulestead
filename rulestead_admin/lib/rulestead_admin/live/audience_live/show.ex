@@ -77,11 +77,9 @@ defmodule RulesteadAdmin.Live.AudienceLive.Show do
 
         <FlagComponents.section_card :if={editable?(@audience)} title="Governed actions">
           <p>Every mutation uses preview, confirm, and audit.</p>
-          <p>
+          <p class="rs-action-bar">
             <a href={Shared.path(assigns, "/audiences/#{@audience.key}/edit/preview")}>Preview update</a>
-            ·
             <a href={Shared.path(assigns, "/audiences/#{@audience.key}/archive/preview")}>Preview archive</a>
-            ·
             <a href={Shared.path(assigns, "/audiences/#{@audience.key}/delete/preview")}>Preview delete attempt</a>
           </p>
         </FlagComponents.section_card>

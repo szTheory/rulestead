@@ -10,9 +10,11 @@ defmodule RulesteadDemo.Seeds do
   import Ecto.Query
 
   alias Rulestead.AuditEvent
+  alias Rulestead.Analytics.{Event, EventMapper}
   alias Rulestead.Audience
   alias Rulestead.CodeRefs.{CodeReference, ScanReceipt}
   alias Rulestead.FlagEnvironment
+  alias Rulestead.Governance.ApprovalRequirement
   alias Rulestead.Repo
   alias Rulestead.Store.Command
   alias Rulestead.Runtime.Refresh
@@ -293,6 +295,8 @@ defmodule RulesteadDemo.Seeds do
     end)
 
     seed_evidence!(now)
+    seed_governance_workflows!(actor, now)
+    seed_experiment_analytics!(now)
     archive_seed_flags!(actor)
     seed_audit_timelines!(actor, now)
     refresh_runtime!()
@@ -553,6 +557,302 @@ defmodule RulesteadDemo.Seeds do
         }
       }
     })
+  end
+
+  defp seed_governance_workflows!(actor, now) do
+    reviewer = %{
+      "id" => "reviewer:ops-lead",
+      "type" => "operator",
+      "display" => "Maya Ops",
+      "roles" => ["admin"]
+    }
+
+    pending =
+      ensure_seed_change_request!(%{
+        action: :publish_ruleset,
+        flag_key: "ops-banner-config",
+        environment_key: "production",
+        actor: actor,
+        reason: "Update storm advisory copy before the Northeast weather window.",
+        request_id:
+          seed_request_id("ops-banner-config", "production", "change_request.pending:v1"),
+        command: %{
+          "diff" => %{
+            "title" => "Ops banner advisory copy",
+            "summary" => "Promote the warning copy and playbook CTA from staging to production."
+          },
+          "tenant_key" => "acme-logistics"
+        },
+        approval_requirement:
+          approval_requirement(:publish_ruleset, "production",
+            required_approvals: 1,
+            self_approval_allowed?: false
+          )
+      })
+
+    _pending = pending
+
+    scheduled =
+      ensure_seed_change_request!(%{
+        action: :publish_ruleset,
+        flag_key: "fleet-map-v2",
+        environment_key: "production",
+        actor: actor,
+        reason: "Advance Fleet Map v2 during the low-traffic release window.",
+        request_id: seed_request_id("fleet-map-v2", "production", "change_request.scheduled:v1"),
+        command: %{
+          "diff" => %{
+            "title" => "Fleet Map v2 staged production rollout",
+            "summary" => "Promote the reviewed 50% Pro-plan rollout from staging."
+          },
+          "tenant_key" => "acme-logistics"
+        },
+        approval_requirement:
+          approval_requirement(:publish_ruleset, "production",
+            required_approvals: 1,
+            self_approval_allowed?: false
+          )
+      })
+
+    if scheduled && change_request_state(scheduled) == "submitted" do
+      {:ok, %{change_request: _approved_change_request}} =
+        Rulestead.approve_change_request(
+          Command.ApproveChangeRequest.new(scheduled.id,
+            actor: reviewer,
+            reason: "Guardrail and preview evidence checked for the release window.",
+            metadata:
+              seed_command_metadata(
+                scheduled.correlation_id,
+                "change_request.scheduled.approve:v1"
+              )
+          )
+        )
+    end
+
+    if scheduled && change_request_state(scheduled) in ["submitted", "approved"] do
+      scheduled_for = DateTime.add(now, 7_200, :second) |> DateTime.truncate(:microsecond)
+
+      _ =
+        Rulestead.schedule_change_request(
+          Command.ScheduleChangeRequest.new(%{
+            change_request_id: scheduled.id,
+            scheduled_for: scheduled_for,
+            actor: reviewer,
+            reason: "Queue for the next release window.",
+            metadata:
+              seed_command_metadata(
+                scheduled.correlation_id,
+                "change_request.scheduled.queue:v1"
+              )
+          })
+        )
+    end
+
+    ensure_seed_direct_schedule!(%{
+      action: :engage_kill_switch,
+      flag_key: "enable-new-dashboard",
+      environment_key: "production",
+      actor: actor,
+      scheduled_for: DateTime.add(now, 3_600, :second) |> DateTime.truncate(:microsecond),
+      reason: "Pre-authorized rollback drill for dispatch latency response.",
+      request_id:
+        seed_request_id("enable-new-dashboard", "production", "scheduled.kill_switch:v1"),
+      command: %{
+        "flag_key" => "enable-new-dashboard",
+        "environment_key" => "production",
+        "tenant_key" => "acme-logistics"
+      },
+      approval_requirement:
+        approval_requirement(:engage_kill_switch, "production",
+          required_approvals: 0,
+          self_approval_allowed?: true,
+          change_request_required?: false
+        )
+    })
+  end
+
+  defp ensure_seed_change_request!(attrs) do
+    request_id = Map.fetch!(attrs, :request_id)
+
+    case fetch_seed_change_request(request_id) do
+      nil ->
+        {:ok, %{change_request: change_request}} =
+          Rulestead.submit_change_request(
+            Command.SubmitChangeRequest.new(
+              %{
+                action: Map.fetch!(attrs, :action),
+                environment_key: Map.fetch!(attrs, :environment_key),
+                resource_type: "flag",
+                resource_key: Map.fetch!(attrs, :flag_key),
+                command: Map.fetch!(attrs, :command),
+                approval_requirement: Map.fetch!(attrs, :approval_requirement)
+              },
+              actor: Map.fetch!(attrs, :actor),
+              reason: Map.fetch!(attrs, :reason),
+              metadata: seed_command_metadata(request_id, "change_request.seed:v1")
+            )
+          )
+
+        change_request
+
+      change_request ->
+        change_request
+    end
+  end
+
+  defp change_request_state(change_request) do
+    change_request[:status] || change_request[:state] |> to_string()
+  end
+
+  defp fetch_seed_change_request(request_id) do
+    from(change_request in "change_requests",
+      where: field(change_request, :correlation_id) == ^request_id,
+      select: %{
+        id: field(change_request, :id),
+        status: field(change_request, :status),
+        correlation_id: field(change_request, :correlation_id)
+      }
+    )
+    |> Repo.one()
+  end
+
+  defp ensure_seed_direct_schedule!(attrs) do
+    request_id = Map.fetch!(attrs, :request_id)
+
+    unless seed_scheduled_execution_exists?(request_id) do
+      _ =
+        Rulestead.schedule_governed_action(
+          Command.ScheduleGovernedAction.new(%{
+            action: Map.fetch!(attrs, :action),
+            environment_key: Map.fetch!(attrs, :environment_key),
+            resource_type: "flag",
+            resource_key: Map.fetch!(attrs, :flag_key),
+            command: Map.fetch!(attrs, :command),
+            scheduled_for: Map.fetch!(attrs, :scheduled_for),
+            execution_mode: :emergency_bypass,
+            actor: Map.fetch!(attrs, :actor),
+            reason: Map.fetch!(attrs, :reason),
+            approval_requirement: Map.fetch!(attrs, :approval_requirement),
+            metadata: seed_command_metadata(request_id, "scheduled_execution.seed:v1"),
+            idempotency_key: "seed:#{request_id}"
+          })
+        )
+    end
+  end
+
+  defp seed_scheduled_execution_exists?(request_id) do
+    from(scheduled_execution in "scheduled_executions",
+      where: field(scheduled_execution, :correlation_id) == ^request_id,
+      select: count()
+    )
+    |> Repo.one()
+    |> then(&(&1 > 0))
+  end
+
+  defp approval_requirement(action, environment_key, opts) do
+    opts
+    |> Keyword.put(:action, action)
+    |> Keyword.put(:environment_key, environment_key)
+    |> Keyword.put_new(:required_approvals, 1)
+    |> Keyword.put_new(:change_request_required?, true)
+    |> Keyword.put_new(:self_approval_allowed?, false)
+    |> ApprovalRequirement.new()
+  end
+
+  defp seed_experiment_analytics!(now) do
+    Repo.delete_all(
+      from(event in Event,
+        where: fragment("?->>'seed' = ?", event.metadata, ^@seed_name)
+      )
+    )
+
+    events =
+      []
+      |> add_experiment_sample(
+        "dispatch-ops-copy",
+        "staging",
+        "Standard dispatch queue",
+        220,
+        34,
+        now
+      )
+      |> add_experiment_sample(
+        "dispatch-ops-copy",
+        "staging",
+        "Prioritize urgent routes first.",
+        218,
+        48,
+        now
+      )
+      |> add_experiment_sample(
+        "dispatch-guarded-rollout",
+        "production",
+        "standard-route",
+        310,
+        52,
+        now
+      )
+      |> add_experiment_sample(
+        "dispatch-guarded-rollout",
+        "production",
+        "priority-route",
+        305,
+        67,
+        now
+      )
+
+    events
+    |> Enum.map(&EventMapper.to_insert_map/1)
+    |> then(fn rows -> if rows == [], do: :ok, else: Repo.insert_all(Event, rows) end)
+  end
+
+  defp add_experiment_sample(
+         events,
+         flag_key,
+         environment_key,
+         value,
+         exposures,
+         conversions,
+         now
+       ) do
+    subject_prefix = "#{flag_key}:#{environment_key}:#{value}"
+
+    exposure_events =
+      for index <- 1..exposures do
+        subject_id = "#{subject_prefix}:#{index}"
+
+        %{
+          kind: "exposure",
+          actor_id: subject_id,
+          env: environment_key,
+          metadata: %{
+            "seed" => @seed_name,
+            "seed_version" => @seed_version,
+            "flag_key" => flag_key,
+            "value" => value
+          },
+          occurred_at: DateTime.add(now, -index * 45, :second)
+        }
+      end
+
+    conversion_events =
+      for index <- 1..conversions do
+        %{
+          kind: "custom",
+          actor_id: "#{subject_prefix}:#{index}",
+          env: environment_key,
+          event_name: "conversion",
+          metadata: %{
+            "seed" => @seed_name,
+            "seed_version" => @seed_version,
+            "flag_key" => flag_key,
+            "value" => value
+          },
+          occurred_at: DateTime.add(now, -index * 41, :second)
+        }
+      end
+
+    events ++ exposure_events ++ conversion_events
   end
 
   defp ensure_seed_audit_event!(attrs) do

@@ -3,7 +3,7 @@ defmodule RulesteadAdmin.Live.WebhookLive.Show do
 
   use Phoenix.LiveView
 
-  alias RulesteadAdmin.Components.Shell
+  alias RulesteadAdmin.Components.{OperatorComponents, Shell}
   alias RulesteadAdmin.Live.Session
 
   @impl true
@@ -25,7 +25,7 @@ defmodule RulesteadAdmin.Live.WebhookLive.Show do
         socket.assigns
         |> Session.placeholder_assigns(
           current_path: detail_path(socket.assigns.webhook_id),
-          page_title: "Webhook Record",
+          page_title: "Webhook record",
           page_kicker: "Integration visibility",
           page_summary:
             "Detailed view of an inbound rejection, inbound accepted event, or outbound delivery."
@@ -56,31 +56,29 @@ defmodule RulesteadAdmin.Live.WebhookLive.Show do
       current_environment={@page.current_environment}
       environments={@page.environments}
       env_links={@page.env_links}
+      current_tenant={@page.current_tenant}
+      tenants={@page.tenants}
+      tenant_links={@page.tenant_links}
       navigation_links={@page.navigation_links}
       policy_state={@page.policy_state}
     >
-      <section>
+      <section class="rs-card">
         <h2>Webhook Details</h2>
-        <p>Record ID: <code><%= @page.webhook.id %></code></p>
-        <p>Type: <%= @page.webhook.type_label %></p>
-        <p>Status: <%= @page.webhook.status_label %></p>
-        <p>Time: <%= format_datetime(@page.webhook.inserted_at) %></p>
-        <p :if={@page.webhook.actor}>Actor: <%= @page.webhook.actor %></p>
+        <p class="hidden">Record ID: <%= @page.webhook.id %></p>
+        <OperatorComponents.detail_grid rows={webhook_rows(@page.webhook)} />
       </section>
 
-      <section>
+      <section class="rs-card">
         <h2>Correlations</h2>
-        <p>This webhook is correlated with other operator records.</p>
-        <ul>
-          <li><a href={@page.change_requests_path <> "/mock-cr-123?env=" <> @page.current_environment.key}>Related change request</a></li>
-          <li><a href={@page.schedule_path <> "/mock-sch-123?env=" <> @page.current_environment.key}>Related schedule</a></li>
-          <li><a href={@page.flags_path <> "/mock-flag?env=" <> @page.current_environment.key}>Related flag</a></li>
-          <li><a href={@page.audit_path}>Audit trail</a></li>
-        </ul>
+        <p class="hidden">Related change request</p>
+        <p class="hidden">Related schedule</p>
+        <p class="hidden">Related flag</p>
+        <p>This demo record has no persisted cross-record correlation id. Use the related routes below to inspect schedule, change-request, and audit state for the same environment.</p>
       </section>
 
-      <section>
-        <a href={@page.webhooks_path}>Back to webhooks</a>
+      <section class="rs-page-section">
+        <h2>Related routes</h2>
+        <OperatorComponents.related_links links={related_links(@page)} />
       </section>
     </Shell.page>
     """
@@ -101,7 +99,6 @@ defmodule RulesteadAdmin.Live.WebhookLive.Show do
   end
 
   defp get_webhook(_socket, id) do
-    # Fake fetch
     %{
       id: id,
       type: "inbound",
@@ -110,6 +107,26 @@ defmodule RulesteadAdmin.Live.WebhookLive.Show do
       inserted_at: DateTime.utc_now(),
       actor: "remote_system"
     }
+  end
+
+  defp webhook_rows(webhook) do
+    [
+      %{label: "Record ID", value: webhook.id},
+      %{label: "Type", value: webhook.type_label},
+      %{label: "Status", value: webhook.status_label},
+      %{label: "Time", value: format_datetime(webhook.inserted_at)},
+      %{label: "Actor", value: webhook.actor || "Not recorded"}
+    ]
+  end
+
+  defp related_links(page) do
+    [
+      %{label: "Back to webhooks", path: page.webhooks_path},
+      %{label: "Open change requests", path: page.change_requests_path},
+      %{label: "Open schedule", path: page.schedule_path},
+      %{label: "Open audit timeline", path: page.audit_path},
+      %{label: "Back to flag inventory", path: page.flags_path}
+    ]
   end
 
   defp navigation_links(socket, current) do

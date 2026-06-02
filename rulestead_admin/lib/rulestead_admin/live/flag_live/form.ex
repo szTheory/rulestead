@@ -38,6 +38,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
      |> assign(:mode, :new)
      |> assign(:flag_key, nil)
      |> assign(:errors, %{})
+     |> assign(:submitted?, false)
+     |> assign(:touched_fields, MapSet.new())
      |> assign(:current_path, "/admin/flags/new")
      |> assign(:env_links, %{})
      |> assign(:owner_kind_options, @owner_kind_options)
@@ -61,6 +63,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
             |> assign(:mode, :new)
             |> assign(:flag_key, nil)
             |> assign(:errors, %{})
+            |> assign(:submitted?, false)
+            |> assign(:touched_fields, MapSet.new())
             |> assign(:current_path, "/admin/flags/new?env=#{env}")
             |> assign_form_state(Map.put(default_form_data(), "environment_keys", [env]))
 
@@ -79,9 +83,24 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
       |> merge_form_data(attrs)
       |> apply_picker_defaults(socket.assigns.owner_picker_options)
 
-    errors = validate(form_data, socket.assigns.mode)
+    errors =
+      form_data
+      |> validate(socket.assigns.mode)
+      |> visible_errors(socket.assigns.submitted?, socket.assigns.touched_fields)
 
     {:noreply, socket |> assign(:errors, errors) |> assign_form_state(form_data)}
+  end
+
+  @impl true
+  def handle_event("touch_field", %{"field" => field}, socket) do
+    touched_fields = MapSet.put(socket.assigns.touched_fields, field)
+
+    errors =
+      socket.assigns.form_data
+      |> validate(socket.assigns.mode)
+      |> visible_errors(socket.assigns.submitted?, touched_fields)
+
+    {:noreply, socket |> assign(:touched_fields, touched_fields) |> assign(:errors, errors)}
   end
 
   @impl true
@@ -94,7 +113,11 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
     errors = validate(form_data, socket.assigns.mode)
 
     if map_size(errors) > 0 do
-      {:noreply, socket |> assign(:errors, errors) |> assign_form_state(form_data)}
+      {:noreply,
+       socket
+       |> assign(:submitted?, true)
+       |> assign(:errors, errors)
+       |> assign_form_state(form_data)}
     else
       case persist(
              socket.assigns.mode,
@@ -106,14 +129,17 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
           {:noreply,
            socket
            |> assign(:errors, %{})
+           |> assign(:submitted?, false)
            |> assign_form_state(to_form_data(payload.flag))
-           |> push_navigate(
+           |> put_flash(:info, success_flash(socket.assigns.mode, payload.flag.key))
+           |> redirect(
              to: "/admin/flags/#{payload.flag.key}?env=#{socket.assigns.current_environment.key}"
            )}
 
         {:error, error} ->
           {:noreply,
            socket
+           |> assign(:submitted?, true)
            |> assign(:errors, %{"base" => error.message})
            |> assign_form_state(form_data)}
       end
@@ -128,6 +154,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
 
     {:noreply,
      socket
+     |> assign(:touched_fields, MapSet.put(socket.assigns.touched_fields, "review_by"))
      |> assign(:errors, Map.delete(socket.assigns.errors, "review_by"))
      |> assign_form_state(form_data)}
   end
@@ -138,6 +165,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
 
     {:noreply,
      socket
+     |> assign(:touched_fields, MapSet.put(socket.assigns.touched_fields, "review_by"))
      |> assign(:errors, Map.delete(socket.assigns.errors, "review_by"))
      |> assign_form_state(form_data)}
   end
@@ -148,6 +176,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
 
     {:noreply,
      socket
+     |> assign(:touched_fields, MapSet.put(socket.assigns.touched_fields, "review_by"))
      |> assign(:errors, Map.delete(socket.assigns.errors, "review_by"))
      |> assign(:review_calendar_month, calendar_month(date))
      |> assign_form_state(form_data)}
@@ -177,7 +206,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
       policy_state={@rulestead_admin_policy_state}
     >
       <form aria-label="Flag metadata form" phx-change="validate" phx-submit="save" class="rs-flag-form">
-        <div :if={@errors != %{}} class="rs-form-summary" role="alert" aria-live="polite">
+        <div :if={(@submitted? or not is_nil(@errors["base"])) and @errors != %{}} class="rs-form-summary" role="alert" aria-live="polite">
           <strong><%= if @mode == :new, do: "Flag was not created", else: "Flag was not saved" %></strong>
           <p>Fix the highlighted fields and submit again.</p>
           <p :if={@errors["base"]}><%= @errors["base"] %></p>
@@ -186,8 +215,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
         <div phx-feedback-for="flag_key" class="rs-form-field">
           <label>
             <span>Key</span>
-            <input type="text" id="flag_key" name="flag[key]" value={@form_data["key"]} disabled={@mode == :edit} />
-            <p class="rs-form-help">Unique identifier used in code. For example, <code>dispatch-priority-routing</code>.</p>
+            <input type="text" id="flag_key" name="flag[key]" value={@form_data["key"]} disabled={@mode == :edit} phx-blur="touch_field" phx-value-field="key" />
+            <p class="rs-form-help">Unique identifier used in code. For example, <code>checkout-one-click-buy</code>.</p>
           </label>
           <p :if={@errors["key"]} class="rs-form-error" role="alert"><%= @errors["key"] %></p>
         </div>
@@ -198,7 +227,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
             <textarea id="flag_description" name="flag[description]"><%= @form_data["description"] %></textarea>
             <p class="rs-form-help">
               Shown in inventory, review, and audit surfaces so operators understand why the flag exists.
-              For example, "Routes urgent jobs through the priority dispatch queue while dispatch ops monitors first-action time."
+              For example, "Enables one-click checkout for returning customers while the team monitors conversion and support tickets."
             </p>
           </label>
         </div>
@@ -222,21 +251,12 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
             </label>
           </div>
 
-          <div phx-feedback-for="flag_owner_ref" class="rs-form-field">
-            <label>
-              <span>Owner ID</span>
-              <input type="text" id="flag_owner_ref" name="flag[owner_ref]" value={@form_data["owner_ref"]} />
-              <p class="rs-form-help">Stable system identifier. For example, <code>team:dispatch-ops</code>.</p>
-            </label>
-            <p :if={@errors["owner_ref"]} class="rs-form-error" role="alert"><%= @errors["owner_ref"] %></p>
-          </div>
-
           <div phx-feedback-for="flag_owner_kind" class="rs-form-field">
             <fieldset class="rs-radio-card-group rs-radio-card-group--compact">
               <legend>Owner type</legend>
               <div class="rs-radio-card-grid rs-radio-card-grid--three">
                 <label :for={{label, value} <- @owner_kind_options} class="rs-radio-card">
-                  <input type="radio" id={"flag_owner_kind_#{value}"} name="flag[owner_kind]" value={value} checked={@form_data["owner_kind"] == value} />
+                  <input type="radio" id={"flag_owner_kind_#{value}"} name="flag[owner_kind]" value={value} checked={@form_data["owner_kind"] == value} phx-blur="touch_field" phx-value-field="owner_kind" />
                   <span class="rs-radio-card__body">
                     <.owner_kind_icon kind={value} />
                     <span class="rs-radio-card__text">
@@ -250,12 +270,21 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
             <p :if={@errors["owner_kind"]} class="rs-form-error" role="alert"><%= @errors["owner_kind"] %></p>
           </div>
 
-          <div phx-feedback-for="flag_owner_display" class="rs-form-field" style="margin-bottom: 0;">
+          <div phx-feedback-for="flag_owner_display" class="rs-form-field">
             <label>
               <span>Display name</span>
               <input type="text" id="flag_owner_display" name="flag[owner_display]" value={@form_data["owner_display"]} />
-              <p class="rs-form-help">Human-readable name shown in the UI. For example, "Dispatch Ops".</p>
+              <p class="rs-form-help">Human-readable name shown in the UI. For example, "Checkout Team".</p>
             </label>
+          </div>
+
+          <div phx-feedback-for="flag_owner_ref" class="rs-form-field" style="margin-bottom: 0;">
+            <label>
+              <span>Owner ID</span>
+              <input type="text" id="flag_owner_ref" name="flag[owner_ref]" value={@form_data["owner_ref"]} phx-blur="touch_field" phx-value-field="owner_ref" />
+              <p class="rs-form-help">Stable system identifier. For example, <code>team:checkout</code>.</p>
+            </label>
+            <p :if={@errors["owner_ref"]} class="rs-form-error" role="alert"><%= @errors["owner_ref"] %></p>
           </div>
         </fieldset>
 
@@ -287,9 +316,14 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
         <div phx-feedback-for="flag_lifecycle_mode" class="rs-form-field">
           <fieldset class="rs-radio-card-group rs-radio-card-group--compact">
             <legend>Flag lifespan</legend>
+            <p class="rs-form-help">
+              Suggestion: <strong><%= humanize(@lifecycle_suggestion.mode || "explicit choice required") %></strong>.
+              <%= @lifecycle_suggestion.rationale %>
+              <span :if={@lifecycle_suggestion.default_overridden}>(Operator override recorded).</span>
+            </p>
             <div class="rs-radio-card-grid rs-radio-card-grid--two">
               <label class="rs-radio-card">
-                <input type="radio" id="flag_lifecycle_mode_expiring" name="flag[lifecycle_mode]" value="expiring" checked={@form_data["lifecycle_mode"] == "expiring"} /> 
+                <input type="radio" id="flag_lifecycle_mode_expiring" name="flag[lifecycle_mode]" value="expiring" checked={@form_data["lifecycle_mode"] == "expiring"} phx-blur="touch_field" phx-value-field="lifecycle_mode" />
                 <span class="rs-radio-card__body">
                   <span class="rs-radio-card__text">
                     <strong>Expiring</strong>
@@ -298,7 +332,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
                 </span>
               </label>
               <label class="rs-radio-card">
-                <input type="radio" id="flag_lifecycle_mode_permanent" name="flag[lifecycle_mode]" value="permanent" checked={@form_data["lifecycle_mode"] == "permanent"} /> 
+                <input type="radio" id="flag_lifecycle_mode_permanent" name="flag[lifecycle_mode]" value="permanent" checked={@form_data["lifecycle_mode"] == "permanent"} phx-blur="touch_field" phx-value-field="lifecycle_mode" />
                 <span class="rs-radio-card__body">
                   <span class="rs-radio-card__text">
                     <strong>Permanent</strong>
@@ -307,11 +341,6 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
                 </span>
               </label>
             </div>
-            <p class="rs-form-help rs-form-help--advice">
-              Suggestion: <strong><%= humanize(@lifecycle_suggestion.mode || "explicit choice required") %></strong>.
-              <%= @lifecycle_suggestion.rationale %>
-              <span :if={@lifecycle_suggestion.default_overridden}>(Operator override recorded).</span>
-            </p>
           </fieldset>
           <p :if={@errors["lifecycle_mode"]} class="rs-form-error" role="alert"><%= @errors["lifecycle_mode"] %></p>
         </div>
@@ -320,11 +349,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
           <div class="rs-date-picker">
             <label for="flag_review_by">Review by date</label>
             <div class="rs-date-picker__entry">
-              <input type="text" inputmode="numeric" id="flag_review_by" name="flag[review_by]" value={@form_data["review_by"]} placeholder="YYYY-MM-DD" aria-describedby="flag_review_by_help" />
-              <details class="rs-date-picker__calendar">
-                <summary aria-label="Open review date calendar">
-                  <span aria-hidden="true">Calendar</span>
-                </summary>
+              <input type="text" inputmode="numeric" id="flag_review_by" name="flag[review_by]" value={@form_data["review_by"]} placeholder="YYYY-MM-DD" aria-describedby="flag_review_by_help" phx-blur="touch_field" phx-value-field="review_by" />
+              <div class="rs-date-picker__calendar" aria-label="Review date calendar">
                 <div class="rs-date-calendar">
                   <div class="rs-date-calendar__header">
                     <button type="button" phx-click="shift_review_month" phx-value-months="-1" aria-label="Previous month">&lt;</button>
@@ -346,13 +372,13 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
                     </button>
                   </div>
                 </div>
-              </details>
+              </div>
             </div>
             <div class="rs-date-picker__presets" aria-label="Review date shortcuts">
               <button type="button" phx-click="set_review_by" phx-value-days="30">30 days</button>
               <button type="button" phx-click="set_review_by" phx-value-days="60">60 days</button>
               <button type="button" phx-click="set_review_by" phx-value-days="90">90 days</button>
-              <button type="button" phx-click="clear_review_by">Clear</button>
+              <button type="button" phx-click="clear_review_by">Clear date</button>
             </div>
             <p id="flag_review_by_help" class="rs-form-help">Required for expiring flags. Use <code>YYYY-MM-DD</code>, or pick a review horizon.</p>
           </div>
@@ -372,6 +398,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
                   value={value}
                   checked={@form_data["value_type"] == value}
                   disabled={@mode == :edit}
+                  phx-blur="touch_field"
+                  phx-value-field="value_type"
                 />
                 <span class="rs-radio-card__body">
                   <span class="rs-radio-card__text">
@@ -389,7 +417,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
             <legend>Default value</legend>
             <div class="rs-radio-card-grid rs-radio-card-grid--two">
               <label class="rs-radio-card">
-                <input type="radio" id="flag_default_value_true" name="flag[default_value]" value="true" checked={@form_data["default_value"] in ["true", true]} disabled={@mode == :edit} /> 
+                <input type="radio" id="flag_default_value_true" name="flag[default_value]" value="true" checked={@form_data["default_value"] in ["true", true]} disabled={@mode == :edit} phx-blur="touch_field" phx-value-field="default_value" />
                 <span class="rs-radio-card__body">
                   <span class="rs-radio-card__text">
                     <strong>True</strong>
@@ -398,7 +426,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
                 </span>
               </label>
               <label class="rs-radio-card">
-                <input type="radio" id="flag_default_value_false" name="flag[default_value]" value="false" checked={@form_data["default_value"] in ["false", false]} disabled={@mode == :edit} /> 
+                <input type="radio" id="flag_default_value_false" name="flag[default_value]" value="false" checked={@form_data["default_value"] in ["false", false]} disabled={@mode == :edit} phx-blur="touch_field" phx-value-field="default_value" />
                 <span class="rs-radio-card__body">
                   <span class="rs-radio-card__text">
                     <strong>False</strong>
@@ -417,6 +445,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
               name="flag[default_value]"
               value={@form_data["default_value"]}
               disabled={@mode == :edit}
+              phx-blur="touch_field"
+              phx-value-field="default_value"
             />
           </label>
 
@@ -426,10 +456,12 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
               id="flag_default_value_textarea"
               name="flag[default_value]"
               disabled={@mode == :edit}
+              phx-blur="touch_field"
+              phx-value-field="default_value"
               style="font-family: var(--rs-font-mono); min-height: 80px;"
             ><%= @form_data["default_value"] %></textarea>
           </label>
-          <p :if={@form_data["value_type"] == "json" and @form_data["default_value"] not in [nil, ""] and match?({:error, _}, Jason.decode(@form_data["default_value"]))} class="rs-form-error" role="alert">Invalid JSON format</p>
+          <p :if={@errors["default_value"]} class="rs-form-error" role="alert"><%= @errors["default_value"] %></p>
         </div>
 
         <div phx-feedback-for="flag_tags" class="rs-form-field">
@@ -439,7 +471,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
             <div class="rs-form-preview" :if={@form_data["tags"] != "" and @form_data["tags"] != nil}>
               <FlagComponents.tag_list tags={parse_tags(@form_data["tags"])} />
             </div>
-            <p class="rs-form-help">Comma-separated labels for filtering. For example, <code>dispatch, ops, release</code>.</p>
+            <p class="rs-form-help">Comma-separated labels for filtering. For example, <code>checkout, release, revenue</code>.</p>
           </label>
         </div>
 
@@ -535,6 +567,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
         |> assign(:mode, :edit)
         |> assign(:flag_key, key)
         |> assign(:errors, %{})
+        |> assign(:submitted?, false)
+        |> assign(:touched_fields, MapSet.new())
         |> assign(:current_path, "/admin/flags/#{key}/edit?env=#{env}")
         |> assign_form_state(to_form_data(detail.flag))
 
@@ -543,6 +577,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
         |> assign(:mode, :edit)
         |> assign(:flag_key, key)
         |> assign(:errors, %{"base" => error.message})
+        |> assign(:submitted?, false)
+        |> assign(:touched_fields, MapSet.new())
         |> assign(:current_path, "/admin/flags/#{key}/edit?env=#{env}")
     end
   end
@@ -585,16 +621,20 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
     )
   end
 
+  defp success_flash(:new, flag_key), do: "Flag #{flag_key} was created."
+  defp success_flash(:edit, flag_key), do: "Metadata saved for #{flag_key}."
+
   defp validate(form_data, mode) do
     ownership = normalized_ownership(form_data)
     lifecycle = lifecycle_payload(form_data)
+    key_error = key_validation_error(form_data["key"], mode)
     review_date_error = review_date_validation_error(form_data["review_by"])
 
+    default_value_error =
+      default_value_validation_error(form_data["value_type"], form_data["default_value"])
+
     %{}
-    |> maybe_put_error(
-      "key",
-      if(mode == :new and blank?(form_data["key"]), do: "Key is required", else: nil)
-    )
+    |> maybe_put_error("key", key_error)
     |> maybe_put_error(
       "owner_ref",
       if(blank?(ownership["owner_ref"]), do: "Owner reference is required", else: nil)
@@ -613,7 +653,23 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
     )
     |> maybe_put_error("review_by", review_date_error)
     |> maybe_put_error("review_by", review_by_required_error(lifecycle, review_date_error))
+    |> maybe_put_error("default_value", default_value_error)
   end
+
+  defp visible_errors(errors, true, _touched_fields), do: errors
+
+  defp visible_errors(errors, false, touched_fields) do
+    errors
+    |> Enum.filter(fn {field, message} ->
+      MapSet.member?(touched_fields, field) and early_visible_error?(field, message)
+    end)
+    |> Map.new()
+  end
+
+  defp early_visible_error?("review_by", "Use a real review date in YYYY-MM-DD format"), do: true
+  defp early_visible_error?("default_value", "Invalid JSON format"), do: true
+  defp early_visible_error?("key", message) when message != "Key is required", do: true
+  defp early_visible_error?(_field, _message), do: false
 
   defp assign_form_state(socket, form_data) do
     assign(socket, :form_data, form_data)
@@ -811,6 +867,29 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
     end
   end
 
+  defp key_validation_error(_value, mode) when mode != :new, do: nil
+
+  defp key_validation_error(value, :new) do
+    key = String.trim(to_string(value || ""))
+
+    cond do
+      key == "" ->
+        "Key is required"
+
+      String.length(key) < 2 ->
+        "Key must be at least 2 characters"
+
+      String.length(key) > 128 ->
+        "Key must be 128 characters or fewer"
+
+      not Regex.match?(~r/^[a-z0-9][a-z0-9:_-]*$/, key) ->
+        "Use lowercase letters, numbers, colon, underscore, or hyphen. Start with a letter or number."
+
+      true ->
+        nil
+    end
+  end
+
   defp review_date_validation_error(value) when value in ["", nil], do: nil
 
   defp review_date_validation_error(value) do
@@ -824,6 +903,15 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
     do: "Review by is required for expiring flags"
 
   defp review_by_required_error(_lifecycle, _review_date_error), do: nil
+
+  defp default_value_validation_error("json", value) when value not in ["", nil] do
+    case Jason.decode(to_string(value)) do
+      {:ok, _decoded} -> nil
+      {:error, _reason} -> "Invalid JSON format"
+    end
+  end
+
+  defp default_value_validation_error(_value_type, _value), do: nil
 
   defp review_date_in(days) do
     days = String.to_integer(to_string(days))

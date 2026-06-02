@@ -83,9 +83,9 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Index do
           />
         </FlagComponents.section_card>
 
-        <section aria-label="Compare findings">
+        <section class="rs-card" aria-label="Compare findings">
           <OperatorComponents.status_list title="Compare findings" entries={finding_entries(@compare)} />
-          <ul>
+          <ul class="rs-compact-list">
             <li :for={finding <- @compare.findings}>
               <strong><%= humanize_status(finding.class) %></strong>: <%= finding.message %>
             </li>
@@ -94,7 +94,7 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Index do
 
         <FlagComponents.section_card title="Audience dependencies">
           <p :if={@compare.dependency_findings == []}>No reusable audience dependency findings for this compare.</p>
-          <ul :if={@compare.dependency_findings != []}>
+          <ul :if={@compare.dependency_findings != []} class="rs-compact-list">
             <li :for={finding <- @compare.dependency_findings}>
               <strong><%= humanize_status(finding.severity) %></strong>
               <code><%= finding.code %></code>
@@ -120,7 +120,7 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Index do
               or open a flag to review exact published state.
             </p>
           <% else %>
-            <ul>
+            <ul class="rs-compact-list">
               <li :for={flag <- @compare.flags}>
                 <a href={flag_path(@page, flag.flag_key, @compare.compare_token)}>
                   <strong><code><%= flag.flag_key %></code></strong>
@@ -141,7 +141,7 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Index do
           />
         </section>
 
-        <details aria-label="Raw compare payload">
+        <details class="rs-raw-detail" aria-label="Raw compare payload">
           <summary>Show raw compare payload</summary>
           <pre><%= inspect(@compare, pretty: true) %></pre>
         </details>

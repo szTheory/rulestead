@@ -63,6 +63,9 @@ defmodule RulesteadAdmin.Live.DiagnosticsLive.Index do
         current_environment={@page.current_environment}
         environments={@page.environments}
         env_links={@page.env_links}
+        current_tenant={@page.current_tenant}
+        tenants={@page.tenants}
+        tenant_links={@page.tenant_links}
         policy_state={@page.policy_state}
       >
         <:header_actions>
@@ -76,7 +79,13 @@ defmodule RulesteadAdmin.Live.DiagnosticsLive.Index do
           aria_label="Topology scope"
         />
 
-        <p :if={@refresh_notice} role="status"><%= @refresh_notice %></p>
+        <OperatorComponents.banner
+          :if={@refresh_notice}
+          title="Refresh requested"
+          body={@refresh_notice}
+          tone="neutral"
+          aria_label="Refresh status"
+        />
 
         <.async_result :let={health_view} assign={@health_snapshot}>
           <:loading>

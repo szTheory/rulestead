@@ -15,11 +15,15 @@ defmodule RulesteadAdmin.Components.Shell do
   attr(:tenant_links, :map, default: %{})
   attr(:navigation_links, :list, default: [])
   attr(:policy_state, :map, default: nil)
+  attr(:flash, :map, default: %{})
   slot(:header_actions)
   slot(:inner_block, required: true)
 
   def page(assigns) do
-    assigns = assign(assigns, :env_tone, env_tone(assigns.current_environment))
+    assigns =
+      assigns
+      |> assign(:env_tone, env_tone(assigns.current_environment))
+      |> assign(:flash_entries, flash_entries(assigns.flash))
 
     ~H"""
     <div class="rs-shell" data-env-tone={@env_tone}>
@@ -78,10 +82,10 @@ defmodule RulesteadAdmin.Components.Shell do
       </header>
 
       <nav :if={@breadcrumbs != []} aria-label="Breadcrumb" class="rs-shell__breadcrumbs">
-        <ol style="list-style: none; padding: 0; margin: 0; display: flex; gap: 0.5rem;">
+        <ol>
           <li :for={{crumb, index} <- Enum.with_index(@breadcrumbs)}>
-            <a href={crumb.path} class="rs-shell__breadcrumb-link" style="color: var(--rs-text-muted); text-decoration: none;"><%= crumb.label %></a>
-            <span :if={index < length(@breadcrumbs) - 1} style="color: var(--rs-border-strong); margin-left: 0.5rem;" aria-hidden="true">/</span>
+            <a href={crumb.path} class="rs-shell__breadcrumb-link"><%= crumb.label %></a>
+            <span :if={index < length(@breadcrumbs) - 1} class="rs-shell__breadcrumb-separator" aria-hidden="true">/</span>
           </li>
         </ol>
       </nav>
@@ -98,6 +102,19 @@ defmodule RulesteadAdmin.Components.Shell do
       </nav>
 
       <main class="rs-shell__body">
+        <section :if={@flash_entries != []} class="rs-flash-stack" aria-label="Page messages">
+          <div
+            :for={entry <- @flash_entries}
+            class="rs-flash"
+            data-kind={entry.kind}
+            role={flash_role(entry.kind)}
+            aria-live={flash_live(entry.kind)}
+          >
+            <strong><%= flash_title(entry.kind) %></strong>
+            <p><%= entry.message %></p>
+          </div>
+        </section>
+
         <%= render_slot(@inner_block) %>
       </main>
     </div>
@@ -127,4 +144,28 @@ defmodule RulesteadAdmin.Components.Shell do
 
   defp show_tenant_scope?(%{current_tenant: tenant, tenants: tenants}),
     do: is_map(tenant) or tenants != []
+
+  defp flash_entries(flash) when is_map(flash) do
+    [:info, :success, :error]
+    |> Enum.flat_map(fn kind ->
+      case Map.get(flash, kind) || Map.get(flash, to_string(kind)) do
+        message when is_binary(message) and message != "" ->
+          [%{kind: to_string(kind), message: message}]
+
+        _other ->
+          []
+      end
+    end)
+  end
+
+  defp flash_entries(_flash), do: []
+
+  defp flash_role("error"), do: "alert"
+  defp flash_role(_kind), do: "status"
+
+  defp flash_live("error"), do: "assertive"
+  defp flash_live(_kind), do: "polite"
+
+  defp flash_title("error"), do: "Needs attention"
+  defp flash_title(_kind), do: "Done"
 end

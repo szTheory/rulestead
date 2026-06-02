@@ -22,7 +22,7 @@ defmodule RulesteadAdmin.Components.AudienceComponents do
         At least <%= @dependencies.hidden_count %> references are hidden by your permissions.
       </p>
 
-      <table :if={@dependencies.entries != []}>
+      <table :if={@dependencies.entries != []} class="rs-table">
         <thead>
           <tr>
             <th>Environment</th>
@@ -100,7 +100,7 @@ defmodule RulesteadAdmin.Components.AudienceComponents do
 
       <div :if={@has_samples?}>
         <h3>Sample cohort</h3>
-        <table>
+        <table class="rs-table">
           <thead>
             <tr>
               <th>Actor</th>
