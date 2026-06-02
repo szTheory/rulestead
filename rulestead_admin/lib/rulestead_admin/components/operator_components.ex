@@ -248,27 +248,4 @@ defmodule RulesteadAdmin.Components.OperatorComponents do
     """
   end
 
-  attr(:title, :string, required: true)
-  attr(:summary, :string, required: true)
-  attr(:before_value, :string, required: true)
-  attr(:after_value, :string, required: true)
-
-  def diff_card(assigns) do
-    ~H"""
-    <section class="rs-diff-card" aria-label={@title}>
-      <h2><%= @title %></h2>
-      <p><%= @summary %></p>
-      <div class="rs-diff-card__values">
-        <div>
-          <p>Before</p>
-          <code><%= @before_value %></code>
-        </div>
-        <div>
-          <p>After</p>
-          <code><%= @after_value %></code>
-        </div>
-      </div>
-    </section>
-    """
-  end
 end
