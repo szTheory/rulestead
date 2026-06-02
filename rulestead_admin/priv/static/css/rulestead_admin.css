@@ -3711,6 +3711,12 @@ a.rs-env-state:active {
     animation: rs-slide-in var(--rs-motion-base) var(--rs-ease-standard) both;
   }
 
+  /* Content that resolves from an async load settles in rather than popping —
+     used where a skeleton is replaced by real data (e.g. diagnostics health). */
+  .rs-settle {
+    animation: rs-slide-in var(--rs-motion-base) var(--rs-ease-out) both;
+  }
+
   .rs-badge {
     transition: transform var(--rs-motion-fast) var(--rs-ease-standard);
   }

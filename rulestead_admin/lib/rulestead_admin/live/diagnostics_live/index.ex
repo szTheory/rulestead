@@ -71,7 +71,14 @@ defmodule RulesteadAdmin.Live.DiagnosticsLive.Index do
         policy_state={@page.policy_state}
       >
         <:header_actions>
-          <button type="button" phx-click="refresh" aria-label="Refresh diagnostics">Refresh diagnostics</button>
+          <button
+            type="button"
+            class="rs-button"
+            phx-click="refresh"
+            aria-label="Refresh diagnostics"
+          >
+            Refresh diagnostics
+          </button>
         </:header_actions>
 
         <OperatorComponents.banner
@@ -106,7 +113,7 @@ defmodule RulesteadAdmin.Live.DiagnosticsLive.Index do
           </:failed>
 
           <%= if health_view.environment do %>
-            <section class="rs-hub-section" aria-label="Current health summary">
+            <section class="rs-hub-section rs-settle" aria-label="Current health summary">
               <header class="rs-section-header">
                 <div>
                   <p class="rs-eyebrow">Runtime health</p>
