@@ -43,7 +43,7 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupConfirm do
           Session.canonical_return_to(
             socket,
             query["return_to"],
-            socket.assigns.rulestead_admin_mount_path
+            socket.assigns.rulestead_admin_mount_path <> "/flags"
           )
         )
         |> assign(

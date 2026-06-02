@@ -38,7 +38,7 @@ defmodule RulesteadAdmin.Live.WebhookLive.Index do
           change_requests_path: Session.current_path(socket, change_requests_path()),
           audit_path: Session.current_path(socket, audit_path()),
           schedule_path: Session.current_path(socket, schedule_path()),
-          flags_path: Session.current_path(socket, mount_path(socket))
+          flags_path: Session.current_path(socket, mount_path(socket) <> "/flags")
         })
 
       {:noreply, socket |> assign(:filters, filters) |> assign(:page, page)}

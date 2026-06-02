@@ -201,7 +201,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Form do
       page_summary={if @mode == :new, do: "Create a new runtime decision point.", else: "Update flag metadata."}
       base_path={@rulestead_admin_mount_path}
       current_section={:flags}
-      breadcrumbs={[%{label: "Back to flags", path: "/admin/flags?env=" <> @current_environment.key}]}
+      breadcrumbs={[%{label: "Back to flags", path: "/admin/flags/flags?env=" <> @current_environment.key}]}
       current_environment={@current_environment}
       environments={[]}
       env_links={%{}}

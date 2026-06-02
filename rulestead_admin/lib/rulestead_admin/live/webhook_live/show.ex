@@ -35,7 +35,7 @@ defmodule RulesteadAdmin.Live.WebhookLive.Show do
           change_requests_path: Session.current_path(socket, change_requests_path()),
           audit_path: Session.current_path(socket, audit_path()),
           schedule_path: Session.current_path(socket, schedule_path()),
-          flags_path: Session.current_path(socket, mount_path(socket)),
+          flags_path: Session.current_path(socket, mount_path(socket) <> "/flags"),
           webhooks_path: Session.current_path(socket, base_path())
         })
 

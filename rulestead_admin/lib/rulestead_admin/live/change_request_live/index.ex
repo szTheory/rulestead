@@ -42,7 +42,7 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Index do
           env_links: Session.env_links(socket, base_path(), filter_params),
           schedule_path: Session.current_path(socket, schedule_base_path()),
           audit_path: Session.current_path(socket, audit_base_path()),
-          flags_path: Session.current_path(socket, mount_path(socket)),
+          flags_path: Session.current_path(socket, mount_path(socket) <> "/flags"),
           current_path: Session.current_path(socket, base_path(), filter_params),
           filter_action_options: filter_action_options(),
           filter_status_options: filter_status_options()

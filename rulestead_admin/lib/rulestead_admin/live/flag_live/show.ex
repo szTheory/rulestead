@@ -37,7 +37,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
         Session.canonical_return_to(
           socket,
           query["return_to"],
-          socket.assigns.rulestead_admin_mount_path
+          socket.assigns.rulestead_admin_mount_path <> "/flags"
         )
       )
       |> assign(:current_path, Session.current_path(socket, base_path))
@@ -84,7 +84,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
           >
             View <%= @missing_environment.primary_environment.name %> state
           </a>
-          <a href={Session.current_path(assigns, fetch_mount_path(assigns), %{"view" => "all"})} class="rs-button">
+          <a href={Session.current_path(assigns, fetch_mount_path(assigns) <> "/flags", %{"view" => "all"})} class="rs-button">
             Open flags in <%= @current_environment.name %>
           </a>
           <a

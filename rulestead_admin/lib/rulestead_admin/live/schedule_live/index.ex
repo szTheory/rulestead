@@ -43,7 +43,7 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Index do
           related_links: related_links(socket),
           change_requests_path: Session.current_path(socket, change_requests_path()),
           audit_path: Session.current_path(socket, audit_path()),
-          flags_path: Session.current_path(socket, mount_path(socket))
+          flags_path: Session.current_path(socket, mount_path(socket) <> "/flags")
         })
 
       {:noreply, socket |> assign(:filters, filters) |> assign(:page, page)}
@@ -211,7 +211,7 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Index do
         path: Session.current_path(socket, change_requests_path())
       },
       %{label: "Open audit timeline", path: Session.current_path(socket, audit_path())},
-      %{label: "Back to flag inventory", path: Session.current_path(socket, mount_path(socket))}
+      %{label: "Back to flag inventory", path: Session.current_path(socket, mount_path(socket) <> "/flags")}
     ]
   end
 

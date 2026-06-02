@@ -18,7 +18,7 @@ defmodule RulesteadAdmin.Navigation do
   @groups [
     {"Operate",
      [
-       %{key: :flags, label: "Flags", suffix: ""},
+       %{key: :flags, label: "Flags", suffix: "/flags"},
        %{key: :experiments, label: "Experiments", suffix: "/experiments"},
        %{key: :audiences, label: "Audiences", suffix: "/audiences"},
        %{key: :schedule, label: "Schedule", suffix: "/schedule"}
@@ -44,6 +44,13 @@ defmodule RulesteadAdmin.Navigation do
 
   `current` is the active section key (e.g. `:flags`) or `nil`.
   """
+  @doc """
+  The standalone Overview (home console) destination, rendered above the groups.
+  """
+  def overview(base_path, env_key, current \\ nil) when is_binary(base_path) do
+    %{key: :home, label: "Overview", path: base_path <> env_query(env_key), current?: current == :home}
+  end
+
   def groups(base_path, env_key, current \\ nil) when is_binary(base_path) do
     env_q = env_query(env_key)
 

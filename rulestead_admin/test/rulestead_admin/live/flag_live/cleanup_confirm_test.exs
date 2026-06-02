@@ -194,7 +194,7 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupConfirmTest do
 
   defp confirm_path(conn, env) do
     preview_path =
-      "/admin/flags/ops-cleanup/cleanup/preview?env=#{env}&return_to=%2Fadmin%2Fflags%3Fenv%3D#{env}%26owner%3Dops"
+      "/admin/flags/ops-cleanup/cleanup/preview?env=#{env}&return_to=%2Fadmin%2Fflags%2Fflags%3Fenv%3D#{env}%26owner%3Dops"
 
     {:ok, _view, html} = live(conn, preview_path)
     extract_confirm_path(html)

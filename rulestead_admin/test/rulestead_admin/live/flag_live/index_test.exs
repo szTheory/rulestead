@@ -136,7 +136,7 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
     {:ok, view, html} =
       case live(
              conn,
-             "/admin/flags?env=prod&view=custom&query=checkout&owner=growth&tags=checkout&stale=fresh"
+             "/admin/flags/flags?env=prod&view=custom&query=checkout&owner=growth&tags=checkout&stale=fresh"
            ) do
         {:ok, view, html} ->
           {:ok, view, html}
@@ -185,13 +185,13 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
   end
 
   test "omnisearch matches owners and tags", %{conn: conn} do
-    {:ok, owner_view, _html} = live(conn, "/admin/flags?env=prod&view=all&query=ops")
+    {:ok, owner_view, _html} = live(conn, "/admin/flags/flags?env=prod&view=all&query=ops")
 
     assert has_element?(owner_view, "[data-flag-key='ops-cleanup']")
     assert has_element?(owner_view, "[data-flag-key='remote-config-review']")
     refute has_element?(owner_view, "[data-flag-key='checkout-redesign']")
 
-    {:ok, tag_view, _html} = live(conn, "/admin/flags?env=prod&view=all&query=infra")
+    {:ok, tag_view, _html} = live(conn, "/admin/flags/flags?env=prod&view=all&query=infra")
 
     assert has_element?(tag_view, "[data-flag-key='ops-cleanup']")
     refute has_element?(tag_view, "[data-flag-key='remote-config-review']")
@@ -199,13 +199,13 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
 
   test "filters by inventory view and omnisearch terms while preserving url state",
        %{conn: conn} do
-    {:ok, view, _html} = live(conn, "/admin/flags?env=prod&view=all&query=ops")
+    {:ok, view, _html} = live(conn, "/admin/flags/flags?env=prod&view=all&query=ops")
 
     assert has_element?(view, "[data-flag-key='ops-cleanup']")
     assert has_element?(view, "[data-flag-key='remote-config-review']")
     refute has_element?(view, "#flags-empty")
 
-    {:ok, view, _html} = live(conn, "/admin/flags?env=prod&view=all&query=ops+infra")
+    {:ok, view, _html} = live(conn, "/admin/flags/flags?env=prod&view=all&query=ops+infra")
 
     view
     |> element("nav[aria-label='Flag inventory views'] a", "Stale signal")
@@ -225,7 +225,7 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
     refute has_element?(view, "[data-flag-key='remote-config-review']")
     refute has_element?(view, "a[rel='next']")
 
-    {:ok, paged_view, _html} = live(conn, "/admin/flags?env=prod&view=all&query=growth")
+    {:ok, paged_view, _html} = live(conn, "/admin/flags/flags?env=prod&view=all&query=growth")
 
     paged_view
     |> element("a[aria-label='Remove growth']")
@@ -237,7 +237,7 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
   end
 
   test "triage views explain why matching flags appear", %{conn: conn} do
-    {:ok, needs_review_view, _html} = live(conn, "/admin/flags?env=prod&view=needs_review")
+    {:ok, needs_review_view, _html} = live(conn, "/admin/flags/flags?env=prod&view=needs_review")
 
     assert has_element?(
              needs_review_view,
@@ -249,7 +249,7 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
     assert has_element?(needs_review_view, ".rs-triage-note", "Review needed")
     assert has_element?(needs_review_view, ".rs-triage-note", "Refresh code refs")
 
-    {:ok, archive_view, _html} = live(conn, "/admin/flags?env=prod&view=archive_candidates")
+    {:ok, archive_view, _html} = live(conn, "/admin/flags/flags?env=prod&view=archive_candidates")
 
     assert has_element?(archive_view, ".rs-results-header__hint", "strong evidence")
     assert has_element?(archive_view, "[data-flag-key='ops-cleanup']")
@@ -257,14 +257,14 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
     assert has_element?(archive_view, ".rs-triage-note", "No code references found")
     assert has_element?(archive_view, ".rs-triage-note a", "Review cleanup")
 
-    {:ok, stale_view, _html} = live(conn, "/admin/flags?env=prod&view=recently_stale")
+    {:ok, stale_view, _html} = live(conn, "/admin/flags/flags?env=prod&view=recently_stale")
 
     assert has_element?(stale_view, ".rs-results-header__hint", "stale evaluation")
     assert has_element?(stale_view, "[data-flag-key='ops-cleanup']")
     assert has_element?(stale_view, ".rs-triage-note", "Stale signal")
     assert has_element?(stale_view, ".rs-triage-note", "Last evaluated")
 
-    {:ok, archived_view, _html} = live(conn, "/admin/flags?env=prod&view=archived")
+    {:ok, archived_view, _html} = live(conn, "/admin/flags/flags?env=prod&view=archived")
 
     assert has_element?(archived_view, ".rs-results-header__hint", "removed from active")
     assert has_element?(archived_view, "[data-flag-key='archive-me']")
@@ -273,7 +273,7 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
   end
 
   test "removes the empty state after a filtered stream resets to matching results", %{conn: conn} do
-    {:ok, view, _html} = live(conn, "/admin/flags?env=prod&view=all&query=missing")
+    {:ok, view, _html} = live(conn, "/admin/flags/flags?env=prod&view=all&query=missing")
 
     assert has_element?(view, "#flags-empty", "No flags found")
 
@@ -292,7 +292,7 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
   end
 
   test "typed omnisearch text filters transiently without committing URL state", %{conn: conn} do
-    {:ok, view, _html} = live(conn, "/admin/flags?env=prod&view=all")
+    {:ok, view, _html} = live(conn, "/admin/flags/flags?env=prod&view=all")
 
     view
     |> element("input[name='filters[query_text]']")
@@ -310,7 +310,7 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
   test "typed omnisearch accepts browser form payload without committing URL state", %{
     conn: conn
   } do
-    {:ok, view, _html} = live(conn, "/admin/flags?env=prod&view=all")
+    {:ok, view, _html} = live(conn, "/admin/flags/flags?env=prod&view=all")
 
     render_change(view, "omnisearch_changed", %{
       "_target" => ["filters", "query_text"],
@@ -327,7 +327,7 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
   end
 
   test "omnisearch suggestions update the query URL", %{conn: conn} do
-    {:ok, view, _html} = live(conn, "/admin/flags?env=prod&view=all")
+    {:ok, view, _html} = live(conn, "/admin/flags/flags?env=prod&view=all")
 
     view
     |> element("input[name='filters[query_text]']")
@@ -386,7 +386,7 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
   end
 
   test "omnisearch suggestion chips distinguish flags owners and tags", %{conn: conn} do
-    {:ok, view, _html} = live(conn, "/admin/flags?env=prod&view=all")
+    {:ok, view, _html} = live(conn, "/admin/flags/flags?env=prod&view=all")
 
     view
     |> element("input[name='filters[query_text]']")
@@ -405,7 +405,7 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
   end
 
   test "submitting typed omnisearch text commits it as a removable token", %{conn: conn} do
-    {:ok, view, _html} = live(conn, "/admin/flags?env=prod&view=all")
+    {:ok, view, _html} = live(conn, "/admin/flags/flags?env=prod&view=all")
 
     view
     |> form("form[aria-label='Flag filters']", %{
@@ -426,7 +426,7 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
          conn: conn
        } do
     {:ok, view, _html} =
-      case live(conn, "/admin/flags?env=prod&readiness=archive_candidate&evidence_quality=strong") do
+      case live(conn, "/admin/flags/flags?env=prod&readiness=archive_candidate&evidence_quality=strong") do
         {:ok, view, html} ->
           {:ok, view, html}
 
@@ -444,7 +444,7 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
     refute has_element?(view, "[data-flag-key='checkout-redesign']")
 
     {:ok, custom_view, _html} =
-      live(conn, "/admin/flags?env=prod&view=custom&readiness=needs_review&evidence_quality=weak")
+      live(conn, "/admin/flags/flags?env=prod&view=custom&readiness=needs_review&evidence_quality=weak")
 
     assert has_element?(custom_view, "[data-flag-key='search-ranking']")
     refute has_element?(custom_view, "[data-flag-key='remote-config-review']")
@@ -454,7 +454,7 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
   test "renders keyboard-safe dense table semantics without hidden environment state", %{
     conn: conn
   } do
-    {:ok, view, html} = live(conn, "/admin/flags?env=prod&view=all")
+    {:ok, view, html} = live(conn, "/admin/flags/flags?env=prod&view=all")
 
     assert html =~ "aria-label=\"Feature flags list\""
     assert html =~ "tabindex=\"0\""
@@ -491,7 +491,7 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
 
     assert has_element?(
              view,
-             "li[data-flag-key='checkout-redesign'] a[href='/admin/flags/checkout-redesign?env=prod&return_to=%2Fadmin%2Fflags%3Fenv%3Dprod%26view%3Dall']"
+             "li[data-flag-key='checkout-redesign'] a[href='/admin/flags/checkout-redesign?env=prod&return_to=%2Fadmin%2Fflags%2Fflags%3Fenv%3Dprod%26view%3Dall']"
            )
 
     refute html =~ "Current environment hidden"
@@ -500,7 +500,7 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
   test "inventory view selector preserves queue context and canonicalizes triage intent", %{
     conn: conn
   } do
-    {:ok, view, _html} = live(conn, "/admin/flags?env=prod&view=all&query=ops")
+    {:ok, view, _html} = live(conn, "/admin/flags/flags?env=prod&view=all&query=ops")
 
     view
     |> element("nav[aria-label='Flag inventory views'] a", "Ready to archive")
@@ -520,7 +520,7 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
     audit_path = URI.encode_www_form("/admin/flags/archive-me/timeline?env=prod")
 
     path =
-      "/admin/flags?env=prod&include_archived=true&notice=archived&flag_key=archive-me&reason=cleanup&audit_path=#{audit_path}&highlight=archive-me"
+      "/admin/flags/flags?env=prod&include_archived=true&notice=archived&flag_key=archive-me&reason=cleanup&audit_path=#{audit_path}&highlight=archive-me"
 
     {:ok, view, html} =
       case live(conn, path) do

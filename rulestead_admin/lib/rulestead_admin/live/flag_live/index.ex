@@ -61,7 +61,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
     socket =
       socket
       |> assign(:screen_action, :index)
-      |> assign(:base_path, "/admin/flags")
+      |> assign(:base_path, "/admin/flags/flags")
       |> assign(:filters, default_filters())
       |> assign(:page, empty_page())
       |> assign(:error_message, nil)
@@ -188,7 +188,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
       environments={@available_environments}
       env_links={@env_links}
       policy_state={@rulestead_admin_policy_state}
-      base_path={@base_path}
+      base_path={@rulestead_admin_mount_path}
       current_section={:flags}
     >
       <FlagComponents.callout :if={@outcome_notice} title="Archive result" tone="positive">
@@ -204,7 +204,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
           class="rs-inventory__toolbar"
         >
           <a
-            href={@base_path <> "/new?env=" <> @current_environment.key}
+            href={@rulestead_admin_mount_path <> "/new?env=" <> @current_environment.key}
             class="rs-button rs-button--primary"
           >
             Create flag
@@ -929,7 +929,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
   defp flag_path(socket_or_assigns, key) do
     Session.path_with_return_to(
       socket_or_assigns,
-      "#{socket_or_assigns.base_path}/#{key}",
+      "#{socket_or_assigns.rulestead_admin_mount_path}/#{key}",
       socket_or_assigns.current_path
     )
   end
@@ -937,7 +937,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
   defp cleanup_path(socket_or_assigns, key) do
     Session.path_with_return_to(
       socket_or_assigns,
-      "#{socket_or_assigns.base_path}/#{key}/cleanup",
+      "#{socket_or_assigns.rulestead_admin_mount_path}/#{key}/cleanup",
       socket_or_assigns.current_path
     )
   end
@@ -945,7 +945,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
   defp timeline_path(socket_or_assigns, key) do
     Session.path_with_return_to(
       socket_or_assigns,
-      "#{socket_or_assigns.base_path}/#{key}/timeline",
+      "#{socket_or_assigns.rulestead_admin_mount_path}/#{key}/timeline",
       socket_or_assigns.current_path
     )
   end
@@ -1170,7 +1170,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
     parsed = URI.parse(uri)
 
     if is_nil(parsed.query),
-      do: parsed.path || "/admin/flags",
+      do: parsed.path || "/admin/flags/flags",
       else: parsed.path <> "?" <> parsed.query
   end
 

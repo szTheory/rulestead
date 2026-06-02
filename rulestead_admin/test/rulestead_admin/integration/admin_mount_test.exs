@@ -97,16 +97,21 @@ defmodule RulesteadAdmin.Integration.AdminMountTest do
 
   test "host-style mount honors the public env and route conventions without leaking internals",
        %{conn: conn} do
-    assert {:error, {:live_redirect, %{to: "/admin/flags?env=prod&view=all", flash: %{}}}} =
-             live(conn, "/admin/flags")
+    {:ok, _home_view, home_html} = live(conn, "/admin/flags")
+    assert home_html =~ "Operations home"
+
+    inventory_conn = conn |> Phoenix.ConnTest.recycle() |> host_conn()
+
+    assert {:error, {:live_redirect, %{to: "/admin/flags/flags?env=prod&view=all", flash: %{}}}} =
+             live(inventory_conn, "/admin/flags/flags")
 
     redirected_conn = conn |> Phoenix.ConnTest.recycle() |> host_conn()
-    {:ok, _list_view, list_html} = live(redirected_conn, "/admin/flags?env=prod&view=all")
+    {:ok, _list_view, list_html} = live(redirected_conn, "/admin/flags/flags?env=prod&view=all")
     assert list_html =~ "Feature flags"
     assert list_html =~ "Viewing environment"
     assert list_html =~ "Production"
-    assert list_html =~ ~s(href="/admin/flags?env=dev&amp;view=all")
-    assert list_html =~ ~s(href="/admin/flags?env=prod&amp;view=all")
+    assert list_html =~ ~s(href="/admin/flags/flags?env=dev&amp;view=all")
+    assert list_html =~ ~s(href="/admin/flags/flags?env=prod&amp;view=all")
     assert list_html =~ "/admin/flags/checkout-redesign"
 
     detail_conn = conn |> Phoenix.ConnTest.recycle() |> host_conn()
@@ -152,7 +157,7 @@ defmodule RulesteadAdmin.Integration.AdminMountTest do
     lifecycle_conn = conn |> Phoenix.ConnTest.recycle() |> host_conn()
 
     {:ok, _view, lifecycle_html} =
-      case live(lifecycle_conn, "/admin/flags?env=prod&readiness=archive_candidate") do
+      case live(lifecycle_conn, "/admin/flags/flags?env=prod&readiness=archive_candidate") do
         {:ok, view, html} ->
           {:ok, view, html}
 
@@ -162,14 +167,14 @@ defmodule RulesteadAdmin.Integration.AdminMountTest do
 
     assert lifecycle_html =~ "Feature flags"
     assert lifecycle_html =~ "Production"
-    assert lifecycle_html =~ "/admin/flags?env=prod&amp;view=archive_candidates"
+    assert lifecycle_html =~ "/admin/flags/flags?env=prod&amp;view=archive_candidates"
 
     cleanup_conn = conn |> Phoenix.ConnTest.recycle() |> host_conn()
 
     {:ok, _cleanup_view, cleanup_html} =
       live(
         cleanup_conn,
-        "/admin/flags/checkout-redesign/cleanup?env=prod&return_to=%2Fadmin%2Fflags%3Fenv%3Dprod"
+        "/admin/flags/checkout-redesign/cleanup?env=prod&return_to=%2Fadmin%2Fflags%2Fflags%3Fenv%3Dprod"
       )
 
     assert cleanup_html =~ "Cleanup verdict"
@@ -181,7 +186,7 @@ defmodule RulesteadAdmin.Integration.AdminMountTest do
     {:ok, _preview_view, preview_html} =
       live(
         preview_conn,
-        "/admin/flags/checkout-redesign/cleanup/preview?env=prod&return_to=%2Fadmin%2Fflags%3Fenv%3Dprod"
+        "/admin/flags/checkout-redesign/cleanup/preview?env=prod&return_to=%2Fadmin%2Fflags%2Fflags%3Fenv%3Dprod"
       )
 
     assert preview_html =~ "Archive preview"

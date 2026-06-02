@@ -35,6 +35,7 @@ defmodule RulesteadAdmin.Components.Shell do
       |> assign(:resolved_env_options, env_options(assigns))
       |> assign(:flash_entries, flash_entries(assigns.flash))
       |> assign(:nav_groups, nav_groups(assigns))
+      |> assign(:nav_overview, nav_overview(assigns))
 
     ~H"""
     <div class="rs-shell" data-env-tone={@env_tone}>
@@ -112,6 +113,15 @@ defmodule RulesteadAdmin.Components.Shell do
 
       <div class="rs-shell__layout">
         <nav :if={@nav_groups != []} class="rs-shell__rail" aria-label="Primary navigation">
+          <div :if={@nav_overview} class="rs-shell__rail-group">
+            <a
+              href={@nav_overview.path}
+              class="rs-shell__rail-link rs-shell__rail-link--overview"
+              aria-current={if(@nav_overview.current?, do: "page", else: nil)}
+            >
+              <%= @nav_overview.label %>
+            </a>
+          </div>
           <div :for={group <- @nav_groups} class="rs-shell__rail-group">
             <p class="rs-shell__rail-group-title"><%= group.title %></p>
             <a
@@ -163,6 +173,13 @@ defmodule RulesteadAdmin.Components.Shell do
   end
 
   defp nav_groups(_assigns), do: []
+
+  defp nav_overview(%{base_path: base_path} = assigns) when is_binary(base_path) do
+    env_key = Map.get(assigns.current_environment || %{}, :key)
+    Navigation.overview(base_path, env_key, assigns.current_section)
+  end
+
+  defp nav_overview(_assigns), do: nil
 
   defp env_tone(%{key: "prod"}), do: "production"
   defp env_tone(%{key: "production"}), do: "production"

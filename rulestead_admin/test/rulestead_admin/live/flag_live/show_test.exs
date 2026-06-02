@@ -173,13 +173,13 @@ defmodule RulesteadAdmin.Live.FlagLive.ShowTest do
 
     assert has_element?(
              view,
-             "a[href='/admin/flags/ops-cleanup?env=prod&return_to=%2Fadmin%2Fflags%3Fenv%3Dstaging']",
+             "a[href='/admin/flags/ops-cleanup?env=prod&return_to=%2Fadmin%2Fflags%2Fflags%3Fenv%3Dstaging']",
              "View Production state"
            )
 
     assert has_element?(
              view,
-             "a[href='/admin/flags?env=staging&view=all']",
+             "a[href='/admin/flags/flags?env=staging&view=all']",
              "Open flags in Staging"
            )
 
@@ -318,11 +318,11 @@ defmodule RulesteadAdmin.Live.FlagLive.ShowTest do
     {:ok, view, _html} =
       live(conn, "/admin/flags/checkout-redesign?env=prod&return_to=%2Foutside")
 
-    assert has_element?(view, "a[href='/admin/flags?env=prod']", "Back to flags")
+    assert has_element?(view, "a[href='/admin/flags/flags?env=prod']", "Back to flags")
 
     assert has_element?(
              view,
-             "a[href='/admin/flags/checkout-redesign/cleanup?env=prod&return_to=%2Fadmin%2Fflags%3Fenv%3Dprod']",
+             "a[href='/admin/flags/checkout-redesign/cleanup?env=prod&return_to=%2Fadmin%2Fflags%2Fflags%3Fenv%3Dprod']",
              "Review cleanup"
            )
   end
