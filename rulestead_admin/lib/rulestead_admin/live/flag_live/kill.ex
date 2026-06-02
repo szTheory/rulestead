@@ -52,6 +52,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Kill do
       page_title={if(@flag_key, do: "#{@flag_key} kill switch", else: "Kill switch")}
       page_kicker="Kill switch"
       page_summary="Bookmarkable emergency override route reserved for explicit kill and restore flows."
+      base_path={@rulestead_admin_mount_path}
+      current_section={:flags}
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}

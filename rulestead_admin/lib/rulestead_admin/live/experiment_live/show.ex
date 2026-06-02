@@ -44,6 +44,8 @@ defmodule RulesteadAdmin.Live.ExperimentLive.Show do
       page_title={page_title(assigns)}
       page_kicker="Experiment detail"
       page_summary="Calm read surface for experiment results, metrics, and lifecycle."
+      base_path={@rulestead_admin_mount_path}
+      current_section={:experiments}
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}

@@ -44,6 +44,8 @@ defmodule RulesteadAdmin.Live.AudienceLive.Show do
       page_title={if(@audience, do: @audience.key, else: "Audience")}
       page_kicker="Audience detail"
       page_summary="Lifecycle context, authored used-by references, and governed mutation entry points."
+      base_path={@rulestead_admin_mount_path}
+      current_section={:audiences}
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}

@@ -37,7 +37,6 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Index do
             "Dense route-backed list home for upcoming, running, completed, failed, quarantined, and cancelled executions."
         )
         |> Map.merge(%{
-          navigation_links: navigation_links(socket, :schedule),
           filter_links: filter_links(socket, filters),
           filters: filters,
           grouped_scheduled_executions: grouped_scheduled_executions(scheduled_executions),
@@ -66,7 +65,8 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Index do
       current_tenant={@page.current_tenant}
       tenants={@page.tenants}
       tenant_links={@page.tenant_links}
-      navigation_links={@page.navigation_links}
+      base_path={@rulestead_admin_mount_path}
+      current_section={:schedule}
       policy_state={@page.policy_state}
     >
       <OperatorComponents.page_section
@@ -204,41 +204,6 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Index do
     ]
   end
 
-  defp navigation_links(socket, current) do
-    mp = mount_path(socket)
-    sep = %{separator: true, path: "", label: "", current?: false}
-
-    [
-      nav_link("Flags", Session.current_path(socket, mp), current == :flags),
-      nav_link(
-        "Audiences",
-        Session.current_path(socket, "#{mp}/audiences"),
-        current == :audiences
-      ),
-      nav_link(
-        "Experiments",
-        Session.current_path(socket, "#{mp}/experiments"),
-        current == :experiments
-      ),
-      nav_link("Compare", Session.current_path(socket, "#{mp}/compare"), current == :compare),
-      sep,
-      nav_link(
-        "Change requests",
-        Session.current_path(socket, change_requests_path()),
-        current == :change_requests
-      ),
-      nav_link("Schedule", Session.current_path(socket, base_path()), current == :schedule),
-      nav_link("Audit", Session.current_path(socket, audit_path()), current == :audit),
-      nav_link("Webhooks", Session.current_path(socket, "#{mp}/webhooks"), current == :webhooks),
-      sep,
-      nav_link(
-        "Diagnostics",
-        Session.current_path(socket, "#{mp}/diagnostics"),
-        current == :diagnostics
-      )
-    ]
-  end
-
   defp related_links(socket) do
     [
       %{
@@ -250,7 +215,6 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Index do
     ]
   end
 
-  defp nav_link(label, path, current?), do: %{label: label, path: path, current?: current?}
 
   defp state_label(state),
     do: state |> Atom.to_string() |> String.replace("_", " ") |> String.capitalize()

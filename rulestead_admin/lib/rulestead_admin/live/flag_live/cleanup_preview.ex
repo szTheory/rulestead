@@ -64,6 +64,8 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupPreview do
       page_title={if(@flag_key, do: "#{@flag_key} archive preview", else: "Archive preview")}
       page_kicker="Cleanup preview"
       page_summary="Route-backed archive preview for readiness, evidence quality, reasons, unknowns, blockers, and archive consequences."
+      base_path={@rulestead_admin_mount_path}
+      current_section={:flags}
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}

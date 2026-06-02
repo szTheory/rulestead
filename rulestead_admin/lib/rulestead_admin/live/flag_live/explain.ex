@@ -96,6 +96,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Explain do
       page_title={@page.page_title}
       page_kicker={@page.page_kicker}
       page_summary={@page.page_summary}
+      base_path={@rulestead_admin_mount_path}
+      current_section={:flags}
       current_environment={@page.current_environment}
       environments={@page.environments}
       env_links={@page.env_links}

@@ -82,6 +82,8 @@ defmodule RulesteadAdmin.Live.ExperimentLive.Index do
       page_title="Experiments"
       page_kicker="Experiment inventory"
       page_summary="Dense operator inventory for experiments scoped to the current environment."
+      base_path={@rulestead_admin_mount_path}
+      current_section={:experiments}
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}

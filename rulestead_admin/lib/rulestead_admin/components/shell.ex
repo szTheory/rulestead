@@ -3,6 +3,8 @@ defmodule RulesteadAdmin.Components.Shell do
 
   use Phoenix.Component
 
+  alias RulesteadAdmin.Navigation
+
   attr(:page_title, :string, required: true)
   attr(:page_kicker, :string, required: true)
   attr(:page_summary, :string, required: true)
@@ -16,6 +18,10 @@ defmodule RulesteadAdmin.Components.Shell do
   attr(:current_tenant, :map, default: nil)
   attr(:tenants, :list, default: [])
   attr(:tenant_links, :map, default: %{})
+  attr(:base_path, :string, default: nil)
+  attr(:current_section, :atom, default: nil)
+  # Deprecated: section nav is now derived from base_path + current_section via
+  # RulesteadAdmin.Navigation. Kept declared so legacy callers don't raise.
   attr(:navigation_links, :list, default: [])
   attr(:policy_state, :map, default: nil)
   attr(:flash, :map, default: %{})
@@ -28,6 +34,7 @@ defmodule RulesteadAdmin.Components.Shell do
       |> assign(:env_tone, env_tone(assigns.current_environment))
       |> assign(:resolved_env_options, env_options(assigns))
       |> assign(:flash_entries, flash_entries(assigns.flash))
+      |> assign(:nav_groups, nav_groups(assigns))
 
     ~H"""
     <div class="rs-shell" data-env-tone={@env_tone}>
@@ -57,6 +64,7 @@ defmodule RulesteadAdmin.Components.Shell do
                 :if={option.available?}
                 href={option.href}
                 class="rs-shell__env-link"
+                role="listitem"
                 data-current={to_string(option.current?)}
                 data-env-tone={option.tone}
                 title={option.title}
@@ -88,6 +96,7 @@ defmodule RulesteadAdmin.Components.Shell do
               <a
                 href={Map.get(@tenant_links, tenant.key, "#")}
                 class="rs-shell__env-link"
+                role="listitem"
                 data-current={to_string(current_tenant?(assigns, tenant))}
               >
                 <span><%= tenant.name %></span>
@@ -101,48 +110,59 @@ defmodule RulesteadAdmin.Components.Shell do
         </section>
       </header>
 
-      <nav :if={@breadcrumbs != []} aria-label="Breadcrumb" class="rs-shell__breadcrumbs">
-        <ol>
-          <li :for={{crumb, index} <- Enum.with_index(@breadcrumbs)}>
-            <a href={crumb.path} class="rs-shell__breadcrumb-link"><%= crumb.label %></a>
-            <span :if={index < length(@breadcrumbs) - 1} class="rs-shell__breadcrumb-separator" aria-hidden="true">/</span>
-          </li>
-        </ol>
-      </nav>
-
-      <nav :if={@navigation_links != []} class="rs-shell__nav" aria-label="Section navigation">
-        <%= for link <- @navigation_links do %>
-          <span :if={Map.get(link, :separator)} class="rs-shell__nav-sep" aria-hidden="true" />
-          <a
-            :if={!Map.get(link, :separator)}
-            href={link.path}
-            class="rs-shell__nav-link"
-            aria-current={if(link.current?, do: "page", else: nil)}
-          >
-            <%= link.label %>
-          </a>
-        <% end %>
-      </nav>
-
-      <main class="rs-shell__body">
-        <section :if={@flash_entries != []} class="rs-flash-stack" aria-label="Page messages">
-          <div
-            :for={entry <- @flash_entries}
-            class="rs-flash"
-            data-kind={entry.kind}
-            role={flash_role(entry.kind)}
-            aria-live={flash_live(entry.kind)}
-          >
-            <strong><%= flash_title(entry.kind) %></strong>
-            <p><%= entry.message %></p>
+      <div class="rs-shell__layout">
+        <nav :if={@nav_groups != []} class="rs-shell__rail" aria-label="Primary navigation">
+          <div :for={group <- @nav_groups} class="rs-shell__rail-group">
+            <p class="rs-shell__rail-group-title"><%= group.title %></p>
+            <a
+              :for={item <- group.items}
+              href={item.path}
+              class="rs-shell__rail-link"
+              aria-current={if(item.current?, do: "page", else: nil)}
+            >
+              <%= item.label %>
+            </a>
           </div>
-        </section>
+        </nav>
 
-        <%= render_slot(@inner_block) %>
-      </main>
+        <main class="rs-shell__main">
+          <nav :if={@breadcrumbs != []} aria-label="Breadcrumb" class="rs-shell__breadcrumbs">
+            <ol>
+              <li :for={{crumb, index} <- Enum.with_index(@breadcrumbs)}>
+                <a href={crumb.path} class="rs-shell__breadcrumb-link"><%= crumb.label %></a>
+                <span :if={index < length(@breadcrumbs) - 1} class="rs-shell__breadcrumb-separator" aria-hidden="true">/</span>
+              </li>
+            </ol>
+          </nav>
+
+          <div class="rs-shell__body">
+            <section :if={@flash_entries != []} class="rs-flash-stack" aria-label="Page messages">
+              <div
+                :for={entry <- @flash_entries}
+                class="rs-flash"
+                data-kind={entry.kind}
+                role={flash_role(entry.kind)}
+                aria-live={flash_live(entry.kind)}
+              >
+                <strong><%= flash_title(entry.kind) %></strong>
+                <p><%= entry.message %></p>
+              </div>
+            </section>
+
+            <%= render_slot(@inner_block) %>
+          </div>
+        </main>
+      </div>
     </div>
     """
   end
+
+  defp nav_groups(%{base_path: base_path} = assigns) when is_binary(base_path) do
+    env_key = Map.get(assigns.current_environment || %{}, :key)
+    Navigation.groups(base_path, env_key, assigns.current_section)
+  end
+
+  defp nav_groups(_assigns), do: []
 
   defp env_tone(%{key: "prod"}), do: "production"
   defp env_tone(%{key: "production"}), do: "production"

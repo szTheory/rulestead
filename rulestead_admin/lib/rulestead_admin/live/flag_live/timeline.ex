@@ -44,6 +44,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
       page_title={if(@flag_key, do: "#{@flag_key} audit timeline", else: "Audit timeline")}
       page_kicker="Timeline"
       page_summary="History for this flag in the selected environment."
+      base_path={@rulestead_admin_mount_path}
+      current_section={:flags}
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}

@@ -39,6 +39,8 @@ defmodule RulesteadAdmin.Live.AudienceLive.DeletePreview do
       page_title={if(@audience_key, do: "#{@audience_key} delete preview", else: "Delete preview")}
       page_kicker="Delete preview"
       page_summary="Delete is not supported. This preview shows the fail-closed outcome operators would see."
+      base_path={@rulestead_admin_mount_path}
+      current_section={:audiences}
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}

@@ -57,6 +57,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
       page_title={page_title(assigns)}
       page_kicker="Flag detail"
       page_summary="Operator hub for current behavior, evidence, ownership, and the next safest action."
+      base_path={@rulestead_admin_mount_path}
+      current_section={:flags}
       breadcrumbs={[%{label: "Back to flags", path: @return_to}]}
       current_environment={@current_environment}
       environments={@available_environments}

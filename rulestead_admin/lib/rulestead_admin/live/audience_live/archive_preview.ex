@@ -48,6 +48,8 @@ defmodule RulesteadAdmin.Live.AudienceLive.ArchivePreview do
       page_title={if(@audience_key, do: "#{@audience_key} archive preview", else: "Archive preview")}
       page_kicker="Audience archive preview"
       page_summary="Review dependency blockers and impact evidence before archiving a reusable audience."
+      base_path={@rulestead_admin_mount_path}
+      current_section={:audiences}
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}

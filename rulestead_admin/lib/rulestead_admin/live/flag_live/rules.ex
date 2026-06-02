@@ -105,6 +105,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Rules do
       page_title={@flag_key || "Rules workspace"}
       page_kicker="Rules workspace"
       page_summary="Dedicated environment-scoped rule authoring with explicit draft and publish actions."
+      base_path={@rulestead_admin_mount_path}
+      current_section={:flags}
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}

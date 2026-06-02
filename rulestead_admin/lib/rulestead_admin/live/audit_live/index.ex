@@ -53,7 +53,8 @@ defmodule RulesteadAdmin.Live.AuditLive.Index do
       environments={@available_environments}
       env_links={@env_links}
       policy_state={@rulestead_admin_policy_state}
-      navigation_links={site_nav_links(@current_environment, :audit, @rulestead_admin_mount_path)}
+      base_path={@rulestead_admin_mount_path}
+      current_section={:audit}
     >
       <p :if={@error_message} role="alert">{@error_message}</p>
       <p :if={@notice} role="status">{@notice}</p>
@@ -335,37 +336,6 @@ defmodule RulesteadAdmin.Live.AuditLive.Index do
   end
 
   defp diff_lines(_event_type, _diff_state), do: []
-
-  defp site_nav_links(env, current, mp) do
-    env_q = "?env=#{env.key}"
-    sep = %{separator: true, path: "", label: "", current?: false}
-
-    [
-      %{label: "Flags", path: mp <> env_q, current?: current == :flags},
-      %{label: "Audiences", path: "#{mp}/audiences" <> env_q, current?: current == :audiences},
-      %{
-        label: "Experiments",
-        path: "#{mp}/experiments" <> env_q,
-        current?: current == :experiments
-      },
-      %{label: "Compare", path: "#{mp}/compare" <> env_q, current?: current == :compare},
-      sep,
-      %{
-        label: "Change requests",
-        path: "#{mp}/change-requests" <> env_q,
-        current?: current == :change_requests
-      },
-      %{label: "Schedule", path: "#{mp}/schedule" <> env_q, current?: current == :schedule},
-      %{label: "Audit", path: "#{mp}/audit" <> env_q, current?: current == :audit},
-      %{label: "Webhooks", path: "#{mp}/webhooks" <> env_q, current?: current == :webhooks},
-      sep,
-      %{
-        label: "Diagnostics",
-        path: "#{mp}/diagnostics" <> env_q,
-        current?: current == :diagnostics
-      }
-    ]
-  end
 
   defp admin_base_path(socket_or_assigns, suffix),
     do: "#{fetch_mount_path(socket_or_assigns)}#{suffix}"

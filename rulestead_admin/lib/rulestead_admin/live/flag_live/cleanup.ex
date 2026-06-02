@@ -62,6 +62,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Cleanup do
       page_title={if(@flag_key, do: "#{@flag_key} cleanup", else: "Cleanup")}
       page_kicker="Cleanup"
       page_summary="Canonical review surface for lifecycle evidence, archive consequences, and the explicit preview-before-mutation path."
+      base_path={@rulestead_admin_mount_path}
+      current_section={:flags}
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}

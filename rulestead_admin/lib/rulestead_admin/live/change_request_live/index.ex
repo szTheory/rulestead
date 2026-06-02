@@ -39,7 +39,6 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Index do
             "Dedicated review queue for governed mutations, approvals, and explicit execution follow-through."
         )
         |> Map.merge(%{
-          navigation_links: navigation_links(socket, :change_requests),
           env_links: Session.env_links(socket, base_path(), filter_params),
           schedule_path: Session.current_path(socket, schedule_base_path()),
           audit_path: Session.current_path(socket, audit_base_path()),
@@ -75,7 +74,8 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Index do
       current_tenant={@page.current_tenant}
       tenants={@page.tenants}
       tenant_links={@page.tenant_links}
-      navigation_links={@page.navigation_links}
+      base_path={@rulestead_admin_mount_path}
+      current_section={:change_requests}
       policy_state={@page.policy_state}
     >
       <OperatorComponents.page_section
@@ -161,47 +161,6 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Index do
   defp audit_base_path, do: "/admin/flags/audit"
 
   defp mount_path(socket), do: socket.assigns.rulestead_admin_mount_path
-
-  defp navigation_links(socket, current) do
-    mp = mount_path(socket)
-    sep = %{separator: true, path: "", label: "", current?: false}
-
-    [
-      nav_link("Flags", Session.current_path(socket, mp), current == :flags),
-      nav_link(
-        "Audiences",
-        Session.current_path(socket, "#{mp}/audiences"),
-        current == :audiences
-      ),
-      nav_link(
-        "Experiments",
-        Session.current_path(socket, "#{mp}/experiments"),
-        current == :experiments
-      ),
-      nav_link("Compare", Session.current_path(socket, "#{mp}/compare"), current == :compare),
-      sep,
-      nav_link(
-        "Change requests",
-        Session.current_path(socket, base_path()),
-        current == :change_requests
-      ),
-      nav_link(
-        "Schedule",
-        Session.current_path(socket, schedule_base_path()),
-        current == :schedule
-      ),
-      nav_link("Audit", Session.current_path(socket, audit_base_path()), current == :audit),
-      nav_link("Webhooks", Session.current_path(socket, "#{mp}/webhooks"), current == :webhooks),
-      sep,
-      nav_link(
-        "Diagnostics",
-        Session.current_path(socket, "#{mp}/diagnostics"),
-        current == :diagnostics
-      )
-    ]
-  end
-
-  defp nav_link(label, path, current?), do: %{label: label, path: path, current?: current?}
 
   defp load_entries(socket, filters) do
     command =

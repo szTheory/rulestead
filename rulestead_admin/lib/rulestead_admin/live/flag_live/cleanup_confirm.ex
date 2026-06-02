@@ -64,6 +64,8 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupConfirm do
       page_title={if(@flag_key, do: "#{@flag_key} archive confirm", else: "Archive confirm")}
       page_kicker="Cleanup confirm"
       page_summary="Governed archive confirmation with required reason, production typed key checks, and revalidation before mutation."
+      base_path={@rulestead_admin_mount_path}
+      current_section={:flags}
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}

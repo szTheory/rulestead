@@ -236,6 +236,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
       page_title={@page_title}
       page_kicker="Rollout controls"
       page_summary={@page_summary}
+      base_path={@rulestead_admin_mount_path}
+      current_section={:flags}
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}

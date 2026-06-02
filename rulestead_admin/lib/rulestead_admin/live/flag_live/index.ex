@@ -188,7 +188,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
       environments={@available_environments}
       env_links={@env_links}
       policy_state={@rulestead_admin_policy_state}
-      navigation_links={site_nav_links(@base_path, @current_environment, :flags)}
+      base_path={@base_path}
+      current_section={:flags}
     >
       <FlagComponents.callout :if={@outcome_notice} title="Archive result" tone="positive">
         <p><%= @outcome_notice %></p>
@@ -1223,49 +1224,6 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
     now = NaiveDateTime.utc_now()
     diff = NaiveDateTime.diff(now, datetime)
     relative_time(diff)
-  end
-
-  defp site_nav_links(base_path, env, current) do
-    env_q = "?env=#{env.key}"
-    sep = %{separator: true, path: "", label: "", current?: false}
-
-    [
-      %{label: "Flags", path: base_path <> env_q, current?: current == :flags},
-      %{
-        label: "Audiences",
-        path: base_path <> "/audiences" <> env_q,
-        current?: current == :audiences
-      },
-      %{
-        label: "Experiments",
-        path: base_path <> "/experiments" <> env_q,
-        current?: current == :experiments
-      },
-      %{label: "Compare", path: base_path <> "/compare" <> env_q, current?: current == :compare},
-      sep,
-      %{
-        label: "Change requests",
-        path: base_path <> "/change-requests" <> env_q,
-        current?: current == :change_requests
-      },
-      %{
-        label: "Schedule",
-        path: base_path <> "/schedule" <> env_q,
-        current?: current == :schedule
-      },
-      %{label: "Audit", path: base_path <> "/audit" <> env_q, current?: current == :audit},
-      %{
-        label: "Webhooks",
-        path: base_path <> "/webhooks" <> env_q,
-        current?: current == :webhooks
-      },
-      sep,
-      %{
-        label: "Diagnostics",
-        path: base_path <> "/diagnostics" <> env_q,
-        current?: current == :diagnostics
-      }
-    ]
   end
 
   defp format_last_changed_relative(value), do: to_string(value)

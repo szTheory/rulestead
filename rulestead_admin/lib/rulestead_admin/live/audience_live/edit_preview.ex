@@ -48,6 +48,8 @@ defmodule RulesteadAdmin.Live.AudienceLive.EditPreview do
       page_title={if(@audience_key, do: "#{@audience_key} update preview", else: "Update preview")}
       page_kicker="Audience impact preview"
       page_summary="Review authored blast radius before confirming an audience update."
+      base_path={@rulestead_admin_mount_path}
+      current_section={:audiences}
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}

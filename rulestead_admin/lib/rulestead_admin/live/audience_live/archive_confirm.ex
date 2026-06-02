@@ -57,6 +57,8 @@ defmodule RulesteadAdmin.Live.AudienceLive.ArchiveConfirm do
       page_title={if(@audience_key, do: "#{@audience_key} archive confirm", else: "Archive confirm")}
       page_kicker="Archive confirm"
       page_summary="Archive only after preview evidence and an operator reason are recorded."
+      base_path={@rulestead_admin_mount_path}
+      current_section={:audiences}
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}

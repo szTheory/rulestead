@@ -38,6 +38,8 @@ defmodule RulesteadAdmin.Live.AudienceLive.Index do
       page_title="Audiences"
       page_kicker="Reusable targeting"
       page_summary="Shared audience definitions referenced across flags. Open a row for used-by detail and governed mutations."
+      base_path={@rulestead_admin_mount_path}
+      current_section={:audiences}
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}
