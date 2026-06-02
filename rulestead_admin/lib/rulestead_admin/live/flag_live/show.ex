@@ -221,8 +221,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
               href={path_for(assigns, "/#{@detail.flag.key}/rollouts")}
             />
           </section>
-          <section class="rs-task-group" aria-label="Debug">
-            <h2>Debug</h2>
+          <section class="rs-task-group" aria-label="Investigate">
+            <h2>Investigate</h2>
             <OperatorComponents.task_link
               title="Simulate"
               summary="Run this flag against a controlled context."
