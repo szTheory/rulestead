@@ -4,7 +4,7 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupConfirm do
   use Phoenix.LiveView
 
   alias Rulestead.Store.Command
-  alias RulesteadAdmin.Components.{FlagComponents, Shell}
+  alias RulesteadAdmin.Components.{ConfirmComponents, FlagComponents, Shell}
   alias RulesteadAdmin.Live.Session
 
   @impl true
@@ -95,17 +95,21 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupConfirm do
         </FlagComponents.callout>
 
         <FlagComponents.section_card title="Archive confirmation form">
-          <form phx-submit="archive" aria-label="Archive flag confirmation form">
-            <label>
-              <span>Reason</span>
-              <textarea name="reason"><%= @reason_value %></textarea>
-            </label>
-            <label>
-              <span>Typed confirmation</span>
-              <input type="text" name="confirmation" value={@confirmation_value} />
-            </label>
-            <button type="submit">Archive this flag</button>
-          </form>
+          <ConfirmComponents.mutation_confirm
+            submit_event="archive"
+            submit_label="Archive this flag"
+            reason_value={@reason_value}
+            reason_label="Reason"
+            danger?={true}
+            aria_label="Archive flag confirmation form"
+          >
+            <:extra_fields>
+              <label class="rs-form-field">
+                <span>Typed confirmation</span>
+                <input type="text" name="confirmation" value={@confirmation_value} />
+              </label>
+            </:extra_fields>
+          </ConfirmComponents.mutation_confirm>
         </FlagComponents.section_card>
       </div>
     </Shell.page>

@@ -70,12 +70,12 @@ defmodule RulesteadAdmin.Components.ConfirmComponents do
         {render_slot(@evidence)}
       </div>
 
-      {render_slot(@extra_fields)}
-
       <label class="rs-form-field rs-mutation-confirm__reason">
         <span>{@reason_label}</span>
         <textarea name="reason" rows="3" required={@reason_required}><%= @reason_value %></textarea>
       </label>
+
+      {render_slot(@extra_fields)}
 
       <div class="rs-mutation-confirm__actions">
         <a :if={@back_href} href={@back_href} class="rs-button rs-button--text">{@back_label}</a>
