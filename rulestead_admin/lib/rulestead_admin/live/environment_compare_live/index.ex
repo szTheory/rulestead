@@ -21,7 +21,7 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Index do
   @impl true
   def handle_params(params, _uri, socket) do
     source_env = params["source_env"] || socket.assigns.current_environment.key
-    target_env = params["target_env"] || socket.assigns.current_environment.key
+    target_env = params["target_env"] || default_other_env(socket, source_env)
     compare_token = blank_to_nil(params["compare_token"])
 
     page = build_page(socket, source_env, target_env, compare_token)
@@ -76,7 +76,9 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Index do
         <p><code><%= @page.current_path %></code></p>
       </FlagComponents.section_card>
 
-      <p :if={@error_message} role="alert"><%= @error_message %></p>
+      <FlagComponents.callout :if={@error_message} title="Compare unavailable" tone="critical">
+        <p><%= @error_message %></p>
+      </FlagComponents.callout>
 
       <%= if @compare do %>
         <FlagComponents.section_card title="Compare summary">
@@ -176,11 +178,18 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Index do
     }
   end
 
+  defp default_other_env(socket, source_env) do
+    socket.assigns.available_environments
+    |> Enum.map(& &1.key)
+    |> Enum.find(source_env, &(&1 != source_env))
+  end
+
   defp load_compare(socket) do
     opts =
       []
       |> maybe_put_opt(:tenant_key, current_tenant_key(socket))
       |> maybe_put_opt(:compare_token, socket.assigns.compare_token_param)
+      |> maybe_put_opt(:actor, socket.assigns.current_actor)
 
     case Rulestead.compare_environments(
            socket.assigns.source_env,

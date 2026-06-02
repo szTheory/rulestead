@@ -1592,6 +1592,22 @@ a.rs-shell__env-link:active {
   align-items: center;
 }
 
+.rs-inventory__intro {
+  display: grid;
+  gap: var(--rs-space-1);
+  margin-bottom: var(--rs-space-2);
+}
+
+.rs-inventory__intro h2 {
+  margin: 0;
+}
+
+.rs-inventory__intro p {
+  margin: 0;
+  max-width: 70ch;
+  color: var(--rs-text-muted);
+}
+
 .rs-filter-panel {
   display: grid;
   gap: 1rem;

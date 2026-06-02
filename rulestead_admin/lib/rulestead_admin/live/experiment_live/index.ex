@@ -90,12 +90,10 @@ defmodule RulesteadAdmin.Live.ExperimentLive.Index do
       policy_state={@rulestead_admin_policy_state}
     >
       <section class="rs-inventory">
-        <div class="rs-inventory__toolbar">
-          <div>
-            <h2>Experiment inventory</h2>
-            <p>Flag key, lifecycle, freshness, and environment state stay visible for fast experiment review.</p>
-          </div>
-        </div>
+        <header class="rs-inventory__intro">
+          <h2>Experiment inventory</h2>
+          <p>Flag key, lifecycle, freshness, and environment state stay visible for fast experiment review.</p>
+        </header>
 
         <form aria-label="Experiment filters" phx-change="filters_changed" class="rs-filter-grid">
           <input type="hidden" name="filters[env]" value={@current_environment.key} />
