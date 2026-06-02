@@ -36,6 +36,7 @@ defmodule RulesteadAdmin.Components.Shell do
       |> assign(:flash_entries, flash_entries(assigns.flash))
       |> assign(:nav_groups, nav_groups(assigns))
       |> assign(:nav_overview, nav_overview(assigns))
+      |> assign(:palette_groups, palette_groups(assigns))
 
     ~H"""
     <div class="rs-shell" data-env-tone={@env_tone}>
@@ -47,6 +48,18 @@ defmodule RulesteadAdmin.Components.Shell do
           <div :if={@header_actions != []} class="rs-shell__header-actions">
             <%= render_slot(@header_actions) %>
           </div>
+          <button
+            :if={@palette_groups != []}
+            type="button"
+            class="rs-shell__search"
+            data-rs-cmdk-open
+            aria-haspopup="dialog"
+            aria-keyshortcuts="Meta+K Control+K"
+          >
+            <span class="rs-shell__search-icon" aria-hidden="true">⌕</span>
+            <span class="rs-shell__search-label">Search</span>
+            <kbd class="rs-shell__search-kbd" aria-hidden="true">⌘K</kbd>
+          </button>
         </div>
         <section :if={@policy_state} class="rs-shell__context" aria-label="Access">
           <p class="rs-shell__context-label">Access</p>
@@ -163,6 +176,155 @@ defmodule RulesteadAdmin.Components.Shell do
           </div>
         </main>
       </div>
+
+      <div :if={@palette_groups != []} id="rs-cmdk" class="rs-cmdk" phx-hook=".CmdK" hidden>
+        <div class="rs-cmdk__backdrop" data-rs-cmdk-backdrop aria-hidden="true"></div>
+        <div class="rs-cmdk__panel" role="dialog" aria-modal="true" aria-label="Command palette">
+          <div class="rs-cmdk__search">
+            <span class="rs-cmdk__search-glyph" aria-hidden="true">⌕</span>
+            <input
+              id="rs-cmdk-input"
+              data-rs-cmdk-input
+              class="rs-cmdk__input"
+              type="text"
+              role="combobox"
+              aria-expanded="true"
+              aria-controls="rs-cmdk-list"
+              aria-label="Search commands and pages"
+              placeholder="Search commands and pages…"
+              autocomplete="off"
+              spellcheck="false"
+            />
+          </div>
+          <ul id="rs-cmdk-list" data-rs-cmdk-list class="rs-cmdk__list" role="listbox" aria-label="Results">
+            <li
+              :for={{title, items} <- @palette_groups}
+              data-rs-cmdk-group
+              role="group"
+              aria-label={title}
+              class="rs-cmdk__group"
+            >
+              <p class="rs-cmdk__group-title" aria-hidden="true"><%= title %></p>
+              <a
+                :for={item <- items}
+                id={"rs-cmdk-opt-" <> item.id}
+                role="option"
+                aria-selected="false"
+                href={item.href}
+                data-keywords={item.keywords}
+                class="rs-cmdk__option"
+              >
+                <span class="rs-cmdk__option-label"><%= item.label %></span>
+                <span :if={item.hint} class="rs-cmdk__option-hint"><%= item.hint %></span>
+              </a>
+            </li>
+          </ul>
+          <p data-rs-cmdk-empty class="rs-cmdk__empty" hidden>
+            No matches. Try a page or action name.
+          </p>
+          <div class="rs-cmdk__footer" aria-hidden="true">
+            <span><kbd>↑</kbd><kbd>↓</kbd> navigate</span>
+            <span><kbd>⮐</kbd> open</span>
+            <span><kbd>esc</kbd> close</span>
+          </div>
+        </div>
+        <script :type={Phoenix.LiveView.ColocatedHook} name=".CmdK" runtime>
+          {
+            mounted() {
+              const root = this.el
+              const input = root.querySelector("[data-rs-cmdk-input]")
+              const list = root.querySelector("[data-rs-cmdk-list]")
+              const empty = root.querySelector("[data-rs-cmdk-empty]")
+              const visible = () => Array.from(list.querySelectorAll("[role=option]")).filter(o => !o.hidden)
+              let index = 0
+              let lastFocus = null
+
+              const select = (i) => {
+                root.querySelectorAll("[role=option]").forEach(o => o.setAttribute("aria-selected", "false"))
+                const vis = visible()
+                if (vis.length === 0) { input.removeAttribute("aria-activedescendant"); index = 0; return }
+                index = ((i % vis.length) + vis.length) % vis.length
+                const sel = vis[index]
+                sel.setAttribute("aria-selected", "true")
+                sel.scrollIntoView({ block: "nearest" })
+                input.setAttribute("aria-activedescendant", sel.id)
+              }
+
+              const filter = (q) => {
+                q = (q || "").trim().toLowerCase()
+                const terms = q.length ? q.split(/\s+/) : []
+                root.querySelectorAll("[role=option]").forEach(o => {
+                  const kw = (o.dataset.keywords || o.textContent || "").toLowerCase()
+                  o.hidden = terms.length > 0 && !terms.every(t => kw.indexOf(t) !== -1)
+                })
+                root.querySelectorAll("[data-rs-cmdk-group]").forEach(g => {
+                  g.hidden = !g.querySelector("[role=option]:not([hidden])")
+                })
+                if (empty) empty.hidden = visible().length > 0
+                select(0)
+              }
+
+              const open = () => {
+                lastFocus = document.activeElement
+                root.hidden = false
+                document.documentElement.style.overflow = "hidden"
+                input.value = ""
+                filter("")
+                requestAnimationFrame(() => input.focus())
+              }
+              const close = () => {
+                root.hidden = true
+                document.documentElement.style.overflow = ""
+                if (lastFocus && lastFocus.focus) lastFocus.focus()
+              }
+
+              this._onKey = (e) => {
+                if ((e.metaKey || e.ctrlKey) && !e.altKey && (e.key === "k" || e.key === "K")) {
+                  e.preventDefault()
+                  root.hidden ? open() : close()
+                }
+              }
+              window.addEventListener("keydown", this._onKey)
+
+              this._onOpenClick = (e) => {
+                const t = e.target.closest("[data-rs-cmdk-open]")
+                if (t) { e.preventDefault(); open() }
+              }
+              document.addEventListener("click", this._onOpenClick)
+
+              root.querySelector("[data-rs-cmdk-backdrop]").addEventListener("click", close)
+              input.addEventListener("input", (e) => filter(e.target.value))
+
+              root.addEventListener("keydown", (e) => {
+                if (e.key === "Escape") { e.preventDefault(); close() }
+                else if (e.key === "ArrowDown") { e.preventDefault(); select(index + 1) }
+                else if (e.key === "ArrowUp") { e.preventDefault(); select(index - 1) }
+                else if (e.key === "Enter") {
+                  e.preventDefault()
+                  const sel = visible()[index]
+                  if (sel) window.location.assign(sel.getAttribute("href"))
+                }
+                else if (e.key === "Tab") { e.preventDefault(); input.focus() }
+              })
+
+              list.addEventListener("mousemove", (e) => {
+                const o = e.target.closest("[role=option]")
+                if (o && !o.hidden) {
+                  const i = visible().indexOf(o)
+                  if (i >= 0 && i !== index) select(i)
+                }
+              })
+
+              filter("")
+            },
+            destroyed() {
+              window.removeEventListener("keydown", this._onKey)
+              document.removeEventListener("click", this._onOpenClick)
+              document.documentElement.style.overflow = ""
+            }
+          }
+        </script>
+      </div>
     </div>
     """
   end
@@ -180,6 +342,46 @@ defmodule RulesteadAdmin.Components.Shell do
   end
 
   defp nav_overview(_assigns), do: nil
+
+  # Builds the command-palette result groups from the same Navigation source the
+  # rail uses, so the palette and the rail teach the same mental model.
+  defp palette_groups(%{base_path: base_path} = assigns) when is_binary(base_path) do
+    env_key = Map.get(assigns.current_environment || %{}, :key)
+    env_q = if env_key && env_key != "", do: "?env=#{env_key}", else: ""
+    caps = Map.get(assigns.policy_state || %{}, :capabilities) || %{}
+    can_create? = Map.get(caps, :edit?, false) or Map.get(caps, :admin?, false)
+
+    nav = nav_groups(assigns)
+
+    goto =
+      [%{label: "Overview", href: base_path <> env_q, hint: "Home"}] ++
+        for(group <- nav, item <- group.items, do: %{label: item.label, href: item.path, hint: group.title})
+
+    actions =
+      if can_create?,
+        do: [%{label: "Create a flag", href: base_path <> "/new" <> env_q, hint: "New"}],
+        else: []
+
+    [{"Actions", actions}, {"Go to", goto}]
+    |> Enum.reject(fn {_title, items} -> items == [] end)
+    |> Enum.map(fn {title, items} ->
+      finalized =
+        items
+        |> Enum.with_index()
+        |> Enum.map(fn {item, index} ->
+          item
+          |> Map.put(:id, "#{palette_slug(title)}-#{index}")
+          |> Map.put(:keywords, String.downcase("#{item.label} #{Map.get(item, :hint, "")} #{title}"))
+        end)
+
+      {title, finalized}
+    end)
+  end
+
+  defp palette_groups(_assigns), do: []
+
+  defp palette_slug(value),
+    do: value |> String.downcase() |> String.replace(~r/[^a-z0-9]+/, "-")
 
   defp env_tone(%{key: "prod"}), do: "production"
   defp env_tone(%{key: "production"}), do: "production"

@@ -93,10 +93,12 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.ShowTest do
         "/admin/flags/compare/checkout-redesign?env=prod&tenant=acme&source_env=staging&target_env=prod&compare_token=stale-preview"
       )
 
-    refute html =~ ">Apply<"
-    refute html =~ ">Schedule<"
+    # Guard against compare mutation controls specifically (rs-button affordances),
+    # not the global nav/command-palette items that share these labels.
+    refute html =~ ~r/rs-button[^>]*>\s*Apply/
+    refute html =~ ~r/rs-button[^>]*>\s*Schedule/
     refute html =~ "Submit change request"
-    refute html =~ ">Publish<"
+    refute html =~ ~r/rs-button[^>]*>\s*Publish/
   end
 
   defp seed_compare_fixture! do

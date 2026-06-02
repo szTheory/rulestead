@@ -3521,3 +3521,199 @@ a.rs-env-state:active {
       color var(--rs-motion-fast) var(--rs-ease-out);
   }
 }
+
+/* ===========================================================================
+   Command palette (⌘K) — header trigger + overlay dialog
+   =========================================================================== */
+.rs-shell__search {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--rs-space-2);
+  min-height: var(--rs-control-h-sm);
+  margin-top: var(--rs-space-3);
+  padding: 0 var(--rs-space-2) 0 var(--rs-space-3);
+  border-radius: 999px;
+  border: 1px solid var(--rs-border);
+  background: var(--rs-surface-muted);
+  color: var(--rs-text-muted);
+  font-size: var(--rs-text-sm);
+  cursor: pointer;
+}
+
+.rs-shell .rs-shell__search:hover {
+  border-color: var(--rs-border-strong);
+  background: var(--rs-surface);
+  color: var(--rs-text);
+}
+
+.rs-shell__search-glyph {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.rs-shell__search-kbd {
+  font-family: var(--rs-font-mono);
+  font-size: var(--rs-text-2xs);
+  padding: 0.1rem 0.35rem;
+  border-radius: var(--rs-radius-sm);
+  background: var(--rs-surface);
+  border: 1px solid var(--rs-border);
+  color: var(--rs-text-muted);
+}
+
+.rs-cmdk {
+  position: fixed;
+  inset: 0;
+  z-index: var(--rs-z-toast);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 12vh var(--rs-space-4) var(--rs-space-4);
+}
+
+.rs-cmdk[hidden] {
+  display: none;
+}
+
+.rs-cmdk__backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 35, 0.45);
+}
+
+.rs-cmdk__panel {
+  position: relative;
+  width: min(640px, 100%);
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--rs-surface);
+  border: 1px solid var(--rs-border);
+  border-radius: var(--rs-radius-lg);
+  box-shadow: var(--rs-shadow-panel);
+  overflow: hidden;
+}
+
+.rs-cmdk__search {
+  display: flex;
+  align-items: center;
+  gap: var(--rs-space-2);
+  padding: var(--rs-space-3) var(--rs-space-4);
+  border-bottom: 1px solid var(--rs-border-subtle);
+}
+
+.rs-cmdk__search-glyph {
+  font-size: 1.15rem;
+  color: var(--rs-text-muted);
+}
+
+.rs-shell .rs-cmdk__input {
+  flex: 1;
+  min-height: auto;
+  padding: var(--rs-space-1) 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  font-size: var(--rs-text-md);
+  color: var(--rs-text);
+}
+
+.rs-shell .rs-cmdk__input:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.rs-cmdk__list {
+  list-style: none;
+  margin: 0;
+  padding: var(--rs-space-2);
+  overflow-y: auto;
+}
+
+.rs-cmdk__group {
+  margin-bottom: var(--rs-space-2);
+}
+
+.rs-cmdk__group[hidden] {
+  display: none;
+}
+
+.rs-cmdk__group-title {
+  margin: var(--rs-space-2) var(--rs-space-2) var(--rs-space-1);
+  font-size: var(--rs-text-2xs);
+  font-weight: var(--rs-weight-semibold);
+  letter-spacing: var(--rs-tracking-wide);
+  text-transform: uppercase;
+  color: var(--rs-text-muted);
+}
+
+.rs-cmdk__option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--rs-space-3);
+  padding: var(--rs-space-2) var(--rs-space-3);
+  border-radius: var(--rs-radius-md);
+  color: var(--rs-text);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.rs-cmdk__option[hidden] {
+  display: none;
+}
+
+.rs-cmdk__option[aria-selected="true"] {
+  background: var(--rs-primary-soft);
+  color: var(--rs-primary-hover);
+}
+
+.rs-cmdk__option-label {
+  font-size: var(--rs-text-base);
+  font-weight: var(--rs-weight-medium);
+}
+
+.rs-cmdk__option-hint {
+  font-size: var(--rs-text-xs);
+  color: var(--rs-text-muted);
+}
+
+.rs-cmdk__option[aria-selected="true"] .rs-cmdk__option-hint {
+  color: var(--rs-primary-hover);
+}
+
+.rs-cmdk__empty {
+  margin: 0;
+  padding: var(--rs-space-6) var(--rs-space-4);
+  text-align: center;
+  color: var(--rs-text-muted);
+  font-size: var(--rs-text-sm);
+}
+
+.rs-cmdk__empty[hidden] {
+  display: none;
+}
+
+.rs-cmdk__footer {
+  display: flex;
+  gap: var(--rs-space-4);
+  padding: var(--rs-space-2) var(--rs-space-4);
+  border-top: 1px solid var(--rs-border-subtle);
+  background: var(--rs-surface-faint);
+  font-size: var(--rs-text-2xs);
+  color: var(--rs-text-muted);
+}
+
+.rs-cmdk__footer kbd {
+  font-family: var(--rs-font-mono);
+  padding: 0 0.25rem;
+  border: 1px solid var(--rs-border);
+  border-radius: var(--rs-radius-sm);
+  background: var(--rs-surface);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .rs-cmdk:not([hidden]) .rs-cmdk__panel {
+    animation: rs-confirm-pop var(--rs-motion-slow) var(--rs-ease-out) both;
+  }
+}

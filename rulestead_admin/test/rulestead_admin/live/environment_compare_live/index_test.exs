@@ -64,10 +64,12 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.IndexTest do
     assert html =~ "tenant"
     assert html =~ "unpublished work"
     assert html =~ "operational override"
-    refute html =~ ">Apply<"
-    refute html =~ ">Schedule<"
+    # Guard against compare mutation controls specifically (rs-button affordances),
+    # not the global nav/command-palette items that share these labels.
+    refute html =~ ~r/rs-button[^>]*>\s*Apply/
+    refute html =~ ~r/rs-button[^>]*>\s*Schedule/
     refute html =~ "Submit change request"
-    refute html =~ ">Publish<"
+    refute html =~ ~r/rs-button[^>]*>\s*Publish/
   end
 
   test "renders audience dependency findings section", %{conn: conn} do
