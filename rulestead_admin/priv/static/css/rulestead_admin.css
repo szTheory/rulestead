@@ -191,12 +191,15 @@
   -webkit-font-smoothing: antialiased;
 }
 
-.rs-shell a {
+/* Base link styling is wrapped in :where() so it carries near-zero specificity.
+   Component link classes (.rs-task-link, .rs-shell__rail-link, ...) then win by
+   normal cascade — no !important needed. */
+.rs-shell :where(a) {
   color: var(--rs-primary);
   text-decoration: none;
 }
 
-.rs-shell a:hover {
+.rs-shell :where(a:hover) {
   color: var(--rs-primary-hover);
   text-decoration: underline;
 }
@@ -803,7 +806,7 @@
 .rs-shell__breadcrumb-link {
   color: var(--rs-text-muted);
   font-weight: 600;
-  text-decoration: none !important;
+  text-decoration: none;
 }
 
 .rs-shell__breadcrumb-link:hover {
@@ -850,9 +853,9 @@
     var(--rs-surface-muted);
 }
 
-.rs-table__empty-cell {
-  padding: 0 !important;
-  border-bottom: none !important;
+.rs-shell .rs-table__empty-cell {
+  padding: 0;
+  border-bottom: none;
 }
 
 .rs-empty-state__icon {
@@ -888,10 +891,10 @@
   justify-content: flex-start;
 }
 
-.rs-filter-preset--active {
-  background: var(--rs-primary) !important;
-  color: var(--rs-on-primary) !important;
-  border-color: var(--rs-primary) !important;
+.rs-shell .rs-filter-preset--active {
+  background: var(--rs-primary);
+  color: var(--rs-on-primary);
+  border-color: var(--rs-primary);
 }
 
 .rs-shell input:focus,
@@ -1016,7 +1019,7 @@
   background: var(--rs-surface-muted);
   color: var(--rs-text);
   font-size: 0.875rem;
-  text-decoration: none !important;
+  text-decoration: none;
   transition-property: border-color, background-color, box-shadow, transform;
   transition-duration: var(--rs-motion-fast);
   transition-timing-function: var(--rs-ease-standard);
@@ -1027,7 +1030,7 @@ a.rs-shell__env-link:focus-visible {
   border-color: var(--rs-primary);
   background: var(--rs-primary-soft);
   box-shadow: var(--rs-shadow-sm);
-  text-decoration: none !important;
+  text-decoration: none;
 }
 
 a.rs-shell__env-link:active {
@@ -1130,7 +1133,7 @@ a.rs-shell__env-link:active {
   font-size: var(--rs-text-sm);
   font-weight: var(--rs-weight-medium);
   white-space: nowrap;
-  text-decoration: none !important;
+  text-decoration: none;
   transition: background-color var(--rs-motion-fast) var(--rs-ease-standard),
     color var(--rs-motion-fast) var(--rs-ease-standard);
 }
@@ -1311,7 +1314,7 @@ a.rs-shell__env-link:active {
   color: var(--rs-text);
   font-size: 0.86rem;
   font-weight: 650;
-  text-decoration: none !important;
+  text-decoration: none;
   transition-property: border-color, background-color, color, box-shadow, transform;
   transition-duration: var(--rs-motion-fast);
   transition-timing-function: var(--rs-ease-standard);
@@ -1368,7 +1371,7 @@ a.rs-shell__env-link:active {
 
 .rs-record-row__title a {
   color: var(--rs-text);
-  text-decoration: none !important;
+  text-decoration: none;
 }
 
 .rs-record-row__title a:hover {
@@ -1485,7 +1488,7 @@ a.rs-shell__env-link:active {
   color: var(--rs-text-muted);
   font-size: 0.83rem;
   font-weight: 650;
-  text-decoration: none !important;
+  text-decoration: none;
 }
 
 .rs-segmented-links a:hover,
@@ -1690,7 +1693,7 @@ a.rs-shell__env-link:active {
   background: transparent;
   color: var(--rs-text-muted);
   line-height: 0;
-  text-decoration: none !important;
+  text-decoration: none;
 }
 
 .rs-omnisearch__token-remove svg {
@@ -1787,7 +1790,7 @@ a.rs-shell__env-link:active {
   color: var(--rs-text-muted);
   font-size: 0.84rem;
   font-weight: 600;
-  text-decoration: none !important;
+  text-decoration: none;
 }
 
 .rs-inventory-views a:hover {
@@ -1900,13 +1903,13 @@ a.rs-shell__env-link:active {
   color: var(--rs-primary);
   font-size: 0.82rem;
   font-weight: 600;
-  text-decoration: none !important;
+  text-decoration: none;
 }
 
 .rs-triage-note a:hover,
 .rs-triage-note a:focus-visible {
   color: var(--rs-primary-hover);
-  text-decoration: underline !important;
+  text-decoration: underline;
 }
 
 .hidden {
@@ -1946,7 +1949,7 @@ a.rs-shell__env-link:active {
   border: 1px solid var(--rs-border);
   background: var(--rs-surface-muted);
   font-size: 0.82rem;
-  text-decoration: none !important;
+  text-decoration: none;
 }
 
 .rs-filter-presets__links a:hover {
@@ -1977,12 +1980,12 @@ a.rs-shell__env-link:active {
   color: var(--rs-text-muted);
 }
 
-.rs-filter-grid__checkbox {
-  display: flex !important;
+.rs-shell .rs-filter-grid__checkbox {
+  display: flex;
   align-items: center;
   gap: 0.45rem;
-  font-weight: 500 !important;
-  color: var(--rs-text) !important;
+  font-weight: 500;
+  color: var(--rs-text);
 }
 
 /* Tables */
@@ -2167,7 +2170,7 @@ a.rs-shell__env-link:active {
   background: var(--rs-surface);
   font-size: 0.875rem;
   font-weight: 600;
-  text-decoration: none !important;
+  text-decoration: none;
 }
 
 .rs-detail__actions a:hover {
@@ -2213,9 +2216,9 @@ a.rs-shell__env-link:active {
   border-top: 1px solid var(--rs-border-subtle);
 }
 
-.rs-eyebrow {
-  margin: 0 0 0.35rem !important;
-  color: var(--rs-text-muted) !important;
+.rs-shell .rs-eyebrow {
+  margin: 0 0 0.35rem;
+  color: var(--rs-text-muted);
   font-size: 0.74rem;
   font-weight: 800;
   letter-spacing: 0.05em;
@@ -2384,8 +2387,8 @@ a.rs-shell__env-link:active {
   border: 1px solid var(--rs-border-subtle);
   border-radius: var(--rs-radius-md);
   background: rgba(244, 246, 248, 0.64);
-  color: var(--rs-text) !important;
-  text-decoration: none !important;
+  color: var(--rs-text);
+  text-decoration: none;
 }
 
 a.rs-env-state {
@@ -2399,7 +2402,7 @@ a.rs-env-state:focus-visible {
   border-color: var(--rs-primary);
   background: var(--rs-primary-soft);
   box-shadow: var(--rs-shadow-sm);
-  text-decoration: none !important;
+  text-decoration: none;
 }
 
 a.rs-env-state:active {
@@ -2414,7 +2417,7 @@ a.rs-env-state:active {
 .rs-env-state[data-available="false"] {
   border-style: dashed;
   background: transparent;
-  color: var(--rs-text-muted) !important;
+  color: var(--rs-text-muted);
 }
 
 .rs-env-state__name {
@@ -2458,7 +2461,7 @@ a.rs-env-state:active {
 }
 
 .rs-hub-priority__recommendation {
-  color: var(--rs-text) !important;
+  color: var(--rs-text);
   font-weight: 700;
 }
 
@@ -2492,8 +2495,8 @@ a.rs-env-state:active {
   border: 1px solid var(--rs-border-subtle);
   border-radius: var(--rs-radius-md);
   background: var(--rs-surface);
-  color: var(--rs-text) !important;
-  text-decoration: none !important;
+  color: var(--rs-text);
+  text-decoration: none;
   transition-property: border-color, background-color, box-shadow, transform;
   transition-duration: var(--rs-motion-fast);
   transition-timing-function: var(--rs-ease-standard);
@@ -2504,7 +2507,7 @@ a.rs-env-state:active {
   border-color: var(--rs-primary);
   background: var(--rs-primary-soft);
   box-shadow: var(--rs-shadow-sm);
-  text-decoration: none !important;
+  text-decoration: none;
 }
 
 .rs-task-link:active {
