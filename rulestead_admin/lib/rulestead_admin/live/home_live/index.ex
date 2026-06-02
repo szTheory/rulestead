@@ -8,12 +8,14 @@ defmodule RulesteadAdmin.Live.HomeLive.Index do
   alias RulesteadAdmin.Live.Session
   alias RulesteadAdmin.Navigation
 
-  # Event types worth surfacing on the operations home — the changes an operator
-  # most wants to notice when they land here under pressure.
+  # Event types worth surfacing on the operations home — the notable, lower-
+  # frequency changes an operator most wants to notice when they land here under
+  # pressure. Routine publishes are intentionally excluded so the band stays a
+  # signal, not a firehose.
   @high_impact_events ~w(
     kill_switch.engage kill_switch.release
     rollout.guardrail_held rollout.guardrail_rollback
-    ruleset.publish flag.archive
+    audit.rollback flag.archive
   )
 
   # One-line summaries for the task launcher, keyed by nav item. Structure and
@@ -40,13 +42,16 @@ defmodule RulesteadAdmin.Live.HomeLive.Index do
   def handle_params(_params, uri, socket) do
     mount_path = socket.assigns.rulestead_admin_mount_path
     env = socket.assigns.current_environment
+    actor = socket.assigns.current_actor
 
     socket =
       socket
       |> assign(:current_path, Session.current_path(socket, mount_path))
       |> assign(:env_links, Session.env_links(socket, mount_path))
       |> assign(:current_uri, uri)
-      |> assign_async(:summary, fn -> {:ok, %{summary: load_summary(mount_path, env.key)}} end)
+      |> assign_async(:summary, fn ->
+        {:ok, %{summary: load_summary(mount_path, env.key, actor)}}
+      end)
 
     {:noreply, socket}
   end
@@ -261,7 +266,7 @@ defmodule RulesteadAdmin.Live.HomeLive.Index do
 
   # --- Summary loaders (env-scoped, capped — never full scans) -------------
 
-  defp load_summary(mount_path, env_key) do
+  defp load_summary(mount_path, env_key, actor) do
     {kill_engaged, stale_candidates} = summarize_flags(env_key)
     executions = summarize_executions(env_key)
 
@@ -272,7 +277,7 @@ defmodule RulesteadAdmin.Live.HomeLive.Index do
       failed: executions.failed,
       upcoming: executions.upcoming,
       running: executions.running,
-      high_impact: recent_high_impact(mount_path, env_key)
+      high_impact: recent_high_impact(mount_path, env_key, actor)
     }
   end
 
@@ -323,8 +328,8 @@ defmodule RulesteadAdmin.Live.HomeLive.Index do
     end
   end
 
-  defp recent_high_impact(mount_path, env_key) do
-    case Rulestead.list_audit_events(environment_key: env_key, limit: 50) do
+  defp recent_high_impact(mount_path, env_key, actor) do
+    case Rulestead.list_audit_events(environment_key: env_key, actor: actor, limit: 50) do
       {:ok, page} ->
         page.entries
         |> Enum.filter(&(&1.event_type in @high_impact_events))
@@ -367,6 +372,9 @@ defmodule RulesteadAdmin.Live.HomeLive.Index do
   defp high_impact_title(%{event_type: "rollout.guardrail_rollback", resource_key: key}),
     do: "Rollout rolled back — #{key}"
 
+  defp high_impact_title(%{event_type: "audit.rollback", resource_key: key}),
+    do: "Change rolled back — #{key}"
+
   defp high_impact_title(%{event_type: "ruleset.publish", resource_key: key}),
     do: "Ruleset published — #{key}"
 
@@ -380,6 +388,7 @@ defmodule RulesteadAdmin.Live.HomeLive.Index do
        do: "critical"
 
   defp high_impact_tone(%{event_type: "rollout.guardrail_held"}), do: "warning"
+  defp high_impact_tone(%{event_type: "audit.rollback"}), do: "warning"
   defp high_impact_tone(%{event_type: "flag.archive"}), do: "muted"
   defp high_impact_tone(_event), do: "neutral"
 
