@@ -64,40 +64,15 @@ defmodule RulesteadAdmin.Live.WebhookLive.Index do
       navigation_links={@page.navigation_links}
       policy_state={@page.policy_state}
     >
-      <OperatorComponents.page_section
-        title="Webhook records"
-        summary="Integration visibility for inbound rejections, accepted inbound events, and outbound deliveries without exposing secrets."
-      />
-
-      <section class="rs-page-section" aria-label="Type filters">
-        <h2>Filters</h2>
-        <div class="rs-segmented-links">
-          <a :for={filter <- @page.filter_links} href={filter.path} aria-current={if(filter.current?, do: "page", else: nil)}>
-            <%= filter.label %>
-          </a>
-        </div>
-      </section>
-
-      <section class="rs-page-section">
-        <p :if={@page.webhooks == []}>No webhook records match the current filter.</p>
-
-        <div :if={@page.webhooks != []} class="rs-record-list">
-          <OperatorComponents.record_row
-            :for={webhook <- @page.webhooks}
-            title={webhook.id}
-            href={detail_path(@page.current_environment.key, webhook.id)}
-            meta={"#{webhook.type_label} · #{webhook.status_label}"}
-            tone={webhook_tone(webhook)}
-          >
-            <OperatorComponents.detail_grid rows={webhook_rows(webhook)} />
-          </OperatorComponents.record_row>
-        </div>
-      </section>
-
-      <section class="rs-page-section">
-        <h2>Related routes</h2>
-        <OperatorComponents.related_links links={related_links(@page)} />
-      </section>
+      <OperatorComponents.empty_state
+        title="Webhook records not yet available"
+        body="Inbound rejections, accepted inbound events, and outbound delivery records will appear here once webhook integrations are configured and active."
+        variant="hero"
+      >
+        <:actions>
+          <OperatorComponents.related_links links={related_links(@page)} />
+        </:actions>
+      </OperatorComponents.empty_state>
     </Shell.page>
     """
   end
@@ -247,16 +222,37 @@ defmodule RulesteadAdmin.Live.WebhookLive.Index do
   end
 
   defp navigation_links(socket, current) do
+    mp = mount_path(socket)
+    sep = %{separator: true, path: "", label: "", current?: false}
+
     [
-      nav_link("Flags", Session.current_path(socket, mount_path(socket)), current == :flags),
+      nav_link("Flags", Session.current_path(socket, mp), current == :flags),
+      nav_link(
+        "Audiences",
+        Session.current_path(socket, "#{mp}/audiences"),
+        current == :audiences
+      ),
+      nav_link(
+        "Experiments",
+        Session.current_path(socket, "#{mp}/experiments"),
+        current == :experiments
+      ),
+      nav_link("Compare", Session.current_path(socket, "#{mp}/compare"), current == :compare),
+      sep,
       nav_link(
         "Change requests",
         Session.current_path(socket, change_requests_path()),
         current == :change_requests
       ),
       nav_link("Schedule", Session.current_path(socket, schedule_path()), current == :schedule),
+      nav_link("Audit", Session.current_path(socket, audit_path()), current == :audit),
       nav_link("Webhooks", Session.current_path(socket, base_path()), current == :webhooks),
-      nav_link("Audit", Session.current_path(socket, audit_path()), current == :audit)
+      sep,
+      nav_link(
+        "Diagnostics",
+        Session.current_path(socket, "#{mp}/diagnostics"),
+        current == :diagnostics
+      )
     ]
   end
 

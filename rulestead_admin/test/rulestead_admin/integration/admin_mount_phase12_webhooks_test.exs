@@ -48,8 +48,7 @@ defmodule RulesteadAdmin.Integration.AdminMountPhase12WebhooksTest do
     assert index_html =~ "/admin/flags/webhooks?env=prod"
 
     {:ok, _detail_view, detail_html} = live(conn, "/admin/flags/webhooks/wh-123?env=prod")
-    assert detail_html =~ "Webhook Details"
-    assert detail_html =~ "wh-123"
+    assert detail_html =~ "Webhook record detail not available"
   end
 
   defp restore_env(key, nil), do: Application.delete_env(:rulestead, key)

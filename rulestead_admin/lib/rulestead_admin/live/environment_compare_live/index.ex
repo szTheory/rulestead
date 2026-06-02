@@ -142,10 +142,6 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Index do
           />
         </section>
 
-        <details class="rs-raw-detail" aria-label="Raw compare payload">
-          <summary>Show raw compare payload</summary>
-          <pre><%= inspect(@compare, pretty: true) %></pre>
-        </details>
       <% end %>
     </Shell.page>
     """

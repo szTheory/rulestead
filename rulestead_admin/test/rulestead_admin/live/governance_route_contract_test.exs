@@ -71,7 +71,7 @@ defmodule RulesteadAdmin.Live.GovernanceRouteContractTest do
     {:ok, _view, queue_html} = live(conn, "/admin/flags/change-requests?env=staging")
 
     assert queue_html =~ "Change requests"
-    assert queue_html =~ "Governance navigation"
+    assert queue_html =~ "Section navigation"
     assert queue_html =~ "/admin/flags?env=staging"
     assert queue_html =~ "/admin/flags/change-requests?env=staging"
     assert queue_html =~ "/admin/flags/schedule?env=staging"
@@ -98,7 +98,7 @@ defmodule RulesteadAdmin.Live.GovernanceRouteContractTest do
     {:ok, _view, schedule_html} = live(conn, "/admin/flags/schedule?env=staging")
 
     assert schedule_html =~ "Schedule"
-    assert schedule_html =~ "Governance navigation"
+    assert schedule_html =~ "Section navigation"
     assert schedule_html =~ "/admin/flags?env=staging"
     assert schedule_html =~ "/admin/flags/change-requests?env=staging"
     assert schedule_html =~ "/admin/flags/schedule?env=staging"
@@ -142,7 +142,7 @@ defmodule RulesteadAdmin.Live.GovernanceRouteContractTest do
     {:ok, _view, html} = live(conn, "/admin/flags/schedule/#{sched_id}?env=prod")
 
     assert html =~ "Production"
-    assert html =~ "Governance navigation"
+    assert html =~ "Section navigation"
     assert html =~ "/admin/flags?env=prod"
     assert html =~ "/admin/flags/schedule/#{sched_id}?env=prod"
     assert html =~ "/admin/flags/change-requests?env=prod"

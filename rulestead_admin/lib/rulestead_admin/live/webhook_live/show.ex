@@ -62,24 +62,15 @@ defmodule RulesteadAdmin.Live.WebhookLive.Show do
       navigation_links={@page.navigation_links}
       policy_state={@page.policy_state}
     >
-      <section class="rs-card">
-        <h2>Webhook Details</h2>
-        <p class="hidden">Record ID: <%= @page.webhook.id %></p>
-        <OperatorComponents.detail_grid rows={webhook_rows(@page.webhook)} />
-      </section>
-
-      <section class="rs-card">
-        <h2>Correlations</h2>
-        <p class="hidden">Related change request</p>
-        <p class="hidden">Related schedule</p>
-        <p class="hidden">Related flag</p>
-        <p>This demo record has no persisted cross-record correlation id. Use the related routes below to inspect schedule, change-request, and audit state for the same environment.</p>
-      </section>
-
-      <section class="rs-page-section">
-        <h2>Related routes</h2>
-        <OperatorComponents.related_links links={related_links(@page)} />
-      </section>
+      <OperatorComponents.empty_state
+        title="Webhook record detail not available"
+        body="This webhook record is a routing placeholder. Real inbound and outbound delivery details will appear here once webhook integrations are active."
+        variant="hero"
+      >
+        <:actions>
+          <OperatorComponents.related_links links={related_links(@page)} />
+        </:actions>
+      </OperatorComponents.empty_state>
     </Shell.page>
     """
   end
@@ -130,16 +121,37 @@ defmodule RulesteadAdmin.Live.WebhookLive.Show do
   end
 
   defp navigation_links(socket, current) do
+    mp = mount_path(socket)
+    sep = %{separator: true, path: "", label: "", current?: false}
+
     [
-      nav_link("Flags", Session.current_path(socket, mount_path(socket)), current == :flags),
+      nav_link("Flags", Session.current_path(socket, mp), current == :flags),
+      nav_link(
+        "Audiences",
+        Session.current_path(socket, "#{mp}/audiences"),
+        current == :audiences
+      ),
+      nav_link(
+        "Experiments",
+        Session.current_path(socket, "#{mp}/experiments"),
+        current == :experiments
+      ),
+      nav_link("Compare", Session.current_path(socket, "#{mp}/compare"), current == :compare),
+      sep,
       nav_link(
         "Change requests",
         Session.current_path(socket, change_requests_path()),
         current == :change_requests
       ),
       nav_link("Schedule", Session.current_path(socket, schedule_path()), current == :schedule),
+      nav_link("Audit", Session.current_path(socket, audit_path()), current == :audit),
       nav_link("Webhooks", Session.current_path(socket, base_path()), current == :webhooks),
-      nav_link("Audit", Session.current_path(socket, audit_path()), current == :audit)
+      sep,
+      nav_link(
+        "Diagnostics",
+        Session.current_path(socket, "#{mp}/diagnostics"),
+        current == :diagnostics
+      )
     ]
   end
 

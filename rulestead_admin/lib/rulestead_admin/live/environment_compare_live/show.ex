@@ -102,9 +102,9 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Show do
             entry={
               %{
               title: @flag.flag_key,
-              source_summary: inspect(@flag.source_state, pretty: true),
-              current_target_summary: inspect(@flag.current_target_state, pretty: true),
-              proposed_target_summary: inspect(@flag.proposed_target_state, pretty: true),
+              source_summary: format_state(@flag.source_state),
+              current_target_summary: format_state(@flag.current_target_state),
+              proposed_target_summary: format_state(@flag.proposed_target_state),
               diff_lines: Enum.map(@flag.changed_fields, &"Changed field: #{&1}")
             }}
             source_label="Source"
@@ -115,7 +115,6 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Show do
         </FlagComponents.section_card>
 
         <section aria-label="Compare token metadata">
-          <p class="hidden">compare token metadata</p>
           <OperatorComponents.trace_panel
             title="Compare token metadata"
             summary="Compare token and scoped context for this flag review."
@@ -123,10 +122,6 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Show do
           />
         </section>
 
-        <details class="rs-raw-detail" aria-label={"Show raw compare payload for #{@flag.flag_key}"}>
-          <summary>Show raw compare payload for <%= @flag.flag_key %></summary>
-          <pre><%= inspect(@compare, pretty: true) %></pre>
-        </details>
       <% end %>
     </Shell.page>
     """
@@ -259,4 +254,15 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Show do
     |> String.replace("_", " ")
     |> String.capitalize()
   end
+
+  defp format_state(nil), do: "(not configured)"
+
+  defp format_state(state) when is_map(state) do
+    case Jason.encode(state, pretty: true) do
+      {:ok, json} -> json
+      _ -> inspect(state, pretty: true)
+    end
+  end
+
+  defp format_state(state), do: inspect(state, pretty: true)
 end

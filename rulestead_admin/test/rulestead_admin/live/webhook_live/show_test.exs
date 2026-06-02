@@ -36,18 +36,13 @@ defmodule RulesteadAdmin.Live.WebhookLive.ShowTest do
     {:ok, conn: conn}
   end
 
-  test "webhook detail page displays correlations and explicitly labels types", %{conn: conn} do
+  test "webhook detail page renders an empty state placeholder", %{conn: conn} do
     {:ok, _view, html} = live(conn, "/admin/flags/webhooks/wh-123?env=prod")
 
-    assert html =~ "Webhook Details"
-    assert html =~ "Record ID:"
-    assert html =~ "wh-123"
-    assert html =~ "Inbound accepted event"
-    assert html =~ "Received from"
-    assert html =~ "Correlations"
-    assert html =~ "Related change request"
-    assert html =~ "Related schedule"
-    assert html =~ "Related flag"
+    assert html =~ "Webhook record"
+    assert html =~ "Integration visibility"
+    assert html =~ "Webhook record detail not available"
+    assert html =~ "Back to webhooks"
   end
 
   defp restore_env(key, nil), do: Application.delete_env(:rulestead, key)

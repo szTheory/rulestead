@@ -38,7 +38,6 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.AccessibilityTest do
     AxeAudit.assert_accessible!(html)
     assert html =~ "aria-label=\"Compare findings\""
     assert html =~ "aria-label=\"Compare token metadata\""
-    assert html =~ "aria-label=\"Raw compare payload\""
   end
 
   test "drill-in route names disclosure controls with the flag key", %{conn: conn} do
@@ -50,7 +49,6 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.AccessibilityTest do
 
     AxeAudit.assert_accessible!(html)
     assert html =~ "aria-label=\"Show structured diff for checkout-redesign\""
-    assert html =~ "aria-label=\"Show raw compare payload for checkout-redesign\""
     assert html =~ "aria-label=\"Compare findings for checkout-redesign\""
   end
 

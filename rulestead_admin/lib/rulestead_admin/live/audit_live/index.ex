@@ -47,65 +47,67 @@ defmodule RulesteadAdmin.Live.AuditLive.Index do
     ~H"""
     <Shell.page
       page_title="Audit timeline"
-      page_kicker="Audit"
-      page_summary="Global audit route reserved for actor, environment, and mutation filters across every flag."
+      page_kicker="Change history"
+      page_summary="Append-only record of every mutation across all flags. Filter by actor, environment, mutation type, or date range. For flag-scoped history, use the flag's own Timeline tab."
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}
       policy_state={@rulestead_admin_policy_state}
+      navigation_links={site_nav_links(@current_environment, :audit, @rulestead_admin_mount_path)}
     >
       <p :if={@error_message} role="alert">{@error_message}</p>
       <p :if={@notice} role="status">{@notice}</p>
 
       <FlagComponents.section_card title="Filters">
-        <form phx-change="filter" phx-submit="filter" aria-label="Audit filters">
-          <label>
-            Actor
-            <input type="text" name="filters[actor]" value={@filters["actor"]} aria-label="Actor filter" />
-          </label>
+        <form phx-change="filter" phx-submit="filter" aria-label="Audit filters" class="rs-filter-grid">
+          <div class="rs-form-field">
+            <label for="audit_filter_actor">Actor</label>
+            <input
+              id="audit_filter_actor"
+              type="text"
+              name="filters[actor]"
+              value={@filters["actor"]}
+              placeholder="Filter by actor ID"
+            />
+          </div>
 
-          <label>
-            Environment
-            <select name="filters[env_filter]" aria-label="Environment filter">
+          <div class="rs-form-field">
+            <label for="audit_filter_env">Environment</label>
+            <select id="audit_filter_env" name="filters[env_filter]">
               <option value="all" selected={@filters["env_filter"] == "all"}>All environments</option>
               <option :for={env <- @available_environments} value={env.key} selected={@filters["env_filter"] == env.key}>
                 {env.name}
               </option>
             </select>
-          </label>
+          </div>
 
-          <label>
-            Mutation type
-            <select name="filters[mutation]" aria-label="Mutation type filter">
+          <div class="rs-form-field">
+            <label for="audit_filter_mutation">Mutation type</label>
+            <select id="audit_filter_mutation" name="filters[mutation]">
               <option value="" selected={@filters["mutation"] == ""}>All mutations</option>
               <option value="kill_switch.engage" selected={@filters["mutation"] == "kill_switch.engage"}>Kill switch engage</option>
               <option value="kill_switch.release" selected={@filters["mutation"] == "kill_switch.release"}>Kill switch release</option>
               <option value="ruleset.publish" selected={@filters["mutation"] == "ruleset.publish"}>Ruleset publish</option>
               <option value="audit.rollback" selected={@filters["mutation"] == "audit.rollback"}>Rollback</option>
             </select>
-          </label>
+          </div>
 
-          <label>
-            From
-            <input type="date" name="filters[from]" value={@filters["from"]} aria-label="From date" />
-          </label>
+          <div class="rs-form-field">
+            <label for="audit_filter_from">From</label>
+            <input id="audit_filter_from" type="date" name="filters[from]" value={@filters["from"]} />
+          </div>
 
-          <label>
-            To
-            <input type="date" name="filters[to]" value={@filters["to"]} aria-label="To date" />
-          </label>
+          <div class="rs-form-field">
+            <label for="audit_filter_to">To</label>
+            <input id="audit_filter_to" type="date" name="filters[to]" value={@filters["to"]} />
+          </div>
         </form>
-      </FlagComponents.section_card>
-
-      <FlagComponents.section_card title="Ledger">
-        <p>Global audit reads the same append-only ledger as the per-flag timeline, but projects it across flags for investigation.</p>
       </FlagComponents.section_card>
 
       <OperatorComponents.empty_state
         :if={@entries == []}
         title="No audit events match these filters"
-        body="Try widening the actor, environment, mutation type, or date filters to inspect more of the append-only ledger."
-        icon="0"
+        body="Widen the actor, environment, mutation type, or date range filters to inspect more of the append-only ledger. For flag-scoped history, open the flag and use its Timeline tab."
         variant="compact"
       />
 
@@ -333,6 +335,37 @@ defmodule RulesteadAdmin.Live.AuditLive.Index do
   end
 
   defp diff_lines(_event_type, _diff_state), do: []
+
+  defp site_nav_links(env, current, mp) do
+    env_q = "?env=#{env.key}"
+    sep = %{separator: true, path: "", label: "", current?: false}
+
+    [
+      %{label: "Flags", path: mp <> env_q, current?: current == :flags},
+      %{label: "Audiences", path: "#{mp}/audiences" <> env_q, current?: current == :audiences},
+      %{
+        label: "Experiments",
+        path: "#{mp}/experiments" <> env_q,
+        current?: current == :experiments
+      },
+      %{label: "Compare", path: "#{mp}/compare" <> env_q, current?: current == :compare},
+      sep,
+      %{
+        label: "Change requests",
+        path: "#{mp}/change-requests" <> env_q,
+        current?: current == :change_requests
+      },
+      %{label: "Schedule", path: "#{mp}/schedule" <> env_q, current?: current == :schedule},
+      %{label: "Audit", path: "#{mp}/audit" <> env_q, current?: current == :audit},
+      %{label: "Webhooks", path: "#{mp}/webhooks" <> env_q, current?: current == :webhooks},
+      sep,
+      %{
+        label: "Diagnostics",
+        path: "#{mp}/diagnostics" <> env_q,
+        current?: current == :diagnostics
+      }
+    ]
+  end
 
   defp admin_base_path(socket_or_assigns, suffix),
     do: "#{fetch_mount_path(socket_or_assigns)}#{suffix}"

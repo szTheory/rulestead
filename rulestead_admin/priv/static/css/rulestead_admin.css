@@ -60,6 +60,7 @@
   --rs-space-6: 1.5rem;
   --rs-space-7: 1.75rem;
   --rs-space-8: 2rem;
+  --rs-space-9: 2.25rem;
   --rs-space-10: 2.5rem;
   --rs-control-h: 2.5rem;
   --rs-control-h-sm: 2rem;
@@ -802,7 +803,7 @@
 .rs-shell__header {
   display: grid;
   gap: 1rem;
-  padding: 1.35rem 1.25rem 0.95rem;
+  padding: 1.35rem 1.25rem 0.75rem;
   max-width: var(--rs-shell-max);
   margin: 0 auto;
   border-bottom: 1px solid var(--rs-border);
@@ -813,7 +814,7 @@
   .rs-shell__header {
     grid-template-columns: minmax(0, 1fr) repeat(3, auto);
     align-items: start;
-    padding: 1.55rem 2rem 1.05rem;
+    padding: 1.55rem 2rem 0.85rem;
   }
 }
 
@@ -952,8 +953,9 @@ a.rs-shell__env-link:active {
 .rs-shell__nav {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 0.25rem;
-  padding: 0.45rem 1.25rem;
+  padding: 0.3rem 1.25rem;
   max-width: var(--rs-shell-max);
   margin: 0 auto;
   background: var(--rs-surface);
@@ -962,11 +964,20 @@ a.rs-shell__env-link:active {
 
 @media (min-width: 900px) {
   .rs-shell__nav {
-    padding-top: 0.45rem;
-    padding-bottom: 0.45rem;
+    padding-top: 0.3rem;
+    padding-bottom: 0.3rem;
     padding-left: 2rem;
     padding-right: 2rem;
   }
+}
+
+.rs-shell__nav-sep {
+  width: 1px;
+  height: 1.1rem;
+  background: var(--rs-border-strong);
+  border-radius: 1px;
+  margin: 0 0.2rem;
+  flex-shrink: 0;
 }
 
 .rs-shell__nav-link {
@@ -3220,4 +3231,59 @@ a.rs-env-state:active {
 .rs-experiment-result h3 {
   margin: 0;
   font-size: 0.98rem;
+}
+
+/* Micro-animations — only transform/opacity for GPU compositing */
+
+@keyframes rs-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .rs-card--flag {
+    animation: rs-slide-in var(--rs-motion-base) var(--rs-ease-standard) both;
+  }
+
+  .rs-record-row {
+    animation: rs-slide-in var(--rs-motion-base) var(--rs-ease-standard) both;
+  }
+
+  .rs-badge {
+    transition: transform var(--rs-motion-fast) var(--rs-ease-standard);
+  }
+
+  .rs-badge:hover {
+    transform: scale(1.04);
+  }
+
+  .rs-signal {
+    transition: transform var(--rs-motion-fast) var(--rs-ease-standard);
+  }
+
+  .rs-signal:hover {
+    transform: scale(1.03);
+  }
+
+  .rs-task-link {
+    transition-property: border-color, background-color, box-shadow, transform;
+    transition-duration: var(--rs-motion-fast);
+    transition-timing-function: var(--rs-ease-standard);
+  }
+
+  .rs-task-link:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--rs-shadow);
+  }
+
+  .rs-task-link:active {
+    transform: translateY(0);
+    box-shadow: none;
+  }
 }

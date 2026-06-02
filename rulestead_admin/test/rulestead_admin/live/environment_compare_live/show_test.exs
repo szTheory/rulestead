@@ -63,7 +63,7 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.ShowTest do
     {:ok, _view, html} = live(conn, summary_path)
 
     refute html =~ "Staleness conflict"
-    assert html =~ "compare token metadata"
+    assert html =~ "Compare token metadata"
     assert html =~ query["compare_token"]
     assert query["env"] == "prod"
     assert query["tenant"] == "acme"
@@ -82,7 +82,6 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.ShowTest do
     assert html =~ "Audience dependencies for this flag"
     assert html =~ "vip-users"
     assert html =~ "Show structured diff for checkout-redesign"
-    assert html =~ "Show raw compare payload for checkout-redesign"
     assert html =~ "Compare token"
     assert html =~ "acme"
   end

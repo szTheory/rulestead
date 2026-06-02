@@ -227,20 +227,37 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Show do
   defp audit_path, do: "/admin/flags/audit"
 
   defp navigation_links(socket, current) do
+    mp = mount_path(socket)
+    sep = %{separator: true, path: "", label: "", current?: false}
+
     [
-      nav_link("Flags", Session.current_path(socket, mount_path(socket)), current == :flags),
+      nav_link("Flags", Session.current_path(socket, mp), current == :flags),
+      nav_link(
+        "Audiences",
+        Session.current_path(socket, "#{mp}/audiences"),
+        current == :audiences
+      ),
+      nav_link(
+        "Experiments",
+        Session.current_path(socket, "#{mp}/experiments"),
+        current == :experiments
+      ),
+      nav_link("Compare", Session.current_path(socket, "#{mp}/compare"), current == :compare),
+      sep,
       nav_link(
         "Change requests",
         Session.current_path(socket, index_path()),
         current == :change_requests
       ),
       nav_link("Schedule", Session.current_path(socket, schedule_path()), current == :schedule),
+      nav_link("Audit", Session.current_path(socket, audit_path()), current == :audit),
+      nav_link("Webhooks", Session.current_path(socket, "#{mp}/webhooks"), current == :webhooks),
+      sep,
       nav_link(
-        "Webhooks",
-        Session.current_path(socket, "/admin/flags/webhooks"),
-        current == :webhooks
-      ),
-      nav_link("Audit", Session.current_path(socket, audit_path()), current == :audit)
+        "Diagnostics",
+        Session.current_path(socket, "#{mp}/diagnostics"),
+        current == :diagnostics
+      )
     ]
   end
 

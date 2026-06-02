@@ -110,15 +110,18 @@ defmodule RulesteadAdmin.Components.Shell do
         </ol>
       </nav>
 
-      <nav :if={@navigation_links != []} class="rs-shell__nav" aria-label="Governance navigation">
-        <a
-          :for={link <- @navigation_links}
-          href={link.path}
-          class="rs-shell__nav-link"
-          aria-current={if(link.current?, do: "page", else: nil)}
-        >
-          <%= link.label %>
-        </a>
+      <nav :if={@navigation_links != []} class="rs-shell__nav" aria-label="Section navigation">
+        <%= for link <- @navigation_links do %>
+          <span :if={Map.get(link, :separator)} class="rs-shell__nav-sep" aria-hidden="true" />
+          <a
+            :if={!Map.get(link, :separator)}
+            href={link.path}
+            class="rs-shell__nav-link"
+            aria-current={if(link.current?, do: "page", else: nil)}
+          >
+            <%= link.label %>
+          </a>
+        <% end %>
       </nav>
 
       <main class="rs-shell__body">
