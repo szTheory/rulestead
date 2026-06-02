@@ -3423,6 +3423,19 @@ a.rs-env-state:active {
   }
 }
 
+/* A single restrained "something just happened" entrance for confirmations
+   and notices — rises a touch further than rs-slide-in. */
+@keyframes rs-confirm-pop {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .rs-card--flag {
     animation: rs-slide-in var(--rs-motion-base) var(--rs-ease-standard) both;
@@ -3462,5 +3475,33 @@ a.rs-env-state:active {
   .rs-task-link:active {
     transform: translateY(0);
     box-shadow: none;
+  }
+
+  /* Home task board: groups rise in with a gentle stagger so the console
+     assembles itself rather than snapping in. */
+  .rs-task-group {
+    animation: rs-slide-in var(--rs-motion-base) var(--rs-ease-out) both;
+  }
+
+  .rs-task-group:nth-child(2) {
+    animation-delay: 40ms;
+  }
+
+  .rs-task-group:nth-child(3) {
+    animation-delay: 80ms;
+  }
+
+  /* Notices and confirmations enter with the "something happened" pop —
+     motion in service of the event, not decoration. */
+  .rs-flash,
+  .rs-banner,
+  .rs-callout {
+    animation: rs-confirm-pop var(--rs-motion-slow) var(--rs-ease-out) both;
+  }
+
+  /* Rail active indicator and links settle smoothly between states. */
+  .rs-shell__rail-link {
+    transition: background-color var(--rs-motion-fast) var(--rs-ease-out),
+      color var(--rs-motion-fast) var(--rs-ease-out);
   }
 }
