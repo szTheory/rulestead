@@ -2481,6 +2481,93 @@ a.rs-env-state:active {
   font-weight: var(--rs-weight-bold);
 }
 
+.rs-attention {
+  display: grid;
+  gap: var(--rs-space-3);
+}
+
+@media (min-width: 40rem) {
+  .rs-attention {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 60rem) {
+  .rs-attention {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.rs-attention__card {
+  display: grid;
+  gap: var(--rs-space-1);
+  align-content: start;
+  padding: var(--rs-space-4);
+  border: 1px solid var(--rs-border);
+  border-inline-start: 3px solid var(--rs-border-strong);
+  border-radius: var(--rs-radius-md);
+  background: var(--rs-surface);
+  color: inherit;
+  text-decoration: none;
+  box-shadow: var(--rs-shadow-sm);
+  transition:
+    border-color var(--rs-motion-fast) var(--rs-ease-out),
+    box-shadow var(--rs-motion-fast) var(--rs-ease-out),
+    transform var(--rs-motion-fast) var(--rs-ease-out);
+}
+
+.rs-attention__card:hover {
+  box-shadow: var(--rs-shadow);
+  transform: translateY(-1px);
+}
+
+.rs-attention__card:focus-visible {
+  outline: none;
+  box-shadow: var(--rs-focus-ring);
+}
+
+.rs-attention__card[data-tone="critical"] {
+  border-inline-start-color: var(--rs-error);
+}
+
+.rs-attention__card[data-tone="critical"] .rs-attention__count {
+  color: var(--rs-error-text);
+}
+
+.rs-attention__card[data-tone="warning"] {
+  border-inline-start-color: var(--rs-warning);
+}
+
+.rs-attention__card[data-tone="warning"] .rs-attention__count {
+  color: var(--rs-warning-text);
+}
+
+.rs-attention__count {
+  font-family: var(--rs-font-display);
+  font-size: var(--rs-text-2xl);
+  font-weight: var(--rs-weight-semibold);
+  line-height: 1;
+}
+
+.rs-attention__label {
+  font-weight: var(--rs-weight-medium);
+  color: var(--rs-text);
+}
+
+.rs-attention__hint {
+  font-size: var(--rs-text-sm);
+  color: var(--rs-text-muted);
+}
+
+.rs-attention-empty {
+  margin: 0;
+  padding: var(--rs-space-4);
+  border: 1px dashed var(--rs-border);
+  border-radius: var(--rs-radius-md);
+  background: var(--rs-surface-faint);
+  color: var(--rs-text-muted);
+}
+
 .rs-task-board {
   display: grid;
   gap: 0.85rem;

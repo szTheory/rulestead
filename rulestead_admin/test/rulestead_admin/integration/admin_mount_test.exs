@@ -97,8 +97,20 @@ defmodule RulesteadAdmin.Integration.AdminMountTest do
 
   test "host-style mount honors the public env and route conventions without leaking internals",
        %{conn: conn} do
-    {:ok, _home_view, home_html} = live(conn, "/admin/flags")
-    assert home_html =~ "Operations home"
+    {:ok, home_view, home_html} = live(conn, "/admin/flags")
+    assert home_html =~ "What&#39;s happening in"
+
+    # Task launcher renders from the shared Navigation source, so the rail's
+    # task-rhythm group headers appear on the home console too.
+    assert home_html =~ "Build &amp; release"
+    assert home_html =~ "Explain &amp; diagnose"
+    assert home_html =~ "Review &amp; approve"
+
+    # The live operational summary loads via assign_async; resolving it must not
+    # raise (which would surface the "Live state is unavailable" failure slot).
+    resolved_home = render_async(home_view)
+    assert resolved_home =~ "Needs you now"
+    refute resolved_home =~ "Live state is unavailable"
 
     inventory_conn = conn |> Phoenix.ConnTest.recycle() |> host_conn()
 
