@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 FROM node:22-alpine AS deps
 WORKDIR /app
 
@@ -5,8 +6,10 @@ ARG NEXT_PUBLIC_FLAGS_API_BASE=http://localhost:4000
 ARG NEXT_PUBLIC_FLAGS_ENVIRONMENT_KEY=staging
 ARG NEXT_PUBLIC_FLAGS_TARGETING_KEY=demo-user
 
-COPY examples/demo/frontend/package.json ./package.json
-RUN npm install
+# Lockfile + manifest only, so a source edit never reinstalls node_modules.
+# The npm cache mount re-uses downloaded packages even when the lockfile changes.
+COPY examples/demo/frontend/package.json examples/demo/frontend/package-lock.json ./
+RUN --mount=type=cache,target=/root/.npm npm ci
 
 FROM node:22-alpine AS builder
 WORKDIR /app
@@ -22,7 +25,9 @@ ENV NODE_ENV=production
 ENV NEXT_PUBLIC_FLAGS_API_BASE=${NEXT_PUBLIC_FLAGS_API_BASE}
 ENV NEXT_PUBLIC_FLAGS_ENVIRONMENT_KEY=${NEXT_PUBLIC_FLAGS_ENVIRONMENT_KEY}
 ENV NEXT_PUBLIC_FLAGS_TARGETING_KEY=${NEXT_PUBLIC_FLAGS_TARGETING_KEY}
-RUN npm run build
+# Next.js incremental build cache. .next/cache is NOT part of `standalone`
+# output, so caching it speeds rebuilds without affecting the runner artifacts.
+RUN --mount=type=cache,target=/app/.next/cache npm run build
 
 FROM node:22-alpine AS runner
 WORKDIR /app

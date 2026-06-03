@@ -46,7 +46,8 @@ flag create).
 
 > **Evaluating first?** See the [Adoption Lab **At a glance**](adoption-lab.md#at-a-glance)
 > section (FleetDesk) to run Rulestead with realistic seeds and operator screens before
-> installing into your app. Use `docker compose up --build` or `scripts/demo/proof.sh`.
+> installing into your app. Use `docker compose up --build` or `scripts/demo/proof.sh`
+> (or `scripts/demo/up.sh` to auto-pick free ports when running other demos too).
 
 ## 3. Gate a code path
 
