@@ -106,7 +106,7 @@ BACKEND_URL="$DEMO_BACKEND_URL" retry_command 15 sh -c '
 echo "[smoke] checking deterministic admin sign-in"
 COOKIE_JAR="$cookie_jar" BACKEND_URL="$DEMO_BACKEND_URL" retry_command 15 sh -c '
   curl -fsS -c "$COOKIE_JAR" -b "$COOKIE_JAR" -L "$BACKEND_URL/demo/sign-in" |
-    grep -q "Flag inventory"
+    grep -q "Viewing environment"
 ' || {
   dump_failure_logs
   exit 1
