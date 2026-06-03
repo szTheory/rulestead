@@ -4201,6 +4201,9 @@ defmodule Rulestead.Store.Ecto do
         :flag_environment,
         FlagEnvironment.changeset(flag_environment, inverse_status)
       )
+      |> Multi.run(:runtime_snapshot, fn repo, _changes ->
+        insert_runtime_snapshot(repo, environment, now())
+      end)
       |> Multi.insert(
         :audit_event,
         audit_event_changeset(%AuditEvent{}, command, "audit.rollback", :ok, %{
