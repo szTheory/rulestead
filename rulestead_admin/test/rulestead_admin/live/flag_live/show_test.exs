@@ -124,21 +124,70 @@ defmodule RulesteadAdmin.Live.FlagLive.ShowTest do
 
   test "detail shows description, type, default value, owner, tags, lifecycle, and per-environment status",
        %{conn: conn} do
-    {:ok, _view, html} = live(conn, "/admin/flags/checkout-redesign?env=prod")
+    {:ok, view, html} = live(conn, "/admin/flags/checkout-redesign?env=prod")
 
     assert html =~ "Checkout experiment for the new payment flow"
+    assert has_element?(view, ".rs-shell__header [aria-label='Access']", "Admin")
+    refute has_element?(view, "main aside.rs-policy-state")
     assert html =~ "Release"
     assert html =~ "Boolean"
     assert html =~ "false"
     assert html =~ "growth"
-    assert html =~ "Kind:"
-    assert html =~ "Reference:"
+    assert html =~ "Owner kind"
+    assert html =~ "Owner reference"
     assert html =~ "checkout"
     assert html =~ "Production"
     assert html =~ "Staging"
+    assert html =~ "Viewing environment"
+
+    assert html =~
+             "Shows this flag key&#39;s state in the selected environment. Promotion uses Compare."
+
+    assert html =~ "Environment states"
+    assert html =~ "Where this flag exists"
+    assert html =~ "The flag key is global"
+    assert html =~ "Not configured"
+    assert has_element?(view, ".rs-env-state[data-current='true']", "Production")
+    assert has_element?(view, ".rs-env-state[data-available='false']", "Development")
+
+    assert has_element?(
+             view,
+             "a[href*='/admin/flags/compare/checkout-redesign']",
+             "Compare environments"
+           )
+
     assert html =~ "Lifecycle"
     assert html =~ "Active"
     assert html =~ "Lifecycle posture"
+  end
+
+  test "detail explains when a flag is not configured in the selected environment", %{
+    conn: conn
+  } do
+    {:ok, view, html} = live(conn, "/admin/flags/ops-cleanup?env=staging")
+
+    assert html =~ "ops-cleanup is not configured in Staging"
+    assert html =~ "You are viewing the Staging environment scope"
+    assert html =~ "This switch changes the state you inspect"
+    assert has_element?(view, ".rs-shell__env-link[aria-disabled='true']", "Staging")
+
+    assert has_element?(
+             view,
+             "a[href='/admin/flags/ops-cleanup?env=prod&return_to=%2Fadmin%2Fflags%2Fflags%3Fenv%3Dstaging']",
+             "View Production state"
+           )
+
+    assert has_element?(
+             view,
+             "a[href='/admin/flags/flags?env=staging&view=all']",
+             "Open flags in Staging"
+           )
+
+    assert has_element?(
+             view,
+             "a[href*='/admin/flags/compare/ops-cleanup']",
+             "Compare environments"
+           )
   end
 
   test "detail links to the dedicated phase 7 routes and keeps audit summary on the read surface",
@@ -153,7 +202,8 @@ defmodule RulesteadAdmin.Live.FlagLive.ShowTest do
     assert html =~ "Version 1"
     assert html =~ "Draft ruleset"
     assert html =~ "Version 2"
-    assert has_element?(view, "a[href='/admin/flags?env=prod&owner=growth']", "Back to queue")
+    assert has_element?(view, "a[href='/admin/flags/flags?env=prod']", "Flags")
+    assert has_element?(view, "a[href='/admin/flags/checkout-redesign?env=prod']", "checkout-redesign")
 
     assert has_element?(
              view,
@@ -179,7 +229,20 @@ defmodule RulesteadAdmin.Live.FlagLive.ShowTest do
     assert html =~ "Open rules workspace"
     assert html =~ "Open kill switch"
     assert html =~ "Open audit timeline"
-    assert html =~ "Use the dedicated timeline for append-only history"
+    assert html =~ "Read append-only history for this flag."
+  end
+
+  test "detail renders success flash above the action row", %{conn: conn} do
+    conn =
+      conn
+      |> Phoenix.Controller.fetch_flash()
+      |> Phoenix.Controller.put_flash(:info, "Flag checkout-redesign was created.")
+
+    {:ok, view, html} = live(conn, "/admin/flags/checkout-redesign?env=prod")
+
+    assert has_element?(view, ".rs-flash[role='status'][data-kind='info']", "Done")
+    assert has_element?(view, ".rs-flash", "Flag checkout-redesign was created.")
+    assert occurs_before?(html, "Flag checkout-redesign was created.", "Edit metadata")
   end
 
   test "detail reads audit data with the current session actor and hides restricted reasons", %{
@@ -214,10 +277,11 @@ defmodule RulesteadAdmin.Live.FlagLive.ShowTest do
     refute html =~ "incident bridge"
   end
 
-  test "detail surfaces compact governance and scheduled preview cards without becoming a workflow hub",
+  test "detail surfaces compact governance and scheduled preview work inside the flag hub",
        %{conn: conn} do
     {:ok, _view, html} = live(conn, "/admin/flags/checkout-redesign?env=prod")
 
+    assert html =~ "Queued work"
     assert html =~ "Open change requests"
     assert html =~ "Scheduled changes"
     assert html =~ "Publish ruleset v2"
@@ -229,15 +293,14 @@ defmodule RulesteadAdmin.Live.FlagLive.ShowTest do
        %{conn: conn} do
     {:ok, _view, html} = live(conn, "/admin/flags/ops-cleanup?env=prod")
 
-    assert html =~ "Archive readiness guidance"
+    assert html =~ "Recommended next action"
     assert html =~ "Archive candidate"
     assert html =~ "Strong"
-    assert html =~ "Primary recommendation:"
     assert html =~ "Archive when the review is complete"
     assert html =~ "Fresh scan found no code references"
     assert html =~ "Review horizon passed"
     assert html =~ "Evaluation has not run recently"
-    assert html =~ "Latest scan receipt:"
+    assert html =~ "Latest scan receipt"
   end
 
   test "detail withholds a primary recommendation when evidence is weak and blockers remain", %{
@@ -245,8 +308,8 @@ defmodule RulesteadAdmin.Live.FlagLive.ShowTest do
   } do
     {:ok, _view, html} = live(conn, "/admin/flags/remote-config-review?env=prod")
 
-    assert html =~ "Guidance limited by missing evidence"
-    assert html =~ "Primary recommendation:"
+    assert html =~ "Guidance is limited by missing evidence"
+    assert html =~ "Recommended next action"
     assert html =~ "Keep active"
     assert html =~ "Code-reference scan receipt is missing"
     assert html =~ "Remote config flags require stronger review"
@@ -256,11 +319,11 @@ defmodule RulesteadAdmin.Live.FlagLive.ShowTest do
     {:ok, view, _html} =
       live(conn, "/admin/flags/checkout-redesign?env=prod&return_to=%2Foutside")
 
-    assert has_element?(view, "a[href='/admin/flags?env=prod']", "Back to queue")
+    assert has_element?(view, "a[href='/admin/flags/flags?env=prod']", "Flags")
 
     assert has_element?(
              view,
-             "a[href='/admin/flags/checkout-redesign/cleanup?env=prod&return_to=%2Fadmin%2Fflags%3Fenv%3Dprod']",
+             "a[href='/admin/flags/checkout-redesign/cleanup?env=prod&return_to=%2Fadmin%2Fflags%2Fflags%3Fenv%3Dprod']",
              "Review cleanup"
            )
   end
@@ -384,5 +447,11 @@ defmodule RulesteadAdmin.Live.FlagLive.ShowTest do
                  reason: "Wait for low-traffic window"
                })
              )
+  end
+
+  defp occurs_before?(html, before_text, after_text) do
+    {before_index, _length} = :binary.match(html, before_text)
+    {after_index, _length} = :binary.match(html, after_text)
+    before_index < after_index
   end
 end

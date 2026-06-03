@@ -24,7 +24,7 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Index do
     socket = apply_resolved(socket, params)
 
     if params["env"] != socket.assigns.current_environment.key do
-      {:noreply, push_patch(socket, to: Session.current_path(socket, base_path()))}
+      {:noreply, push_patch(socket, to: Session.current_path(socket, base_path(socket)))}
     else
       filters = filters_from_params(params)
       filter_params = query_filters(filters)
@@ -32,19 +32,18 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Index do
       page =
         socket.assigns
         |> Session.placeholder_assigns(
-          current_path: base_path(),
+          current_path: base_path(socket),
           page_title: "Change requests",
           page_kicker: "Governance",
           page_summary:
             "Dedicated review queue for governed mutations, approvals, and explicit execution follow-through."
         )
         |> Map.merge(%{
-          navigation_links: navigation_links(socket, :change_requests),
-          env_links: Session.env_links(socket, base_path(), filter_params),
-          schedule_path: Session.current_path(socket, schedule_base_path()),
-          audit_path: Session.current_path(socket, audit_base_path()),
-          flags_path: Session.current_path(socket, mount_path(socket)),
-          current_path: Session.current_path(socket, base_path(), filter_params),
+          env_links: Session.env_links(socket, base_path(socket), filter_params),
+          schedule_path: Session.current_path(socket, schedule_base_path(socket)),
+          audit_path: Session.current_path(socket, audit_base_path(socket)),
+          flags_path: Session.current_path(socket, mount_path(socket) <> "/flags"),
+          current_path: Session.current_path(socket, base_path(socket), filter_params),
           filter_action_options: filter_action_options(),
           filter_status_options: filter_status_options()
         })
@@ -72,20 +71,20 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Index do
       current_environment={@page.current_environment}
       environments={@page.environments}
       env_links={@page.env_links}
-      navigation_links={@page.navigation_links}
+      current_tenant={@page.current_tenant}
+      tenants={@page.tenants}
+      tenant_links={@page.tenant_links}
+      base_path={@rulestead_admin_mount_path}
+      current_section={:change_requests}
+      policy_state={@page.policy_state}
     >
-      <OperatorComponents.policy_state policy_state={@page.policy_state} />
+      <OperatorComponents.page_section
+        title="Review queue"
+        summary="Governed work waiting for review, approval, execution, or follow-up in the selected environment."
+      />
 
       <section>
-        <h2>Review queue</h2>
-        <p>
-          Operators can scan governed work here without overloading audit history or turning flag detail
-          into a workflow hub.
-        </p>
-      </section>
-
-      <section>
-        <form method="get" action={base_path()} class="rs-filter-grid">
+        <form method="get" action={@rulestead_admin_mount_path <> "/change-requests"} class="rs-filter-grid">
           <input type="hidden" name="env" value={@page.current_environment.key} />
 
           <label>
@@ -127,72 +126,41 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Index do
 
       <p :if={@error_message} role="alert"><%= @error_message %></p>
 
-      <section>
+      <section class="rs-page-section">
         <h2>Open review items</h2>
 
         <p :if={@entries == []}>No change requests match this environment and filter set.</p>
 
-        <ul :if={@entries != []} class="rs-change-request-list">
-          <li :for={entry <- @entries} class="rs-change-request-row">
-            <div>
-              <p>
-                <span class="rs-badge"><%= humanize(entry.state) %></span>
-                <strong><%= humanize(entry.action) %></strong>
-                <code><%= entry.resource_key %></code>
-              </p>
-              <p><%= entry.preview_title %></p>
-              <p>Requested by <%= actor_display(entry.submitted_by) %></p>
-            </div>
-
-            <div>
+        <div :if={@entries != []} class="rs-record-list">
+          <OperatorComponents.record_row
+            :for={entry <- @entries}
+            title={entry.preview_title}
+            href={entry.detail_path}
+            meta={"#{humanize(entry.state)} · #{humanize(entry.action)} · #{entry.resource_key}"}
+            tone={change_request_tone(entry.state)}
+          >
+            <:actions>
               <a href={entry.detail_path}>Review change request</a>
               <a :if={entry.flag_path} href={entry.flag_path}>Open flag</a>
-            </div>
-          </li>
-        </ul>
+            </:actions>
+            <p>Requested by <%= actor_display(entry.submitted_by) %>.</p>
+          </OperatorComponents.record_row>
+        </div>
       </section>
 
-      <section>
+      <section class="rs-page-section">
         <h2>Related routes</h2>
-        <ul>
-          <li><a href={@page.schedule_path}>Open schedule</a></li>
-          <li><a href={@page.audit_path}>Open audit timeline</a></li>
-          <li><a href={@page.flags_path}>Back to flag inventory</a></li>
-        </ul>
+        <OperatorComponents.related_links links={related_links(@page)} />
       </section>
     </Shell.page>
     """
   end
 
-  defp base_path, do: "/admin/flags/change-requests"
-  defp schedule_base_path, do: "/admin/flags/schedule"
-  defp audit_base_path, do: "/admin/flags/audit"
+  defp base_path(socket), do: "#{mount_path(socket)}/change-requests"
+  defp schedule_base_path(socket), do: "#{mount_path(socket)}/schedule"
+  defp audit_base_path(socket), do: "#{mount_path(socket)}/audit"
 
   defp mount_path(socket), do: socket.assigns.rulestead_admin_mount_path
-
-  defp navigation_links(socket, current) do
-    [
-      nav_link("Flags", Session.current_path(socket, mount_path(socket)), current == :flags),
-      nav_link(
-        "Change requests",
-        Session.current_path(socket, base_path()),
-        current == :change_requests
-      ),
-      nav_link(
-        "Schedule",
-        Session.current_path(socket, schedule_base_path()),
-        current == :schedule
-      ),
-      nav_link(
-        "Webhooks",
-        Session.current_path(socket, "/admin/flags/webhooks"),
-        current == :webhooks
-      ),
-      nav_link("Audit", Session.current_path(socket, audit_base_path()), current == :audit)
-    ]
-  end
-
-  defp nav_link(label, path, current?), do: %{label: label, path: path, current?: current?}
 
   defp load_entries(socket, filters) do
     command =
@@ -226,7 +194,8 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Index do
       resource_key: entry.resource_key,
       submitted_by: entry.submitted_by,
       preview_title: preview_title(entry),
-      detail_path: Session.current_path(socket, "#{base_path()}/#{entry.id}", filter_params),
+      detail_path:
+        Session.current_path(socket, "#{base_path(socket)}/#{entry.id}", filter_params),
       flag_path:
         if(entry.resource_key,
           do: Session.current_path(socket, "#{mount_path(socket)}/#{entry.resource_key}")
@@ -274,6 +243,16 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Index do
   defp actor_display(actor) do
     actor["display"] || actor[:display] || actor["id"] || actor[:id] || "Unknown operator"
   end
+
+  defp related_links(page) do
+    [
+      %{label: "Open schedule", path: page.schedule_path},
+      %{label: "Open audit timeline", path: page.audit_path},
+      %{label: "Back to flag inventory", path: page.flags_path}
+    ]
+  end
+
+  defp change_request_tone(state), do: RulesteadAdmin.StatusTone.tone(:change_request, state)
 
   defp matches_resource_filter?(_entry, value) when value in [nil, ""], do: true
 

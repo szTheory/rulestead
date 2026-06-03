@@ -21,3 +21,6 @@
 
 # Dialyzer PLTs — local/CI cache artifacts, not source.
 /priv/plts/
+
+# Stray captured command/test output dumps.
+/output.txt

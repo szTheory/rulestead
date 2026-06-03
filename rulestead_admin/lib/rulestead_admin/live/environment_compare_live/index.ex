@@ -21,7 +21,7 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Index do
   @impl true
   def handle_params(params, _uri, socket) do
     source_env = params["source_env"] || socket.assigns.current_environment.key
-    target_env = params["target_env"] || socket.assigns.current_environment.key
+    target_env = params["target_env"] || default_other_env(socket, source_env)
     compare_token = blank_to_nil(params["compare_token"])
 
     page = build_page(socket, source_env, target_env, compare_token)
@@ -45,12 +45,16 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Index do
       page_title={@page.page_title}
       page_kicker={@page.page_kicker}
       page_summary={@page.page_summary}
+      base_path={@rulestead_admin_mount_path}
+      current_section={:compare}
       current_environment={@page.current_environment}
       environments={@page.environments}
       env_links={@page.env_links}
       current_tenant={@page.current_tenant}
       tenants={@page.tenants}
       tenant_links={@page.tenant_links}
+      env_context_help="Sets the page scope only. Source and target environments are selected below."
+      policy_state={@page.policy_state}
     >
       <OperatorComponents.banner
         :if={production_target?(@target_env)}
@@ -59,8 +63,6 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Index do
         tone="critical"
         aria_label="Production target warning"
       />
-
-      <OperatorComponents.policy_state policy_state={@page.policy_state} />
 
       <FlagComponents.section_card title="Compare context">
         <p>
@@ -74,7 +76,9 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Index do
         <p><code><%= @page.current_path %></code></p>
       </FlagComponents.section_card>
 
-      <p :if={@error_message} role="alert"><%= @error_message %></p>
+      <FlagComponents.callout :if={@error_message} title="Compare unavailable" tone="critical">
+        <p><%= @error_message %></p>
+      </FlagComponents.callout>
 
       <%= if @compare do %>
         <FlagComponents.section_card title="Compare summary">
@@ -84,9 +88,9 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Index do
           />
         </FlagComponents.section_card>
 
-        <section aria-label="Compare findings">
+        <section class="rs-card" aria-label="Compare findings">
           <OperatorComponents.status_list title="Compare findings" entries={finding_entries(@compare)} />
-          <ul>
+          <ul class="rs-compact-list">
             <li :for={finding <- @compare.findings}>
               <strong><%= humanize_status(finding.class) %></strong>: <%= finding.message %>
             </li>
@@ -95,7 +99,7 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Index do
 
         <FlagComponents.section_card title="Audience dependencies">
           <p :if={@compare.dependency_findings == []}>No reusable audience dependency findings for this compare.</p>
-          <ul :if={@compare.dependency_findings != []}>
+          <ul :if={@compare.dependency_findings != []} class="rs-compact-list">
             <li :for={finding <- @compare.dependency_findings}>
               <strong><%= humanize_status(finding.severity) %></strong>
               <code><%= finding.code %></code>
@@ -121,7 +125,7 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Index do
               or open a flag to review exact published state.
             </p>
           <% else %>
-            <ul>
+            <ul class="rs-compact-list">
               <li :for={flag <- @compare.flags}>
                 <a href={flag_path(@page, flag.flag_key, @compare.compare_token)}>
                   <strong><code><%= flag.flag_key %></code></strong>
@@ -142,10 +146,6 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Index do
           />
         </section>
 
-        <details aria-label="Raw compare payload">
-          <summary>Show raw compare payload</summary>
-          <pre><%= inspect(@compare, pretty: true) %></pre>
-        </details>
       <% end %>
     </Shell.page>
     """
@@ -178,11 +178,18 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Index do
     }
   end
 
+  defp default_other_env(socket, source_env) do
+    socket.assigns.available_environments
+    |> Enum.map(& &1.key)
+    |> Enum.find(source_env, &(&1 != source_env))
+  end
+
   defp load_compare(socket) do
     opts =
       []
       |> maybe_put_opt(:tenant_key, current_tenant_key(socket))
       |> maybe_put_opt(:compare_token, socket.assigns.compare_token_param)
+      |> maybe_put_opt(:actor, socket.assigns.current_actor)
 
     case Rulestead.compare_environments(
            socket.assigns.source_env,

@@ -3,7 +3,7 @@ defmodule RulesteadAdmin.Live.WebhookLive.Show do
 
   use Phoenix.LiveView
 
-  alias RulesteadAdmin.Components.Shell
+  alias RulesteadAdmin.Components.{OperatorComponents, Shell}
   alias RulesteadAdmin.Live.Session
 
   @impl true
@@ -24,20 +24,19 @@ defmodule RulesteadAdmin.Live.WebhookLive.Show do
       page =
         socket.assigns
         |> Session.placeholder_assigns(
-          current_path: detail_path(socket.assigns.webhook_id),
-          page_title: "Webhook Record",
+          current_path: detail_path(socket, socket.assigns.webhook_id),
+          page_title: "Webhook record",
           page_kicker: "Integration visibility",
           page_summary:
             "Detailed view of an inbound rejection, inbound accepted event, or outbound delivery."
         )
         |> Map.merge(%{
-          navigation_links: navigation_links(socket, :webhooks),
           webhook: webhook,
-          change_requests_path: Session.current_path(socket, change_requests_path()),
-          audit_path: Session.current_path(socket, audit_path()),
-          schedule_path: Session.current_path(socket, schedule_path()),
-          flags_path: Session.current_path(socket, mount_path(socket)),
-          webhooks_path: Session.current_path(socket, base_path())
+          change_requests_path: Session.current_path(socket, change_requests_path(socket)),
+          audit_path: Session.current_path(socket, audit_path(socket)),
+          schedule_path: Session.current_path(socket, schedule_path(socket)),
+          flags_path: Session.current_path(socket, mount_path(socket) <> "/flags"),
+          webhooks_path: Session.current_path(socket, base_path(socket))
         })
 
       {:noreply, assign(socket, :page, page)}
@@ -56,51 +55,41 @@ defmodule RulesteadAdmin.Live.WebhookLive.Show do
       current_environment={@page.current_environment}
       environments={@page.environments}
       env_links={@page.env_links}
-      navigation_links={@page.navigation_links}
+      current_tenant={@page.current_tenant}
+      tenants={@page.tenants}
+      tenant_links={@page.tenant_links}
+      base_path={@rulestead_admin_mount_path}
+      current_section={:webhooks}
+      policy_state={@page.policy_state}
     >
-      <section>
-        <h2>Webhook Details</h2>
-        <p>Record ID: <code><%= @page.webhook.id %></code></p>
-        <p>Type: <%= @page.webhook.type_label %></p>
-        <p>Status: <%= @page.webhook.status_label %></p>
-        <p>Time: <%= format_datetime(@page.webhook.inserted_at) %></p>
-        <p :if={@page.webhook.actor}>Actor: <%= @page.webhook.actor %></p>
-      </section>
-
-      <section>
-        <h2>Correlations</h2>
-        <p>This webhook is correlated with other operator records.</p>
-        <ul>
-          <li><a href={@page.change_requests_path <> "/mock-cr-123?env=" <> @page.current_environment.key}>Related change request</a></li>
-          <li><a href={@page.schedule_path <> "/mock-sch-123?env=" <> @page.current_environment.key}>Related schedule</a></li>
-          <li><a href={@page.flags_path <> "/mock-flag?env=" <> @page.current_environment.key}>Related flag</a></li>
-          <li><a href={@page.audit_path}>Audit trail</a></li>
-        </ul>
-      </section>
-
-      <section>
-        <a href={@page.webhooks_path}>Back to webhooks</a>
-      </section>
+      <OperatorComponents.empty_state
+        title="Webhook record detail not available"
+        body="This webhook record is a routing placeholder. Real inbound and outbound delivery details will appear here once webhook integrations are active."
+        variant="hero"
+      >
+        <:actions>
+          <OperatorComponents.related_links links={related_links(@page)} />
+        </:actions>
+      </OperatorComponents.empty_state>
     </Shell.page>
     """
   end
 
-  defp base_path, do: "/admin/flags/webhooks"
-  defp schedule_path, do: "/admin/flags/schedule"
-  defp change_requests_path, do: "/admin/flags/change-requests"
-  defp audit_path, do: "/admin/flags/audit"
+  defp base_path(socket), do: "#{mount_path(socket)}/webhooks"
+  defp schedule_path(socket), do: "#{mount_path(socket)}/schedule"
+  defp change_requests_path(socket), do: "#{mount_path(socket)}/change-requests"
+  defp audit_path(socket), do: "#{mount_path(socket)}/audit"
 
   defp mount_path(socket), do: socket.assigns.rulestead_admin_mount_path
 
-  defp detail_path(id), do: "#{base_path()}/#{id}"
+  defp detail_path(socket, id), do: "#{base_path(socket)}/#{id}"
 
   defp current_path(socket, params) do
     query = URI.encode_query(%{"env" => socket.assigns.current_environment.key})
-    "#{detail_path(params["id"])}?#{query}"
+    "#{detail_path(socket, params["id"])}?#{query}"
   end
 
   defp get_webhook(_socket, id) do
-    # Fake fetch
     %{
       id: id,
       type: "inbound",
@@ -111,27 +100,14 @@ defmodule RulesteadAdmin.Live.WebhookLive.Show do
     }
   end
 
-  defp navigation_links(socket, current) do
+  defp related_links(page) do
     [
-      nav_link("Flags", Session.current_path(socket, mount_path(socket)), current == :flags),
-      nav_link(
-        "Change requests",
-        Session.current_path(socket, change_requests_path()),
-        current == :change_requests
-      ),
-      nav_link("Schedule", Session.current_path(socket, schedule_path()), current == :schedule),
-      nav_link("Webhooks", Session.current_path(socket, base_path()), current == :webhooks),
-      nav_link("Audit", Session.current_path(socket, audit_path()), current == :audit)
+      %{label: "Back to webhooks", path: page.webhooks_path},
+      %{label: "Open change requests", path: page.change_requests_path},
+      %{label: "Open schedule", path: page.schedule_path},
+      %{label: "Open audit timeline", path: page.audit_path},
+      %{label: "Back to flag inventory", path: page.flags_path}
     ]
-  end
-
-  defp nav_link(label, path, current?), do: %{label: label, path: path, current?: current?}
-
-  defp format_datetime(nil), do: "Not yet recorded"
-
-  defp format_datetime(%DateTime{} = datetime) do
-    calendar = Calendar.strftime(datetime, "%Y-%m-%d %H:%M")
-    "#{calendar} UTC"
   end
 
   defp apply_resolved(socket, params) do

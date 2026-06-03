@@ -16,6 +16,30 @@ defmodule RulesteadAdmin.Live.AudienceLive.Shared do
   def path(socket_or_assigns, suffix),
     do: Session.current_path(socket_or_assigns, "#{fetch_mount_path(socket_or_assigns)}#{suffix}")
 
+  @spec breadcrumbs(Socket.t() | map(), String.t() | nil) :: [map()]
+  def breadcrumbs(socket_or_assigns, action_label \\ nil) do
+    mount = fetch_mount_path(socket_or_assigns)
+    env = env_key(socket_or_assigns)
+    audience_key = fetch_audience_key(socket_or_assigns)
+
+    base = [%{label: "Audiences", path: "#{mount}/audiences?env=#{env}"}]
+
+    cond do
+      is_nil(audience_key) ->
+        base
+
+      is_nil(action_label) ->
+        base ++ [%{label: audience_key, path: "#{mount}/audiences/#{audience_key}?env=#{env}"}]
+
+      true ->
+        base ++
+          [
+            %{label: audience_key, path: "#{mount}/audiences/#{audience_key}?env=#{env}"},
+            %{label: action_label, path: "#{mount}/audiences/#{audience_key}?env=#{env}"}
+          ]
+    end
+  end
+
   @spec scope_opts(Socket.t()) :: keyword()
   def scope_opts(socket) do
     []
@@ -83,4 +107,12 @@ defmodule RulesteadAdmin.Live.AudienceLive.Shared do
 
   defp fetch_mount_path(%Socket{} = socket), do: socket.assigns.rulestead_admin_mount_path
   defp fetch_mount_path(%{rulestead_admin_mount_path: mount_path}), do: mount_path
+
+  defp env_key(%Socket{} = socket), do: env_key(socket.assigns)
+  defp env_key(%{current_environment: %{key: key}}), do: key
+  defp env_key(_), do: "dev"
+
+  defp fetch_audience_key(%Socket{} = socket), do: fetch_audience_key(socket.assigns)
+  defp fetch_audience_key(%{audience_key: audience_key}), do: audience_key
+  defp fetch_audience_key(_), do: nil
 end

@@ -189,6 +189,7 @@ defmodule Rulestead.Mix.Tasks.RulesteadInstallTest do
              "copy priv/repo/migrations/20260526110000_add_guardrail_decisions.exs",
              "copy priv/repo/migrations/20260527120000_add_rollout_auto_advance_policies.exs",
              "copy priv/repo/migrations/20260527123000_create_audience_reference_projection.exs",
+             "copy priv/repo/migrations/20260529120000_create_oban_jobs_support_table.exs",
              "write config/rulestead.exs",
              "write config/config.exs import",
              "write lib/my_app_web/endpoint.ex plug",

@@ -22,12 +22,12 @@ You are running **three things**:
 
 ## Quick start (5 minutes)
 
-1. From the repo root: `docker compose up --build`
+1. From the repo root: `scripts/demo/up.sh`
 2. Wait until `postgres`, `redis`, `backend`, and `frontend` are **healthy** (first boot
    usually takes one to three minutes).
-3. Open **FleetDesk** at `http://localhost:3000` → use **View as** to switch accounts →
+3. Open **FleetDesk** at the frontend URL printed by the script → use **View as** to switch accounts →
    watch the map and dispatch headline change.
-4. Open **Rulestead admin** at `http://localhost:4000/demo/sign-in` → kill
+4. Open **Rulestead admin** at the admin sign-in URL printed by the script → kill
    `enable-new-dashboard` on staging.
 5. Return to FleetDesk — the headline changes to **Classic dispatch map is holding
    steady.**
@@ -45,8 +45,9 @@ For automation only: `scripts/demo/proof.sh`.
 | `http://localhost:4000` | **Phoenix host + Rulestead API** | Orientation page + API links |
 | `http://localhost:4000/api/flags` | Rulestead evaluation API | JSON flag payloads for integrators |
 
-Postgres (`localhost:5432`) and Redis (`localhost:6379`) are exposed for debugging but
-not needed for the UI demo.
+These are the preferred default URLs. If those ports are already in use,
+`scripts/demo/up.sh` chooses free fallback ports and prints the actual URLs.
+Postgres and Redis stay on the internal Compose network by default.
 
 Optional API sanity checks:
 

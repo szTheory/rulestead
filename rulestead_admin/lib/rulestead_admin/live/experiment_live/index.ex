@@ -82,17 +82,18 @@ defmodule RulesteadAdmin.Live.ExperimentLive.Index do
       page_title="Experiments"
       page_kicker="Experiment inventory"
       page_summary="Dense operator inventory for experiments scoped to the current environment."
+      base_path={@rulestead_admin_mount_path}
+      current_section={:experiments}
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}
+      policy_state={@rulestead_admin_policy_state}
     >
       <section class="rs-inventory">
-        <div class="rs-inventory__toolbar">
-          <div>
-            <h2>Experiment inventory</h2>
-            <p>Monospace key, lifecycle, stale status, and environment state stay visible for fast scanning.</p>
-          </div>
-        </div>
+        <header class="rs-inventory__intro">
+          <h2>Experiment inventory</h2>
+          <p>Flag key, lifecycle, freshness, and environment state stay visible for fast experiment review.</p>
+        </header>
 
         <form aria-label="Experiment filters" phx-change="filters_changed" class="rs-filter-grid">
           <input type="hidden" name="filters[env]" value={@current_environment.key} />
@@ -135,6 +136,7 @@ defmodule RulesteadAdmin.Live.ExperimentLive.Index do
             </select>
           </label>
           <label class="rs-filter-grid__checkbox">
+            <input type="hidden" name="filters[include_archived]" value="false" />
             <input type="checkbox" name="filters[include_archived]" value="true" checked={@filters["include_archived"] == "true"} />
             <span>Include archived</span>
           </label>
@@ -146,7 +148,7 @@ defmodule RulesteadAdmin.Live.ExperimentLive.Index do
           <caption class="sr-only">Experiment inventory table</caption>
           <thead>
             <tr>
-              <th scope="col">Monospace key</th>
+              <th scope="col">Flag key</th>
               <th scope="col">Type</th>
               <th scope="col">Owner</th>
               <th scope="col">Lifecycle</th>

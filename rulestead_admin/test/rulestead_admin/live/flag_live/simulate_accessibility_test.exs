@@ -74,9 +74,9 @@ defmodule RulesteadAdmin.Live.FlagLive.SimulateAccessibilityTest do
       |> render_submit()
 
     AxeAudit.assert_accessible!(result_html)
-    assert result_html =~ "Simulation summary"
+    assert result_html =~ "Decision summary"
     assert result_html =~ "Trace detail"
-    assert result_html =~ "Copy as test fixture"
+    assert result_html =~ "Regenerate fixture export"
   end
 
   test "visible metadata redacts non-allowlisted traits while fixture export keeps the canonical literal",
@@ -88,7 +88,7 @@ defmodule RulesteadAdmin.Live.FlagLive.SimulateAccessibilityTest do
       |> form("form[aria-label='Simulation form']", simulation_params())
       |> render_submit()
 
-    visible_metadata = section_text(result_html, "section.rs-card:nth-of-type(5)")
+    visible_metadata = section_text(result_html, "section.rs-card:nth-of-type(4)")
     fixture_export = textarea_text(result_html, "textarea[aria-label='ExUnit fixture export']")
 
     assert visible_metadata =~ "[REDACTED]"

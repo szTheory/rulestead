@@ -4,7 +4,7 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Show do
   use Phoenix.LiveView
 
   alias Rulestead.Store.Command
-  alias RulesteadAdmin.Components.Shell
+  alias RulesteadAdmin.Components.{OperatorComponents, Shell}
   alias RulesteadAdmin.Live.Session
 
   @impl true
@@ -21,7 +21,7 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Show do
   @impl true
   def handle_params(%{"scheduled_execution_id" => id} = params, uri, socket) do
     params = Map.merge(params, query_params(uri))
-    base_path = "#{index_path()}/#{id}"
+    base_path = "#{index_path(socket)}/#{id}"
     socket = apply_resolved(socket, params)
 
     if params["env"] != socket.assigns.current_environment.key do
@@ -75,71 +75,57 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Show do
       current_environment={@page.current_environment}
       environments={@page.environments}
       env_links={@page.env_links}
-      navigation_links={@page.navigation_links}
+      current_tenant={@page.current_tenant}
+      tenants={@page.tenants}
+      tenant_links={@page.tenant_links}
+      base_path={@rulestead_admin_mount_path}
+      current_section={:schedule}
+      breadcrumbs={[
+        %{label: "Schedule", path: @rulestead_admin_mount_path <> "/schedule?env=" <> @page.current_environment.key},
+        %{label: schedule_crumb_label(@scheduled_execution_id), path: @rulestead_admin_mount_path <> "/schedule/" <> @scheduled_execution_id <> "?env=" <> @page.current_environment.key}
+      ]}
+      policy_state={@page.policy_state}
     >
-      <section :if={@page.error_message}>
+      <section :if={@page.error_message} class="rs-page-section">
         <p role="alert"><%= @page.error_message %></p>
       </section>
 
-      <section :if={@scheduled_execution}>
-        <h2>Scheduled execution <code><%= @scheduled_execution.id %></code></h2>
+      <section :if={@scheduled_execution} class="rs-hub-section">
+        <header class="rs-section-header">
+          <div>
+            <p class="rs-eyebrow">Execution</p>
+            <h2>Scheduled execution <code><%= @scheduled_execution.id %></code></h2>
+          </div>
+          <a href={@page.schedule_path}>Back to schedule</a>
+        </header>
         <p>Execution detail remains route-backed so retries, quarantine context, and audit links stay explicit.</p>
+        <OperatorComponents.detail_grid rows={detail_rows(@scheduled_execution, @page)} />
       </section>
 
-      <section :if={@scheduled_execution}>
-        <h2>Status</h2>
-        <p><%= humanize(@scheduled_execution.state) %></p>
-        <p><%= humanize(@scheduled_execution.action) %></p>
-      </section>
-
-      <section :if={@scheduled_execution}>
-        <h2>Change request</h2>
-        <p :if={@page.change_request_path}>
-          <a href={@page.change_request_path}><%= @scheduled_execution.change_request_id %></a>
-        </p>
-        <p :if={is_nil(@page.change_request_path)}>No linked change request.</p>
-      </section>
-
-      <section :if={@scheduled_execution}>
-        <h2>Requested for</h2>
-        <p><%= format_datetime(@scheduled_execution.scheduled_for) %></p>
-      </section>
-
-      <section :if={@scheduled_execution}>
-        <h2>Attempt count</h2>
-        <p><%= @scheduled_execution.attempt_count %></p>
-        <p>scheduled by <%= actor_name(@scheduled_execution.scheduled_by) %></p>
-        <p :if={@scheduled_execution.approved_by_snapshot != []}>
-          approved by <%= joined_actor_names(@scheduled_execution.approved_by_snapshot) %>
-        </p>
-        <p :if={show_executed_by?(@scheduled_execution)}>executed by scheduler</p>
-      </section>
-
-      <section :if={@scheduled_execution}>
-        <h2>Linked flag</h2>
-        <p><a href={@page.flag_path}><%= @scheduled_execution.resource_key %></a></p>
-      </section>
-
-      <section :if={@scheduled_execution && @scheduled_execution.failure_reason}>
+      <section :if={@scheduled_execution && @scheduled_execution.failure_reason} class="rs-banner" data-tone="critical">
         <h2>Failure details</h2>
         <p><%= @scheduled_execution.failure_reason %></p>
       </section>
 
-      <section :if={@scheduled_execution && @scheduled_execution.executed_at}>
+      <section :if={@scheduled_execution && @scheduled_execution.executed_at} class="rs-hub-section">
         <h2>Executed at</h2>
         <p><%= format_datetime(@scheduled_execution.executed_at) %></p>
       </section>
 
-      <section :if={@scheduled_execution}>
-        <h2><%= action_panel_title(@scheduled_execution) %></h2>
-        <p :if={!@action_notice}><%= action_panel_copy(@scheduled_execution) %></p>
-        <p :if={@action_notice} role="status"><%= @action_notice %></p>
-        <p :if={@action_error} role="alert"><%= @action_error %></p>
+      <section :if={@scheduled_execution} class="rs-runbook__action" data-mode="schedule">
+        <div class="rs-runbook__action-copy">
+          <p class="rs-eyebrow">Follow-up</p>
+          <h2><%= action_panel_title(@scheduled_execution) %></h2>
+          <p :if={!@action_notice}><%= action_panel_copy(@scheduled_execution) %></p>
+          <p :if={@action_notice} role="status"><%= @action_notice %></p>
+          <p :if={@action_error} role="alert"><%= @action_error %></p>
+        </div>
 
         <form
           :if={show_action_form?(@scheduled_execution) and (@rulestead_admin_policy_state.capabilities.execute? or @rulestead_admin_policy_state.capabilities.admin?)}
           id="scheduled-execution-action-form"
           phx-submit="submit_action"
+          class="rs-inline-action-form"
         >
           <label>
             <span>Reason</span>
@@ -156,47 +142,27 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Show do
         </div>
       </section>
 
-      <section>
+      <section class="rs-page-section">
         <h2>Related routes</h2>
-        <ul>
-          <li><a href={@page.schedule_path}>Back to schedule</a></li>
-          <li><a href={@page.change_requests_path}>Open change requests</a></li>
-          <li><a href={@page.audit_path}>Open audit timeline</a></li>
-          <li :if={@page.webhooks_path}><a href={@page.webhooks_path}>Open webhooks</a></li>
-        </ul>
+        <OperatorComponents.related_links links={related_links(@page)} />
       </section>
     </Shell.page>
     """
   end
 
-  defp index_path, do: "/admin/flags/schedule"
-  defp change_requests_path, do: "/admin/flags/change-requests"
-  defp audit_path, do: "/admin/flags/audit"
+  defp schedule_crumb_label(id) when is_binary(id) and byte_size(id) > 12,
+    do: "Execution " <> String.slice(id, 0, 8)
 
-  defp navigation_links(socket, current) do
-    [
-      nav_link("Flags", Session.current_path(socket, mount_path(socket)), current == :flags),
-      nav_link(
-        "Change requests",
-        Session.current_path(socket, change_requests_path()),
-        current == :change_requests
-      ),
-      nav_link("Schedule", Session.current_path(socket, index_path()), current == :schedule),
-      nav_link(
-        "Webhooks",
-        Session.current_path(socket, "/admin/flags/webhooks"),
-        current == :webhooks
-      ),
-      nav_link("Audit", Session.current_path(socket, audit_path()), current == :audit)
-    ]
-  end
+  defp schedule_crumb_label(id), do: "Execution " <> to_string(id)
 
-  defp nav_link(label, path, current?), do: %{label: label, path: path, current?: current?}
+  defp index_path(socket), do: "#{mount_path(socket)}/schedule"
+  defp change_requests_path(socket), do: "#{mount_path(socket)}/change-requests"
+  defp audit_path(socket), do: "#{mount_path(socket)}/audit"
 
   defp mount_path(socket), do: socket.assigns.rulestead_admin_mount_path
 
   defp build_page(socket, scheduled_execution, id) do
-    base_path = "#{index_path()}/#{id}"
+    base_path = "#{index_path(socket)}/#{id}"
 
     socket.assigns
     |> Session.placeholder_assigns(
@@ -207,10 +173,9 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Show do
         "Execution detail route for state, actor chain, related change request, and explicit follow-up actions."
     )
     |> Map.merge(%{
-      navigation_links: navigation_links(socket, :schedule),
-      schedule_path: Session.current_path(socket, index_path()),
-      change_requests_path: Session.current_path(socket, change_requests_path()),
-      audit_path: Session.current_path(socket, audit_path()),
+      schedule_path: Session.current_path(socket, index_path(socket)),
+      change_requests_path: Session.current_path(socket, change_requests_path(socket)),
+      audit_path: Session.current_path(socket, audit_path(socket)),
       error_message: nil,
       scheduled_execution_id: id,
       change_request_path:
@@ -218,7 +183,7 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Show do
           do:
             Session.current_path(
               socket,
-              "#{change_requests_path()}/#{scheduled_execution.change_request_id}"
+              "#{change_requests_path(socket)}/#{scheduled_execution.change_request_id}"
             )
         ),
       flag_path:
@@ -229,8 +194,53 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Show do
               "#{mount_path(socket)}/#{scheduled_execution.resource_key}"
             )
         ),
-      webhooks_path: Session.current_path(socket, "/admin/flags/webhooks")
+      webhooks_path: Session.current_path(socket, "#{mount_path(socket)}/webhooks")
     })
+  end
+
+  defp detail_rows(scheduled_execution, page) do
+    [
+      %{label: "Status", value: humanize(scheduled_execution.state)},
+      %{label: "Action", value: humanize(scheduled_execution.action)},
+      %{
+        label: "Change request",
+        value:
+          if(page.change_request_path,
+            do: scheduled_execution.change_request_id,
+            else: "No linked change request"
+          )
+      },
+      %{label: "Requested for", value: format_datetime(scheduled_execution.scheduled_for)},
+      %{label: "Attempt count", value: to_string(scheduled_execution.attempt_count)},
+      %{label: "Actor chain", value: actor_chain(scheduled_execution)},
+      %{label: "Linked flag", value: scheduled_execution.resource_key}
+    ]
+  end
+
+  defp actor_chain(scheduled_execution) do
+    [
+      "scheduled by #{actor_name(scheduled_execution.scheduled_by)}",
+      if(scheduled_execution.approved_by_snapshot != [],
+        do: "approved by #{joined_actor_names(scheduled_execution.approved_by_snapshot)}"
+      ),
+      if(show_executed_by?(scheduled_execution), do: "executed by scheduler")
+    ]
+    |> Enum.reject(&is_nil/1)
+    |> Enum.join(" · ")
+  end
+
+  defp related_links(page) do
+    [
+      %{label: "Back to schedule", path: page.schedule_path},
+      %{label: "Open change requests", path: page.change_requests_path},
+      %{label: "Open audit timeline", path: page.audit_path},
+      if(page.flag_path, do: %{label: "Open flag", path: page.flag_path}),
+      if(page.change_request_path,
+        do: %{label: "Open linked change request", path: page.change_request_path}
+      ),
+      if(page.webhooks_path, do: %{label: "Open webhooks", path: page.webhooks_path})
+    ]
+    |> Enum.reject(&is_nil/1)
   end
 
   defp load_scheduled_execution(id) do

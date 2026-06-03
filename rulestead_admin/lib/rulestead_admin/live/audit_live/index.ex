@@ -47,64 +47,70 @@ defmodule RulesteadAdmin.Live.AuditLive.Index do
     ~H"""
     <Shell.page
       page_title="Audit timeline"
-      page_kicker="Audit"
-      page_summary="Global audit route reserved for actor, environment, and mutation filters across every flag."
+      page_kicker="Change history"
+      page_summary="Append-only record of every mutation across all flags. Filter by actor, environment, mutation type, or date range. For flag-scoped history, use the flag's own Timeline tab."
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}
+      policy_state={@rulestead_admin_policy_state}
+      base_path={@rulestead_admin_mount_path}
+      current_section={:audit}
     >
-      <OperatorComponents.policy_state policy_state={@rulestead_admin_policy_state} />
-
       <p :if={@error_message} role="alert">{@error_message}</p>
       <p :if={@notice} role="status">{@notice}</p>
 
       <FlagComponents.section_card title="Filters">
-        <form phx-change="filter" phx-submit="filter" aria-label="Audit filters">
-          <label>
-            Actor
-            <input type="text" name="filters[actor]" value={@filters["actor"]} aria-label="Actor filter" />
-          </label>
+        <form phx-change="filter" phx-submit="filter" aria-label="Audit filters" class="rs-filter-grid">
+          <div class="rs-form-field">
+            <label for="audit_filter_actor">Actor</label>
+            <input
+              id="audit_filter_actor"
+              type="text"
+              name="filters[actor]"
+              value={@filters["actor"]}
+              placeholder="Filter by actor ID"
+            />
+          </div>
 
-          <label>
-            Environment
-            <select name="filters[env_filter]" aria-label="Environment filter">
+          <div class="rs-form-field">
+            <label for="audit_filter_env">Environment</label>
+            <select id="audit_filter_env" name="filters[env_filter]">
               <option value="all" selected={@filters["env_filter"] == "all"}>All environments</option>
               <option :for={env <- @available_environments} value={env.key} selected={@filters["env_filter"] == env.key}>
                 {env.name}
               </option>
             </select>
-          </label>
+          </div>
 
-          <label>
-            Mutation type
-            <select name="filters[mutation]" aria-label="Mutation type filter">
+          <div class="rs-form-field">
+            <label for="audit_filter_mutation">Mutation type</label>
+            <select id="audit_filter_mutation" name="filters[mutation]">
               <option value="" selected={@filters["mutation"] == ""}>All mutations</option>
               <option value="kill_switch.engage" selected={@filters["mutation"] == "kill_switch.engage"}>Kill switch engage</option>
               <option value="kill_switch.release" selected={@filters["mutation"] == "kill_switch.release"}>Kill switch release</option>
               <option value="ruleset.publish" selected={@filters["mutation"] == "ruleset.publish"}>Ruleset publish</option>
               <option value="audit.rollback" selected={@filters["mutation"] == "audit.rollback"}>Rollback</option>
             </select>
-          </label>
+          </div>
 
-          <label>
-            From
-            <input type="date" name="filters[from]" value={@filters["from"]} aria-label="From date" />
-          </label>
+          <div class="rs-form-field">
+            <label for="audit_filter_from">From</label>
+            <input id="audit_filter_from" type="date" name="filters[from]" value={@filters["from"]} />
+          </div>
 
-          <label>
-            To
-            <input type="date" name="filters[to]" value={@filters["to"]} aria-label="To date" />
-          </label>
+          <div class="rs-form-field">
+            <label for="audit_filter_to">To</label>
+            <input id="audit_filter_to" type="date" name="filters[to]" value={@filters["to"]} />
+          </div>
         </form>
       </FlagComponents.section_card>
 
-      <FlagComponents.section_card title="Ledger">
-        <p>Global audit reads the same append-only ledger as the per-flag timeline, but projects it across flags for investigation.</p>
-      </FlagComponents.section_card>
-
-      <FlagComponents.section_card :if={@entries == []} title="Empty state">
-        <p>No audit entries match the selected filters.</p>
-      </FlagComponents.section_card>
+      <OperatorComponents.empty_state
+        :if={@entries == []}
+        title="No audit events match these filters"
+        body="Widen the actor, environment, mutation type, or date range filters to inspect more of the append-only ledger. For flag-scoped history, open the flag and use its Timeline tab."
+        variant="compact"
+      />
 
       <div :for={entry <- @entries}>
         <AuditComponents.timeline_row entry={entry} show_flag={true} />
@@ -129,13 +135,18 @@ defmodule RulesteadAdmin.Live.AuditLive.Index do
         value -> value
       end
 
+    mount_path = socket.assigns.rulestead_admin_mount_path
+
     case Rulestead.list_audit_events(
            environment_key: command_env,
            actor: socket.assigns.current_actor
          ) do
       {:ok, page} ->
         socket
-        |> assign(:entries, page.entries |> Enum.map(&entry_view/1) |> filter_entries(filters))
+        |> assign(
+          :entries,
+          page.entries |> Enum.map(&entry_view(&1, mount_path)) |> filter_entries(filters)
+        )
         |> assign(:error_message, nil)
 
       {:error, error} ->
@@ -145,7 +156,7 @@ defmodule RulesteadAdmin.Live.AuditLive.Index do
     end
   end
 
-  defp entry_view(event) do
+  defp entry_view(event, mount_path) do
     metadata = redacted_metadata(event.metadata)
     before_state = metadata["before"] || %{}
     after_state = metadata["after"] || %{}
@@ -153,6 +164,8 @@ defmodule RulesteadAdmin.Live.AuditLive.Index do
 
     %{
       id: event.id,
+      resource_type: event.resource_type,
+      resource_nav: resource_nav(mount_path, event),
       title: title_for(event),
       meta: meta_for(event),
       summary: summary_for(event, before_state, after_state, diff_state),
@@ -162,6 +175,7 @@ defmodule RulesteadAdmin.Live.AuditLive.Index do
           Map.take(event, [
             :event_type,
             :result,
+            :resource_type,
             :resource_key,
             :environment_key,
             :actor_display,
@@ -322,6 +336,45 @@ defmodule RulesteadAdmin.Live.AuditLive.Index do
       {environment.key, build_path(socket, Map.put(filters, "env_filter", environment.key))}
     end)
   end
+
+  # Resolve a row's resource into navigable links so the cross-flag audit ledger
+  # is never a dead end (Support/SRE land here and need to jump to the flag, its
+  # timeline, or the decision explainer). Only resources with detail routes are
+  # linked; environment-scoped rows render as a plain label.
+  defp resource_nav(_mount_path, %{resource_key: key}) when key in [nil, ""], do: nil
+
+  defp resource_nav(mount_path, %{resource_type: "flag", resource_key: key} = event) do
+    env_q = env_query(event.environment_key)
+
+    %{
+      label: "Flag",
+      key: key,
+      primary: "#{mount_path}/#{key}#{env_q}",
+      actions: [
+        %{label: "Timeline", href: "#{mount_path}/#{key}/timeline#{env_q}"},
+        %{label: "Explain", href: "#{mount_path}/#{key}/explain#{env_q}"}
+      ]
+    }
+  end
+
+  defp resource_nav(mount_path, %{resource_type: "audience", resource_key: key} = event) do
+    %{
+      label: "Audience",
+      key: key,
+      primary: "#{mount_path}/audiences/#{key}#{env_query(event.environment_key)}",
+      actions: []
+    }
+  end
+
+  defp resource_nav(_mount_path, %{resource_type: resource_type, resource_key: key}) do
+    %{label: resource_label(resource_type), key: key, primary: nil, actions: []}
+  end
+
+  defp resource_label(nil), do: "Resource"
+  defp resource_label(resource_type), do: resource_type |> to_string() |> String.capitalize()
+
+  defp env_query(env_key) when env_key in [nil, ""], do: ""
+  defp env_query(env_key), do: "?env=#{env_key}"
 
   defp diff_lines("ruleset.publish", %{"rules" => rules}) when is_list(rules) do
     Enum.map(rules, fn rule ->

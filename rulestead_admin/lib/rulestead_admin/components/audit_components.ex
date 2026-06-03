@@ -90,7 +90,85 @@ defmodule RulesteadAdmin.Components.AuditComponents do
   attr(:show_flag, :boolean, default: false)
   attr(:show_rollback, :boolean, default: false)
 
+  def timeline_item(assigns) do
+    assigns =
+      assigns
+      |> assign(:event_id, "audit-event-#{assigns.entry.id}")
+      |> assign(:automatic?, Map.get(assigns.entry, :automatic?, false))
+      |> assign(:rollout_event?, rollout_event?(assigns.entry))
+
+    ~H"""
+    <li class="rs-event-timeline__item" data-result={@entry.result} data-automatic={@automatic?}>
+      <div class="rs-event-timeline__time">
+        <time datetime={Map.get(@entry, :occurred_at_iso)}>
+          {Map.get(@entry, :occurred_at_label) || "Unknown time"}
+        </time>
+        <span>{Map.get(@entry, :environment_key) || "Unknown env"}</span>
+      </div>
+
+      <div class="rs-event-timeline__marker" aria-hidden="true"></div>
+
+      <article class="rs-event-panel" aria-labelledby={@event_id}>
+        <header class="rs-event-panel__header">
+          <div>
+            <h3 id={@event_id}>{@entry.title}</h3>
+            <p>{@entry.summary}</p>
+          </div>
+          <span class="rs-event-panel__result" data-result={@entry.result}>
+            {result_label(@entry.result)}
+          </span>
+        </header>
+
+        <div class="rs-event-panel__meta" aria-label={"Audit metadata for #{@entry.title}"}>
+          <span>{Map.get(@entry, :actor_label) || "Unknown actor"}</span>
+          <span :if={@automatic?}>
+            Run by {Map.get(@entry, :source_label) || "automation"}
+          </span>
+          <span :if={!@automatic? and @rollout_event?}>Run by operator</span>
+          <span :if={Map.get(@entry, :resource_key)}>Flag <code>{@entry.resource_key}</code></span>
+        </div>
+
+        <p :if={@entry.reason} class="rs-event-panel__reason">
+          <strong>Reason</strong>
+          <span>{@entry.reason}</span>
+        </p>
+
+        <p :if={@entry.rollback_of_event_id} class="rs-event-panel__link">
+          Rollback of audit event <code>{@entry.rollback_of_event_id}</code>
+        </p>
+
+        <div class="rs-event-panel__actions">
+          <button
+            :if={@show_rollback}
+            type="button"
+            phx-click="rollback"
+            phx-value-id={@entry.id}
+            aria-label={"Rollback #{@entry.title}"}
+          >
+            Roll back with inverse write
+          </button>
+        </div>
+
+        <.readable_diff
+          :if={Map.get(@entry, :show_diff?, false)}
+          entry={@entry}
+          source_label={Map.get(@entry, :source_diff_label) || "Previous state"}
+          proposed_target_label={Map.get(@entry, :proposed_target_diff_label) || "New state"}
+          structured_label="What changed"
+        />
+
+        <.raw_detail entry={@entry} />
+      </article>
+    </li>
+    """
+  end
+
   def timeline_row(assigns) do
+    assigns =
+      assigns
+      |> assign_new(:show_flag, fn -> false end)
+      |> assign_new(:show_rollback, fn -> false end)
+
     ~H"""
     <article class="rs-card rs-audit-row" data-result={@entry.result}>
       <header>
@@ -111,7 +189,20 @@ defmodule RulesteadAdmin.Components.AuditComponents do
         Manual rollout action
       </p>
       <p>{@entry.summary}</p>
-      <p :if={@show_flag} class="rs-audit-row__flag">Flag: <code>{@entry.resource_key}</code></p>
+      <% nav = @show_flag && Map.get(@entry, :resource_nav) %>
+      <p :if={@show_flag and is_nil(nav)} class="rs-audit-row__flag">
+        Flag: <code>{@entry.resource_key}</code>
+      </p>
+      <div :if={nav} class="rs-audit-row__resource">
+        <span class="rs-audit-row__resource-label">{nav.label}</span>
+        <a :if={nav.primary} href={nav.primary} class="rs-audit-row__resource-key">
+          <code>{nav.key}</code>
+        </a>
+        <code :if={is_nil(nav.primary)} class="rs-audit-row__resource-key">{nav.key}</code>
+        <span :if={nav.actions != []} class="rs-audit-row__resource-actions">
+          <a :for={action <- nav.actions} href={action.href}>{action.label}</a>
+        </span>
+      </div>
       <p :if={@entry.reason} class="rs-audit-row__reason">Reason: {@entry.reason}</p>
       <p :if={@entry.rollback_of_event_id} class="rs-audit-row__link">
         Rollback of audit event <code>{@entry.rollback_of_event_id}</code>
@@ -129,11 +220,25 @@ defmodule RulesteadAdmin.Components.AuditComponents do
         </button>
       </div>
 
-      <details aria-label={"Raw detail for #{@entry.title}"}>
-        <summary>Show raw detail</summary>
-        <pre>{inspect(@entry.raw, pretty: true)}</pre>
-      </details>
+      <.raw_detail entry={@entry} />
     </article>
+    """
+  end
+
+  attr(:entry, :map, required: true)
+
+  def raw_detail(assigns) do
+    assigns = assign(assigns, :tokens, json_tokens(assigns.entry.raw))
+
+    ~H"""
+    <details class="rs-raw-detail" aria-label={"Raw detail for #{@entry.title}"}>
+      <summary>Show redacted JSON</summary>
+      <p>Debug view. Sensitive or non-allowlisted fields may be hidden.</p>
+      <pre><code class="rs-json" aria-label={"JSON raw detail for #{@entry.title}"}><span
+        :for={token <- @tokens}
+        class={"rs-json-token rs-json-token--#{token.type}"}
+      >{token.value}</span></code></pre>
+    </details>
     """
   end
 
@@ -145,28 +250,170 @@ defmodule RulesteadAdmin.Components.AuditComponents do
 
   def diff_card(assigns) do
     ~H"""
-    <details aria-label={@structured_label}>
+    <details class="rs-readable-diff" aria-label={@structured_label}>
       <summary>{@structured_label}</summary>
       <section class="rs-diff-card" aria-label={"Diff for #{@entry.title}"}>
-        <div class="rs-diff-card__values">
-          <div>
-            <p>{@source_label}</p>
-            <code>{Map.get(@entry, :source_summary) || Map.get(@entry, :before_summary)}</code>
-          </div>
-          <div :if={@current_target_label}>
-            <p>{@current_target_label}</p>
-            <code>{Map.get(@entry, :current_target_summary) || "Not available"}</code>
-          </div>
-          <div>
-            <p>{@proposed_target_label}</p>
-            <code>{Map.get(@entry, :proposed_target_summary) || Map.get(@entry, :after_summary)}</code>
-          </div>
-        </div>
-        <ul :if={Map.get(@entry, :diff_lines, []) != []} class="rs-diff-card__positions">
-          <li :for={line <- @entry.diff_lines}>{line}</li>
-        </ul>
+        <.diff_values
+          entry={@entry}
+          source_label={@source_label}
+          current_target_label={@current_target_label}
+          proposed_target_label={@proposed_target_label}
+        />
       </section>
     </details>
     """
   end
+
+  attr(:entry, :map, required: true)
+  attr(:source_label, :string, default: "Before")
+  attr(:current_target_label, :string, default: nil)
+  attr(:proposed_target_label, :string, default: "After")
+  attr(:structured_label, :string, default: "Readable diff")
+
+  def readable_diff(assigns) do
+    ~H"""
+    <details class="rs-readable-diff" aria-label={@structured_label}>
+      <summary>{@structured_label}</summary>
+      <section class="rs-diff-card rs-diff-card--inline" aria-label={"Diff for #{@entry.title}"}>
+        <p :if={Map.get(@entry, :change_label)} class="rs-diff-card__label">
+          {@entry.change_label}
+        </p>
+        <.diff_values
+          entry={@entry}
+          source_label={@source_label}
+          current_target_label={@current_target_label}
+          proposed_target_label={@proposed_target_label}
+        />
+      </section>
+    </details>
+    """
+  end
+
+  attr(:entry, :map, required: true)
+  attr(:source_label, :string, required: true)
+  attr(:current_target_label, :string, default: nil)
+  attr(:proposed_target_label, :string, required: true)
+
+  defp diff_values(assigns) do
+    ~H"""
+    <div class="rs-diff-card__values">
+      <div class="rs-diff-card__value">
+        <p>{@source_label}</p>
+        <code>{Map.get(@entry, :source_summary) || Map.get(@entry, :before_summary) || "No recorded state"}</code>
+      </div>
+      <div :if={@current_target_label} class="rs-diff-card__value">
+        <p>{@current_target_label}</p>
+        <code>{Map.get(@entry, :current_target_summary) || "Not available"}</code>
+      </div>
+      <div :if={!@current_target_label} class="rs-diff-card__transition" aria-hidden="true">&rarr;</div>
+      <div class="rs-diff-card__value">
+        <p>{@proposed_target_label}</p>
+        <code>{Map.get(@entry, :proposed_target_summary) || Map.get(@entry, :after_summary) || "No recorded state"}</code>
+      </div>
+    </div>
+    <ul :if={Map.get(@entry, :diff_lines, []) != []} class="rs-diff-card__positions">
+      <li :for={line <- Map.get(@entry, :diff_lines, [])}>{line}</li>
+    </ul>
+    """
+  end
+
+  defp rollout_event?(entry) do
+    entry
+    |> get_in([:raw, :event, :event_type])
+    |> to_string()
+    |> String.starts_with?("rollout.")
+  end
+
+  defp result_label(:ok), do: "Applied"
+  defp result_label("ok"), do: "Applied"
+  defp result_label(:denied), do: "Denied"
+  defp result_label("denied"), do: "Denied"
+  defp result_label(result), do: result |> to_string() |> String.upcase()
+
+  defp json_tokens(value) do
+    value
+    |> normalize_json_value()
+    |> Jason.encode!(pretty: true)
+    |> tokenize_json([])
+  end
+
+  defp normalize_json_value(%DateTime{} = value), do: DateTime.to_iso8601(value)
+  defp normalize_json_value(%NaiveDateTime{} = value), do: NaiveDateTime.to_iso8601(value)
+  defp normalize_json_value(%Date{} = value), do: Date.to_iso8601(value)
+  defp normalize_json_value(%Time{} = value), do: Time.to_iso8601(value)
+
+  defp normalize_json_value(value) when is_map(value) do
+    value
+    |> Enum.map(fn {key, nested_value} ->
+      {to_string(key), normalize_json_value(nested_value)}
+    end)
+    |> Map.new()
+  end
+
+  defp normalize_json_value(value) when is_list(value),
+    do: Enum.map(value, &normalize_json_value/1)
+
+  defp normalize_json_value(value) when is_atom(value) and value in [true, false, nil], do: value
+  defp normalize_json_value(value) when is_atom(value), do: Atom.to_string(value)
+  defp normalize_json_value(value), do: value
+
+  defp tokenize_json("", tokens), do: Enum.reverse(tokens)
+
+  defp tokenize_json(<<"\"", _rest::binary>> = json, tokens) do
+    {value, rest} = take_json_string(json)
+    type = if json_key?(rest), do: "key", else: "string"
+    tokenize_json(rest, [%{type: type, value: value} | tokens])
+  end
+
+  defp tokenize_json(<<char::utf8, _rest::binary>> = json, tokens)
+       when char in [?\s, ?\n, ?\r, ?\t] do
+    {value, rest} = take_while(json, &(&1 in [?\s, ?\n, ?\r, ?\t]))
+    tokenize_json(rest, [%{type: "space", value: value} | tokens])
+  end
+
+  defp tokenize_json(<<"true", rest::binary>>, tokens),
+    do: tokenize_json(rest, [%{type: "boolean", value: "true"} | tokens])
+
+  defp tokenize_json(<<"false", rest::binary>>, tokens),
+    do: tokenize_json(rest, [%{type: "boolean", value: "false"} | tokens])
+
+  defp tokenize_json(<<"null", rest::binary>>, tokens),
+    do: tokenize_json(rest, [%{type: "null", value: "null"} | tokens])
+
+  defp tokenize_json(<<char::utf8, _rest::binary>> = json, tokens)
+       when char in [?-, ?0, ?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9] do
+    {value, rest} =
+      take_while(json, &(&1 in [?-, ?+, ?., ?e, ?E, ?0, ?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9]))
+
+    tokenize_json(rest, [%{type: "number", value: value} | tokens])
+  end
+
+  defp tokenize_json(<<char::utf8, rest::binary>>, tokens) do
+    tokenize_json(rest, [%{type: "punctuation", value: <<char::utf8>>} | tokens])
+  end
+
+  defp take_json_string(<<"\"", rest::binary>>), do: take_json_string(rest, ["\""])
+
+  defp take_json_string(<<"\\", char::utf8, rest::binary>>, acc),
+    do: take_json_string(rest, [<<"\\", char::utf8>> | acc])
+
+  defp take_json_string(<<"\"", rest::binary>>, acc),
+    do: {acc |> Enum.reverse() |> IO.iodata_to_binary() |> Kernel.<>("\""), rest}
+
+  defp take_json_string(<<char::utf8, rest::binary>>, acc),
+    do: take_json_string(rest, [<<char::utf8>> | acc])
+
+  defp json_key?(rest), do: rest |> String.trim_leading() |> String.starts_with?(":")
+
+  defp take_while(binary, predicate), do: take_while(binary, predicate, [])
+
+  defp take_while(<<char::utf8, rest::binary>>, predicate, acc) do
+    if predicate.(char) do
+      take_while(rest, predicate, [<<char::utf8>> | acc])
+    else
+      {acc |> Enum.reverse() |> IO.iodata_to_binary(), <<char::utf8, rest::binary>>}
+    end
+  end
+
+  defp take_while("", _predicate, acc), do: {acc |> Enum.reverse() |> IO.iodata_to_binary(), ""}
 end

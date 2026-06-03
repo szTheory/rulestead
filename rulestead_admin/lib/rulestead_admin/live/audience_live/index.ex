@@ -4,7 +4,7 @@ defmodule RulesteadAdmin.Live.AudienceLive.Index do
 
   use Phoenix.LiveView
 
-  alias RulesteadAdmin.Components.{FlagComponents, OperatorComponents, Shell}
+  alias RulesteadAdmin.Components.{FlagComponents, Shell}
   alias RulesteadAdmin.Live.{AudienceLive.Shared, Session}
 
   @impl true
@@ -38,19 +38,20 @@ defmodule RulesteadAdmin.Live.AudienceLive.Index do
       page_title="Audiences"
       page_kicker="Reusable targeting"
       page_summary="Shared audience definitions referenced across flags. Open a row for used-by detail and governed mutations."
+      base_path={@rulestead_admin_mount_path}
+      current_section={:audiences}
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}
       current_tenant={@current_tenant}
       tenants={@available_tenants}
       tenant_links={@tenant_links}
+      policy_state={@rulestead_admin_policy_state}
     >
-      <OperatorComponents.policy_state policy_state={@rulestead_admin_policy_state} />
-
       <p :if={@error_message} role="alert"><%= @error_message %></p>
 
       <FlagComponents.section_card title="Audience library">
-        <table :if={@audiences != []} aria-label="Audience list">
+        <table :if={@audiences != []} aria-label="Audience list" class="rs-table">
           <thead>
             <tr>
               <th>Key</th>
@@ -65,7 +66,11 @@ defmodule RulesteadAdmin.Live.AudienceLive.Index do
                 <a href={Shared.path(assigns, "/audiences/#{audience.key}")}><code><%= audience.key %></code></a>
               </td>
               <td><%= audience.description || "—" %></td>
-              <td><%= if audience.archived_at, do: "Archived", else: "Active" %></td>
+              <td>
+                <span class="rs-badge" data-tone={audience_tone(audience)}>
+                  {audience_label(audience)}
+                </span>
+              </td>
               <td><%= format_time(audience.updated_at) %></td>
             </tr>
           </tbody>
@@ -94,4 +99,13 @@ defmodule RulesteadAdmin.Live.AudienceLive.Index do
 
   defp format_time(%DateTime{} = dt), do: Calendar.strftime(dt, "%Y-%m-%d %H:%M")
   defp format_time(_), do: "—"
+
+  defp audience_state(%{archived_at: archived_at}) when not is_nil(archived_at), do: :archived
+  defp audience_state(_audience), do: :active
+
+  defp audience_tone(audience),
+    do: RulesteadAdmin.StatusTone.tone(:audience, audience_state(audience))
+
+  defp audience_label(audience),
+    do: RulesteadAdmin.StatusTone.label(:audience, audience_state(audience))
 end

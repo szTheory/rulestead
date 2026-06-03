@@ -5,6 +5,9 @@ set -euo pipefail
 ROOT_DIR="$(CDPATH= cd -- "$(dirname "$0")/../.." && pwd)"
 cd "${ROOT_DIR}"
 
+. scripts/demo/compose-env.sh
+demo_prepare_compose_env
+
 echo "[proof] 1/2 — compose-backed demo smoke (see scripts/demo/verify.sh for full browser proof)"
 DEMO_SMOKE_KEEP_STACK=1 scripts/demo/smoke.sh
 

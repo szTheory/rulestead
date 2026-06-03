@@ -17,6 +17,121 @@ defmodule RulesteadAdmin.Components.OperatorComponents do
     """
   end
 
+  attr(:title, :string, required: true)
+  attr(:summary, :string, default: nil)
+  slot(:inner_block)
+
+  def page_section(assigns) do
+    ~H"""
+    <section class="rs-page-section">
+      <h2><%= @title %></h2>
+      <p :if={@summary}><%= @summary %></p>
+      <%= render_slot(@inner_block) %>
+    </section>
+    """
+  end
+
+  attr(:title, :string, required: true)
+  attr(:href, :string, required: true)
+  attr(:meta, :string, default: nil)
+  attr(:tone, :string, default: "neutral")
+  slot(:inner_block)
+  slot(:actions)
+
+  def record_row(assigns) do
+    ~H"""
+    <article class="rs-record-row" data-tone={@tone}>
+      <header class="rs-record-row__header">
+        <div>
+          <h3 class="rs-record-row__title"><a href={@href}><%= @title %></a></h3>
+          <p :if={@meta} class="rs-record-row__meta"><%= @meta %></p>
+        </div>
+        <div :if={@actions != []} class="rs-record-row__actions">
+          <%= render_slot(@actions) %>
+        </div>
+      </header>
+      <div :if={@inner_block != []} class="rs-record-row__body">
+        <%= render_slot(@inner_block) %>
+      </div>
+    </article>
+    """
+  end
+
+  attr(:rows, :list, default: [])
+
+  def detail_grid(assigns) do
+    ~H"""
+    <dl class="rs-kv-grid">
+      <div :for={row <- @rows}>
+        <dt><%= row.label %></dt>
+        <dd><%= row.value %></dd>
+      </div>
+    </dl>
+    """
+  end
+
+  attr(:title, :string, required: true)
+  attr(:summary, :string, default: nil)
+  attr(:href, :string, required: true)
+  attr(:tone, :string, default: "neutral")
+  attr(:primary?, :boolean, default: false)
+
+  def task_link(assigns) do
+    ~H"""
+    <a
+      class={["rs-task-link", @primary? && "rs-task-link--primary"]}
+      data-tone={@tone}
+      href={@href}
+    >
+      <strong><%= @title %></strong>
+      <span :if={@summary}><%= @summary %></span>
+    </a>
+    """
+  end
+
+  attr(:label, :string, required: true)
+  attr(:value, :any, required: true)
+  attr(:tone, :string, default: "neutral")
+
+  def signal(assigns) do
+    ~H"""
+    <div class="rs-signal" data-tone={@tone}>
+      <span><%= @label %></span>
+      <strong><%= @value %></strong>
+    </div>
+    """
+  end
+
+  attr(:title, :string, required: true)
+  attr(:body, :string, required: true)
+  attr(:icon, :string, default: nil)
+  attr(:id, :string, default: nil)
+  attr(:variant, :string, default: "default")
+  slot(:actions)
+
+  def empty_state(assigns) do
+    ~H"""
+    <section id={@id} class="rs-empty-state" data-variant={@variant} aria-label={@title}>
+      <div :if={@icon} class="rs-empty-state__icon" aria-hidden="true"><%= @icon %></div>
+      <h2 class="rs-empty-state__title"><%= @title %></h2>
+      <p class="rs-empty-state__text"><%= @body %></p>
+      <div :if={@actions != []} class="rs-empty-state__actions">
+        <%= render_slot(@actions) %>
+      </div>
+    </section>
+    """
+  end
+
+  attr(:links, :list, default: [])
+
+  def related_links(assigns) do
+    ~H"""
+    <nav class="rs-related-links" aria-label="Related routes">
+      <a :for={link <- @links} href={link.path}><%= link.label %></a>
+    </nav>
+    """
+  end
+
   attr(:items, :list, default: [])
   attr(:aria_label, :string, default: "Summary")
 
@@ -28,23 +143,6 @@ defmodule RulesteadAdmin.Components.OperatorComponents do
         <p class="rs-stat__value"><%= item.value %></p>
       </article>
     </section>
-    """
-  end
-
-  attr(:policy_state, :map, required: true)
-
-  def policy_state(assigns) do
-    ~H"""
-    <aside class="rs-policy-state" data-tone={@policy_state.tone}>
-      <p class="rs-policy-state__label"><%= @policy_state.label %></p>
-      <p><%= @policy_state.summary %></p>
-      <ul class="rs-policy-capabilities" :if={Map.has_key?(@policy_state, :capabilities)}>
-        <li data-allowed={to_string(@policy_state.capabilities.read?)}>Read</li>
-        <li data-allowed={to_string(@policy_state.capabilities.execute?)}>Execute</li>
-        <li data-allowed={to_string(@policy_state.capabilities.propose?)}>Propose</li>
-        <li data-allowed={to_string(@policy_state.capabilities.admin?)}>Admin</li>
-      </ul>
-    </aside>
     """
   end
 
@@ -150,27 +248,4 @@ defmodule RulesteadAdmin.Components.OperatorComponents do
     """
   end
 
-  attr(:title, :string, required: true)
-  attr(:summary, :string, required: true)
-  attr(:before_value, :string, required: true)
-  attr(:after_value, :string, required: true)
-
-  def diff_card(assigns) do
-    ~H"""
-    <section class="rs-diff-card" aria-label={@title}>
-      <h2><%= @title %></h2>
-      <p><%= @summary %></p>
-      <div class="rs-diff-card__values">
-        <div>
-          <p>Before</p>
-          <code><%= @before_value %></code>
-        </div>
-        <div>
-          <p>After</p>
-          <code><%= @after_value %></code>
-        </div>
-      </div>
-    </section>
-    """
-  end
 end

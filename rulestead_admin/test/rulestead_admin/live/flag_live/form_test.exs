@@ -57,6 +57,39 @@ defmodule RulesteadAdmin.Live.FlagLive.FormTest do
 
     assert html =~ "Create flag"
     assert has_element?(view, "form[aria-label='Flag metadata form']")
+    assert html =~ "checkout-one-click-buy"
+    assert html =~ "Enables one-click checkout for returning customers"
+    assert html =~ "Release (most common)"
+    assert html =~ "Boolean (most common)"
+    assert html =~ "team:checkout"
+    refute html =~ "Flag was not created"
+    refute html =~ "Key is required"
+    refute html =~ "Owner reference is required"
+    refute html =~ "Review by is required"
+    assert has_element?(view, "input[name='flag[owner_kind]'][value='person']")
+    assert has_element?(view, "input[name='flag[owner_kind]'][value='team']")
+    assert has_element?(view, "input[name='flag[owner_kind]'][value='service']")
+    assert has_element?(view, "input[name='flag[value_type]'][value='json']")
+    refute has_element?(view, "select[name='flag[value_type]']")
+    refute has_element?(view, ".rs-date-picker__calendar summary")
+
+    css = File.read!("priv/static/css/rulestead_admin.css")
+
+    assert css =~ ".rs-date-picker__entry:focus-within .rs-date-picker__calendar"
+
+    refute css =~ ".rs-date-picker:focus-within .rs-date-picker__calendar"
+    assert css =~ ".rs-shell input[type=\"text\"]:disabled"
+    assert css =~ "cursor: not-allowed"
+
+    assert occurs_before?(html, "Owner type", "Display name")
+    assert occurs_before?(html, "Display name", "Owner ID")
+
+    preset_html =
+      view
+      |> element("button[phx-click='set_review_by'][phx-value-days='30']")
+      |> render_click()
+
+    assert preset_html =~ ~s(value="2026-05-23")
 
     invalid_html =
       view
@@ -68,9 +101,7 @@ defmodule RulesteadAdmin.Live.FlagLive.FormTest do
           "value_type" => "boolean",
           "default_value" => "true",
           "owner_ref" => "",
-          "owner_kind" => "",
           "owner_display" => "",
-          "lifecycle_mode" => "",
           "review_by" => "",
           "tags" => "admin, inventory"
         }
@@ -78,8 +109,6 @@ defmodule RulesteadAdmin.Live.FlagLive.FormTest do
       |> render_submit()
 
     assert invalid_html =~ "Owner reference is required"
-    assert invalid_html =~ "Choose a valid owner kind"
-    assert invalid_html =~ "Choose a lifecycle posture"
 
     view
     |> form("form[aria-label='Flag metadata form']", %{
@@ -111,6 +140,133 @@ defmodule RulesteadAdmin.Live.FlagLive.FormTest do
     assert detail.flag.tags == ["admin", "inventory"]
   end
 
+  test "new flag can be created with the visible ecommerce example values", %{conn: conn} do
+    {:ok, view, _html} = live(conn, "/admin/flags/new?env=prod")
+
+    view
+    |> form("form[aria-label='Flag metadata form']", %{
+      "flag" => %{
+        "key" => "checkout-one-click-buy",
+        "description" =>
+          "Enables one-click checkout for returning customers while the team monitors conversion and support tickets.",
+        "flag_type" => "release",
+        "value_type" => "boolean",
+        "default_value" => "false",
+        "owner_ref" => "team:checkout",
+        "owner_kind" => "team",
+        "owner_display" => "Checkout Team",
+        "lifecycle_mode" => "permanent",
+        "review_by" => "",
+        "tags" => "checkout, release, revenue"
+      }
+    })
+    |> render_submit()
+
+    {redirect_path, flash} = assert_redirect(view)
+    assert redirect_path == "/admin/flags/checkout-one-click-buy?env=prod"
+    assert flash["info"] == "Flag checkout-one-click-buy was created."
+
+    assert {:ok, detail} = Rulestead.fetch_flag("checkout-one-click-buy", "prod")
+    assert detail.flag.description =~ "Enables one-click checkout"
+    assert detail.flag.ownership.owner_ref == "team:checkout"
+    assert detail.flag.ownership.owner_display == "Checkout Team"
+    assert detail.flag.tags == ["checkout", "release", "revenue"]
+  end
+
+  test "new flag validates key format before calling the store", %{conn: conn} do
+    {:ok, view, _html} = live(conn, "/admin/flags/new?env=prod")
+
+    invalid_html =
+      view
+      |> form("form[aria-label='Flag metadata form']", %{
+        "flag" => %{
+          "key" => "checkout.one_click_buy",
+          "description" => "Enables one-click checkout for returning customers.",
+          "flag_type" => "release",
+          "value_type" => "boolean",
+          "default_value" => "false",
+          "owner_ref" => "team:checkout",
+          "owner_kind" => "team",
+          "owner_display" => "Checkout Team",
+          "lifecycle_mode" => "permanent",
+          "review_by" => "",
+          "tags" => "checkout, release, revenue"
+        }
+      })
+      |> render_submit()
+
+    assert invalid_html =~ "Flag was not created"
+
+    assert invalid_html =~
+             "Use lowercase letters, numbers, colon, underscore, or hyphen. Start with a letter or number."
+
+    refute invalid_html =~ "store command is invalid"
+    assert {:error, _error} = Rulestead.fetch_flag("checkout.one_click_buy", "prod")
+  end
+
+  test "field changes do not show unrelated required-field errors before submit", %{conn: conn} do
+    {:ok, view, _html} = live(conn, "/admin/flags/new?env=prod")
+
+    change_html =
+      view
+      |> form("form[aria-label='Flag metadata form']", %{
+        "flag" => %{
+          "owner_kind" => "person"
+        }
+      })
+      |> render_change()
+
+    refute change_html =~ "Flag was not created"
+    refute change_html =~ "Key is required"
+    refute change_html =~ "Owner reference is required"
+    refute change_html =~ "Review by is required"
+
+    invalid_date_change_html =
+      view
+      |> form("form[aria-label='Flag metadata form']", %{
+        "flag" => %{
+          "review_by" => "2026-99-99"
+        }
+      })
+      |> render_change()
+
+    refute invalid_date_change_html =~ "Use a real review date in YYYY-MM-DD format"
+
+    invalid_date_blur_html =
+      view
+      |> element("#flag_review_by")
+      |> render_blur(%{"field" => "review_by"})
+
+    assert invalid_date_blur_html =~ "Use a real review date in YYYY-MM-DD format"
+  end
+
+  test "new flag explains invalid review dates without crashing", %{conn: conn} do
+    {:ok, view, _html} = live(conn, "/admin/flags/new?env=prod")
+
+    invalid_html =
+      view
+      |> form("form[aria-label='Flag metadata form']", %{
+        "flag" => %{
+          "key" => "checkout-one-click-buy-review-date",
+          "description" => "Enables one-click checkout for returning customers.",
+          "flag_type" => "release",
+          "value_type" => "boolean",
+          "default_value" => "false",
+          "owner_ref" => "team:checkout",
+          "owner_kind" => "team",
+          "owner_display" => "Checkout Team",
+          "lifecycle_mode" => "expiring",
+          "review_by" => "2026-99-99",
+          "tags" => "checkout, release, revenue"
+        }
+      })
+      |> render_submit()
+
+    assert invalid_html =~ "Flag was not created"
+    assert invalid_html =~ "Use a real review date in YYYY-MM-DD format"
+    assert {:error, _error} = Rulestead.fetch_flag("checkout-one-click-buy-review-date", "prod")
+  end
+
   test "edit flag updates authored ownership and lifecycle metadata while keeping immutable fields visible",
        %{
          conn: conn
@@ -119,7 +275,7 @@ defmodule RulesteadAdmin.Live.FlagLive.FormTest do
 
     assert html =~ "Edit flag"
     assert has_element?(view, "input[name='flag[key]'][disabled]")
-    assert has_element?(view, "select[name='flag[flag_type]'][disabled]")
+    assert has_element?(view, "input[name='flag[flag_type]'][disabled]")
 
     invalid_html =
       view
@@ -129,7 +285,6 @@ defmodule RulesteadAdmin.Live.FlagLive.FormTest do
           "owner_ref" => "",
           "owner_kind" => "team",
           "owner_display" => "",
-          "lifecycle_mode" => "",
           "review_by" => "",
           "tags" => "checkout, critical"
         }
@@ -137,7 +292,6 @@ defmodule RulesteadAdmin.Live.FlagLive.FormTest do
       |> render_submit()
 
     assert invalid_html =~ "Owner reference is required"
-    assert invalid_html =~ "Choose a lifecycle posture"
 
     view
     |> form("form[aria-label='Flag metadata form']", %{
@@ -153,7 +307,9 @@ defmodule RulesteadAdmin.Live.FlagLive.FormTest do
     })
     |> render_submit()
 
-    assert_redirect(view, "/admin/flags/checkout-redesign?env=prod")
+    {redirect_path, flash} = assert_redirect(view)
+    assert redirect_path == "/admin/flags/checkout-redesign?env=prod"
+    assert flash["info"] == "Metadata saved for checkout-redesign."
 
     assert {:ok, detail} = Rulestead.fetch_flag("checkout-redesign", "prod")
     assert detail.flag.description == "Updated checkout copy"
@@ -201,5 +357,11 @@ defmodule RulesteadAdmin.Live.FlagLive.FormTest do
 
   defp seed_environment!(key, name) do
     assert %{key: ^key, name: ^name} = Control.put_environment!(%{key: key, name: name})
+  end
+
+  defp occurs_before?(html, before_text, after_text) do
+    {before_index, _length} = :binary.match(html, before_text)
+    {after_index, _length} = :binary.match(html, after_text)
+    before_index < after_index
   end
 end

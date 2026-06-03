@@ -236,22 +236,41 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
       page_title={@page_title}
       page_kicker="Rollout controls"
       page_summary={@page_summary}
+      base_path={@rulestead_admin_mount_path}
+      current_section={:flags}
+      breadcrumbs={[
+        %{label: "Flags", path: @rulestead_admin_mount_path <> "/flags?env=" <> @current_environment.key},
+        %{label: @flag_key, path: @rulestead_admin_mount_path <> "/" <> @flag_key <> "?env=" <> @current_environment.key},
+        %{label: "Rollouts", path: @rulestead_admin_mount_path <> "/" <> @flag_key <> "/rollouts?env=" <> @current_environment.key}
+      ]}
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}
+      env_context_help="Shows this flag key's rollout state in the selected environment. Promotion uses Compare."
+      policy_state={@rulestead_admin_policy_state}
     >
       <:header_actions>
-        <a href={path_for(assigns, "/#{@flag_key}")}>Back to detail</a>
+        <a href={path_for(assigns, "/#{@flag_key}")}>Back to flag</a>
         <a href={path_for(assigns, "/#{@flag_key}/rules")}>Open rules workspace</a>
       </:header_actions>
+
+      <FlagComponents.flag_sub_nav
+        :if={@flag_key}
+        flag_key={@flag_key}
+        base_path={@rulestead_admin_mount_path}
+        env_key={@current_environment.key}
+        current={:rollouts}
+        show_kill?={
+          @rulestead_admin_policy_state.capabilities.execute? or
+            @rulestead_admin_policy_state.capabilities.admin?
+        }
+      />
 
       <OperatorComponents.banner
         title="Safe rollout ramps stay explicit"
         body="This page adjusts rollout percentage only. Variant composition stays fixed here, draft and publish remain separate, and preview feedback never writes behind your back."
         tone="warning"
       />
-
-      <OperatorComponents.policy_state policy_state={@rulestead_admin_policy_state} />
 
       <p :if={@error_message} role="alert"><%= @error_message %></p>
 

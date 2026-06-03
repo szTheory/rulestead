@@ -49,15 +49,18 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Show do
       page_title={@page.page_title}
       page_kicker={@page.page_kicker}
       page_summary={@page.page_summary}
+      base_path={@rulestead_admin_mount_path}
+      current_section={:compare}
+      breadcrumbs={breadcrumbs(assigns)}
       current_environment={@page.current_environment}
       environments={@page.environments}
       env_links={@page.env_links}
       current_tenant={@page.current_tenant}
       tenants={@page.tenants}
       tenant_links={@page.tenant_links}
+      env_context_help="Sets the page scope only. Source and target environments are selected below."
+      policy_state={@page.policy_state}
     >
-      <OperatorComponents.policy_state policy_state={@page.policy_state} />
-
       <OperatorComponents.banner
         :if={stale?(@compare)}
         title="Staleness conflict"
@@ -83,7 +86,7 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Show do
         </section>
 
         <FlagComponents.section_card title="Audience dependencies for this flag">
-          <ul :if={flag_dependency_findings(@compare, @flag.flag_key) != []}>
+          <ul :if={flag_dependency_findings(@compare, @flag.flag_key) != []} class="rs-compact-list">
             <li :for={finding <- flag_dependency_findings(@compare, @flag.flag_key)}>
               <strong><%= humanize_status(finding.severity) %></strong>
               <code><%= finding.code %></code> — <%= finding.message %>
@@ -102,9 +105,9 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Show do
             entry={
               %{
               title: @flag.flag_key,
-              source_summary: inspect(@flag.source_state, pretty: true),
-              current_target_summary: inspect(@flag.current_target_state, pretty: true),
-              proposed_target_summary: inspect(@flag.proposed_target_state, pretty: true),
+              source_summary: format_state(@flag.source_state),
+              current_target_summary: format_state(@flag.current_target_state),
+              proposed_target_summary: format_state(@flag.proposed_target_state),
               diff_lines: Enum.map(@flag.changed_fields, &"Changed field: #{&1}")
             }}
             source_label="Source"
@@ -116,16 +119,12 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Show do
 
         <section aria-label="Compare token metadata">
           <OperatorComponents.trace_panel
-            title="compare token metadata"
-            summary="compare token and scoped context for this flag review."
+            title="Compare token metadata"
+            summary="Compare token and scoped context for this flag review."
             rows={trace_rows(@compare, @flag)}
           />
         </section>
 
-        <details aria-label={"Show raw compare payload for #{@flag.flag_key}"}>
-          <summary>Show raw compare payload for <%= @flag.flag_key %></summary>
-          <pre><%= inspect(@compare, pretty: true) %></pre>
-        </details>
       <% end %>
     </Shell.page>
     """
@@ -154,7 +153,8 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Show do
         Session.tenant_links(socket, admin_base_path(socket, "/compare/#{flag_key}"), params),
       current_path:
         Session.current_path(socket, admin_base_path(socket, "/compare/#{flag_key}"), params),
-      policy_state: Session.policy_state(socket)
+      policy_state: Session.policy_state(socket),
+      mount_path: socket.assigns.rulestead_admin_mount_path
     }
   end
 
@@ -256,5 +256,30 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Show do
     |> to_string()
     |> String.replace("_", " ")
     |> String.capitalize()
+  end
+
+  defp format_state(nil), do: "(not configured)"
+
+  defp format_state(state) when is_map(state) do
+    case Jason.encode(state, pretty: true) do
+      {:ok, json} -> json
+      _ -> inspect(state, pretty: true)
+    end
+  end
+
+  defp format_state(state), do: inspect(state, pretty: true)
+
+  defp breadcrumbs(assigns) do
+    mount = assigns.rulestead_admin_mount_path
+    env = assigns.page.current_environment.key
+    key = assigns.flag_key
+
+    base = [%{label: "Compare", path: mount <> "/compare?env=" <> env}]
+
+    if is_binary(key) and key != "" do
+      base ++ [%{label: key, path: mount <> "/compare/" <> key <> "?env=" <> env}]
+    else
+      base
+    end
   end
 end

@@ -36,24 +36,24 @@ defmodule RulesteadAdmin.Live.WebhookLive.IndexTest do
     {:ok, conn: conn}
   end
 
-  test "webhook page shows inbound rejections, accepted events, and outbound deliveries", %{
+  test "webhook page renders an empty state describing future webhook records", %{
     conn: conn
   } do
     {:ok, _view, html} = live(conn, "/admin/flags/webhooks?env=prod")
 
     assert html =~ "Webhooks"
     assert html =~ "Integration visibility"
+    assert html =~ "Webhook records not yet available"
     assert html =~ "Inbound rejections"
-    assert html =~ "Inbound accepted"
-    assert html =~ "Outbound deliveries"
+    assert html =~ "Open audit timeline"
   end
 
-  test "filters work correctly", %{conn: conn} do
+  test "filtered webhook URLs still resolve to the empty state", %{conn: conn} do
     {:ok, _view, html} = live(conn, "/admin/flags/webhooks?env=prod&type=inbound_rejection")
-    assert html =~ "Rejected by verifier"
+    assert html =~ "Webhook records not yet available"
 
     {:ok, _view, html2} = live(conn, "/admin/flags/webhooks?env=prod&type=outbound_delivery")
-    assert html2 =~ "Delivered to"
+    assert html2 =~ "Webhook records not yet available"
   end
 
   defp restore_env(key, nil), do: Application.delete_env(:rulestead, key)

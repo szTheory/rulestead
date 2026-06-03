@@ -42,7 +42,7 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupPreview do
           Session.canonical_return_to(
             socket,
             query["return_to"],
-            socket.assigns.rulestead_admin_mount_path
+            socket.assigns.rulestead_admin_mount_path <> "/flags"
           )
         )
         |> assign(
@@ -64,12 +64,17 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupPreview do
       page_title={if(@flag_key, do: "#{@flag_key} archive preview", else: "Archive preview")}
       page_kicker="Cleanup preview"
       page_summary="Route-backed archive preview for readiness, evidence quality, reasons, unknowns, blockers, and archive consequences."
+      base_path={@rulestead_admin_mount_path}
+      current_section={:flags}
+      breadcrumbs={breadcrumbs(assigns)}
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}
+      env_context_help="Shows this flag key's archive preview in the selected environment. Promotion uses Compare."
+      policy_state={@rulestead_admin_policy_state}
     >
       <:header_actions>
-        <a :if={@return_to} href={@return_to}>Back to queue</a>
+        <a :if={@return_to} href={@return_to}>Back to flags</a>
         <a :if={@flag_key} href={path_for(assigns, "/#{@flag_key}/cleanup")}>Back to cleanup review</a>
       </:header_actions>
 
@@ -228,6 +233,25 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupPreview do
 
   defp fetch_return_to(%Phoenix.LiveView.Socket{} = socket), do: socket.assigns.return_to
   defp fetch_return_to(%{return_to: return_to}), do: return_to
+
+  defp breadcrumbs(%{flag_key: nil} = assigns) do
+    mount = assigns.rulestead_admin_mount_path
+    env = assigns.current_environment.key
+    [%{label: "Flags", path: mount <> "/flags?env=" <> env}]
+  end
+
+  defp breadcrumbs(assigns) do
+    mount = assigns.rulestead_admin_mount_path
+    env = assigns.current_environment.key
+    key = assigns.flag_key
+
+    [
+      %{label: "Flags", path: mount <> "/flags?env=" <> env},
+      %{label: key, path: mount <> "/" <> key <> "?env=" <> env},
+      %{label: "Cleanup", path: mount <> "/" <> key <> "/cleanup?env=" <> env},
+      %{label: "Preview", path: mount <> "/" <> key <> "/cleanup/preview?env=" <> env}
+    ]
+  end
 
   defp archive_readiness(detail), do: detail.lifecycle.archive_readiness
   defp freshness(detail), do: detail.lifecycle.freshness

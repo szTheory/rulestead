@@ -4,7 +4,7 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupConfirm do
   use Phoenix.LiveView
 
   alias Rulestead.Store.Command
-  alias RulesteadAdmin.Components.{FlagComponents, Shell}
+  alias RulesteadAdmin.Components.{ConfirmComponents, FlagComponents, Shell}
   alias RulesteadAdmin.Live.Session
 
   @impl true
@@ -43,7 +43,7 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupConfirm do
           Session.canonical_return_to(
             socket,
             query["return_to"],
-            socket.assigns.rulestead_admin_mount_path
+            socket.assigns.rulestead_admin_mount_path <> "/flags"
           )
         )
         |> assign(
@@ -64,12 +64,17 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupConfirm do
       page_title={if(@flag_key, do: "#{@flag_key} archive confirm", else: "Archive confirm")}
       page_kicker="Cleanup confirm"
       page_summary="Governed archive confirmation with required reason, production typed key checks, and revalidation before mutation."
+      base_path={@rulestead_admin_mount_path}
+      current_section={:flags}
+      breadcrumbs={breadcrumbs(assigns)}
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}
+      env_context_help="Shows this flag key's archive confirmation in the selected environment. Promotion uses Compare."
+      policy_state={@rulestead_admin_policy_state}
     >
       <:header_actions>
-        <a :if={@return_to} href={@return_to}>Back to queue</a>
+        <a :if={@return_to} href={@return_to}>Back to flags</a>
         <a :if={@flag_key} href={preview_path(assigns)}>Back to archive preview</a>
       </:header_actions>
 
@@ -90,17 +95,21 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupConfirm do
         </FlagComponents.callout>
 
         <FlagComponents.section_card title="Archive confirmation form">
-          <form phx-submit="archive" aria-label="Archive flag confirmation form">
-            <label>
-              <span>Reason</span>
-              <textarea name="reason"><%= @reason_value %></textarea>
-            </label>
-            <label>
-              <span>Typed confirmation</span>
-              <input type="text" name="confirmation" value={@confirmation_value} />
-            </label>
-            <button type="submit">Archive this flag</button>
-          </form>
+          <ConfirmComponents.mutation_confirm
+            submit_event="archive"
+            submit_label="Archive this flag"
+            reason_value={@reason_value}
+            reason_label="Reason"
+            danger?={true}
+            aria_label="Archive flag confirmation form"
+          >
+            <:extra_fields>
+              <label class="rs-form-field">
+                <span>Typed confirmation</span>
+                <input type="text" name="confirmation" value={@confirmation_value} />
+              </label>
+            </:extra_fields>
+          </ConfirmComponents.mutation_confirm>
         </FlagComponents.section_card>
       </div>
     </Shell.page>
@@ -288,6 +297,25 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupConfirm do
 
   defp fetch_return_to(%Phoenix.LiveView.Socket{} = socket), do: socket.assigns.return_to
   defp fetch_return_to(%{return_to: return_to}), do: return_to
+
+  defp breadcrumbs(%{flag_key: nil} = assigns) do
+    mount = assigns.rulestead_admin_mount_path
+    env = assigns.current_environment.key
+    [%{label: "Flags", path: mount <> "/flags?env=" <> env}]
+  end
+
+  defp breadcrumbs(assigns) do
+    mount = assigns.rulestead_admin_mount_path
+    env = assigns.current_environment.key
+    key = assigns.flag_key
+
+    [
+      %{label: "Flags", path: mount <> "/flags?env=" <> env},
+      %{label: key, path: mount <> "/" <> key <> "?env=" <> env},
+      %{label: "Cleanup", path: mount <> "/" <> key <> "/cleanup?env=" <> env},
+      %{label: "Confirm", path: mount <> "/" <> key <> "/cleanup/confirm?env=" <> env}
+    ]
+  end
 
   defp archive_readiness(detail), do: detail.lifecycle.archive_readiness
 

@@ -94,6 +94,7 @@ defmodule Rulestead.MixProject do
         "../guides/introduction/installation.md",
         "../guides/introduction/getting-started.md",
         "../guides/introduction/phoenix-integration-spine.md",
+        "../guides/introduction/domain_language.md",
         "../guides/introduction/product-boundary.md",
         "../guides/introduction/user-flows-and-jtbd.md",
         "../guides/introduction/adoption-lab.md",

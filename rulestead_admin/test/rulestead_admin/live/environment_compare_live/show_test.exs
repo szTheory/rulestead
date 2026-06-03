@@ -63,7 +63,7 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.ShowTest do
     {:ok, _view, html} = live(conn, summary_path)
 
     refute html =~ "Staleness conflict"
-    assert html =~ "compare token metadata"
+    assert html =~ "Compare token metadata"
     assert html =~ query["compare_token"]
     assert query["env"] == "prod"
     assert query["tenant"] == "acme"
@@ -82,7 +82,6 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.ShowTest do
     assert html =~ "Audience dependencies for this flag"
     assert html =~ "vip-users"
     assert html =~ "Show structured diff for checkout-redesign"
-    assert html =~ "Show raw compare payload for checkout-redesign"
     assert html =~ "Compare token"
     assert html =~ "acme"
   end
@@ -94,10 +93,12 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.ShowTest do
         "/admin/flags/compare/checkout-redesign?env=prod&tenant=acme&source_env=staging&target_env=prod&compare_token=stale-preview"
       )
 
-    refute html =~ ">Apply<"
-    refute html =~ ">Schedule<"
+    # Guard against compare mutation controls specifically (rs-button affordances),
+    # not the global nav/command-palette items that share these labels.
+    refute html =~ ~r/rs-button[^>]*>\s*Apply/
+    refute html =~ ~r/rs-button[^>]*>\s*Schedule/
     refute html =~ "Submit change request"
-    refute html =~ ">Publish<"
+    refute html =~ ~r/rs-button[^>]*>\s*Publish/
   end
 
   defp seed_compare_fixture! do

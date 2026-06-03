@@ -123,7 +123,7 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupConfirmTest do
              "Open audit timeline"
            )
 
-    assert has_element?(returned_view, "tr[data-flag-key='ops-cleanup'][data-highlighted='true']")
+    assert has_element?(returned_view, "li[data-flag-key='ops-cleanup'][data-highlighted='true']")
     assert Rulestead.fetch_flag!("ops-cleanup", "staging").flag.archived_at
   end
 
@@ -194,7 +194,7 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupConfirmTest do
 
   defp confirm_path(conn, env) do
     preview_path =
-      "/admin/flags/ops-cleanup/cleanup/preview?env=#{env}&return_to=%2Fadmin%2Fflags%3Fenv%3D#{env}%26owner%3Dops"
+      "/admin/flags/ops-cleanup/cleanup/preview?env=#{env}&return_to=%2Fadmin%2Fflags%2Fflags%3Fenv%3D#{env}%26owner%3Dops"
 
     {:ok, _view, html} = live(conn, preview_path)
     extract_confirm_path(html)

@@ -18,7 +18,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
      |> assign(:notice, nil)
      |> assign(:flag_key, nil)
      |> assign(:current_path, nil)
-     |> assign(:env_links, %{})}
+     |> assign(:env_links, %{})
+     |> assign(:show_rollback_guidance?, false)}
   end
 
   @impl true
@@ -42,39 +43,71 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
     <Shell.page
       page_title={if(@flag_key, do: "#{@flag_key} audit timeline", else: "Audit timeline")}
       page_kicker="Timeline"
-      page_summary="Per-flag audit route reserved for append-only history, readable diffs, and linked rollback context."
+      page_summary="History for this flag in the selected environment."
+      base_path={@rulestead_admin_mount_path}
+      current_section={:flags}
+      breadcrumbs={breadcrumbs(assigns)}
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}
+      env_context_help="Shows this flag key's audit history in the selected environment. Promotion uses Compare."
+      policy_state={@rulestead_admin_policy_state}
     >
       <:header_actions>
-        <a :if={@flag_key} href={path_for(assigns, "/#{@flag_key}")}>Back to detail</a>
+        <a :if={@flag_key} href={path_for(assigns, "/#{@flag_key}")}>Back to flag</a>
         <a href={Session.current_path(assigns, admin_base_path(assigns, "/audit"), %{"env_filter" => @current_environment.key})}>
           Open global audit
         </a>
       </:header_actions>
 
-      <OperatorComponents.policy_state policy_state={@rulestead_admin_policy_state} />
+      <FlagComponents.flag_sub_nav
+        :if={@flag_key}
+        flag_key={@flag_key}
+        base_path={@rulestead_admin_mount_path}
+        env_key={@current_environment.key}
+        current={:timeline}
+        show_kill?={
+          @rulestead_admin_policy_state.capabilities.execute? or
+            @rulestead_admin_policy_state.capabilities.admin?
+        }
+      />
 
       <p :if={@error_message} role="alert">{@error_message}</p>
       <p :if={@notice} role="status">{@notice}</p>
 
-      <FlagComponents.section_card :if={@detail} title="Timeline summary">
-        <p>
-          One redacted ledger projects into this per-flag view for <code>{@detail.flag.key}</code> in
-          {@detail.environment.name}.
-        </p>
-        <p>Rollback writes a new inverse event linked to the original row. Earlier history remains intact.</p>
-      </FlagComponents.section_card>
+      <OperatorComponents.banner
+        :if={@detail}
+        title="Append-only flag history"
+        body={"Use this timeline to see when #{@detail.flag.key} changed in #{@detail.environment.name}, who changed it, and the recorded reason."}
+        tone="neutral"
+      />
 
-      <FlagComponents.section_card :if={@entries == []} title="Empty state">
-        <p>No audit entries are available for this flag in the current environment.</p>
-      </FlagComponents.section_card>
+      <FlagComponents.callout :if={@show_rollback_guidance?} title="Rollback appends history" tone="warning">
+        <p>Rollback creates a new audit event that reverses the selected change. The original event stays in history.</p>
+      </FlagComponents.callout>
 
-      <div :for={entry <- @entries}>
-        <AuditComponents.timeline_row entry={entry} show_rollback={entry.rollback_allowed? and (@rulestead_admin_policy_state.capabilities.edit? or @rulestead_admin_policy_state.capabilities.admin?)} />
-        <AuditComponents.diff_card :if={entry.show_diff?} entry={entry} />
-      </div>
+      <OperatorComponents.empty_state
+        :if={@entries == []}
+        title="No audit events yet"
+        body={"This flag has no recorded changes in #{@current_environment.name}."}
+        icon="0"
+        variant="hero"
+      >
+        <:actions>
+          <a :if={@flag_key} class="rs-button" href={path_for(assigns, "/#{@flag_key}")}>Back to flag</a>
+          <a class="rs-button" href={Session.current_path(assigns, admin_base_path(assigns, "/audit"), %{"env_filter" => @current_environment.key})}>
+            Open global audit
+          </a>
+        </:actions>
+      </OperatorComponents.empty_state>
+
+      <ol :if={@entries != []} class="rs-event-timeline" aria-label="Flag audit events">
+        <AuditComponents.timeline_item
+          :for={entry <- @entries}
+          entry={entry}
+          show_rollback={entry.rollback_allowed? and (@rulestead_admin_policy_state.capabilities.edit? or @rulestead_admin_policy_state.capabilities.admin?)}
+        />
+      </ol>
     </Shell.page>
     """
   end
@@ -105,9 +138,12 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
              environment_key: env,
              actor: socket.assigns.current_actor
            ) do
+      entries = build_entries(page.entries)
+
       socket
       |> assign(:detail, detail)
-      |> assign(:entries, build_entries(page.entries))
+      |> assign(:entries, entries)
+      |> assign(:show_rollback_guidance?, Enum.any?(entries, & &1.rollback_allowed?))
       |> assign(:error_message, nil)
     else
       {:error, error} ->
@@ -130,12 +166,19 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
     after_state = metadata["after"] || %{}
     rollback_of_event_id = metadata["rollback_of_event_id"]
     diff_state = metadata["diff"] || %{}
+    change = change_view(event, before_state, after_state, diff_state, rollback_of_event_id)
 
     %{
       id: event.id,
       title: title_for(event),
       meta: meta_for(event),
-      summary: summary_for(event, metadata, before_state, after_state, diff_state),
+      resource_key: event.resource_key,
+      actor_label: event.actor_display || event.actor_id || "Unknown actor",
+      environment_key: event.environment_key,
+      occurred_at_iso: occurred_at_iso(event.occurred_at),
+      occurred_at_label: occurred_at_label(event.occurred_at),
+      summary:
+        summary_for(event, metadata, before_state, after_state, diff_state, rollback_of_event_id),
       reason: event.reason,
       automatic?: guardrail_automation_event?(event),
       source_label: source_label(metadata),
@@ -152,12 +195,15 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
         metadata: metadata
       },
       result: event.result,
-      before_summary: state_summary(before_state),
-      after_summary: state_summary(after_state),
-      diff_lines: diff_lines(event.event_type, diff_state),
+      change_label: change.change_label,
+      source_summary: change.source_summary,
+      source_diff_label: change.source_label,
+      proposed_target_summary: change.proposed_target_summary,
+      proposed_target_diff_label: change.proposed_target_label,
+      diff_lines: change.diff_lines,
       rollback_of_event_id: rollback_of_event_id,
       rollback_allowed?: rollback_allowed?(event),
-      show_diff?: map_size(before_state) > 0 or map_size(after_state) > 0
+      show_diff?: change.show?
     }
   end
 
@@ -221,7 +267,10 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
     ]
   end
 
-  defp source_label(metadata), do: metadata["source"]
+  defp source_label(%{"source" => "guardrail_automation"}), do: "Guardrail automation"
+  defp source_label(%{"source" => "admin_ui"}), do: "Admin UI"
+  defp source_label(%{"source" => source}) when is_binary(source), do: humanize_event(source)
+  defp source_label(_metadata), do: nil
 
   defp title_for(%{event_type: "rollout.guardrail_held"}), do: "Automatic guardrail hold"
 
@@ -258,14 +307,26 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
     "#{actor} • #{event.environment_key} • #{result} • #{time}"
   end
 
+  defp occurred_at_iso(%DateTime{} = occurred_at), do: DateTime.to_iso8601(occurred_at)
+  defp occurred_at_iso(_occurred_at), do: nil
+
+  defp occurred_at_label(%DateTime{} = occurred_at),
+    do: Calendar.strftime(occurred_at, "%b %d, %Y %H:%M UTC")
+
+  defp occurred_at_label(_occurred_at), do: "Unknown time"
+
   defp summary_for(
          %{event_type: "audit.rollback"} = event,
          _metadata,
          _before_state,
          after_state,
-         _diff_state
+         _diff_state,
+         rollback_of_event_id
        ) do
-    "Inverse write restored #{state_summary(after_state)} and linked this row back to #{event.metadata["rollback_of_event_id"] || "the original event"}."
+    linked =
+      rollback_of_event_id || event.metadata["rollback_of_event_id"] || "the original event"
+
+    "Restored #{serving_state_label(after_state)} and linked this correction to #{linked}."
   end
 
   defp summary_for(
@@ -273,9 +334,46 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
          _metadata,
          _before_state,
          _after_state,
-         diff_state
+         diff_state,
+         _rollback_of_event_id
        ) do
-    "Ruleset publish updated ordered rule positions: #{Enum.join(diff_lines("ruleset.publish", diff_state), "; ")}."
+    case rules_added(diff_state) do
+      [rule | _rest] -> "Published a ruleset. #{rule_label(rule)} is now the first rule."
+      [] -> "Published a ruleset for this flag."
+    end
+  end
+
+  defp summary_for(
+         %{event_type: "flag.archive"},
+         _metadata,
+         _before_state,
+         _after_state,
+         _diff_state,
+         _rollback_of_event_id
+       ) do
+    "Archived this flag and removed it from active inventory. The history remains available here."
+  end
+
+  defp summary_for(
+         %{event_type: "kill_switch.engage", result: :ok},
+         _metadata,
+         _before_state,
+         _after_state,
+         _diff_state,
+         _rollback_of_event_id
+       ) do
+    "Turned the kill switch on. This environment now serves the configured fallback variant."
+  end
+
+  defp summary_for(
+         %{event_type: "kill_switch.release", result: :ok},
+         _metadata,
+         _before_state,
+         _after_state,
+         _diff_state,
+         _rollback_of_event_id
+       ) do
+    "Turned the kill switch off. Normal flag rules are serving again."
   end
 
   defp summary_for(
@@ -283,7 +381,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
          _metadata,
          _before_state,
          _after_state,
-         _diff_state
+         _diff_state,
+         _rollback_of_event_id
        ) do
     append_reason(
       "Guardrail automation held this rollout fail-closed. Review the missing or stale signal before advancing.",
@@ -296,7 +395,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
          _metadata,
          _before_state,
          _after_state,
-         _diff_state
+         _diff_state,
+         _rollback_of_event_id
        ) do
     append_reason(
       "A confirmed threshold breach triggered rollback to the last stable rollout snapshot.",
@@ -309,7 +409,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
          _metadata,
          _before_state,
          _after_state,
-         _diff_state
+         _diff_state,
+         _rollback_of_event_id
        ) do
     append_reason(
       "Automation is waiting for valid guardrail evidence and will not assume the stage is healthy.",
@@ -322,14 +423,15 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
          metadata,
          before_state,
          after_state,
-         _diff_state
+         _diff_state,
+         _rollback_of_event_id
        ) do
     if guardrail_automation_event?(event) do
       automatic_rollout_advance_summary(metadata, before_state, after_state)
     else
       case event.result do
         :denied ->
-          "Denied action remains visible in the audit ledger. Requested change: #{state_summary(after_state)}."
+          "Request was denied. No serving change was applied."
 
         _ ->
           "#{humanize_event(event.event_type)} changed #{state_summary(before_state)} to #{state_summary(after_state)}."
@@ -337,10 +439,17 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
     end
   end
 
-  defp summary_for(event, _metadata, before_state, after_state, _diff_state) do
+  defp summary_for(
+         event,
+         _metadata,
+         before_state,
+         after_state,
+         _diff_state,
+         _rollback_of_event_id
+       ) do
     case event.result do
       :denied ->
-        "Denied action remains visible in the audit ledger. Requested change: #{state_summary(after_state)}."
+        "Request was denied. No serving change was applied."
 
       _ ->
         "#{humanize_event(event.event_type)} changed #{state_summary(before_state)} to #{state_summary(after_state)}."
@@ -413,6 +522,121 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
 
   defp append_reason(summary, _event), do: summary
 
+  defp change_view(%{event_type: "ruleset.publish"}, before_state, after_state, diff_state, _id) do
+    %{
+      show?: true,
+      change_label: "Rules",
+      source_label: "Previous rules",
+      source_summary: rules_summary(before_state, :previous),
+      proposed_target_label: "Published rules",
+      proposed_target_summary: rules_summary(after_state, :published),
+      diff_lines: ruleset_diff_lines(diff_state)
+    }
+  end
+
+  defp change_view(%{event_type: "flag.archive"}, before_state, after_state, _diff_state, _id) do
+    %{
+      show?: true,
+      change_label: "Inventory state",
+      source_label: "Previous state",
+      source_summary: inventory_state_label(before_state, "Active"),
+      proposed_target_label: "New state",
+      proposed_target_summary: inventory_state_label(after_state, "Archived"),
+      diff_lines: [
+        "Removed from active inventory. Current flag configuration remains available for audit."
+      ]
+    }
+  end
+
+  defp change_view(%{event_type: event_type}, before_state, after_state, _diff_state, _id)
+       when event_type in ["kill_switch.engage", "kill_switch.release"] do
+    %{
+      show?: true,
+      change_label: "Serving state",
+      source_label: "Previous state",
+      source_summary: kill_switch_summary(before_state),
+      proposed_target_label: "New state",
+      proposed_target_summary: kill_switch_summary(after_state),
+      diff_lines: []
+    }
+  end
+
+  defp change_view(%{event_type: "audit.rollback"}, _before_state, after_state, _diff_state, id) do
+    %{
+      show?: true,
+      change_label: "Correction",
+      source_label: "Restored state",
+      source_summary: serving_state_label(after_state),
+      proposed_target_label: "Linked event",
+      proposed_target_summary: id || "Original event",
+      diff_lines: []
+    }
+  end
+
+  defp change_view(_event, before_state, after_state, diff_state, _id) do
+    %{
+      show?: map_size(before_state) > 0 or map_size(after_state) > 0,
+      change_label: "State",
+      source_label: "Previous state",
+      source_summary: state_summary(before_state),
+      proposed_target_label: "New state",
+      proposed_target_summary: state_summary(after_state),
+      diff_lines: diff_lines(nil, diff_state)
+    }
+  end
+
+  defp rules_summary(state, empty_kind) do
+    rules = Map.get(state, "rules") || Map.get(state, :rules) || []
+
+    case rules do
+      [] when empty_kind == :previous -> "No published rules"
+      [] -> "No rules"
+      rules when is_list(rules) -> Enum.map_join(rules, ", ", &rule_label/1)
+      _other -> "No rules"
+    end
+  end
+
+  defp rule_label(rule) when is_map(rule) do
+    key = rule["key"] || rule[:key] || "unnamed rule"
+    position = rule["position"] || rule[:position]
+
+    case position do
+      nil -> key
+      position when is_integer(position) -> "#{key} at position #{position + 1}"
+      position -> "#{key} at position #{position}"
+    end
+  end
+
+  defp inventory_state_label(state, fallback) do
+    state
+    |> Map.get("status", Map.get(state, :status, fallback))
+    |> to_string()
+    |> humanize_event()
+  end
+
+  defp kill_switch_summary(state) do
+    "#{serving_state_label(state)}; fallback variant #{variant_label(state)}"
+  end
+
+  defp serving_state_label(state) do
+    case Map.get(state, "status") || Map.get(state, :status) do
+      "killswitched" -> "Kill switch on"
+      :killswitched -> "Kill switch on"
+      "active" -> "Active"
+      :active -> "Active"
+      nil -> "Unknown"
+      status -> humanize_event(to_string(status))
+    end
+  end
+
+  defp variant_label(state) do
+    case Map.get(state, "kill_switch_variant_key") || Map.get(state, :kill_switch_variant_key) do
+      nil -> "None"
+      "" -> "None"
+      value -> to_string(value)
+    end
+  end
+
   defp state_summary(state) when map_size(state) == 0, do: "no recorded state"
 
   defp state_summary(state) do
@@ -442,13 +666,37 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
     |> String.capitalize()
   end
 
-  defp diff_lines("ruleset.publish", %{"rules" => rules}) when is_list(rules) do
+  defp rules_added(%{"rules" => rules}) when is_list(rules) do
+    Enum.filter(rules, fn rule -> is_nil(rule["from"]) and not is_nil(rule["to"]) end)
+  end
+
+  defp rules_added(_diff_state), do: []
+
+  defp ruleset_diff_lines(%{"rules" => rules}) when is_list(rules) do
     Enum.map(rules, fn rule ->
-      "#{rule["key"]} from #{inspect(rule["from"])} to #{inspect(rule["to"])}"
+      key = rule["key"] || "Unnamed rule"
+
+      cond do
+        is_nil(rule["from"]) and not is_nil(rule["to"]) ->
+          "Added #{key} as the #{ordinal(rule["to"] + 1)} rule."
+
+        not is_nil(rule["from"]) and is_nil(rule["to"]) ->
+          "Removed #{key} from the published rules."
+
+        true ->
+          "Moved #{key} from position #{rule["from"] + 1} to #{rule["to"] + 1}."
+      end
     end)
   end
 
+  defp ruleset_diff_lines(_diff_state), do: []
+
   defp diff_lines(_event_type, _diff_state), do: []
+
+  defp ordinal(1), do: "first"
+  defp ordinal(2), do: "second"
+  defp ordinal(3), do: "third"
+  defp ordinal(number), do: "#{number}th"
 
   defp build_base_path(socket, key), do: admin_base_path(socket, "/#{key}/timeline")
 
@@ -461,4 +709,22 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
     do: socket.assigns.rulestead_admin_mount_path
 
   defp fetch_mount_path(%{rulestead_admin_mount_path: mount_path}), do: mount_path
+
+  defp breadcrumbs(%{flag_key: nil} = assigns) do
+    mount = assigns.rulestead_admin_mount_path
+    env = assigns.current_environment.key
+    [%{label: "Flags", path: mount <> "/flags?env=" <> env}]
+  end
+
+  defp breadcrumbs(assigns) do
+    mount = assigns.rulestead_admin_mount_path
+    env = assigns.current_environment.key
+    key = assigns.flag_key
+
+    [
+      %{label: "Flags", path: mount <> "/flags?env=" <> env},
+      %{label: key, path: mount <> "/" <> key <> "?env=" <> env},
+      %{label: "Timeline", path: mount <> "/" <> key <> "/timeline?env=" <> env}
+    ]
+  end
 end

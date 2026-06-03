@@ -48,10 +48,11 @@ defmodule RulesteadAdmin.Components.FlagComponents do
 
   def environment_status(assigns) do
     status = normalize_state(assigns.status)
-    assigns = assign(assigns, label: humanize_state(status))
+    assigns = assign(assigns, label: humanize_state(status), tone: state_tone(status))
 
     ~H"""
-    <span class="rs-badge rs-badge--environment" data-tone={state_tone(normalize_state(@status))}>
+    <span class="rs-status-indicator" title={"Environment is " <> @label}>
+      <span class="rs-status-dot" data-tone={@tone}></span>
       <%= @label %>
     </span>
     """
@@ -174,6 +175,57 @@ defmodule RulesteadAdmin.Components.FlagComponents do
     """
   end
 
+  @flag_subnav_tabs [
+    {:overview, "Overview", ""},
+    {:rules, "Rules", "/rules"},
+    {:simulate, "Simulate", "/simulate"},
+    {:explain, "Explain", "/explain"},
+    {:rollouts, "Rollouts", "/rollouts"},
+    {:timeline, "Timeline", "/timeline"}
+  ]
+
+  @doc """
+  Persistent sub-navigation for a single flag, threading its lifecycle views
+  (Overview · Rules · Simulate · Explain · Rollouts · Timeline) together. The
+  destructive Kill switch is rendered as a fenced, right-aligned critical action
+  rather than a peer tab, so it stays one click away (and bookmarkable) without
+  sitting in the path of routine browsing. Cleanup/Edit are governed flows, not
+  views, and intentionally stay off the strip.
+  """
+  attr(:flag_key, :string, required: true)
+  attr(:base_path, :string, required: true)
+  attr(:env_key, :string, required: true)
+  attr(:current, :atom, default: :overview)
+  attr(:show_kill?, :boolean, default: false)
+
+  def flag_sub_nav(assigns) do
+    assigns = assign(assigns, :tabs, @flag_subnav_tabs)
+
+    ~H"""
+    <nav class="rs-flag-subnav" aria-label="Flag views">
+      <div class="rs-flag-subnav__tabs">
+        <a
+          :for={{key, label, suffix} <- @tabs}
+          href={"#{@base_path}/#{@flag_key}#{suffix}?env=#{@env_key}"}
+          class="rs-flag-subnav__tab"
+          data-current={to_string(key == @current)}
+          aria-current={if(key == @current, do: "page", else: nil)}
+        >
+          {label}
+        </a>
+      </div>
+      <a
+        :if={@show_kill?}
+        href={"#{@base_path}/#{@flag_key}/kill?env=#{@env_key}"}
+        class="rs-flag-subnav__kill"
+        data-tone="critical"
+      >
+        Kill switch
+      </a>
+    </nav>
+    """
+  end
+
   defp pagination_path(base_path, params, :next, %{next_cursor: cursor}) when is_binary(cursor) do
     build_path(base_path, Map.merge(params, %{"after" => cursor, "before" => nil}))
   end
@@ -221,18 +273,8 @@ defmodule RulesteadAdmin.Components.FlagComponents do
   defp normalize_state(state) when is_atom(state), do: state
   defp normalize_state(_state), do: :unknown
 
-  defp state_tone(:active), do: "positive"
-  defp state_tone(:fresh), do: "positive"
-  defp state_tone(:potentially_stale), do: "warning"
-  defp state_tone(:stale), do: "critical"
-  defp state_tone(:archived), do: "muted"
-  defp state_tone(:draft), do: "accent"
-  defp state_tone(_state), do: "neutral"
-
-  defp readiness_tone(:keep_active), do: "positive"
-  defp readiness_tone(:needs_review), do: "warning"
-  defp readiness_tone(:archive_candidate), do: "critical"
-  defp readiness_tone(_readiness), do: "neutral"
+  defp state_tone(state), do: RulesteadAdmin.StatusTone.tone(:flag_lifecycle, state)
+  defp readiness_tone(state), do: RulesteadAdmin.StatusTone.tone(:flag_readiness, state)
 
   defp quality_tone(:strong), do: "positive"
   defp quality_tone(:partial), do: "warning"

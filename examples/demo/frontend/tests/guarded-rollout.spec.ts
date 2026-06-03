@@ -13,5 +13,5 @@ test("guarded rollout panel renders honest guardrail copy", async ({ browser }) 
 
   await expect(adminPage.getByText("Rollout controls")).toBeVisible({ timeout: 15_000 });
   await expect(adminPage.getByText("Priority routes split")).toBeVisible();
-  await expect(adminPage.getByText("dispatch_error_rate")).toBeVisible();
+  await expect(adminPage.getByText("dispatch_error_rate").first()).toBeVisible();
 });

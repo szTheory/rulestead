@@ -20,6 +20,7 @@ defmodule RulesteadAdmin.Components.SimulateComponents do
       <div class="rs-archetype-chips">
         <button
           :for={archetype <- @archetypes}
+          class="rs-button"
           type="button"
           phx-click="apply_archetype"
           phx-value-id={archetype.id}
@@ -28,7 +29,7 @@ defmodule RulesteadAdmin.Components.SimulateComponents do
           <%= archetype.label %>
         </button>
 
-        <button type="button" phx-click="reset_archetype">Reset archetype</button>
+        <button class="rs-button" type="button" phx-click="reset_archetype">Reset archetype</button>
       </div>
     </section>
     """
@@ -41,7 +42,7 @@ defmodule RulesteadAdmin.Components.SimulateComponents do
     ~H"""
     <section class="rs-card" aria-label="Fixture export">
       <h2>Fixture export</h2>
-      <p>Copy as test fixture returns the canonical context literal for <code><%= @environment_key %></code>.</p>
+      <p>Fixture export shows the canonical context literal for <code><%= @environment_key %></code>.</p>
       <textarea aria-label="ExUnit fixture export" readonly rows="12"><%= @fixture_export %></textarea>
     </section>
     """

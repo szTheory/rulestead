@@ -3,6 +3,7 @@ copy priv/repo/migrations/TIMESTAMP_create_rulestead_tables.exs
 copy priv/repo/migrations/TIMESTAMP_add_guardrail_decisions.exs
 copy priv/repo/migrations/TIMESTAMP_add_rollout_auto_advance_policies.exs
 copy priv/repo/migrations/TIMESTAMP_create_audience_reference_projection.exs
+copy priv/repo/migrations/TIMESTAMP_create_oban_jobs_support_table.exs
 write config/rulestead.exs
 write config/config.exs import
 write lib/host_app_web/endpoint.ex plug

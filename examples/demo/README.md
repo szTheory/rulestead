@@ -46,7 +46,7 @@ Persona metadata: `GET /api/demo/personas`
 From the repo root:
 
 ```bash
-docker compose up --build
+scripts/demo/up.sh
 ```
 
 Services:
@@ -54,8 +54,10 @@ Services:
 - Admin + backend: `http://localhost:4000`
 - Deterministic sign-in: `http://localhost:4000/demo/sign-in`
 - Adoption lab UI: `http://localhost:3000`
-- Postgres: `localhost:5432`
-- Redis: `localhost:6379`
+
+Those are the preferred default URLs. If `3000` or `4000` are already in use,
+the script chooses free fallback ports and prints the actual URLs. Postgres and
+Redis stay on the internal Compose network by default.
 
 ## Click-through paths
 
@@ -78,6 +80,9 @@ npm install
 npx playwright install chromium
 DEMO_BACKEND_URL=http://127.0.0.1:4000 DEMO_FRONTEND_URL=http://127.0.0.1:3000 npm run test:e2e
 ```
+
+When `scripts/demo/up.sh` selected fallback ports, use the URLs printed by the
+script for `DEMO_BACKEND_URL` and `DEMO_FRONTEND_URL`.
 
 Curated Playwright specs: `flag-inventory`, `rollout-advance`, `explain-admin`,
 `audit-timeline`, `guarded-rollout`, plus `adoption-journeys` and `demo-toggle`.

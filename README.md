@@ -117,6 +117,7 @@ The guided walkthrough continues in
 
 - [Installation](guides/introduction/installation.md)
 - [Getting Started](guides/introduction/getting-started.md)
+- [Domain Language & Concepts](guides/introduction/domain_language.md)
 - [Flag Lifecycle](guides/flows/flag-lifecycle.md)
 - [User Flows and JTBD](guides/introduction/user-flows-and-jtbd.md)
 - [Evaluation](guides/flows/evaluation.md), [Rulesets](guides/flows/rulesets.md),
@@ -155,8 +156,11 @@ The **FleetDesk adoption lab** runs three surfaces locally: customer app
 (`:3000`), Rulestead admin (`/demo/sign-in`), and API (`:4000`).
 
 ```bash
-docker compose up --build
+scripts/demo/up.sh
 ```
+
+The script uses `3000` and `4000` when they are free, chooses fallback ports
+when they are not, and prints the actual URLs to open.
 
 **Runbook:** [Adoption Lab](guides/introduction/adoption-lab.md#at-a-glance)
 

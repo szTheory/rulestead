@@ -598,7 +598,6 @@ defmodule Rulestead.Store.Ecto do
         )
         |> maybe_filter_environment(environment_filter)
         |> maybe_filter_archived(command.include_archived?)
-        |> maybe_filter_query(command.query)
         |> Repo.all()
         |> Enum.flat_map(fn flag ->
           Enum.map(flag.flag_environments, fn flag_environment ->
@@ -615,6 +614,7 @@ defmodule Rulestead.Store.Ecto do
       entries =
         raw_entries
         |> Enum.map(&build_list_entry(&1, lifecycle_context))
+        |> maybe_filter_query(command.query)
         |> maybe_filter_owner(command.owner)
         |> maybe_filter_tags(command.tags)
         |> maybe_filter_lifecycle(command.lifecycle)
@@ -3850,18 +3850,87 @@ defmodule Rulestead.Store.Ecto do
   defp maybe_filter_archived(query, false),
     do: where(query, [flag, _, _], is_nil(flag.archived_at))
 
-  defp maybe_filter_query(query, nil), do: query
-  defp maybe_filter_query(query, ""), do: query
+  defp maybe_filter_query(entries, nil), do: entries
+  defp maybe_filter_query(entries, ""), do: entries
 
-  defp maybe_filter_query(query, search) do
-    normalized = "%" <> String.downcase(String.trim(to_string(search))) <> "%"
+  defp maybe_filter_query(entries, search) do
+    terms = query_terms(search)
 
-    where(
-      query,
-      [flag, _, _],
-      ilike(flag.key, ^normalized) or
-        ilike(fragment("coalesce(?, '')", flag.description), ^normalized)
-    )
+    if terms == [] do
+      entries
+    else
+      Enum.filter(entries, &entry_matches_query?(&1, terms))
+    end
+  end
+
+  defp entry_matches_query?(entry, terms) do
+    Enum.all?(terms, fn term ->
+      entry_matches_query_term?(entry, term)
+    end)
+  end
+
+  defp entry_matches_query_term?(entry, {:key, term}) do
+    entry.flag.key
+    |> normalized_search_value()
+    |> String.contains?(term)
+  end
+
+  defp entry_matches_query_term?(entry, {:owner, term}) do
+    ownership = entry.flag.ownership || %{}
+
+    [ownership.owner_ref, ownership.owner_display]
+    |> Enum.map(&normalized_search_value/1)
+    |> Enum.any?(&String.contains?(&1, term))
+  end
+
+  defp entry_matches_query_term?(entry, {:tag, term}) do
+    entry.flag.tags
+    |> List.wrap()
+    |> Enum.map(&normalized_search_value/1)
+    |> Enum.any?(&String.contains?(&1, term))
+  end
+
+  defp entry_matches_query_term?(entry, {:any, term}) do
+    entry
+    |> searchable_entry_values()
+    |> Enum.any?(&String.contains?(&1, term))
+  end
+
+  defp searchable_entry_values(entry) do
+    ownership = entry.flag.ownership || %{}
+
+    ([entry.flag.key, entry.flag.description, ownership.owner_ref, ownership.owner_display] ++
+       (entry.flag.tags || []))
+    |> Enum.map(&normalized_search_value/1)
+  end
+
+  defp normalized_search_value(value), do: value |> to_string() |> String.downcase()
+
+  defp query_term(term) do
+    case String.split(term, ":", parts: 2) do
+      ["key", value] when value != "" ->
+        {:key, value}
+
+      ["owner", value] when value != "" ->
+        {:owner, value}
+
+      ["tag", value] when value != "" ->
+        {:tag, value}
+
+      _other ->
+        {:any, term}
+    end
+  end
+
+  defp query_terms(search) do
+    search
+    |> to_string()
+    |> String.downcase()
+    |> String.split([",", " "])
+    |> Enum.map(&String.trim/1)
+    |> Enum.reject(&(&1 == ""))
+    |> Enum.uniq()
+    |> Enum.map(&query_term/1)
   end
 
   defp maybe_filter_change_request(query, _field, nil), do: query
@@ -4132,6 +4201,9 @@ defmodule Rulestead.Store.Ecto do
         :flag_environment,
         FlagEnvironment.changeset(flag_environment, inverse_status)
       )
+      |> Multi.run(:runtime_snapshot, fn repo, _changes ->
+        insert_runtime_snapshot(repo, environment, now())
+      end)
       |> Multi.insert(
         :audit_event,
         audit_event_changeset(%AuditEvent{}, command, "audit.rollback", :ok, %{

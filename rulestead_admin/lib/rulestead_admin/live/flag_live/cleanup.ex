@@ -4,7 +4,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Cleanup do
 
   use Phoenix.LiveView
 
-  alias RulesteadAdmin.Components.{FlagComponents, Shell}
+  alias RulesteadAdmin.Components.{FlagComponents, OperatorComponents, Shell}
   alias RulesteadAdmin.Live.Session
   import Ecto.Query, only: [from: 2]
 
@@ -40,7 +40,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Cleanup do
           Session.canonical_return_to(
             socket,
             query["return_to"],
-            socket.assigns.rulestead_admin_mount_path
+            socket.assigns.rulestead_admin_mount_path <> "/flags"
           )
         )
         |> assign(:current_path, Session.current_path(socket, base_path))
@@ -62,13 +62,18 @@ defmodule RulesteadAdmin.Live.FlagLive.Cleanup do
       page_title={if(@flag_key, do: "#{@flag_key} cleanup", else: "Cleanup")}
       page_kicker="Cleanup"
       page_summary="Canonical review surface for lifecycle evidence, archive consequences, and the explicit preview-before-mutation path."
+      base_path={@rulestead_admin_mount_path}
+      current_section={:flags}
+      breadcrumbs={breadcrumbs(assigns)}
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}
+      env_context_help="Shows this flag key's cleanup evidence in the selected environment. Promotion uses Compare."
+      policy_state={@rulestead_admin_policy_state}
     >
       <:header_actions>
-        <a :if={@return_to} href={@return_to}>Back to queue</a>
-        <a :if={@flag_key} href={path_for(assigns, "/#{@flag_key}")}>Back to detail</a>
+        <a :if={@return_to} href={@return_to}>Back to flags</a>
+        <a :if={@flag_key} href={path_for(assigns, "/#{@flag_key}")}>Back to flag</a>
       </:header_actions>
 
       <p :if={@error_message} role="alert">{@error_message}</p>
@@ -97,12 +102,15 @@ defmodule RulesteadAdmin.Live.FlagLive.Cleanup do
           />
         </div>
 
-        <FlagComponents.callout title="Cleanup review" tone="warning">
+        <FlagComponents.callout title="Cleanup verdict" tone="warning">
           <p>
-            Review cleanup is the canonical pre-mutation checkpoint. Archive consequences stay explicit here before the route-backed preview and confirm steps.
+            Review cleanup is the canonical pre-mutation checkpoint. Use the recommendation, evidence quality, and blockers below to decide whether this flag is ready to archive.
           </p>
           <p :if={guidance_limited?(archive_readiness(@detail))}>
             Guidance limited by missing evidence. Review this flag manually before choosing a cleanup path.
+          </p>
+          <p :if={can_preview_archive?(@rulestead_admin_policy_state.capabilities)}>
+            <a class="rs-button rs-button--primary" href={path_for(assigns, "/#{@detail.flag.key}/cleanup/preview")}>Preview archive</a>
           </p>
         </FlagComponents.callout>
 
@@ -111,25 +119,30 @@ defmodule RulesteadAdmin.Live.FlagLive.Cleanup do
             <FlagComponents.readiness_badge readiness={archive_readiness(@detail).readiness} />
             <FlagComponents.evidence_quality_badge quality={archive_readiness(@detail).evidence_quality} />
           </p>
-          <p><strong>Primary recommendation:</strong> <%= primary_action_label(archive_readiness(@detail)) %></p>
-          <p :if={archive_readiness(@detail).secondary_actions != []}>
-            <strong>Secondary actions:</strong> <%= secondary_actions_label(archive_readiness(@detail).secondary_actions) %>
-          </p>
-          <p><strong>Archive consequences:</strong> Archiving removes the flag from default queues, keeps the audit trail append-only, and should only happen after this review is complete.</p>
-          <p :if={can_preview_archive?(@rulestead_admin_policy_state.capabilities)}>
-            <a href={path_for(assigns, "/#{@detail.flag.key}/cleanup/preview")}>Preview archive</a>
-          </p>
+          <OperatorComponents.detail_grid rows={[
+            %{label: "Primary recommendation", value: primary_action_label(archive_readiness(@detail))},
+            %{label: "Secondary actions", value: secondary_actions_label(archive_readiness(@detail).secondary_actions)},
+            %{label: "Archive consequences", value: "Leaves default workbench queues, archives every mounted environment, and keeps the audit trail append-only."}
+          ]} />
         </FlagComponents.section_card>
 
         <FlagComponents.section_card title="Evidence and uncertainty">
-          <p><strong>Reasons:</strong> <%= joined_labels(archive_readiness(@detail).reasons, &reason_label/1, "No archive-positive signals yet.") %></p>
-          <p><strong>Unknowns:</strong> <%= joined_labels(archive_readiness(@detail).unknowns, &unknown_label/1, "No known evidence gaps.") %></p>
-          <p><strong>Blockers:</strong> <%= joined_labels(archive_readiness(@detail).blockers, &blocker_label/1, "No blockers identified.") %></p>
-          <p><strong>Latest scan receipt:</strong> <%= scan_label(freshness(@detail).code_refs_scan) %></p>
+          <OperatorComponents.detail_grid rows={[
+            %{label: "Reasons", value: joined_labels(archive_readiness(@detail).reasons, &reason_label/1, "No archive-positive signals yet.")},
+            %{label: "Unknowns", value: joined_labels(archive_readiness(@detail).unknowns, &unknown_label/1, "No known evidence gaps.")},
+            %{label: "Blockers", value: joined_labels(archive_readiness(@detail).blockers, &blocker_label/1, "No blockers identified.")},
+            %{label: "Latest scan receipt", value: scan_label(freshness(@detail).code_refs_scan)}
+          ]} />
         </FlagComponents.section_card>
 
-        <FlagComponents.section_card title="Code References">
-          <p :if={Enum.empty?(@code_references)}>No known code references.</p>
+        <FlagComponents.section_card title="Code references">
+          <OperatorComponents.empty_state
+            :if={Enum.empty?(@code_references)}
+            title="No code references found"
+            body="The latest review payload did not report active code references for this flag."
+            icon="0"
+            variant="compact"
+          />
           <ul :if={not Enum.empty?(@code_references)}>
             <li :for={ref <- @code_references}>
               <code>{ref.file}:{ref.line}</code>
@@ -142,8 +155,10 @@ defmodule RulesteadAdmin.Live.FlagLive.Cleanup do
             <FlagComponents.lifecycle_badge state={@detail.lifecycle} />
             <FlagComponents.stale_badge state={@detail.lifecycle.state} last_evaluated_at={@detail.lifecycle.last_evaluated_at} />
           </p>
-          <p><strong>Lifecycle posture:</strong> <%= humanize(@detail.lifecycle.mode) %></p>
-          <p><strong>Review by:</strong> <%= @detail.lifecycle.review_by || "Not scheduled" %></p>
+          <OperatorComponents.detail_grid rows={[
+            %{label: "Lifecycle posture", value: humanize(@detail.lifecycle.mode)},
+            %{label: "Review by", value: @detail.lifecycle.review_by || "Not scheduled"}
+          ]} />
         </FlagComponents.section_card>
       </div>
     </Shell.page>
@@ -214,6 +229,24 @@ defmodule RulesteadAdmin.Live.FlagLive.Cleanup do
   defp fetch_return_to(%Phoenix.LiveView.Socket{} = socket), do: socket.assigns.return_to
   defp fetch_return_to(%{return_to: return_to}), do: return_to
 
+  defp breadcrumbs(%{flag_key: nil} = assigns) do
+    mount = assigns.rulestead_admin_mount_path
+    env = assigns.current_environment.key
+    [%{label: "Flags", path: mount <> "/flags?env=" <> env}]
+  end
+
+  defp breadcrumbs(assigns) do
+    mount = assigns.rulestead_admin_mount_path
+    env = assigns.current_environment.key
+    key = assigns.flag_key
+
+    [
+      %{label: "Flags", path: mount <> "/flags?env=" <> env},
+      %{label: key, path: mount <> "/" <> key <> "?env=" <> env},
+      %{label: "Cleanup", path: mount <> "/" <> key <> "/cleanup?env=" <> env}
+    ]
+  end
+
   defp archive_readiness(detail), do: detail.lifecycle.archive_readiness
   defp freshness(detail), do: detail.lifecycle.freshness
 
@@ -233,6 +266,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Cleanup do
 
   defp primary_action_label(%{recommended_next_action: action}),
     do: action_label(action)
+
+  defp secondary_actions_label([]), do: "No secondary actions."
 
   defp secondary_actions_label(actions) do
     actions

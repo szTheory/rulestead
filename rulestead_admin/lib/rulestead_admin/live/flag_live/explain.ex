@@ -96,39 +96,65 @@ defmodule RulesteadAdmin.Live.FlagLive.Explain do
       page_title={@page.page_title}
       page_kicker={@page.page_kicker}
       page_summary={@page.page_summary}
+      base_path={@rulestead_admin_mount_path}
+      current_section={:flags}
+      breadcrumbs={[
+        %{label: "Flags", path: @rulestead_admin_mount_path <> "/flags?env=" <> @page.current_environment.key},
+        %{label: @page.flag_key, path: @rulestead_admin_mount_path <> "/" <> @page.flag_key <> "?env=" <> @page.current_environment.key},
+        %{label: "Explain", path: @rulestead_admin_mount_path <> "/" <> @page.flag_key <> "/explain?env=" <> @page.current_environment.key}
+      ]}
       current_environment={@page.current_environment}
       environments={@page.environments}
       env_links={@page.env_links}
+      env_context_help="Shows this flag key's explanation context in the selected environment. Promotion uses Compare."
+      policy_state={@page.policy_state}
     >
       <:header_actions>
         <a href={flag_detail_path(assigns)}>Back to flag</a>
         <a href={simulate_path(assigns)}>Open simulate</a>
+        <a href={timeline_path(assigns)}>Open timeline</a>
       </:header_actions>
 
-      <OperatorComponents.policy_state policy_state={@page.policy_state} />
+      <FlagComponents.flag_sub_nav
+        flag_key={@page.flag_key}
+        base_path={@rulestead_admin_mount_path}
+        env_key={@page.current_environment.key}
+        current={:explain}
+        show_kill?={
+          @page.policy_state.capabilities.execute? or @page.policy_state.capabilities.admin?
+        }
+      />
 
       <p :if={@error_message} role="alert"><%= @error_message %></p>
 
       <FlagComponents.section_card title="Explain context">
         <p>Permalink fields stay in the query string. Traits are never stored in URLs.</p>
-        <form phx-change="validate" phx-submit="run_explain" aria-label="Explain lookup form">
-          <label>
-            Targeting key
-            <input type="text" name="explain[targeting_key]" value={@form["targeting_key"]} />
-          </label>
-          <label>
-            Tenant key
-            <input type="text" name="explain[tenant_key]" value={@form["tenant_key"]} />
-          </label>
-          <label>
-            Session id
-            <input type="text" name="explain[session_id]" value={@form["session_id"]} />
-          </label>
-          <label>
-            Request id
-            <input type="text" name="explain[request_id]" value={@form["request_id"]} />
-          </label>
-          <button type="submit">Explain decision</button>
+        <form class="rs-form" phx-change="validate" phx-submit="run_explain" aria-label="Explain lookup form">
+          <div class="rs-form-grid rs-form-grid--two">
+            <div class="rs-form-field">
+              <label for="explain-targeting-key">Targeting key</label>
+              <input id="explain-targeting-key" type="text" name="explain[targeting_key]" value={@form["targeting_key"]} />
+              <p class="rs-field-help">Required. This is the actor key used to reproduce the decision.</p>
+            </div>
+            <div class="rs-form-field">
+              <label for="explain-tenant-key">Tenant key</label>
+              <input id="explain-tenant-key" type="text" name="explain[tenant_key]" value={@form["tenant_key"]} />
+              <p class="rs-field-help">Optional boundary when rules depend on account or workspace context.</p>
+            </div>
+            <div class="rs-form-field">
+              <label for="explain-session-id">Session ID</label>
+              <input id="explain-session-id" type="text" name="explain[session_id]" value={@form["session_id"]} />
+              <p class="rs-field-help">Optional session context for anonymous or session-scoped checks.</p>
+            </div>
+            <div class="rs-form-field">
+              <label for="explain-request-id">Request ID</label>
+              <input id="explain-request-id" type="text" name="explain[request_id]" value={@form["request_id"]} />
+              <p class="rs-field-help">Optional support trace handle.</p>
+            </div>
+            <div class="rs-form-actions rs-form-field--wide">
+              <button class="rs-button rs-button--primary" type="submit">Explain decision</button>
+            </div>
+          </div>
         </form>
       </FlagComponents.section_card>
 
@@ -138,7 +164,17 @@ defmodule RulesteadAdmin.Live.FlagLive.Explain do
         aria_label="Explain summary"
       />
 
-      <p :if={@explanation}><strong>Summary:</strong> <%= @explanation %></p>
+      <FlagComponents.callout :if={@explanation} title="Decision explanation" tone="accent">
+        <p><%= @explanation %></p>
+      </FlagComponents.callout>
+
+      <OperatorComponents.empty_state
+        :if={@summary_items == [] and is_nil(@error_message)}
+        title="Enter a targeting key to explain a decision"
+        body="The explanation will show the returned value, matched rule, and audience trace without putting trait payloads in the URL."
+        icon="?"
+        variant="compact"
+      />
 
       <AudienceTraceComponents.audience_trace_steps :if={@trace} rule_traces={Map.get(@trace, :rule_traces, [])} />
 
@@ -226,6 +262,13 @@ defmodule RulesteadAdmin.Live.FlagLive.Explain do
     Session.current_path(
       assigns,
       "#{assigns.rulestead_admin_mount_path}/#{assigns.page.flag_key}/simulate"
+    )
+  end
+
+  defp timeline_path(assigns) do
+    Session.current_path(
+      assigns,
+      "#{assigns.rulestead_admin_mount_path}/#{assigns.page.flag_key}/timeline"
     )
   end
 

@@ -161,9 +161,11 @@ defmodule RulesteadAdmin.Live.ScheduleLive.IndexTest do
 
   test "schedule page defaults to a dense env-aware list instead of a calendar-first interface",
        %{conn: conn} do
-    {:ok, _view, html} = live(conn, "/admin/flags/schedule?env=prod")
+    {:ok, view, html} = live(conn, "/admin/flags/schedule?env=prod")
 
     assert html =~ "Scheduled changes"
+    assert has_element?(view, ".rs-shell__header [aria-label='Access']", "Admin")
+    refute has_element?(view, "main aside.rs-policy-state")
     assert html =~ "Dense operator list"
     assert html =~ "State filters"
     assert html =~ "Requested for"

@@ -22,7 +22,7 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Index do
     socket = apply_resolved(socket, params)
 
     if params["env"] != socket.assigns.current_environment.key do
-      {:noreply, push_patch(socket, to: Session.current_path(socket, base_path()))}
+      {:noreply, push_patch(socket, to: Session.current_path(socket, base_path(socket)))}
     else
       filters = normalize_filters(params)
       scheduled_executions = list_scheduled_executions(socket, filters)
@@ -30,20 +30,20 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Index do
       page =
         socket.assigns
         |> Session.placeholder_assigns(
-          current_path: base_path(),
+          current_path: base_path(socket),
           page_title: "Schedule",
           page_kicker: "Scheduled changes",
           page_summary:
             "Dense route-backed list home for upcoming, running, completed, failed, quarantined, and cancelled executions."
         )
         |> Map.merge(%{
-          navigation_links: navigation_links(socket, :schedule),
           filter_links: filter_links(socket, filters),
           filters: filters,
           grouped_scheduled_executions: grouped_scheduled_executions(scheduled_executions),
-          change_requests_path: Session.current_path(socket, change_requests_path()),
-          audit_path: Session.current_path(socket, audit_path()),
-          flags_path: Session.current_path(socket, mount_path(socket))
+          related_links: related_links(socket),
+          change_requests_path: Session.current_path(socket, change_requests_path(socket)),
+          audit_path: Session.current_path(socket, audit_path(socket)),
+          flags_path: Session.current_path(socket, mount_path(socket) <> "/flags")
         })
 
       {:noreply, socket |> assign(:filters, filters) |> assign(:page, page)}
@@ -62,119 +62,90 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Index do
       current_environment={@page.current_environment}
       environments={@page.environments}
       env_links={@page.env_links}
-      navigation_links={@page.navigation_links}
+      current_tenant={@page.current_tenant}
+      tenants={@page.tenants}
+      tenant_links={@page.tenant_links}
+      base_path={@rulestead_admin_mount_path}
+      current_section={:schedule}
+      policy_state={@page.policy_state}
     >
-      <OperatorComponents.policy_state policy_state={@page.policy_state} />
-
-      <section>
-        <h2>Dense operator list</h2>
-        <p>
-          Scheduled execution visibility stays list-first so operators can scan state without a calendar
-          workbench. Actor wording stays explicit: scheduled by, approved by, executed by scheduler.
-        </p>
+      <OperatorComponents.page_section
+        title="Dense operator list"
+        summary="Route-backed queue for upcoming, running, failed, quarantined, completed, and cancelled scheduled work."
+      >
         <p :if={@page.filters["state"]} class="rs-schedule-filter-summary">
           Filtered to <%= @page.filters["state"] %> executions in <%= @page.current_environment.name %>.
         </p>
-      </section>
+      </OperatorComponents.page_section>
 
-      <section aria-label="State filters">
+      <section class="rs-page-section" aria-label="State filters">
         <h2>State filters</h2>
-        <div class="rs-schedule-filter-links">
+        <div class="rs-segmented-links">
           <a :for={filter <- @page.filter_links} href={filter.path} aria-current={if(filter.current?, do: "page", else: nil)}>
             <%= filter.label %>
           </a>
         </div>
       </section>
 
-      <section>
+      <section class="rs-page-section">
         <h2>Execution list</h2>
         <p>
           Requested for and execution result stay visible on every row so operators can compare planned
           timing with actual outcome before opening the detail route.
         </p>
 
-        <section :for={group <- @page.grouped_scheduled_executions}>
+        <section :for={group <- @page.grouped_scheduled_executions} class="rs-page-section">
           <h3><%= group.label %></h3>
           <p :if={group.entries == []}>No <%= String.downcase(group.label) %> executions in this environment.</p>
 
-          <article :for={scheduled_execution <- group.entries} class="rs-schedule-row">
-            <header>
-              <h4>
-                <a href={detail_path(@page.current_environment.key, scheduled_execution.id)}>
-                  <%= scheduled_execution.resource_key %>
-                </a>
-              </h4>
-              <p>
-                <span><%= state_label(scheduled_execution.state) %></span>
-                <span>·</span>
-                <span><%= action_label(scheduled_execution.action) %></span>
-              </p>
-            </header>
-
-            <dl>
-              <div>
-                <dt>Requested for</dt>
-                <dd><%= format_datetime(scheduled_execution.scheduled_for) %></dd>
-              </div>
-              <div>
-                <dt>Execution result</dt>
-                <dd><%= execution_result_label(scheduled_execution) %></dd>
-              </div>
-              <div>
-                <dt>Lifecycle</dt>
-                <dd>
-                  scheduled by <%= actor_name(scheduled_execution.scheduled_by) %>
-                  <span :if={scheduled_execution.approved_by_snapshot != []}>
-                    · approved by <%= joined_actor_names(scheduled_execution.approved_by_snapshot) %>
-                  </span>
-                  <span :if={scheduled_execution.attempt_count > 0 or scheduled_execution.executed_at}>
-                    · executed by scheduler
-                  </span>
-                </dd>
-              </div>
-            </dl>
-
-            <p :if={scheduled_execution.failure_reason}><%= scheduled_execution.failure_reason %></p>
-
-            <p>
-              <a href={flag_path(@page.current_environment.key, scheduled_execution.resource_key)}>Open flag</a>
-              <span :if={scheduled_execution.change_request_id}>
-                ·
-                <a href={change_request_path(@page.current_environment.key, scheduled_execution.change_request_id)}>
+          <div class="rs-record-list">
+            <OperatorComponents.record_row
+              :for={scheduled_execution <- group.entries}
+              title={scheduled_execution.resource_key}
+              href={detail_path(@rulestead_admin_mount_path, @page.current_environment.key, scheduled_execution.id)}
+              meta={"#{state_label(scheduled_execution.state)} · #{action_label(scheduled_execution.action)}"}
+              tone={state_tone(scheduled_execution.state)}
+            >
+              <:actions>
+                <a href={flag_path(@rulestead_admin_mount_path, @page.current_environment.key, scheduled_execution.resource_key)}>Open flag</a>
+                <a
+                  :if={scheduled_execution.change_request_id}
+                  href={change_request_path(@rulestead_admin_mount_path, @page.current_environment.key, scheduled_execution.change_request_id)}
+                >
                   Open change request
                 </a>
-              </span>
-            </p>
-          </article>
+              </:actions>
+              <OperatorComponents.detail_grid rows={schedule_rows(scheduled_execution)} />
+              <p :if={scheduled_execution.failure_reason} class="rs-record-row__body">
+                <strong>Failure:</strong> <%= scheduled_execution.failure_reason %>
+              </p>
+            </OperatorComponents.record_row>
+          </div>
         </section>
       </section>
 
-      <section>
+      <section class="rs-page-section">
         <h2>Related routes</h2>
-        <ul>
-          <li><a href={@page.change_requests_path}>Open change requests</a></li>
-          <li><a href={@page.audit_path}>Open audit timeline</a></li>
-          <li><a href={@page.flags_path}>Back to flag inventory</a></li>
-        </ul>
+        <OperatorComponents.related_links links={@page.related_links} />
       </section>
     </Shell.page>
     """
   end
 
-  defp base_path, do: "/admin/flags/schedule"
-  defp change_requests_path, do: "/admin/flags/change-requests"
-  defp audit_path, do: "/admin/flags/audit"
+  defp base_path(socket), do: "#{mount_path(socket)}/schedule"
+  defp change_requests_path(socket), do: "#{mount_path(socket)}/change-requests"
+  defp audit_path(socket), do: "#{mount_path(socket)}/audit"
 
   defp mount_path(socket), do: socket.assigns.rulestead_admin_mount_path
 
-  defp detail_path(environment_key, scheduled_execution_id),
-    do: "#{base_path()}/#{scheduled_execution_id}?env=#{environment_key}"
+  defp detail_path(mount_path, environment_key, scheduled_execution_id),
+    do: "#{mount_path}/schedule/#{scheduled_execution_id}?env=#{environment_key}"
 
-  defp flag_path(environment_key, resource_key),
-    do: "/admin/flags/#{resource_key}?env=#{environment_key}"
+  defp flag_path(mount_path, environment_key, resource_key),
+    do: "#{mount_path}/#{resource_key}?env=#{environment_key}"
 
-  defp change_request_path(environment_key, change_request_id),
-    do: "#{change_requests_path()}/#{change_request_id}?env=#{environment_key}"
+  defp change_request_path(mount_path, environment_key, change_request_id),
+    do: "#{mount_path}/change-requests/#{change_request_id}?env=#{environment_key}"
 
   defp grouped_scheduled_executions(entries) do
     Enum.map(@states, fn state ->
@@ -206,7 +177,11 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Index do
   end
 
   defp filter_links(socket, %{"state" => nil}) do
-    all_link = %{label: "All", path: Session.current_path(socket, base_path()), current?: true}
+    all_link = %{
+      label: "All",
+      path: Session.current_path(socket, base_path(socket)),
+      current?: true
+    }
 
     state_links =
       Enum.map(@states, fn state ->
@@ -214,7 +189,7 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Index do
 
         %{
           label: state_label(state),
-          path: Session.current_path(socket, base_path(), %{"state" => state_string}),
+          path: Session.current_path(socket, base_path(socket), %{"state" => state_string}),
           current?: false
         }
       end)
@@ -224,34 +199,32 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Index do
 
   defp filter_links(socket, %{"state" => state}) when is_binary(state) do
     [
-      %{label: "Clear filter", path: Session.current_path(socket, base_path()), current?: false},
+      %{
+        label: "Clear filter",
+        path: Session.current_path(socket, base_path(socket)),
+        current?: false
+      },
       %{
         label: "Current: #{state}",
-        path: Session.current_path(socket, base_path(), %{"state" => state}),
+        path: Session.current_path(socket, base_path(socket), %{"state" => state}),
         current?: true
       }
     ]
   end
 
-  defp navigation_links(socket, current) do
+  defp related_links(socket) do
     [
-      nav_link("Flags", Session.current_path(socket, mount_path(socket)), current == :flags),
-      nav_link(
-        "Change requests",
-        Session.current_path(socket, change_requests_path()),
-        current == :change_requests
-      ),
-      nav_link("Schedule", Session.current_path(socket, base_path()), current == :schedule),
-      nav_link(
-        "Webhooks",
-        Session.current_path(socket, "/admin/flags/webhooks"),
-        current == :webhooks
-      ),
-      nav_link("Audit", Session.current_path(socket, audit_path()), current == :audit)
+      %{
+        label: "Open change requests",
+        path: Session.current_path(socket, change_requests_path(socket))
+      },
+      %{label: "Open audit timeline", path: Session.current_path(socket, audit_path(socket))},
+      %{
+        label: "Back to flag inventory",
+        path: Session.current_path(socket, mount_path(socket) <> "/flags")
+      }
     ]
   end
-
-  defp nav_link(label, path, current?), do: %{label: label, path: path, current?: current?}
 
   defp state_label(state),
     do: state |> Atom.to_string() |> String.replace("_", " ") |> String.capitalize()
@@ -278,6 +251,37 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Index do
 
   defp execution_result_label(%{state: :running}), do: "Running now"
   defp execution_result_label(_scheduled_execution), do: "Waiting for scheduler"
+
+  defp schedule_rows(scheduled_execution) do
+    [
+      %{label: "Requested for", value: format_datetime(scheduled_execution.scheduled_for)},
+      %{label: "Execution result", value: execution_result_label(scheduled_execution)},
+      %{label: "Lifecycle", value: lifecycle_label(scheduled_execution)}
+    ]
+  end
+
+  defp lifecycle_label(scheduled_execution) do
+    [
+      "scheduled by #{actor_name(scheduled_execution.scheduled_by)}",
+      approved_by_label(scheduled_execution),
+      executed_by_label(scheduled_execution)
+    ]
+    |> Enum.reject(&is_nil/1)
+    |> Enum.join(" · ")
+  end
+
+  defp approved_by_label(%{approved_by_snapshot: []}), do: nil
+
+  defp approved_by_label(scheduled_execution),
+    do: "approved by #{joined_actor_names(scheduled_execution.approved_by_snapshot)}"
+
+  defp executed_by_label(%{attempt_count: attempt_count}) when attempt_count > 0,
+    do: "executed by scheduler"
+
+  defp executed_by_label(%{executed_at: %DateTime{}}), do: "executed by scheduler"
+  defp executed_by_label(_scheduled_execution), do: nil
+
+  defp state_tone(state), do: RulesteadAdmin.StatusTone.tone(:schedule, state)
 
   defp actor_name(actor) when is_map(actor),
     do: Map.get(actor, "display") || Map.get(actor, "id") || "Unknown actor"

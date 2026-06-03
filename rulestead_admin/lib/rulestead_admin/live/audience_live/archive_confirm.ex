@@ -7,6 +7,7 @@ defmodule RulesteadAdmin.Live.AudienceLive.ArchiveConfirm do
   alias Rulestead.Store.Command
 
   alias RulesteadAdmin.Components.{
+    ConfirmComponents,
     FlagComponents,
     GovernanceComponents,
     OperatorComponents,
@@ -57,9 +58,13 @@ defmodule RulesteadAdmin.Live.AudienceLive.ArchiveConfirm do
       page_title={if(@audience_key, do: "#{@audience_key} archive confirm", else: "Archive confirm")}
       page_kicker="Archive confirm"
       page_summary="Archive only after preview evidence and an operator reason are recorded."
+      base_path={@rulestead_admin_mount_path}
+      current_section={:audiences}
+      breadcrumbs={Shared.breadcrumbs(assigns, "Archive confirm")}
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}
+      policy_state={@rulestead_admin_policy_state}
     >
       <p :if={@error_message} role="alert"><%= @error_message %></p>
 
@@ -100,32 +105,31 @@ defmodule RulesteadAdmin.Live.AudienceLive.ArchiveConfirm do
           reason="You do not have permission to submit a change request for this audience."
         />
 
-        <form
+        <ConfirmComponents.mutation_confirm
           :if={@governance_mode == :change_request && @can_submit?}
-          phx-submit="submit_change_request"
-          aria-label="Submit audience archive change request"
-        >
-          <label>
-            <span>Reason (required)</span>
-            <textarea name="reason"><%= @reason_value %></textarea>
-          </label>
-          <button type="submit">Submit change request</button>
-        </form>
+          submit_event="submit_change_request"
+          submit_label="Submit change request"
+          reason_value={@reason_value}
+          back_href={Shared.path(assigns, "/audiences/#{@audience_key}/archive/preview")}
+          back_label="Back to preview"
+          aria_label="Submit audience archive change request"
+        />
 
-        <form
+        <ConfirmComponents.mutation_confirm
           :if={show_apply_form?(@governance_mode)}
-          phx-submit="apply"
-          aria-label="Confirm audience archive"
-        >
-          <label>
-            <span>Reason (required)</span>
-            <textarea name="reason"><%= @reason_value %></textarea>
-          </label>
-          <button type="submit">Apply archive</button>
-        </form>
+          submit_event="apply"
+          submit_label="Apply archive"
+          reason_value={@reason_value}
+          danger?={true}
+          back_href={Shared.path(assigns, "/audiences/#{@audience_key}/archive/preview")}
+          back_label="Back to preview"
+          aria_label="Confirm audience archive"
+        />
 
-        <p>
-          <a href={Shared.path(assigns, "/audiences/#{@audience_key}/archive/preview")}>Back to preview</a>
+        <p :if={no_confirm_form?(@governance_mode, @can_submit?)}>
+          <a href={Shared.path(assigns, "/audiences/#{@audience_key}/archive/preview")}>
+            Back to preview
+          </a>
         </p>
       </FlagComponents.section_card>
     </Shell.page>
@@ -288,6 +292,9 @@ defmodule RulesteadAdmin.Live.AudienceLive.ArchiveConfirm do
 
   defp show_apply_form?(mode) when mode in [:unrestricted, :direct_apply], do: true
   defp show_apply_form?(_), do: false
+
+  defp no_confirm_form?(:change_request, can_submit?), do: not can_submit?
+  defp no_confirm_form?(mode, _can_submit?), do: not show_apply_form?(mode)
 
   defp visibility_attr(:full), do: :full
   defp visibility_attr(_), do: :redacted

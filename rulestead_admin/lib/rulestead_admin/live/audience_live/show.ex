@@ -4,7 +4,7 @@ defmodule RulesteadAdmin.Live.AudienceLive.Show do
 
   use Phoenix.LiveView
 
-  alias RulesteadAdmin.Components.{AudienceComponents, FlagComponents, OperatorComponents, Shell}
+  alias RulesteadAdmin.Components.{AudienceComponents, FlagComponents, Shell}
   alias RulesteadAdmin.Live.{AudienceLive.Shared, Session}
 
   @impl true
@@ -44,18 +44,20 @@ defmodule RulesteadAdmin.Live.AudienceLive.Show do
       page_title={if(@audience, do: @audience.key, else: "Audience")}
       page_kicker="Audience detail"
       page_summary="Lifecycle context, authored used-by references, and governed mutation entry points."
+      base_path={@rulestead_admin_mount_path}
+      current_section={:audiences}
+      breadcrumbs={Shared.breadcrumbs(assigns)}
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}
       current_tenant={@current_tenant}
       tenants={@available_tenants}
       tenant_links={@tenant_links}
+      policy_state={@rulestead_admin_policy_state}
     >
       <:header_actions>
         <a href={Shared.path(assigns, "/audiences")}>Back to audiences</a>
       </:header_actions>
-
-      <OperatorComponents.policy_state policy_state={@rulestead_admin_policy_state} />
 
       <p :if={@error_message} role="alert"><%= @error_message %></p>
 
@@ -78,11 +80,9 @@ defmodule RulesteadAdmin.Live.AudienceLive.Show do
 
         <FlagComponents.section_card :if={editable?(@audience)} title="Governed actions">
           <p>Every mutation uses preview, confirm, and audit.</p>
-          <p>
+          <p class="rs-action-bar">
             <a href={Shared.path(assigns, "/audiences/#{@audience.key}/edit/preview")}>Preview update</a>
-            ·
             <a href={Shared.path(assigns, "/audiences/#{@audience.key}/archive/preview")}>Preview archive</a>
-            ·
             <a href={Shared.path(assigns, "/audiences/#{@audience.key}/delete/preview")}>Preview delete attempt</a>
           </p>
         </FlagComponents.section_card>

@@ -4,6 +4,8 @@ set -eu
 ROOT_DIR="$(CDPATH= cd -- "$(dirname "$0")/../.." && pwd)"
 cd "$ROOT_DIR"
 
+. scripts/demo/compose-env.sh
+
 cleanup() {
   if [ "${DEMO_SMOKE_KEEP_STACK:-0}" = "1" ]; then
     return
@@ -62,6 +64,7 @@ retry_command() {
 }
 
 echo "[smoke] building and starting demo stack"
+demo_prepare_compose_env
 docker compose down --remove-orphans --volumes >/dev/null 2>&1 || true
 docker compose up -d --build || {
   dump_failure_logs
@@ -79,18 +82,21 @@ wait_for_health frontend 60 || {
   exit 1
 }
 
+demo_export_urls_from_compose
+demo_print_urls
+
 cookie_jar="$(mktemp)"
 trap 'rm -f "$cookie_jar"; cleanup' EXIT INT TERM
 
 echo "[smoke] checking backend home"
-retry_command 15 sh -c 'curl -fsS http://127.0.0.1:4000/ >/dev/null' || {
+BACKEND_URL="$DEMO_BACKEND_URL" retry_command 15 sh -c 'curl -fsS "$BACKEND_URL/" >/dev/null' || {
   dump_failure_logs
   exit 1
 }
 
 echo "[smoke] checking seeded runtime bridge"
-retry_command 15 sh -c '
-  bridge_payload="$(curl -fsS "http://127.0.0.1:4000/api/flags?env=staging&flag_key=enable-new-dashboard")" &&
+BACKEND_URL="$DEMO_BACKEND_URL" retry_command 15 sh -c '
+  bridge_payload="$(curl -fsS "$BACKEND_URL/api/flags?env=production&flag_key=enable-new-dashboard")" &&
     printf "%s\n" "$bridge_payload" | grep -q "\"enabled\":true"
 ' || {
   dump_failure_logs
@@ -98,18 +104,18 @@ retry_command 15 sh -c '
 }
 
 echo "[smoke] checking deterministic admin sign-in"
-COOKIE_JAR="$cookie_jar" retry_command 15 sh -c '
-  curl -fsS -c "$COOKIE_JAR" -b "$COOKIE_JAR" -L http://127.0.0.1:4000/demo/sign-in |
-    grep -q "Flag inventory"
+COOKIE_JAR="$cookie_jar" BACKEND_URL="$DEMO_BACKEND_URL" retry_command 15 sh -c '
+  curl -fsS -c "$COOKIE_JAR" -b "$COOKIE_JAR" -L "$BACKEND_URL/demo/sign-in" |
+    grep -q "Viewing environment"
 ' || {
   dump_failure_logs
   exit 1
 }
 
 echo "[smoke] checking frontend render"
-retry_command 15 sh -c '
-  curl -fsS http://127.0.0.1:3000 | grep -q "FleetDesk" &&
-    curl -fsS http://127.0.0.1:3000 | grep -q "View as"
+FRONTEND_URL="$DEMO_FRONTEND_URL" retry_command 15 sh -c '
+  curl -fsS "$FRONTEND_URL" | grep -q "FleetDesk" &&
+    curl -fsS "$FRONTEND_URL" | grep -q "View as"
 ' || {
   dump_failure_logs
   exit 1

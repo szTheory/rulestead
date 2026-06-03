@@ -5,7 +5,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Rules do
   use Phoenix.LiveView
 
   alias Rulestead.Store.Command
-  alias RulesteadAdmin.Components.{OperatorComponents, RuleEditorComponents, Shell}
+  alias RulesteadAdmin.Components.{FlagComponents, RuleEditorComponents, Shell}
   alias RulesteadAdmin.Live.Session
 
   @impl true
@@ -105,11 +105,30 @@ defmodule RulesteadAdmin.Live.FlagLive.Rules do
       page_title={@flag_key || "Rules workspace"}
       page_kicker="Rules workspace"
       page_summary="Dedicated environment-scoped rule authoring with explicit draft and publish actions."
+      base_path={@rulestead_admin_mount_path}
+      current_section={:flags}
+      breadcrumbs={[
+        %{label: "Flags", path: @rulestead_admin_mount_path <> "/flags?env=" <> @current_environment.key},
+        %{label: @flag_key, path: @rulestead_admin_mount_path <> "/" <> @flag_key <> "?env=" <> @current_environment.key},
+        %{label: "Rules", path: @rulestead_admin_mount_path <> "/" <> @flag_key <> "/rules?env=" <> @current_environment.key}
+      ]}
       current_environment={@current_environment}
       environments={@available_environments}
       env_links={@env_links}
+      env_context_help="Shows this flag key's rules in the selected environment. Promotion uses Compare."
+      policy_state={@rulestead_admin_policy_state}
     >
-      <OperatorComponents.policy_state policy_state={@rulestead_admin_policy_state} />
+      <FlagComponents.flag_sub_nav
+        :if={@flag_key}
+        flag_key={@flag_key}
+        base_path={@rulestead_admin_mount_path}
+        env_key={@current_environment.key}
+        current={:rules}
+        show_kill?={
+          @rulestead_admin_policy_state.capabilities.execute? or
+            @rulestead_admin_policy_state.capabilities.admin?
+        }
+      />
 
       <div :if={@detail} class="rs-rules-workspace">
         <div class="rs-rules-workspace__header">
@@ -120,7 +139,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Rules do
             </p>
           </div>
           <div class="rs-rules-workspace__links">
-            <a href={path_for(assigns, "/#{@detail.flag.key}")}>Back to detail</a>
+            <a href={path_for(assigns, "/#{@detail.flag.key}")}>Back to flag</a>
           </div>
         </div>
 
