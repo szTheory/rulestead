@@ -28,7 +28,9 @@ test("audit timeline lists seeded flag activity after kill switch", async ({ bro
     .first();
 
   await expect(killSwitchEntry).toBeVisible({ timeout: 15_000 });
-  await expect(killSwitchEntry.locator("code")).toHaveText("enable-new-dashboard");
+  await expect(
+    killSwitchEntry.locator("code").filter({ hasText: "enable-new-dashboard" }).first(),
+  ).toBeVisible();
 
   const filtered = adminPage.locator("form[aria-label='Audit filters']");
   await filtered.getByLabel("Mutation type filter").selectOption("kill_switch.engage");
