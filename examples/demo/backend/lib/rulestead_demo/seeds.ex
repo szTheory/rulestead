@@ -1094,7 +1094,10 @@ defmodule RulesteadDemo.Seeds do
     from(change_request in "change_requests",
       where: field(change_request, :correlation_id) == ^request_id,
       select: %{
-        id: field(change_request, :id),
+        # Load id/status as their canonical types. A schemaless `field/2` returns the
+        # raw 16-byte uuid binary, which loses its null byte when reused as a command
+        # change_request_id (→ Postgrex "expected 16 bytes" errors ~6% of the time).
+        id: type(field(change_request, :id), Ecto.UUID),
         status: field(change_request, :status),
         correlation_id: field(change_request, :correlation_id)
       }
