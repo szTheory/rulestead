@@ -132,6 +132,15 @@ From the repo root:
 docker compose up --build
 ```
 
+Running this alongside other local demos, or already have something on port
+4000/3000? Use the wrapper instead — it auto-selects free ports, namespaces the
+Compose project, and prints the actual URLs:
+
+```bash
+scripts/demo/up.sh    # start (auto free ports)
+scripts/demo/down.sh  # stop
+```
+
 **Honest boundary:** FleetDesk is a **pre-installed** host. Compose builds an image that
 already ran `mix rulestead.install` and seeds. It proves host-shaped integration, not
 your app's first-hour installer run.

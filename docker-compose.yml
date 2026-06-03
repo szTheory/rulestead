@@ -1,3 +1,9 @@
+# Static project name so a bare `docker compose up` is deterministically
+# namespaced (rulestead-backend-1, its own network/volumes) and can never
+# clobber a sibling demo's containers. `scripts/demo/up.sh` overrides this via
+# COMPOSE_PROJECT_NAME (env var wins over `name:`) for per-branch isolation.
+name: rulestead
+
 services:
   postgres:
     image: postgres:15

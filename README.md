@@ -26,7 +26,9 @@ rollouts, reusable audiences, blast-radius governance — are documented in
 
 **Prove it locally:** `docker compose up --build`, the
 [Adoption Lab](guides/introduction/adoption-lab.md#at-a-glance) runbook, or
-`scripts/demo/proof.sh`.
+`scripts/demo/proof.sh`. Running alongside other demos, or port 4000/3000 in
+use? Use `scripts/demo/up.sh` — it auto-selects free ports, namespaces the
+project, and prints the URLs (`scripts/demo/down.sh` to stop).
 
 ## 15-minute quickstart
 
