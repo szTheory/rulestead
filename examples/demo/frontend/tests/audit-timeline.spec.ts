@@ -33,7 +33,7 @@ test("audit timeline lists seeded flag activity after kill switch", async ({ bro
   ).toBeVisible();
 
   const filtered = adminPage.locator("form[aria-label='Audit filters']");
-  await filtered.getByLabel("Mutation type filter").selectOption("kill_switch.engage");
+  await filtered.getByLabel("Mutation type").selectOption("kill_switch.engage");
 
   await expect(killSwitchEntry).toBeVisible();
   await expect(killSwitchEntry.getByRole("heading", { name: "Kill switch engaged" })).toBeVisible();
