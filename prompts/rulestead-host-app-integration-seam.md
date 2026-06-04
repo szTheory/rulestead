@@ -836,3 +836,104 @@ Each feature is independently testable + skippable. Adding a new feature = addin
 ## 19. TL;DR
 
 > `mix rulestead.install` makes a fresh Phoenix app flag-capable in 15 minutes, with marker-bounded idempotent injections, feature-walker modules for each optional slice (admin/oban/telemetry/audit), mailglass-style `.rulestead_conflict_*` sidecars on divergence, sigra-style golden-diff + idempotency tests, and generated stubs (`RulesteadActorResolver`, `RulesteadAdminPolicy`) that the host owns and customizes. Host owns identity, layout, and auth; rulestead owns runtime evaluation + admin UI + migrations. Upgrades + uninstall are first-class paths.
+
+---
+
+## 20. Theme Persistence and Dark Mode
+
+`rulestead_admin` ships a built-in tri-state theme control (System / Light / Dark) in the shell
+header. **No host configuration is required for it to work.** This section documents the
+`theme_default` attribute and an optional host-side fast-path for advanced scenarios.
+
+### How it works (no host action required)
+
+- **System mode** (default): the CSS `@media (prefers-color-scheme: dark)` rule fires at first
+  paint with no JavaScript. System users are flash-free with zero host action.
+- **Pinned mode** (Light or Dark): the operator's choice is stored in
+  `localStorage["rulestead_admin.theme"]` (origin-scoped, per-device, values `system | light |
+  dark`). The `.ThemeControl` colocated hook reads this value synchronously in `mounted()`, sets
+  `data-theme` on `.rs-shell`, and removes a `data-theme-pending` attribute — producing an instant
+  snap with no animated wipe and no host round-trip.
+
+No host `LiveSocket` wiring is needed. The `.ThemeControl` hook is a `.`-prefixed runtime
+`ColocatedHook` and self-registers automatically.
+
+### `theme_default` attribute (optional)
+
+`Shell.page/1` accepts an optional `theme_default` attribute:
+
+```elixir
+attr :theme_default, :string, default: "system"
+```
+
+Pass it when you want the admin to default to a specific theme for all users who have not yet
+made a manual selection:
+
+```heex
+<Shell.page theme_default="dark" ...>
+```
+
+Valid values: `"system"` (default), `"light"`, `"dark"`. Unknown values are silently treated as
+`"system"`.
+
+The attribute is rendered as `data-theme-default` on the theme control element and read by the
+`.ThemeControl` hook as a fallback when `localStorage` is empty or contains an invalid value.
+`localStorage` takes precedence over `theme_default` — once an operator has manually selected a
+theme, their choice wins on subsequent loads.
+
+### Optional: host `<head>` fast-path (layer 3)
+
+> **This is optional.** The baseline (`data-theme-pending` + hook snap) already eliminates the
+> flash for pinned users on normal connections — the hook removes the pending attribute
+> synchronously before the browser can paint an intermediate state. This snippet only improves
+> the brief window between HTML first-paint and LiveView mount on slow connections or slow
+> devices.
+
+Copy-paste into your host app's `<head>` (before `<body>`) if you want zero flash for
+pinned-mismatch on all connections and devices:
+
+```html
+<!-- Optional: include in host app's <head> to eliminate pinned-mismatch flash
+     even before LiveView connects. The .ThemeControl hook will later take
+     ownership and manage all theme state normally. -->
+<script>
+  (function() {
+    try {
+      var t = localStorage.getItem("rulestead_admin.theme");
+      if (t === "dark" || t === "light") {
+        var shell = document.querySelector(".rs-shell");
+        if (shell) shell.setAttribute("data-theme", t);
+      }
+    } catch (_) {}
+  })();
+</script>
+```
+
+This script is safe to include unconditionally — it no-ops for System users and for users with
+no stored preference. It does not interfere with the `.ThemeControl` hook.
+
+### CSP considerations
+
+The `.ThemeControl` hook ships as a `<script>` tag inside the mounted package (a Phoenix
+`ColocatedHook` with the `runtime` attribute). If your host app enforces a strict
+`Content-Security-Policy` with `script-src` that excludes `'unsafe-inline'`, you must ensure the
+script nonce is propagated to cover this tag. Pass the CSP nonce via the live session assigns:
+
+```heex
+<Shell.page script_csp_nonce={@csp_nonce} ...>
+```
+
+See the [Phoenix LiveView CSP documentation](https://hexdocs.pm/phoenix_live_view/security-model.html)
+for nonce propagation details.
+
+If you opt into the layer-3 `<head>` snippet above, that inline `<script>` also requires a nonce
+when `'unsafe-inline'` is not allowed. Add `nonce="<%= @csp_nonce %>"` to the `<script>` tag:
+
+```html
+<script nonce="<%= @csp_nonce %>">
+  (function() { /* ... */ })();
+</script>
+```
+
+No inline host script is required unless you opt into the fast-path. The baseline theme control
+works entirely through the self-registering colocated hook with no host `<head>` changes.
