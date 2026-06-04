@@ -1210,7 +1210,7 @@
 
 @media (min-width: 900px) {
   .rs-shell__header {
-    grid-template-columns: minmax(0, 1fr) repeat(3, auto);
+    grid-template-columns: minmax(0, 1fr) repeat(4, auto);
     align-items: start;
     padding: 1.55rem 2rem 0.85rem;
   }
@@ -1912,6 +1912,58 @@ a.rs-shell__env-link:active {
   border-color: var(--rs-primary);
   background: var(--rs-primary-soft);
   color: var(--rs-primary-hover);
+}
+
+/* ── Theme control (segmented radiogroup in shell header) ──────────── */
+
+.rs-theme-control__group {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.rs-theme-control__opt {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--rs-control-h-sm);
+  padding: 0.2rem 0.55rem;
+  border: 1px solid var(--rs-border);
+  border-radius: var(--rs-radius-full);
+  background: var(--rs-surface);
+  color: var(--rs-text-muted);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: var(--rs-weight-semibold);
+  cursor: pointer;
+  transition:
+    color var(--rs-motion-fast) var(--rs-ease-out),
+    background var(--rs-motion-fast) var(--rs-ease-out),
+    border-color var(--rs-motion-fast) var(--rs-ease-out);
+}
+
+.rs-theme-control__opt:hover {
+  color: var(--rs-text);
+}
+
+.rs-theme-control__opt[aria-checked="true"] {
+  border-color: var(--rs-primary);
+  background: var(--rs-primary-soft);
+  color: var(--rs-primary-hover);
+}
+
+.rs-theme-control__opt:focus-visible {
+  outline: none;
+  border-radius: var(--rs-radius-sm);
+  box-shadow: var(--rs-focus-ring);
+}
+
+/* ── FOUC snap: freeze transitions while pinned-theme correction is in flight.
+   The .ThemeControl hook removes data-theme-pending synchronously in mounted()
+   after applying data-theme. Once removed, transitions work normally.
+   Phase 94 micro-animations are unaffected — this attribute is gone before any
+   animation CSS is applied. ──────────────────────────────────────────────── */
+[data-theme-pending],
+[data-theme-pending] * {
+  transition: none !important;
 }
 
 .rs-card h2,
