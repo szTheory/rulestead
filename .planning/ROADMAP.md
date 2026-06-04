@@ -78,10 +78,18 @@ Plans:
 **Plans**: 4 plans
 Plans:
 
-- [x] 95-01-PLAN.md — Wave 0: scripts/check_contrast.py (WCAG + OKLCH verification script)
-- [x] 95-02-PLAN.md — 95-PALETTE-RECONCILIATION.md (full reconciliation table + dark ramp + policies)
-- [x] 95-03-PLAN.md — 95-BRAND-AUDIT.md (27-section pressure-test scorecard)
-- [x] 95-04-PLAN.md — D-11 maintainer sign-off checkpoint (phase-close gate)
+**Wave 1** *(parallel)*
+
+- [ ] 96-01-PLAN.md — tokens.json + tokens.css (DTCG 2025.10 scaffold + CSS reference mirror)
+- [ ] 96-02-PLAN.md — brand-book relocation + §12 hex rework + brandbook/README.md + docs/brand-usage.md
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 96-03-PLAN.md — check_brand_tokens.py + lint.sh additive extension (check_synced_pair.py + brand-token check + SVG budget loop)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 96-04-PLAN.md — phase SC verification + STATE/ROADMAP update
 
 ### Phase 97: Logo & Mark SVG System
 
@@ -100,10 +108,10 @@ Plans:
 **Plans**: 4 plans
 Plans:
 
-- [x] 95-01-PLAN.md — Wave 0: scripts/check_contrast.py (WCAG + OKLCH verification script)
-- [x] 95-02-PLAN.md — 95-PALETTE-RECONCILIATION.md (full reconciliation table + dark ramp + policies)
-- [x] 95-03-PLAN.md — 95-BRAND-AUDIT.md (27-section pressure-test scorecard)
-- [ ] 95-04-PLAN.md — D-11 maintainer sign-off checkpoint (phase-close gate)
+- [ ] 97-01-PLAN.md — (to be planned)
+- [ ] 97-02-PLAN.md — (to be planned)
+- [ ] 97-03-PLAN.md — (to be planned)
+- [ ] 97-04-PLAN.md — (to be planned)
 
 **UI hint**: yes
 
@@ -122,10 +130,10 @@ Plans:
 **Plans**: 4 plans
 Plans:
 
-- [x] 95-01-PLAN.md — Wave 0: scripts/check_contrast.py (WCAG + OKLCH verification script)
-- [ ] 95-02-PLAN.md — 95-PALETTE-RECONCILIATION.md (full reconciliation table + dark ramp + policies)
-- [ ] 95-03-PLAN.md — 95-BRAND-AUDIT.md (27-section pressure-test scorecard)
-- [ ] 95-04-PLAN.md — D-11 maintainer sign-off checkpoint (phase-close gate)
+- [ ] 98-01-PLAN.md — (to be planned)
+- [ ] 98-02-PLAN.md — (to be planned)
+- [ ] 98-03-PLAN.md — (to be planned)
+- [ ] 98-04-PLAN.md — (to be planned)
 
 **UI hint**: yes
 
@@ -144,10 +152,10 @@ Plans:
 **Plans**: 4 plans
 Plans:
 
-- [ ] 95-01-PLAN.md — Wave 0: scripts/check_contrast.py (WCAG + OKLCH verification script)
-- [ ] 95-02-PLAN.md — 95-PALETTE-RECONCILIATION.md (full reconciliation table + dark ramp + policies)
-- [ ] 95-03-PLAN.md — 95-BRAND-AUDIT.md (27-section pressure-test scorecard)
-- [ ] 95-04-PLAN.md — D-11 maintainer sign-off checkpoint (phase-close gate)
+- [ ] 99-01-PLAN.md — (to be planned)
+- [ ] 99-02-PLAN.md — (to be planned)
+- [ ] 99-03-PLAN.md — (to be planned)
+- [ ] 99-04-PLAN.md — (to be planned)
 
 **UI hint**: yes
 
@@ -167,17 +175,17 @@ Plans:
 **Plans**: 4 plans
 Plans:
 
-- [ ] 95-01-PLAN.md — Wave 0: scripts/check_contrast.py (WCAG + OKLCH verification script)
-- [ ] 95-02-PLAN.md — 95-PALETTE-RECONCILIATION.md (full reconciliation table + dark ramp + policies)
-- [ ] 95-03-PLAN.md — 95-BRAND-AUDIT.md (27-section pressure-test scorecard)
-- [ ] 95-04-PLAN.md — D-11 maintainer sign-off checkpoint (phase-close gate)
+- [ ] 100-01-PLAN.md — (to be planned)
+- [ ] 100-02-PLAN.md — (to be planned)
+- [ ] 100-03-PLAN.md — (to be planned)
+- [ ] 100-04-PLAN.md — (to be planned)
 
 ## Progress Table
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 95. Brand Audit + Palette Reconciliation | 4/4 | Complete    | 2026-06-04 |
-| 96. Design Tokens (brandbook/ scaffold) | 0/0 | Not started | - |
+| 96. Design Tokens (brandbook/ scaffold) | 0/4 | In progress | - |
 | 97. Logo & Mark SVG System | 0/0 | Not started | - |
 | 98. Admin Re-skin (CSS Cascade) | 0/0 | Not started | - |
 | 99. Specimens | 0/0 | Not started | - |
