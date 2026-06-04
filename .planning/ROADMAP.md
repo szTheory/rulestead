@@ -93,7 +93,7 @@ Plans:
   5. The optional `theme_default` attribute on `shell.ex page/1` is documented; a host that supplies it gets the correct initial token without JS.
 **Plans**: 3 plans
 Plans:
-- [ ] 90-01-PLAN.md — File:// fixture (theme-control-harness.html) + Playwright spec (theme-control.spec.ts, 11 THM-02/THM-04 behavioral tests)
+- [x] 90-01-PLAN.md — File:// fixture (theme-control-harness.html) + Playwright spec (theme-control.spec.ts, 11 THM-02/THM-04 behavioral tests)
 - [ ] 90-02-PLAN.md — shell.ex: .ThemeControl ColocatedHook + radiogroup markup + data-theme-pending + theme_default attr; rulestead_admin.css: control styles + FOUC suppression
 - [ ] 90-03-PLAN.md — Integration guide: theme_default attr + optional host head-script + CSP note
 **UI hint**: yes
@@ -151,7 +151,7 @@ Plans:
 | 87. Token Theme Foundation | 3/3 | Complete   | 2026-06-04 |
 | 88. Hardcoded-Color Remediation | 1/1 | Complete   | 2026-06-04 |
 | 89. Focus + Interaction-State Unification | 2/2 | Complete   | 2026-06-04 |
-| 90. Tri-State Theme Control + Persistence + FOUC | 0/3 | Not started | - |
+| 90. Tri-State Theme Control + Persistence + FOUC | 1/3 | In Progress|  |
 | 91. Design-System Consolidation | 0/? | Not started | - |
 | 92. IA / Home Refinement | 0/? | Not started | - |
 | 93. Per-Screen Polish Across All Admin Screens | 0/? | Not started | - |

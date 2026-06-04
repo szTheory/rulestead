@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.13
 milestone_name: Admin UI Dark Mode + Design-System Polish
 status: verifying
-last_updated: "2026-06-04T08:32:46.089Z"
-last_activity: 2026-06-04 — Phase 89 (Focus + Interaction-State Unification) complete; unified two-stop :focus-visible ring, hover/disabled legible both themes
+last_updated: "2026-06-04T08:59:28.172Z"
+last_activity: 2026-06-04
 progress:
   total_phases: 8
   completed_phases: 3
-  total_plans: 6
-  completed_plans: 6
+  total_plans: 9
+  completed_plans: 7
   percent: 38
 ---
 
@@ -21,7 +21,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-04)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
 
-**Current focus:** Phase 89 — Focus + Interaction-State Unification
+**Current focus:** Phase 90 — Tri-State Theme Control + Persistence + FOUC
 
 **Milestone:** v1.13 opened 2026-06-04 — see `.planning/ROADMAP.md` for phase structure
 
@@ -31,13 +31,13 @@ See: `.planning/PROJECT.md` (updated 2026-06-04)
 
 ## Current Position
 
-Phase: 89 (Focus + Interaction-State Unification) — EXECUTING
+Phase: 90 (Tri-State Theme Control + Persistence + FOUC) — EXECUTING
 Plan: 1 of 1
 Status: Phase complete — ready for verification
 Last activity: 2026-06-04
 
 ```
-Progress: [██████████] 100%
+Progress: [████████░░] 78%
 ```
 
 ## Phase Dependency Map
@@ -117,3 +117,4 @@ All closed — v1.12 adoption evidence depth complete.
 | Phase 88 P01 | 8min | 2 tasks | 1 files |
 | Phase 89-focus-interaction-state-unification P01 | 8 | 1 tasks | 1 files |
 | Phase 89-focus-interaction-state-unification P02 | 18 | 2 tasks | 1 files |
+| Phase 90 P01 | 15 | 2 tasks | 2 files |
