@@ -49,7 +49,7 @@ v1.13 completed at Phase 94. This milestone (v1.14) runs **Phases 95–100**. Ne
 Plans:
 **Wave 1**
 
-- [ ] 95-01-PLAN.md — Wave 0: scripts/check_contrast.py (WCAG + OKLCH verification script)
+- [x] 95-01-PLAN.md — Wave 0: scripts/check_contrast.py (WCAG + OKLCH verification script)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -176,7 +176,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 95. Brand Audit + Palette Reconciliation | 0/4 | Planned | - |
+| 95. Brand Audit + Palette Reconciliation | 1/4 | In Progress|  |
 | 96. Design Tokens (brandbook/ scaffold) | 0/0 | Not started | - |
 | 97. Logo & Mark SVG System | 0/0 | Not started | - |
 | 98. Admin Re-skin (CSS Cascade) | 0/0 | Not started | - |

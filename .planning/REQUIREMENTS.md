@@ -17,8 +17,8 @@ Requirements for this milestone. Each maps to exactly one roadmap phase.
 
 ### Color & Palette (PAL)
 
-- [ ] **PAL-01**: Every brand-palette pairing (text / border / UI element) on light and dark surfaces has a documented, computed WCAG contrast ratio.
-- [ ] **PAL-02**: All AA-failing pairings are remediated with hue-preserving (OKLCH uniform-scale) variants, and one canonical AA-passing value is selected per role/surface.
+- [x] **PAL-01**: Every brand-palette pairing (text / border / UI element) on light and dark surfaces has a documented, computed WCAG contrast ratio.
+- [x] **PAL-02**: All AA-failing pairings are remediated with hue-preserving (OKLCH uniform-scale) variants, and one canonical AA-passing value is selected per role/surface.
 - [ ] **PAL-03**: A full dark-mode ramp is derived, anchored on the shipped v1.13 mineral-dark approach (not pure black; elevation via lightening + hairline borders).
 - [ ] **PAL-04**: Decorative-only colors (e.g. Signal Gold) carry an explicit "never as normal-weight text" usage policy.
 
@@ -97,8 +97,8 @@ Which phases cover which requirements. Filled during roadmap creation.
 | BRD-01 | Phase 95 | Pending |
 | BRD-02 | Phase 95 | Pending |
 | BRD-03 | Phase 100 | Pending |
-| PAL-01 | Phase 95 | Pending |
-| PAL-02 | Phase 95 | Pending |
+| PAL-01 | Phase 95 | Complete |
+| PAL-02 | Phase 95 | Complete |
 | PAL-03 | Phase 95 | Pending |
 | PAL-04 | Phase 95 | Pending |
 | TOK-01 | Phase 96 | Pending |
