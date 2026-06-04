@@ -198,8 +198,11 @@
    Verification command (run from repo root — must print IDENTICAL):
 
      python3 - <<'PY'
-     import sys
-     css=open('rulestead_admin/priv/static/css/rulestead_admin.css').read()
+     import sys, re
+     raw=open('rulestead_admin/priv/static/css/rulestead_admin.css').read()
+     # strip /* ... */ comments first — this header comment itself MENTIONS the
+     # dark selectors, which would otherwise make css.find() match inside the comment.
+     css=re.sub(r'/\*.*?\*/','',raw,flags=re.S)
      def decls(sel):
          i=css.find(sel); j=css.find('{',i); depth=0; k=j
          while k<len(css):
