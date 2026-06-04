@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v1.13
 milestone_name: Admin UI Dark Mode + Design-System Polish
-status: planning
-last_updated: "2026-06-04T06:43:19.016Z"
+status: in_progress
+last_updated: "2026-06-04"
 last_activity: 2026-06-04
 progress:
-  total_phases: 0
+  total_phases: 8
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -17,22 +17,40 @@ progress:
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-05-29)
+See: `.planning/PROJECT.md` (updated 2026-06-04)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
 
-**Current focus:** Maintenance default — planning next milestone only when a v2 trigger fires
+**Current focus:** v1.13 — Admin UI: First-Class Dark Mode + Design-System Polish (Phases 87–94)
 
-**Milestone:** v1.12 Adoption Evidence Depth shipped (2026-05-29) — see `.planning/milestones/v1.12-MILESTONE-AUDIT.md`
+**Milestone:** v1.13 opened 2026-06-04 — see `.planning/ROADMAP.md` for phase structure
+
+**Previous milestone:** v1.12 Adoption Evidence Depth shipped (2026-05-29) — see `.planning/milestones/v1.12-MILESTONE-AUDIT.md`
 
 **Assessment:** `.planning/threads/2026-05-28-post-v1.11-milestone-next-step-assessment.md` (done band 93–95%)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: **87 — Token Theme Foundation** (not started)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-06-04 — Milestone v1.13 started
+Status: Not started
+Last activity: 2026-06-04 — Milestone v1.13 roadmap created; Phase 87 is next
+
+```
+Progress: [░░░░░░░░░░░░░░░░░░░░░░░░] 0 / 8 phases (0%)
+```
+
+## Phase Dependency Map
+
+```
+87 (token foundation) ──► 88 (hardcoded-color remediation)   ──► 91 (design-system consolidation) ──► 92 (IA/home)
+                      ──► 89 (focus/interaction unification)  ──┘                                  ──► 93 (per-screen polish) ──► 94 (micro-animation)
+                      ──► 90 (tri-state control + FOUC)                                            89 also feeds 94
+```
+
+Strict spine: **87 → 91 → 93 → 94**
+Parallel after 87: 88 ‖ 89 ‖ 90
+92 after 91, can overlap start of 93
 
 ## Accumulated Context
 
@@ -42,12 +60,17 @@ Last activity: 2026-06-04 — Milestone v1.13 started
 - **Handoff thread:** `.planning/threads/2026-05-28-post-0.1.2-maintenance-handoff.md` — read after context clear.
 - **Path-to-done: complete** (v1.10.1 + v1.11 + v1.11.1 gap closure + v1.12 adoption evidence shipped).
 - **Done band (repo-verified):** 93–95% for stated post-GA scope — near-done; diminishing returns on major milestones.
-- **Default next work:** maintenance (patches, adopter support); do not open v2 without a real trigger.
 - **CI hygiene:** Mix + Dialyzer PLT caches; PLTs gitignored; `release-pr-ci` dispatch fixed; `gate-ci-green` polls for merge CI.
 - **Ecto 3.14:** Coordinated `ecto_sql ~> 3.14` bump shipped (maintenance); Decimal 3.x via transitive lock.
 - Open v2.0.0 **only** with a deferred trigger; default wedge order GOV-02-ext → ROL-08 → ADM-06.
 - **Current adopter bar:** `mix verify.phase82` / `mix verify.adopter` (delegates to phase82).
-- Phase numbering continues at **87** if a new milestone opens.
+- **v1.13 persistence:** localStorage via colocated JS hook (not cookie/host-session); follows existing CmdK hook pattern in `shell.ex`.
+- **v1.13 control:** segmented System / Light / Dark in the shell header context cluster.
+- **v1.13 dark palette:** purpose-built mineral-dark (base ~`#10161f`, never pure black); desaturated brand; elevation by lightening + hairline borders.
+- **v1.13 FOUC strategy:** system users flash-free via `@media` (no JS); pinned users get `data-theme-pending` instant snap; optional documented host `<head>` script (not required).
+- **v1.13 token scope:** `.rs-shell` / `[data-rulestead]` only — never `:root` / `<html>`.
+- **v1.13 merge posture:** land on branch; merge to main (auto-publishes minor bump) only when both-theme/contrast gate is green across all phases.
+- Phase numbering continues at **95** if a new milestone opens.
 
 ### Deferred Items (v2)
 
@@ -56,6 +79,9 @@ Last activity: 2026-06-04 — Milestone v1.13 started
 | Governance | GOV-02-ext threshold profiles | Per-env/tenant thresholds needed |
 | Rollouts | ROL-08 baseline comparison | Host baselines for guarded rollouts |
 | Admin | ADM-06 draft presets | High authoring duplication pain |
+| Theme | THM-07 per-host branding overrides | Host-supplied token palette |
+| Accessibility | A11Y-04 forced-colors / high-contrast mode | v1.13 delivers AA in light+dark only |
+| Motion | MOT-03 richer view-transition choreography | LiveView morph + View Transitions API |
 
 ### Graduation candidates (doc / release — not blocking)
 
@@ -72,8 +98,11 @@ All closed — v1.12 adoption evidence depth complete.
 
 ## Operator Next Steps
 
-- **Resume after context clear:** read `.planning/threads/2026-05-28-post-0.1.2-maintenance-handoff.md`.
-- **Default:** maintenance — adopter issues, patch releases via release-please, keep `mix verify.adopter` green.
+- **Start:** `/gsd:plan-phase 87` — Token theme foundation (the gate phase; blocks all others).
+- **After Phase 87:** 88, 89, and 90 can run in parallel.
+- **After 88 + 89:** Phase 91 (design-system consolidation).
+- **After 91:** Phase 92 (IA/home) and Phase 93 (per-screen polish) can overlap.
+- **After 89 + 93:** Phase 94 (micro-animation — the final phase).
+- **Merge gate:** both-theme screenshot + axe contrast pass must be clean before each phase closes.
+- **Default after context clear:** read `.planning/threads/2026-05-28-post-0.1.2-maintenance-handoff.md`.
 - **After each Hex cut:** `bash scripts/ci/verify_published_release.sh <version>`.
-- **Optional:** `/gsd-audit-milestone` to archive v1.12 formally.
-- **Triggered only:** `/gsd-new-milestone` for v2.0+ when a deferred trigger is real (see `.planning/DEFERRED.md`).

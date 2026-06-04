@@ -82,8 +82,6 @@ Deferred beyond v1.13. Tracked but not in this roadmap.
 
 ## Traceability
 
-Populated during roadmap creation. Pre-mapped to the approved plan's phase spine (Phases 87–94).
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | THM-01 | Phase 87 | Pending |
@@ -110,4 +108,4 @@ Populated during roadmap creation. Pre-mapped to the approved plan's phase spine
 
 ---
 *Requirements defined: 2026-06-04*
-*Last updated: 2026-06-04 after initial definition (pre-roadmap; traceability finalized by roadmapper)*
+*Last updated: 2026-06-04 — traceability finalized by roadmapper (Phases 87–94)*
