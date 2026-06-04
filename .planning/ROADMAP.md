@@ -95,7 +95,7 @@ Plans:
 Plans:
 - [x] 90-01-PLAN.md — File:// fixture (theme-control-harness.html) + Playwright spec (theme-control.spec.ts, 11 THM-02/THM-04 behavioral tests)
 - [x] 90-02-PLAN.md — shell.ex: .ThemeControl ColocatedHook + radiogroup markup + data-theme-pending + theme_default attr; rulestead_admin.css: control styles + FOUC suppression
-- [ ] 90-03-PLAN.md — Integration guide: theme_default attr + optional host head-script + CSP note
+- [x] 90-03-PLAN.md — Integration guide: theme_default attr + optional host head-script + CSP note
 **UI hint**: yes
 
 ### Phase 91: Design-System Consolidation
@@ -151,7 +151,7 @@ Plans:
 | 87. Token Theme Foundation | 3/3 | Complete   | 2026-06-04 |
 | 88. Hardcoded-Color Remediation | 1/1 | Complete   | 2026-06-04 |
 | 89. Focus + Interaction-State Unification | 2/2 | Complete   | 2026-06-04 |
-| 90. Tri-State Theme Control + Persistence + FOUC | 2/3 | In Progress|  |
+| 90. Tri-State Theme Control + Persistence + FOUC | 3/3 | Complete   | 2026-06-04 |
 | 91. Design-System Consolidation | 0/? | Not started | - |
 | 92. IA / Home Refinement | 0/? | Not started | - |
 | 93. Per-Screen Polish Across All Admin Screens | 0/? | Not started | - |
