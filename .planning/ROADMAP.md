@@ -46,7 +46,11 @@ Phases 82–86 complete v1.12 adoption evidence depth. This milestone (v1.13) ru
   3. An explicit `[data-theme="light"]` or `[data-theme="dark"]` attribute beats the `@media` rule in both directions (explicit-wins cascade verified).
   4. The dark palette reads as mineral-dark (base ~`#10161f`, off-white text ~`#e8edf3`) — not pure black, not generic grey — with elevation expressed via lightened surfaces and hairline borders.
   5. The theme scope is contained to `.rs-shell` / `[data-rulestead]`; a devtools inspection of `:root` and `<html>` shows no dark-mode token overrides from the admin package.
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 87-01-PLAN.md — Validation scaffolding: HTML harness + Playwright cascade/scope specs + contrast-check helper
+- [ ] 87-02-PLAN.md — CSS token split: :root invariant-only + .rs-shell light default block (new tokens + --rs-warning-hover)
+- [ ] 87-03-PLAN.md — Dark cascade blocks: mineral-dark token set (verified AA), system-dark @media, explicit dark/light, SYNCED PAIR
 **UI hint**: yes
 
 ### Phase 88: Hardcoded-Color Remediation
