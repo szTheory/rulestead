@@ -4,7 +4,7 @@ milestone: v1.13
 milestone_name: Admin UI Dark Mode + Design-System Polish
 status: verifying
 last_updated: "2026-06-04T15:06:01.746Z"
-last_activity: 2026-06-04
+last_activity: 2026-06-04 — Phase 93 (Per-Screen Polish) complete; accent-light AA fixed + enforced, 20 screen-types swept clean both themes
 progress:
   total_phases: 8
   completed_phases: 7
