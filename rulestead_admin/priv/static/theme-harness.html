@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>rs theme harness</title>
+  <link rel="stylesheet" href="./css/rulestead_admin.css">
+  <style>
+    .swatch { display: inline-block; width: 80px; height: 40px; border: 1px solid #888; margin: 2px; }
+    body { margin: 0; padding: 0; }
+    #outside-shell {
+      padding: 1rem;
+      font-family: sans-serif;
+      font-size: 0.875rem;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+
+<div class="rs-shell" id="shell">
+  <header class="rs-shell__header">
+    <div>
+      <p class="rs-shell__kicker">Rulestead</p>
+      <h1 class="rs-shell__title">Theme Harness</h1>
+      <p class="rs-shell__summary">All token families · devtools fixture</p>
+    </div>
+    <section class="rs-shell__context">
+      <p class="rs-shell__context-label">Access</p>
+      <div class="rs-shell__context-item">admin</div>
+    </section>
+  </header>
+  <div class="rs-shell__layout">
+    <nav class="rs-shell__rail">
+      <div class="rs-shell__rail-group">
+        <a href="#" class="rs-shell__rail-link" aria-current="page">Flags</a>
+        <a href="#" class="rs-shell__rail-link">Rollouts</a>
+        <a href="#" class="rs-shell__rail-link">Audiences</a>
+        <a href="#" class="rs-shell__rail-link">Settings</a>
+      </div>
+    </nav>
+    <main class="rs-shell__main">
+      <div class="rs-shell__body">
+
+        <!-- Badges — all five tones -->
+        <section style="margin-bottom: 1.5rem;">
+          <h2 style="font-size: var(--rs-text-sm); font-weight: var(--rs-weight-semibold); color: var(--rs-text-muted); text-transform: uppercase; letter-spacing: var(--rs-tracking-wide); margin: 0 0 0.5rem;">Badges</h2>
+          <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+            <span class="rs-badge" data-tone="positive">positive</span>
+            <span class="rs-badge" data-tone="warning">warning</span>
+            <span class="rs-badge" data-tone="critical">critical</span>
+            <span class="rs-badge" data-tone="neutral">neutral</span>
+            <span class="rs-badge" data-tone="accent">accent</span>
+          </div>
+        </section>
+
+        <!-- Card with body text -->
+        <section style="margin-bottom: 1.5rem;">
+          <h2 style="font-size: var(--rs-text-sm); font-weight: var(--rs-weight-semibold); color: var(--rs-text-muted); text-transform: uppercase; letter-spacing: var(--rs-tracking-wide); margin: 0 0 0.5rem;">Card surface</h2>
+          <div class="rs-card">
+            <p style="margin: 0;">Card surface. <span style="color: var(--rs-text);">Text on --rs-surface.</span> <a href="#">A link.</a> <span style="color: var(--rs-text-muted);">Muted text.</span> <span style="color: var(--rs-text-placeholder);">Placeholder text.</span></p>
+          </div>
+        </section>
+
+        <!-- Flash variants -->
+        <section style="margin-bottom: 1.5rem;">
+          <h2 style="font-size: var(--rs-text-sm); font-weight: var(--rs-weight-semibold); color: var(--rs-text-muted); text-transform: uppercase; letter-spacing: var(--rs-tracking-wide); margin: 0 0 0.5rem;">Flash</h2>
+          <div class="rs-flash" data-kind="success" style="margin-bottom: 0.5rem;">
+            <strong>Success</strong>
+            <p style="margin: 0;">Something worked.</p>
+          </div>
+          <div class="rs-flash" data-kind="warning" style="margin-bottom: 0.5rem;">
+            <strong>Warning</strong>
+            <p style="margin: 0;">Check this carefully.</p>
+          </div>
+          <div class="rs-flash" data-kind="error" style="margin-bottom: 0.5rem;">
+            <strong>Error</strong>
+            <p style="margin: 0;">Something failed.</p>
+          </div>
+        </section>
+
+        <!-- Disabled button -->
+        <section style="margin-bottom: 1.5rem;">
+          <h2 style="font-size: var(--rs-text-sm); font-weight: var(--rs-weight-semibold); color: var(--rs-text-muted); text-transform: uppercase; letter-spacing: var(--rs-tracking-wide); margin: 0 0 0.5rem;">Disabled state</h2>
+          <button disabled style="background: var(--rs-disabled-bg); color: var(--rs-disabled-text); border: 1px solid var(--rs-border); padding: 0.5rem 1rem; border-radius: var(--rs-radius-md); cursor: not-allowed; font: inherit;">Disabled button</button>
+        </section>
+
+        <!-- Surface swatches — direction visual check for dark mode -->
+        <section style="margin-bottom: 1.5rem;">
+          <h2 style="font-size: var(--rs-text-sm); font-weight: var(--rs-weight-semibold); color: var(--rs-text-muted); text-transform: uppercase; letter-spacing: var(--rs-tracking-wide); margin: 0 0 0.5rem;">Surface swatches (lighter = elevated)</h2>
+          <div style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:flex-start;">
+            <div>
+              <div class="swatch" style="background: var(--rs-bg);"></div>
+              <div style="font-size: 0.7rem; color: var(--rs-text-muted);">--rs-bg</div>
+            </div>
+            <div>
+              <div class="swatch" style="background: var(--rs-surface-faint);"></div>
+              <div style="font-size: 0.7rem; color: var(--rs-text-muted);">--rs-surface-faint</div>
+            </div>
+            <div>
+              <div class="swatch" style="background: var(--rs-surface);"></div>
+              <div style="font-size: 0.7rem; color: var(--rs-text-muted);">--rs-surface</div>
+            </div>
+            <div>
+              <div class="swatch rs-surface-muted" style="background: var(--rs-surface-muted);"></div>
+              <div style="font-size: 0.7rem; color: var(--rs-text-muted);">--rs-surface-muted</div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- THM-05 scope-containment visual probe.
+     If --rs-bg leaks outside .rs-shell, this div turns blue (the dark --rs-bg resolved value).
+     If correctly scoped to .rs-shell, --rs-bg is undeclared here and the fallback `red` shows. -->
+<div id="outside-shell" style="background: var(--rs-bg, red); padding: 1rem; border-top: 2px solid #888;">
+  <strong>outside-shell scope probe</strong><br>
+  Background is <code>var(--rs-bg, red)</code>. If this shows <strong>red</strong>, token scoping is correct
+  (--rs-bg is not declared outside .rs-shell). If any other color, the token has leaked to :root.
+</div>
+
+<script>
+  // Toggle theme from browser console:
+  //   setTheme('dark')   — pin dark
+  //   setTheme('light')  — pin light
+  //   clearTheme()       — remove pin (system mode)
+  window.setTheme = (t) => document.getElementById('shell').setAttribute('data-theme', t);
+  window.clearTheme = () => document.getElementById('shell').removeAttribute('data-theme');
+</script>
+</body>
+</html>
