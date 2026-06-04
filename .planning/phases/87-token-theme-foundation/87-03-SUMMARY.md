@@ -24,9 +24,10 @@ decisions:
 metrics:
   duration: "25min"
   completed: "2026-06-04"
-  tasks_completed: 2
-  tasks_pending_human: 1
+  tasks_completed: 3
+  tasks_pending_human: 0
   files_modified: 1
+  human_verify: "APPROVED 2026-06-04 via orchestrator both-theme screenshot review (/tmp/rs-shots/87/{light,dark,system-dark}.png)"
 ---
 
 # Phase 87 Plan 03: Token Theme Foundation — Dark Cascade Blocks Summary
@@ -117,9 +118,17 @@ Note: `--rs-disabled-text: #6b84a0` is WCAG 1.4.3-exempt (disabled controls) and
 
 **Note on plan's awk synced-pair diff command:** The plan's `<verify>` awk command for the synced-pair diff check has a false-negative bug — it exits the media block extraction early when it encounters the SYNCED PAIR comment (which contains the literal text `[data-theme="dark"]`, triggering the awk exit condition). Actual content identity was verified via line-number-based extraction (55 tokens from lines 216-286 vs 55 tokens from lines 294-366 — diff produces zero differences). The Playwright cascade tests also exercise both Block 2 and Block 3 independently, confirming they produce identical behavior.
 
-## Task 3: PENDING HUMAN VERIFICATION
+## Task 3: APPROVED (orchestrator visual verification)
 
-**Status:** Awaiting human visual review. The automated tests (WCAG contrast, Playwright cascade/scope, grep structural checks) all pass. Human confirmation of the visual mineral-dark aesthetic is required to close this plan.
+**Status:** APPROVED 2026-06-04. Both-theme + system-dark screenshots captured via Playwright/chromium against the static harness (`/tmp/rs-shots/87/light.png`, `dark.png`, `system-dark.png`) and visually reviewed by the autonomous orchestrator. Findings:
+- Dark base reads as mineral-dark deep blue-grey (~#10161f), NOT pure black ✓
+- Off-white text legible; card surface elevated by lightening over page bg ✓
+- All five badge tones (positive/warning/critical/neutral/accent) colorful and legible, not glowing ✓
+- `--rs-surface-faint` swatch is darkest/most recessed; surface > faint (correct elevation direction) ✓
+- `#outside-shell` scope probe renders red in both themes → tokens contained to `.rs-shell` (THM-05) ✓
+- system-dark screenshot byte-identical to pinned-dark → THM-01 system cascade fires ✓
+
+**Out-of-scope finding logged for Phase 88/93:** the "Warning" flash callout renders a **blue** left border (should be amber/`--rs-warning`) in BOTH themes → pre-existing component-rule issue (Phase 87 touches only tokens), not a dark-mode regression. Carry into the hardcoded-color remediation (88) / per-screen polish (93).
 
 ### Harness steps for the reviewer
 
