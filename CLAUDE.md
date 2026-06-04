@@ -26,8 +26,6 @@ config system with a sibling-package layout:
   package shape for convenience.
 - Post-GA band (v1.1–v1.9) is feature-complete; v1.10 closes support truth only.
 - v2 work (ADM-06, ROL-08, GOV-02-ext) requires an explicit new milestone.
-- Do not create Phase 8-only docs early:
-  `guides/cheatsheet.cheatmd`, `guides/flows/extending-rulestead.md`.
 - `rulestead_admin` is a mounted companion — not a standalone control plane.
 
 ## Output expectations

@@ -235,12 +235,15 @@ jobs:
       - name: Verify version matches release
         working-directory: rulestead_admin
         run: grep -n "@version \"${{ inputs.release_version }}\"" mix.exs
-      - name: Dry-run publish
-        working-directory: rulestead_admin
-        run: mix hex.publish --dry-run
       - name: Publish admin package
         working-directory: rulestead_admin
-        run: mix hex.publish --yes
+        run: |
+          if curl -fsS "https://hex.pm/api/packages/rulestead_admin/releases/${{ inputs.release_version }}" >/dev/null; then
+            echo "rulestead_admin ${{ inputs.release_version }} is already on Hex; skipping publish-admin"
+          else
+            mix hex.publish --dry-run
+            mix hex.publish --yes
+          fi
 
   handoff-post-publish:
     name: handoff-post-publish
