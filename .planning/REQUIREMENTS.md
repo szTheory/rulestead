@@ -19,8 +19,8 @@ This milestone deepens the **mounted `rulestead_admin` companion UI** only. No n
 ### Accessibility & Interaction States (`A11Y`)
 
 - [ ] **A11Y-01**: All body text, status pills, and UI-component borders meet WCAG AA contrast (text 4.5:1, large text / UI components 3:1) in both light and dark themes, verified against the actual surface they render on.
-- [ ] **A11Y-02**: Every interactive element shows a single, consistent `:focus-visible` indicator (≥3:1, ≥2px perimeter) that stays legible on light surfaces, dark surfaces, and colored fills.
-- [ ] **A11Y-03**: Hover, active, and disabled states stay legible and AA-compliant in both themes — no unreadable white-on-light or crushed-on-dark states.
+- [x] **A11Y-02**: Every interactive element shows a single, consistent `:focus-visible` indicator (≥3:1, ≥2px perimeter) that stays legible on light surfaces, dark surfaces, and colored fills.
+- [x] **A11Y-03**: Hover, active, and disabled states stay legible and AA-compliant in both themes — no unreadable white-on-light or crushed-on-dark states.
 
 ### Design System (`DSY`)
 
@@ -89,8 +89,8 @@ Deferred beyond v1.13. Tracked but not in this roadmap.
 | THM-05 | Phase 87 | Complete |
 | THM-06 | Phase 87 | Complete |
 | DSY-01 | Phase 88 | Complete |
-| A11Y-02 | Phase 89 | Pending |
-| A11Y-03 | Phase 89 | Pending |
+| A11Y-02 | Phase 89 | Complete |
+| A11Y-03 | Phase 89 | Complete |
 | THM-02 | Phase 90 | Pending |
 | THM-04 | Phase 90 | Pending |
 | DSY-02 | Phase 91 | Pending |

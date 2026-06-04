@@ -77,7 +77,7 @@ Plans:
   4. Disabled states are legible in both themes — explicit `--rs-disabled-*` tokens used rather than opacity that crushes to invisible on dark.
 **Plans**: 2 plans
 Plans:
-- [ ] 89-01-PLAN.md — Harness extension: interactive focus targets (input, select, tab strip, primary/secondary/danger buttons)
+- [x] 89-01-PLAN.md — Harness extension: interactive focus targets (input, select, tab strip, primary/secondary/danger buttons)
 - [ ] 89-02-PLAN.md — CSS unification: two-stop --rs-focus-ring in all 4 cascade blocks + :where() base rule + idiom removal + hover/disabled fixes
 **UI hint**: yes
 
@@ -146,7 +146,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 87. Token Theme Foundation | 3/3 | Complete   | 2026-06-04 |
 | 88. Hardcoded-Color Remediation | 1/1 | Complete   | 2026-06-04 |
-| 89. Focus + Interaction-State Unification | 0/2 | Planned     | - |
+| 89. Focus + Interaction-State Unification | 1/2 | In Progress|  |
 | 90. Tri-State Theme Control + Persistence + FOUC | 0/? | Not started | - |
 | 91. Design-System Consolidation | 0/? | Not started | - |
 | 92. IA / Home Refinement | 0/? | Not started | - |
