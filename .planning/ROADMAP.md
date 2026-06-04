@@ -85,7 +85,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 96-03-PLAN.md — check_brand_tokens.py + lint.sh additive extension (check_synced_pair.py + brand-token check + SVG budget loop)
+- [x] 96-03-PLAN.md — check_brand_tokens.py + lint.sh additive extension (check_synced_pair.py + brand-token check + SVG budget loop)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -185,7 +185,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 95. Brand Audit + Palette Reconciliation | 4/4 | Complete    | 2026-06-04 |
-| 96. Design Tokens (brandbook/ scaffold) | 2/4 | In Progress|  |
+| 96. Design Tokens (brandbook/ scaffold) | 3/4 | In Progress|  |
 | 97. Logo & Mark SVG System | 0/0 | Not started | - |
 | 98. Admin Re-skin (CSS Cascade) | 0/0 | Not started | - |
 | 99. Specimens | 0/0 | Not started | - |

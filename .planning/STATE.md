@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.14
 milestone_name: Brand System Realization
 status: executing
-last_updated: "2026-06-04T21:13:22.856Z"
+last_updated: "2026-06-04T21:18:07.373Z"
 last_activity: 2026-06-04
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 8
-  completed_plans: 6
+  completed_plans: 7
   percent: 17
 ---
 
@@ -32,7 +32,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-04)
 ## Current Position
 
 Phase: 96 (design-tokens-brandbook-scaffold) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 Status: Ready to execute
 Last activity: 2026-06-04
 
@@ -97,6 +97,7 @@ Human checkpoints (cannot be automated):
 - [Phase 96-01]: DTCG 2025.10 tokens.json committed with 37-light/31-dark admin_css_mapping; 7 primary mismatch tokens (#3A6F8F vs #2563eb, #9b5931 vs #9a3f12, #2d7753 vs #15803d, #8f601a vs #b45309, #B44949 vs #b91c1c) guarantee check_brand_tokens.py exits 1 against current CSS
 - [Phase 96-01]: tokens.css reference mirror committed with :root invariant block + two-block light/dark + Tailwind excerpt; no color token on :root (D-05)
 - [Phase 96-01]: --rs-primary-hover interim target #2d5f7c (darkened Stead Blue); Phase 98 may refine the hover shade
+- [Phase 96]: [Phase 96-03]: check_brand_tokens.py exits 1 by design against un-re-skinned CSS — Phase 96 success criterion 3 — proves the guard mechanism works before Phase 98 re-skins the admin CSS
 
 ### Deferred Items (v2)
 
@@ -148,3 +149,4 @@ All closed — v1.12 adoption evidence depth complete.
 | Phase 95 P03 | 20 | 1 tasks | 1 files |
 | Phase 96 P01 | 4min | 2 tasks | 2 files |
 | Phase 96 P02 | 3min | 2 tasks | 4 files |
+| Phase 96 P03 | 1min | 2 tasks | 2 files |
