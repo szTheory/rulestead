@@ -80,7 +80,7 @@ Plans:
 
 **Wave 1** *(parallel)*
 
-- [ ] 96-01-PLAN.md — tokens.json + tokens.css (DTCG 2025.10 scaffold + CSS reference mirror)
+- [x] 96-01-PLAN.md — tokens.json + tokens.css (DTCG 2025.10 scaffold + CSS reference mirror)
 - [ ] 96-02-PLAN.md — brand-book relocation + §12 hex rework + brandbook/README.md + docs/brand-usage.md
 
 **Wave 2** *(blocked on Wave 1 completion)*
@@ -185,7 +185,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 95. Brand Audit + Palette Reconciliation | 4/4 | Complete    | 2026-06-04 |
-| 96. Design Tokens (brandbook/ scaffold) | 0/4 | In progress | - |
+| 96. Design Tokens (brandbook/ scaffold) | 1/4 | In Progress|  |
 | 97. Logo & Mark SVG System | 0/0 | Not started | - |
 | 98. Admin Re-skin (CSS Cascade) | 0/0 | Not started | - |
 | 99. Specimens | 0/0 | Not started | - |

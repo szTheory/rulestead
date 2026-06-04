@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.14
 milestone_name: Brand System Realization
 status: executing
-last_updated: "2026-06-04T20:57:23.458Z"
-last_activity: 2026-06-04 -- Phase 96 planning complete
+last_updated: "2026-06-04T21:05:40.827Z"
+last_activity: 2026-06-04
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 8
-  completed_plans: 4
+  completed_plans: 5
   percent: 17
 ---
 
@@ -21,7 +21,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-04)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
 
-**Current focus:** Phase 96 — design tokens (`brandbook/` scaffold)
+**Current focus:** Phase 96 — design-tokens-brandbook-scaffold
 
 **Milestone:** v1.14 opened 2026-06-04 — see `.planning/ROADMAP.md` for phase structure
 
@@ -31,10 +31,10 @@ See: `.planning/PROJECT.md` (updated 2026-06-04)
 
 ## Current Position
 
-Phase: 96
-Plan: Not started
+Phase: 96 (design-tokens-brandbook-scaffold) — EXECUTING
+Plan: 2 of 4
 Status: Ready to execute
-Last activity: 2026-06-04 -- Phase 96 planning complete
+Last activity: 2026-06-04
 
 Progress bar: `[ ░░░░░░░░░░ ] 0% — 0/6 phases`
 
@@ -94,6 +94,9 @@ Human checkpoints (cannot be automated):
 - [Phase 95-03]: §12 REWORK (primary blocker for Phase 96): replace book-literal hexes with AA-verified values from 95-PALETTE-RECONCILIATION.md
 - [Phase 95-03]: ADD-2 BRD-03 szTheory suite note scoped to Phase 100; content outline provided in 95-BRAND-AUDIT.md
 - [Phase 95-03]: §8 tagline lock target: "Runtime decisions, made clear." — Phase 96 action
+- [Phase 96-01]: DTCG 2025.10 tokens.json committed with 37-light/31-dark admin_css_mapping; 7 primary mismatch tokens (#3A6F8F vs #2563eb, #9b5931 vs #9a3f12, #2d7753 vs #15803d, #8f601a vs #b45309, #B44949 vs #b91c1c) guarantee check_brand_tokens.py exits 1 against current CSS
+- [Phase 96-01]: tokens.css reference mirror committed with :root invariant block + two-block light/dark + Tailwind excerpt; no color token on :root (D-05)
+- [Phase 96-01]: --rs-primary-hover interim target #2d5f7c (darkened Stead Blue); Phase 98 may refine the hover shade
 
 ### Deferred Items (v2)
 
@@ -143,3 +146,4 @@ All closed — v1.12 adoption evidence depth complete.
 | Phase 93-per-screen-polish P01 | 40 | 2 tasks | 2 files |
 | Phase 95 P02 | 20 | 1 tasks | 1 files |
 | Phase 95 P03 | 20 | 1 tasks | 1 files |
+| Phase 96 P01 | 4min | 2 tasks | 2 files |

@@ -24,10 +24,10 @@ Requirements for this milestone. Each maps to exactly one roadmap phase.
 
 ### Design Tokens (TOK)
 
-- [ ] **TOK-01**: `brandbook/tokens.json` expresses raw → semantic → state tokens in DTCG format with light and dark values.
-- [ ] **TOK-02**: `brandbook/tokens.css` emits CSS custom properties mirroring the shipped `--rs-*` token shape for light and dark.
-- [ ] **TOK-03**: Tokens cover semantic + state roles (default/hover/active/focus/disabled/selected/success/warning/error/info/subtle/muted) plus spacing, radius, border, shadow, focus-ring, code-block, and callout primitives.
-- [ ] **TOK-04**: An optional Tailwind token excerpt is provided for downstream marketing/site reuse.
+- [x] **TOK-01**: `brandbook/tokens.json` expresses raw → semantic → state tokens in DTCG format with light and dark values.
+- [x] **TOK-02**: `brandbook/tokens.css` emits CSS custom properties mirroring the shipped `--rs-*` token shape for light and dark.
+- [x] **TOK-03**: Tokens cover semantic + state roles (default/hover/active/focus/disabled/selected/success/warning/error/info/subtle/muted) plus spacing, radius, border, shadow, focus-ring, code-block, and callout primitives.
+- [x] **TOK-04**: An optional Tailwind token excerpt is provided for downstream marketing/site reuse.
 
 ### Logo & Mark System (LOGO)
 
@@ -101,10 +101,10 @@ Which phases cover which requirements. Filled during roadmap creation.
 | PAL-02 | Phase 95 | Complete |
 | PAL-03 | Phase 95 | Complete |
 | PAL-04 | Phase 95 | Complete |
-| TOK-01 | Phase 96 | Pending |
-| TOK-02 | Phase 96 | Pending |
-| TOK-03 | Phase 96 | Pending |
-| TOK-04 | Phase 96 | Pending |
+| TOK-01 | Phase 96 | Complete |
+| TOK-02 | Phase 96 | Complete |
+| TOK-03 | Phase 96 | Complete |
+| TOK-04 | Phase 96 | Complete |
 | LOGO-01 | Phase 97 | Pending |
 | LOGO-02 | Phase 97 | Pending |
 | LOGO-03 | Phase 97 | Pending |
