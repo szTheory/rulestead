@@ -830,7 +830,12 @@ Use devtools media emulation (`prefers-color-scheme`) to test OS scenarios witho
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+> All three resolved during planning (plan-checker MEDIUM-1):
+> 1. **surface-faint dark direction** → maps to `--rs-neutral-0` (darkest/recessed) in dark; asserted in 87-03 acceptance criteria + pitfall-6 check.
+> 2. **`--rs-warning-hover`** → added in both themes (light `#92400e` in 87-02; dark `#fcd34d` in 87-03).
+> 3. **`--rs-accent-text`/`-border`** → not needed; in dark `--rs-accent` is set to the lightened `#e8834a` and all component uses are text/border (not fills), so one token suffices.
 
 1. **`--rs-surface-faint` direction in dark**
    - What we know: In light, `surface-faint` = `neutral-25` (#f8fafc), lighter than `surface` (#ffffff is white). In the neutral ramp the naming implies "faint = almost invisible surface". In dark, the equivalent role is a recessed/sunken area.
