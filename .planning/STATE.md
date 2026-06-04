@@ -4,7 +4,7 @@ milestone: v1.13
 milestone_name: Admin UI Dark Mode + Design-System Polish
 status: verifying
 last_updated: "2026-06-04T14:51:36.733Z"
-last_activity: 2026-06-04
+last_activity: 2026-06-04 — Phase 92 (IA/Home Refinement) complete; home+nav verified on real isolated demo both themes, 2 evidence-based refinements
 progress:
   total_phases: 8
   completed_phases: 6
