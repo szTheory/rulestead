@@ -1099,7 +1099,7 @@ a.rs-shell__env-link:active {
     top: 0;
     flex-direction: column;
     align-items: stretch;
-    gap: var(--rs-space-5);
+    gap: var(--rs-space-6);
     overflow: visible;
     padding: var(--rs-space-6) var(--rs-space-4) var(--rs-space-6);
     border-bottom: 0;
@@ -1118,7 +1118,7 @@ a.rs-shell__env-link:active {
     padding: 0 var(--rs-space-2);
     font-size: var(--rs-text-2xs);
     font-weight: var(--rs-weight-semibold);
-    letter-spacing: var(--rs-tracking-wide);
+    letter-spacing: var(--rs-tracking-wider);
     text-transform: uppercase;
     color: var(--rs-text-muted);
   }
@@ -1130,7 +1130,7 @@ a.rs-shell__env-link:active {
   min-height: var(--rs-control-h-sm);
   padding: 0.3rem 0.65rem;
   border-radius: var(--rs-radius-sm);
-  color: var(--rs-text-muted);
+  color: var(--rs-text);
   font-size: var(--rs-text-sm);
   font-weight: var(--rs-weight-medium);
   white-space: nowrap;
@@ -2776,6 +2776,19 @@ a.rs-env-state:active {
   color: var(--rs-on-primary);
 }
 
+.rs-task-link--primary:hover,
+.rs-task-link--primary:focus-visible {
+  border-color: var(--rs-primary-hover);
+  background: var(--rs-primary-hover);
+}
+
+.rs-task-link--primary:hover strong,
+.rs-task-link--primary:hover span,
+.rs-task-link--primary:focus-visible strong,
+.rs-task-link--primary:focus-visible span {
+  color: var(--rs-on-primary);
+}
+
 .rs-task-link[data-tone="critical"] {
   border-color: var(--rs-error-border);
   background: var(--rs-error-bg-subtle);
@@ -3785,15 +3798,18 @@ a.rs-env-state:active {
   display: inline-flex;
   align-items: center;
   gap: var(--rs-space-2);
+  width: 100%;
+  max-width: 22rem;
   min-height: var(--rs-control-h-sm);
   margin-top: var(--rs-space-3);
   padding: 0 var(--rs-space-2) 0 var(--rs-space-3);
-  border-radius: var(--rs-radius-full);
+  border-radius: var(--rs-radius-md);
   border: 1px solid var(--rs-border);
   background: var(--rs-surface-muted);
-  color: var(--rs-text-muted);
+  color: var(--rs-text-placeholder);
   font-size: var(--rs-text-sm);
-  cursor: pointer;
+  text-align: start;
+  cursor: text;
 }
 
 .rs-shell .rs-shell__search:hover {
@@ -3805,6 +3821,12 @@ a.rs-env-state:active {
 .rs-shell__search-glyph {
   font-size: 1rem;
   line-height: 1;
+}
+
+.rs-shell__search-label {
+  flex: 1;
+  text-align: start;
+  color: inherit;
 }
 
 .rs-shell__search-kbd {

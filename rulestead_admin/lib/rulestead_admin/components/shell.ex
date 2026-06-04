@@ -56,8 +56,8 @@ defmodule RulesteadAdmin.Components.Shell do
             aria-haspopup="dialog"
             aria-keyshortcuts="Meta+K Control+K"
           >
-            <span class="rs-shell__search-icon" aria-hidden="true">⌕</span>
-            <span class="rs-shell__search-label">Search</span>
+            <span class="rs-shell__search-glyph" aria-hidden="true">⌕</span>
+            <span class="rs-shell__search-label">Search commands and pages…</span>
             <kbd class="rs-shell__search-kbd" aria-hidden="true">⌘K</kbd>
           </button>
         </div>
