@@ -4,7 +4,7 @@ milestone: v1.13
 milestone_name: Admin UI Dark Mode + Design-System Polish
 status: verifying
 last_updated: "2026-06-04T08:07:41.923Z"
-last_activity: 2026-06-04
+last_activity: 2026-06-04 — Phase 88 (Hardcoded-Color Remediation) complete; literal-scan 0, warning-flash amber fixed, Playwright 8/8
 progress:
   total_phases: 8
   completed_phases: 2
