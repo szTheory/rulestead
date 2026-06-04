@@ -4,7 +4,7 @@ milestone: v1.13
 milestone_name: Admin UI Dark Mode + Design-System Polish
 status: verifying
 last_updated: "2026-06-04T15:19:13.778Z"
-last_activity: 2026-06-04
+last_activity: 2026-06-04 — Phase 94 (Restrained Micro-Animation) complete; ALL 8 PHASES DONE — v1.13 dark mode + design-system polish complete
 progress:
   total_phases: 8
   completed_phases: 8
