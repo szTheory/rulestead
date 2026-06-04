@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.14
 milestone_name: Brand System Realization
 status: executing
-last_updated: "2026-06-04T18:45:53.537Z"
+last_updated: "2026-06-04T19:05:00.000Z"
 last_activity: 2026-06-04
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 4
-  completed_plans: 2
+  completed_plans: 3
   percent: 0
 ---
 
@@ -32,8 +32,8 @@ See: `.planning/PROJECT.md` (updated 2026-06-04)
 ## Current Position
 
 Phase: 95 (brand-audit-palette-reconciliation) — EXECUTING
-Plan: 3 of 4
-Status: Ready to execute
+Plan: 4 of 4
+Status: Plan 03 complete; Plan 04 (D-11 checkpoint) next
 Last activity: 2026-06-04
 
 Progress bar: `[ ░░░░░░░░░░ ] 0% — 0/6 phases`
@@ -90,6 +90,10 @@ Human checkpoints (cannot be automated):
 - [Phase ?]: Canonical light-surface hex per role = Stone-Mist-passing value (trivially passes all three light surfaces)
 - [Phase ?]: Gap 2 resolution (Success/Danger on Stone Mist) escalated to D-11 maintainer gate
 - [Phase ?]: Dark shipped generics (#4ade80 #fbbf24 #f87171) documented as non-mineral; Phase 98 replaces with mineral equivalents
+- [Phase 95-03]: Brand-book pressure-test audit complete: 17 KEEP, 8 TIGHTEN, 1 REWORK (§12 color system), 3 ADD, 0 REMOVE across 27 sections
+- [Phase 95-03]: §12 REWORK (primary blocker for Phase 96): replace book-literal hexes with AA-verified values from 95-PALETTE-RECONCILIATION.md
+- [Phase 95-03]: ADD-2 BRD-03 szTheory suite note scoped to Phase 100; content outline provided in 95-BRAND-AUDIT.md
+- [Phase 95-03]: §8 tagline lock target: "Runtime decisions, made clear." — Phase 96 action
 
 ### Deferred Items (v2)
 
@@ -138,3 +142,4 @@ All closed — v1.12 adoption evidence depth complete.
 | Phase 92-ia-home-refinement P01 | 10m | 2 tasks | 1 files |
 | Phase 93-per-screen-polish P01 | 40 | 2 tasks | 2 files |
 | Phase 95 P02 | 20 | 1 tasks | 1 files |
+| Phase 95 P03 | 20 | 1 tasks | 1 files |

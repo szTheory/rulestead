@@ -11,7 +11,7 @@ Requirements for this milestone. Each maps to exactly one roadmap phase.
 
 ### Brand Audit & Strategy (BRD)
 
-- [ ] **BRD-01**: Maintainer has a written pressure-test audit of the recovered brand book (KEEP / TIGHTEN / REWORK / ADD / REMOVE + scorecard) identifying what is strong vs needs work.
+- [x] **BRD-01**: Maintainer has a written pressure-test audit of the recovered brand book (KEEP / TIGHTEN / REWORK / ADD / REMOVE + scorecard) identifying what is strong vs needs work.
 - [x] **BRD-02**: A canonical living `brand-book.md` exists in `brandbook/` (relocated from `prompts/` with a pointer left behind), reconciled to ship-true reality.
 - [ ] **BRD-03**: A short szTheory suite brand-architecture note defines what is shared vs unique across Rulestead and sibling libraries (Parapet, Scoria, Cairnloop).
 
