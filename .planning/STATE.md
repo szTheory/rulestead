@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.13
 milestone_name: Admin UI Dark Mode + Design-System Polish
 status: verifying
-last_updated: "2026-06-04T09:06:38.806Z"
-last_activity: 2026-06-04 — Phase 90 (Tri-State Theme Control + Persistence + FOUC) complete; segmented control + colocated hook, 16/16 Playwright, dark mode now user-controllable + persistent
+last_updated: "2026-06-04T09:22:25.331Z"
+last_activity: 2026-06-04
 progress:
   total_phases: 8
   completed_phases: 4
-  total_plans: 9
-  completed_plans: 9
+  total_plans: 11
+  completed_plans: 10
   percent: 50
 ---
 
@@ -21,7 +21,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-04)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
 
-**Current focus:** Phase 90 — Tri-State Theme Control + Persistence + FOUC
+**Current focus:** Phase 91 — Design-System Consolidation
 
 **Milestone:** v1.13 opened 2026-06-04 — see `.planning/ROADMAP.md` for phase structure
 
@@ -31,13 +31,13 @@ See: `.planning/PROJECT.md` (updated 2026-06-04)
 
 ## Current Position
 
-Phase: 90 (Tri-State Theme Control + Persistence + FOUC) — EXECUTING
+Phase: 91 (Design-System Consolidation) — EXECUTING
 Plan: 1 of 1
 Status: Phase complete — ready for verification
 Last activity: 2026-06-04
 
 ```
-Progress: [██████████] 100%
+Progress: [█████████░] 91%
 ```
 
 ## Phase Dependency Map
@@ -73,6 +73,7 @@ Parallel after 87: 88 ‖ 89 ‖ 90
 - Phase numbering continues at **95** if a new milestone opens.
 - [Phase ?]: 87-01: Theme specs use file:// harness navigation (no Phoenix required). wcagRatio inline TypeScript, no external dep.
 - [Phase ?]: Phase 88: --rs-primary-ring gap token added to all 4 cascade blocks; 18 hardcoded rgba() literals replaced; warning-flash amber border fixed
+- [Phase ?]: Token-contract docs in CSS THEME LAYER comment; guide links to CSS (DRY)
 
 ### Deferred Items (v2)
 
@@ -120,3 +121,4 @@ All closed — v1.12 adoption evidence depth complete.
 | Phase 90 P01 | 15 | 2 tasks | 2 files |
 | Phase 90 P02 | 15 | 3 tasks | 2 files |
 | Phase 90 P03 | 5min | 1 tasks | 1 files |
+| Phase 91 P01 | 2 | 2 tasks | 2 files |
