@@ -118,12 +118,120 @@
   --rs-ease-emphasis: cubic-bezier(0.2, 0, 0, 1.15);
 }
 
-/* ─── THEME LAYER ──────────────────────────────────────────────────────────
+/* ─── THEME LAYER ────────────────────────────────────────────────────────────
    All color, surface, border, text, shadow, and focus tokens are declared
    here — once per theme. Re-theming = redeclaring these tokens on the
    correct scope selector. Theme scope: .rs-shell / [data-rulestead] ONLY.
    NEVER declare theme tokens on :root or <html> (mounted-package discipline).
-─────────────────────────────────────────────────────────────────────────── */
+
+   ── INVARIANT vs VARIANT SPLIT ──────────────────────────────────────────────
+
+   INVARIANT tokens live in :root (above). They are not theme-sensitive and
+   are never re-declared in the blocks below. Categories:
+     Typography  — --rs-font-display/sans/mono; --rs-text-2xs..2xl;
+                   --rs-leading-*; --rs-weight-*; --rs-tracking-*
+     Radius      — --rs-radius-sm/md/lg/xl/full
+     Spacing     — --rs-space-1..10; --rs-section-gap; --rs-page-gap
+     Control     — --rs-control-h/h-sm/h-lg/px; --rs-touch-target-min
+     Focus structural (non-color) — --rs-focus-ring-offset; --rs-disabled-opacity
+     Z-index     — --rs-z-base/raised/dropdown/sticky/overlay/modal/toast
+     Motion      — --rs-motion-fast/base/slow/slower;
+                   --rs-ease-standard/out/in/in-out/emphasis
+
+   VARIANT tokens are declared per-theme in the four blocks below (one value
+   set per block). They must NEVER appear in :root. Categories:
+     Neutral ramp      — --rs-neutral-0/25/50/100/200/300/400/500/600/900
+     Surface/border/text aliases
+                       — --rs-bg; --rs-surface; --rs-surface-muted;
+                         --rs-surface-faint; --rs-border; --rs-border-subtle;
+                         --rs-border-strong; --rs-text; --rs-text-muted;
+                         --rs-text-placeholder
+     Brand             — --rs-primary; --rs-primary-hover; --rs-primary-soft;
+                         --rs-on-primary; --rs-accent; --rs-accent-soft
+     Status success    — --rs-success; --rs-success-hover; --rs-success-soft;
+                         --rs-success-bg-subtle; --rs-success-text;
+                         --rs-success-border
+     Status warning    — --rs-warning; --rs-warning-hover; --rs-warning-soft;
+                         --rs-warning-text; --rs-warning-border
+     Status error      — --rs-error; --rs-error-hover; --rs-critical;
+                         --rs-error-soft; --rs-error-bg-subtle; --rs-error-text;
+                         --rs-error-text-strong; --rs-error-border;
+                         --rs-error-border-strong
+     Shadows           — --rs-shadow-sm; --rs-shadow; --rs-shadow-panel
+     Focus + disabled  — --rs-focus-ring-color; --rs-focus-ring;
+                         --rs-primary-ring; --rs-disabled-bg; --rs-disabled-text
+     Overlay / scrim   — --rs-overlay-veil; --rs-scrim
+
+   ── CASCADE BLOCKS ──────────────────────────────────────────────────────────
+
+   Four blocks constitute the complete theme cascade:
+
+     Block 1: .rs-shell, [data-rulestead]
+              Light default — applies when neither @media dark nor data-theme is
+              active. This is the baseline every browser sees first.
+
+     Block 2: @media (prefers-color-scheme: dark) .rs-shell:not([data-theme])
+              System dark — activates automatically when the OS reports dark mode
+              AND no explicit data-theme pin is present on the scope element.
+
+     Block 3: .rs-shell[data-theme="dark"], [data-rulestead][data-theme="dark"]
+              Explicit dark pin — applies regardless of OS preference. Beats
+              Block 2 in both directions (dark OS and light OS).
+
+     Block 4: .rs-shell[data-theme="light"], [data-rulestead][data-theme="light"]
+              Explicit light pin — re-asserts light-mode values over a dark OS.
+
+   PRECEDENCE: The :not([data-theme]) guard on Block 2 ensures that an explicit
+   pin (Block 3 or 4) ALWAYS wins over the @media rule, in either OS direction.
+   Block 1 and Block 4 carry identical light-mode declarations (SYNCED PAIR).
+   Block 2 and Block 3 carry identical dark-mode declarations (SYNCED PAIR).
+
+   ── SYNCED-PAIR RULE ────────────────────────────────────────────────────────
+
+   Blocks 1 + 4 are a SYNCED-PAIR (light). Blocks 2 + 3 are a SYNCED-PAIR
+   (dark). The --rs- declarations inside each member of a pair must be
+   verbatim-identical at all times.
+
+   Rule: when you change a token value in one block of a pair, you MUST update
+   the partner block to the same value before committing.
+
+   Verification command (run from repo root — must print IDENTICAL):
+
+     python3 - <<'PY'
+     import sys
+     css=open('rulestead_admin/priv/static/css/rulestead_admin.css').read()
+     def decls(sel):
+         i=css.find(sel); j=css.find('{',i); depth=0; k=j
+         while k<len(css):
+             if css[k]=='{': depth+=1
+             elif css[k]=='}':
+                 depth-=1
+                 if depth==0: break
+             k+=1
+         return sorted(l.strip() for l in css[j+1:k].splitlines() if l.strip().startswith('--rs-'))
+     a=decls('@media (prefers-color-scheme: dark)')
+     b=decls('.rs-shell[data-theme="dark"]')
+     if a and a==b: print(f'SYNCED PAIR IDENTICAL ({len(a)} tokens)')
+     else: print('SYNCED PAIR MISMATCH'); sys.exit(1)
+     PY
+
+   ── HOW TO ADD A TOKEN ──────────────────────────────────────────────────────
+
+   a. Is the value the same in both light and dark themes?
+      → INVARIANT: add it to :root only (above the THEME LAYER). Done.
+
+   b. Is the value theme-sensitive?
+      → VARIANT: add the light value to Block 1 AND Block 4 (identical value;
+        update BOTH). Add the dark value to Block 2 AND Block 3 (identical
+        value; update BOTH).
+
+   c. Run the SYNCED-PAIR verification command above and confirm IDENTICAL
+      before committing.
+
+   d. Add the new token to the design-system fixture (priv/static/design-system.html)
+      and re-run design-system.spec.ts to keep the regression gate green.
+
+─────────────────────────────────────────────────────────────────────────────── */
 
 /* ── 1. Light default ─────────────────────────────────────────────────── */
 .rs-shell,
