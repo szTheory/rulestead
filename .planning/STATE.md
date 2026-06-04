@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.13
 milestone_name: Admin UI Dark Mode + Design-System Polish
-status: in_progress
-last_updated: "2026-06-04"
+status: executing
+last_updated: "2026-06-04T07:35:56.596Z"
 last_activity: 2026-06-04
 progress:
   total_phases: 8
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 3
+  completed_plans: 1
   percent: 0
 ---
 
@@ -21,7 +21,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-04)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
 
-**Current focus:** v1.13 — Admin UI: First-Class Dark Mode + Design-System Polish (Phases 87–94)
+**Current focus:** Phase 87 — Token Theme Foundation
 
 **Milestone:** v1.13 opened 2026-06-04 — see `.planning/ROADMAP.md` for phase structure
 
@@ -31,13 +31,13 @@ See: `.planning/PROJECT.md` (updated 2026-06-04)
 
 ## Current Position
 
-Phase: **87 — Token Theme Foundation** (not started)
-Plan: —
-Status: Not started
-Last activity: 2026-06-04 — Milestone v1.13 roadmap created; Phase 87 is next
+Phase: 87 (Token Theme Foundation) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
+Last activity: 2026-06-04
 
 ```
-Progress: [░░░░░░░░░░░░░░░░░░░░░░░░] 0 / 8 phases (0%)
+Progress: [███░░░░░░░] 33%
 ```
 
 ## Phase Dependency Map
@@ -71,6 +71,7 @@ Parallel after 87: 88 ‖ 89 ‖ 90
 - **v1.13 token scope:** `.rs-shell` / `[data-rulestead]` only — never `:root` / `<html>`.
 - **v1.13 merge posture:** land on branch; merge to main (auto-publishes minor bump) only when both-theme/contrast gate is green across all phases.
 - Phase numbering continues at **95** if a new milestone opens.
+- [Phase ?]: 87-01: Theme specs use file:// harness navigation (no Phoenix required). wcagRatio inline TypeScript, no external dep.
 
 ### Deferred Items (v2)
 
@@ -106,3 +107,9 @@ All closed — v1.12 adoption evidence depth complete.
 - **Merge gate:** both-theme screenshot + axe contrast pass must be clean before each phase closes.
 - **Default after context clear:** read `.planning/threads/2026-05-28-post-0.1.2-maintenance-handoff.md`.
 - **After each Hex cut:** `bash scripts/ci/verify_published_release.sh <version>`.
+
+## Performance Metrics
+
+| Phase | Plan | Duration | Notes |
+|-------|------|----------|-------|
+| Phase 87 P01 | 15min | 2 tasks | 4 files |

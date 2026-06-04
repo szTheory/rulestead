@@ -9,12 +9,12 @@ This milestone deepens the **mounted `rulestead_admin` companion UI** only. No n
 
 ### Theming (`THM`)
 
-- [ ] **THM-01**: An operator viewing the mounted admin sees a dark theme automatically when their OS reports `prefers-color-scheme: dark`, with no explicit action.
+- [x] **THM-01**: An operator viewing the mounted admin sees a dark theme automatically when their OS reports `prefers-color-scheme: dark`, with no explicit action.
 - [ ] **THM-02**: An operator can choose System / Light / Dark from a control in the admin shell, and the choice persists across reloads on that device.
-- [ ] **THM-03**: An explicit Light or Dark choice overrides the OS preference; "System" tracks live OS changes while selected.
+- [x] **THM-03**: An explicit Light or Dark choice overrides the OS preference; "System" tracks live OS changes while selected.
 - [ ] **THM-04**: First paint shows the correct theme with no visible flash for System users; a pinned-theme correction is an instant snap, never an animated wipe.
-- [ ] **THM-05**: The theme is scoped to the mounted admin (`.rs-shell` / `[data-rulestead]`) and never alters the host application's own styling, `<head>`, or cookies.
-- [ ] **THM-06**: The dark theme is on-brand and calm — mineral-dark surfaces (not pure black), desaturated brand blue/ember, and elevation expressed via lightened surfaces plus hairline borders rather than dark-on-dark shadows.
+- [x] **THM-05**: The theme is scoped to the mounted admin (`.rs-shell` / `[data-rulestead]`) and never alters the host application's own styling, `<head>`, or cookies.
+- [x] **THM-06**: The dark theme is on-brand and calm — mineral-dark surfaces (not pure black), desaturated brand blue/ember, and elevation expressed via lightened surfaces plus hairline borders rather than dark-on-dark shadows.
 
 ### Accessibility & Interaction States (`A11Y`)
 
@@ -84,10 +84,10 @@ Deferred beyond v1.13. Tracked but not in this roadmap.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| THM-01 | Phase 87 | Pending |
-| THM-03 | Phase 87 | Pending |
-| THM-05 | Phase 87 | Pending |
-| THM-06 | Phase 87 | Pending |
+| THM-01 | Phase 87 | Complete |
+| THM-03 | Phase 87 | Complete |
+| THM-05 | Phase 87 | Complete |
+| THM-06 | Phase 87 | Complete |
 | DSY-01 | Phase 88 | Pending |
 | A11Y-02 | Phase 89 | Pending |
 | A11Y-03 | Phase 89 | Pending |
