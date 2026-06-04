@@ -2072,9 +2072,14 @@ a.rs-shell__env-link:active {
    The .ThemeControl hook removes data-theme-pending synchronously in mounted()
    after applying data-theme. Once removed, transitions work normally.
    Phase 94 micro-animations are unaffected — this attribute is gone before any
-   animation CSS is applied. ──────────────────────────────────────────────── */
+   animation CSS is applied.
+   data-theme-switching covers user-toggle suppression (Phase 94): set before
+   every applyTheme() call and removed on the next requestAnimationFrame so the
+   token swap is instant with no animated color wipe. ──────────────────────── */
 [data-theme-pending],
-[data-theme-pending] * {
+[data-theme-pending] *,
+[data-theme-switching],
+[data-theme-switching] * {
   transition: none !important;
 }
 
@@ -4178,11 +4183,11 @@ a.rs-env-state:active {
 
 @media (prefers-reduced-motion: no-preference) {
   .rs-card--flag {
-    animation: rs-slide-in var(--rs-motion-base) var(--rs-ease-standard) both;
+    animation: rs-slide-in var(--rs-motion-base) var(--rs-ease-out) both;
   }
 
   .rs-record-row {
-    animation: rs-slide-in var(--rs-motion-base) var(--rs-ease-standard) both;
+    animation: rs-slide-in var(--rs-motion-base) var(--rs-ease-out) both;
   }
 
   /* Content that resolves from an async load settles in rather than popping —
