@@ -108,6 +108,60 @@
           </div>
         </section>
 
+        <!-- Focus Ring Targets — interactive surfaces for ring screenshot verification -->
+        <section style="margin-bottom: 1.5rem;">
+          <h2 style="font-size: var(--rs-text-sm); font-weight: var(--rs-weight-semibold); color: var(--rs-text-muted); text-transform: uppercase; letter-spacing: var(--rs-tracking-wide); margin: 0 0 0.5rem;">Focus Ring Targets</h2>
+
+          <!-- GROUP 1: Text input + select on page-bg surface -->
+          <div style="margin-bottom: 1rem;">
+            <p style="font-size: var(--rs-text-sm); color: var(--rs-text-muted); margin: 0 0 0.5rem;">Text input + select (page-bg surface)</p>
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: flex-end;">
+              <div style="display: flex; flex-direction: column; gap: 0.3rem;">
+                <label for="harness-text" style="font-size: 0.86rem; font-weight: var(--rs-weight-semibold); color: var(--rs-text);">Text input</label>
+                <input id="harness-text" type="text" placeholder="Type here…" style="width: 16rem;">
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 0.3rem;">
+                <label for="harness-select" style="font-size: 0.86rem; font-weight: var(--rs-weight-semibold); color: var(--rs-text);">Select</label>
+                <select id="harness-select" style="width: 16rem;">
+                  <option>Option A</option>
+                  <option>Option B</option>
+                  <option>Option C</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- GROUP 2: Buttons on page-bg surface -->
+          <div style="margin-bottom: 1rem;">
+            <p style="font-size: var(--rs-text-sm); color: var(--rs-text-muted); margin: 0 0 0.5rem;">Buttons on page-bg surface</p>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              <button type="button" class="rs-button">Secondary</button>
+              <button type="button" class="rs-button rs-button--primary">Primary</button>
+              <button type="button" class="rs-button rs-button--danger">Danger</button>
+            </div>
+          </div>
+
+          <!-- GROUP 3: Primary button inside a card surface -->
+          <div style="margin-bottom: 1rem;">
+            <p style="font-size: var(--rs-text-sm); color: var(--rs-text-muted); margin: 0 0 0.5rem;">Primary button on card surface</p>
+            <div class="rs-card" style="display: flex; align-items: center; gap: 1rem;">
+              <button type="button" class="rs-button rs-button--primary">Primary on card</button>
+              <span style="font-size: var(--rs-text-sm); color: var(--rs-text-muted);">card surface (--rs-surface)</span>
+            </div>
+          </div>
+
+          <!-- GROUP 4: Tab strip [role=tab] — matching .rs-flag-subnav__tab pattern -->
+          <div style="margin-bottom: 0;">
+            <p style="font-size: var(--rs-text-sm); color: var(--rs-text-muted); margin: 0 0 0.5rem;">Tab strip [role=tab]</p>
+            <div role="tablist" aria-label="Demo tabs" style="display: flex; gap: 0; border-bottom: 1px solid var(--rs-border);">
+              <button type="button" role="tab" tabindex="0" class="rs-flag-subnav__tab" data-current="true">Overview</button>
+              <button type="button" role="tab" tabindex="-1" class="rs-flag-subnav__tab">Targeting</button>
+              <button type="button" role="tab" tabindex="-1" class="rs-flag-subnav__tab">History</button>
+            </div>
+          </div>
+
+        </section>
+
       </div>
     </main>
   </div>
