@@ -205,7 +205,248 @@
   --rs-scrim:        rgba(15, 23, 35, 0.45);
 }
 
-/* ── 2–4. System dark, explicit dark, explicit light ─ added by Plan 03 ── */
+/* ── 2. System dark (only when no explicit choice is pinned) ─────────── */
+@media (prefers-color-scheme: dark) {
+  .rs-shell:not([data-theme]),
+  [data-rulestead]:not([data-theme]) {
+    color-scheme: dark;
+    /* !! SYNCED PAIR: keep this block identical to [data-theme="dark"] below !! */
+
+    /* Neutral ramp — mineral dark. Direction FLIPS: 0 = darkest surface, 900 = lightest text. */
+    --rs-neutral-0:   #10161f;
+    --rs-neutral-25:  #141c27;
+    --rs-neutral-50:  #19222e;
+    --rs-neutral-100: #1f2a38;
+    --rs-neutral-200: #253243;
+    --rs-neutral-300: #2e3d52;
+    --rs-neutral-400: #3d5168;
+    --rs-neutral-500: #7a8fa3;
+    --rs-neutral-600: #a8b9ca;
+    --rs-neutral-900: #e8edf3;
+
+    /* Surface / border / text aliases — elevation = lighter surface in dark */
+    --rs-bg:               var(--rs-neutral-50);
+    --rs-surface:          var(--rs-neutral-25);
+    --rs-surface-muted:    var(--rs-neutral-100);
+    --rs-surface-faint:    var(--rs-neutral-0);
+    --rs-border:           var(--rs-neutral-300);
+    --rs-border-subtle:    var(--rs-neutral-200);
+    --rs-border-strong:    var(--rs-neutral-400);
+    --rs-text:             var(--rs-neutral-900);
+    --rs-text-muted:       var(--rs-neutral-600);
+    --rs-text-placeholder: var(--rs-neutral-500);
+
+    /* Brand */
+    --rs-primary:       #2563eb;
+    --rs-primary-hover: #5a96f5;
+    --rs-primary-soft:  rgba(37, 99, 235, 0.12);
+    --rs-on-primary:    #ffffff;
+    --rs-accent:        #e8834a;
+    --rs-accent-soft:   rgba(232, 131, 74, 0.12);
+
+    /* Status — success */
+    --rs-success:           #4ade80;
+    --rs-success-hover:     #86efac;
+    --rs-success-soft:      rgba(74, 222, 128, 0.12);
+    --rs-success-bg-subtle: rgba(74, 222, 128, 0.06);
+    --rs-success-text:      #4ade80;
+    --rs-success-border:    #166534;
+
+    /* Status — warning */
+    --rs-warning:        #fbbf24;
+    --rs-warning-hover:  #fcd34d;
+    --rs-warning-soft:   rgba(251, 191, 36, 0.12);
+    --rs-warning-text:   #fbbf24;
+    --rs-warning-border: #78350f;
+
+    /* Status — error / critical */
+    --rs-error:               #f87171;
+    --rs-error-hover:         #fca5a5;
+    --rs-critical:            #f87171;
+    --rs-error-soft:          rgba(248, 113, 113, 0.12);
+    --rs-error-bg-subtle:     rgba(248, 113, 113, 0.06);
+    --rs-error-text:          #f87171;
+    --rs-error-text-strong:   #fca5a5;
+    --rs-error-border:        #7f1d1d;
+    --rs-error-border-strong: #991b1b;
+
+    /* Shadows — near-black keys + inset top-edge hairline for dark elevation */
+    --rs-shadow-sm:    0 1px 2px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    --rs-shadow:       0 1px 3px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    --rs-shadow-panel: 0 1px 3px rgba(0, 0, 0, 0.45), 0 12px 32px rgba(0, 0, 0, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+
+    /* Focus + disabled */
+    --rs-focus-ring-color: rgba(96, 165, 250, 0.75);
+    --rs-focus-ring:       0 0 0 3px var(--rs-focus-ring-color);
+    --rs-disabled-bg:      #253243;
+    --rs-disabled-text:    #6b84a0;
+
+    /* Overlay / scrim */
+    --rs-overlay-veil: rgba(20, 28, 39, 0.85);
+    --rs-scrim:        rgba(0, 0, 0, 0.65);
+  }
+}
+
+/* ── 3. Explicit dark (pinned; beats OS in both directions) ───────────── */
+.rs-shell[data-theme="dark"],
+[data-rulestead][data-theme="dark"] {
+  color-scheme: dark;
+  /* !! SYNCED PAIR: keep this block identical to @media dark above !! */
+
+  /* Neutral ramp — mineral dark. Direction FLIPS: 0 = darkest surface, 900 = lightest text. */
+  --rs-neutral-0:   #10161f;
+  --rs-neutral-25:  #141c27;
+  --rs-neutral-50:  #19222e;
+  --rs-neutral-100: #1f2a38;
+  --rs-neutral-200: #253243;
+  --rs-neutral-300: #2e3d52;
+  --rs-neutral-400: #3d5168;
+  --rs-neutral-500: #7a8fa3;
+  --rs-neutral-600: #a8b9ca;
+  --rs-neutral-900: #e8edf3;
+
+  /* Surface / border / text aliases — elevation = lighter surface in dark */
+  --rs-bg:               var(--rs-neutral-50);
+  --rs-surface:          var(--rs-neutral-25);
+  --rs-surface-muted:    var(--rs-neutral-100);
+  --rs-surface-faint:    var(--rs-neutral-0);
+  --rs-border:           var(--rs-neutral-300);
+  --rs-border-subtle:    var(--rs-neutral-200);
+  --rs-border-strong:    var(--rs-neutral-400);
+  --rs-text:             var(--rs-neutral-900);
+  --rs-text-muted:       var(--rs-neutral-600);
+  --rs-text-placeholder: var(--rs-neutral-500);
+
+  /* Brand */
+  --rs-primary:       #2563eb;
+  --rs-primary-hover: #5a96f5;
+  --rs-primary-soft:  rgba(37, 99, 235, 0.12);
+  --rs-on-primary:    #ffffff;
+  --rs-accent:        #e8834a;
+  --rs-accent-soft:   rgba(232, 131, 74, 0.12);
+
+  /* Status — success */
+  --rs-success:           #4ade80;
+  --rs-success-hover:     #86efac;
+  --rs-success-soft:      rgba(74, 222, 128, 0.12);
+  --rs-success-bg-subtle: rgba(74, 222, 128, 0.06);
+  --rs-success-text:      #4ade80;
+  --rs-success-border:    #166534;
+
+  /* Status — warning */
+  --rs-warning:        #fbbf24;
+  --rs-warning-hover:  #fcd34d;
+  --rs-warning-soft:   rgba(251, 191, 36, 0.12);
+  --rs-warning-text:   #fbbf24;
+  --rs-warning-border: #78350f;
+
+  /* Status — error / critical */
+  --rs-error:               #f87171;
+  --rs-error-hover:         #fca5a5;
+  --rs-critical:            #f87171;
+  --rs-error-soft:          rgba(248, 113, 113, 0.12);
+  --rs-error-bg-subtle:     rgba(248, 113, 113, 0.06);
+  --rs-error-text:          #f87171;
+  --rs-error-text-strong:   #fca5a5;
+  --rs-error-border:        #7f1d1d;
+  --rs-error-border-strong: #991b1b;
+
+  /* Shadows — near-black keys + inset top-edge hairline for dark elevation */
+  --rs-shadow-sm:    0 1px 2px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --rs-shadow:       0 1px 3px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --rs-shadow-panel: 0 1px 3px rgba(0, 0, 0, 0.45), 0 12px 32px rgba(0, 0, 0, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+
+  /* Focus + disabled */
+  --rs-focus-ring-color: rgba(96, 165, 250, 0.75);
+  --rs-focus-ring:       0 0 0 3px var(--rs-focus-ring-color);
+  --rs-disabled-bg:      #253243;
+  --rs-disabled-text:    #6b84a0;
+
+  /* Overlay / scrim */
+  --rs-overlay-veil: rgba(20, 28, 39, 0.85);
+  --rs-scrim:        rgba(0, 0, 0, 0.65);
+}
+
+/* ── 4. Explicit light (re-asserts light over dark OS) ───────────────── */
+.rs-shell[data-theme="light"],
+[data-rulestead][data-theme="light"] {
+  color-scheme: light;
+  /* !! SYNCED PAIR: keep this block identical to .rs-shell default above !! */
+
+  /* Neutral ramp — mineral grays. Foundation for surfaces, borders, text. */
+  --rs-neutral-0: #ffffff;
+  --rs-neutral-25: #f8fafc;
+  --rs-neutral-50: #f4f6f8;
+  --rs-neutral-100: #eef1f5;
+  --rs-neutral-200: #e7ebf0;
+  --rs-neutral-300: #d8dee6;
+  --rs-neutral-400: #b8c2cf;
+  --rs-neutral-500: #99a3af;
+  --rs-neutral-600: #5c6b7a;
+  --rs-neutral-700: #263241;
+  --rs-neutral-900: #1a2332;
+
+  /* Surface / border / text aliases */
+  --rs-bg:               var(--rs-neutral-50);
+  --rs-surface:          var(--rs-neutral-0);
+  --rs-surface-muted:    var(--rs-neutral-100);
+  --rs-surface-faint:    var(--rs-neutral-25);
+  --rs-border:           var(--rs-neutral-300);
+  --rs-border-subtle:    var(--rs-neutral-200);
+  --rs-border-strong:    var(--rs-neutral-400);
+  --rs-text:             var(--rs-neutral-900);
+  --rs-text-muted:       var(--rs-neutral-600);
+  --rs-text-placeholder: var(--rs-neutral-500);
+
+  /* Brand */
+  --rs-primary:       #2563eb;
+  --rs-primary-hover: #1d4ed8;
+  --rs-primary-soft:  #dbeafe;
+  --rs-on-primary:    #ffffff;
+  --rs-accent:        #c45c26;
+  --rs-accent-soft:   #fde8dc;
+
+  /* Status — success */
+  --rs-success:           #15803d;
+  --rs-success-hover:     #166534;
+  --rs-success-soft:      #dcfce7;
+  --rs-success-bg-subtle: #f7fff9;
+  --rs-success-text:      #047857;
+  --rs-success-border:    #86efac;
+
+  /* Status — warning */
+  --rs-warning:        #b45309;
+  --rs-warning-hover:  #92400e;
+  --rs-warning-soft:   #fef3c7;
+  --rs-warning-text:   #a16207;
+  --rs-warning-border: #fcd34d;
+
+  /* Status — error / critical */
+  --rs-error:               #b91c1c;
+  --rs-error-hover:         #991b1b;
+  --rs-critical:            #b91c1c;
+  --rs-error-soft:          #fee2e2;
+  --rs-error-bg-subtle:     #fff7f7;
+  --rs-error-text:          #be123c;
+  --rs-error-text-strong:   #7f1d1d;
+  --rs-error-border:        #fca5a5;
+  --rs-error-border-strong: #fecaca;
+
+  /* Shadows */
+  --rs-shadow-sm:    0 1px 2px rgba(26, 35, 50, 0.05);
+  --rs-shadow:       0 1px 2px rgba(26, 35, 50, 0.06), 0 8px 24px rgba(26, 35, 50, 0.06);
+  --rs-shadow-panel: 0 1px 2px rgba(26, 35, 50, 0.04), 0 12px 32px rgba(26, 35, 50, 0.07);
+
+  /* Focus + disabled */
+  --rs-focus-ring-color: rgba(37, 99, 235, 0.55);
+  --rs-focus-ring:       0 0 0 3px var(--rs-focus-ring-color);
+  --rs-disabled-bg:      var(--rs-neutral-100);
+  --rs-disabled-text:    var(--rs-neutral-500);
+
+  /* Overlay / scrim (consumed by Phases 88 + 89) */
+  --rs-overlay-veil: rgba(238, 241, 245, 0.9);
+  --rs-scrim:        rgba(15, 23, 35, 0.45);
+}
 
 /* ─── END THEME LAYER ─────────────────────────────────────────────────── */
 
