@@ -28,7 +28,7 @@ Phases 82–86 complete v1.12 adoption evidence depth. This milestone (v1.13) ru
 - [x] **Phase 87: Token Theme Foundation** — THM-01, THM-03, THM-05, THM-06
 - [x] **Phase 88: Hardcoded-Color Remediation** — DSY-01
 - [x] **Phase 89: Focus + Interaction-State Unification** — A11Y-02, A11Y-03
-- [ ] **Phase 90: Tri-State Theme Control + Persistence + FOUC** — THM-02, THM-04
+- [x] **Phase 90: Tri-State Theme Control + Persistence + FOUC** — THM-02, THM-04
 - [ ] **Phase 91: Design-System Consolidation** — DSY-02
 - [ ] **Phase 92: IA / Home Refinement** — IA-01, IA-02
 - [ ] **Phase 93: Per-Screen Polish Across All Admin Screens** — A11Y-01, SCRN-01

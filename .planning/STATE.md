@@ -4,7 +4,7 @@ milestone: v1.13
 milestone_name: Admin UI Dark Mode + Design-System Polish
 status: verifying
 last_updated: "2026-06-04T09:06:38.806Z"
-last_activity: 2026-06-04
+last_activity: 2026-06-04 — Phase 90 (Tri-State Theme Control + Persistence + FOUC) complete; segmented control + colocated hook, 16/16 Playwright, dark mode now user-controllable + persistent
 progress:
   total_phases: 8
   completed_phases: 4
