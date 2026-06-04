@@ -109,7 +109,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 - [x] 91-01-PLAN.md — Token-contract CSS header comment + guide section + one-off literal-scan verification
-- [ ] 91-02-PLAN.md — design-system.html fixture + assertAABatch extension + design-system.spec.ts WCAG AA gate
+- [x] 91-02-PLAN.md — design-system.html fixture + assertAABatch extension + design-system.spec.ts WCAG AA gate
 **UI hint**: yes
 
 ### Phase 92: IA / Home Refinement
@@ -155,7 +155,7 @@ Plans:
 | 88. Hardcoded-Color Remediation | 1/1 | Complete   | 2026-06-04 |
 | 89. Focus + Interaction-State Unification | 2/2 | Complete   | 2026-06-04 |
 | 90. Tri-State Theme Control + Persistence + FOUC | 3/3 | Complete   | 2026-06-04 |
-| 91. Design-System Consolidation | 1/2 | In Progress|  |
+| 91. Design-System Consolidation | 2/2 | Complete   | 2026-06-04 |
 | 92. IA / Home Refinement | 0/? | Not started | - |
 | 93. Per-Screen Polish Across All Admin Screens | 0/? | Not started | - |
 | 94. Restrained Micro-Animation | 0/? | Not started | - |
