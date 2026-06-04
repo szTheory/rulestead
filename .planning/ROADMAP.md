@@ -136,7 +136,7 @@ Plans:
   4. Empty states and hero-state illustrations/copy remain readable and on-brand in both themes with no hardcoded light-mode-only fills.
 **Plans**: 1 plan
 Plans:
-- [ ] 93-01-PLAN.md — Accent-light AA fix + broadened both-theme screen sweep
+- [x] 93-01-PLAN.md — Accent-light AA fix + broadened both-theme screen sweep
 **UI hint**: yes
 
 ### Phase 94: Restrained Micro-Animation
@@ -161,7 +161,7 @@ Plans:
 | 90. Tri-State Theme Control + Persistence + FOUC | 3/3 | Complete   | 2026-06-04 |
 | 91. Design-System Consolidation | 2/2 | Complete   | 2026-06-04 |
 | 92. IA / Home Refinement | 1/1 | Complete   | 2026-06-04 |
-| 93. Per-Screen Polish Across All Admin Screens | 0/1 | In progress | - |
+| 93. Per-Screen Polish Across All Admin Screens | 1/1 | Complete   | 2026-06-04 |
 | 94. Restrained Micro-Animation | 0/? | Not started | - |
 
 <details>

@@ -18,7 +18,7 @@ This milestone deepens the **mounted `rulestead_admin` companion UI** only. No n
 
 ### Accessibility & Interaction States (`A11Y`)
 
-- [ ] **A11Y-01**: All body text, status pills, and UI-component borders meet WCAG AA contrast (text 4.5:1, large text / UI components 3:1) in both light and dark themes, verified against the actual surface they render on.
+- [x] **A11Y-01**: All body text, status pills, and UI-component borders meet WCAG AA contrast (text 4.5:1, large text / UI components 3:1) in both light and dark themes, verified against the actual surface they render on.
 - [x] **A11Y-02**: Every interactive element shows a single, consistent `:focus-visible` indicator (≥3:1, ≥2px perimeter) that stays legible on light surfaces, dark surfaces, and colored fills.
 - [x] **A11Y-03**: Hover, active, and disabled states stay legible and AA-compliant in both themes — no unreadable white-on-light or crushed-on-dark states.
 
@@ -34,7 +34,7 @@ This milestone deepens the **mounted `rulestead_admin` companion UI** only. No n
 
 ### Per-Screen Polish (`SCRN`)
 
-- [ ] **SCRN-01**: Every mounted admin screen (~31) renders correctly and on-brand in both themes — elevation reads, status pills stay legible, empty/hero states are correct — verified by both-theme screenshot plus a contrast check.
+- [x] **SCRN-01**: Every mounted admin screen (~31) renders correctly and on-brand in both themes — elevation reads, status pills stay legible, empty/hero states are correct — verified by both-theme screenshot plus a contrast check.
 
 ### Motion (`MOT`)
 
@@ -96,8 +96,8 @@ Deferred beyond v1.13. Tracked but not in this roadmap.
 | DSY-02 | Phase 91 | Complete |
 | IA-01 | Phase 92 | Complete |
 | IA-02 | Phase 92 | Complete |
-| A11Y-01 | Phase 93 | Pending |
-| SCRN-01 | Phase 93 | Pending |
+| A11Y-01 | Phase 93 | Complete |
+| SCRN-01 | Phase 93 | Complete |
 | MOT-01 | Phase 94 | Pending |
 | MOT-02 | Phase 94 | Pending |
 
