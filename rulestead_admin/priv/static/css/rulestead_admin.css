@@ -1537,6 +1537,22 @@ a.rs-shell__env-link:active {
   font-weight: var(--rs-weight-semibold);
 }
 
+/* Overview anchor — visually distinct from task-rhythm group links */
+.rs-shell__rail-link--overview {
+  font-weight: var(--rs-weight-semibold);
+  margin-bottom: var(--rs-space-2);
+  padding-bottom: var(--rs-space-3);
+  border-bottom: 1px solid var(--rs-border-subtle);
+}
+
+@media (max-width: 47.99rem) {
+  .rs-shell__rail-link--overview {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0.3rem;
+  }
+}
+
 .rs-shell__main {
   min-width: 0;
 }
@@ -3148,7 +3164,7 @@ a.rs-env-state:active {
   padding: var(--rs-space-4);
   border: 1px dashed var(--rs-border);
   border-radius: var(--rs-radius-md);
-  background: var(--rs-surface-faint);
+  background: var(--rs-surface-muted);
   color: var(--rs-text-muted);
 }
 
