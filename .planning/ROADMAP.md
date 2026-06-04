@@ -29,7 +29,7 @@ Phases 82–86 complete v1.12 adoption evidence depth. This milestone (v1.13) ru
 - [x] **Phase 88: Hardcoded-Color Remediation** — DSY-01
 - [x] **Phase 89: Focus + Interaction-State Unification** — A11Y-02, A11Y-03
 - [x] **Phase 90: Tri-State Theme Control + Persistence + FOUC** — THM-02, THM-04
-- [ ] **Phase 91: Design-System Consolidation** — DSY-02
+- [x] **Phase 91: Design-System Consolidation** — DSY-02
 - [ ] **Phase 92: IA / Home Refinement** — IA-01, IA-02
 - [ ] **Phase 93: Per-Screen Polish Across All Admin Screens** — A11Y-01, SCRN-01
 - [ ] **Phase 94: Restrained Micro-Animation** — MOT-01, MOT-02

@@ -4,7 +4,7 @@ milestone: v1.13
 milestone_name: Admin UI Dark Mode + Design-System Polish
 status: verifying
 last_updated: "2026-06-04T09:32:30.958Z"
-last_activity: 2026-06-04
+last_activity: 2026-06-04 — Phase 91 (Design-System Consolidation) complete; token-contract docs + 26-assertion WCAG-AA contrast gate (regression gate for 92-94), 28/28 tests
 progress:
   total_phases: 8
   completed_phases: 5
