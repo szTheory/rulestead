@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.14
 milestone_name: Brand System Realization
 status: executing
-last_updated: "2026-06-04T18:40:28.922Z"
+last_updated: "2026-06-04T18:45:53.537Z"
 last_activity: 2026-06-04
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 4
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -32,9 +32,9 @@ See: `.planning/PROJECT.md` (updated 2026-06-04)
 ## Current Position
 
 Phase: 95 (brand-audit-palette-reconciliation) — EXECUTING
-Plan: 2 of 4
-Status: Executing Phase 95
-Last activity: 2026-06-04 — 95-01 complete: check_contrast.py WCAG+OKLCH script (18/18 checks pass)
+Plan: 3 of 4
+Status: Ready to execute
+Last activity: 2026-06-04
 
 Progress bar: `[ ░░░░░░░░░░ ] 0% — 0/6 phases`
 
@@ -87,6 +87,9 @@ Human checkpoints (cannot be automated):
 - [Phase ?]: Use semibold + hairline --rs-border-subtle separator for overview rail link; suppress on mobile
 - [Phase ?]: Swap .rs-attention-empty background to --rs-surface-muted for calm raised card in dark mode
 - [Phase ?]: Darkened --rs-accent from #c45c26 to #9a3f12 in light Blocks 1+4; normal AA gate restored; dark accent unchanged
+- [Phase ?]: Canonical light-surface hex per role = Stone-Mist-passing value (trivially passes all three light surfaces)
+- [Phase ?]: Gap 2 resolution (Success/Danger on Stone Mist) escalated to D-11 maintainer gate
+- [Phase ?]: Dark shipped generics (#4ade80 #fbbf24 #f87171) documented as non-mineral; Phase 98 replaces with mineral equivalents
 
 ### Deferred Items (v2)
 
@@ -134,3 +137,4 @@ All closed — v1.12 adoption evidence depth complete.
 | Phase 91 P01 | 2 | 2 tasks | 2 files |
 | Phase 92-ia-home-refinement P01 | 10m | 2 tasks | 1 files |
 | Phase 93-per-screen-polish P01 | 40 | 2 tasks | 2 files |
+| Phase 95 P02 | 20 | 1 tasks | 1 files |

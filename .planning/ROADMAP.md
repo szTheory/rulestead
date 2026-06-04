@@ -53,7 +53,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 95-02-PLAN.md — 95-PALETTE-RECONCILIATION.md (full reconciliation table + dark ramp + policies)
+- [x] 95-02-PLAN.md — 95-PALETTE-RECONCILIATION.md (full reconciliation table + dark ramp + policies)
 - [ ] 95-03-PLAN.md — 95-BRAND-AUDIT.md (27-section pressure-test scorecard)
 
 **Wave 3** *(blocked on Wave 2 completion)*
@@ -78,7 +78,7 @@ Plans:
 **Plans**: 4 plans
 Plans:
 
-- [ ] 95-01-PLAN.md — Wave 0: scripts/check_contrast.py (WCAG + OKLCH verification script)
+- [x] 95-01-PLAN.md — Wave 0: scripts/check_contrast.py (WCAG + OKLCH verification script)
 - [ ] 95-02-PLAN.md — 95-PALETTE-RECONCILIATION.md (full reconciliation table + dark ramp + policies)
 - [ ] 95-03-PLAN.md — 95-BRAND-AUDIT.md (27-section pressure-test scorecard)
 - [ ] 95-04-PLAN.md — D-11 maintainer sign-off checkpoint (phase-close gate)
@@ -176,7 +176,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 95. Brand Audit + Palette Reconciliation | 1/4 | In Progress|  |
+| 95. Brand Audit + Palette Reconciliation | 2/4 | In Progress|  |
 | 96. Design Tokens (brandbook/ scaffold) | 0/0 | Not started | - |
 | 97. Logo & Mark SVG System | 0/0 | Not started | - |
 | 98. Admin Re-skin (CSS Cascade) | 0/0 | Not started | - |
