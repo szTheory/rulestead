@@ -624,7 +624,15 @@ If this table is empty: All claims in this research were verified or cited. The 
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+> All three resolved by the Phase 95 plan's design choices; the substantive
+> brand-acceptance call (Q1) is escalated to the D-11 maintainer checkpoint (Plan 95-04).
+> Q1: RESOLVED — default to including AA-darkened variants (`#2d7753`, `#b04848`) in the
+> reconciliation table; D-11 gate lets the maintainer choose hex-adjustment vs. usage-policy.
+> Q2: RESOLVED — single canonical Stone-Mist-passing hex per role (passes all three light
+> surfaces); per-surface ratios still documented for transparency.
+> Q3: RESOLVED — commit `scripts/check_contrast.py` standalone (mirrors `check_synced_pair.py`).
 
 1. **Should Success/Danger on Stone Mist be remediated by hex adjustment or usage policy?**
    - What we know: Both fail AA on Stone Mist (4.20:1 and 4.41:1). Both pass on White and Rain Tint. Darkened variants (`#2d7753`, `#b04848`) pass on Stone Mist.
