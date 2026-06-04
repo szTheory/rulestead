@@ -106,7 +106,10 @@ Plans:
   1. The token/contrast reference fixture page renders every token pair, every `.rs-badge[data-tone]`, focus rings, and hover/disabled states in both themes — a human can visually audit the full palette in one place.
   2. An automated WCAG-ratio assertion (axe-core or equivalent script over computed token values) passes with zero contrast violations on the fixture in both light and dark themes.
   3. The CSS file header and a companion guide document which tokens are theme-invariant (`:root`) and which are theme-variant (re-declared per theme scope), with clear guidance for future additions.
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 91-01-PLAN.md — Token-contract CSS header comment + guide section + one-off literal-scan verification
+- [ ] 91-02-PLAN.md — design-system.html fixture + assertAABatch extension + design-system.spec.ts WCAG AA gate
 **UI hint**: yes
 
 ### Phase 92: IA / Home Refinement
@@ -152,7 +155,7 @@ Plans:
 | 88. Hardcoded-Color Remediation | 1/1 | Complete   | 2026-06-04 |
 | 89. Focus + Interaction-State Unification | 2/2 | Complete   | 2026-06-04 |
 | 90. Tri-State Theme Control + Persistence + FOUC | 3/3 | Complete   | 2026-06-04 |
-| 91. Design-System Consolidation | 0/? | Not started | - |
+| 91. Design-System Consolidation | 0/2 | Not started | - |
 | 92. IA / Home Refinement | 0/? | Not started | - |
 | 93. Per-Screen Polish Across All Admin Screens | 0/? | Not started | - |
 | 94. Restrained Micro-Animation | 0/? | Not started | - |
