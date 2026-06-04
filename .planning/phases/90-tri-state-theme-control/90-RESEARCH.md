@@ -577,7 +577,7 @@ Document this in `prompts/rulestead-host-app-integration-seam.md` or a new integ
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **`theme_default` attr plumbing**
    - What we know: The CONTEXT.md calls for `attr :theme_default, :string, default: "system"` on `Shell.page/1`.
