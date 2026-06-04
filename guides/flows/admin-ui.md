@@ -60,6 +60,47 @@ Copy `priv/static/css/rulestead_admin.css` from the `rulestead_admin` Hex packag
 your host asset pipeline during build (see the FleetDesk demo under
 `examples/demo/backend/` for a reference `assets.copy_admin` alias).
 
+## Design Token Contract
+
+`rulestead_admin.css` uses a two-level token model. **Theme-invariant** tokens
+(typography, spacing, radius, z-index, motion, control sizing) are declared
+once in `:root` and never change between themes. **Theme-variant** tokens
+(color, surface, border, shadow, focus, overlay) are declared per-cascade-block
+inside `.rs-shell` / `[data-rulestead]`. All design tokens carry the `--rs-`
+prefix.
+
+### Cascade blocks
+
+| Selector | When active |
+|----------|-------------|
+| `.rs-shell, [data-rulestead]` | Light default (no explicit pin or `@media`) |
+| `@media (prefers-color-scheme: dark) .rs-shell:not([data-theme])` | System dark — OS is dark and no explicit pin |
+| `.rs-shell[data-theme="dark"]` | Explicit dark pin — overrides OS in both directions |
+| `.rs-shell[data-theme="light"]` | Explicit light pin — re-asserts light over dark OS |
+
+The `:not([data-theme])` guard means an explicit pin (Blocks 3 or 4) always
+wins over the `@media` rule regardless of OS setting.
+
+### SYNCED-PAIR rule
+
+Blocks 1 and 4 (light) and Blocks 2 and 3 (dark) are kept verbatim-identical
+within each pair. When you modify a token value, update both members of the
+pair. The CSS header comment in the THEME LAYER section includes a Python
+verification command that must print `SYNCED PAIR IDENTICAL` before committing.
+
+### Adding a token
+
+- **Invariant** (same value in both themes): add to `:root` only.
+- **Theme-sensitive**: add the light value to Blocks 1 and 4; add the dark value
+  to Blocks 2 and 3 (same value within each pair).
+- Run the SYNCED-PAIR check from the CSS comment header before committing.
+- Add the token to `priv/static/design-system.html` and re-run
+  `design-system.spec.ts` to keep the regression gate green.
+
+The complete token catalog (exact names and values) lives in
+`rulestead_admin/priv/static/css/rulestead_admin.css` under the INVARIANT
+TOKENS and THEME LAYER sections.
+
 ## Stable Mounted Seam
 
 Operators and host apps can treat these URL shapes as the stable v0.1.0
