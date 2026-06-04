@@ -4,7 +4,7 @@ milestone: v1.13
 milestone_name: Admin UI Dark Mode + Design-System Polish
 status: verifying
 last_updated: "2026-06-04T07:46:05.129Z"
-last_activity: 2026-06-04
+last_activity: 2026-06-04 — Phase 87 (Token Theme Foundation) complete; verification passed 10/10, dark mode visually approved
 progress:
   total_phases: 8
   completed_phases: 1

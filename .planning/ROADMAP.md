@@ -25,7 +25,7 @@ Phases 82–86 complete v1.12 adoption evidence depth. This milestone (v1.13) ru
 
 ## Phases
 
-- [ ] **Phase 87: Token Theme Foundation** — THM-01, THM-03, THM-05, THM-06
+- [x] **Phase 87: Token Theme Foundation** — THM-01, THM-03, THM-05, THM-06
 - [ ] **Phase 88: Hardcoded-Color Remediation** — DSY-01
 - [ ] **Phase 89: Focus + Interaction-State Unification** — A11Y-02, A11Y-03
 - [ ] **Phase 90: Tri-State Theme Control + Persistence + FOUC** — THM-02, THM-04
