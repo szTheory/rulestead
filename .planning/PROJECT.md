@@ -46,9 +46,9 @@ Rulestead is a batteries-included, Elixir-native feature-flag and remote-config 
 
 v1.1–v1.9 feature band is **complete**. v1.10.x–v1.11 doc bands are **shipped**. See `guides/introduction/product-boundary.md` and `.planning/DEFERRED.md` for v2 triggers.
 
-## Current Milestone: v1.13 Admin UI — First-Class Dark Mode + Design-System Polish
+## Shipped: v1.13 Admin UI — First-Class Dark Mode + Design-System Polish (2026-06-04)
 
-**Goal:** Give `rulestead_admin` a first-class, system-aware tri-state (System / Light / Dark) theme that stays on-brand and WCAG-AA legible in both modes, with unified interaction states and a consolidated, documented token contract — deepening the mounted operator UI without widening the sibling-package product shape.
+**Delivered (Phases 87–94, 14 plans):** A first-class, system-aware tri-state (System / Light / Dark) theme that stays on-brand and WCAG-AA legible in both modes, with unified interaction states and a consolidated, documented token contract — deepening the mounted operator UI without widening the sibling-package product shape.
 
 **Target features:**
 - Tri-state theme (System default via `prefers-color-scheme`, explicit Light/Dark override that persists per-device) scoped to the mounted admin, never the host.
@@ -70,7 +70,7 @@ v1.1–v1.9 feature band is **complete**. v1.10.x–v1.11 doc bands are **shippe
 | 2 | **v1.11 — Integration spine (docs-only)** | **Complete** (2026-05-28) — `mix verify.phase76`; INV-INTRO-01 closed |
 | 2b | **v1.11.1 — Gap closure** | **Complete** (2026-05-29) — audit deferrals (Phases 79–81) |
 | 2c | **v1.12 — Adoption evidence depth** | **Complete** (2026-05-29) — Phases 82–86 |
-| 3 | **v1.13 — Admin UI dark mode + design-system polish** | **Active** (2026-06-04) — Phases 87–94; mounted-admin UX quality, no new runtime APIs |
+| 3 | **v1.13 — Admin UI dark mode + design-system polish** | **Complete** (2026-06-04) — Phases 87–94; mounted-admin UX quality, no new runtime APIs; on branch (unmerged) |
 | 4+ | **v2.0+ wedges (triggered only)** | GOV-02-ext → ROL-08 → ADM-06 per `.planning/DEFERRED.md` |
 | — | **Maintenance** | Patches and adopter support until a v2 trigger fires |
 
@@ -196,6 +196,8 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 
 ### Validated
 
+- ✓ **THM-01–06**, **A11Y-01–03**, **DSY-01–02**, **IA-01–02**, **SCRN-01**, **MOT-01–02** — first-class tri-state (System/Light/Dark) dark mode for `rulestead_admin`: on-brand mineral-dark token cascade, WCAG-AA both themes, unified focus ring, persistent theme control + FOUC handling, consolidated/documented/gated design system, IA/home refinement, restrained motion — `v1.13` (Phases 87–94, 2026-06-04). No new runtime APIs.
+
 - ✓ **IMP-05**, **IMP-06**, **IMP-07**, **GOV-05**, **ADM-05**, **VER-01** through **VER-03** — host-supplied preview evidence contract, governance boundary, mounted workflows, and proof/docs support truth — `v1.9.0`, Phases 65-68 (2026-05-28)
 - ✓ **ROL-04** through **ROL-07**, **ORC-01**, **ORC-02**, **AUD-03**, **AUD-04**, **ADM-04**, **VER-01** through **VER-03** — guarded rollout auto-advance (`v1.8.0`, Phases 61-64)
 - ✓ **ROL-07** (governance slice): Protected-env parity for auto-advance mutations — Phase 63
@@ -306,7 +308,7 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 | Activate `v1.9.0` as host-supplied preview evidence after v1.8 auto-advance | Core accepts samples but mounted does not wire host evidence; closes last reusable-targeting preview gap without changing GOV thresholds or claiming population counts. | Validated |
 | Defer v2.0.0 until a deferred trigger is real; ship v1.10.1 support-truth first | Repo assessment found quickstart `traits:`/`attributes:` mismatch and api_stability drift; post-GA feature band is code-complete (~91–94% done). | Validated |
 | Path-to-done = support-truth → integration docs → optional v2 wedges → stop | 2026-05-28 milestone assessment; canonical sequence in path-to-done thread. | Active |
-| Open v1.13 as a deliberate post-GA UX-quality milestone (admin dark mode + design-system polish) outside the v2 trigger gate | Dark mode was already prescribed by the admin UX spec but unimplemented; the token-based CSS makes a first-class theme high-leverage and low-risk; deepens the mounted UI without new runtime APIs or widening product shape. | Active |
+| Open v1.13 as a deliberate post-GA UX-quality milestone (admin dark mode + design-system polish) outside the v2 trigger gate | Dark mode was already prescribed by the admin UX spec but unimplemented; the token-based CSS made a first-class theme high-leverage and low-risk; deepened the mounted UI without new runtime APIs or widening product shape. | Validated — shipped v1.13 (16/16 reqs, 8 phases) |
 
 ## Milestone Archives
 
@@ -342,4 +344,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-04 — opened milestone v1.13 (Admin UI dark mode + design-system polish, Phases 87–94)*
+*Last updated: 2026-06-04 after v1.13 milestone (Admin UI dark mode + design-system polish; shipped on branch, unmerged)*

@@ -1,5 +1,21 @@
 # Milestones
 
+## v1.13 Admin UI — First-Class Dark Mode + Design-System Polish (Shipped: 2026-06-04)
+
+**Phases completed:** 8 phases, 14 plans, 24 tasks
+
+**Key accomplishments:**
+
+- Standalone HTML harness, five-case Playwright cascade spec, scope-containment spec, and WCAG contrast-check helper providing the complete verification substrate for Plans 02 and 03.
+- Interactive focus targets added to theme-harness.html covering page-bg, card, and colored-fill surfaces so Plan 02's unified two-stop ring can be screenshot-verified on every context
+- File:// Playwright fixture (inlined hook JS + radiogroup markup) + 11-test spec covering THM-02/THM-04 persistence, system/pinned/keyboard/ARIA/FOUC behaviors
+- Delivered .ThemeControl runtime ColocatedHook with localStorage persistence, segmented radiogroup in shell header, and FOUC suppression via data-theme-pending — all 11 theme-control + 5 theme-cascade Playwright tests pass
+- Added section 20 (Theme Persistence and Dark Mode) to the host integration guide: covers the theme_default attr on Shell.page/1, the optional layer-3 head script for pinned-mismatch fast-path, and CSP/nonce requirements for the runtime ColocatedHook
+- --rs-accent darkened to #9a3f12 (5.74:1) in light-mode cascade; design-system gate restored to normal 4.5 threshold; 7-screen broadened sweep shows clean both-theme rendering with no straggler
+- Entrance animations on card/record-row rows aligned to ease-out; theme-toggle background-transition flicker eliminated via transient `data-theme-switching` rAF suppression
+
+---
+
 ## v1.11.1 Gap Closure (Shipped: 2026-05-29)
 
 **Phases completed:** 3 phases, 3 plans, 8 tasks

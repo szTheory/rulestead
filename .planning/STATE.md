@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.13
 milestone_name: Admin UI Dark Mode + Design-System Polish
-status: verifying
-last_updated: "2026-06-04T15:19:13.778Z"
-last_activity: 2026-06-04 — Phase 94 (Restrained Micro-Animation) complete; ALL 8 PHASES DONE — v1.13 dark mode + design-system polish complete
+status: Awaiting next milestone
+last_updated: "2026-06-04T15:29:30.532Z"
+last_activity: 2026-06-04 — Milestone v1.13 completed and archived
 progress:
   total_phases: 8
   completed_phases: 8
@@ -21,7 +21,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-04)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
 
-**Current focus:** Phase 94 — Restrained Micro-Animation
+**Current focus:** Maintenance default — v1.13 shipped (Admin UI dark mode + design-system polish); next milestone on trigger
 
 **Milestone:** v1.13 opened 2026-06-04 — see `.planning/ROADMAP.md` for phase structure
 
@@ -31,14 +31,10 @@ See: `.planning/PROJECT.md` (updated 2026-06-04)
 
 ## Current Position
 
-Phase: 94 (Restrained Micro-Animation) — EXECUTING
-Plan: 1 of 1
-Status: Phase complete — ready for verification
-Last activity: 2026-06-04
-
-```
-Progress: [██████████] 100%
-```
+Phase: Milestone v1.13 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-06-04 — Milestone v1.13 completed and archived
 
 ## Phase Dependency Map
 
@@ -104,14 +100,7 @@ All closed — v1.12 adoption evidence depth complete.
 
 ## Operator Next Steps
 
-- **Start:** `/gsd:plan-phase 87` — Token theme foundation (the gate phase; blocks all others).
-- **After Phase 87:** 88, 89, and 90 can run in parallel.
-- **After 88 + 89:** Phase 91 (design-system consolidation).
-- **After 91:** Phase 92 (IA/home) and Phase 93 (per-screen polish) can overlap.
-- **After 89 + 93:** Phase 94 (micro-animation — the final phase).
-- **Merge gate:** both-theme screenshot + axe contrast pass must be clean before each phase closes.
-- **Default after context clear:** read `.planning/threads/2026-05-28-post-0.1.2-maintenance-handoff.md`.
-- **After each Hex cut:** `bash scripts/ci/verify_published_release.sh <version>`.
+- Start the next milestone with /gsd-new-milestone
 
 ## Performance Metrics
 
