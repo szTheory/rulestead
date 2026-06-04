@@ -94,4 +94,28 @@ Which phases cover which requirements. Filled during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (filled by roadmapper) | | |
+| BRD-01 | Phase 95 | Pending |
+| BRD-02 | Phase 95 | Pending |
+| BRD-03 | Phase 100 | Pending |
+| PAL-01 | Phase 95 | Pending |
+| PAL-02 | Phase 95 | Pending |
+| PAL-03 | Phase 95 | Pending |
+| PAL-04 | Phase 95 | Pending |
+| TOK-01 | Phase 96 | Pending |
+| TOK-02 | Phase 96 | Pending |
+| TOK-03 | Phase 96 | Pending |
+| TOK-04 | Phase 96 | Pending |
+| LOGO-01 | Phase 97 | Pending |
+| LOGO-02 | Phase 97 | Pending |
+| LOGO-03 | Phase 97 | Pending |
+| LOGO-04 | Phase 97 | Pending |
+| LOGO-05 | Phase 97 | Pending |
+| SKIN-01 | Phase 98 | Pending |
+| SKIN-02 | Phase 98 | Pending |
+| SKIN-03 | Phase 98 | Pending |
+| SPEC-01 | Phase 99 | Pending |
+| SPEC-02 | Phase 99 | Pending |
+| COPY-01 | Phase 100 | Pending |
+| COPY-02 | Phase 100 | Pending |
+| REPO-01 | Phase 100 | Pending |
+| REPO-02 | Phase 100 | Pending |
