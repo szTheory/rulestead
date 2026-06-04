@@ -148,7 +148,9 @@ Plans:
   2. With `prefers-reduced-motion: reduce` set in the OS or devtools, all animations are suppressed or replaced with instant transitions; no task is blocked.
   3. Switching theme (System → Dark → Light → System) produces no animated color wipe or flicker — the `data-theme-pending` transition-suppression remains effective alongside the new animations.
   4. New animation rules do not conflict with the `data-theme-pending` no-transition snap established in Phase 90.
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 94-01-PLAN.md — Entrance easing alignment (ease-out) + theme-toggle flicker fix (data-theme-switching suppression)
 **UI hint**: yes
 
 ## Progress
@@ -162,7 +164,7 @@ Plans:
 | 91. Design-System Consolidation | 2/2 | Complete   | 2026-06-04 |
 | 92. IA / Home Refinement | 1/1 | Complete   | 2026-06-04 |
 | 93. Per-Screen Polish Across All Admin Screens | 1/1 | Complete   | 2026-06-04 |
-| 94. Restrained Micro-Animation | 0/? | Not started | - |
+| 94. Restrained Micro-Animation | 0/1 | In progress | - |
 
 <details>
 <summary>✅ v1.12 Adoption Evidence Depth (Phases 82-86) — SHIPPED 2026-05-29</summary>
