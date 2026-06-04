@@ -25,6 +25,7 @@ defmodule RulesteadAdmin.Components.Shell do
   attr(:navigation_links, :list, default: [])
   attr(:policy_state, :map, default: nil)
   attr(:flash, :map, default: %{})
+  attr(:theme_default, :string, default: "system")
   slot(:header_actions)
   slot(:inner_block, required: true)
 
@@ -39,7 +40,7 @@ defmodule RulesteadAdmin.Components.Shell do
       |> assign(:palette_groups, palette_groups(assigns))
 
     ~H"""
-    <div class="rs-shell" data-env-tone={@env_tone}>
+    <div class="rs-shell" data-env-tone={@env_tone} data-theme-pending>
       <header class="rs-shell__header">
         <div>
           <p class="rs-shell__kicker"><%= @page_kicker %></p>
@@ -121,6 +122,21 @@ defmodule RulesteadAdmin.Components.Shell do
           <p :if={length(@tenants) <= 1 and @current_tenant} class="rs-shell__summary">
             Scoped to <strong><%= @current_tenant.name %></strong>
           </p>
+        </section>
+        <section class="rs-shell__context" aria-label="Theme">
+          <p class="rs-shell__context-label" id="rs-theme-label">Theme</p>
+          <div
+            id="rs-theme-control"
+            role="radiogroup"
+            aria-labelledby="rs-theme-label"
+            phx-hook=".ThemeControl"
+            data-theme-default={@theme_default}
+            class="rs-theme-control__group"
+          >
+            <button type="button" role="radio" aria-checked="true"  tabindex="0"  data-value="system" class="rs-theme-control__opt">System</button>
+            <button type="button" role="radio" aria-checked="false" tabindex="-1" data-value="light"  class="rs-theme-control__opt">Light</button>
+            <button type="button" role="radio" aria-checked="false" tabindex="-1" data-value="dark"   class="rs-theme-control__opt">Dark</button>
+          </div>
         </section>
       </header>
 
@@ -325,6 +341,95 @@ defmodule RulesteadAdmin.Components.Shell do
           }
         </script>
       </div>
+      <script :type={Phoenix.LiveView.ColocatedHook} name=".ThemeControl" runtime>
+        {
+          mounted() {
+            const ctrl = this.el
+            const shell = ctrl.closest(".rs-shell")
+            const opts  = Array.from(ctrl.querySelectorAll("[role=radio]"))
+            const VALID = ["system", "light", "dark"]
+
+            const readTheme = () => {
+              try {
+                const v = localStorage.getItem("rulestead_admin.theme")
+                return VALID.includes(v) ? v : (ctrl.dataset.themeDefault || "system")
+              } catch (_) { return ctrl.dataset.themeDefault || "system" }
+            }
+
+            const writeTheme = (val) => {
+              try { localStorage.setItem("rulestead_admin.theme", val) } catch (_) {}
+            }
+
+            const applyTheme = (val) => {
+              this._mode = val
+              if (val === "dark")       shell.setAttribute("data-theme", "dark")
+              else if (val === "light") shell.setAttribute("data-theme", "light")
+              else                      shell.removeAttribute("data-theme")
+            }
+
+            this._syncAria = () => {
+              const current = this._mode || "system"
+              opts.forEach((opt) => {
+                const isActive = opt.dataset.value === current
+                opt.setAttribute("aria-checked", String(isActive))
+                opt.tabIndex = isActive ? 0 : -1
+              })
+            }
+
+            applyTheme(readTheme())
+            shell.removeAttribute("data-theme-pending")
+            this._syncAria()
+
+            this._mq = window.matchMedia("(prefers-color-scheme: dark)")
+            this._mqListener = (_e) => {
+              if (this._mode !== "system") return
+              this._syncAria()
+            }
+            this._mq.addEventListener("change", this._mqListener)
+
+            this._onClick = (e) => {
+              const opt = e.target.closest("[role=radio]")
+              if (!opt) return
+              const val = opt.dataset.value
+              writeTheme(val)
+              applyTheme(val)
+              this._syncAria()
+              opt.focus()
+            }
+            ctrl.addEventListener("click", this._onClick)
+
+            this._onKeydown = (e) => {
+              const current = opts.findIndex(o => o.tabIndex === 0)
+              let next = -1
+              if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+                e.preventDefault(); next = (current + 1) % opts.length
+              } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+                e.preventDefault(); next = (current - 1 + opts.length) % opts.length
+              } else if (e.key === "Home") {
+                e.preventDefault(); next = 0
+              } else if (e.key === "End") {
+                e.preventDefault(); next = opts.length - 1
+              }
+              if (next >= 0) {
+                const val = opts[next].dataset.value
+                writeTheme(val)
+                applyTheme(val)
+                this._syncAria()
+                opts[next].focus()
+              }
+            }
+            ctrl.addEventListener("keydown", this._onKeydown)
+          },
+
+          updated() {
+            this._syncAria()
+          },
+
+          destroyed() {
+            this._mq.removeEventListener("change", this._mqListener)
+          }
+        }
+      </script>
     </div>
     """
   end
