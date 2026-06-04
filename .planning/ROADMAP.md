@@ -75,7 +75,10 @@ Plans:
   2. The focus ring meets WCAG 2.4.11 / 2.4.13 (≥3:1 contrast, ≥2px perimeter) on light cards, dark surfaces, and colored fills — confirmed by axe-core focus-indicator checks.
   3. Hover states are visually distinct and legible in both themes — no white-on-light or crushed-on-dark states appear on any sampled interactive element.
   4. Disabled states are legible in both themes — explicit `--rs-disabled-*` tokens used rather than opacity that crushes to invisible on dark.
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 89-01-PLAN.md — Harness extension: interactive focus targets (input, select, tab strip, primary/secondary/danger buttons)
+- [ ] 89-02-PLAN.md — CSS unification: two-stop --rs-focus-ring in all 4 cascade blocks + :where() base rule + idiom removal + hover/disabled fixes
 **UI hint**: yes
 
 ### Phase 90: Tri-State Theme Control + Persistence + FOUC
@@ -143,7 +146,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 87. Token Theme Foundation | 3/3 | Complete   | 2026-06-04 |
 | 88. Hardcoded-Color Remediation | 1/1 | Complete   | 2026-06-04 |
-| 89. Focus + Interaction-State Unification | 0/? | Not started | - |
+| 89. Focus + Interaction-State Unification | 0/2 | Planned     | - |
 | 90. Tri-State Theme Control + Persistence + FOUC | 0/? | Not started | - |
 | 91. Design-System Consolidation | 0/? | Not started | - |
 | 92. IA / Home Refinement | 0/? | Not started | - |
