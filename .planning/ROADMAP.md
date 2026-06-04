@@ -42,7 +42,12 @@ v1.13 completed at Phase 94. This milestone (v1.14) runs **Phases 95–100**. Ne
   3. The dark-mode ramp is mapped to existing v1.13 slots (base `#10161f` kept, elevation by luminance increase, Signal Gold designated decorative-only) — no fresh ramp invented; no `--rs-surface-base` swap.
   4. Signal Gold `#D2A94E` carries an explicit decorative-only usage policy ("never as normal-weight text") in the written record.
   5. The relocated brand book exists at `brandbook/brand-book.md` (or the decision to relocate it during Phase 96 is confirmed) and the pressure-test audit (KEEP/TIGHTEN/REWORK/ADD/REMOVE) with scorecard is written.
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+- [ ] 95-01-PLAN.md — Wave 0: scripts/check_contrast.py (WCAG + OKLCH verification script)
+- [ ] 95-02-PLAN.md — 95-PALETTE-RECONCILIATION.md (full reconciliation table + dark ramp + policies)
+- [ ] 95-03-PLAN.md — 95-BRAND-AUDIT.md (27-section pressure-test scorecard)
+- [ ] 95-04-PLAN.md — D-11 maintainer sign-off checkpoint (phase-close gate)
 **UI hint**: yes
 
 ### Phase 96: Design Tokens (`brandbook/` scaffold)
@@ -55,7 +60,12 @@ v1.13 completed at Phase 94. This milestone (v1.14) runs **Phases 95–100**. Ne
   3. `scripts/check_brand_tokens.py` exists, is executable, and exits non-zero with a per-token diff when run against the un-re-skinned `rulestead_admin.css` — confirming the check mechanism works before Phase 98.
   4. `scripts/ci/lint.sh` has both `python3 scripts/check_brand_tokens.py` and the SVG size-budget loop appended (additive, not rewritten); `brandbook/docs/brand-usage.md` and `prompts/rulestead-brand-book.md` pointer comment are committed.
   5. `brandbook/brand-book.md` is the canonical brand book (moved from `prompts/`), reconciled to ship-true reality; `prompts/rulestead-brand-book.md` retains a pointer comment at its top referencing the new location.
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+- [ ] 95-01-PLAN.md — Wave 0: scripts/check_contrast.py (WCAG + OKLCH verification script)
+- [ ] 95-02-PLAN.md — 95-PALETTE-RECONCILIATION.md (full reconciliation table + dark ramp + policies)
+- [ ] 95-03-PLAN.md — 95-BRAND-AUDIT.md (27-section pressure-test scorecard)
+- [ ] 95-04-PLAN.md — D-11 maintainer sign-off checkpoint (phase-close gate)
 
 ### Phase 97: Logo & Mark SVG System
 **Goal**: The full Rulestead logo system is committed — wordmark, icon, monochrome, favicon, and social card in both light and dark variants — with all text outlined to paths, no embedded raster, SVGO-optimized, and accessible; the phoenix-flame demo logo is retired.
@@ -68,7 +78,12 @@ v1.13 completed at Phase 94. This milestone (v1.14) runs **Phases 95–100**. Ne
   3. All logo SVGs pass `grep -c 'base64' brandbook/assets/logo/*.svg` = 0 (no embedded raster data).
   4. `rs-favicon.svg` is legible at 16px (confirmed by visual review at that canvas size); `rulestead_admin/priv/static/images/rs-mark.svg` and `rs-mark-dark.svg` exist as admin-embedded copies.
   5. `examples/demo/backend/priv/static/images/logo.svg` (and its fingerprinted copy) is replaced with the new brand mark; the phoenix-flame file is removed; any `.gz` sidecars are regenerated.
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+- [ ] 95-01-PLAN.md — Wave 0: scripts/check_contrast.py (WCAG + OKLCH verification script)
+- [ ] 95-02-PLAN.md — 95-PALETTE-RECONCILIATION.md (full reconciliation table + dark ramp + policies)
+- [ ] 95-03-PLAN.md — 95-BRAND-AUDIT.md (27-section pressure-test scorecard)
+- [ ] 95-04-PLAN.md — D-11 maintainer sign-off checkpoint (phase-close gate)
 **UI hint**: yes
 
 ### Phase 98: Admin Re-skin (CSS Cascade)
@@ -80,7 +95,12 @@ v1.13 completed at Phase 94. This milestone (v1.14) runs **Phases 95–100**. Ne
   2. `python3 scripts/check_synced_pair.py` exits 0 (Blocks 2+3 dark pair still identical; Blocks 1+4 light pair still identical).
   3. `python3 scripts/check_brand_tokens.py` exits 0 (`BRAND TOKENS SYNCED (N tokens)` — Block 1 `--rs-*` declarations match `tokens.json` palette values).
   4. `design-system.html` colour swatches are updated to show the mineral palette; WCAG-AA contrast passes for all normal-weight text pairings in both light and dark themes (verified against the Phase 95 contrast matrix using the existing harness).
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+- [ ] 95-01-PLAN.md — Wave 0: scripts/check_contrast.py (WCAG + OKLCH verification script)
+- [ ] 95-02-PLAN.md — 95-PALETTE-RECONCILIATION.md (full reconciliation table + dark ramp + policies)
+- [ ] 95-03-PLAN.md — 95-BRAND-AUDIT.md (27-section pressure-test scorecard)
+- [ ] 95-04-PLAN.md — D-11 maintainer sign-off checkpoint (phase-close gate)
 **UI hint**: yes
 
 ### Phase 99: Specimens
@@ -92,7 +112,12 @@ v1.13 completed at Phase 94. This milestone (v1.14) runs **Phases 95–100**. Ne
   2. `brandbook/assets/specimens/typography.svg` exists with the Sora/Inter/IBM Plex Mono type ramp labeled with token names (covers SPEC-01 typography half).
   3. `brandbook/assets/specimens/components.svg`, `code-block.svg`, `readme-header.svg`, and `social-card.svg` all exist in `brandbook/assets/specimens/` (covers SPEC-02 in full).
   4. All logo SVGs in `brandbook/assets/logo/` are ≤20 KB each; all specimen SVGs in `brandbook/assets/specimens/` are ≤50 KB each — verified by running the SVG size-budget loop appended to `scripts/ci/lint.sh`, which exits 0 with `SVG SIZE BUDGET OK`.
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+- [ ] 95-01-PLAN.md — Wave 0: scripts/check_contrast.py (WCAG + OKLCH verification script)
+- [ ] 95-02-PLAN.md — 95-PALETTE-RECONCILIATION.md (full reconciliation table + dark ramp + policies)
+- [ ] 95-03-PLAN.md — 95-BRAND-AUDIT.md (27-section pressure-test scorecard)
+- [ ] 95-04-PLAN.md — D-11 maintainer sign-off checkpoint (phase-close gate)
 **UI hint**: yes
 
 ### Phase 100: Marketing Copy + Repo Artifact Plan
@@ -105,13 +130,18 @@ v1.13 completed at Phase 94. This milestone (v1.14) runs **Phases 95–100**. Ne
   3. `brandbook/README.md` exists as a self-contained directory index with cross-links to `rulestead_admin.css` and `brandbook/brand-book.md`; `brandbook/docs/brand-usage.md` is in final state (re-skin instructions, `check_brand_tokens.py` usage, new-contributor path).
   4. A repo-size guard is in place: a `.gitattributes` entry or CI step prevents binary bloat; `brandbook/BUDGET.md` documents per-file-type size limits; the SVG size-budget lint in `scripts/ci/lint.sh` is confirmed passing.
   5. Full CI end-to-end confirmation: `python3 scripts/check_synced_pair.py` + `python3 scripts/check_brand_tokens.py` + SVG size-budget loop all exit 0 in a single lint run; `REPO-02` guard is wired and active; `.planning/PROJECT.md` and `STATE.md` updated to v1.14 shipped.
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+- [ ] 95-01-PLAN.md — Wave 0: scripts/check_contrast.py (WCAG + OKLCH verification script)
+- [ ] 95-02-PLAN.md — 95-PALETTE-RECONCILIATION.md (full reconciliation table + dark ramp + policies)
+- [ ] 95-03-PLAN.md — 95-BRAND-AUDIT.md (27-section pressure-test scorecard)
+- [ ] 95-04-PLAN.md — D-11 maintainer sign-off checkpoint (phase-close gate)
 
 ## Progress Table
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 95. Brand Audit + Palette Reconciliation | 0/0 | Not started | - |
+| 95. Brand Audit + Palette Reconciliation | 0/4 | Planned | - |
 | 96. Design Tokens (brandbook/ scaffold) | 0/0 | Not started | - |
 | 97. Logo & Mark SVG System | 0/0 | Not started | - |
 | 98. Admin Re-skin (CSS Cascade) | 0/0 | Not started | - |
