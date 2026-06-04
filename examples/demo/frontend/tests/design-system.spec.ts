@@ -44,15 +44,13 @@ test("light: text on surface passes AA", () => {
 });
 
 test("light: badge text on soft surfaces passes AA", () => {
-  // success / warning / critical / neutral all achieve normal-text AA (≥ 4.5:1).
-  // accent badge (#c45c26 on #fde8dc = 3.62:1) is large/UI compliant (≥ 3.0:1) only —
-  // this is the known shipped value; it is gated at the large threshold here so that
-  // any future regression (toward a lower ratio) will fail this spec.
+  // All five badge tones achieve normal-text AA (≥ 4.5:1) in light mode.
+  // accent: #9a3f12 on #fde8dc = 5.74:1 — fixed in Phase 93 (A11Y-01).
   assertAABatch([
     { label: "positive badge: --rs-success on --rs-success-soft",      fg: "#15803d", bg: "#dcfce7" },
     { label: "warning badge: --rs-warning on --rs-warning-soft",       fg: "#b45309", bg: "#fef3c7" },
     { label: "critical badge: --rs-error on --rs-error-soft",          fg: "#b91c1c", bg: "#fee2e2" },
-    { label: "accent badge: --rs-accent on --rs-accent-soft (large)",  fg: "#c45c26", bg: "#fde8dc", level: "large" },
+    { label: "accent badge: --rs-accent on --rs-accent-soft",          fg: "#9a3f12", bg: "#fde8dc" },
     { label: "neutral badge: --rs-text-muted on --rs-surface-muted",   fg: "#5c6b7a", bg: "#eef1f5" },
   ]);
 });
