@@ -361,10 +361,12 @@ defmodule RulesteadAdmin.Components.Shell do
             }
 
             const applyTheme = (val) => {
+              shell.setAttribute("data-theme-switching", "")
               this._mode = val
               if (val === "dark")       shell.setAttribute("data-theme", "dark")
               else if (val === "light") shell.setAttribute("data-theme", "light")
               else                      shell.removeAttribute("data-theme")
+              requestAnimationFrame(() => shell.removeAttribute("data-theme-switching"))
             }
 
             this._syncAria = () => {
