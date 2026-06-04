@@ -22,7 +22,7 @@ v1.13 completed at Phase 94. This milestone (v1.14) runs **Phases 95–100**. Ne
 
 ## Phases
 
-- [ ] **Phase 95: Brand Audit + Palette Reconciliation** — Gate-zero: audit brand book, compute WCAG AA contrast ratios, resolve all failures with OKLCH-preserving fixes, lock the dark-mode ramp, obtain human sign-off on AA-adjusted hexes. Nothing downstream may start until palette decisions are final.
+- [x] **Phase 95: Brand Audit + Palette Reconciliation** — Gate-zero: audit brand book, compute WCAG AA contrast ratios, resolve all failures with OKLCH-preserving fixes, lock the dark-mode ramp, obtain human sign-off on AA-adjusted hexes. Nothing downstream may start until palette decisions are final. (completed 2026-06-04)
 - [ ] **Phase 96: Design Tokens (`brandbook/` scaffold)** — Create the `brandbook/` directory tree, move and reconcile the brand book, author `tokens.json` (DTCG format) and `tokens.css`, write the drift-check script (`check_brand_tokens.py`), and extend CI lint. Gate: `check_brand_tokens.py` intentionally fails on un-re-skinned CSS, confirming the check works.
 - [ ] **Phase 97: Logo & Mark SVG System** — Produce three SVG mark concepts (A/B/C), obtain human concept selection, deliver the full lockup set (wordmark, icon, monochrome, favicon, social card, light/dark variants), commit to `brandbook/assets/logo/`, wire into admin `priv/static/images/`, and replace the phoenix-flame demo logo.
 - [ ] **Phase 98: Admin Re-skin (CSS Cascade)** — Colors-only edit to all four `rulestead_admin.css` cascade blocks, aligned to the locked mineral palette from Phase 96. Gates: `check_synced_pair.py` green, `check_brand_tokens.py` green, `design-system.html` swatches updated, WCAG-AA both themes passing.
@@ -58,7 +58,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 95-04-PLAN.md — D-11 maintainer sign-off checkpoint (phase-close gate)
+- [x] 95-04-PLAN.md — D-11 maintainer sign-off checkpoint (phase-close gate)
 
 **UI hint**: yes
 
@@ -79,8 +79,8 @@ Plans:
 Plans:
 
 - [x] 95-01-PLAN.md — Wave 0: scripts/check_contrast.py (WCAG + OKLCH verification script)
-- [ ] 95-02-PLAN.md — 95-PALETTE-RECONCILIATION.md (full reconciliation table + dark ramp + policies)
-- [ ] 95-03-PLAN.md — 95-BRAND-AUDIT.md (27-section pressure-test scorecard)
+- [x] 95-02-PLAN.md — 95-PALETTE-RECONCILIATION.md (full reconciliation table + dark ramp + policies)
+- [x] 95-03-PLAN.md — 95-BRAND-AUDIT.md (27-section pressure-test scorecard)
 - [ ] 95-04-PLAN.md — D-11 maintainer sign-off checkpoint (phase-close gate)
 
 ### Phase 97: Logo & Mark SVG System
@@ -100,7 +100,7 @@ Plans:
 **Plans**: 4 plans
 Plans:
 
-- [ ] 95-01-PLAN.md — Wave 0: scripts/check_contrast.py (WCAG + OKLCH verification script)
+- [x] 95-01-PLAN.md — Wave 0: scripts/check_contrast.py (WCAG + OKLCH verification script)
 - [ ] 95-02-PLAN.md — 95-PALETTE-RECONCILIATION.md (full reconciliation table + dark ramp + policies)
 - [ ] 95-03-PLAN.md — 95-BRAND-AUDIT.md (27-section pressure-test scorecard)
 - [ ] 95-04-PLAN.md — D-11 maintainer sign-off checkpoint (phase-close gate)
@@ -176,7 +176,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 95. Brand Audit + Palette Reconciliation | 3/4 | In Progress|  |
+| 95. Brand Audit + Palette Reconciliation | 4/4 | Complete   | 2026-06-04 |
 | 96. Design Tokens (brandbook/ scaffold) | 0/0 | Not started | - |
 | 97. Logo & Mark SVG System | 0/0 | Not started | - |
 | 98. Admin Re-skin (CSS Cascade) | 0/0 | Not started | - |
