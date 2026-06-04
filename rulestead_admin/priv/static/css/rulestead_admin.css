@@ -482,6 +482,15 @@
   text-decoration: underline;
 }
 
+/* ── Unified :focus-visible ring (A11Y-02) ──────────────────────────── */
+/* Zero-specificity via :where() — per-element rules above this override cleanly. */
+.rs-shell :where(a, button, input, select, textarea,
+  [tabindex], [role="option"], [role="tab"], summary):focus-visible {
+  outline: none;
+  box-shadow: var(--rs-focus-ring);
+  border-radius: inherit;
+}
+
 .rs-shell code {
   font-family: var(--rs-font-mono);
   font-size: 0.9em;
@@ -580,9 +589,7 @@
 .rs-shell .rs-button--text:focus-visible:not(:disabled) {
   border: 0;
   background: transparent;
-  box-shadow: none;
   color: var(--rs-primary-hover);
-  outline: none;
   text-decoration: underline;
   text-decoration-thickness: 0.12em;
 }
@@ -609,7 +616,9 @@
 }
 
 .rs-shell button:disabled {
-  opacity: 0.55;
+  background: var(--rs-disabled-bg);
+  color: var(--rs-disabled-text);
+  border-color: var(--rs-border);
   cursor: not-allowed;
 }
 
@@ -878,8 +887,7 @@
 }
 
 .rs-radio-card input:focus-visible + .rs-radio-card__body {
-  outline: 3px solid var(--rs-focus-ring-color);
-  outline-offset: 2px;
+  box-shadow: var(--rs-focus-ring);
 }
 
 .rs-radio-card input:checked + .rs-radio-card__body {
@@ -890,7 +898,8 @@
 
 .rs-radio-card input:disabled + .rs-radio-card__body {
   cursor: not-allowed;
-  opacity: 0.65;
+  background: var(--rs-disabled-bg);
+  border-color: var(--rs-border);
   box-shadow: none;
 }
 
@@ -1180,10 +1189,10 @@
   border-color: var(--rs-primary);
 }
 
-.rs-shell input:focus,
-.rs-shell select:focus,
-.rs-shell textarea:focus {
-  outline: 2px solid var(--rs-primary-soft);
+.rs-shell input:focus-visible,
+.rs-shell select:focus-visible,
+.rs-shell textarea:focus-visible {
+  box-shadow: var(--rs-focus-ring);
   border-color: var(--rs-primary);
 }
 
@@ -1422,8 +1431,8 @@ a.rs-shell__env-link:active {
 }
 
 .rs-shell__rail-link:hover {
-  background: var(--rs-surface-muted);
-  color: var(--rs-text);
+  background: var(--rs-primary-soft);
+  color: var(--rs-primary-hover);
 }
 
 .rs-shell__rail-link[aria-current="page"] {
@@ -2071,9 +2080,8 @@ a.rs-shell__env-link:active {
   box-shadow: none;
 }
 
-.rs-filter-panel__search .rs-omnisearch__control input:focus {
-  outline: none;
-  box-shadow: none;
+.rs-filter-panel__search .rs-omnisearch__control:focus-within {
+  border-color: var(--rs-primary);
 }
 
 .rs-omnisearch__token {
@@ -2127,11 +2135,15 @@ a.rs-shell__env-link:active {
   stroke-linecap: round;
 }
 
-.rs-omnisearch__token-remove:hover,
+.rs-omnisearch__token-remove:hover {
+  background: var(--rs-border-subtle);
+  color: var(--rs-text);
+}
 .rs-omnisearch__token-remove:focus-visible {
   background: var(--rs-border-subtle);
   color: var(--rs-text);
   outline: none;
+  box-shadow: var(--rs-focus-ring);
 }
 
 .rs-omnisearch__menu {
@@ -2191,10 +2203,13 @@ a.rs-shell__env-link:active {
   text-transform: uppercase;
 }
 
-.rs-shell .rs-omnisearch__option:hover,
+.rs-shell .rs-omnisearch__option:hover {
+  background: var(--rs-primary-soft);
+}
 .rs-shell .rs-omnisearch__option:focus-visible {
   background: var(--rs-primary-soft);
   outline: none;
+  box-shadow: var(--rs-focus-ring);
 }
 
 .rs-inventory-views {
@@ -4178,7 +4193,8 @@ a.rs-env-state:active {
   color: var(--rs-text);
 }
 
-.rs-shell .rs-cmdk__input:focus {
+.rs-shell .rs-cmdk__input:focus-visible {
+  /* cmdk: inside modal; ring suppressed intentionally — modal context is the affordance */
   outline: none;
   box-shadow: none;
 }
