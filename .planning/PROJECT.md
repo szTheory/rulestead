@@ -60,6 +60,20 @@ v1.1–v1.9 feature band is **complete**. v1.10.x–v1.11 doc bands are **shippe
 
 **Scope note:** This is a deliberate post-GA UX-quality milestone (not one of the deferred v2 feature wedges in `.planning/DEFERRED.md`). Dark mode was already prescribed by the admin UX spec (`prompts/rulestead-admin-ux-and-operator-ia.md` §9) but never implemented. No new product runtime APIs.
 
+## Current Milestone: v1.14 Brand System Realization
+
+**Goal:** Turn the recovered Rulestead brand book (`prompts/rulestead-brand-book.md`) into a buildable, WCAG-AA-verified, source-controlled brand system in a self-contained `brandbook/` folder, and re-skin the shipped admin UI to the canonical mineral palette — without bloating the repo or widening the sibling-package product shape.
+
+**Target features:**
+- Pressure-test audit of the recovered 27-section brand book + canonical AA-verified palette reconciliation (brand-book mineral palette wins over shipped `#2563eb`/`#9a3f12`).
+- Machine-readable design tokens (`brandbook/tokens.json`, `brandbook/tokens.css`) mirroring the shipped `--rs-*` token shape, with semantic + state roles.
+- Net-new brand-aligned logo/mark SVG system (A/B/C concepts → user picks → full lockup: wordmark, icon, monochrome, favicon, social card, dark/light); retire the off-brand phoenix flame.
+- Admin re-skin (`rulestead_admin/priv/static/css/rulestead_admin.css`) to the mineral palette across all 4 cascade blocks — colors only — gated by `check_synced_pair.py`, WCAG-AA both themes, and the design-system fixture.
+- Reproducible SVG specimens (palette, typography, components, code-block, README header, social card).
+- Ready-to-paste marketing/README/Hex.pm copy, szTheory suite brand-architecture note, and a repo artifact plan with a size-budget + token-sync CI guard.
+
+**Scope note:** Post-GA brand/UX-quality milestone (like v1.13), not a deferred v2 feature wedge. No new product runtime APIs. Phase numbering continues at 95.
+
 ## Next Milestone Goals
 
 **Path-to-done (canonical):** See [`.planning/threads/2026-05-28-path-to-done-milestones.md`](.planning/threads/2026-05-28-path-to-done-milestones.md).
@@ -344,4 +358,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-04 after v1.13 milestone (Admin UI dark mode + design-system polish; shipped on branch, unmerged)*
+*Last updated: 2026-06-04 — opened v1.14 Brand System Realization (brand book → buildable, AA-verified, source-controlled brand system + admin mineral re-skin)*
