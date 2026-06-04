@@ -150,7 +150,7 @@ Plans:
   4. New animation rules do not conflict with the `data-theme-pending` no-transition snap established in Phase 90.
 **Plans**: 1 plan
 Plans:
-- [ ] 94-01-PLAN.md — Entrance easing alignment (ease-out) + theme-toggle flicker fix (data-theme-switching suppression)
+- [x] 94-01-PLAN.md — Entrance easing alignment (ease-out) + theme-toggle flicker fix (data-theme-switching suppression)
 **UI hint**: yes
 
 ## Progress
@@ -164,7 +164,7 @@ Plans:
 | 91. Design-System Consolidation | 2/2 | Complete   | 2026-06-04 |
 | 92. IA / Home Refinement | 1/1 | Complete   | 2026-06-04 |
 | 93. Per-Screen Polish Across All Admin Screens | 1/1 | Complete   | 2026-06-04 |
-| 94. Restrained Micro-Animation | 0/1 | In progress | - |
+| 94. Restrained Micro-Animation | 1/1 | Complete   | 2026-06-04 |
 
 <details>
 <summary>✅ v1.12 Adoption Evidence Depth (Phases 82-86) — SHIPPED 2026-05-29</summary>

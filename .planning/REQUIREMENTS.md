@@ -38,8 +38,8 @@ This milestone deepens the **mounted `rulestead_admin` companion UI** only. No n
 
 ### Motion (`MOT`)
 
-- [ ] **MOT-01**: Micro-animations are restrained and purposeful — transform/opacity only, ease-out, under ~300ms — and confirm an action rather than decorate.
-- [ ] **MOT-02**: All motion respects `prefers-reduced-motion` and never blocks a task; theme switching produces no flicker.
+- [x] **MOT-01**: Micro-animations are restrained and purposeful — transform/opacity only, ease-out, under ~300ms — and confirm an action rather than decorate.
+- [x] **MOT-02**: All motion respects `prefers-reduced-motion` and never blocks a task; theme switching produces no flicker.
 
 ## Future Requirements
 
@@ -98,8 +98,8 @@ Deferred beyond v1.13. Tracked but not in this roadmap.
 | IA-02 | Phase 92 | Complete |
 | A11Y-01 | Phase 93 | Complete |
 | SCRN-01 | Phase 93 | Complete |
-| MOT-01 | Phase 94 | Pending |
-| MOT-02 | Phase 94 | Pending |
+| MOT-01 | Phase 94 | Complete |
+| MOT-02 | Phase 94 | Complete |
 
 **Coverage:**
 - v1.13 requirements: 16 total
