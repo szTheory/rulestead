@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.13
 milestone_name: Admin UI Dark Mode + Design-System Polish
 status: verifying
-last_updated: "2026-06-04T09:32:30.958Z"
-last_activity: 2026-06-04 — Phase 91 (Design-System Consolidation) complete; token-contract docs + 26-assertion WCAG-AA contrast gate (regression gate for 92-94), 28/28 tests
+last_updated: "2026-06-04T14:51:36.733Z"
+last_activity: 2026-06-04
 progress:
   total_phases: 8
-  completed_phases: 5
-  total_plans: 11
-  completed_plans: 11
-  percent: 63
+  completed_phases: 6
+  total_plans: 12
+  completed_plans: 12
+  percent: 75
 ---
 
 # State: Rulestead
@@ -21,7 +21,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-04)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
 
-**Current focus:** Phase 91 — Design-System Consolidation
+**Current focus:** Phase 92 — IA / Home Refinement
 
 **Milestone:** v1.13 opened 2026-06-04 — see `.planning/ROADMAP.md` for phase structure
 
@@ -31,7 +31,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-04)
 
 ## Current Position
 
-Phase: 91 (Design-System Consolidation) — EXECUTING
+Phase: 92 (IA / Home Refinement) — EXECUTING
 Plan: 1 of 1
 Status: Phase complete — ready for verification
 Last activity: 2026-06-04
@@ -74,6 +74,8 @@ Parallel after 87: 88 ‖ 89 ‖ 90
 - [Phase ?]: 87-01: Theme specs use file:// harness navigation (no Phoenix required). wcagRatio inline TypeScript, no external dep.
 - [Phase ?]: Phase 88: --rs-primary-ring gap token added to all 4 cascade blocks; 18 hardcoded rgba() literals replaced; warning-flash amber border fixed
 - [Phase ?]: Token-contract docs in CSS THEME LAYER comment; guide links to CSS (DRY)
+- [Phase ?]: Use semibold + hairline --rs-border-subtle separator for overview rail link; suppress on mobile
+- [Phase ?]: Swap .rs-attention-empty background to --rs-surface-muted for calm raised card in dark mode
 
 ### Deferred Items (v2)
 
@@ -122,3 +124,4 @@ All closed — v1.12 adoption evidence depth complete.
 | Phase 90 P02 | 15 | 3 tasks | 2 files |
 | Phase 90 P03 | 5min | 1 tasks | 1 files |
 | Phase 91 P01 | 2 | 2 tasks | 2 files |
+| Phase 92-ia-home-refinement P01 | 10m | 2 tasks | 1 files |

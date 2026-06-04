@@ -29,8 +29,8 @@ This milestone deepens the **mounted `rulestead_admin` companion UI** only. No n
 
 ### Information Architecture (`IA`)
 
-- [ ] **IA-01**: The home/overview surface makes "what needs me now / where do I go next" obvious for operator, support, and SRE personas (uk.gov-style clarity), legible and on-brand in both themes.
-- [ ] **IA-02**: Global navigation and orientation affordances are consistent and follow least-surprise conventions across all admin screens.
+- [x] **IA-01**: The home/overview surface makes "what needs me now / where do I go next" obvious for operator, support, and SRE personas (uk.gov-style clarity), legible and on-brand in both themes.
+- [x] **IA-02**: Global navigation and orientation affordances are consistent and follow least-surprise conventions across all admin screens.
 
 ### Per-Screen Polish (`SCRN`)
 
@@ -94,8 +94,8 @@ Deferred beyond v1.13. Tracked but not in this roadmap.
 | THM-02 | Phase 90 | Complete |
 | THM-04 | Phase 90 | Complete |
 | DSY-02 | Phase 91 | Complete |
-| IA-01 | Phase 92 | Pending |
-| IA-02 | Phase 92 | Pending |
+| IA-01 | Phase 92 | Complete |
+| IA-02 | Phase 92 | Complete |
 | A11Y-01 | Phase 93 | Pending |
 | SCRN-01 | Phase 93 | Pending |
 | MOT-01 | Phase 94 | Pending |
