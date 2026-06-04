@@ -63,7 +63,7 @@ Plans:
   3. Inline focus tints (raw `rgba()` outlines used in earlier focus rules) are removed; no component rule references a color literal for focus state.
 **Plans**: 1 plan
 Plans:
-- [ ] 88-01-PLAN.md — Token-redirect all 18 hardcoded literals + warning-flash fix + --rs-primary-ring gap token
+- [x] 88-01-PLAN.md — Token-redirect all 18 hardcoded literals + warning-flash fix + --rs-primary-ring gap token
 **UI hint**: yes
 
 ### Phase 89: Focus + Interaction-State Unification
@@ -142,7 +142,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 87. Token Theme Foundation | 3/3 | Complete   | 2026-06-04 |
-| 88. Hardcoded-Color Remediation | 0/? | Not started | - |
+| 88. Hardcoded-Color Remediation | 1/1 | Complete   | 2026-06-04 |
 | 89. Focus + Interaction-State Unification | 0/? | Not started | - |
 | 90. Tri-State Theme Control + Persistence + FOUC | 0/? | Not started | - |
 | 91. Design-System Consolidation | 0/? | Not started | - |

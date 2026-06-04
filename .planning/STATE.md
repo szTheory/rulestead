@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.13
 milestone_name: Admin UI Dark Mode + Design-System Polish
 status: verifying
-last_updated: "2026-06-04T07:46:05.129Z"
-last_activity: 2026-06-04 — Phase 87 (Token Theme Foundation) complete; verification passed 10/10, dark mode visually approved
+last_updated: "2026-06-04T08:07:41.923Z"
+last_activity: 2026-06-04
 progress:
   total_phases: 8
-  completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
-  percent: 13
+  completed_phases: 2
+  total_plans: 4
+  completed_plans: 4
+  percent: 25
 ---
 
 # State: Rulestead
@@ -21,7 +21,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-04)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
 
-**Current focus:** Phase 87 — Token Theme Foundation
+**Current focus:** Phase 88 — Hardcoded-Color Remediation
 
 **Milestone:** v1.13 opened 2026-06-04 — see `.planning/ROADMAP.md` for phase structure
 
@@ -31,13 +31,13 @@ See: `.planning/PROJECT.md` (updated 2026-06-04)
 
 ## Current Position
 
-Phase: 87 (Token Theme Foundation) — EXECUTING
-Plan: 3 of 3
+Phase: 88 (Hardcoded-Color Remediation) — EXECUTING
+Plan: 1 of 1
 Status: Phase complete — ready for verification
 Last activity: 2026-06-04
 
 ```
-Progress: [███████░░░] 67%
+Progress: [██████████] 100%
 ```
 
 ## Phase Dependency Map
@@ -72,6 +72,7 @@ Parallel after 87: 88 ‖ 89 ‖ 90
 - **v1.13 merge posture:** land on branch; merge to main (auto-publishes minor bump) only when both-theme/contrast gate is green across all phases.
 - Phase numbering continues at **95** if a new milestone opens.
 - [Phase ?]: 87-01: Theme specs use file:// harness navigation (no Phoenix required). wcagRatio inline TypeScript, no external dep.
+- [Phase ?]: Phase 88: --rs-primary-ring gap token added to all 4 cascade blocks; 18 hardcoded rgba() literals replaced; warning-flash amber border fixed
 
 ### Deferred Items (v2)
 
@@ -113,3 +114,4 @@ All closed — v1.12 adoption evidence depth complete.
 | Phase | Plan | Duration | Notes |
 |-------|------|----------|-------|
 | Phase 87 P01 | 15min | 2 tasks | 4 files |
+| Phase 88 P01 | 8min | 2 tasks | 1 files |

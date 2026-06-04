@@ -24,7 +24,7 @@ This milestone deepens the **mounted `rulestead_admin` companion UI** only. No n
 
 ### Design System (`DSY`)
 
-- [ ] **DSY-01**: All color, surface, border, text, shadow, and focus values are token-driven; no hardcoded color literals remain in component CSS outside the theme token blocks.
+- [x] **DSY-01**: All color, surface, border, text, shadow, and focus values are token-driven; no hardcoded color literals remain in component CSS outside the theme token blocks.
 - [ ] **DSY-02**: The token contract (theme-invariant vs theme-variant) is documented, and a token/contrast reference fixture renders every token pair, status tone, and interaction state as the regression gate for later phases.
 
 ### Information Architecture (`IA`)
@@ -88,7 +88,7 @@ Deferred beyond v1.13. Tracked but not in this roadmap.
 | THM-03 | Phase 87 | Complete |
 | THM-05 | Phase 87 | Complete |
 | THM-06 | Phase 87 | Complete |
-| DSY-01 | Phase 88 | Pending |
+| DSY-01 | Phase 88 | Complete |
 | A11Y-02 | Phase 89 | Pending |
 | A11Y-03 | Phase 89 | Pending |
 | THM-02 | Phase 90 | Pending |
