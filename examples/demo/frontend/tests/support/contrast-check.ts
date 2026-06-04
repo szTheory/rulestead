@@ -63,3 +63,47 @@ export function assertAA(
     );
   }
 }
+
+/**
+ * A single color-pair entry for assertAABatch.
+ *
+ * - `label`: human-readable description shown in failure messages.
+ * - `fg`: foreground hex color (6-char, e.g. "#1a2332").
+ * - `bg`: background hex color (6-char, e.g. "#ffffff").
+ * - `level`: WCAG text level — `"normal"` (≥4.5:1) or `"large"` (≥3.0:1). Defaults to `"normal"`.
+ */
+export interface ContrastPair {
+  label: string;
+  fg: string;
+  bg: string;
+  level?: "normal" | "large";
+}
+
+/**
+ * Assert WCAG AA compliance for an array of color pairs.
+ *
+ * Iterates every entry in `pairs`, computes the contrast ratio via `wcagRatio`,
+ * and calls `assertAA` for each. On any failure, throws a descriptive error
+ * that includes the label, fg, bg, and actual ratio so failures are immediately
+ * actionable.
+ *
+ * Example:
+ *   assertAABatch([
+ *     { label: "--rs-text on --rs-surface", fg: "#1a2332", bg: "#ffffff" },
+ *     { label: "--rs-text-muted on --rs-surface", fg: "#5c6b7a", bg: "#ffffff" },
+ *   ]);
+ */
+export function assertAABatch(pairs: ContrastPair[]): void {
+  for (const pair of pairs) {
+    const level = pair.level ?? "normal";
+    const required = level === "large" ? 3.0 : 4.5;
+    const ratio = wcagRatio(pair.fg, pair.bg);
+    if (ratio < required) {
+      throw new Error(
+        `WCAG AA ${level} contrast FAIL — ${pair.label}\n` +
+          `  fg: ${pair.fg}  bg: ${pair.bg}\n` +
+          `  ratio: ${ratio.toFixed(2)} (required ≥ ${required})`,
+      );
+    }
+  }
+}
