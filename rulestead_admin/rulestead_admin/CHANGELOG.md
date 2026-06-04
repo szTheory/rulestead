@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.7](https://github.com/szTheory/rulestead/compare/rulestead_admin-v0.1.6...rulestead_admin-v0.1.7) (2026-06-04)
+
+
+### Features
+
+* **admin:** information-architecture and design-system iteration ([#31](https://github.com/szTheory/rulestead/issues/31)) ([41a8d80](https://github.com/szTheory/rulestead/commit/41a8d8052dec84a1b9a1a47ef3e394a8912a7b24))
+
 ## [0.1.6](https://github.com/szTheory/rulestead/compare/rulestead_admin-v0.1.5...rulestead_admin-v0.1.6) (2026-05-30)
 
 
