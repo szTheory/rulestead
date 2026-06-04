@@ -121,7 +121,11 @@ jobs:
             exit 0
           fi
 
-          if [[ ! "$title" =~ ^chore\(main\):\ release\  ]]; then
+          # release-please's default linked-versions title is `chore: release main`
+          # (no scope); accept that and an optional `chore(<scope>): release ...`.
+          # Regex held in a var (shellcheck-friendly for the optional group).
+          release_title_re='^chore(\([^)]*\))?: release '
+          if [[ ! "$title" =~ $release_title_re ]]; then
             echo "PR #$pr_number title does not match release PR pattern: $title"
             exit 1
           fi

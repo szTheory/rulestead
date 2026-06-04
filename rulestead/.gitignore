@@ -24,3 +24,10 @@
 
 # Stray captured command/test output dumps.
 /output.txt
+/test_output.txt
+/test_failures.txt
+/debug_out.txt
+/form_failures.txt
+
+# ExUnit @tag :tmp_dir scratch (e.g. CodeRefs.ScannerTest); never source.
+/tmp/
