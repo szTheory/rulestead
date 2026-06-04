@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.14
 milestone_name: Brand System Realization
 status: executing
-last_updated: "2026-06-04T21:18:07.373Z"
+last_updated: "2026-06-04T21:19:25Z"
 last_activity: 2026-06-04
 progress:
   total_phases: 6
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 8
-  completed_plans: 7
-  percent: 17
+  completed_plans: 8
+  percent: 33
 ---
 
 # State: Rulestead
@@ -21,7 +21,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-04)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
 
-**Current focus:** Phase 96 — design-tokens-brandbook-scaffold
+**Current focus:** Phase 97 — logo & mark SVG system
 
 **Milestone:** v1.14 opened 2026-06-04 — see `.planning/ROADMAP.md` for phase structure
 
@@ -31,12 +31,12 @@ See: `.planning/PROJECT.md` (updated 2026-06-04)
 
 ## Current Position
 
-Phase: 96 (design-tokens-brandbook-scaffold) — EXECUTING
-Plan: 4 of 4
-Status: Ready to execute
+Phase: 97
+Plan: Not started
+Status: Ready to plan
 Last activity: 2026-06-04
 
-Progress bar: `[ ░░░░░░░░░░ ] 0% — 0/6 phases`
+Progress bar: `[ ###░░░░░░░ ] 33% — 2/6 phases`
 
 ## Phase Dependency Map
 
@@ -98,6 +98,9 @@ Human checkpoints (cannot be automated):
 - [Phase 96-01]: tokens.css reference mirror committed with :root invariant block + two-block light/dark + Tailwind excerpt; no color token on :root (D-05)
 - [Phase 96-01]: --rs-primary-hover interim target #2d5f7c (darkened Stead Blue); Phase 98 may refine the hover shade
 - [Phase 96]: [Phase 96-03]: check_brand_tokens.py exits 1 by design against un-re-skinned CSS — Phase 96 success criterion 3 — proves the guard mechanism works before Phase 98 re-skins the admin CSS
+- [Phase 96]: brandbook/ scaffold committed — tokens.json (DTCG 2025.10), tokens.css (--rs-* mirror), check_brand_tokens.py (exits 1 intentionally against generic CSS), lint.sh extended additively
+- [Phase 96]: brand-book.md relocated from prompts/ via git mv; §12 hexes reconciled to AA-verified canonicals; Gap-2 per-surface notes added for Success/Danger on Stone Mist
+- [Phase 96]: check_synced_pair.py wired into lint.sh (was dev-only; now CI guard)
 
 ### Deferred Items (v2)
 
@@ -127,9 +130,9 @@ All closed — v1.12 adoption evidence depth complete.
 
 ## Operator Next Steps
 
-- Start Phase 95 with `/gsd:plan-phase 95`
-- Note: Phase 95 ends with a human checkpoint — maintainer must review and accept AA-adjusted hex values before proceeding
+- Start Phase 97 with `/gsd:plan-phase 97`
 - Note: Phase 97 has a mid-phase checkpoint — maintainer must select logo concept A/B/C before full lockup is produced
+- Note: Phase 96 check_brand_tokens.py intentionally exits 1 until Phase 98 re-skins rulestead_admin.css
 
 ## Performance Metrics
 
@@ -150,3 +153,4 @@ All closed — v1.12 adoption evidence depth complete.
 | Phase 96 P01 | 4min | 2 tasks | 2 files |
 | Phase 96 P02 | 3min | 2 tasks | 4 files |
 | Phase 96 P03 | 1min | 2 tasks | 2 files |
+| Phase 96 P04 | 5min | 2 tasks | 2 files |
