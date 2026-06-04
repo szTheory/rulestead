@@ -61,7 +61,9 @@ Plans:
   1. A grep for known inline color patterns (`rgba(26,35,50`, `rgba(37,99,235`, `rgba(255,255,255`, hard-hex `#` values) outside the token block sections returns zero matches in `rulestead_admin.css`.
   2. The ~12 inline `box-shadow` / gradient veil / cmdk scrim values are replaced by `--rs-shadow*`, `--rs-overlay-veil`, and `--rs-scrim` tokens; a visual diff in both themes shows no regressions on surfaces that previously used those values.
   3. Inline focus tints (raw `rgba()` outlines used in earlier focus rules) are removed; no component rule references a color literal for focus state.
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 88-01-PLAN.md — Token-redirect all 18 hardcoded literals + warning-flash fix + --rs-primary-ring gap token
 **UI hint**: yes
 
 ### Phase 89: Focus + Interaction-State Unification
