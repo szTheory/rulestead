@@ -21,6 +21,11 @@ python3 "${RULESTEAD_REPO}/scripts/check_synced_pair.py"
 # Intentionally exits 1 until Phase 98 re-skins rulestead_admin.css to the mineral palette.
 python3 "${RULESTEAD_REPO}/scripts/check_brand_tokens.py"
 
+# Tokens.css mirror drift: the brandbook/tokens.css reference mirror (light + dark blocks)
+# must stay in sync with tokens.json admin_css_mapping. Green now; guards against drift
+# during Phase 98's re-skin.
+python3 "${RULESTEAD_REPO}/scripts/check_tokens_css.py"
+
 # SVG size budget: logo ≤20KB, specimens ≤50KB. No-op when dirs don't exist (Phases 97/99).
 shopt -s nullglob
 for f in "${RULESTEAD_REPO}/brandbook/assets/logo/"*.svg; do
