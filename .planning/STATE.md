@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.12
-milestone_name: Adoption Evidence Depth
-status: milestone complete
-last_updated: "2026-05-29"
-last_activity: 2026-05-29 — v1.12 Adoption Evidence Depth shipped (Phases 82–86)
+milestone: v1.13
+milestone_name: Admin UI Dark Mode + Design-System Polish
+status: planning
+last_updated: "2026-06-04T06:43:19.016Z"
+last_activity: 2026-06-04
 progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 5
-  completed_plans: 5
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # State: Rulestead
@@ -29,10 +29,10 @@ See: `.planning/PROJECT.md` (updated 2026-05-29)
 
 ## Current Position
 
-Phase: —
+Phase: Not started (defining requirements)
 Plan: —
-Status: v1.12 milestone complete
-Last activity: 2026-05-29 — adoption-lab docs, Playwright admin depth, install journey, FleetDesk seeds, `mix verify.phase82`
+Status: Defining requirements
+Last activity: 2026-06-04 — Milestone v1.13 started
 
 ## Accumulated Context
 
