@@ -1,6 +1,6 @@
 # Phase 95: Palette Reconciliation — Locked Decision Record
 
-**Status:** Locked (D-11 maintainer sign-off pending)
+**Status:** Locked — D-11 maintainer sign-off ACCEPTED 2026-06-04 (all 15 AA-adjusted hexes accepted; Gap 2 resolved via darkened variants)
 **Authored:** 2026-06-04
 **Verified by:** `python3 scripts/check_contrast.py` — exits 0, 18 checks PASS
 
@@ -272,18 +272,19 @@ All entries are verified by `python3 scripts/check_contrast.py` (exits 0).
 
 ### Open Questions for Maintainer
 
-**Gap 2 resolution:** Success `#2F7D57` (4.20:1) and Danger `#B44949` (4.41:1) fail AA
-on Stone Mist `#E8ECE8`. Corrected hexes `#2d7753` and `#b04848` are computed and
-verified. Maintainer must decide:
-1. Include darkened variants `#2d7753` / `#b04848` in the canonical palette as
-   per-surface token values (most complete; recommended by planner) — or —
-2. Add a usage-policy note only: "Do not use Success/Danger book hexes as normal-weight
-   text on Stone Mist surfaces without AA-darkening" (same approach as Signal Gold).
+**Gap 2 resolution — DECIDED 2026-06-04 (Option 1, darkened variants):** Success
+`#2F7D57` (4.20:1) and Danger `#B44949` (4.41:1) fail AA on Stone Mist `#E8ECE8`.
+The maintainer accepted the darkened variants `#2d7753` (Success) and `#b04848`
+(Danger) into the **canonical palette as per-surface token values** — the most
+complete resolution. Phase 96 `tokens.json` MUST encode these as the Stone-Mist
+(and, per the one-hex-per-role strategy in §4, canonical) Success/Danger values.
+The usage-policy-only alternative was NOT chosen.
 
 See §3b (Gap 2 note) and §4 (Success/Danger canonical note) for context.
 
 ### Maintainer Gate
 
-- [ ] Maintainer sign-off: I accept the 15 AA-adjusted hexes above as brand-compatible.
+- [x] Maintainer sign-off (2026-06-04): I accept the 15 AA-adjusted hexes above as brand-compatible.
 
-_Sign-off required before Phase 96 tokens.json values are authored. This is decision D-11._
+_Sign-off complete. Gap 2 resolved via darkened variants (Option 1). Phase 96
+tokens.json values are now unblocked. This is decision D-11._
