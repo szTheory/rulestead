@@ -197,26 +197,11 @@
 
    Verification command (run from repo root — must print IDENTICAL):
 
-     python3 - <<'PY'
-     import sys, re
-     raw=open('rulestead_admin/priv/static/css/rulestead_admin.css').read()
-     # strip /* ... */ comments first — this header comment itself MENTIONS the
-     # dark selectors, which would otherwise make css.find() match inside the comment.
-     css=re.sub(r'/\*.*?\*/','',raw,flags=re.S)
-     def decls(sel):
-         i=css.find(sel); j=css.find('{',i); depth=0; k=j
-         while k<len(css):
-             if css[k]=='{': depth+=1
-             elif css[k]=='}':
-                 depth-=1
-                 if depth==0: break
-             k+=1
-         return sorted(l.strip() for l in css[j+1:k].splitlines() if l.strip().startswith('--rs-'))
-     a=decls('@media (prefers-color-scheme: dark)')
-     b=decls('.rs-shell[data-theme="dark"]')
-     if a and a==b: print(f'SYNCED PAIR IDENTICAL ({len(a)} tokens)')
-     else: print('SYNCED PAIR MISMATCH'); sys.exit(1)
-     PY
+     python3 scripts/check_synced_pair.py
+
+   (The check lives in a script rather than inline here because a CSS comment
+   cannot contain a comment-stripping regex without prematurely closing itself —
+   CSS comments do not nest.)
 
    ── HOW TO ADD A TOKEN ──────────────────────────────────────────────────────
 
