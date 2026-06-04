@@ -81,7 +81,7 @@ Plans:
 - [x] 95-01-PLAN.md — Wave 0: scripts/check_contrast.py (WCAG + OKLCH verification script)
 - [x] 95-02-PLAN.md — 95-PALETTE-RECONCILIATION.md (full reconciliation table + dark ramp + policies)
 - [x] 95-03-PLAN.md — 95-BRAND-AUDIT.md (27-section pressure-test scorecard)
-- [ ] 95-04-PLAN.md — D-11 maintainer sign-off checkpoint (phase-close gate)
+- [x] 95-04-PLAN.md — D-11 maintainer sign-off checkpoint (phase-close gate)
 
 ### Phase 97: Logo & Mark SVG System
 
@@ -101,8 +101,8 @@ Plans:
 Plans:
 
 - [x] 95-01-PLAN.md — Wave 0: scripts/check_contrast.py (WCAG + OKLCH verification script)
-- [ ] 95-02-PLAN.md — 95-PALETTE-RECONCILIATION.md (full reconciliation table + dark ramp + policies)
-- [ ] 95-03-PLAN.md — 95-BRAND-AUDIT.md (27-section pressure-test scorecard)
+- [x] 95-02-PLAN.md — 95-PALETTE-RECONCILIATION.md (full reconciliation table + dark ramp + policies)
+- [x] 95-03-PLAN.md — 95-BRAND-AUDIT.md (27-section pressure-test scorecard)
 - [ ] 95-04-PLAN.md — D-11 maintainer sign-off checkpoint (phase-close gate)
 
 **UI hint**: yes
@@ -122,7 +122,7 @@ Plans:
 **Plans**: 4 plans
 Plans:
 
-- [ ] 95-01-PLAN.md — Wave 0: scripts/check_contrast.py (WCAG + OKLCH verification script)
+- [x] 95-01-PLAN.md — Wave 0: scripts/check_contrast.py (WCAG + OKLCH verification script)
 - [ ] 95-02-PLAN.md — 95-PALETTE-RECONCILIATION.md (full reconciliation table + dark ramp + policies)
 - [ ] 95-03-PLAN.md — 95-BRAND-AUDIT.md (27-section pressure-test scorecard)
 - [ ] 95-04-PLAN.md — D-11 maintainer sign-off checkpoint (phase-close gate)
@@ -176,7 +176,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 95. Brand Audit + Palette Reconciliation | 4/4 | Complete   | 2026-06-04 |
+| 95. Brand Audit + Palette Reconciliation | 4/4 | Complete    | 2026-06-04 |
 | 96. Design Tokens (brandbook/ scaffold) | 0/0 | Not started | - |
 | 97. Logo & Mark SVG System | 0/0 | Not started | - |
 | 98. Admin Re-skin (CSS Cascade) | 0/0 | Not started | - |
