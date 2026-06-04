@@ -429,6 +429,10 @@ defmodule RulesteadAdmin.Components.Shell do
 
           destroyed() {
             this._mq.removeEventListener("change", this._mqListener)
+            // Defensive: if torn down in the same tick as a toggle (before the rAF
+            // clears it), don't leave transitions permanently suppressed.
+            const shell = this.el.closest(".rs-shell")
+            if (shell) shell.removeAttribute("data-theme-switching")
           }
         }
       </script>
