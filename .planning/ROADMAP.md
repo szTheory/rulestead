@@ -91,7 +91,11 @@ Plans:
   3. A device with a pinned theme (light or dark) that mismatches its OS setting sees an instant snap to the correct theme — no animated color wipe, confirmed by removing and re-adding `data-theme-pending` in devtools.
   4. Switching OS preference while System mode is active live-updates the admin theme without a reload.
   5. The optional `theme_default` attribute on `shell.ex page/1` is documented; a host that supplies it gets the correct initial token without JS.
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 90-01-PLAN.md — File:// fixture (theme-control-harness.html) + Playwright spec (theme-control.spec.ts, 11 THM-02/THM-04 behavioral tests)
+- [ ] 90-02-PLAN.md — shell.ex: .ThemeControl ColocatedHook + radiogroup markup + data-theme-pending + theme_default attr; rulestead_admin.css: control styles + FOUC suppression
+- [ ] 90-03-PLAN.md — Integration guide: theme_default attr + optional host head-script + CSP note
 **UI hint**: yes
 
 ### Phase 91: Design-System Consolidation
@@ -147,7 +151,7 @@ Plans:
 | 87. Token Theme Foundation | 3/3 | Complete   | 2026-06-04 |
 | 88. Hardcoded-Color Remediation | 1/1 | Complete   | 2026-06-04 |
 | 89. Focus + Interaction-State Unification | 2/2 | Complete   | 2026-06-04 |
-| 90. Tri-State Theme Control + Persistence + FOUC | 0/? | Not started | - |
+| 90. Tri-State Theme Control + Persistence + FOUC | 0/3 | Not started | - |
 | 91. Design-System Consolidation | 0/? | Not started | - |
 | 92. IA / Home Refinement | 0/? | Not started | - |
 | 93. Per-Screen Polish Across All Admin Screens | 0/? | Not started | - |
@@ -211,12 +215,5 @@ Plans:
 <summary>✅ v1.10.0 Post-GA Band Truth & Adopter Closure (Phases 69-72) — SHIPPED 2026-05-28</summary>
 
 Archived to `.planning/milestones/v1.10.0-phases/`.
-
-</details>
-
-<details>
-<summary>✅ v1.9.0 Host-Supplied Preview Evidence (Phases 65-68) — SHIPPED 2026-05-28</summary>
-
-Archived to `.planning/milestones/v1.9.0-phases/`.
 
 </details>
