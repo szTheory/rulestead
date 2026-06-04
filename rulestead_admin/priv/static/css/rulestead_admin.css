@@ -197,6 +197,7 @@
   /* Focus + disabled */
   --rs-focus-ring-color: rgba(37, 99, 235, 0.55);
   --rs-focus-ring:       0 0 0 3px var(--rs-focus-ring-color);
+  --rs-primary-ring:     rgba(14, 165, 233, 0.22);   /* sky-tinted selected-item ring (light) */
   --rs-disabled-bg:      var(--rs-neutral-100);
   --rs-disabled-text:    var(--rs-neutral-500);
 
@@ -278,6 +279,7 @@
     /* Focus + disabled */
     --rs-focus-ring-color: rgba(96, 165, 250, 0.75);
     --rs-focus-ring:       0 0 0 3px var(--rs-focus-ring-color);
+    --rs-primary-ring:     rgba(96, 165, 250, 0.25);   /* sky-tinted selected-item ring (dark — slightly higher alpha for visibility) */
     --rs-disabled-bg:      #253243;
     --rs-disabled-text:    #6b84a0;
 
@@ -359,6 +361,7 @@
   /* Focus + disabled */
   --rs-focus-ring-color: rgba(96, 165, 250, 0.75);
   --rs-focus-ring:       0 0 0 3px var(--rs-focus-ring-color);
+  --rs-primary-ring:     rgba(96, 165, 250, 0.25);   /* sky-tinted selected-item ring (dark — slightly higher alpha for visibility) */
   --rs-disabled-bg:      #253243;
   --rs-disabled-text:    #6b84a0;
 
@@ -440,6 +443,7 @@
   /* Focus + disabled */
   --rs-focus-ring-color: rgba(37, 99, 235, 0.55);
   --rs-focus-ring:       0 0 0 3px var(--rs-focus-ring-color);
+  --rs-primary-ring:     rgba(14, 165, 233, 0.22);   /* sky-tinted selected-item ring (light) */
   --rs-disabled-bg:      var(--rs-neutral-100);
   --rs-disabled-text:    var(--rs-neutral-500);
 
