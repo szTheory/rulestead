@@ -117,6 +117,15 @@ None — plan executed cleanly with one expected fallback.
 
 Note: `scripts/gen_wordmark_paths.py` is committed and correct — it will produce exact Sora Bold paths when run in an environment with Google Fonts CDN access.
 
+**RESOLVED (orchestrator follow-up):** The CDN was reachable via `curl` (only Python's
+`urllib` hung in this environment). The Sora Bold TTF was fetched with `curl` and the
+letterforms regenerated with fontTools (`OS/2.sCapHeight`-scaled, 40px cap height, baseline
+y=52, em-derived advances), then SVGO-optimized. `rs-wordmark.svg` / `rs-wordmark-dark.svg`
+now carry **exact Sora Bold glyph outlines** (zero `<text>`, ~4.3 KB each, within budget).
+Verified visually on light and dark. The `<desc>` strings were updated from "geometric
+letterforms" to "set in Sora Bold". (`rs-social-card.svg` still uses the simplified
+letterforms — acceptable for the OG card; can be regenerated the same way if desired.)
+
 ## Threat Surface Scan
 
 No new security-relevant surface beyond the plan's threat model:
