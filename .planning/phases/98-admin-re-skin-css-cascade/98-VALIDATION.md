@@ -1,10 +1,11 @@
 ---
 phase: 98
 slug: admin-re-skin-css-cascade
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-06-05
+completed: 2026-06-05
 ---
 
 # Phase 98 — Validation Strategy
@@ -45,11 +46,11 @@ created: 2026-06-05
 
 | Requirement | Wave | Validation Behavior | Test Type | Automated Command | File Exists | Status |
 |-------------|------|---------------------|-----------|-------------------|-------------|--------|
-| SKIN-02 / D-05a | 0 | `check_synced_pair.py` also asserts Block 1≡4 (light pair) | automated (post-extension) | `python3 scripts/check_synced_pair.py` | ❌ W0 extend | ⬜ pending |
-| SKIN-03 / D-05b | 0 | `check_brand_tokens.py` also diffs Block 3 vs `admin_css_mapping.dark` | automated (post-extension) | `python3 scripts/check_brand_tokens.py` | ❌ W0 extend | ⬜ pending |
-| SKIN-01 | 1+ | Blocks 1–4 use mineral hex; zero non-color diff | source diff review + guards | `git diff rulestead_admin/priv/static/css/rulestead_admin.css` | ✅ | ⬜ pending |
-| SKIN-02 | 1+ | Synced pairs 2≡3 AND 1≡4 byte-identical; WCAG-AA both themes | automated | `python3 scripts/check_synced_pair.py && python3 scripts/check_contrast.py` | ✅ (+W0) | ⬜ pending |
-| SKIN-03 | 1+ | Block 1 light + Block 3 dark `--rs-*` match `tokens.json admin_css_mapping` | automated | `python3 scripts/check_brand_tokens.py` | ✅ (+W0) | ⬜ pending |
+| SKIN-02 / D-05a | 0 | `check_synced_pair.py` also asserts Block 1≡4 (light pair) | automated (post-extension) | `python3 scripts/check_synced_pair.py` | ✅ W0 extended | ✅ green |
+| SKIN-03 / D-05b | 0 | `check_brand_tokens.py` also diffs Block 3 vs `admin_css_mapping.dark` | automated (post-extension) | `python3 scripts/check_brand_tokens.py` | ✅ W0 extended | ✅ green |
+| SKIN-01 | 1+ | Blocks 1–4 use mineral hex; zero non-color diff | source diff review + guards | `git diff rulestead_admin/priv/static/css/rulestead_admin.css` | ✅ | ✅ green |
+| SKIN-02 | 1+ | Synced pairs 2≡3 AND 1≡4 byte-identical; WCAG-AA both themes | automated | `python3 scripts/check_synced_pair.py && python3 scripts/check_contrast.py` | ✅ (+W0) | ✅ green |
+| SKIN-03 | 1+ | Block 1 light + Block 3 dark `--rs-*` match `tokens.json admin_css_mapping` | automated | `python3 scripts/check_brand_tokens.py` | ✅ (+W0) | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -61,8 +62,8 @@ The two guard-script extensions are the only test-infrastructure gaps — and th
 part of the phase work (additive, stdlib-only, must preserve existing output/exit
 semantics and `lint.sh` parse points):
 
-- [ ] `scripts/check_synced_pair.py` — extend to also assert Block 1≡4 (light pair) — D-05a
-- [ ] `scripts/check_brand_tokens.py` — extend to also diff Block 3 vs `admin_css_mapping.dark` — D-05b
+- [x] `scripts/check_synced_pair.py` — extend to also assert Block 1≡4 (light pair) — D-05a
+- [x] `scripts/check_brand_tokens.py` — extend to also diff Block 3 vs `admin_css_mapping.dark` — D-05b
 
 *Already-passing infrastructure (no Wave 0 work): `check_contrast.py` (18 AA checks green), `check_tokens_css.py`.*
 
@@ -80,11 +81,11 @@ semantics and `lint.sh` parse points):
 
 ## Validation Sign-Off
 
-- [ ] All tasks have automated guard verification or are the Wave 0 guard extensions themselves
-- [ ] Sampling continuity: guard quick-run after every task commit
-- [ ] Wave 0 covers both guard extensions (D-05a, D-05b) before value edits are gated
-- [ ] No watch-mode flags (guards are one-shot, exit-coded)
-- [ ] Feedback latency < ~2s
-- [ ] `nyquist_compliant: true` set in frontmatter once map is bound to plan/task IDs
+- [x] All tasks have automated guard verification or are the Wave 0 guard extensions themselves
+- [x] Sampling continuity: guard quick-run after every task commit
+- [x] Wave 0 covers both guard extensions (D-05a, D-05b) before value edits are gated
+- [x] No watch-mode flags (guards are one-shot, exit-coded)
+- [x] Feedback latency < ~2s
+- [x] `nyquist_compliant: true` set in frontmatter once map is bound to plan/task IDs
 
-**Approval:** pending
+**Approval:** ✅ Phase 98 complete — all guards green, SC-1 diff reviewed and approved (2026-06-05)

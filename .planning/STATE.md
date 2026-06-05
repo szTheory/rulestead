@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.14
 milestone_name: Brand System Realization
 status: executing
-last_updated: "2026-06-05T19:50:59.782Z"
+last_updated: "2026-06-05T20:00:00.000Z"
 last_activity: 2026-06-05
 progress:
   total_phases: 7
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 16
-  completed_plans: 15
-  percent: 43
+  completed_plans: 16
+  percent: 57
 ---
 
 # State: Rulestead
@@ -21,7 +21,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-04)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
 
-**Current focus:** Phase 98 — admin-re-skin-css-cascade
+**Current focus:** Phase 99 — Specimens (next after Phase 98 complete)
 
 **Milestone:** v1.14 opened 2026-06-04 — see `.planning/ROADMAP.md` for phase structure
 
@@ -31,12 +31,12 @@ See: `.planning/PROJECT.md` (updated 2026-06-04)
 
 ## Current Position
 
-Phase: 98 (admin-re-skin-css-cascade) — EXECUTING
-Plan: 4 of 4
-Status: Ready to execute
+Phase: 98 (admin-re-skin-css-cascade) — COMPLETE
+Plan: 4 of 4 complete
+Status: Phase complete — ready for Phase 99 (Specimens)
 Last activity: 2026-06-05
 
-Progress bar: `[ ####░░░░░░ ] 43% — 3/7 phases` (Phase 101 — HTML brand book — appended as v1.14 capstone, queued after 98–100)
+Progress bar: `[ #####░░░░░ ] 57% — 4/7 phases` (Phase 101 — HTML brand book — appended as v1.14 capstone, queued after 98–100)
 
 ## Phase Dependency Map
 
@@ -115,6 +115,11 @@ Human checkpoints (cannot be automated):
 - [Phase 98-03]: Block 3 source-of-truth; 8 mineral dark swaps applied verbatim from tokens.json admin_css_mapping.dark; --rs-success-border #166534→#166634 one-digit fix applied
 - [Phase 98-03]: Dark synced-pair restored: Block 2 (@media) mirrors Block 3 ([data-theme=dark]); check_synced_pair.py exits 0 (56 dark + 57 light tokens)
 - [Phase 98-03]: SKIN-01 complete — all 4 cascade blocks carry mineral palette; check_brand_tokens.py exits 0 (68 tokens, 15 mismatches resolved)
+- [Phase 98]: All 4 cascade blocks re-skinned to mineral palette — colors only; 15 hex swaps (7 light Block 1+4, 8 dark Block 3+2)
+- [Phase 98]: check_synced_pair.py extended to assert both Block 1≡4 (light) and Block 2≡3 (dark) pairs
+- [Phase 98]: check_brand_tokens.py extended to diff Block 3 vs admin_css_mapping.dark
+- [Phase 98]: lint.sh CWD bug fixed — cd back to RULESTEAD_REPO before guard invocations
+- [Phase 98]: design-system.html swatches auto-reflected mineral palette via var(--rs-*) — zero manual edits; SC-1 diff reviewed and approved
 
 ### Deferred Items (v2)
 
@@ -144,9 +149,9 @@ All closed — v1.12 adoption evidence depth complete.
 
 ## Operator Next Steps
 
-- Start Phase 98 with `/gsd:plan-phase 98` (Admin Re-skin — colors-only CSS cascade edit)
-- Note: Phase 96 check_brand_tokens.py intentionally exits 1 until Phase 98 re-skins rulestead_admin.css
-- Note: lint.sh has a pre-existing CWD bug (check_synced_pair.py relative path fails after `cd rulestead/`) — fix before Phase 98 closes
+- Start Phase 99 with `/gsd:plan-phase 99` (Specimens — reproducible SVG specimens for brand system)
+- Phase 98 complete: all guards green, SC-1 approved, planning artifacts updated
+- Note: Phase 96 check_brand_tokens.py intentionally exits 1 until Phase 98 re-skins rulestead_admin.css — RESOLVED (Phase 98 complete)
 
 ## Performance Metrics
 
@@ -173,3 +178,4 @@ All closed — v1.12 adoption evidence depth complete.
 | Phase 98-admin-re-skin-css-cascade P01 | 8 | 2 tasks | 3 files |
 | Phase 98-admin-re-skin-css-cascade P02 | 7min | 2 tasks | 2 files |
 | Phase 98-admin-re-skin-css-cascade P03 | 4min | 2 tasks | 1 files |
+| Phase 98-admin-re-skin-css-cascade P04 | 5min | 2 tasks | 4 files |
