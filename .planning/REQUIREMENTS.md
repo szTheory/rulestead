@@ -35,7 +35,7 @@ Requirements for this milestone. Each maps to exactly one roadmap phase.
 - [x] **LOGO-02**: The chosen mark ships a full lockup: primary (wordmark + icon), icon-only, monochrome, and dark/light variants.
 - [x] **LOGO-03**: A `favicon.svg` (with minimal raster fallback) is legible at 16px, and a 1200×630 social/OG card is committed as SVG.
 - [x] **LOGO-04**: All logo SVGs are optimized (SVGO), accessible (`title`/`desc`), free of embedded raster, and use outlined text or a documented font fallback.
-- [ ] **LOGO-05**: The off-brand phoenix-flame demo logo (and its fingerprinted copy) is replaced with the new mark, and admin/demo references are updated.
+- [x] **LOGO-05**: The off-brand phoenix-flame demo logo (and its fingerprinted copy) is replaced with the new mark, and admin/demo references are updated.
 
 ### Admin Re-skin (SKIN)
 
@@ -109,7 +109,7 @@ Which phases cover which requirements. Filled during roadmap creation.
 | LOGO-02 | Phase 97 | Complete |
 | LOGO-03 | Phase 97 | Complete |
 | LOGO-04 | Phase 97 | Complete |
-| LOGO-05 | Phase 97 | Pending |
+| LOGO-05 | Phase 97 | Complete |
 | SKIN-01 | Phase 98 | Pending |
 | SKIN-02 | Phase 98 | Pending |
 | SKIN-03 | Phase 98 | Pending |
