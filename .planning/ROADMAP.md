@@ -108,10 +108,21 @@ Plans:
 **Plans**: 4 plans
 Plans:
 
-- [ ] 97-01-PLAN.md — (to be planned)
-- [ ] 97-02-PLAN.md — (to be planned)
-- [ ] 97-03-PLAN.md — (to be planned)
-- [ ] 97-04-PLAN.md — (to be planned)
+**Wave 1**
+
+- [ ] 97-01-PLAN.md — Author three mark concepts (A/B/C) + CONCEPT-REVIEW.md for selection
+
+**Wave 2** *(blocked on Wave 1; first task is the human A/B/C selection — autonomous: false)*
+
+- [ ] 97-02-PLAN.md — Concept selection gate + full 7-file lockup set (wordmark/mark/mono/favicon/social, outlined text, SVGO)
+
+**Wave 3** *(blocked on Wave 2)*
+
+- [ ] 97-03-PLAN.md — Copy marks to admin priv/static + replace phoenix-flame demo logo + mix phx.digest
+
+**Wave 4** *(blocked on Wave 3)*
+
+- [ ] 97-04-PLAN.md — Full Nyquist verification sweep + STATE/ROADMAP/REQUIREMENTS update
 
 **UI hint**: yes
 
