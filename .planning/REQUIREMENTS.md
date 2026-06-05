@@ -45,8 +45,8 @@ Requirements for this milestone. Each maps to exactly one roadmap phase.
 
 ### Specimens (SPEC)
 
-- [ ] **SPEC-01**: Reproducible SVG specimens exist for the color palette and the typography system.
-- [ ] **SPEC-02**: Reproducible SVG specimens exist for core UI components (buttons/cards/badges), a code block, a README header mock, and a social card.
+- [x] **SPEC-01**: Reproducible SVG specimens exist for the color palette and the typography system.
+- [x] **SPEC-02**: Reproducible SVG specimens exist for core UI components (buttons/cards/badges), a code block, a README header mock, and a social card.
 
 ### Marketing & Voice Copy (COPY)
 
@@ -128,8 +128,8 @@ Which phases cover which requirements. Filled during roadmap creation.
 | SKIN-01 | Phase 98 | Complete |
 | SKIN-02 | Phase 98 | Complete |
 | SKIN-03 | Phase 98 | Complete |
-| SPEC-01 | Phase 99 | Pending |
-| SPEC-02 | Phase 99 | Pending |
+| SPEC-01 | Phase 99 | Complete |
+| SPEC-02 | Phase 99 | Complete |
 | COPY-01 | Phase 100 | Pending |
 | COPY-02 | Phase 100 | Pending |
 | REPO-01 | Phase 100 | Pending |
