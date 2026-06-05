@@ -2,16 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.14
 milestone_name: Brand System Realization
-status: ready_to_execute
-last_updated: 2026-06-05T21:30:00.000Z
+status: executing
+last_updated: "2026-06-05T21:39:09.766Z"
 last_activity: 2026-06-05
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 20
-  completed_plans: 16
+  completed_plans: 17
   percent: 57
-stopped_at: Phase 99 planned (4 plans, 3 waves) — ready to execute
 ---
 
 # State: Rulestead
@@ -32,10 +31,10 @@ See: `.planning/PROJECT.md` (updated 2026-06-04)
 
 ## Current Position
 
-Phase: 99
-Plan: 4 plans created (99-01..99-04), plan-check passed
-Status: Ready to execute
-Last activity: 2026-06-05
+Phase: 99 (specimens) — EXECUTING
+Plan: 2 of 4
+Status: Executing Phase 99 — Plan 01 complete
+Last activity: 2026-06-05 -- Phase 99 Plan 01 complete (palette.svg + typography.svg)
 
 Progress bar: `[ #####░░░░░ ] 57% — 4/7 phases` (Phase 101 — HTML brand book — appended as v1.14 capstone, queued after 98–100)
 
@@ -89,6 +88,8 @@ Human checkpoints (cannot be automated):
 - [Phase 97-03]: rs-mark.svg + rs-mark-dark.svg committed to `rulestead_admin/priv/static/images/` (LOGO-04 done); phoenix-flame (FD4F00) retired from demo logo (LOGO-05 done).
 - [Phase 97-03]: New demo logo fingerprint: `2d303e8acdf20eb43468b22535dfba4e` (replaced `06a11be1f2cdde2c851763d00bdd2e80`); cache_manifest.json gitignored in demo backend — not committed but verified regenerated.
 - [Phase 97-03]: Orchestrator visual confirmation passed — new mark renders at 36px in demo header on light+dark; favicon legible at 16px.
+- [Phase 99-01]: palette.svg + typography.svg committed to brandbook/assets/specimens/. Both SVGO-optimized, accessible (role=img + title + desc + aria-labelledby), zero base64, well within 51200-byte CI budget (palette 10034 bytes, typography 3680 bytes). SPEC-01 done.
+- [Phase 99-01]: SVGO preset-default strips role="img" via removeUnknownsAndDefaults — re-inserted via sed after optimization; shared svgo.config.mjs left unmodified.
 - [Phase 97-04]: Phase 97 complete 2026-06-05. Full Nyquist sweep passed (13/13 assertions green). Selected mark G4c (multivariate decision branch). 7-SVG lockup set in brandbook/assets/logo/. Admin copies in rulestead_admin/priv/static/images/. Phoenix-flame demo logo retired; new fingerprint `2d303e8acdf20eb43468b22535dfba4e`. LOGO-01..05 done.
 - [Phase 87-01]: Theme specs use file:// harness navigation (no Phoenix required). wcagRatio inline TypeScript, no external dep.
 - [Phase 88]: --rs-primary-ring gap token added to all 4 cascade blocks; 18 hardcoded rgba() literals replaced; warning-flash amber border fixed
@@ -180,3 +181,4 @@ All closed — v1.12 adoption evidence depth complete.
 | Phase 98-admin-re-skin-css-cascade P02 | 7min | 2 tasks | 2 files |
 | Phase 98-admin-re-skin-css-cascade P03 | 4min | 2 tasks | 1 files |
 | Phase 98-admin-re-skin-css-cascade P04 | 5min | 2 tasks | 4 files |
+| Phase 99-specimens P01 | 10min | 2 tasks | 2 files |
