@@ -1,8 +1,9 @@
 # Rulestead Mark — Concept Review (Phase 97-01)
 
-**Status:** Awaiting maintainer selection
-**Gate:** Phase 97-02 is blocked until one concept is selected
-**Instruction:** Reply with a single letter — **A**, **B**, or **C** — to select the concept that will become the canonical Rulestead mark.
+**Status:** ✅ RESOLVED — maintainer selected a derived mark (**G4c**) after an interactive design exploration. Gate is open; Phase 97-02 may proceed.
+**Gate:** Phase 97-02 was blocked until one concept was selected.
+**Selected mark:** `brandbook/assets/logo/concepts/rs-mark-concept-g4c.svg` (see "Selection Outcome" at the bottom).
+**Instruction (original):** Reply with a single letter — **A**, **B**, or **C** — to select the concept that will become the canonical Rulestead mark.
 
 ---
 
@@ -106,6 +107,43 @@ Phase 97-02 is gated on this selection and cannot begin until a letter is provid
 
 ---
 
-## Selection
+## Selection Outcome
 
-**Please reply with: A, B, or C**
+The original A/B/C concepts did not land — at real sizes (rendered via a throwaway
+`logo-studio.html` decision aid → PNG/PDF, headless Chrome) the maintainer found them
+generic; **A was eliminated** outright. Four rounds of interactive iteration followed:
+
+1. **Round 1 (A/B/C):** B carried the feature-flag *concept* (checkbox/toggle) but looked
+   generic; C looked good but lacked flag *meaning*. A dropped.
+2. **Round 2 (D–I, new directions):** toggles, refined checkbox, decision branch, variant
+   stack, gate. Maintainer rejected the UI-control-like marks (D/E/F) as "not distinct brand
+   marks" and chose the **decision branch (G)** as the only one that read as a concept, not a
+   widget.
+3. **Round 3 (G1–G8 form/color):** maintainer settled on the **three-way / multivariate**
+   form (G4) as the strongest feature-flag read ("multiple variants, one selected").
+4. **Round 4 (G4a–G4h color):** maintainer selected **G4c — lit route**.
+
+### Selected mark: G4c — multivariate decision branch, lit route
+
+- **File:** `brandbook/assets/logo/concepts/rs-mark-concept-g4c.svg`
+- **Form:** one input node routes to **three** variant nodes (multivariate). viewBox `0 0 64 64`.
+- **Geometry (bold weight):** node radius 6.5, connector thickness 7.5; variant nodes at
+  y = 16 / 32 / 48; input at (12,32); junction column at x≈30.
+- **Color (lit route):** structure + input + off-arms = **Stead Blue `#3a6f8f`**; the selected
+  (top) route's **arm and node = Ember Copper `#9b5931`**; the two off variant nodes =
+  **Quarry `#c4ccd1`**.
+- **Meaning:** a feature flag evaluating to one of several variants; the chosen route is lit.
+
+### Guidance for Phase 97-02 (full lockup)
+
+- Graduate `rs-mark-concept-g4c.svg` → `brandbook/assets/logo/rs-mark.svg` (light).
+- **Dark variant:** structure may use the dark-mode primary `#5885a0`; Quarry off-nodes read
+  fine on `#10161f`. Copper active stays `#9b5931`/`#ba6b3c`.
+- **Mono / favicon (`rs-mark-mono.svg`, `fill="currentColor"`):** the lit-route distinction is
+  *color-based* and collapses in one ink. Use the studio's **G4f** treatment instead — active
+  node **filled**, off nodes **hollow** (stroked outline) — so active-vs-off survives with no
+  color. Verify legibility at 16px.
+- Decision aid + all four rounds are preserved in `logo-studio.html` / `.pdf` /
+  `logo-studio-full.png` (throwaway; rendered binaries are git-ignored).
+
+**Selected: G4c** ✅

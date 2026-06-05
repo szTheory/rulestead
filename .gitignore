@@ -5,3 +5,7 @@ erl_crash.dump
 
 # Local demo overrides (copy from .env.example). Compose auto-loads it.
 .env
+
+# Phase 97 logo decision aid — throwaway rendered binaries (Phase 99 owns committed specimens)
+.planning/phases/97-logo-mark-svg-system/logo-studio*.png
+.planning/phases/97-logo-mark-svg-system/logo-studio.pdf
