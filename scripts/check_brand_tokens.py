@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
-"""Token-drift check: brandbook/tokens.json admin_css_mapping vs rulestead_admin.css Block 1.
+"""Token-drift check: brandbook/tokens.json admin_css_mapping vs rulestead_admin.css Blocks 1 + 3.
 
 Mirrors check_synced_pair.py: strip comments first (Pitfall 3 guard), brace-walk extraction,
 per-token sorted diff, exit codes.
+
+Checks:
+  - Block 1 (.rs-shell, default light) vs admin_css_mapping.light
+  - Block 3 (.rs-shell[data-theme="dark"]) vs admin_css_mapping.dark  (D-05b additive)
 
 Usage (from repo root):
     python3 scripts/check_brand_tokens.py
@@ -68,6 +72,27 @@ def main():
             mismatches.append(f"  {name}: tokens.json={expected}  css=<missing>")
         elif css_val.lower() != expected.lower():  # case-insensitive: #3A6F8F == #3a6f8f
             mismatches.append(f"  {name}: tokens.json={expected}  css={css_val}")
+        else:
+            matched += 1
+
+    # D-05b: Block 3 dark diff — folded into the same mismatches list as the light diff above.
+    # Note: --rs-success-border target is #166634 (tokens.json); CSS currently has #166534
+    # (one-digit transposition — highest-risk diff, Pitfall 1 in RESEARCH.md).
+    mapping_dark = tokens["admin_css_mapping"]["dark"]
+    css_dark = extract_css_decls(css, '.rs-shell[data-theme="dark"],')
+
+    if css_dark is None:
+        print('ERROR: Block 3 selector \'.rs-shell[data-theme="dark"],\' not found in CSS')
+        return 1
+
+    for name, expected in sorted(mapping_dark.items()):
+        if not name.startswith("--rs-"):
+            continue  # skip DTCG metadata keys like $description
+        css_val = css_dark.get(name)
+        if css_val is None:
+            mismatches.append(f"  [dark] {name}: tokens.json={expected}  css=<missing>")
+        elif css_val.lower() != expected.lower():  # case-insensitive comparison (D-04a)
+            mismatches.append(f"  [dark] {name}: tokens.json={expected}  css={css_val}")
         else:
             matched += 1
 

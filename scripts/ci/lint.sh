@@ -14,6 +14,9 @@ mix compile --no-optional-deps --warnings-as-errors
 RULESTEAD_REPO="${RULESTEAD_REPO}" "${RULESTEAD_REPO}/scripts/ci/check_package_whitelist.sh"
 mix dialyzer --format github
 
+# Restore CWD to repo root — guard scripts use relative paths (rulestead_admin/..., brandbook/...)
+cd "${RULESTEAD_REPO}"
+
 # Synced-pair guard: Block 2/3 (dark) must be byte-identical in rulestead_admin.css
 python3 "${RULESTEAD_REPO}/scripts/check_synced_pair.py"
 
