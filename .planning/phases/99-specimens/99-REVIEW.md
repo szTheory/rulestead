@@ -15,7 +15,8 @@ findings:
   warning: 2
   info: 4
   total: 6
-status: issues_found
+status: resolved
+resolution: "WR-01, WR-02, IN-01, IN-02 fixed in commit 2f6f115; IN-03, IN-04 accepted as intentional (convention / design choice)."
 ---
 
 # Phase 99: Code Review Report
