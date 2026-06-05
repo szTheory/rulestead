@@ -144,10 +144,21 @@ Plans:
 **Plans**: 4 plans
 Plans:
 
-- [ ] 98-01-PLAN.md — (to be planned)
-- [ ] 98-02-PLAN.md — (to be planned)
-- [ ] 98-03-PLAN.md — (to be planned)
-- [ ] 98-04-PLAN.md — (to be planned)
+**Wave 1** *(guard script extensions + lint.sh CWD fix)*
+
+- [ ] 98-01-PLAN.md — Wave 1: Extend check_synced_pair.py (D-05a: Block 1≡4 light pair) + check_brand_tokens.py (D-05b: Block 3 dark diff) + lint.sh CWD fix
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [ ] 98-02-PLAN.md — Wave 2: Re-skin Block 1 light (7 mineral swaps) + mirror Block 1→Block 4
+
+**Wave 3** *(blocked on Wave 2 — same file)*
+
+- [ ] 98-03-PLAN.md — Wave 3: Re-skin Block 3 dark (8 mineral swaps incl. --rs-success-border fix) + mirror Block 3→Block 2
+
+**Wave 4** *(blocked on Wave 3)*
+
+- [ ] 98-04-PLAN.md — Wave 4: Full guard sweep + SC-1 diff review (human gate) + STATE/ROADMAP/REQUIREMENTS update
 
 **UI hint**: yes
 
