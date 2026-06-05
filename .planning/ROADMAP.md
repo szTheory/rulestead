@@ -24,7 +24,7 @@ v1.13 completed at Phase 94. This milestone (v1.14) runs **Phases 95–100**. Ne
 
 - [x] **Phase 95: Brand Audit + Palette Reconciliation** — Gate-zero: audit brand book, compute WCAG AA contrast ratios, resolve all failures with OKLCH-preserving fixes, lock the dark-mode ramp, obtain human sign-off on AA-adjusted hexes. Nothing downstream may start until palette decisions are final. (completed 2026-06-04)
 - [x] **Phase 96: Design Tokens (`brandbook/` scaffold)** — Create the `brandbook/` directory tree, move and reconcile the brand book, author `tokens.json` (DTCG format) and `tokens.css`, write the drift-check script (`check_brand_tokens.py`), and extend CI lint. Gate: `check_brand_tokens.py` intentionally fails on un-re-skinned CSS, confirming the check works. (completed 2026-06-04)
-- [ ] **Phase 97: Logo & Mark SVG System** — Produce three SVG mark concepts (A/B/C), obtain human concept selection, deliver the full lockup set (wordmark, icon, monochrome, favicon, social card, light/dark variants), commit to `brandbook/assets/logo/`, wire into admin `priv/static/images/`, and replace the phoenix-flame demo logo.
+- [x] **Phase 97: Logo & Mark SVG System** — Produce three SVG mark concepts (A/B/C), obtain human concept selection, deliver the full lockup set (wordmark, icon, monochrome, favicon, social card, light/dark variants), commit to `brandbook/assets/logo/`, wire into admin `priv/static/images/`, and replace the phoenix-flame demo logo. (completed 2026-06-05)
 - [ ] **Phase 98: Admin Re-skin (CSS Cascade)** — Colors-only edit to all four `rulestead_admin.css` cascade blocks, aligned to the locked mineral palette from Phase 96. Gates: `check_synced_pair.py` green, `check_brand_tokens.py` green, `design-system.html` swatches updated, WCAG-AA both themes passing.
 - [ ] **Phase 99: Specimens** — Author reproducible SVG specimens: palette, typography, UI components, code-block, README header, social card. All committed to `brandbook/assets/specimens/`. CI size-budget lint passing for all specimen SVGs.
 - [ ] **Phase 100: Marketing Copy + Repo Artifact Plan** — Ready-to-paste copy blocks, voice/microcopy reference, szTheory brand-architecture note, `brandbook/README.md` with directory index and GitHub description/topics, size budget, accessibility note, pointer from `prompts/`, full CI end-to-end confirmation.
@@ -122,7 +122,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3)*
 
-- [ ] 97-04-PLAN.md — Full Nyquist verification sweep + STATE/ROADMAP/REQUIREMENTS update
+- [x] 97-04-PLAN.md — Full Nyquist verification sweep + STATE/ROADMAP/REQUIREMENTS update
 
 **UI hint**: yes
 
@@ -197,7 +197,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 95. Brand Audit + Palette Reconciliation | 4/4 | Complete    | 2026-06-04 |
 | 96. Design Tokens (brandbook/ scaffold) | 4/4 | Complete    | 2026-06-04 |
-| 97. Logo & Mark SVG System | 3/4 | In Progress|  |
+| 97. Logo & Mark SVG System | 4/4 | Complete    | 2026-06-05 |
 | 98. Admin Re-skin (CSS Cascade) | 0/0 | Not started | - |
 | 99. Specimens | 0/0 | Not started | - |
 | 100. Marketing Copy + Repo Artifact Plan | 0/0 | Not started | - |
