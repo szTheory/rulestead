@@ -31,7 +31,7 @@ Requirements for this milestone. Each maps to exactly one roadmap phase.
 
 ### Logo & Mark System (LOGO)
 
-- [ ] **LOGO-01**: Three SVG mark concepts (A structured path / B stead frame / C layered field) are produced for maintainer selection.
+- [x] **LOGO-01**: Three SVG mark concepts (A structured path / B stead frame / C layered field) are produced for maintainer selection.
 - [ ] **LOGO-02**: The chosen mark ships a full lockup: primary (wordmark + icon), icon-only, monochrome, and dark/light variants.
 - [ ] **LOGO-03**: A `favicon.svg` (with minimal raster fallback) is legible at 16px, and a 1200×630 social/OG card is committed as SVG.
 - [ ] **LOGO-04**: All logo SVGs are optimized (SVGO), accessible (`title`/`desc`), free of embedded raster, and use outlined text or a documented font fallback.
@@ -105,7 +105,7 @@ Which phases cover which requirements. Filled during roadmap creation.
 | TOK-02 | Phase 96 | Complete |
 | TOK-03 | Phase 96 | Complete |
 | TOK-04 | Phase 96 | Complete |
-| LOGO-01 | Phase 97 | Pending |
+| LOGO-01 | Phase 97 | Complete |
 | LOGO-02 | Phase 97 | Pending |
 | LOGO-03 | Phase 97 | Pending |
 | LOGO-04 | Phase 97 | Pending |

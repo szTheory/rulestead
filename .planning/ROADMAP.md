@@ -110,7 +110,7 @@ Plans:
 
 **Wave 1**
 
-- [ ] 97-01-PLAN.md — Author three mark concepts (A/B/C) + CONCEPT-REVIEW.md for selection
+- [x] 97-01-PLAN.md — Author three mark concepts (A/B/C) + CONCEPT-REVIEW.md for selection
 
 **Wave 2** *(blocked on Wave 1; first task is the human A/B/C selection — autonomous: false)*
 
@@ -197,7 +197,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 95. Brand Audit + Palette Reconciliation | 4/4 | Complete    | 2026-06-04 |
 | 96. Design Tokens (brandbook/ scaffold) | 4/4 | Complete    | 2026-06-04 |
-| 97. Logo & Mark SVG System | 0/0 | Not started | - |
+| 97. Logo & Mark SVG System | 1/4 | In Progress|  |
 | 98. Admin Re-skin (CSS Cascade) | 0/0 | Not started | - |
 | 99. Specimens | 0/0 | Not started | - |
 | 100. Marketing Copy + Repo Artifact Plan | 0/0 | Not started | - |
