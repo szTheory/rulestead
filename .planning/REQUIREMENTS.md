@@ -39,7 +39,7 @@ Requirements for this milestone. Each maps to exactly one roadmap phase.
 
 ### Admin Re-skin (SKIN)
 
-- [ ] **SKIN-01**: `rulestead_admin/priv/static/css/rulestead_admin.css` is re-skinned to the canonical mineral palette across all 4 cascade blocks — colors only, invariant tokens untouched.
+- [x] **SKIN-01**: `rulestead_admin/priv/static/css/rulestead_admin.css` is re-skinned to the canonical mineral palette across all 4 cascade blocks — colors only, invariant tokens untouched.
 - [x] **SKIN-02**: The re-skin passes `scripts/check_synced_pair.py` and WCAG-AA in both light and dark themes, with the `design-system.html` fixture updated.
 - [x] **SKIN-03**: A token-drift check (`check_brand_tokens.py`, mirroring `check_synced_pair.py`) verifies the admin CSS palette matches `brandbook/tokens`.
 
@@ -125,7 +125,7 @@ Which phases cover which requirements. Filled during roadmap creation.
 | LOGO-03 | Phase 97 | Complete |
 | LOGO-04 | Phase 97 | Complete |
 | LOGO-05 | Phase 97 | Complete |
-| SKIN-01 | Phase 98 | Pending |
+| SKIN-01 | Phase 98 | Complete |
 | SKIN-02 | Phase 98 | Complete |
 | SKIN-03 | Phase 98 | Complete |
 | SPEC-01 | Phase 99 | Pending |
