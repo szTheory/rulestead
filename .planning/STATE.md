@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.14
 milestone_name: Brand System Realization
 status: executing
-last_updated: "2026-06-05T19:18:50.621Z"
-last_activity: 2026-06-05 -- Phase 98 planning complete
+last_updated: "2026-06-05T19:41:22.068Z"
+last_activity: 2026-06-05
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 16
-  completed_plans: 12
+  completed_plans: 13
   percent: 43
 ---
 
@@ -21,7 +21,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-04)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
 
-**Current focus:** Phase 98 — admin re-skin (CSS cascade) — next up after Phase 97 complete
+**Current focus:** Phase 98 — admin-re-skin-css-cascade
 
 **Milestone:** v1.14 opened 2026-06-04 — see `.planning/ROADMAP.md` for phase structure
 
@@ -31,10 +31,10 @@ See: `.planning/PROJECT.md` (updated 2026-06-04)
 
 ## Current Position
 
-Phase: 97 (logo-mark-svg-system) — COMPLETE
-Plan: 4 of 4 complete
+Phase: 98 (admin-re-skin-css-cascade) — EXECUTING
+Plan: 2 of 4
 Status: Ready to execute
-Last activity: 2026-06-05 -- Phase 98 planning complete
+Last activity: 2026-06-05
 
 Progress bar: `[ ####░░░░░░ ] 43% — 3/7 phases` (Phase 101 — HTML brand book — appended as v1.14 capstone, queued after 98–100)
 
@@ -109,6 +109,9 @@ Human checkpoints (cannot be automated):
 - [Phase 96]: brandbook/ scaffold committed — tokens.json (DTCG 2025.10), tokens.css (--rs-* mirror), check_brand_tokens.py (exits 1 intentionally against generic CSS), lint.sh extended additively
 - [Phase 96]: brand-book.md relocated from prompts/ via git mv; §12 hexes reconciled to AA-verified canonicals; Gap-2 per-surface notes added for Success/Danger on Stone Mist
 - [Phase 96]: check_synced_pair.py wired into lint.sh (was dev-only; now CI guard)
+- [Phase ?]: D-05a: Block 1≡4 light-pair assertion added to check_synced_pair.py — both pairs must pass for exit 0
+- [Phase ?]: D-05b: Block 3 dark diff folded into same mismatches list in check_brand_tokens.py — [dark] prefix; single exit condition preserves T-98-02 threat mitigation
+- [Phase ?]: lint.sh CWD fix: cd back to RULESTEAD_REPO at line 18 before guard scripts
 
 ### Deferred Items (v2)
 
@@ -164,3 +167,4 @@ All closed — v1.12 adoption evidence depth complete.
 | Phase 96 P04 | 5min | 2 tasks | 2 files |
 | Phase 97-logo-mark-svg-system P01 | 15 | 2 tasks | 5 files |
 | Phase 97-logo-mark-svg-system P04 | 8 | 2 tasks | 3 files |
+| Phase 98-admin-re-skin-css-cascade P01 | 8 | 2 tasks | 3 files |

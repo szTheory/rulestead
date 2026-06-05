@@ -146,7 +146,7 @@ Plans:
 
 **Wave 1** *(guard script extensions + lint.sh CWD fix)*
 
-- [ ] 98-01-PLAN.md — Wave 1: Extend check_synced_pair.py (D-05a: Block 1≡4 light pair) + check_brand_tokens.py (D-05b: Block 3 dark diff) + lint.sh CWD fix
+- [x] 98-01-PLAN.md — Wave 1: Extend check_synced_pair.py (D-05a: Block 1≡4 light pair) + check_brand_tokens.py (D-05b: Block 3 dark diff) + lint.sh CWD fix
 
 **Wave 2** *(blocked on Wave 1)*
 
@@ -229,7 +229,7 @@ Plans:
 | 95. Brand Audit + Palette Reconciliation | 4/4 | Complete    | 2026-06-04 |
 | 96. Design Tokens (brandbook/ scaffold) | 4/4 | Complete    | 2026-06-04 |
 | 97. Logo & Mark SVG System | 4/4 | Complete   | 2026-06-05 |
-| 98. Admin Re-skin (CSS Cascade) | 0/0 | Not started | - |
+| 98. Admin Re-skin (CSS Cascade) | 1/4 | In Progress|  |
 | 99. Specimens | 0/0 | Not started | - |
 | 100. Marketing Copy + Repo Artifact Plan | 0/0 | Not started | - |
 | 101. HTML Brand Book (capstone) | 0/0 | Not started | - |
