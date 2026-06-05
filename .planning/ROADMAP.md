@@ -179,7 +179,7 @@ Plans:
 
 - [x] 99-01-PLAN.md — Wave 1: specimens dir + palette.svg + typography.svg (SPEC-01)
 - [x] 99-02-PLAN.md — Wave 2a: components.svg + code-block.svg (SPEC-02)
-- [ ] 99-03-PLAN.md — Wave 2b: readme-header.svg + social-card.svg (SPEC-02)
+- [x] 99-03-PLAN.md — Wave 2b: readme-header.svg + social-card.svg (SPEC-02)
 - [ ] 99-04-PLAN.md — Wave 3: SVGO batch + full lint.sh guard sweep + phase-close doc updates
 
 **UI hint**: yes
@@ -230,6 +230,6 @@ Plans:
 | 96. Design Tokens (brandbook/ scaffold) | 4/4 | Complete    | 2026-06-04 |
 | 97. Logo & Mark SVG System | 4/4 | Complete   | 2026-06-05 |
 | 98. Admin Re-skin (CSS Cascade) | 4/4 | Complete    | 2026-06-05 |
-| 99. Specimens | 2/4 | In Progress|  |
+| 99. Specimens | 3/4 | In Progress|  |
 | 100. Marketing Copy + Repo Artifact Plan | 0/0 | Not started | - |
 | 101. HTML Brand Book (capstone) | 0/0 | Not started | - |
