@@ -498,15 +498,15 @@
   --rs-text-placeholder: var(--rs-neutral-500);
 
   /* Brand */
-  --rs-primary:       #2563eb;
-  --rs-primary-hover: #1d4ed8;
+  --rs-primary:       #3A6F8F;
+  --rs-primary-hover: #2d5f7c;
   --rs-primary-soft:  #dbeafe;
   --rs-on-primary:    #ffffff;
-  --rs-accent:        #9a3f12;
+  --rs-accent:        #9b5931;
   --rs-accent-soft:   #fde8dc;
 
   /* Status — success */
-  --rs-success:           #15803d;
+  --rs-success:           #2d7753;
   --rs-success-hover:     #166534;
   --rs-success-soft:      #dcfce7;
   --rs-success-bg-subtle: #f7fff9;
@@ -514,16 +514,16 @@
   --rs-success-border:    #86efac;
 
   /* Status — warning */
-  --rs-warning:        #b45309;
+  --rs-warning:        #8f601a;
   --rs-warning-hover:  #92400e;
   --rs-warning-soft:   #fef3c7;
   --rs-warning-text:   #a16207;
   --rs-warning-border: #fcd34d;
 
   /* Status — error / critical */
-  --rs-error:               #b91c1c;
+  --rs-error:               #B44949;
   --rs-error-hover:         #991b1b;
-  --rs-critical:            #b91c1c;
+  --rs-critical:            #B44949;
   --rs-error-soft:          #fee2e2;
   --rs-error-bg-subtle:     #fff7f7;
   --rs-error-text:          #be123c;
