@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- 🚧 **v1.14 - Brand System Realization** — Phases 95–100 (in progress) — current milestone
+- 🚧 **v1.14 - Brand System Realization** — Phases 95–101 (in progress) — current milestone
 - ✅ **v1.13 - Admin UI: First-Class Dark Mode + Design-System Polish** — Phases 87-94 (shipped 2026-06-04) — [.planning/milestones/v1.13-MILESTONE-AUDIT.md](milestones/v1.13-MILESTONE-AUDIT.md)
 - ✅ **v1.12 - Adoption Evidence Depth** — Phases 82-86 (shipped 2026-05-29) — [.planning/milestones/v1.12-MILESTONE-AUDIT.md](milestones/v1.12-MILESTONE-AUDIT.md)
 - ✅ **v1.11.1 - Gap Closure** — Phases 79-81 (shipped 2026-05-29) — [.planning/milestones/v1.11.1-gap-closure-ROADMAP.md](milestones/v1.11.1-gap-closure-ROADMAP.md) · [audit](milestones/v1.11.1-MILESTONE-AUDIT.md)
@@ -14,11 +14,13 @@
 
 ## Current focus
 
-**v1.14 — Brand System Realization** (Phases 95–100). Turn the recovered brand book into a buildable, WCAG-AA-verified, source-controlled brand system in `brandbook/`, and re-skin the shipped admin UI to the canonical mineral palette — without repo bloat or widening the sibling-package product shape.
+**v1.14 — Brand System Realization** (Phases 95–101). Turn the recovered brand book into a buildable, WCAG-AA-verified, source-controlled brand system in `brandbook/`, re-skin the shipped admin UI to the canonical mineral palette, and publish a generated HTML brand book — without repo bloat or widening the sibling-package product shape.
 
 ## Phase numbering
 
-v1.13 completed at Phase 94. This milestone (v1.14) runs **Phases 95–100**. Next milestone starts at **101**.
+v1.13 completed at Phase 94. This milestone (v1.14) runs **Phases 95–101**. Next milestone starts at **102**.
+
+(Phase 101 — HTML Brand Book — was appended 2026-06-05 by scope amendment; it is the milestone capstone, queued to build after Phases 98–100.)
 
 ## Phases
 
@@ -28,6 +30,7 @@ v1.13 completed at Phase 94. This milestone (v1.14) runs **Phases 95–100**. Ne
 - [ ] **Phase 98: Admin Re-skin (CSS Cascade)** — Colors-only edit to all four `rulestead_admin.css` cascade blocks, aligned to the locked mineral palette from Phase 96. Gates: `check_synced_pair.py` green, `check_brand_tokens.py` green, `design-system.html` swatches updated, WCAG-AA both themes passing.
 - [ ] **Phase 99: Specimens** — Author reproducible SVG specimens: palette, typography, UI components, code-block, README header, social card. All committed to `brandbook/assets/specimens/`. CI size-budget lint passing for all specimen SVGs.
 - [ ] **Phase 100: Marketing Copy + Repo Artifact Plan** — Ready-to-paste copy blocks, voice/microcopy reference, szTheory brand-architecture note, `brandbook/README.md` with directory index and GitHub description/topics, size budget, accessibility note, pointer from `prompts/`, full CI end-to-end confirmation.
+- [ ] **Phase 101: HTML Brand Book** — A generated, source-controlled `brandbook/index.html` renders the full brand system (essence, voice, messaging, color, type, logo lockups, layout, iconography, motion, UI-writing) in light + dark, emitted by a committed generator from `brand-book.md` + `tokens.*` + logo SVGs and kept honest by a drift-check. Milestone capstone; queued after 98–100.
 
 ## Phase Details
 
@@ -172,7 +175,7 @@ Plans:
 
 ### Phase 100: Marketing Copy + Repo Artifact Plan
 
-**Goal**: All ready-to-paste copy surfaces, the voice reference, the szTheory brand-architecture note, `brandbook/README.md`, the size-budget doc, the accessibility note, and the `prompts/` pointer are committed; a full end-to-end CI lint run confirms all three checks (sync pair, brand tokens, SVG size budget) are green; the milestone is closed in planning docs.
+**Goal**: All ready-to-paste copy surfaces, the voice reference, the szTheory brand-architecture note, `brandbook/README.md`, the size-budget doc, the accessibility note, and the `prompts/` pointer are committed; a full end-to-end CI lint run confirms all three checks (sync pair, brand tokens, SVG size budget) are green. (Milestone close moves to Phase 101, the HTML brand book capstone.)
 **Depends on**: Phase 99 (all prior artifacts committed; repo in final state for CI end-to-end confirmation)
 **Requirements**: COPY-01, COPY-02, REPO-01, REPO-02
 **Success Criteria** (what must be TRUE):
@@ -181,7 +184,7 @@ Plans:
   2. Ready-to-paste copy blocks exist (as a committed file in `brandbook/`) for: GitHub repo description, Hex.pm package `:description` (updated in both `mix.exs` files), 140-char blurb, README intro/hero, landing hero/sub + primary/secondary CTAs, and three feature blurbs; a szTheory suite brand-architecture note (shared-vs-unique across Rulestead, Parapet, Scoria, Cairnloop) is written.
   3. `brandbook/README.md` exists as a self-contained directory index with cross-links to `rulestead_admin.css` and `brandbook/brand-book.md`; `brandbook/docs/brand-usage.md` is in final state (re-skin instructions, `check_brand_tokens.py` usage, new-contributor path).
   4. A repo-size guard is in place: a `.gitattributes` entry or CI step prevents binary bloat; `brandbook/BUDGET.md` documents per-file-type size limits; the SVG size-budget lint in `scripts/ci/lint.sh` is confirmed passing.
-  5. Full CI end-to-end confirmation: `python3 scripts/check_synced_pair.py` + `python3 scripts/check_brand_tokens.py` + SVG size-budget loop all exit 0 in a single lint run; `REPO-02` guard is wired and active; `.planning/PROJECT.md` and `STATE.md` updated to v1.14 shipped.
+  5. Full CI end-to-end confirmation: `python3 scripts/check_synced_pair.py` + `python3 scripts/check_brand_tokens.py` + SVG size-budget loop all exit 0 in a single lint run; `REPO-02` guard is wired and active. (Marking `.planning/PROJECT.md` / `STATE.md` as v1.14 shipped happens in Phase 101, the capstone.)
 
 **Plans**: 4 plans
 Plans:
@@ -190,6 +193,23 @@ Plans:
 - [ ] 100-02-PLAN.md — (to be planned)
 - [ ] 100-03-PLAN.md — (to be planned)
 - [ ] 100-04-PLAN.md — (to be planned)
+
+### Phase 101: HTML Brand Book
+
+**Goal**: A generated, source-controlled `brandbook/index.html` renders the full Rulestead brand system in a browsable page — essence, voice, messaging, color (from tokens), Sora/Inter/IBM Plex Mono type ramp, logo lockups (embedded committed SVGs), layout, iconography, motion, and UI-writing — in both light and dark. It is emitted by a committed generator from the canonical `brand-book.md` + `tokens.json` + logo SVGs and kept honest by a drift-check. **This phase, not Phase 100, closes milestone v1.14.**
+**Depends on**: Phase 97 (logo lockups), Phase 99 (specimens to surface), Phase 100 (final voice/copy + README); palette/tokens locked in 95/96
+**Requirements**: BOOK-01, BOOK-02
+**Success Criteria** (what must be TRUE):
+
+  1. `brandbook/index.html` opens in a browser and renders the full brand system (essence, voice/messaging, color palette sourced from tokens, the Sora/Inter/IBM Plex Mono type ramp, logo lockups light+dark, plus layout/iconography/motion/UI-writing guidance) with no broken assets in either theme.
+  2. A committed generator (`scripts/gen_brandbook_html.*`) reproduces `index.html` from `brandbook/brand-book.md` + `brandbook/tokens.json` + `brandbook/assets/logo/*.svg` — no hand-maintained second source of truth.
+  3. A drift-check (mirroring `scripts/check_brand_tokens.py`) verifies `index.html` is regenerable and fails CI on drift; `index.html` is within the CI size budget and wired into `scripts/ci/lint.sh`.
+  4. `.planning/PROJECT.md` + `STATE.md` are updated to **v1.14 shipped** (the milestone closes here).
+
+**Plans**: TBD
+Plans:
+
+- (to be planned via `/gsd:plan-phase 101`)
 
 ## Progress Table
 
@@ -201,3 +221,4 @@ Plans:
 | 98. Admin Re-skin (CSS Cascade) | 0/0 | Not started | - |
 | 99. Specimens | 0/0 | Not started | - |
 | 100. Marketing Copy + Repo Artifact Plan | 0/0 | Not started | - |
+| 101. HTML Brand Book (capstone) | 0/0 | Not started | - |
