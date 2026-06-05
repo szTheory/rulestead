@@ -177,10 +177,10 @@ Plans:
 **Plans**: 4 plans
 Plans:
 
-- [ ] 99-01-PLAN.md — (to be planned)
-- [ ] 99-02-PLAN.md — (to be planned)
-- [ ] 99-03-PLAN.md — (to be planned)
-- [ ] 99-04-PLAN.md — (to be planned)
+- [ ] 99-01-PLAN.md — Wave 1: specimens dir + palette.svg + typography.svg (SPEC-01)
+- [ ] 99-02-PLAN.md — Wave 2a: components.svg + code-block.svg (SPEC-02)
+- [ ] 99-03-PLAN.md — Wave 2b: readme-header.svg + social-card.svg (SPEC-02)
+- [ ] 99-04-PLAN.md — Wave 3: SVGO batch + full lint.sh guard sweep + phase-close doc updates
 
 **UI hint**: yes
 
