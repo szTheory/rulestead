@@ -229,7 +229,7 @@ Plans:
 | 95. Brand Audit + Palette Reconciliation | 4/4 | Complete    | 2026-06-04 |
 | 96. Design Tokens (brandbook/ scaffold) | 4/4 | Complete    | 2026-06-04 |
 | 97. Logo & Mark SVG System | 4/4 | Complete   | 2026-06-05 |
-| 98. Admin Re-skin (CSS Cascade) | 4/4 | Complete   | 2026-06-05 |
+| 98. Admin Re-skin (CSS Cascade) | 4/4 | Complete    | 2026-06-05 |
 | 99. Specimens | 0/0 | Not started | - |
 | 100. Marketing Copy + Repo Artifact Plan | 0/0 | Not started | - |
 | 101. HTML Brand Book (capstone) | 0/0 | Not started | - |
