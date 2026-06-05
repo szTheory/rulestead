@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.14
 milestone_name: Brand System Realization
 status: executing
-last_updated: "2026-06-05T19:47:29.908Z"
+last_updated: "2026-06-05T19:50:59.782Z"
 last_activity: 2026-06-05
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 16
-  completed_plans: 14
+  completed_plans: 15
   percent: 43
 ---
 
@@ -32,7 +32,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-04)
 ## Current Position
 
 Phase: 98 (admin-re-skin-css-cascade) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 Status: Ready to execute
 Last activity: 2026-06-05
 
@@ -112,6 +112,9 @@ Human checkpoints (cannot be automated):
 - [Phase ?]: D-05a: Block 1≡4 light-pair assertion added to check_synced_pair.py — both pairs must pass for exit 0
 - [Phase ?]: D-05b: Block 3 dark diff folded into same mismatches list in check_brand_tokens.py — [dark] prefix; single exit condition preserves T-98-02 threat mitigation
 - [Phase ?]: lint.sh CWD fix: cd back to RULESTEAD_REPO at line 18 before guard scripts
+- [Phase 98-03]: Block 3 source-of-truth; 8 mineral dark swaps applied verbatim from tokens.json admin_css_mapping.dark; --rs-success-border #166534→#166634 one-digit fix applied
+- [Phase 98-03]: Dark synced-pair restored: Block 2 (@media) mirrors Block 3 ([data-theme=dark]); check_synced_pair.py exits 0 (56 dark + 57 light tokens)
+- [Phase 98-03]: SKIN-01 complete — all 4 cascade blocks carry mineral palette; check_brand_tokens.py exits 0 (68 tokens, 15 mismatches resolved)
 
 ### Deferred Items (v2)
 
@@ -169,3 +172,4 @@ All closed — v1.12 adoption evidence depth complete.
 | Phase 97-logo-mark-svg-system P04 | 8 | 2 tasks | 3 files |
 | Phase 98-admin-re-skin-css-cascade P01 | 8 | 2 tasks | 3 files |
 | Phase 98-admin-re-skin-css-cascade P02 | 7min | 2 tasks | 2 files |
+| Phase 98-admin-re-skin-css-cascade P03 | 4min | 2 tasks | 1 files |

@@ -154,7 +154,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 — same file)*
 
-- [ ] 98-03-PLAN.md — Wave 3: Re-skin Block 3 dark (8 mineral swaps incl. --rs-success-border fix) + mirror Block 3→Block 2
+- [x] 98-03-PLAN.md — Wave 3: Re-skin Block 3 dark (8 mineral swaps incl. --rs-success-border fix) + mirror Block 3→Block 2
 
 **Wave 4** *(blocked on Wave 3)*
 
@@ -229,7 +229,7 @@ Plans:
 | 95. Brand Audit + Palette Reconciliation | 4/4 | Complete    | 2026-06-04 |
 | 96. Design Tokens (brandbook/ scaffold) | 4/4 | Complete    | 2026-06-04 |
 | 97. Logo & Mark SVG System | 4/4 | Complete   | 2026-06-05 |
-| 98. Admin Re-skin (CSS Cascade) | 2/4 | In Progress|  |
+| 98. Admin Re-skin (CSS Cascade) | 3/4 | In Progress|  |
 | 99. Specimens | 0/0 | Not started | - |
 | 100. Marketing Copy + Repo Artifact Plan | 0/0 | Not started | - |
 | 101. HTML Brand Book (capstone) | 0/0 | Not started | - |
