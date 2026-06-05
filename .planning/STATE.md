@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.14
 milestone_name: Brand System Realization
-status: executing
-last_updated: "2026-06-05T21:47:20.320Z"
+status: ready_to_plan
+last_updated: "2026-06-05T22:00:00.000Z"
 last_activity: 2026-06-05
 progress:
   total_phases: 7
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 20
-  completed_plans: 19
-  percent: 57
+  completed_plans: 20
+  percent: 71
 ---
 
 # State: Rulestead
@@ -21,7 +21,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-04)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
 
-**Current focus:** Phase 99 — specimens
+**Current focus:** Phase 100 — Marketing Copy + Repo Artifact Plan
 
 **Milestone:** v1.14 opened 2026-06-04 — see `.planning/ROADMAP.md` for phase structure
 
@@ -31,12 +31,12 @@ See: `.planning/PROJECT.md` (updated 2026-06-04)
 
 ## Current Position
 
-Phase: 99 (specimens) — EXECUTING
-Plan: 4 of 4
-Status: Executing Phase 99 — Plan 03 complete (readme-header.svg + social-card.svg)
-Last activity: 2026-06-05 -- Phase 99 Plan 03 complete (readme-header.svg + social-card.svg)
+Phase: 100 (marketing copy + repo artifact plan) — NOT YET STARTED
+Plan: Not started
+Status: Phase 99 complete (4/4) — ready to discuss Phase 100
+Last activity: 2026-06-05 -- Phase 99 complete (all 6 specimens committed, lint.sh exits 0 with SVG SIZE BUDGET OK)
 
-Progress bar: `[ #####░░░░░ ] 57% — 4/7 phases` (Phase 101 — HTML brand book — appended as v1.14 capstone, queued after 98–100)
+Progress bar: `[ #######░░░░ ] 71% — 5/7 phases` (Phase 101 — HTML brand book — appended as v1.14 capstone, queued after 98–100)
 
 ## Phase Dependency Map
 
@@ -92,6 +92,10 @@ Human checkpoints (cannot be automated):
 - [Phase 99-01]: SVGO preset-default strips role="img" via removeUnknownsAndDefaults — re-inserted via sed after optimization; shared svgo.config.mjs left unmodified.
 - [Phase 99-02]: components.svg (3,455 bytes) + code-block.svg (1,785 bytes) committed to brandbook/assets/specimens/. Both SVGO-optimized, accessible (role=img + title + desc + aria-labelledby), zero base64, well within 51,200-byte CI budget. SPEC-02 done.
 - [Phase 99-03]: readme-header.svg (1,227 bytes) + social-card.svg (1,501 bytes) committed to brandbook/assets/specimens/. Both SVGO-optimized, accessible, zero base64, well within 51,200-byte CI budget. readme-header: 480x96 light layout, inline light-mode mark, live-text wordmark #183247. social-card: 1200x630 Ink Blue #183247, inline dark-mode mark, live-text wordmark #e8edf3, token annotation. Phase 97 rs-social-card.svg untouched.
+- [Phase 99]: 6 SVG specimens committed to brandbook/assets/specimens/ — palette, typography, components, code-block, readme-header, social-card
+- [Phase 99]: All specimens use hard-coded hex literals (no var(--rs-*)); live <text> elements for typography.svg (not outlined paths); specimens are self-contained (no external <use href>)
+- [Phase 99]: SVGO optimized with brandbook/assets/logo/svgo.config.mjs (removeDesc:false, cleanupIds:false, convertColors:false); all 6 files ≤51200 bytes
+- [Phase 99]: social-card.svg in specimens/ is a new design reference distinct from Phase 97 brandbook/assets/logo/rs-social-card.svg (production asset untouched)
 - [Phase 97-04]: Phase 97 complete 2026-06-05. Full Nyquist sweep passed (13/13 assertions green). Selected mark G4c (multivariate decision branch). 7-SVG lockup set in brandbook/assets/logo/. Admin copies in rulestead_admin/priv/static/images/. Phoenix-flame demo logo retired; new fingerprint `2d303e8acdf20eb43468b22535dfba4e`. LOGO-01..05 done.
 - [Phase 87-01]: Theme specs use file:// harness navigation (no Phoenix required). wcagRatio inline TypeScript, no external dep.
 - [Phase 88]: --rs-primary-ring gap token added to all 4 cascade blocks; 18 hardcoded rgba() literals replaced; warning-flash amber border fixed
@@ -153,7 +157,8 @@ All closed — v1.12 adoption evidence depth complete.
 
 ## Operator Next Steps
 
-- Start Phase 99 with `/gsd:plan-phase 99` (Specimens — reproducible SVG specimens for brand system)
+- Start Phase 100 with `/gsd:plan-phase 100` (Marketing Copy + Repo Artifact Plan)
+- Phase 99 complete: all 6 specimens committed, lint.sh exits 0 with SVG SIZE BUDGET OK
 - Phase 98 complete: all guards green, SC-1 approved, planning artifacts updated
 - Note: Phase 96 check_brand_tokens.py intentionally exits 1 until Phase 98 re-skins rulestead_admin.css — RESOLVED (Phase 98 complete)
 
@@ -186,3 +191,4 @@ All closed — v1.12 adoption evidence depth complete.
 | Phase 99-specimens P01 | 10min | 2 tasks | 2 files |
 | Phase 99-specimens P02 | 2min | 2 tasks | 2 files |
 | Phase 99-specimens P03 | 2min | 2 tasks | 2 files |
+| Phase 99-specimens P04 | 5min | 2 tasks | 6 files |

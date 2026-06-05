@@ -28,7 +28,7 @@ v1.13 completed at Phase 94. This milestone (v1.14) runs **Phases 95–101**. Ne
 - [x] **Phase 96: Design Tokens (`brandbook/` scaffold)** — Create the `brandbook/` directory tree, move and reconcile the brand book, author `tokens.json` (DTCG format) and `tokens.css`, write the drift-check script (`check_brand_tokens.py`), and extend CI lint. Gate: `check_brand_tokens.py` intentionally fails on un-re-skinned CSS, confirming the check works. (completed 2026-06-04)
 - [x] **Phase 97: Logo & Mark SVG System** — Produce three SVG mark concepts (A/B/C), obtain human concept selection, deliver the full lockup set (wordmark, icon, monochrome, favicon, social card, light/dark variants), commit to `brandbook/assets/logo/`, wire into admin `priv/static/images/`, and replace the phoenix-flame demo logo. (completed 2026-06-05)
 - [x] **Phase 98: Admin Re-skin (CSS Cascade)** — Colors-only edit to all four `rulestead_admin.css` cascade blocks, aligned to the locked mineral palette from Phase 96. Gates: `check_synced_pair.py` green, `check_brand_tokens.py` green, `design-system.html` swatches updated, WCAG-AA both themes passing. (completed 2026-06-05)
-- [ ] **Phase 99: Specimens** — Author reproducible SVG specimens: palette, typography, UI components, code-block, README header, social card. All committed to `brandbook/assets/specimens/`. CI size-budget lint passing for all specimen SVGs.
+- [x] **Phase 99: Specimens** — Author reproducible SVG specimens: palette, typography, UI components, code-block, README header, social card. All committed to `brandbook/assets/specimens/`. CI size-budget lint passing for all specimen SVGs. (completed 2026-06-05)
 - [ ] **Phase 100: Marketing Copy + Repo Artifact Plan** — Ready-to-paste copy blocks, voice/microcopy reference, szTheory brand-architecture note, `brandbook/README.md` with directory index and GitHub description/topics, size budget, accessibility note, pointer from `prompts/`, full CI end-to-end confirmation.
 - [ ] **Phase 101: HTML Brand Book** — A generated, source-controlled `brandbook/index.html` renders the full brand system (essence, voice, messaging, color, type, logo lockups, layout, iconography, motion, UI-writing) in light + dark, emitted by a committed generator from `brand-book.md` + `tokens.*` + logo SVGs and kept honest by a drift-check. Milestone capstone; queued after 98–100.
 
@@ -177,10 +177,12 @@ Plans:
 **Plans**: 4 plans
 Plans:
 
+**Completed 2026-06-05.** All 4 success criteria verified: (1) palette.svg has annotated swatches with #3A6F8F and all brand tokens; (2) typography.svg uses live <text> elements with token labels; (3) all 6 specimen files exist in brandbook/assets/specimens/; (4) bash scripts/ci/lint.sh exits 0 with "SVG SIZE BUDGET OK" — all specimens ≤51200 bytes.
+
 - [x] 99-01-PLAN.md — Wave 1: specimens dir + palette.svg + typography.svg (SPEC-01)
 - [x] 99-02-PLAN.md — Wave 2a: components.svg + code-block.svg (SPEC-02)
 - [x] 99-03-PLAN.md — Wave 2b: readme-header.svg + social-card.svg (SPEC-02)
-- [ ] 99-04-PLAN.md — Wave 3: SVGO batch + full lint.sh guard sweep + phase-close doc updates
+- [x] 99-04-PLAN.md — Wave 3: SVGO batch + full lint.sh guard sweep + phase-close doc updates
 
 **UI hint**: yes
 
@@ -230,6 +232,6 @@ Plans:
 | 96. Design Tokens (brandbook/ scaffold) | 4/4 | Complete    | 2026-06-04 |
 | 97. Logo & Mark SVG System | 4/4 | Complete   | 2026-06-05 |
 | 98. Admin Re-skin (CSS Cascade) | 4/4 | Complete    | 2026-06-05 |
-| 99. Specimens | 3/4 | In Progress|  |
+| 99. Specimens | 4/4 | Complete    | 2026-06-05 |
 | 100. Marketing Copy + Repo Artifact Plan | 0/0 | Not started | - |
 | 101. HTML Brand Book (capstone) | 0/0 | Not started | - |
