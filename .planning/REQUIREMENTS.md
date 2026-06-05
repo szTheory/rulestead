@@ -58,6 +58,13 @@ Requirements for this milestone. Each maps to exactly one roadmap phase.
 - [ ] **REPO-01**: `brandbook/` has a self-contained directory structure with a `README.md` and a `docs/brand-usage.md`, cross-linked to the admin CSS and the canonical brand book.
 - [ ] **REPO-02**: A repo-size guard (size budget + CI check + `.gitattributes`) prevents binary bloat, and the token-sync + SVG checks are wired into the existing scripts-first CI.
 
+### HTML Brand Book (BOOK)
+
+*Added 2026-06-05 by scope amendment (see Out of Scope note).*
+
+- [ ] **BOOK-01**: A source-controlled `brandbook/index.html` renders the full brand system — essence, voice, messaging, color (from tokens), type ramp, logo lockups (embedded committed SVGs), layout, iconography, motion, and UI-writing — browsable in light and dark.
+- [ ] **BOOK-02**: `index.html` is produced by a committed generator (`scripts/gen_brandbook_html.*`) from the canonical `brand-book.md` + `tokens.json` + logo SVGs (no second source of truth), kept honest by a drift-check and within the CI size budget.
+
 ## v2 Requirements
 
 Deferred to future milestones. Tracked but not in this roadmap.
@@ -81,12 +88,20 @@ Explicitly excluded. Documented to prevent scope creep.
 
 | Feature | Reason |
 |---------|--------|
-| PDF / binary brand book | Rots immediately, bloats repo; the source-controlled markdown + SVG system replaces it. |
+| **Binary** PDF brand book as a primary artifact | A committed PDF rots immediately and bloats the repo. *(Amended 2026-06-05 — see note below: a **generated, source-controlled HTML** brand book is now in scope.)* |
 | Figma (or any external tool) as source of truth | `brandbook/` text+SVG files are the canonical, reviewable source; no vendor lock-in. |
 | Mascot / character | Conflicts with the Architect+Steward positioning and the book's explicit no-phoenix/no-mascot stance. |
 | New product runtime APIs | This is a brand/UX-quality milestone; the sibling-package product shape does not widen. |
 | Re-deriving the v1.13 dark base | The shipped `#10161f` mineral-dark base is kept; only brand hues change, anchored on it. |
 | Build-time token pipeline (Style Dictionary) | Mirror-not-generate; hand-authored CSS + a drift-check avoids coupling the auto-publish release pipeline. |
+
+> **Scope amendment (2026-06-05):** A **generated, source-controlled HTML brand book**
+> (`brandbook/index.html`, emitted by a committed generator from the canonical `brand-book.md`
+> + `tokens.*` + committed logo SVGs, kept honest by a drift-check) is **in scope** as a new
+> phase. It is reviewable text — not a binary — and creates no second source of truth, so it
+> honors the anti-rot / anti-bloat / no-lock-in principles above. Only a *binary* PDF as a
+> primary artifact, and external tools as source of truth, remain out of scope. Tracked as the
+> new HTML Brand Book phase (see `ROADMAP.md`).
 
 ## Traceability
 
