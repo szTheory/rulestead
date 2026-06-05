@@ -114,7 +114,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1; first task is the human A/B/C selection — autonomous: false)*
 
-- [ ] 97-02-PLAN.md — Concept selection gate + full 7-file lockup set (wordmark/mark/mono/favicon/social, outlined text, SVGO)
+- [x] 97-02-PLAN.md — Concept selection gate + full 7-file lockup set (wordmark/mark/mono/favicon/social, outlined text, SVGO)
 
 **Wave 3** *(blocked on Wave 2)*
 
@@ -197,7 +197,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 95. Brand Audit + Palette Reconciliation | 4/4 | Complete    | 2026-06-04 |
 | 96. Design Tokens (brandbook/ scaffold) | 4/4 | Complete    | 2026-06-04 |
-| 97. Logo & Mark SVG System | 1/4 | In Progress|  |
+| 97. Logo & Mark SVG System | 2/4 | In Progress|  |
 | 98. Admin Re-skin (CSS Cascade) | 0/0 | Not started | - |
 | 99. Specimens | 0/0 | Not started | - |
 | 100. Marketing Copy + Repo Artifact Plan | 0/0 | Not started | - |

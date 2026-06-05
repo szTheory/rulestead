@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.14
 milestone_name: Brand System Realization
 status: executing
-last_updated: "2026-06-05T16:18:15.635Z"
+last_updated: "2026-06-05T17:44:16.700Z"
 last_activity: 2026-06-05
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 12
-  completed_plans: 9
+  completed_plans: 10
   percent: 33
 ---
 
@@ -32,7 +32,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-04)
 ## Current Position
 
 Phase: 97 (logo-mark-svg-system) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Ready to execute
 Last activity: 2026-06-05
 
@@ -81,6 +81,10 @@ Human checkpoints (cannot be automated):
 - **v1.14 SVG policy:** Only raster binaries allowed in repo: `favicon.ico`, `favicon.png`, `apple-touch-icon.png`. All logo and specimen SVGs are source-controlled. PNGs generated on demand (never committed).
 - **v1.14 font policy:** Google Fonts CDN references only (Sora, Inter, IBM Plex Mono — all SIL OFL 1.1). No font binaries committed. SVG wordmark text outlined to paths before committing.
 - Phase numbering continues at **101** if a new milestone opens.
+- [Phase 97-02]: Selected mark: **G4c** — multivariate decision branch, lit route (Stead Blue structure/input/off-arms, Ember Copper active top route, Quarry off-nodes). Gate pre-resolved in 97-CONCEPT-REVIEW.md.
+- [Phase 97-02]: Wordmark letterforms: geometric hand-authored outline paths (fontTools Pattern 6 fallback — Google Fonts CDN unreachable in exec env; script committed for future use).
+- [Phase 97-02]: Mono mark treatment: G4f — active node filled, off nodes hollow-stroked, so active-vs-off survives in `fill="currentColor"` contexts.
+- [Phase 97-02]: 7-file lockup set committed to `brandbook/assets/logo/` — all < 20KB, zero text elements, zero raster, accessible (title+desc+role=img).
 - [Phase 87-01]: Theme specs use file:// harness navigation (no Phoenix required). wcagRatio inline TypeScript, no external dep.
 - [Phase 88]: --rs-primary-ring gap token added to all 4 cascade blocks; 18 hardcoded rgba() literals replaced; warning-flash amber border fixed
 - [Phase ?]: Token-contract docs in CSS THEME LAYER comment; guide links to CSS (DRY)

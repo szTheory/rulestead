@@ -32,9 +32,9 @@ Requirements for this milestone. Each maps to exactly one roadmap phase.
 ### Logo & Mark System (LOGO)
 
 - [x] **LOGO-01**: Three SVG mark concepts (A structured path / B stead frame / C layered field) are produced for maintainer selection.
-- [ ] **LOGO-02**: The chosen mark ships a full lockup: primary (wordmark + icon), icon-only, monochrome, and dark/light variants.
-- [ ] **LOGO-03**: A `favicon.svg` (with minimal raster fallback) is legible at 16px, and a 1200×630 social/OG card is committed as SVG.
-- [ ] **LOGO-04**: All logo SVGs are optimized (SVGO), accessible (`title`/`desc`), free of embedded raster, and use outlined text or a documented font fallback.
+- [x] **LOGO-02**: The chosen mark ships a full lockup: primary (wordmark + icon), icon-only, monochrome, and dark/light variants.
+- [x] **LOGO-03**: A `favicon.svg` (with minimal raster fallback) is legible at 16px, and a 1200×630 social/OG card is committed as SVG.
+- [x] **LOGO-04**: All logo SVGs are optimized (SVGO), accessible (`title`/`desc`), free of embedded raster, and use outlined text or a documented font fallback.
 - [ ] **LOGO-05**: The off-brand phoenix-flame demo logo (and its fingerprinted copy) is replaced with the new mark, and admin/demo references are updated.
 
 ### Admin Re-skin (SKIN)
@@ -106,9 +106,9 @@ Which phases cover which requirements. Filled during roadmap creation.
 | TOK-03 | Phase 96 | Complete |
 | TOK-04 | Phase 96 | Complete |
 | LOGO-01 | Phase 97 | Complete |
-| LOGO-02 | Phase 97 | Pending |
-| LOGO-03 | Phase 97 | Pending |
-| LOGO-04 | Phase 97 | Pending |
+| LOGO-02 | Phase 97 | Complete |
+| LOGO-03 | Phase 97 | Complete |
+| LOGO-04 | Phase 97 | Complete |
 | LOGO-05 | Phase 97 | Pending |
 | SKIN-01 | Phase 98 | Pending |
 | SKIN-02 | Phase 98 | Pending |
