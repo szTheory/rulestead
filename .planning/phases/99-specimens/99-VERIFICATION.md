@@ -1,9 +1,10 @@
 ---
 phase: 99-specimens
 verified: 2026-06-05T22:30:00Z
-status: human_needed
+status: passed
 score: 10/10
 overrides_applied: 0
+human_verification_signed_off: 2026-06-05T18:10:00Z  # all 4 items passed via rendered specimens — see 99-HUMAN-UAT.md
 human_verification:
   - test: "Open brandbook/assets/specimens/palette.svg in a browser and confirm each swatch shows its hex value AND token name label legibly"
     expected: "26 swatches across 4 rows; every swatch annotated with hex (e.g. '#3A6F8F') and token name (e.g. 'stead-blue'); labels readable at normal zoom"
