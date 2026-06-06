@@ -29,7 +29,7 @@ v1.13 completed at Phase 94. This milestone (v1.14) runs **Phases 95–101**. Ne
 - [x] **Phase 97: Logo & Mark SVG System** — Produce three SVG mark concepts (A/B/C), obtain human concept selection, deliver the full lockup set (wordmark, icon, monochrome, favicon, social card, light/dark variants), commit to `brandbook/assets/logo/`, wire into admin `priv/static/images/`, and replace the phoenix-flame demo logo. (completed 2026-06-05)
 - [x] **Phase 98: Admin Re-skin (CSS Cascade)** — Colors-only edit to all four `rulestead_admin.css` cascade blocks, aligned to the locked mineral palette from Phase 96. Gates: `check_synced_pair.py` green, `check_brand_tokens.py` green, `design-system.html` swatches updated, WCAG-AA both themes passing. (completed 2026-06-05)
 - [x] **Phase 99: Specimens** — Author reproducible SVG specimens: palette, typography, UI components, code-block, README header, social card. All committed to `brandbook/assets/specimens/`. CI size-budget lint passing for all specimen SVGs. (completed 2026-06-05)
-- [ ] **Phase 100: Marketing Copy + Repo Artifact Plan** — Ready-to-paste copy blocks, voice/microcopy reference, szTheory brand-architecture note, `brandbook/README.md` with directory index and GitHub description/topics, size budget, accessibility note, pointer from `prompts/`, full CI end-to-end confirmation.
+- [x] **Phase 100: Marketing Copy + Repo Artifact Plan** — Ready-to-paste copy blocks, voice/microcopy reference, szTheory brand-architecture note, `brandbook/README.md` with directory index and GitHub description/topics, size budget, accessibility note, pointer from `prompts/`, full CI end-to-end confirmation. (completed 2026-06-06)
 - [ ] **Phase 101: HTML Brand Book** — A generated, source-controlled `brandbook/index.html` renders the full brand system (essence, voice, messaging, color, type, logo lockups, layout, iconography, motion, UI-writing) in light + dark, emitted by a committed generator from `brand-book.md` + `tokens.*` + logo SVGs and kept honest by a drift-check. Milestone capstone; queued after 98–100.
 
 ## Phase Details
@@ -202,10 +202,12 @@ Plans:
 **Plans**: 4 plans
 Plans:
 
-- [ ] 100-01-PLAN.md — (to be planned)
-- [ ] 100-02-PLAN.md — (to be planned)
-- [ ] 100-03-PLAN.md — (to be planned)
-- [ ] 100-04-PLAN.md — (to be planned)
+**Completed 2026-06-06.** All 5 success criteria verified: (1) VOICE.md and RELEASE-TEMPLATE.md are committed; (2) COPY.md contains ready-to-paste public copy, both Hex descriptions are applied, and the szTheory suite note is written; (3) brandbook/README.md and docs/brand-usage.md are final-state and cross-linked; (4) BUDGET.md documents the live SVG limits and root .gitattributes is present; (5) bash scripts/ci/lint.sh exits 0 with "SVG SIZE BUDGET OK".
+
+- [x] 100-01-PLAN.md — Wave 1: voice/microcopy reference, release template, and copy kit
+- [x] 100-02-PLAN.md — Wave 2: Hex package descriptions applied to both sibling packages
+- [x] 100-03-PLAN.md — Wave 3: brandbook README/usage docs, BUDGET.md, .gitattributes, stale CI comments
+- [x] 100-04-PLAN.md — Wave 4: full guard sweep + Phase 100 planning close
 
 ### Phase 101: HTML Brand Book
 
@@ -219,10 +221,24 @@ Plans:
   3. A drift-check (mirroring `scripts/check_brand_tokens.py`) verifies `index.html` is regenerable and fails CI on drift; `index.html` is within the CI size budget and wired into `scripts/ci/lint.sh`.
   4. `.planning/PROJECT.md` + `STATE.md` are updated to **v1.14 shipped** (the milestone closes here).
 
-**Plans**: TBD
+**Plans**: 4 plans
 Plans:
 
-- (to be planned via `/gsd:plan-phase 101`)
+**Wave 1**
+
+- [ ] 101-01-PLAN.md — Wave 1: generator core, source contract, SVG sanitizing, and initial generated `brandbook/index.html`
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [ ] 101-02-PLAN.md — Wave 2: full generated page experience, scoped theme control, no-JS baseline, accessibility, and inline source references
+
+**Wave 3** *(blocked on Wave 2)*
+
+- [ ] 101-03-PLAN.md — Wave 3: generated-HTML drift checker, 256 KB HTML budget, `brandbook/BUDGET.md`, and `scripts/ci/lint.sh` wiring
+
+**Wave 4** *(blocked on Wave 3)*
+
+- [ ] 101-04-PLAN.md — Wave 4: file:// browser evidence, `brandbook/README.md`, and v1.14 milestone closeout after verification passes
 
 ## Progress Table
 
@@ -233,5 +249,5 @@ Plans:
 | 97. Logo & Mark SVG System | 4/4 | Complete   | 2026-06-05 |
 | 98. Admin Re-skin (CSS Cascade) | 4/4 | Complete    | 2026-06-05 |
 | 99. Specimens | 4/4 | Complete    | 2026-06-05 |
-| 100. Marketing Copy + Repo Artifact Plan | 0/0 | Not started | - |
-| 101. HTML Brand Book (capstone) | 0/0 | Not started | - |
+| 100. Marketing Copy + Repo Artifact Plan | 4/4 | Complete | 2026-06-06 |
+| 101. HTML Brand Book (capstone) | 0/4 | Planned | - |

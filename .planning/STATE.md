@@ -2,16 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.14
 milestone_name: Brand System Realization
-status: ready_to_plan
-last_updated: 2026-06-05T22:08:11.654Z
-last_activity: 2026-06-05 -- Phase 99 complete (all 6 specimens committed, lint.sh exits 0 with SVG SIZE BUDGET OK)
+status: executing
+last_updated: "2026-06-06T02:03:14.113Z"
+last_activity: 2026-06-06 -- Phase 101 planning complete
 progress:
   total_phases: 7
-  completed_phases: 5
-  total_plans: 20
+  completed_phases: 6
+  total_plans: 28
   completed_plans: 20
-  percent: 71
-stopped_at: Phase 99 complete (4/4) — ready to discuss Phase 100
+  percent: 86
 ---
 
 # State: Rulestead
@@ -22,7 +21,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-04)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
 
-**Current focus:** Phase 100 — marketing copy + repo artifact plan
+**Current focus:** Phase 101 — HTML brand book capstone
 
 **Milestone:** v1.14 opened 2026-06-04 — see `.planning/ROADMAP.md` for phase structure
 
@@ -32,12 +31,12 @@ See: `.planning/PROJECT.md` (updated 2026-06-04)
 
 ## Current Position
 
-Phase: 100
+Phase: 101
 Plan: Not started
-Status: Ready to plan
-Last activity: 2026-06-05
+Status: Ready to execute
+Last activity: 2026-06-06 -- Phase 101 planning complete
 
-Progress bar: `[ #######░░░░ ] 71% — 5/7 phases` (Phase 101 — HTML brand book — appended as v1.14 capstone, queued after 98–100)
+Progress bar: `[ #########░░ ] 86% — 6/7 phases` (Phase 101 — HTML brand book — appended as v1.14 capstone, queued after 98–100)
 
 ## Phase Dependency Map
 
@@ -49,9 +48,9 @@ Progress bar: `[ #######░░░░ ] 71% — 5/7 phases` (Phase 101 — HTML b
          └──► 99 (specimens use final marks)
 ```
 
-Strict spine: **95 → 96 → 98 → 99 → 100**
+Strict spine: **95 → 96 → 98 → 99 → 100 → 101**
 Phase 97 can overlap Phase 96 (logo design needs only Phase 95 palette, not committed tokens); Phase 97 must complete before Phase 98 closes.
-Phase 100 is last — all prior artifacts must be committed for CI end-to-end confirmation.
+Phase 100 is the final non-capstone phase. Phase 101 builds the generated HTML brand book and closes v1.14.
 
 Human checkpoints (cannot be automated):
 
@@ -129,6 +128,12 @@ Human checkpoints (cannot be automated):
 - [Phase 98]: check_brand_tokens.py extended to diff Block 3 vs admin_css_mapping.dark
 - [Phase 98]: lint.sh CWD bug fixed — cd back to RULESTEAD_REPO before guard invocations
 - [Phase 98]: design-system.html swatches auto-reflected mineral palette via var(--rs-*) — zero manual edits; SC-1 diff reviewed and approved
+- [Phase 100]: brandbook/VOICE.md and brandbook/RELEASE-TEMPLATE.md committed, grounded in brand-book sections 9/19/21, with 11 say-this/not-this examples across empty, error, and success states
+- [Phase 100]: brandbook/COPY.md committed with GitHub description/topics, Hex descriptions, 140-char blurb, README/landing copy, three feature blurbs, and szTheory shared-vs-unique brand-architecture note
+- [Phase 100]: rulestead and rulestead_admin package descriptions updated to functional Hex-ready wording; the admin package remains optional mounted Phoenix LiveView companion copy, not a widened runtime surface
+- [Phase 100]: brandbook/README.md and docs/brand-usage.md finalized; stale Phase 96/98 "intentional exit 1" contributor guidance removed from live docs
+- [Phase 100]: brandbook/BUDGET.md documents exact live limits (logo SVG <=20480 bytes, specimen SVG <=51200 bytes); root .gitattributes added for source-vs-binary asset review
+- [Phase 101]: plan approved with 4 waves: generator core, page experience, drift/CI guard, browser evidence + v1.14 closeout
 
 ### Deferred Items (v2)
 
@@ -158,10 +163,11 @@ All closed — v1.12 adoption evidence depth complete.
 
 ## Operator Next Steps
 
-- Start Phase 100 with `/gsd:plan-phase 100` (Marketing Copy + Repo Artifact Plan)
+- Execute Phase 101 with `$gsd-execute-phase 101`
+- Phase 100 complete: copy kit and repo artifact guard committed, lint.sh exits 0 with SVG SIZE BUDGET OK
 - Phase 99 complete: all 6 specimens committed, lint.sh exits 0 with SVG SIZE BUDGET OK
 - Phase 98 complete: all guards green, SC-1 approved, planning artifacts updated
-- Note: Phase 96 check_brand_tokens.py intentionally exits 1 until Phase 98 re-skins rulestead_admin.css — RESOLVED (Phase 98 complete)
+- Note: Phase 96 drift-proofing is resolved by Phase 98; live token checks now exit 0.
 
 ## Performance Metrics
 
@@ -193,3 +199,7 @@ All closed — v1.12 adoption evidence depth complete.
 | Phase 99-specimens P02 | 2min | 2 tasks | 2 files |
 | Phase 99-specimens P03 | 2min | 2 tasks | 2 files |
 | Phase 99-specimens P04 | 5min | 2 tasks | 6 files |
+| Phase 100-marketing-copy-repo-artifact-plan P01 | 4min | 2 tasks | 3 files |
+| Phase 100-marketing-copy-repo-artifact-plan P02 | 2min | 1 tasks | 2 files |
+| Phase 100-marketing-copy-repo-artifact-plan P03 | 5min | 2 tasks | 5 files |
+| Phase 100-marketing-copy-repo-artifact-plan P04 | 5min | 2 tasks | 3 files |
