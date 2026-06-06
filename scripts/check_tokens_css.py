@@ -3,9 +3,8 @@
 
 brandbook/tokens.css is a hand-authored REFERENCE MIRROR of the design tokens. Its
 source of truth is brandbook/tokens.json's admin_css_mapping (light + dark). This guard
-verifies the mirror has not drifted from that source. Unlike check_brand_tokens.py (which
-intentionally exits 1 against the un-re-skinned admin cascade), this check is green now
-and stays green — it protects the mirror against future drift during Phase 98's re-skin.
+verifies the mirror has not drifted from that source. This check is green after the
+Phase 98 admin re-skin and protects the mirror against future token edits.
 
 Mirrors check_brand_tokens.py: strip comments first (Pitfall 3 guard — the Tailwind
 excerpt and block headers live inside /* */ comments), brace-walk extraction, case-

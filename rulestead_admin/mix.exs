@@ -55,7 +55,8 @@ defmodule RulesteadAdmin.MixProject do
   defp package do
     [
       name: "rulestead_admin",
-      description: "Mountable admin UI package for Rulestead.",
+      description:
+        "Optional mounted Phoenix LiveView operator companion for Rulestead feature management.",
       licenses: ["MIT"],
       links: %{
         "GitHub" => @source_url,

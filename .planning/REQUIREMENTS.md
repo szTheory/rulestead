@@ -3,7 +3,7 @@
 **Defined:** 2026-06-04
 **Core Value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
 
-**Milestone goal:** Turn the recovered 27-section brand book into a buildable, WCAG-AA-verified, source-controlled brand system in a self-contained `brandbook/`, and re-skin the shipped admin UI to the canonical mineral palette — without repo bloat or widening the sibling-package product shape. No new runtime APIs. Phases 95–100.
+**Milestone goal:** Turn the recovered 27-section brand book into a buildable, WCAG-AA-verified, source-controlled brand system in a self-contained `brandbook/`, and re-skin the shipped admin UI to the canonical mineral palette — without repo bloat or widening the sibling-package product shape. No new runtime APIs. Phases 95–101.
 
 ## v1 Requirements
 
@@ -50,13 +50,13 @@ Requirements for this milestone. Each maps to exactly one roadmap phase.
 
 ### Marketing & Voice Copy (COPY)
 
-- [ ] **COPY-01**: Ready-to-paste copy blocks exist for the GitHub repo description, Hex.pm package description, 140-char blurb, README intro/hero, landing hero/sub + primary/secondary CTAs, and three feature blurbs.
-- [ ] **COPY-02**: A voice/microcopy reference (say-this / not-this) covers error, empty, and success states plus a release-announcement template.
+- [x] **COPY-01**: Ready-to-paste copy blocks exist for the GitHub repo description, Hex.pm package description, 140-char blurb, README intro/hero, landing hero/sub + primary/secondary CTAs, and three feature blurbs.
+- [x] **COPY-02**: A voice/microcopy reference (say-this / not-this) covers error, empty, and success states plus a release-announcement template.
 
 ### Repo Artifacts & Guard (REPO)
 
-- [ ] **REPO-01**: `brandbook/` has a self-contained directory structure with a `README.md` and a `docs/brand-usage.md`, cross-linked to the admin CSS and the canonical brand book.
-- [ ] **REPO-02**: A repo-size guard (size budget + CI check + `.gitattributes`) prevents binary bloat, and the token-sync + SVG checks are wired into the existing scripts-first CI.
+- [x] **REPO-01**: `brandbook/` has a self-contained directory structure with a `README.md` and a `docs/brand-usage.md`, cross-linked to the admin CSS and the canonical brand book.
+- [x] **REPO-02**: A repo-size guard (size budget + CI check + `.gitattributes`) prevents binary bloat, and the token-sync + SVG checks are wired into the existing scripts-first CI.
 
 ### HTML Brand Book (BOOK)
 
@@ -130,7 +130,7 @@ Which phases cover which requirements. Filled during roadmap creation.
 | SKIN-03 | Phase 98 | Complete |
 | SPEC-01 | Phase 99 | Complete |
 | SPEC-02 | Phase 99 | Complete |
-| COPY-01 | Phase 100 | Pending |
-| COPY-02 | Phase 100 | Pending |
-| REPO-01 | Phase 100 | Pending |
-| REPO-02 | Phase 100 | Pending |
+| COPY-01 | Phase 100 | Complete |
+| COPY-02 | Phase 100 | Complete |
+| REPO-01 | Phase 100 | Complete |
+| REPO-02 | Phase 100 | Complete |

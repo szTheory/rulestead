@@ -20,16 +20,16 @@ cd "${RULESTEAD_REPO}"
 # Synced-pair guard: Block 2/3 (dark) must be byte-identical in rulestead_admin.css
 python3 "${RULESTEAD_REPO}/scripts/check_synced_pair.py"
 
-# Brand token drift: tokens.json admin_css_mapping.light vs rulestead_admin.css Block 1.
-# Intentionally exits 1 until Phase 98 re-skins rulestead_admin.css to the mineral palette.
+# Brand token drift: tokens.json admin_css_mapping vs the re-skinned admin CSS.
+# Green after Phase 98; guards future palette drift.
 python3 "${RULESTEAD_REPO}/scripts/check_brand_tokens.py"
 
 # Tokens.css mirror drift: the brandbook/tokens.css reference mirror (light + dark blocks)
 # must stay in sync with tokens.json admin_css_mapping. Green now; guards against drift
-# during Phase 98's re-skin.
+# after future token edits.
 python3 "${RULESTEAD_REPO}/scripts/check_tokens_css.py"
 
-# SVG size budget: logo ≤20KB, specimens ≤50KB. No-op when dirs don't exist (Phases 97/99).
+# SVG size budget: logo <=20KB, specimens <=50KB.
 shopt -s nullglob
 for f in "${RULESTEAD_REPO}/brandbook/assets/logo/"*.svg; do
   size=$(wc -c < "$f" | tr -d ' ')
