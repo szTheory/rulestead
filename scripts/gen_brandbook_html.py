@@ -94,6 +94,8 @@ REQUIRED_CSS_INVARIANTS = [
     "--rs-ease-in-out",
 ]
 
+UNSAFE_SVG_MARKERS = ["base64", "<image", "<script", "<foreignObject"]
+
 
 class BrandbookError(RuntimeError):
     """Short, user-actionable generation failure."""
@@ -376,6 +378,89 @@ def load_token_bundle(tokens: Any) -> dict[str, Any]:
     }
 
 
+def asset_label(filename: str) -> str:
+    return Path(filename).stem.replace("-", " ").title()
+
+
+def asset_prefix(filename: str) -> str:
+    return f"{Path(filename).stem}__"
+
+
+def assert_safe_svg(rel_path: str, svg_text: str) -> None:
+    lowered = svg_text.lower()
+    for marker in UNSAFE_SVG_MARKERS:
+        if marker.lower() in lowered:
+            raise BrandbookError(f"ERROR: unsafe SVG content in {rel_path}")
+
+
+def add_svg_role(svg_text: str) -> str:
+    root_match = re.match(r"\s*<svg\b([^>]*)>", svg_text)
+    if not root_match:
+        return svg_text
+    root = root_match.group(0)
+    if re.search(r"\srole\s*=", root):
+        return svg_text
+    return svg_text[: root_match.start()] + root.replace("<svg", '<svg role="img"', 1) + svg_text[root_match.end() :]
+
+
+def prefix_id_list(value: str, id_map: dict[str, str]) -> str:
+    return " ".join(id_map.get(part, part) for part in value.split())
+
+
+def prefix_svg_ids(rel_path: str, svg_text: str, prefix: str) -> str:
+    id_map: dict[str, str] = {}
+
+    def replace_id(match: re.Match[str]) -> str:
+        quote = match.group(1)
+        old_id = match.group(2)
+        new_id = f"{prefix}{old_id}"
+        id_map[old_id] = new_id
+        return f"id={quote}{new_id}{quote}"
+
+    prefixed = re.sub(r"\bid=(['\"])([^'\"]+)\1", replace_id, svg_text)
+
+    def replace_aria(match: re.Match[str]) -> str:
+        attr = match.group(1)
+        quote = match.group(2)
+        value = prefix_id_list(match.group(3), id_map)
+        return f"{attr}={quote}{value}{quote}"
+
+    prefixed = re.sub(r"\b(aria-labelledby|aria-describedby)=(['\"])([^'\"]+)\2", replace_aria, prefixed)
+
+    def replace_href(match: re.Match[str]) -> str:
+        attr = match.group(1)
+        quote = match.group(2)
+        value = match.group(3)
+        if value.startswith("#") and value[1:] in id_map:
+            value = f"#{id_map[value[1:]]}"
+        return f"{attr}={quote}{value}{quote}"
+
+    prefixed = re.sub(r"\b(href|xlink:href)=(['\"])([^'\"]+)\2", replace_href, prefixed)
+
+    for old_id, new_id in sorted(id_map.items(), key=lambda item: len(item[0]), reverse=True):
+        prefixed = re.sub(rf"url\(\s*#{re.escape(old_id)}\s*\)", f"url(#{new_id})", prefixed)
+
+    if 'aria-labelledby="' not in prefixed and "aria-labelledby='" not in prefixed:
+        raise BrandbookError(f"ERROR: required SVG aria-labelledby missing in {rel_path}")
+    return add_svg_role(prefixed)
+
+
+def load_svg_asset(repo_root: Path, directory: str, filename: str) -> dict[str, Any]:
+    rel_path = f"{directory}/{filename}"
+    svg_text = read_text(repo_root, rel_path)
+    assert_safe_svg(rel_path, svg_text)
+    return {
+        "source_path": rel_path,
+        "label": asset_label(filename),
+        "bytes": len(svg_text.encode("utf-8")),
+        "svg": prefix_svg_ids(rel_path, svg_text, asset_prefix(filename)),
+    }
+
+
+def load_svg_assets(repo_root: Path, directory: str, filenames: list[str]) -> list[dict[str, Any]]:
+    return [load_svg_asset(repo_root, directory, filename) for filename in filenames]
+
+
 def load_sources(repo_root: Path) -> dict[str, Any]:
     sources: dict[str, Any] = {}
     for rel_path in REQUIRED_FILES:
@@ -386,6 +471,8 @@ def load_sources(repo_root: Path) -> dict[str, Any]:
     sources["brand_sections"] = extract_brand_sections(sources["brandbook/brand-book.md"])
     sources["tokens"] = load_token_bundle(sources["brandbook/tokens.json"])
     sources["tokens_css_invariants"] = load_tokens_css_invariants(sources["brandbook/tokens.css"])
+    sources["logos"] = load_svg_assets(repo_root, "brandbook/assets/logo", FINAL_LOGOS)
+    sources["specimens"] = load_svg_assets(repo_root, "brandbook/assets/specimens", SPECIMENS)
     return sources
 
 
