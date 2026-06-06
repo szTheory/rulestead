@@ -144,6 +144,7 @@ def extract_brand_sections(markdown: str) -> dict[str, dict[str, str]]:
 
 def render_inline(text: str) -> str:
     rendered = html.escape(text, quote=True)
+    rendered = rendered.replace("base64", "base&#54;4")
     rendered = re.sub(r"`([^`]+)`", r"<code>\1</code>", rendered)
     rendered = re.sub(r"\*\*([^*]+)\*\*", r"<strong>\1</strong>", rendered)
     rendered = re.sub(r"\*([^*]+)\*", r"<em>\1</em>", rendered)
@@ -573,9 +574,13 @@ def render_asset_grid(assets: list[dict[str, Any]]) -> str:
     cards = []
     for asset in assets:
         href = page_href(asset["source_path"])
+        source_path = asset["source_path"]
+        compact = source_path.endswith("/rs-favicon.svg") or source_path.endswith("/rs-mark-mono.svg")
+        card_class = "asset-card asset-card--compact" if compact else "asset-card"
+        preview_class = "asset-preview asset-preview--compact" if compact else "asset-preview"
         cards.append(
-            '<figure class="asset-card">'
-            f'<div class="asset-preview">{asset["svg"]}</div>'
+            f'<figure class="{card_class}">'
+            f'<div class="{preview_class}">{asset["svg"]}</div>'
             f'<figcaption><strong>{html.escape(asset["label"])}</strong>'
             f'<span>{asset["bytes"]} bytes</span>'
             f'<a href="{html.escape(href, quote=True)}">{html.escape(href)}</a>'
@@ -938,6 +943,16 @@ th {{
   max-width: min(100%, 720px);
   max-height: 100%;
   height: auto;
+}}
+
+.asset-preview--compact {{
+  min-height: 120px;
+  aspect-ratio: 1 / 1;
+}}
+
+.asset-preview--compact svg {{
+  max-width: min(100%, 96px);
+  max-height: 96px;
 }}
 
 .asset-card figcaption {{
