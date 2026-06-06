@@ -58,13 +58,15 @@ class LinkAndIdParser(HTMLParser):
         super().__init__()
         self.ids = []
         self.hrefs = []
-        self._doc_excerpt_depth = 0
+        self._doc_excerpt_index = 0
+        self._doc_excerpt_stack = []
 
     def handle_starttag(self, tag, attrs):
         attrs_dict = dict(attrs)
         classes = set(attrs_dict.get("class", "").split())
         if "doc-excerpt" in classes:
-            self._doc_excerpt_depth += 1
+            self._doc_excerpt_index += 1
+            self._doc_excerpt_stack.append(self._doc_excerpt_index)
 
         element_id = attrs_dict.get("id")
         if element_id:
@@ -72,11 +74,12 @@ class LinkAndIdParser(HTMLParser):
 
         href = attrs_dict.get("href")
         if href:
-            self.hrefs.append((href, self._doc_excerpt_depth > 0))
+            source_index = self._doc_excerpt_stack[-1] if self._doc_excerpt_stack else None
+            self.hrefs.append((href, source_index))
 
     def handle_endtag(self, tag):
-        if self._doc_excerpt_depth > 0 and tag == "article":
-            self._doc_excerpt_depth -= 1
+        if self._doc_excerpt_stack and tag == "article":
+            self._doc_excerpt_stack.pop()
 
 
 def fail(message: str) -> int:
@@ -140,9 +143,7 @@ def assert_unique_ids(parser: LinkAndIdParser) -> str | None:
     return None
 
 
-def should_skip_href(href: str, in_doc_excerpt: bool) -> bool:
-    if in_doc_excerpt:
-        return True
+def should_skip_href(href: str) -> bool:
     if href.startswith("#"):
         return True
     if re.match(r"^[a-z][a-z0-9+.-]*:", href, flags=re.IGNORECASE):
@@ -150,17 +151,33 @@ def should_skip_href(href: str, in_doc_excerpt: bool) -> bool:
     return False
 
 
+def doc_excerpt_base(source_index: int | None) -> Path | None:
+    # Doc excerpts render VOICE, COPY, README, BUDGET, then docs/brand-usage.
+    bases = {
+        1: OUTPUT.parent,
+        2: OUTPUT.parent,
+        3: OUTPUT.parent,
+        4: OUTPUT.parent,
+        5: OUTPUT.parent / "docs",
+    }
+    return bases.get(source_index)
+
+
 def assert_local_links(parser: LinkAndIdParser) -> str | None:
     brandbook_root = OUTPUT.parent
-    for href, in_doc_excerpt in parser.hrefs:
-        if should_skip_href(href, in_doc_excerpt):
+    for href, source_index in parser.hrefs:
+        if should_skip_href(href):
             continue
         local_path = href.split("#", 1)[0].split("?", 1)[0]
         if not local_path:
             continue
         target = (brandbook_root / local_path).resolve()
-        if not target.exists():
-            return f"local non-fragment href does not resolve from brandbook/: {href}"
+        if target.exists():
+            continue
+        source_base = doc_excerpt_base(source_index)
+        if source_base and (source_base / local_path).resolve().exists():
+            continue
+        return f"local non-fragment href does not resolve from brandbook/: {href}"
     return None
 
 
