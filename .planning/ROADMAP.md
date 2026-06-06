@@ -226,7 +226,7 @@ Plans:
 
 **Wave 1**
 
-- [ ] 101-01-PLAN.md — Wave 1: generator core, source contract, SVG sanitizing, and initial generated `brandbook/index.html`
+- [x] 101-01-PLAN.md — Wave 1: generator core, source contract, SVG sanitizing, and initial generated `brandbook/index.html`
 
 **Wave 2** *(blocked on Wave 1)*
 
@@ -250,4 +250,4 @@ Plans:
 | 98. Admin Re-skin (CSS Cascade) | 4/4 | Complete    | 2026-06-05 |
 | 99. Specimens | 4/4 | Complete    | 2026-06-05 |
 | 100. Marketing Copy + Repo Artifact Plan | 4/4 | Complete | 2026-06-06 |
-| 101. HTML Brand Book (capstone) | 0/4 | Planned | - |
+| 101. HTML Brand Book (capstone) | 1/4 | In Progress|  |
