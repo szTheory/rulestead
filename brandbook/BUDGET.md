@@ -1,16 +1,20 @@
 # Brand Asset Budget
 
-Phase 100 documents the live budget that `scripts/ci/lint.sh` already enforces.
-Do not change these numbers in docs without changing the script in the same review.
+This document records the live budgets enforced by the brand guard scripts.
+Do not change these numbers in docs without changing the matching guard in the same review.
 
 | Asset type | Path | Limit | Enforced by |
 |------------|------|-------|-------------|
 | Logo SVG | `brandbook/assets/logo/*.svg` | 20 KB / 20480 bytes each | `scripts/ci/lint.sh` |
 | Specimen SVG | `brandbook/assets/specimens/*.svg` | 50 KB / 51200 bytes each | `scripts/ci/lint.sh` |
+| Generated HTML brand book | `brandbook/index.html` | 256 KB / 262144 bytes | `scripts/check_brandbook_html.py` |
 
 ## Policy
 
 - Commit source SVGs for logos and specimens. Keep them text-diffable and reviewable.
+- `brandbook/index.html` is generated reviewable source, not a hand-authored second source of truth.
+- Inline committed SVG previews are allowed in `brandbook/index.html` and guarded by the HTML budget.
+- If generated HTML exceeds budget, simplify generated markup/previews or reduce embedded preview scope; do not raise SVG budgets to compensate.
 - Do not embed raster data in SVGs. `base64`, `<image>`, and script content are not allowed in brand SVGs.
 - Keep accessibility metadata in committed SVGs: `role="img"`, `title`, `desc`, and `aria-labelledby`.
 - Do not commit font binaries (`.woff`, `.woff2`, `.ttf`, `.otf`) for the brand stack. Use the documented Sora, Inter, and IBM Plex Mono font stacks.
@@ -23,6 +27,12 @@ Run the full lint gate from repo root:
 
 ```bash
 bash scripts/ci/lint.sh
+```
+
+For a narrow generated HTML check:
+
+```bash
+python3 scripts/check_brandbook_html.py
 ```
 
 For a narrow size check:
