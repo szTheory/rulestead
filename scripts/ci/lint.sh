@@ -29,6 +29,9 @@ python3 "${RULESTEAD_REPO}/scripts/check_brand_tokens.py"
 # after future token edits.
 python3 "${RULESTEAD_REPO}/scripts/check_tokens_css.py"
 
+# Generated HTML brand book drift and size budget.
+python3 "${RULESTEAD_REPO}/scripts/check_brandbook_html.py"
+
 # SVG size budget: logo <=20KB, specimens <=50KB.
 shopt -s nullglob
 for f in "${RULESTEAD_REPO}/brandbook/assets/logo/"*.svg; do
