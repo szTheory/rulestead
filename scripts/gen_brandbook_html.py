@@ -556,6 +556,19 @@ def render_css_var_table(values: dict[str, str], names: list[str]) -> str:
     return token_rows(rows)
 
 
+def render_admin_mapping_table(mapping: dict[str, str]) -> str:
+    rows = [
+        {
+            "name": name,
+            "value": value,
+            "description": "admin_css_mapping token",
+        }
+        for name, value in sorted(mapping.items())
+        if name.startswith("--rs-")
+    ]
+    return token_rows(rows)
+
+
 def render_asset_grid(assets: list[dict[str, Any]]) -> str:
     cards = []
     for asset in assets:
@@ -942,19 +955,23 @@ th {{
 def render_section(section_id: str, refs: list[str], body: str) -> str:
     title = section_title(section_id)
     return (
-        f'<section id="{section_id}" class="brand-section">\n'
-        f"<h2>{html.escape(title)}</h2>\n"
+        f'<section id="{section_id}" class="brand-section" aria-labelledby="{section_id}-title">\n'
+        f'<h2 id="{section_id}-title">{html.escape(title)}</h2>\n'
         f"{source_refs(refs)}\n"
         f'<div class="section-copy">{body}</div>\n'
         "</section>"
     )
 
 
-def render_overview(sources: dict[str, Any]) -> str:
-    return brand_section_html(sources, ["3", "4", "5", "26", "27"])
+def render_overview_section(sources: dict[str, Any]) -> str:
+    tagline = extract_tagline(sources)
+    return (
+        f'<p class="section-lede"><strong>{html.escape(tagline)}</strong></p>'
+        + brand_section_html(sources, ["3", "4", "5", "26", "27"])
+    )
 
 
-def render_voice(sources: dict[str, Any]) -> str:
+def render_voice_messaging_section(sources: dict[str, Any]) -> str:
     return (
         brand_section_html(sources, ["7", "8", "9", "19"])
         + '<div class="doc-grid">'
@@ -964,21 +981,27 @@ def render_voice(sources: dict[str, Any]) -> str:
     )
 
 
-def render_color(sources: dict[str, Any]) -> str:
+def render_color_section(sources: dict[str, Any]) -> str:
     tokens = sources["tokens"]
+    mappings = tokens["admin_css_mapping"]
     return (
         brand_section_html(sources, ["12"])
+        + '<p class="policy-note"><strong>Signal Gold <code>#D2A94E</code> is decorative-only.</strong> Never use it as normal-weight text.</p>'
         + "<h3>Primitive palette</h3>"
         + render_color_swatches(tokens["primitive"])
         + "<h3>Light semantic tokens</h3>"
         + token_rows(tokens["light"])
         + "<h3>Dark semantic tokens</h3>"
         + token_rows(tokens["dark"])
+        + "<h3>Light admin CSS mapping</h3>"
+        + render_admin_mapping_table(mappings["light"])
+        + "<h3>Dark admin CSS mapping</h3>"
+        + render_admin_mapping_table(mappings["dark"])
         + render_asset_grid([asset for asset in sources["specimens"] if asset["source_path"].endswith("/palette.svg")])
     )
 
 
-def render_typography(sources: dict[str, Any]) -> str:
+def render_typography_section(sources: dict[str, Any]) -> str:
     invariants = sources["tokens_css_invariants"]
     font_names = ["--rs-font-display", "--rs-font-sans", "--rs-font-mono"]
     type_names = ["--rs-text-base", "--rs-text-xl", "--rs-text-2xl"]
@@ -992,11 +1015,11 @@ def render_typography(sources: dict[str, Any]) -> str:
     )
 
 
-def render_logo(sources: dict[str, Any]) -> str:
+def render_logo_section(sources: dict[str, Any]) -> str:
     return brand_section_html(sources, ["14"]) + render_asset_grid(sources["logos"])
 
 
-def render_layout_components(sources: dict[str, Any]) -> str:
+def render_layout_components_section(sources: dict[str, Any]) -> str:
     specimen_names = {"/components.svg", "/code-block.svg"}
     specimens = [asset for asset in sources["specimens"] if any(asset["source_path"].endswith(name) for name in specimen_names)]
     return (
@@ -1009,13 +1032,13 @@ def render_layout_components(sources: dict[str, Any]) -> str:
     )
 
 
-def render_iconography_imagery(sources: dict[str, Any]) -> str:
+def render_iconography_imagery_section(sources: dict[str, Any]) -> str:
     specimen_names = {"/readme-header.svg", "/social-card.svg"}
     specimens = [asset for asset in sources["specimens"] if any(asset["source_path"].endswith(name) for name in specimen_names)]
     return brand_section_html(sources, ["16", "17"]) + render_asset_grid(specimens)
 
 
-def render_motion(sources: dict[str, Any]) -> str:
+def render_motion_section(sources: dict[str, Any]) -> str:
     invariants = sources["tokens_css_invariants"]
     motion_names = [
         "--rs-motion-fast",
@@ -1030,7 +1053,7 @@ def render_motion(sources: dict[str, Any]) -> str:
     return brand_section_html(sources, ["18"]) + render_css_var_table(invariants, motion_names)
 
 
-def render_assets_maintenance(sources: dict[str, Any]) -> str:
+def render_assets_maintenance_section(sources: dict[str, Any]) -> str:
     return (
         brand_section_html(sources, ["25"])
         + '<div class="doc-grid">'
@@ -1038,6 +1061,12 @@ def render_assets_maintenance(sources: dict[str, Any]) -> str:
         + f'<article class="doc-excerpt">{render_markdown(sources["brandbook/BUDGET.md"])}</article>'
         + f'<article class="doc-excerpt">{render_markdown(sources["brandbook/docs/brand-usage.md"])}</article>'
         + "</div>"
+        + "<h3>Generation and guard commands</h3>"
+        + "<ul>"
+        + "<li><code>python3 scripts/gen_brandbook_html.py</code></li>"
+        + "<li><code>python3 scripts/check_brandbook_html.py</code></li>"
+        + "<li><code>bash scripts/ci/lint.sh</code></li>"
+        + "</ul>"
     )
 
 
@@ -1051,39 +1080,39 @@ def render_page(sources: dict[str, Any]) -> str:
     section_bodies = {
         "overview": (
             ["brandbook/brand-book.md", "brandbook/assets/logo/rs-wordmark.svg"],
-            render_overview(sources),
+            render_overview_section(sources),
         ),
         "voice-and-messaging": (
             ["brandbook/brand-book.md", "brandbook/VOICE.md", "brandbook/COPY.md"],
-            render_voice(sources),
+            render_voice_messaging_section(sources),
         ),
         "color": (
             ["brandbook/brand-book.md", "brandbook/tokens.json", "brandbook/assets/specimens/palette.svg"],
-            render_color(sources),
+            render_color_section(sources),
         ),
         "typography": (
             ["brandbook/brand-book.md", "brandbook/tokens.css", "brandbook/assets/specimens/typography.svg"],
-            render_typography(sources),
+            render_typography_section(sources),
         ),
         "logo": (
             ["brandbook/brand-book.md", *[asset["source_path"] for asset in sources["logos"]]],
-            render_logo(sources),
+            render_logo_section(sources),
         ),
         "layout-and-components": (
             ["brandbook/brand-book.md", "brandbook/tokens.json", "brandbook/assets/specimens/components.svg", "brandbook/assets/specimens/code-block.svg"],
-            render_layout_components(sources),
+            render_layout_components_section(sources),
         ),
         "iconography-and-imagery": (
             ["brandbook/brand-book.md", "brandbook/assets/specimens/readme-header.svg", "brandbook/assets/specimens/social-card.svg"],
-            render_iconography_imagery(sources),
+            render_iconography_imagery_section(sources),
         ),
         "motion": (
             ["brandbook/brand-book.md", "brandbook/tokens.css"],
-            render_motion(sources),
+            render_motion_section(sources),
         ),
         "assets-and-maintenance": (
-            ["brandbook/brand-book.md", "brandbook/README.md", "brandbook/BUDGET.md", "brandbook/docs/brand-usage.md", "scripts/gen_brandbook_html.py"],
-            render_assets_maintenance(sources),
+            ["brandbook/brand-book.md", "brandbook/README.md", "brandbook/BUDGET.md", "brandbook/docs/brand-usage.md", "scripts/gen_brandbook_html.py", "scripts/check_brandbook_html.py", "scripts/ci/lint.sh"],
+            render_assets_maintenance_section(sources),
         ),
     }
 
