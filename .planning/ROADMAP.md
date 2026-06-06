@@ -252,4 +252,4 @@ Plans:
 | 98. Admin Re-skin (CSS Cascade) | 4/4 | Complete    | 2026-06-05 |
 | 99. Specimens | 4/4 | Complete    | 2026-06-05 |
 | 100. Marketing Copy + Repo Artifact Plan | 4/4 | Complete | 2026-06-06 |
-| 101. HTML Brand Book (capstone) | 4/4 | Complete | 2026-06-06 |
+| 101. HTML Brand Book (capstone) | 4/4 | Complete    | 2026-06-06 |
