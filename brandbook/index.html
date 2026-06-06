@@ -1,0 +1,1015 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rulestead Brand Book</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Inter:wght@400;600&family=Sora:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+
+body {
+  margin: 0;
+}
+
+[data-rulestead-brandbook] {
+  --rs-control-h: 2.5rem;
+  --rs-control-h-lg: 3rem;
+  --rs-control-h-sm: 2rem;
+  --rs-control-px: 0.75rem;
+  --rs-disabled-opacity: 0.55;
+  --rs-ease-emphasis: cubic-bezier(0.2, 0, 0, 1.15);
+  --rs-ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --rs-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --rs-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --rs-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --rs-focus-ring-offset: 2px;
+  --rs-font-display: "Sora", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --rs-font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --rs-font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --rs-leading-normal: 1.5;
+  --rs-leading-relaxed: 1.55;
+  --rs-leading-snug: 1.35;
+  --rs-leading-tight: 1.2;
+  --rs-motion-base: 200ms;
+  --rs-motion-fast: 150ms;
+  --rs-motion-slow: 320ms;
+  --rs-motion-slower: 480ms;
+  --rs-page-gap: 1.25rem;
+  --rs-radius-full: 999px;
+  --rs-radius-lg: 14px;
+  --rs-radius-md: 10px;
+  --rs-radius-sm: 6px;
+  --rs-radius-xl: 18px;
+  --rs-section-gap: 1rem;
+  --rs-shell-max: 1200px;
+  --rs-space-1: 0.25rem;
+  --rs-space-10: 2.5rem;
+  --rs-space-2: 0.5rem;
+  --rs-space-3: 0.75rem;
+  --rs-space-4: 1rem;
+  --rs-space-5: 1.25rem;
+  --rs-space-6: 1.5rem;
+  --rs-space-7: 1.75rem;
+  --rs-space-8: 2rem;
+  --rs-space-9: 2.25rem;
+  --rs-text-2xl: clamp(1.5rem, 2vw, 2rem);
+  --rs-text-2xs: 0.72rem;
+  --rs-text-base: 0.95rem;
+  --rs-text-lg: 1.15rem;
+  --rs-text-md: 1.05rem;
+  --rs-text-sm: 0.86rem;
+  --rs-text-xl: 1.4rem;
+  --rs-text-xs: 0.78rem;
+  --rs-touch-target-min: 44px;
+  --rs-tracking-normal: 0;
+  --rs-tracking-wide: 0.05em;
+  --rs-tracking-wider: 0.08em;
+  --rs-weight-bold: 700;
+  --rs-weight-medium: 500;
+  --rs-weight-normal: 400;
+  --rs-weight-semibold: 600;
+  --rs-z-base: 0;
+  --rs-z-dropdown: 100;
+  --rs-z-modal: 400;
+  --rs-z-overlay: 300;
+  --rs-z-raised: 1;
+  --rs-z-sticky: 200;
+  --rs-z-toast: 500;
+  --rs-accent: #9b5931;
+  --rs-accent-soft: #fde8dc;
+  --rs-critical: #B44949;
+  --rs-error: #B44949;
+  --rs-error-bg-subtle: #fff7f7;
+  --rs-error-border: #fca5a5;
+  --rs-error-border-strong: #fecaca;
+  --rs-error-hover: #991b1b;
+  --rs-error-soft: #fee2e2;
+  --rs-error-text: #be123c;
+  --rs-error-text-strong: #7f1d1d;
+  --rs-neutral-0: #ffffff;
+  --rs-neutral-100: #eef1f5;
+  --rs-neutral-200: #e7ebf0;
+  --rs-neutral-25: #f8fafc;
+  --rs-neutral-300: #d8dee6;
+  --rs-neutral-400: #b8c2cf;
+  --rs-neutral-50: #f4f6f8;
+  --rs-neutral-500: #99a3af;
+  --rs-neutral-600: #5c6b7a;
+  --rs-neutral-700: #263241;
+  --rs-neutral-900: #1a2332;
+  --rs-on-primary: #ffffff;
+  --rs-primary: #3A6F8F;
+  --rs-primary-hover: #2d5f7c;
+  --rs-primary-soft: #dbeafe;
+  --rs-success: #2d7753;
+  --rs-success-bg-subtle: #f7fff9;
+  --rs-success-border: #86efac;
+  --rs-success-hover: #166534;
+  --rs-success-soft: #dcfce7;
+  --rs-success-text: #047857;
+  --rs-warning: #8f601a;
+  --rs-warning-border: #fcd34d;
+  --rs-warning-hover: #92400e;
+  --rs-warning-soft: #fef3c7;
+  --rs-warning-text: #a16207;
+  --rs-bg: var(--rs-neutral-50);
+  --rs-surface: var(--rs-neutral-0);
+  --rs-surface-muted: var(--rs-neutral-100);
+  --rs-text: var(--rs-neutral-900);
+  --rs-text-muted: var(--rs-neutral-600);
+  --rs-border: var(--rs-neutral-300);
+  --rs-border-subtle: var(--rs-neutral-200);
+  --rs-focus-ring: 0 0 0 2px var(--rs-neutral-0), 0 0 0 4px var(--rs-primary);
+  min-height: 100vh;
+  background: var(--rs-bg);
+  color: var(--rs-text);
+  font-family: var(--rs-font-sans);
+  font-size: var(--rs-text-base);
+  line-height: var(--rs-leading-normal);
+  letter-spacing: 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  [data-rulestead-brandbook]:not([data-theme]) {
+  --rs-accent: #ba6b3c;
+  --rs-critical: #bf6464;
+  --rs-disabled-bg: #253243;
+  --rs-disabled-text: #6b84a0;
+  --rs-error: #bf6464;
+  --rs-error-border: #7f1d1d;
+  --rs-error-border-strong: #991b1b;
+  --rs-error-hover: #fca5a5;
+  --rs-error-text: #f87171;
+  --rs-error-text-strong: #fca5a5;
+  --rs-neutral-0: #10161f;
+  --rs-neutral-100: #1f2a38;
+  --rs-neutral-200: #253243;
+  --rs-neutral-25: #141c27;
+  --rs-neutral-300: #2e3d52;
+  --rs-neutral-400: #3d5168;
+  --rs-neutral-50: #19222e;
+  --rs-neutral-500: #7a8fa3;
+  --rs-neutral-600: #a8b9ca;
+  --rs-neutral-900: #e8edf3;
+  --rs-on-primary: #ffffff;
+  --rs-primary: #5885a0;
+  --rs-primary-hover: #4a7d9c;
+  --rs-success: #488d6b;
+  --rs-success-border: #166634;
+  --rs-success-hover: #86efac;
+  --rs-success-text: #4ade80;
+  --rs-warning: #B57A21;
+  --rs-warning-border: #78350f;
+  --rs-warning-hover: #fcd34d;
+  --rs-warning-text: #fbbf24;
+    --rs-bg: var(--rs-neutral-50);
+    --rs-surface: var(--rs-neutral-25);
+    --rs-surface-muted: var(--rs-neutral-100);
+    --rs-text: var(--rs-neutral-900);
+    --rs-text-muted: var(--rs-neutral-600);
+    --rs-border: var(--rs-neutral-300);
+    --rs-border-subtle: var(--rs-neutral-200);
+    --rs-focus-ring: 0 0 0 2px var(--rs-neutral-0), 0 0 0 4px var(--rs-primary);
+  }
+}
+
+[data-rulestead-brandbook][data-theme="light"] {
+  --rs-accent: #9b5931;
+  --rs-accent-soft: #fde8dc;
+  --rs-critical: #B44949;
+  --rs-error: #B44949;
+  --rs-error-bg-subtle: #fff7f7;
+  --rs-error-border: #fca5a5;
+  --rs-error-border-strong: #fecaca;
+  --rs-error-hover: #991b1b;
+  --rs-error-soft: #fee2e2;
+  --rs-error-text: #be123c;
+  --rs-error-text-strong: #7f1d1d;
+  --rs-neutral-0: #ffffff;
+  --rs-neutral-100: #eef1f5;
+  --rs-neutral-200: #e7ebf0;
+  --rs-neutral-25: #f8fafc;
+  --rs-neutral-300: #d8dee6;
+  --rs-neutral-400: #b8c2cf;
+  --rs-neutral-50: #f4f6f8;
+  --rs-neutral-500: #99a3af;
+  --rs-neutral-600: #5c6b7a;
+  --rs-neutral-700: #263241;
+  --rs-neutral-900: #1a2332;
+  --rs-on-primary: #ffffff;
+  --rs-primary: #3A6F8F;
+  --rs-primary-hover: #2d5f7c;
+  --rs-primary-soft: #dbeafe;
+  --rs-success: #2d7753;
+  --rs-success-bg-subtle: #f7fff9;
+  --rs-success-border: #86efac;
+  --rs-success-hover: #166534;
+  --rs-success-soft: #dcfce7;
+  --rs-success-text: #047857;
+  --rs-warning: #8f601a;
+  --rs-warning-border: #fcd34d;
+  --rs-warning-hover: #92400e;
+  --rs-warning-soft: #fef3c7;
+  --rs-warning-text: #a16207;
+}
+
+[data-rulestead-brandbook][data-theme="dark"] {
+  --rs-accent: #ba6b3c;
+  --rs-critical: #bf6464;
+  --rs-disabled-bg: #253243;
+  --rs-disabled-text: #6b84a0;
+  --rs-error: #bf6464;
+  --rs-error-border: #7f1d1d;
+  --rs-error-border-strong: #991b1b;
+  --rs-error-hover: #fca5a5;
+  --rs-error-text: #f87171;
+  --rs-error-text-strong: #fca5a5;
+  --rs-neutral-0: #10161f;
+  --rs-neutral-100: #1f2a38;
+  --rs-neutral-200: #253243;
+  --rs-neutral-25: #141c27;
+  --rs-neutral-300: #2e3d52;
+  --rs-neutral-400: #3d5168;
+  --rs-neutral-50: #19222e;
+  --rs-neutral-500: #7a8fa3;
+  --rs-neutral-600: #a8b9ca;
+  --rs-neutral-900: #e8edf3;
+  --rs-on-primary: #ffffff;
+  --rs-primary: #5885a0;
+  --rs-primary-hover: #4a7d9c;
+  --rs-success: #488d6b;
+  --rs-success-border: #166634;
+  --rs-success-hover: #86efac;
+  --rs-success-text: #4ade80;
+  --rs-warning: #B57A21;
+  --rs-warning-border: #78350f;
+  --rs-warning-hover: #fcd34d;
+  --rs-warning-text: #fbbf24;
+  --rs-bg: var(--rs-neutral-50);
+  --rs-surface: var(--rs-neutral-25);
+  --rs-surface-muted: var(--rs-neutral-100);
+  --rs-text: var(--rs-neutral-900);
+  --rs-text-muted: var(--rs-neutral-600);
+  --rs-border: var(--rs-neutral-300);
+  --rs-border-subtle: var(--rs-neutral-200);
+  --rs-focus-ring: 0 0 0 2px var(--rs-neutral-0), 0 0 0 4px var(--rs-primary);
+}
+
+[data-rulestead-brandbook] *,
+[data-rulestead-brandbook] *::before,
+[data-rulestead-brandbook] *::after {
+  box-sizing: border-box;
+}
+
+[data-rulestead-brandbook] a {
+  color: var(--rs-primary);
+  font-weight: 600;
+}
+
+[data-rulestead-brandbook] a:focus-visible,
+[data-rulestead-brandbook] button:focus-visible {
+  outline: none;
+  box-shadow: var(--rs-focus-ring);
+}
+
+.brand-shell {
+  max-width: var(--rs-shell-max);
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.brand-header {
+  display: grid;
+  gap: 24px;
+  padding: 24px 0 32px;
+  border-bottom: 1px solid var(--rs-border-subtle);
+}
+
+.brand-identity {
+  display: grid;
+  gap: 16px;
+}
+
+.brand-identity svg {
+  width: min(360px, 100%);
+  height: auto;
+}
+
+.brand-title {
+  max-width: 760px;
+}
+
+.brand-title h1 {
+  margin: 0 0 8px;
+  font-family: var(--rs-font-display);
+  font-size: 2rem;
+  line-height: var(--rs-leading-tight);
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.brand-title p {
+  margin: 0;
+  max-width: 66ch;
+  color: var(--rs-text-muted);
+}
+
+.theme-control {
+  display: inline-flex;
+  width: fit-content;
+  min-height: 44px;
+  padding: 4px;
+  gap: 4px;
+  border: 1px solid var(--rs-border);
+  border-radius: var(--rs-radius-full);
+  background: var(--rs-surface);
+}
+
+.theme-control button {
+  min-height: 36px;
+  border: 1px solid transparent;
+  border-radius: var(--rs-radius-full);
+  padding: 0 14px;
+  background: transparent;
+  color: var(--rs-text-muted);
+  font: inherit;
+  font-weight: 600;
+}
+
+.theme-control [aria-checked="true"] {
+  border-color: var(--rs-primary);
+  background: var(--rs-primary-soft, var(--rs-surface-muted));
+  color: var(--rs-primary-hover, var(--rs-primary));
+}
+
+.brand-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.brand-nav a,
+.source-refs a {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  border: 1px solid var(--rs-border-subtle);
+  border-radius: var(--rs-radius-sm);
+  padding: 4px 8px;
+  background: var(--rs-surface);
+  color: var(--rs-text);
+  font-size: var(--rs-text-sm);
+  text-decoration: none;
+}
+
+.brand-main {
+  display: grid;
+  gap: 32px;
+  padding: 32px 0;
+}
+
+.brand-section {
+  display: grid;
+  gap: 16px;
+  padding: 32px 0;
+  border-bottom: 1px solid var(--rs-border-subtle);
+}
+
+.brand-section h2 {
+  margin: 0;
+  font-family: var(--rs-font-display);
+  font-size: 1.4rem;
+  line-height: var(--rs-leading-tight);
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.section-copy {
+  max-width: 78ch;
+}
+
+.section-copy h3,
+.section-copy h4,
+.doc-excerpt h3 {
+  margin: 24px 0 8px;
+  font-family: var(--rs-font-display);
+  font-size: 1.05rem;
+  line-height: var(--rs-leading-snug);
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.section-copy p,
+.section-copy li {
+  color: var(--rs-text);
+}
+
+.section-copy blockquote {
+  margin: 16px 0;
+  border-left: 3px solid var(--rs-accent);
+  padding-left: 16px;
+  color: var(--rs-text-muted);
+}
+
+.source-refs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.source-refs span {
+  color: var(--rs-text-muted);
+  font-family: var(--rs-font-mono);
+  font-size: var(--rs-text-xs);
+}
+
+.swatch-grid,
+.asset-grid,
+.doc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.swatch,
+.asset-card,
+.doc-excerpt {
+  border: 1px solid var(--rs-border-subtle);
+  border-radius: 8px;
+  background: var(--rs-surface);
+}
+
+.swatch {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+}
+
+.swatch__chip {
+  display: block;
+  aspect-ratio: 4 / 1;
+  border: 1px solid var(--rs-border-subtle);
+  border-radius: 6px;
+  background: var(--swatch-color);
+}
+
+code,
+pre {
+  font-family: var(--rs-font-mono);
+}
+
+.section-copy code,
+.swatch code,
+table code {
+  font-size: var(--rs-text-xs);
+}
+
+pre {
+  overflow: auto;
+  border-radius: 8px;
+  padding: 16px;
+  background: var(--rs-neutral-0);
+  color: var(--rs-text);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  overflow-wrap: anywhere;
+}
+
+th,
+td {
+  border-bottom: 1px solid var(--rs-border-subtle);
+  padding: 10px 8px;
+  text-align: left;
+  vertical-align: top;
+}
+
+th {
+  color: var(--rs-text-muted);
+  font-size: var(--rs-text-sm);
+  font-weight: 600;
+}
+
+.asset-card {
+  margin: 0;
+  overflow: hidden;
+}
+
+.asset-preview {
+  display: grid;
+  min-height: 180px;
+  aspect-ratio: 16 / 9;
+  place-items: center;
+  overflow: hidden;
+  padding: 16px;
+  background: var(--rs-surface-muted);
+}
+
+.asset-preview svg {
+  max-width: min(100%, 720px);
+  max-height: 100%;
+  height: auto;
+}
+
+.asset-card figcaption {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+}
+
+.asset-card figcaption span,
+.asset-card figcaption a {
+  color: var(--rs-text-muted);
+  font-family: var(--rs-font-mono);
+  font-size: var(--rs-text-xs);
+}
+
+.doc-excerpt {
+  padding: 16px;
+}
+
+.brand-footer {
+  padding: 24px 0;
+  color: var(--rs-text-muted);
+  font-size: var(--rs-text-sm);
+}
+
+@media (max-width: 720px) {
+  .brand-shell {
+    padding: 16px;
+  }
+
+  .brand-header {
+    padding-top: 16px;
+  }
+}
+
+  </style>
+</head>
+<body>
+  <div data-rulestead-brandbook>
+    <div class="brand-shell">
+      <header class="brand-header">
+        <div class="brand-identity">
+          <svg role="img" xmlns="http://www.w3.org/2000/svg" aria-labelledby="hero-rs-wordmark__t hero-rs-wordmark__d" viewBox="0 0 372 64"><title id="hero-rs-wordmark__t">Rulestead</title><desc id="hero-rs-wordmark__d">Rulestead wordmark — multivariate decision-branch mark beside the word Rulestead set in Sora Bold</desc><g aria-hidden="true"><rect width="7.5" height="39.5" x="30" y="13" fill="#3a6f8f" rx="1"/><rect width="20" height="7.5" x="12" y="28.25" fill="#3a6f8f" rx="1"/><circle cx="12" cy="32" r="6.5" fill="#3a6f8f"/><rect width="14" height="7.5" x="32" y="12.25" fill="#9b5931" rx="1"/><circle cx="50" cy="16" r="6.5" fill="#9b5931"/><rect width="14" height="7.5" x="32" y="28.25" fill="#3a6f8f" rx="1"/><circle cx="50" cy="32" r="6.5" fill="#c4ccd1"/><rect width="14" height="7.5" x="32" y="44.25" fill="#3a6f8f" rx="1"/><circle cx="50" cy="48" r="6.5" fill="#c4ccd1"/><path fill="#183247" d="M78.493 52V11.675h8.985V52Zm24.272 0L91.04 34.796h9.862L113.175 52ZM85.068 39.18v-7.07h9.862q1.972 0 3.424-.794 1.452-.795 2.247-2.247t.794-3.37q0-1.917-.794-3.369-.795-1.452-2.247-2.246-1.452-.795-3.424-.795h-9.862v-7.615h9.15q4.985 0 8.656 1.506t5.644 4.466 1.972 7.451v.877q0 4.438-2 7.369t-5.643 4.383-8.63 1.452Zm43.068 13.751q-5.205 0-8-3.37t-2.794-10.163V21.975h8.767v17.862q0 2.41 1.37 3.835t3.67 1.424q2.356 0 3.836-1.479t1.479-4V21.975h8.766V52h-6.958V39.344h.603q0 4.547-1.178 7.588-1.178 3.04-3.48 4.52-2.3 1.48-5.698 1.48ZM153.723 52V12.003h8.821V52Zm-3.561-33.531v-6.466h12.382v6.466Zm34.19 34.572q-3.835 0-6.767-1.315-2.93-1.315-4.876-3.534-1.945-2.219-2.959-4.986-1.013-2.767-1.013-5.67V36.44q0-3.014 1.013-5.78 1.014-2.768 2.932-4.96 1.917-2.19 4.794-3.478t6.547-1.288q4.822 0 8.137 2.164 3.314 2.164 5.068 5.644t1.753 7.588v2.959h-26.573v-4.986h21.258l-2.849 2.301q0-2.685-.767-4.602t-2.274-2.932-3.753-1.013q-2.301 0-3.89 1.04-1.589 1.042-2.41 3.042t-.822 4.903q0 2.685.767 4.685t2.41 3.096q1.644 1.095 4.274 1.095 2.41 0 3.945-.931 1.534-.932 2.082-2.301h8.054q-.657 3.013-2.575 5.37-1.918 2.355-4.822 3.67t-6.684 1.315m31.834-.11q-6.41 0-10.027-2.63t-3.835-7.396h7.78q.22 1.424 1.726 2.548 1.507 1.123 4.52 1.123 2.302 0 3.808-.795 1.507-.794 1.507-2.273 0-1.315-1.15-2.11-1.151-.794-4.11-1.123l-2.356-.22q-5.424-.547-8.136-3.013t-2.712-6.3q0-3.178 1.589-5.315t4.41-3.233 6.438-1.096q5.808 0 9.37 2.548 3.56 2.548 3.725 7.37h-7.78q-.22-1.48-1.534-2.494-1.315-1.013-3.89-1.013-2.028 0-3.233.767t-1.205 2.082q0 1.26 1.04 1.918 1.042.657 3.398.931l2.355.22q5.534.602 8.603 3.067t3.068 6.63q0 3.013-1.644 5.232t-4.657 3.397-7.068 1.178m32.716-.547q-4.547 0-7.341-1.124-2.795-1.123-4.082-3.78-1.288-2.657-1.288-7.205V13.866h8.164v26.738q0 2.136 1.123 3.26t3.205 1.123h4.438v7.397Zm-17.258-23.998v-6.41h21.477v6.41Zm41.148 24.655q-3.835 0-6.767-1.315-2.93-1.315-4.876-3.534-1.945-2.219-2.959-4.986-1.013-2.767-1.013-5.67V36.44q0-3.014 1.013-5.78 1.014-2.768 2.932-4.96 1.917-2.19 4.794-3.478t6.547-1.288q4.822 0 8.137 2.164 3.314 2.164 5.068 5.644t1.753 7.588v2.959h-26.573v-4.986h21.258l-2.849 2.301q0-2.685-.767-4.602t-2.274-2.932-3.753-1.013q-2.301 0-3.89 1.04-1.589 1.042-2.41 3.042t-.822 4.903q0 2.685.767 4.685t2.41 3.096 4.274 1.095q2.41 0 3.945-.931 1.534-.932 2.082-2.301h8.054q-.657 3.013-2.575 5.37-1.918 2.355-4.822 3.67t-6.684 1.315M311.365 52v-8.876h-1.48v-9.643q0-2.301-1.095-3.452-1.096-1.15-3.507-1.15-1.205 0-3.177.054-1.973.055-4.055.165t-3.78.219V21.92q1.26-.11 2.958-.219 1.699-.11 3.507-.164t3.397-.055q4.602 0 7.753 1.315t4.794 3.972 1.643 6.822V52Zm-9.588.767q-3.233 0-5.67-1.15-2.439-1.151-3.809-3.315-1.37-2.165-1.37-5.178 0-3.287 1.699-5.397 1.698-2.11 4.767-3.123 3.068-1.013 7.068-1.013h6.41v4.876h-6.465q-2.301 0-3.534 1.123t-1.233 3.04q0 1.809 1.233 2.932t3.534 1.123q1.48 0 2.657-.52t1.945-1.78.877-3.507l2.082 2.191q-.274 3.123-1.507 5.26t-3.397 3.287-5.287 1.151m36.385.219q-3.178 0-5.78-1.15-2.603-1.151-4.52-3.206-1.918-2.054-2.932-4.849-1.013-2.794-1.013-6.026v-1.26q0-3.233.959-6.027.958-2.795 2.794-4.904 1.835-2.11 4.41-3.288t5.753-1.178q3.617 0 6.247 1.562 2.63 1.561 4.109 4.602t1.643 7.48l-2.3-2.138v-20.6h8.82V52h-6.958V39.563h1.206q-.165 4.273-1.781 7.287-1.616 3.013-4.356 4.575-2.74 1.561-6.3 1.561m2.192-7.342q2.027 0 3.698-.904t2.685-2.657 1.013-4.219v-2.027q0-2.41-1.04-4.055-1.042-1.643-2.74-2.52-1.699-.876-3.671-.876-2.192 0-3.917 1.123-1.726 1.123-2.713 3.068-.986 1.945-.986 4.52 0 2.63.986 4.548.987 1.917 2.74 2.958t3.945 1.041"/></g></svg>
+          <div class="brand-title">
+            <h1>Rulestead Brand Book</h1>
+            <p>Runtime decisions, made clear.</p>
+          </div>
+        </div>
+        <div class="theme-control" role="radiogroup" aria-label="Theme">
+          <button type="button" role="radio" aria-checked="true">System</button>
+          <button type="button" role="radio" aria-checked="false">Light</button>
+          <button type="button" role="radio" aria-checked="false">Dark</button>
+        </div>
+        <nav class="brand-nav" aria-label="Brand book sections">
+          <a href="#overview">Overview</a><a href="#voice-and-messaging">Voice and messaging</a><a href="#color">Color</a><a href="#typography">Typography</a><a href="#logo">Logo</a><a href="#layout-and-components">Layout and components</a><a href="#iconography-and-imagery">Iconography and imagery</a><a href="#motion">Motion</a><a href="#assets-and-maintenance">Assets and maintenance</a>
+        </nav>
+      </header>
+      <main class="brand-main">
+        <section id="overview" class="brand-section">
+<h2>Overview</h2>
+<div class="source-refs"><span>Sources</span><a href="brand-book.md">brand-book.md</a><a href="assets/logo/rs-wordmark.svg">assets/logo/rs-wordmark.svg</a></div>
+<div class="section-copy"><h3>Core idea</h3>
+<p><strong>Stable control over dynamic behavior.</strong></p>
+<h3>Brand keywords</h3>
+<ul><li>steady</li><li>exact</li><li>lucid</li><li>governed</li><li>resilient</li><li>trustworthy</li><li>composable</li><li>self-possessed</li><li>infrastructure-grade</li><li>Phoenix-native</li></ul>
+<h3>Personality</h3>
+<p>Rulestead is:</p>
+<ul><li>calm under pressure</li><li>rigorous without being cold</li><li>confident without swagger</li><li>technical without being obscure</li><li>helpful without being chatty</li><li>serious without being sterile</li></ul>
+<h3>Archetype blend</h3>
+<p>Primary: <strong>The Architect</strong> Secondary: <strong>The Steward</strong></p>
+<p>The Architect gives Rulestead structure, logic, and precision. The Steward gives it trust, reliability, and responsibility.</p>
+<h3>Emotional territory</h3>
+<p>Users should feel:</p>
+<ul><li>safer shipping</li><li>clearer about what is happening</li><li>more in control of rollout</li><li>less afraid of hidden behavior</li><li>less burdened by flag debt</li></ul>
+<hr aria-hidden="true">
+<h3>The problem narrative</h3>
+<p>Shipping safely gets harder as applications mature. Simple flags become tangled rule systems. Experiments outgrow booleans. Operational changes become hard to reason about. Teams inherit stale toggles, drifted environments, brittle rollout mechanics, and dashboards that answer “what” but not “why.”</p>
+<h3>The Rulestead answer</h3>
+<p>Rulestead gives teams:</p>
+<ul><li>deterministic local evaluation</li><li>ordered rules instead of opaque gate soup</li><li>multivariate values, not just booleans</li><li>explainability as a first-class feature</li><li>governance and lifecycle support as the system matures</li><li>a homegrown feel for Phoenix teams without a homegrown maintenance burden</li></ul>
+<h3>North-star message</h3>
+<p><strong>Rulestead is where runtime decisions become reliable, explainable infrastructure.</strong></p>
+<hr aria-hidden="true">
+<h3>Primary audience</h3>
+<h4>Senior Elixir / Phoenix engineers</h4>
+<p>They care about:</p>
+<ul><li>performance</li><li>deterministic behavior</li><li>low operational overhead</li><li>debugging clarity</li><li>elegant APIs</li><li>BEAM-native ergonomics</li></ul>
+<h4>Tech leads / staff engineers / platform owners</h4>
+<p>They care about:</p>
+<ul><li>rollout safety</li><li>standardization</li><li>governance</li><li>lifecycle cleanup</li><li>observability</li><li>contributor-friendly architecture</li></ul>
+<h3>Secondary audience</h3>
+<h4>Product-minded engineering teams</h4>
+<p>They care about:</p>
+<ul><li>experiments</li><li>variants</li><li>remote config</li><li>safe launches</li><li>environment control</li></ul>
+<h4>SRE / DevOps / self-hosting operators</h4>
+<p>They care about:</p>
+<ul><li>local evaluation</li><li>observability</li><li>health and backup stories</li><li>predictable failure modes</li><li>self-hosting ergonomics</li></ul>
+<h3>Tertiary audience</h3>
+<h4>Support / operations stakeholders using the admin UI</h4>
+<p>They care about:</p>
+<ul><li>what is on</li><li>why it resolved that way</li><li>who changed it</li><li>whether rollback is safe</li></ul>
+<hr aria-hidden="true">
+<p>Rulestead is a calm, infrastructure-grade, Elixir-native feature management brand. It should never feel gimmicky, hyper-growth, or copycat. The core semantic ideas are <strong>ordered rules, stable rollout, explainable runtime decisions, and operational steadiness</strong>. The brand should look like grounded architecture with restrained warmth: dark mineral neutrals, a controlled blue, and a copper ember accent. Typography should be crisp, modern, and highly legible. Voice should be clear, exact, calm, and technically trustworthy. Imagery should emphasize paths, layers, topology, governance, and legible systems rather than literal flags or flashy startup clichés.</p>
+<hr aria-hidden="true">
+<p><strong>Rulestead makes change feel governed, not chaotic.</strong></p></div>
+</section>
+<section id="voice-and-messaging" class="brand-section">
+<h2>Voice and messaging</h2>
+<div class="source-refs"><span>Sources</span><a href="brand-book.md">brand-book.md</a><a href="VOICE.md">VOICE.md</a><a href="COPY.md">COPY.md</a></div>
+<div class="section-copy"><h3>One-line description</h3>
+<p><strong>Rulestead is an Elixir-native feature management system for safe rollout, multivariate config, and explainable runtime decisions.</strong></p>
+<h3>Short pitch</h3>
+<p>Rulestead gives Phoenix teams deterministic feature management with ordered rules, multivariate values, and first-class explainability.</p>
+<h3>Medium pitch</h3>
+<p>Rulestead is a feature management and experimentation library for Elixir systems that need more than booleans. It combines a fast local runtime evaluator with an optional self-hosted control plane for governance, lifecycle, and operator workflows. The result is safer rollout, clearer targeting, and fewer surprises in production.</p>
+<h3>Long pitch</h3>
+<p>Rulestead helps Elixir teams control runtime behavior with the same discipline they expect from the rest of their infrastructure. Instead of treating feature flags as scattered toggles, Rulestead models them as stable, inspectable decisions driven by ordered rules, deterministic bucketing, and value-based outcomes. It gives developers a fast local runtime, operators a clearer mental model, and teams a path from simple rollout to richer governance without leaving the Phoenix ecosystem.</p>
+<h3>Messaging pillars</h3>
+<h4>1. Safe change</h4>
+<p>Roll out progressively, target precisely, and recover quickly.</p>
+<h4>2. Clear reasoning</h4>
+<p>See what matched, why it matched, and what value was returned.</p>
+<h4>3. Native fit</h4>
+<p>Designed for Phoenix, Plug, Ecto, LiveView, Oban, and BEAM workflows.</p>
+<h4>4. Built to last</h4>
+<p>Add lifecycle discipline, auditability, and governance before flags become debt.</p>
+<hr aria-hidden="true">
+<p>These are optional lines, not mandatory lockups.</p>
+<h3>Primary tagline options</h3>
+<ul><li><strong>Rule change with confidence.</strong></li><li><strong>Stable control for runtime change.</strong></li><li><strong>Explain every rollout.</strong></li><li><strong>Runtime decisions, made clear.</strong></li><li><strong>Safe rollout. Clear reasoning.</strong></li><li><strong>A steadier way to ship.</strong></li></ul>
+<h3>Recommended default tagline</h3>
+<p><strong>Runtime decisions, made clear.</strong></p>
+<p>Why this one works:</p>
+<ul><li>broad enough for flags, variants, config, governance, and explainability</li><li>aligned with the product thesis</li><li>direct and premium without sounding like ad copy</li></ul>
+<hr aria-hidden="true">
+<h3>Voice principles</h3>
+<h4>Clear</h4>
+<p>Say exactly what the system does. Prefer precise language over hype.</p>
+<h4>Calm</h4>
+<p>Write like a tool built for production, not a growth hack.</p>
+<h4>Exact</h4>
+<p>Use crisp nouns and verbs. Avoid fuzzy marketing abstractions.</p>
+<h4>Assured</h4>
+<p>Sound confident and stable, not eager or defensive.</p>
+<h4>Practical</h4>
+<p>Always connect a concept to a workflow, outcome, or operator concern.</p>
+<h3>Voice profile</h3>
+<ul><li><strong>High clarity</strong></li><li><strong>Medium warmth</strong></li><li><strong>High competence</strong></li><li><strong>Low hype</strong></li><li><strong>Low irony</strong></li><li><strong>High trust</strong></li></ul>
+<h3>Tone by context</h3>
+<h4>Docs</h4>
+<p>Direct, instructional, precise, example-rich.</p>
+<h4>Landing page</h4>
+<p>Sharper and more evocative, but still grounded.</p>
+<h4>Admin UI</h4>
+<p>Plainspoken, explicit, confidence-building.</p>
+<h4>Error states</h4>
+<p>Short, factual, constructive, blame-free.</p>
+<h4>Release notes</h4>
+<p>Technical, transparent, operationally aware.</p>
+<h3>Do</h3>
+<ul><li>say “ordered rules”</li><li>say “deterministic evaluation”</li><li>say “explain why a result resolved the way it did”</li><li>say “safe rollout”</li><li>say “local evaluation”</li><li>say “multivariate values”</li><li>say “lifecycle hygiene”</li></ul>
+<h3>Don’t</h3>
+<ul><li>say “ship faster with AI-powered experiments”</li><li>say “supercharge your product velocity”</li><li>say “revolutionary feature toggles”</li><li>say “effortless growth optimization”</li><li>say “magic targeting”</li></ul>
+<h3>Voice examples</h3>
+<h4>Good</h4>
+<p>“Rulestead evaluates rules locally, returns a typed value, and can explain exactly why that result matched.”</p>
+<h4>Good</h4>
+<p>“Roll out safely by environment, target by stable keys, and inspect the reasoning behind every decision.”</p>
+<h4>Bad</h4>
+<p>“Rulestead unlocks blazing-fast growth acceleration through next-gen flag orchestration.”</p>
+<h4>Bad</h4>
+<p>“Just flip it on and let our smart engine do the rest.”</p>
+<hr aria-hidden="true">
+<h3>Buttons</h3>
+<p>Use verbs with consequences:</p>
+<ul><li>Create rule</li><li>Simulate flag</li><li>Publish snapshot</li><li>Archive flag</li><li>Approve change</li><li>Promote to staging</li></ul>
+<p>Avoid vague labels like:</p>
+<ul><li>Continue</li><li>Submit</li><li>Go</li><li>Done</li></ul>
+<h3>Empty states</h3>
+<p>Rulestead empty states should sound constructive and calm. Example:</p>
+<blockquote><p>No rules yet. Start with a default value, then add ordered rules for targeted rollout.</p></blockquote>
+<h3>Errors</h3>
+<p>State:</p>
+<ul><li>what happened</li><li>what did not happen</li><li>what the user can do next</li></ul>
+<p>Example:</p>
+<blockquote><p>Snapshot publish failed. The previous snapshot is still active. Check store connectivity and try again.</p></blockquote>
+<h3>Warnings</h3>
+<p>Warnings should be explicit and operational. Example:</p>
+<blockquote><p>This rule uses stickiness, but no targeting key was provided. Results may vary per request.</p></blockquote>
+<h3>Success states</h3>
+<p>Be concise. Example:</p>
+<blockquote><p>Snapshot published.</p></blockquote>
+<hr aria-hidden="true"><div class="doc-grid"><article class="doc-excerpt"><h3>Rulestead Voice and Microcopy</h3>
+<p>Source: <code>brandbook/brand-book.md</code> sections 9, 19, 20, and 21.</p>
+<p>Rulestead should sound clear, calm, exact, assured, and practical. In UI copy, state what happened, what did not happen, and what the operator can do next.</p>
+<h3>Say This / Not This</h3>
+<table><thead><tr><th>State</th><th>Say this</th><th>Not this</th><th>Why</th></tr></thead><tbody><tr><td>Empty</td><td>No rules yet. Start with a default value, then add ordered rules for targeted rollout.</td><td>Nothing here.</td><td>Constructive and specific.</td></tr><tr><td>Empty</td><td>No snapshots have been published. Publish a snapshot before promoting rollout.</td><td>You do not have any data yet.</td><td>Names the missing object and next step.</td></tr><tr><td>Empty</td><td>No segments match this environment. Add a segment or evaluate against the default rule.</td><td>No results found.</td><td>Connects the empty state to an operator path.</td></tr><tr><td>Error</td><td>Snapshot publish failed. The previous snapshot is still active. Check store connectivity and try again.</td><td>Oops, something broke.</td><td>States what happened, what did not happen, and what to do.</td></tr><tr><td>Error</td><td>Rule was not saved. Add a targeting key before enabling stickiness.</td><td>Invalid submission.</td><td>Explains the failed validation without blame.</td></tr><tr><td>Error</td><td>Flag archive failed. No changes were applied. Try again after checking store connectivity.</td><td>We could not complete your request.</td><td>Confirms the system did not partially apply state.</td></tr><tr><td>Error</td><td>Evaluation failed. The fallback value was returned. Check the flag payload and context shape.</td><td>Evaluation error.</td><td>Names degraded behavior and the next diagnostic step.</td></tr><tr><td>Success</td><td>Snapshot published.</td><td>Success!</td><td>Concise and factual.</td></tr><tr><td>Success</td><td>Rule saved.</td><td>All set!</td><td>Names the completed action.</td></tr><tr><td>Success</td><td>Rollout promoted to staging.</td><td>You did it.</td><td>Keeps the operator consequence visible.</td></tr><tr><td>Success</td><td>Flag archived. Existing snapshots are unchanged.</td><td>Flag deleted forever.</td><td>Avoids exaggeration and clarifies scope.</td></tr></tbody></table>
+<h3>Writing Rules</h3>
+<ul><li>Prefer precise nouns: flag, rule, segment, environment, snapshot, rollout, evaluation.</li><li>Prefer verbs with consequences: publish, archive, promote, simulate, approve.</li><li>Avoid vague labels such as &quot;Continue&quot;, &quot;Submit&quot;, &quot;Go&quot;, and &quot;Done&quot; when a specific action exists.</li><li>Avoid growth-platform language, magic language, and AI-powered claims unless the feature truly depends on them.</li><li>Keep error copy blame-free and short.</li><li>Keep success copy concise; do not add celebration where confirmation is enough.</li></ul></article><article class="doc-excerpt"><h3>Rulestead Copy Kit</h3>
+<p>Source: <code>brandbook/brand-book.md</code> sections 7, 8, 22, 23, 24, and 27, plus <code>.planning/research/ECOSYSTEM_SYNERGY.md</code> for the szTheory suite note.</p>
+<h3>GitHub</h3>
+<h3>Repository Description</h3>
+<p>Elixir-native feature management for safe rollout, multivariate config, and explainable runtime decisions.</p>
+<h3>Suggested Topics</h3>
+<p><code>elixir</code>, <code>phoenix</code>, <code>feature-flags</code>, <code>feature-management</code>, <code>remote-config</code>, <code>rollout</code>, <code>liveview</code>, <code>beam</code></p>
+<h3>Hex.pm</h3>
+<h3><code>rulestead</code> Package Description</h3>
+<p>Elixir-native feature management for safe rollout, multivariate config, and explainable runtime decisions.</p>
+<h3><code>rulestead_admin</code> Package Description</h3>
+<p>Optional mounted Phoenix LiveView operator companion for Rulestead feature management.</p>
+<h3>Short Blurb</h3>
+<p>Elixir-native feature management with ordered rules, multivariate values, and explainable runtime decisions for Phoenix teams.</p>
+<h3>README Intro / Hero</h3>
+<blockquote><p>Runtime decisions, made clear.</p></blockquote>
+<p>Rulestead is an Elixir-native feature management system for safe rollout, multivariate config, and explainable runtime evaluation. It fits Phoenix and Plug apps while remaining useful as infrastructure for broader BEAM systems.</p>
+<h3>Landing Hero</h3>
+<h3>Headline</h3>
+<p>Runtime decisions, made clear.</p>
+<h3>Subheadline</h3>
+<p>A self-hostable feature management system for Elixir with ordered rules, local evaluation, and lifecycle-aware governance.</p>
+<h3>Primary CTA</h3>
+<p>Start the quickstart</p>
+<h3>Secondary CTA</h3>
+<p>Read the evaluation guide</p>
+<h3>Feature Blurbs</h3>
+<h3>Ordered rules</h3>
+<p>Model rollout as ordered, inspectable rules instead of opaque precedence. Teams can see what matched, why it matched, and what value was returned.</p>
+<h3>Multivariate values</h3>
+<p>Use typed values for booleans, variants, and remote config without turning runtime behavior into scattered conditionals.</p>
+<h3>Local, explainable evaluation</h3>
+<p>Evaluate decisions locally in Phoenix and Plug workflows, then inspect the reasoning behind each result when operators need to understand production behavior.</p>
+<h3>szTheory Suite Brand Architecture</h3>
+<p>The szTheory libraries share a technical posture: BEAM-native design, domain-driven boundaries, explicit <code>:telemetry</code> seams, protocol delegation, and no tight coupling between sibling packages. Each library should feel like part of the same engineering family without borrowing another library&#x27;s domain.</p>
+<table><thead><tr><th>Library</th><th>Unique role</th></tr></thead><tbody><tr><td>Rulestead</td><td>Feature flags, experiments, multivariate config, deterministic rollout, and explainable runtime decisions.</td></tr><tr><td>Parapet</td><td>SRE and reliability substrate for correlating deploys, config changes, and production regressions.</td></tr><tr><td>Scoria</td><td>AI governance, human-in-the-loop approvals, agent tool execution, and trace logging.</td></tr><tr><td>Cairnloop</td><td>Support OS workflows, customer-support automation, and AI-drafted response governance.</td></tr></tbody></table>
+<p>Rulestead can integrate with the suite through clean boundaries: emit predictable telemetry for Parapet, expose governed flag state or emergency actions to Scoria through explicit tools, and serve deterministic policy decisions for Cairnloop rollout. The brand story is shared discipline, not shared runtime ownership.</p></article></div></div>
+</section>
+<section id="color" class="brand-section">
+<h2>Color</h2>
+<div class="source-refs"><span>Sources</span><a href="brand-book.md">brand-book.md</a><a href="tokens.json">tokens.json</a><a href="assets/specimens/palette.svg">assets/specimens/palette.svg</a></div>
+<div class="section-copy"><h3>Color strategy</h3>
+<p>Rulestead should not look like a generic “dark cyber devtool.” The palette should communicate:</p>
+<ul><li>stability</li><li>precision</li><li>depth</li><li>warmth under control</li></ul>
+<p>The system uses a foundation of grounded neutrals with a restrained mineral blue and ember accent.</p>
+<h3>Primary palette</h3>
+<h4>Basalt</h4>
+<ul><li><code>#0F1720</code></li><li>Primary dark surface / heading color</li></ul>
+<h4>Slate Stead</h4>
+<ul><li><code>#24313D</code></li><li>Secondary dark UI and structural elements</li></ul>
+<h4>Stone Mist</h4>
+<ul><li><code>#E8ECE8</code></li><li>Light backgrounds / soft panels</li></ul>
+<h4>Quarry</h4>
+<ul><li><code>#C4CCD1</code></li><li>Borders / neutral dividers / disabled states</li></ul>
+<h4>Stead Blue</h4>
+<ul><li><code>#3A6F8F</code></li><li>Primary brand color for active interface elements</li></ul>
+<h4>Ember Copper</h4>
+<ul><li><code>#9b5931</code></li><li>Accent color for emphasis, calls to action, and highlight moments</li></ul>
+<h3>Supporting palette</h3>
+<h4>Moss Grey</h4>
+<ul><li><code>#606d66</code></li><li>Secondary text / supportive UI elements</li></ul>
+<h4>Rain Tint</h4>
+<ul><li><code>#F5F7F6</code></li><li>Clean background field</li></ul>
+<h4>Ink Blue</h4>
+<ul><li><code>#183247</code></li><li>Deep contrast for dark-on-light components</li></ul>
+<h4>Signal Gold</h4>
+<ul><li><code>#D2A94E</code></li><li>Limited-use highlight for premium emphasis, badges, or metadata states</li></ul>
+<h3>Semantic colors</h3>
+<h4>Success</h4>
+<ul><li><code>#2d7753</code></li></ul>
+<blockquote><p><strong>Gap 2 (Stone Mist surfaces):</strong> Use <code>#2d7753</code> on Stone Mist (<code>#E8ECE8</code>) only. Use <code>#2F7D57</code> on White (<code>#FFFFFF</code>) or Rain Tint (<code>#F5F7F6</code>) surfaces.</p></blockquote>
+<h4>Warning</h4>
+<ul><li><code>#8f601a</code></li></ul>
+<h4>Danger</h4>
+<ul><li><code>#b04848</code></li></ul>
+<blockquote><p><strong>Gap 2 (Stone Mist surfaces):</strong> Use <code>#b04848</code> on Stone Mist (<code>#E8ECE8</code>) only. Use <code>#B44949</code> on White (<code>#FFFFFF</code>) or Rain Tint (<code>#F5F7F6</code>) surfaces.</p></blockquote>
+<h4>Info</h4>
+<ul><li><code>#356E8C</code></li></ul>
+<h3>Usage ratios</h3>
+<ul><li>60% neutrals and surfaces</li><li>20% dark structure colors</li><li>15% Stead Blue</li><li>5% warm accents and semantic highlights</li></ul>
+<h3>Color rules</h3>
+<ul><li>Blue is the <strong>system confidence</strong> color.</li><li>Ember Copper is the <strong>moment of change</strong> accent, not the main UI color.</li><li>Signal Gold is used sparingly for premium emphasis, never as a base UI color.</li><li>Avoid rainbow dashboards.</li><li>Keep states legible and reserved.</li></ul>
+<h3>Gradients</h3>
+<p>Use gradients rarely. Recommended brand gradient:</p>
+<ul><li><code>#183247</code> to <code>#3A6F8F</code></li></ul>
+<p>with a whisper of warm edge light from <code>#9b5931</code> in hero contexts only.</p>
+<hr aria-hidden="true"><h3>Primitive palette</h3><div class="swatch-grid"><article class="swatch" style="--swatch-color: #0F1720"><span class="swatch__chip" aria-hidden="true"></span><strong>primitive.basalt.base</strong><code>#0F1720</code></article><article class="swatch" style="--swatch-color: #b04848"><span class="swatch__chip" aria-hidden="true"></span><strong>primitive.danger.canonical</strong><code>#b04848</code></article><article class="swatch" style="--swatch-color: #bf6464"><span class="swatch__chip" aria-hidden="true"></span><strong>primitive.danger.dark</strong><code>#bf6464</code></article><article class="swatch" style="--swatch-color: #B44949"><span class="swatch__chip" aria-hidden="true"></span><strong>primitive.danger.white-rt</strong><code>#B44949</code></article><article class="swatch" style="--swatch-color: #9b5931"><span class="swatch__chip" aria-hidden="true"></span><strong>primitive.ember-copper.base</strong><code>#9b5931</code></article><article class="swatch" style="--swatch-color: #ba6b3c"><span class="swatch__chip" aria-hidden="true"></span><strong>primitive.ember-copper.dark</strong><code>#ba6b3c</code></article><article class="swatch" style="--swatch-color: #356E8C"><span class="swatch__chip" aria-hidden="true"></span><strong>primitive.info.base</strong><code>#356E8C</code></article><article class="swatch" style="--swatch-color: #55859e"><span class="swatch__chip" aria-hidden="true"></span><strong>primitive.info.dark</strong><code>#55859e</code></article><article class="swatch" style="--swatch-color: #183247"><span class="swatch__chip" aria-hidden="true"></span><strong>primitive.ink-blue.base</strong><code>#183247</code></article><article class="swatch" style="--swatch-color: #606d66"><span class="swatch__chip" aria-hidden="true"></span><strong>primitive.moss-grey.canonical</strong><code>#606d66</code></article><article class="swatch" style="--swatch-color: #75827b"><span class="swatch__chip" aria-hidden="true"></span><strong>primitive.moss-grey.dark</strong><code>#75827b</code></article><article class="swatch" style="--swatch-color: #10161f"><span class="swatch__chip" aria-hidden="true"></span><strong>primitive.neutral-ramp.dark-0</strong><code>#10161f</code></article><article class="swatch" style="--swatch-color: #1f2a38"><span class="swatch__chip" aria-hidden="true"></span><strong>primitive.neutral-ramp.dark-100</strong><code>#1f2a38</code></article><article class="swatch" style="--swatch-color: #253243"><span class="swatch__chip" aria-hidden="true"></span><strong>primitive.neutral-ramp.dark-200</strong><code>#253243</code></article><article class="swatch" style="--swatch-color: #141c27"><span class="swatch__chip" aria-hidden="true"></span><strong>primitive.neutral-ramp.dark-25</strong><code>#141c27</code></article><article class="swatch" style="--swatch-color: #2e3d52"><span class="swatch__chip" aria-hidden="true"></span><strong>primitive.neutral-ramp.dark-300</strong><code>#2e3d52</code></article><article class="swatch" style="--swatch-color: #3d5168"><span class="swatch__chip" aria-hidden="true"></span><strong>primitive.neutral-ramp.dark-400</strong><code>#3d5168</code></article><article class="swatch" style="--swatch-color: #19222e"><span class="swatch__chip" aria-hidden="true"></span><strong>primitive.neutral-ramp.dark-50</strong><code>#19222e</code></article><article class="swatch" style="--swatch-color: #7a8fa3"><span class="swatch__chip" aria-hidden="true"></span><strong>primitive.neutral-ramp.dark-500</strong><code>#7a8fa3</code></article><article class="swatch" style="--swatch-color: #a8b9ca"><span class="swatch__chip" aria-hidden="true"></span><strong>primitive.neutral-ramp.dark-600</strong><code>#a8b9ca</code></article><article class="swatch" style="--swatch-color: #e8edf3"><span class="swatch__chip" aria-hidden="true"></span><strong>primitive.neutral-ramp.dark-900</strong><code>#e8edf3</code></article><article class="swatch" style="--swatch-color: #ffffff"><span class="swatch__chip" aria-hidden="true"></span><strong>primitive.neutral-ramp.light-0</strong><code>#ffffff</code></article><article class="swatch" style="--swatch-color: #eef1f5"><span class="swatch__chip" aria-hidden="true"></span><strong>primitive.neutral-ramp.light-100</strong><code>#eef1f5</code></article><article class="swatch" style="--swatch-color: #e7ebf0"><span class="swatch__chip" aria-hidden="true"></span><strong>primitive.neutral-ramp.light-200</strong><code>#e7ebf0</code></article><article class="swatch" style="--swatch-color: #f8fafc"><span class="swatch__chip" aria-hidden="true"></span><strong>primitive.neutral-ramp.light-25</strong><code>#f8fafc</code></article><article class="swatch" style="--swatch-color: #d8dee6"><span class="swatch__chip" aria-hidden="true"></span><strong>primitive.neutral-ramp.light-300</strong><code>#d8dee6</code></article><article class="swatch" style="--swatch-color: #b8c2cf"><span class="swatch__chip" aria-hidden="true"></span><strong>primitive.neutral-ramp.light-400</strong><code>#b8c2cf</code></article><article class="swatch" style="--swatch-color: #f4f6f8"><span class="swatch__chip" aria-hidden="true"></span><strong>primitive.neutral-ramp.light-50</strong><code>#f4f6f8</code></article><article class="swatch" style="--swatch-color: #99a3af"><span class="swatch__chip" aria-hidden="true"></span><strong>primitive.neutral-ramp.light-500</strong><code>#99a3af</code></article><article class="swatch" style="--swatch-color: #5c6b7a"><span class="swatch__chip" aria-hidden="true"></span><strong>primitive.neutral-ramp.light-600</strong><code>#5c6b7a</code></article><article class="swatch" style="--swatch-color: #263241"><span class="swatch__chip" aria-hidden="true"></span><strong>primitive.neutral-ramp.light-700</strong><code>#263241</code></article><article class="swatch" style="--swatch-color: #1a2332"><span class="swatch__chip" aria-hidden="true"></span><strong>primitive.neutral-ramp.light-900</strong><code>#1a2332</code></article><article class="swatch" style="--swatch-color: #C4CCD1"><span class="swatch__chip" aria-hidden="true"></span><strong>primitive.quarry.base</strong><code>#C4CCD1</code></article><article class="swatch" style="--swatch-color: #F5F7F6"><span class="swatch__chip" aria-hidden="true"></span><strong>primitive.rain-tint.base</strong><code>#F5F7F6</code></article><article class="swatch" style="--swatch-color: #D2A94E"><span class="swatch__chip" aria-hidden="true"></span><strong>primitive.signal-gold.base</strong><code>#D2A94E</code></article><article class="swatch" style="--swatch-color: #24313D"><span class="swatch__chip" aria-hidden="true"></span><strong>primitive.slate-stead.base</strong><code>#24313D</code></article><article class="swatch" style="--swatch-color: #3A6F8F"><span class="swatch__chip" aria-hidden="true"></span><strong>primitive.stead-blue.base</strong><code>#3A6F8F</code></article><article class="swatch" style="--swatch-color: #5885a0"><span class="swatch__chip" aria-hidden="true"></span><strong>primitive.stead-blue.dark</strong><code>#5885a0</code></article><article class="swatch" style="--swatch-color: #E8ECE8"><span class="swatch__chip" aria-hidden="true"></span><strong>primitive.stone-mist.base</strong><code>#E8ECE8</code></article><article class="swatch" style="--swatch-color: #2d7753"><span class="swatch__chip" aria-hidden="true"></span><strong>primitive.success.canonical</strong><code>#2d7753</code></article><article class="swatch" style="--swatch-color: #488d6b"><span class="swatch__chip" aria-hidden="true"></span><strong>primitive.success.dark</strong><code>#488d6b</code></article><article class="swatch" style="--swatch-color: #2F7D57"><span class="swatch__chip" aria-hidden="true"></span><strong>primitive.success.white-rt</strong><code>#2F7D57</code></article><article class="swatch" style="--swatch-color: #8f601a"><span class="swatch__chip" aria-hidden="true"></span><strong>primitive.warning.canonical</strong><code>#8f601a</code></article><article class="swatch" style="--swatch-color: #B57A21"><span class="swatch__chip" aria-hidden="true"></span><strong>primitive.warning.dark</strong><code>#B57A21</code></article></div><h3>Light semantic tokens</h3><table><thead><tr><th>Token</th><th>Value</th><th>Policy</th></tr></thead><tbody><tr><td><code>light.active</code></td><td><code>#3A6F8F</code></td><td>Active/pressed state — light mode</td></tr><tr><td><code>light.danger-stone-mist</code></td><td><code>#b04848</code></td><td>Gap 2 — use on Stone Mist surface only</td></tr><tr><td><code>light.default</code></td><td><code>#3A6F8F</code></td><td>Default brand color — light mode</td></tr><tr><td><code>light.disabled</code></td><td><code>#99a3af</code></td><td>Disabled state foreground — light mode</td></tr><tr><td><code>light.error</code></td><td><code>#b04848</code></td><td>Error/danger state — Gap-2 canonical #b04848 on Stone Mist. Use white-rt variant (#B44949) on White or Rain Tint.</td></tr><tr><td><code>light.focus</code></td><td><code>#3A6F8F</code></td><td>Focus state — light mode</td></tr><tr><td><code>light.hover</code></td><td><code>#3A6F8F</code></td><td>Hover state — light mode (D-04: interim; Phase 98 may refine hover shade)</td></tr><tr><td><code>light.info</code></td><td><code>#356E8C</code></td><td>Informational state — light mode</td></tr><tr><td><code>light.muted</code></td><td><code>#99a3af</code></td><td>Muted text/placeholder — light mode</td></tr><tr><td><code>light.selected</code></td><td><code>#3A6F8F</code></td><td>Selected/checked state — light mode</td></tr><tr><td><code>light.subtle</code></td><td><code>#606d66</code></td><td>Subtle/secondary text — light mode (Moss Grey canonical)</td></tr><tr><td><code>light.success</code></td><td><code>#2d7753</code></td><td>Success state — Stone Mist canonical #2d7753. Use white-rt variant (#2F7D57) on White or Rain Tint surfaces.</td></tr><tr><td><code>light.success-stone-mist</code></td><td><code>#2d7753</code></td><td>Gap 2 — use on Stone Mist surface only</td></tr><tr><td><code>light.warning</code></td><td><code>#8f601a</code></td><td>Warning state — light mode canonical</td></tr></tbody></table><h3>Dark semantic tokens</h3><table><thead><tr><th>Token</th><th>Value</th><th>Policy</th></tr></thead><tbody><tr><td><code>dark.active</code></td><td><code>#5885a0</code></td><td>Active/pressed state — dark mode</td></tr><tr><td><code>dark.default</code></td><td><code>#5885a0</code></td><td>Default brand color — dark mode</td></tr><tr><td><code>dark.disabled</code></td><td><code>#7a8fa3</code></td><td>Disabled state foreground — dark mode</td></tr><tr><td><code>dark.error</code></td><td><code>#bf6464</code></td><td>Error/danger state — dark mode canonical #bf6464 (4.515:1 on #10161f)</td></tr><tr><td><code>dark.focus</code></td><td><code>#5885a0</code></td><td>Focus state — dark mode</td></tr><tr><td><code>dark.hover</code></td><td><code>#5885a0</code></td><td>Hover state — dark mode (interim; Phase 98 may refine)</td></tr><tr><td><code>dark.info</code></td><td><code>#55859e</code></td><td>Informational state — dark mode #55859e (4.526:1 on #10161f)</td></tr><tr><td><code>dark.muted</code></td><td><code>#7a8fa3</code></td><td>Muted text/placeholder — dark mode</td></tr><tr><td><code>dark.selected</code></td><td><code>#5885a0</code></td><td>Selected/checked state — dark mode</td></tr><tr><td><code>dark.subtle</code></td><td><code>#75827b</code></td><td>Subtle/secondary text — dark mode (Moss Grey dark #75827b)</td></tr><tr><td><code>dark.success</code></td><td><code>#488d6b</code></td><td>Success state — dark mode canonical #488d6b (4.581:1 on #10161f)</td></tr><tr><td><code>dark.warning</code></td><td><code>#B57A21</code></td><td>Warning state — dark mode (passes dark at 4.99:1)</td></tr></tbody></table><div class="asset-grid"><figure class="asset-card"><div class="asset-preview"><svg role="img" xmlns="http://www.w3.org/2000/svg" aria-labelledby="palette__t palette__d" viewBox="0 0 860 520"><title id="palette__t">Rulestead — Palette Specimen</title><desc id="palette__d">Brand color palette swatches with hex values and token names. Four rows: brand primaries, supporting palette, light neutral ramp, and dark neutral ramp.</desc><g aria-hidden="true"><path fill="#F5F7F6" d="M0 0h860v520H0z"/><text x="24" y="30" fill="#5c6b7a" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="11">Brand Primaries</text><rect width="112" height="48" x="24" y="40" fill="#3A6F8F" rx="6"/><text x="24" y="106" fill="#1a2332" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9">#3A6F8F</text><text x="24" y="117" fill="#5c6b7a" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="8">stead-blue.base</text><rect width="112" height="48" x="152" y="40" fill="#9b5931" rx="6"/><text x="152" y="106" fill="#1a2332" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9">#9b5931</text><text x="152" y="117" fill="#5c6b7a" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="8">ember-copper.base</text><rect width="112" height="48" x="280" y="40" fill="#183247" rx="6"/><text x="280" y="106" fill="#1a2332" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9">#183247</text><text x="280" y="117" fill="#5c6b7a" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="8">ink-blue.base</text><rect width="112" height="48" x="408" y="40" fill="#24313D" rx="6"/><text x="408" y="106" fill="#1a2332" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9">#24313D</text><text x="408" y="117" fill="#5c6b7a" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="8">slate-stead.base</text><rect width="112" height="48" x="536" y="40" fill="#0F1720" rx="6"/><text x="536" y="106" fill="#1a2332" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9">#0F1720</text><text x="536" y="117" fill="#5c6b7a" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="8">basalt.base</text><rect width="112" height="48" x="664" y="40" fill="#D2A94E" rx="6"/><text x="664" y="106" fill="#1a2332" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9">#D2A94E</text><text x="664" y="117" fill="#5c6b7a" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="8">signal-gold (decorative only)</text><text x="24" y="140" fill="#5c6b7a" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="11">Supporting Palette</text><rect width="112" height="48" x="24" y="150" fill="#606d66" rx="6"/><text x="24" y="216" fill="#1a2332" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9">#606d66</text><text x="24" y="227" fill="#5c6b7a" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="8">moss-grey.canonical</text><rect width="112" height="48" x="152" y="150" fill="#E8ECE8" stroke="#d8dee6" rx="6"/><text x="152" y="216" fill="#1a2332" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9">#E8ECE8</text><text x="152" y="227" fill="#5c6b7a" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="8">stone-mist.base</text><rect width="112" height="48" x="280" y="150" fill="#F5F7F6" stroke="#d8dee6" rx="6"/><text x="280" y="216" fill="#1a2332" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9">#F5F7F6</text><text x="280" y="227" fill="#5c6b7a" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="8">rain-tint.base</text><rect width="112" height="48" x="408" y="150" fill="#C4CCD1" rx="6"/><text x="408" y="216" fill="#1a2332" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9">#C4CCD1</text><text x="408" y="227" fill="#5c6b7a" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="8">quarry.base</text><rect width="112" height="48" x="536" y="150" fill="#2d7753" rx="6"/><text x="536" y="216" fill="#1a2332" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9">#2d7753</text><text x="536" y="227" fill="#5c6b7a" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="8">success.canonical</text><rect width="112" height="48" x="664" y="150" fill="#8f601a" rx="6"/><text x="664" y="216" fill="#1a2332" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9">#8f601a</text><text x="664" y="227" fill="#5c6b7a" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="8">warning.canonical</text><rect width="112" height="48" x="24" y="240" fill="#b04848" rx="6"/><text x="24" y="306" fill="#1a2332" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9">#b04848</text><text x="24" y="317" fill="#5c6b7a" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="8">danger.canonical</text><rect width="112" height="48" x="152" y="240" fill="#356E8C" rx="6"/><text x="152" y="306" fill="#1a2332" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9">#356E8C</text><text x="152" y="317" fill="#5c6b7a" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="8">info.base</text><text x="300" y="256" fill="#5c6b7a" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="11">Light Neutral Ramp</text><rect width="64" height="48" x="300" y="265" fill="#ffffff" stroke="#d8dee6" rx="6"/><text x="300" y="322" fill="#1a2332" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="8">#ffffff</text><text x="300" y="332" fill="#5c6b7a" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="7">neutral-0</text><rect width="64" height="48" x="372" y="265" fill="#f4f6f8" stroke="#d8dee6" rx="6"/><text x="372" y="322" fill="#1a2332" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="8">#f4f6f8</text><text x="372" y="332" fill="#5c6b7a" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="7">neutral-50</text><rect width="64" height="48" x="444" y="265" fill="#e7ebf0" rx="6"/><text x="444" y="322" fill="#1a2332" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="8">#e7ebf0</text><text x="444" y="332" fill="#5c6b7a" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="7">neutral-200</text><rect width="64" height="48" x="516" y="265" fill="#d8dee6" rx="6"/><text x="516" y="322" fill="#1a2332" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="8">#d8dee6</text><text x="516" y="332" fill="#5c6b7a" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="7">neutral-300</text><rect width="64" height="48" x="588" y="265" fill="#99a3af" rx="6"/><text x="588" y="322" fill="#1a2332" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="8">#99a3af</text><text x="588" y="332" fill="#5c6b7a" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="7">neutral-500</text><rect width="64" height="48" x="660" y="265" fill="#5c6b7a" rx="6"/><text x="660" y="322" fill="#1a2332" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="8">#5c6b7a</text><text x="660" y="332" fill="#5c6b7a" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="7">neutral-600</text><rect width="64" height="48" x="732" y="265" fill="#1a2332" rx="6"/><text x="732" y="322" fill="#1a2332" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="8">#1a2332</text><text x="732" y="332" fill="#5c6b7a" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="7">neutral-900</text><text x="24" y="358" fill="#5c6b7a" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="11">Dark Neutral Ramp</text><rect width="88" height="48" x="24" y="368" fill="#10161f" rx="6"/><text x="24" y="426" fill="#1a2332" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="8">#10161f</text><text x="24" y="436" fill="#5c6b7a" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="7">neutral-0 (dark)</text><rect width="88" height="48" x="120" y="368" fill="#19222e" rx="6"/><text x="120" y="426" fill="#1a2332" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="8">#19222e</text><text x="120" y="436" fill="#5c6b7a" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="7">neutral-50 (dark)</text><rect width="88" height="48" x="216" y="368" fill="#2e3d52" rx="6"/><text x="216" y="426" fill="#1a2332" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="8">#2e3d52</text><text x="216" y="436" fill="#5c6b7a" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="7">neutral-300 (dark)</text><rect width="88" height="48" x="312" y="368" fill="#7a8fa3" rx="6"/><text x="312" y="426" fill="#1a2332" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="8">#7a8fa3</text><text x="312" y="436" fill="#5c6b7a" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="7">neutral-500 (dark)</text><rect width="88" height="48" x="408" y="368" fill="#a8b9ca" rx="6"/><text x="408" y="426" fill="#1a2332" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="8">#a8b9ca</text><text x="408" y="436" fill="#5c6b7a" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="7">neutral-600 (dark)</text><rect width="88" height="48" x="504" y="368" fill="#e8edf3" rx="6"/><text x="504" y="426" fill="#1a2332" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="8">#e8edf3</text><text x="504" y="436" fill="#5c6b7a" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="7">neutral-900 (dark)</text><rect width="112" height="48" x="600" y="368" fill="#5885a0" rx="6"/><text x="600" y="426" fill="#1a2332" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="8">#5885a0</text><text x="600" y="436" fill="#5c6b7a" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="7">stead-blue.dark</text><rect width="112" height="48" x="720" y="368" fill="#ba6b3c" rx="6"/><text x="720" y="426" fill="#1a2332" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="8">#ba6b3c</text><text x="720" y="436" fill="#5c6b7a" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="7">ember-copper.dark</text></g></svg></div><figcaption><strong>Palette</strong><span>10034 bytes</span><a href="assets/specimens/palette.svg">assets/specimens/palette.svg</a></figcaption></figure></div></div>
+</section>
+<section id="typography" class="brand-section">
+<h2>Typography</h2>
+<div class="source-refs"><span>Sources</span><a href="brand-book.md">brand-book.md</a><a href="tokens.css">tokens.css</a><a href="assets/specimens/typography.svg">assets/specimens/typography.svg</a></div>
+<div class="section-copy"><h3>Typography strategy</h3>
+<p>Rulestead should read like a serious systems product, not a playful startup. Typography should be:</p>
+<ul><li>highly legible in docs and code-heavy interfaces</li><li>modern but not trendy</li><li>crisp in UI</li><li>strong in technical marketing</li></ul>
+<h3>Recommended type system</h3>
+<h4>Primary display / headings</h4>
+<p><strong>Sora</strong> Use for:</p>
+<ul><li>page titles</li><li>landing page headlines</li><li>major section headers</li><li>product hero lockups</li></ul>
+<p>Why:</p>
+<ul><li>modern, structured geometry</li><li>distinct but not flamboyant</li><li>pairs well with technical interfaces</li></ul>
+<h4>Primary body / UI</h4>
+<p><strong>Inter</strong> Use for:</p>
+<ul><li>body copy</li><li>UI labels</li><li>docs text</li><li>admin tables</li><li>navigation</li></ul>
+<p>Why:</p>
+<ul><li>highly readable at many sizes</li><li>excellent for product UI and docs</li><li>neutral enough to let the brand tone lead</li></ul>
+<h4>Code / technical annotation</h4>
+<p><strong>IBM Plex Mono</strong> Use for:</p>
+<ul><li>code examples</li><li>token labels</li><li>targeting keys</li><li>technical metadata</li><li>version strings</li></ul>
+<p>Why:</p>
+<ul><li>disciplined and readable</li><li>technical without feeling retro gimmicky</li></ul>
+<h3>Typography hierarchy</h3>
+<h4>Hero H1</h4>
+<p>Sora, bold, tight tracking, large optical spacing</p>
+<h4>Section headings</h4>
+<p>Sora, semibold or bold</p>
+<h4>Body</h4>
+<p>Inter, regular or medium</p>
+<h4>UI labels</h4>
+<p>Inter, medium</p>
+<h4>Small technical labels</h4>
+<p>IBM Plex Mono, medium</p>
+<h3>Typography rules</h3>
+<ul><li>avoid ultra-condensed or novelty display fonts</li><li>avoid a “terminal-only” identity</li><li>do not use monospace for body copy</li><li>keep line lengths disciplined</li><li>use generous whitespace and strong hierarchy</li></ul>
+<hr aria-hidden="true"><h3>Font invariants</h3><table><thead><tr><th>Token</th><th>Value</th><th>Policy</th></tr></thead><tbody><tr><td><code>--rs-font-display</code></td><td><code>&quot;Sora&quot;, &quot;Inter&quot;, ui-sans-serif, system-ui, sans-serif</code></td><td></td></tr><tr><td><code>--rs-font-sans</code></td><td><code>&quot;Inter&quot;, ui-sans-serif, system-ui, -apple-system, &quot;Segoe UI&quot;, sans-serif</code></td><td></td></tr><tr><td><code>--rs-font-mono</code></td><td><code>&quot;IBM Plex Mono&quot;, ui-monospace, &quot;SFMono-Regular&quot;, Menlo, monospace</code></td><td></td></tr></tbody></table><h3>Type-scale invariants</h3><table><thead><tr><th>Token</th><th>Value</th><th>Policy</th></tr></thead><tbody><tr><td><code>--rs-text-base</code></td><td><code>0.95rem</code></td><td></td></tr><tr><td><code>--rs-text-xl</code></td><td><code>1.4rem</code></td><td></td></tr><tr><td><code>--rs-text-2xl</code></td><td><code>clamp(1.5rem, 2vw, 2rem)</code></td><td></td></tr></tbody></table><div class="asset-grid"><figure class="asset-card"><div class="asset-preview"><svg role="img" xmlns="http://www.w3.org/2000/svg" aria-labelledby="typography__t typography__d" viewBox="0 0 760 454"><title id="typography__t">Rulestead — Typography Specimen</title><desc id="typography__d">Type scale ramp: Sora, Inter, and IBM Plex Mono at each --rs-text-* size with weight and token-name labels.</desc><g aria-hidden="true"><path fill="#ffffff" d="M0 0h760v454H0z"/><text x="24" y="50" fill="#1a2332" font-family="Sora, Inter, ui-sans-serif, system-ui, sans-serif" font-size="32" font-weight="700">The quick brown fox jumps</text><text x="24" y="64" fill="#5c6b7a" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9">--rs-text-2xl · Sora · 700 · --rs-leading-tight</text><text x="24" y="96" fill="#1a2332" font-family="Sora, Inter, ui-sans-serif, system-ui, sans-serif" font-size="22" font-weight="600">Feature Flag Management</text><text x="24" y="110" fill="#5c6b7a" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9">--rs-text-xl · Sora · 600</text><text x="24" y="138" fill="#1a2332" font-family="Sora, Inter, ui-sans-serif, system-ui, sans-serif" font-size="18" font-weight="600">Evaluation Rules</text><text x="24" y="152" fill="#5c6b7a" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9">--rs-text-lg · Sora · 600</text><text x="24" y="178" fill="#1a2332" font-family="Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="17" font-weight="500">Card title or lead text</text><text x="24" y="192" fill="#5c6b7a" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9">--rs-text-md · Inter · 500</text><text x="24" y="218" fill="#1a2332" font-family="Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="15" font-weight="400">Body text at base scale — regular paragraph copy</text><text x="24" y="232" fill="#5c6b7a" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9">--rs-text-base · Inter · 400 · 0.95rem</text><text x="24" y="256" fill="#5c6b7a" font-family="Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="14" font-weight="400">Secondary body / helper label</text><text x="24" y="269" fill="#5c6b7a" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9">--rs-text-sm · Inter · 400</text><text x="24" y="292" fill="#5c6b7a" font-family="Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="12" font-weight="400">Caption or helper text</text><text x="24" y="305" fill="#5c6b7a" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9">--rs-text-xs · Inter · 400</text><text x="24" y="327" fill="#5c6b7a" font-family="IBM Plex Mono, ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" font-weight="500">OVERLINE · BADGE · MICRO</text><text x="24" y="340" fill="#5c6b7a" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9">--rs-text-2xs · IBM Plex Mono · 500</text><text x="24" y="362" fill="#1a2332" font-family="IBM Plex Mono, ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" font-weight="400">const flag = evaluate(ctx) // =&gt; true</text><text x="24" y="375" fill="#5c6b7a" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9">code / pre · IBM Plex Mono · 400</text><path stroke="#e7ebf0" d="M24 395h712"/><text x="24" y="415" fill="#99a3af" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10" font-weight="500">Font families: --rs-font-display (Sora) · --rs-font-sans (Inter) · --rs-font-mono (IBM Plex Mono)</text><text x="24" y="430" fill="#99a3af" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10">Scale tokens: --rs-text-2xl through --rs-text-2xs</text></g></svg></div><figcaption><strong>Typography</strong><span>3680 bytes</span><a href="assets/specimens/typography.svg">assets/specimens/typography.svg</a></figcaption></figure></div></div>
+</section>
+<section id="logo" class="brand-section">
+<h2>Logo</h2>
+<div class="source-refs"><span>Sources</span><a href="brand-book.md">brand-book.md</a><a href="assets/logo/rs-wordmark.svg">assets/logo/rs-wordmark.svg</a><a href="assets/logo/rs-wordmark-dark.svg">assets/logo/rs-wordmark-dark.svg</a><a href="assets/logo/rs-mark.svg">assets/logo/rs-mark.svg</a><a href="assets/logo/rs-mark-dark.svg">assets/logo/rs-mark-dark.svg</a><a href="assets/logo/rs-mark-mono.svg">assets/logo/rs-mark-mono.svg</a><a href="assets/logo/rs-favicon.svg">assets/logo/rs-favicon.svg</a><a href="assets/logo/rs-social-card.svg">assets/logo/rs-social-card.svg</a></div>
+<div class="section-copy"><h3>Logo strategy</h3>
+<p>The logo should feel infrastructural, ownable, and calm. It should suggest rule structure and stability without becoming literal.</p>
+<h3>Recommended logo direction</h3>
+<h4>Wordmark-first identity</h4>
+<p>Start with a strong <strong>Rulestead</strong> wordmark before building a complex symbol system. This is the right move for an OSS infrastructure brand.</p>
+<h3>Symbol directions to explore later</h3>
+<h4>Option A: Structured path mark</h4>
+<p>A minimal geometric mark built from ordered lines or a stepped path, suggesting:</p>
+<ul><li>rule evaluation</li><li>decision flow</li><li>progression with control</li></ul>
+<h4>Option B: Stead frame</h4>
+<p>A calm rectangular or architectural enclosure motif, suggesting:</p>
+<ul><li>stable operating ground</li><li>governed system boundaries</li><li>clarity and containment</li></ul>
+<h4>Option C: Layered field</h4>
+<p>A layered contour/grid motif suggesting:</p>
+<ul><li>environments</li><li>rule layers</li><li>snapshots</li><li>topology of change</li></ul>
+<h3>Logo constraints</h3>
+<ul><li>no literal flags</li><li>no phoenix bird icon</li><li>no shield cliché</li><li>no lightning bolts</li><li>no generic cube/SaaS hexagon</li><li>no aggressive flame iconography</li></ul>
+<h3>Wordmark character</h3>
+<p>The wordmark should feel:</p>
+<ul><li>grounded</li><li>slightly condensed or tightly spaced</li><li>confident</li><li>architected</li><li>not playful</li></ul>
+<hr aria-hidden="true"><div class="asset-grid"><figure class="asset-card"><div class="asset-preview"><svg role="img" xmlns="http://www.w3.org/2000/svg" aria-labelledby="rs-wordmark__t rs-wordmark__d" viewBox="0 0 372 64"><title id="rs-wordmark__t">Rulestead</title><desc id="rs-wordmark__d">Rulestead wordmark — multivariate decision-branch mark beside the word Rulestead set in Sora Bold</desc><g aria-hidden="true"><rect width="7.5" height="39.5" x="30" y="13" fill="#3a6f8f" rx="1"/><rect width="20" height="7.5" x="12" y="28.25" fill="#3a6f8f" rx="1"/><circle cx="12" cy="32" r="6.5" fill="#3a6f8f"/><rect width="14" height="7.5" x="32" y="12.25" fill="#9b5931" rx="1"/><circle cx="50" cy="16" r="6.5" fill="#9b5931"/><rect width="14" height="7.5" x="32" y="28.25" fill="#3a6f8f" rx="1"/><circle cx="50" cy="32" r="6.5" fill="#c4ccd1"/><rect width="14" height="7.5" x="32" y="44.25" fill="#3a6f8f" rx="1"/><circle cx="50" cy="48" r="6.5" fill="#c4ccd1"/><path fill="#183247" d="M78.493 52V11.675h8.985V52Zm24.272 0L91.04 34.796h9.862L113.175 52ZM85.068 39.18v-7.07h9.862q1.972 0 3.424-.794 1.452-.795 2.247-2.247t.794-3.37q0-1.917-.794-3.369-.795-1.452-2.247-2.246-1.452-.795-3.424-.795h-9.862v-7.615h9.15q4.985 0 8.656 1.506t5.644 4.466 1.972 7.451v.877q0 4.438-2 7.369t-5.643 4.383-8.63 1.452Zm43.068 13.751q-5.205 0-8-3.37t-2.794-10.163V21.975h8.767v17.862q0 2.41 1.37 3.835t3.67 1.424q2.356 0 3.836-1.479t1.479-4V21.975h8.766V52h-6.958V39.344h.603q0 4.547-1.178 7.588-1.178 3.04-3.48 4.52-2.3 1.48-5.698 1.48ZM153.723 52V12.003h8.821V52Zm-3.561-33.531v-6.466h12.382v6.466Zm34.19 34.572q-3.835 0-6.767-1.315-2.93-1.315-4.876-3.534-1.945-2.219-2.959-4.986-1.013-2.767-1.013-5.67V36.44q0-3.014 1.013-5.78 1.014-2.768 2.932-4.96 1.917-2.19 4.794-3.478t6.547-1.288q4.822 0 8.137 2.164 3.314 2.164 5.068 5.644t1.753 7.588v2.959h-26.573v-4.986h21.258l-2.849 2.301q0-2.685-.767-4.602t-2.274-2.932-3.753-1.013q-2.301 0-3.89 1.04-1.589 1.042-2.41 3.042t-.822 4.903q0 2.685.767 4.685t2.41 3.096q1.644 1.095 4.274 1.095 2.41 0 3.945-.931 1.534-.932 2.082-2.301h8.054q-.657 3.013-2.575 5.37-1.918 2.355-4.822 3.67t-6.684 1.315m31.834-.11q-6.41 0-10.027-2.63t-3.835-7.396h7.78q.22 1.424 1.726 2.548 1.507 1.123 4.52 1.123 2.302 0 3.808-.795 1.507-.794 1.507-2.273 0-1.315-1.15-2.11-1.151-.794-4.11-1.123l-2.356-.22q-5.424-.547-8.136-3.013t-2.712-6.3q0-3.178 1.589-5.315t4.41-3.233 6.438-1.096q5.808 0 9.37 2.548 3.56 2.548 3.725 7.37h-7.78q-.22-1.48-1.534-2.494-1.315-1.013-3.89-1.013-2.028 0-3.233.767t-1.205 2.082q0 1.26 1.04 1.918 1.042.657 3.398.931l2.355.22q5.534.602 8.603 3.067t3.068 6.63q0 3.013-1.644 5.232t-4.657 3.397-7.068 1.178m32.716-.547q-4.547 0-7.341-1.124-2.795-1.123-4.082-3.78-1.288-2.657-1.288-7.205V13.866h8.164v26.738q0 2.136 1.123 3.26t3.205 1.123h4.438v7.397Zm-17.258-23.998v-6.41h21.477v6.41Zm41.148 24.655q-3.835 0-6.767-1.315-2.93-1.315-4.876-3.534-1.945-2.219-2.959-4.986-1.013-2.767-1.013-5.67V36.44q0-3.014 1.013-5.78 1.014-2.768 2.932-4.96 1.917-2.19 4.794-3.478t6.547-1.288q4.822 0 8.137 2.164 3.314 2.164 5.068 5.644t1.753 7.588v2.959h-26.573v-4.986h21.258l-2.849 2.301q0-2.685-.767-4.602t-2.274-2.932-3.753-1.013q-2.301 0-3.89 1.04-1.589 1.042-2.41 3.042t-.822 4.903q0 2.685.767 4.685t2.41 3.096 4.274 1.095q2.41 0 3.945-.931 1.534-.932 2.082-2.301h8.054q-.657 3.013-2.575 5.37-1.918 2.355-4.822 3.67t-6.684 1.315M311.365 52v-8.876h-1.48v-9.643q0-2.301-1.095-3.452-1.096-1.15-3.507-1.15-1.205 0-3.177.054-1.973.055-4.055.165t-3.78.219V21.92q1.26-.11 2.958-.219 1.699-.11 3.507-.164t3.397-.055q4.602 0 7.753 1.315t4.794 3.972 1.643 6.822V52Zm-9.588.767q-3.233 0-5.67-1.15-2.439-1.151-3.809-3.315-1.37-2.165-1.37-5.178 0-3.287 1.699-5.397 1.698-2.11 4.767-3.123 3.068-1.013 7.068-1.013h6.41v4.876h-6.465q-2.301 0-3.534 1.123t-1.233 3.04q0 1.809 1.233 2.932t3.534 1.123q1.48 0 2.657-.52t1.945-1.78.877-3.507l2.082 2.191q-.274 3.123-1.507 5.26t-3.397 3.287-5.287 1.151m36.385.219q-3.178 0-5.78-1.15-2.603-1.151-4.52-3.206-1.918-2.054-2.932-4.849-1.013-2.794-1.013-6.026v-1.26q0-3.233.959-6.027.958-2.795 2.794-4.904 1.835-2.11 4.41-3.288t5.753-1.178q3.617 0 6.247 1.562 2.63 1.561 4.109 4.602t1.643 7.48l-2.3-2.138v-20.6h8.82V52h-6.958V39.563h1.206q-.165 4.273-1.781 7.287-1.616 3.013-4.356 4.575-2.74 1.561-6.3 1.561m2.192-7.342q2.027 0 3.698-.904t2.685-2.657 1.013-4.219v-2.027q0-2.41-1.04-4.055-1.042-1.643-2.74-2.52-1.699-.876-3.671-.876-2.192 0-3.917 1.123-1.726 1.123-2.713 3.068-.986 1.945-.986 4.52 0 2.63.986 4.548.987 1.917 2.74 2.958t3.945 1.041"/></g></svg></div><figcaption><strong>Rs Wordmark</strong><span>4332 bytes</span><a href="assets/logo/rs-wordmark.svg">assets/logo/rs-wordmark.svg</a></figcaption></figure><figure class="asset-card"><div class="asset-preview"><svg role="img" xmlns="http://www.w3.org/2000/svg" aria-labelledby="rs-wordmark-dark__t rs-wordmark-dark__d" viewBox="0 0 372 64"><title id="rs-wordmark-dark__t">Rulestead — dark variant</title><desc id="rs-wordmark-dark__d">Rulestead wordmark, dark variant — mark beside the word Rulestead set in Sora Bold for dark backgrounds</desc><g aria-hidden="true"><rect width="7.5" height="39.5" x="30" y="13" fill="#5885a0" rx="1"/><rect width="20" height="7.5" x="12" y="28.25" fill="#5885a0" rx="1"/><circle cx="12" cy="32" r="6.5" fill="#5885a0"/><rect width="14" height="7.5" x="32" y="12.25" fill="#9b5931" rx="1"/><circle cx="50" cy="16" r="6.5" fill="#9b5931"/><rect width="14" height="7.5" x="32" y="28.25" fill="#5885a0" rx="1"/><circle cx="50" cy="32" r="6.5" fill="#c4ccd1"/><rect width="14" height="7.5" x="32" y="44.25" fill="#5885a0" rx="1"/><circle cx="50" cy="48" r="6.5" fill="#c4ccd1"/><path fill="#e8edf3" d="M78.493 52V11.675h8.985V52Zm24.272 0L91.04 34.796h9.862L113.175 52ZM85.068 39.18v-7.07h9.862q1.972 0 3.424-.794 1.452-.795 2.247-2.247t.794-3.37q0-1.917-.794-3.369-.795-1.452-2.247-2.246-1.452-.795-3.424-.795h-9.862v-7.615h9.15q4.985 0 8.656 1.506t5.644 4.466 1.972 7.451v.877q0 4.438-2 7.369t-5.643 4.383-8.63 1.452Zm43.068 13.751q-5.205 0-8-3.37t-2.794-10.163V21.975h8.767v17.862q0 2.41 1.37 3.835t3.67 1.424q2.356 0 3.836-1.479t1.479-4V21.975h8.766V52h-6.958V39.344h.603q0 4.547-1.178 7.588-1.178 3.04-3.48 4.52-2.3 1.48-5.698 1.48ZM153.723 52V12.003h8.821V52Zm-3.561-33.531v-6.466h12.382v6.466Zm34.19 34.572q-3.835 0-6.767-1.315-2.93-1.315-4.876-3.534-1.945-2.219-2.959-4.986-1.013-2.767-1.013-5.67V36.44q0-3.014 1.013-5.78 1.014-2.768 2.932-4.96 1.917-2.19 4.794-3.478t6.547-1.288q4.822 0 8.137 2.164 3.314 2.164 5.068 5.644t1.753 7.588v2.959h-26.573v-4.986h21.258l-2.849 2.301q0-2.685-.767-4.602t-2.274-2.932-3.753-1.013q-2.301 0-3.89 1.04-1.589 1.042-2.41 3.042t-.822 4.903q0 2.685.767 4.685t2.41 3.096q1.644 1.095 4.274 1.095 2.41 0 3.945-.931 1.534-.932 2.082-2.301h8.054q-.657 3.013-2.575 5.37-1.918 2.355-4.822 3.67t-6.684 1.315m31.834-.11q-6.41 0-10.027-2.63t-3.835-7.396h7.78q.22 1.424 1.726 2.548 1.507 1.123 4.52 1.123 2.302 0 3.808-.795 1.507-.794 1.507-2.273 0-1.315-1.15-2.11-1.151-.794-4.11-1.123l-2.356-.22q-5.424-.547-8.136-3.013t-2.712-6.3q0-3.178 1.589-5.315t4.41-3.233 6.438-1.096q5.808 0 9.37 2.548 3.56 2.548 3.725 7.37h-7.78q-.22-1.48-1.534-2.494-1.315-1.013-3.89-1.013-2.028 0-3.233.767t-1.205 2.082q0 1.26 1.04 1.918 1.042.657 3.398.931l2.355.22q5.534.602 8.603 3.067t3.068 6.63q0 3.013-1.644 5.232t-4.657 3.397-7.068 1.178m32.716-.547q-4.547 0-7.341-1.124-2.795-1.123-4.082-3.78-1.288-2.657-1.288-7.205V13.866h8.164v26.738q0 2.136 1.123 3.26t3.205 1.123h4.438v7.397Zm-17.258-23.998v-6.41h21.477v6.41Zm41.148 24.655q-3.835 0-6.767-1.315-2.93-1.315-4.876-3.534-1.945-2.219-2.959-4.986-1.013-2.767-1.013-5.67V36.44q0-3.014 1.013-5.78 1.014-2.768 2.932-4.96 1.917-2.19 4.794-3.478t6.547-1.288q4.822 0 8.137 2.164 3.314 2.164 5.068 5.644t1.753 7.588v2.959h-26.573v-4.986h21.258l-2.849 2.301q0-2.685-.767-4.602t-2.274-2.932-3.753-1.013q-2.301 0-3.89 1.04-1.589 1.042-2.41 3.042t-.822 4.903q0 2.685.767 4.685t2.41 3.096 4.274 1.095q2.41 0 3.945-.931 1.534-.932 2.082-2.301h8.054q-.657 3.013-2.575 5.37-1.918 2.355-4.822 3.67t-6.684 1.315M311.365 52v-8.876h-1.48v-9.643q0-2.301-1.095-3.452-1.096-1.15-3.507-1.15-1.205 0-3.177.054-1.973.055-4.055.165t-3.78.219V21.92q1.26-.11 2.958-.219 1.699-.11 3.507-.164t3.397-.055q4.602 0 7.753 1.315t4.794 3.972 1.643 6.822V52Zm-9.588.767q-3.233 0-5.67-1.15-2.439-1.151-3.809-3.315-1.37-2.165-1.37-5.178 0-3.287 1.699-5.397 1.698-2.11 4.767-3.123 3.068-1.013 7.068-1.013h6.41v4.876h-6.465q-2.301 0-3.534 1.123t-1.233 3.04q0 1.809 1.233 2.932t3.534 1.123q1.48 0 2.657-.52t1.945-1.78.877-3.507l2.082 2.191q-.274 3.123-1.507 5.26t-3.397 3.287-5.287 1.151m36.385.219q-3.178 0-5.78-1.15-2.603-1.151-4.52-3.206-1.918-2.054-2.932-4.849-1.013-2.794-1.013-6.026v-1.26q0-3.233.959-6.027.958-2.795 2.794-4.904 1.835-2.11 4.41-3.288t5.753-1.178q3.617 0 6.247 1.562 2.63 1.561 4.109 4.602t1.643 7.48l-2.3-2.138v-20.6h8.82V52h-6.958V39.563h1.206q-.165 4.273-1.781 7.287-1.616 3.013-4.356 4.575-2.74 1.561-6.3 1.561m2.192-7.342q2.027 0 3.698-.904t2.685-2.657 1.013-4.219v-2.027q0-2.41-1.04-4.055-1.042-1.643-2.74-2.52-1.699-.876-3.671-.876-2.192 0-3.917 1.123-1.726 1.123-2.713 3.068-.986 1.945-.986 4.52 0 2.63.986 4.548.987 1.917 2.74 2.958t3.945 1.041"/></g></svg></div><figcaption><strong>Rs Wordmark Dark</strong><span>4355 bytes</span><a href="assets/logo/rs-wordmark-dark.svg">assets/logo/rs-wordmark-dark.svg</a></figcaption></figure><figure class="asset-card"><div class="asset-preview"><svg role="img" xmlns="http://www.w3.org/2000/svg" aria-labelledby="rs-mark__rs-mark-title rs-mark__rs-mark-desc" viewBox="0 0 64 64"><title id="rs-mark__rs-mark-title">Rulestead mark</title><desc id="rs-mark__rs-mark-desc">Multivariate decision branch: one input routes to three variants; the selected top route is lit copper, the others recede in grey. Encodes feature-flag variant selection.</desc><g aria-hidden="true"><rect width="7.5" height="39.5" x="30" y="13" fill="#3a6f8f" rx="1"/><rect width="20" height="7.5" x="12" y="28.25" fill="#3a6f8f" rx="1"/><circle cx="12" cy="32" r="6.5" fill="#3a6f8f"/><rect width="14" height="7.5" x="32" y="12.25" fill="#9b5931" rx="1"/><circle cx="50" cy="16" r="6.5" fill="#9b5931"/><rect width="14" height="7.5" x="32" y="28.25" fill="#3a6f8f" rx="1"/><circle cx="50" cy="32" r="6.5" fill="#c4ccd1"/><rect width="14" height="7.5" x="32" y="44.25" fill="#3a6f8f" rx="1"/><circle cx="50" cy="48" r="6.5" fill="#c4ccd1"/></g></svg></div><figcaption><strong>Rs Mark</strong><span>927 bytes</span><a href="assets/logo/rs-mark.svg">assets/logo/rs-mark.svg</a></figcaption></figure><figure class="asset-card"><div class="asset-preview"><svg role="img" xmlns="http://www.w3.org/2000/svg" aria-labelledby="rs-mark-dark__rs-mark-dark-title rs-mark-dark__rs-mark-dark-desc" viewBox="0 0 64 64"><title id="rs-mark-dark__rs-mark-dark-title">Rulestead mark — dark variant</title><desc id="rs-mark-dark__rs-mark-dark-desc">Multivariate decision branch on dark background: one input routes to three variants; the selected top route is lit copper, the others recede. Encodes feature-flag variant selection.</desc><g aria-hidden="true"><rect width="7.5" height="39.5" x="30" y="13" fill="#5885a0" rx="1"/><rect width="20" height="7.5" x="12" y="28.25" fill="#5885a0" rx="1"/><circle cx="12" cy="32" r="6.5" fill="#5885a0"/><rect width="14" height="7.5" x="32" y="12.25" fill="#9b5931" rx="1"/><circle cx="50" cy="16" r="6.5" fill="#9b5931"/><rect width="14" height="7.5" x="32" y="28.25" fill="#5885a0" rx="1"/><circle cx="50" cy="32" r="6.5" fill="#c4ccd1"/><rect width="14" height="7.5" x="32" y="44.25" fill="#5885a0" rx="1"/><circle cx="50" cy="48" r="6.5" fill="#c4ccd1"/></g></svg></div><figcaption><strong>Rs Mark Dark</strong><span>975 bytes</span><a href="assets/logo/rs-mark-dark.svg">assets/logo/rs-mark-dark.svg</a></figcaption></figure><figure class="asset-card"><div class="asset-preview"><svg role="img" xmlns="http://www.w3.org/2000/svg" aria-labelledby="rs-mark-mono__rs-mark-mono-title rs-mark-mono__rs-mark-mono-desc" viewBox="0 0 64 64"><title id="rs-mark-mono__rs-mark-mono-title">Rulestead mark — monochrome</title><desc id="rs-mark-mono__rs-mark-mono-desc">Rulestead monochrome mark. Multivariate decision branch: active variant node is filled, off-route nodes are hollow outlines, so active-vs-off distinction survives without color.</desc><g aria-hidden="true"><rect width="7.5" height="39.5" x="30" y="13" fill="currentColor" rx="1"/><rect width="20" height="7.5" x="12" y="28.25" fill="currentColor" rx="1"/><circle cx="12" cy="32" r="6.5" fill="currentColor"/><rect width="14" height="7.5" x="32" y="12.25" fill="currentColor" rx="1"/><circle cx="50" cy="16" r="6.5" fill="currentColor"/><rect width="14" height="7.5" x="32" y="28.25" fill="currentColor" rx="1"/><circle cx="50" cy="32" r="4.75" fill="none" stroke="currentColor" stroke-width="3.5"/><rect width="14" height="7.5" x="32" y="44.25" fill="currentColor" rx="1"/><circle cx="50" cy="48" r="4.75" fill="none" stroke="currentColor" stroke-width="3.5"/></g></svg></div><figcaption><strong>Rs Mark Mono</strong><span>1082 bytes</span><a href="assets/logo/rs-mark-mono.svg">assets/logo/rs-mark-mono.svg</a></figcaption></figure><figure class="asset-card"><div class="asset-preview"><svg role="img" xmlns="http://www.w3.org/2000/svg" aria-labelledby="rs-favicon__rs-favicon-title rs-favicon__rs-favicon-desc" viewBox="0 0 64 64"><title id="rs-favicon__rs-favicon-title">Rulestead</title><desc id="rs-favicon__rs-favicon-desc">Rulestead favicon — simplified decision branch mark on solid blue background, legible at 16px</desc><g aria-hidden="true"><path fill="#3a6f8f" d="M0 0h64v64H0z"/><rect width="8" height="44" x="28" y="10" fill="#ffffff" rx="2"/><circle cx="14" cy="32" r="8" fill="#ffffff"/><path fill="#ffffff" d="M14 28h22v8H14z"/><circle cx="50" cy="14" r="8" fill="#ffffff"/><circle cx="50" cy="32" r="5" fill="#ffffff"/><circle cx="50" cy="50" r="5" fill="#ffffff"/></g></svg></div><figcaption><strong>Rs Favicon</strong><span>649 bytes</span><a href="assets/logo/rs-favicon.svg">assets/logo/rs-favicon.svg</a></figcaption></figure><figure class="asset-card"><div class="asset-preview"><svg role="img" xmlns="http://www.w3.org/2000/svg" width="1200" height="630" aria-labelledby="rs-social-card__rs-social-title rs-social-card__rs-social-desc" viewBox="0 0 1200 630"><title id="rs-social-card__rs-social-title">Rulestead — Runtime decisions, made clear.</title><desc id="rs-social-card__rs-social-desc">Rulestead social card. Multivariate decision branch mark beside the Rulestead wordmark and tagline: Runtime decisions, made clear.</desc><g aria-hidden="true"><path fill="#183247" d="M0 0h1200v630H0z"/><g transform="matrix(4 0 0 4 120 187)"><rect width="7.5" height="39.5" x="30" y="13" fill="#5885a0" rx="1"/><rect width="20" height="7.5" x="12" y="28.25" fill="#5885a0" rx="1"/><circle cx="12" cy="32" r="6.5" fill="#5885a0"/><rect width="14" height="7.5" x="32" y="12.25" fill="#9b5931" rx="1"/><circle cx="50" cy="16" r="6.5" fill="#9b5931"/><rect width="14" height="7.5" x="32" y="28.25" fill="#5885a0" rx="1"/><circle cx="50" cy="32" r="6.5" fill="#c4ccd1"/><rect width="14" height="7.5" x="32" y="44.25" fill="#5885a0" rx="1"/><circle cx="50" cy="48" r="6.5" fill="#c4ccd1"/></g><g fill="#e8edf3" transform="matrix(3 0 0 3 444 195)"><path fill-rule="evenodd" d="M76 10h5v17h11c5 0 9 4 9 9s-4 9-9 9l11 9h-7l-10-9v9h-5V10zm5 4v16h9c3 0 5-2 5-5s-2-6-5-6h-9z"/><path d="M104 24h5v20q0 6 6 6t6-6V24h5v20c0 7-5 12-11 12s-11-5-11-12z"/><rect width="5" height="44" x="128" y="10" rx="1"/><path fill-rule="evenodd" d="M149 24c-7 0-12 7-12 14s5 14 12 14c5 0 9-3 11-7h-6c-1 2-3 3-5 3-4 0-7-3-7-7h19v-3c0-7-5-14-12-14m-11 14c0-4 3-7 11-7 4 0 7 3 7 7z"/><path d="M181 28c-1-3-4-4-8-4s-6 2-6 4c0 3 2 4 7 5 6 1 10 4 10 9s-4 9-11 9c-6 0-10-3-11-8h5c1 3 3 4 6 4 4 0 6-2 6-5s-2-4-7-5c-6-1-10-4-10-9s4-9 11-9c5 0 9 2 11 7h-3z"/><rect width="5" height="38" x="189" y="14" rx="1"/><rect width="15" height="5" x="184" y="29" rx="1"/><path fill-rule="evenodd" d="M213 24c-7 0-12 7-12 14s5 14 12 14c5 0 9-3 11-7h-6c-1 2-3 3-5 3-4 0-7-3-7-7h19v-3c0-7-5-14-12-14m-11 14c0-4 3-7 11-7 4 0 7 3 7 7z"/><path fill-rule="evenodd" d="M247 24v28h-5v-3c-2 2-5 3-8 3-7 0-11-6-11-14s4-14 11-14c3 0 6 1 8 3v-3zm-13 4c-4 0-7 4-7 10s3 10 7 10 8-4 8-10-4-10-8-10m37-18v42h-5v-3c-2 2-5 3-8 3-7 0-11-6-11-14s4-14 11-14c3 0 6 1 8 3V10zm-13 18c-4 0-7 4-7 10s3 10 7 10 8-4 8-10-4-10-8-10"/></g><g fill="#e8edf3" opacity=".7"><path fill-rule="evenodd" d="M444 415h6.4v20.8h12.8c6.4 0 11.2 4.8 11.2 11.2s-4.8 11.2-11.2 11.2l12.8 11.2h-8l-12.8-11.2v11.2h-6.4V415zm6.4 6.4v19.2h11.2c3.2 0 6.4-3.2 6.4-6.4s-3.2-6.4-6.4-6.4h-11.2z"/><path d="M476 431h6.4v25.6c0 4.8 3.2 8 8 8s8-3.2 8-8V431h6.4v25.6c0 9.6-6.4 14.4-14.4 14.4s-14.4-4.8-14.4-14.4zm32 0h6.4v4.8c3.2-3.2 6.4-4.8 11.2-4.8 8 0 12.8 4.8 12.8 14.4V471H532v-24c0-6.4-3.2-9.6-8-9.6s-9.6 3.2-9.6 9.6v24H508zm35.2-9.6h6.4V471h-6.4z"/><path d="M536.8 437.4H556v6.4h-19.2zm24-6.4h6.4v40h-6.4zm0-11.2h6.4v6.4h-6.4zM572 431h6.4v4.8q4.8-4.8 9.6-4.8c4.8 0 8 1.6 11.2 6.4 3.2-4.8 6.4-6.4 11.2-6.4 8 0 12.8 4.8 12.8 14.4V471h-6.4v-24c0-6.4-3.2-8-6.4-8-4.8 0-8 3.2-8 8v24H596v-24c0-6.4-3.2-8-8-8s-8 3.2-8 8v24h-6.4v-40z"/><path fill-rule="evenodd" d="M628 431c-9.6 0-16 8-16 19.2s6.4 19.2 16 19.2q9.6 0 14.4-9.6h-8c-1.6 3.2-3.2 3.2-6.4 3.2q-7.2 0-9.6-9.6H644v-3.2c0-11.2-6.4-19.2-16-19.2m-16 14.4c0-4.8 4.8-8 16-8 4.8 0 8 3.2 8 8zm62.4-30.4v56H668v-3.2c-3.2 3.2-6.4 3.2-9.6 3.2-9.6 0-14.4-8-14.4-19.2s4.8-19.2 14.4-19.2q4.8 0 9.6 4.8V415zm-16 22.4c-4.8 0-9.6 4.8-9.6 12.8s4.8 12.8 9.6 12.8 9.6-4.8 9.6-12.8-4.8-12.8-9.6-12.8"/><path fill-rule="evenodd" d="M684 431c-9.6 0-16 8-16 19.2s6.4 19.2 16 19.2q9.6 0 14.4-9.6h-8c-1.6 3.2-3.2 3.2-6.4 3.2q-7.2 0-9.6-9.6H700v-3.2c0-11.2-6.4-19.2-16-19.2m-16 14.4c0-4.8 4.8-8 16-8 4.8 0 8 3.2 8 8z"/><path d="M724 437.4c-1.6-4.8-6.4-6.4-11.2-6.4-8 0-14.4 8-14.4 19.2s6.4 19.2 14.4 19.2c4.8 0 9.6-1.6 11.2-8h-8c0 1.6-1.6 3.2-4.8 3.2-4.8 0-8-4.8-8-14.4s3.2-14.4 8-14.4q4.8 0 4.8 4.8h8zm3.2-6.4h6.4v40h-6.4zm0-11.2h6.4v6.4h-6.4z"/><path d="M757.6 437.4c-1.6-3.2-4.8-6.4-9.6-6.4s-8 1.6-8 4.8 1.6 4.8 8 6.4c8 1.6 12.8 4.8 12.8 11.2s-4.8 11.2-14.4 11.2q-12 0-14.4-9.6h6.4c1.6 3.2 3.2 4.8 8 4.8s8-1.6 8-6.4c0-3.2-3.2-4.8-9.6-6.4-8-1.6-11.2-4.8-11.2-11.2s4.8-11.2 14.4-11.2q9.6 0 14.4 9.6h-4.8zm6.4-6.4h6.4v40H764zm0-11.2h6.4v6.4H764z"/><path fill-rule="evenodd" d="M775.2 450.2c0-11.2 8-19.2 17.6-19.2s17.6 8 17.6 19.2-8 19.2-17.6 19.2-17.6-8-17.6-19.2m6.4 0c0 8 4.8 14.4 11.2 14.4s11.2-6.4 11.2-14.4-4.8-12.8-11.2-12.8-11.2 4.8-11.2 12.8"/><path d="M813.6 431h6.4v4.8c3.2-3.2 6.4-4.8 11.2-4.8 8 0 12.8 4.8 12.8 14.4V471h-6.4v-24c0-6.4-3.2-9.6-8-9.6s-9.6 3.2-9.6 9.6v24h-6.4zm56 6.4c-1.6-3.2-4.8-6.4-9.6-6.4s-8 1.6-8 4.8 1.6 4.8 8 6.4c8 1.6 12.8 4.8 12.8 11.2s-4.8 11.2-14.4 11.2q-12 0-14.4-9.6h6.4c1.6 3.2 3.2 4.8 8 4.8s8-1.6 8-6.4c0-3.2-3.2-4.8-9.6-6.4-8-1.6-11.2-4.8-11.2-11.2s4.8-11.2 14.4-11.2q9.6 0 14.4 9.6h-4.8zm6.4 28.8h6.4v6.4l-3.2 8h-4.8l3.2-8H876zm16-35.2h6.4v4.8q4.8-4.8 9.6-4.8c4.8 0 8 1.6 11.2 6.4 3.2-4.8 6.4-6.4 11.2-6.4 8 0 12.8 4.8 12.8 14.4V471h-6.4v-24c0-6.4-3.2-8-6.4-8-4.8 0-8 3.2-8 8v24H916v-24c0-6.4-3.2-8-8-8s-8 3.2-8 8v24h-6.4v-40z"/><path fill-rule="evenodd" d="M968.8 431v40h-6.4v-3.2c-3.2 3.2-6.4 3.2-9.6 3.2-9.6 0-14.4-8-14.4-19.2s4.8-19.2 14.4-19.2c3.2 0 6.4 1.6 9.6 3.2V431zm-16 6.4c-4.8 0-9.6 4.8-9.6 12.8s4.8 12.8 9.6 12.8 9.6-4.8 9.6-12.8-4.8-12.8-9.6-12.8M1004 415v56h-6.4v-3.2c-3.2 3.2-6.4 3.2-9.6 3.2-9.6 0-14.4-8-14.4-19.2s4.8-19.2 14.4-19.2q4.8 0 9.6 4.8V415zm-16 22.4c-4.8 0-9.6 4.8-9.6 12.8s4.8 12.8 9.6 12.8 9.6-4.8 9.6-12.8-4.8-12.8-9.6-12.8"/><path fill-rule="evenodd" d="M1013.6 431c-9.6 0-16 8-16 19.2s6.4 19.2 16 19.2q9.6 0 14.4-9.6h-8c-1.6 3.2-3.2 3.2-6.4 3.2q-7.2 0-9.6-9.6h25.6v-3.2c0-11.2-6.4-19.2-16-19.2m-16 14.4c0-4.8 4.8-8 16-8 4.8 0 8 3.2 8 8z"/><path d="M1053.6 437.4c-1.6-4.8-6.4-6.4-11.2-6.4-8 0-14.4 8-14.4 19.2s6.4 19.2 14.4 19.2c4.8 0 9.6-1.6 11.2-8h-8c0 1.6-1.6 3.2-4.8 3.2-4.8 0-8-4.8-8-14.4s3.2-14.4 8-14.4q4.8 0 4.8 4.8h8zm3.2-22.4h6.4v56h-6.4z"/><path fill-rule="evenodd" d="M1072.8 431c-9.6 0-16 8-16 19.2s6.4 19.2 16 19.2q9.6 0 14.4-9.6h-8c-1.6 3.2-3.2 3.2-6.4 3.2q-7.2 0-9.6-9.6h25.6v-3.2c0-11.2-6.4-19.2-16-19.2m-16 14.4c0-4.8 4.8-8 16-8 4.8 0 8 3.2 8 8z"/><path fill-rule="evenodd" d="M1114.4 431v40h-6.4v-3.2c-3.2 3.2-6.4 3.2-9.6 3.2-9.6 0-14.4-8-14.4-19.2s4.8-19.2 14.4-19.2c3.2 0 6.4 1.6 9.6 3.2V431zm-16 6.4c-4.8 0-9.6 4.8-9.6 12.8s4.8 12.8 9.6 12.8 9.6-4.8 9.6-12.8-4.8-12.8-9.6-12.8"/><path d="M1120.8 431h6.4v6.4c1.6-4.8 6.4-6.4 11.2-6.4v6.4c-6.4 0-11.2 3.2-11.2 11.2V471h-6.4zm19.2 33.6h6.4v6.4h-6.4z"/></g></g></svg></div><figcaption><strong>Rs Social Card</strong><span>6374 bytes</span><a href="assets/logo/rs-social-card.svg">assets/logo/rs-social-card.svg</a></figcaption></figure></div></div>
+</section>
+<section id="layout-and-components" class="brand-section">
+<h2>Layout and components</h2>
+<div class="source-refs"><span>Sources</span><a href="brand-book.md">brand-book.md</a><a href="tokens.json">tokens.json</a><a href="assets/specimens/components.svg">assets/specimens/components.svg</a><a href="assets/specimens/code-block.svg">assets/specimens/code-block.svg</a></div>
+<div class="section-copy"><h3>Design principles</h3>
+<ul><li>strong grid</li><li>generous whitespace</li><li>clear left alignment</li><li>modular blocks</li><li>restrained use of ornament</li></ul>
+<h3>Shape language</h3>
+<p>Prefer:</p>
+<ul><li>rectangles with softened edges</li><li>long ruled lines</li><li>stacked panels</li><li>framed content regions</li><li>precise separators</li></ul>
+<p>Avoid:</p>
+<ul><li>bubbly UI</li><li>excessive rounding everywhere</li><li>pill-heavy playful systems</li><li>chaotic decorative patterns</li></ul>
+<h3>Border radius</h3>
+<p>Recommended:</p>
+<ul><li>8px to 14px for product surfaces</li><li>16px to 24px for hero cards</li></ul>
+<h3>Shadows</h3>
+<p>Use soft, low-contrast elevation. Rulestead should feel composed, not glossy.</p>
+<hr aria-hidden="true"><h3>Spacing tokens</h3><table><thead><tr><th>Token</th><th>Value</th><th>Policy</th></tr></thead><tbody><tr><td><code>invariant.spacing.page-gap</code></td><td><code>1.25rem</code></td><td>--rs-page-gap</td></tr><tr><td><code>invariant.spacing.section-gap</code></td><td><code>1rem</code></td><td>--rs-section-gap</td></tr><tr><td><code>invariant.spacing.shell-max</code></td><td><code>1200px</code></td><td>--rs-shell-max (layout max-width)</td></tr><tr><td><code>invariant.spacing.space-1</code></td><td><code>0.25rem</code></td><td>--rs-space-1</td></tr><tr><td><code>invariant.spacing.space-10</code></td><td><code>2.5rem</code></td><td>--rs-space-10</td></tr><tr><td><code>invariant.spacing.space-2</code></td><td><code>0.5rem</code></td><td>--rs-space-2</td></tr><tr><td><code>invariant.spacing.space-3</code></td><td><code>0.75rem</code></td><td>--rs-space-3</td></tr><tr><td><code>invariant.spacing.space-4</code></td><td><code>1rem</code></td><td>--rs-space-4</td></tr><tr><td><code>invariant.spacing.space-5</code></td><td><code>1.25rem</code></td><td>--rs-space-5</td></tr><tr><td><code>invariant.spacing.space-6</code></td><td><code>1.5rem</code></td><td>--rs-space-6</td></tr><tr><td><code>invariant.spacing.space-7</code></td><td><code>1.75rem</code></td><td>--rs-space-7</td></tr><tr><td><code>invariant.spacing.space-8</code></td><td><code>2rem</code></td><td>--rs-space-8</td></tr><tr><td><code>invariant.spacing.space-9</code></td><td><code>2.25rem</code></td><td>--rs-space-9</td></tr></tbody></table><h3>Radius tokens</h3><table><thead><tr><th>Token</th><th>Value</th><th>Policy</th></tr></thead><tbody><tr><td><code>invariant.radius.full</code></td><td><code>999px</code></td><td>--rs-radius-full</td></tr><tr><td><code>invariant.radius.lg</code></td><td><code>14px</code></td><td>--rs-radius-lg</td></tr><tr><td><code>invariant.radius.md</code></td><td><code>10px</code></td><td>--rs-radius-md</td></tr><tr><td><code>invariant.radius.sm</code></td><td><code>6px</code></td><td>--rs-radius-sm</td></tr><tr><td><code>invariant.radius.xl</code></td><td><code>18px</code></td><td>--rs-radius-xl</td></tr></tbody></table><div class="asset-grid"><figure class="asset-card"><div class="asset-preview"><svg role="img" xmlns="http://www.w3.org/2000/svg" aria-labelledby="components__t components__d" viewBox="0 0 800 310"><title id="components__t">Rulestead — Components Specimen</title><desc id="components__d">Buttons (default, primary, danger, text), card, and badge variants in light mineral palette.</desc><g aria-hidden="true"><path fill="#f8fafc" d="M0 0h800v310H0z"/><text x="24" y="28" fill="#5c6b7a" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="11">Buttons</text><rect width="120" height="40" x="24" y="40" fill="#f4f6f8" stroke="#d8dee6" rx="6"/><text x="84" y="65" fill="#1a2332" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="14" font-weight="500" text-anchor="middle">Default</text><rect width="120" height="40" x="160" y="40" fill="#3A6F8F" rx="6"/><text x="220" y="65" fill="#ffffff" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="14" font-weight="500" text-anchor="middle">Primary</text><rect width="120" height="40" x="296" y="40" fill="#fee2e2" stroke="#fca5a5" rx="6"/><text x="356" y="65" fill="#B44949" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="14" font-weight="500" text-anchor="middle">Danger</text><text x="440" y="65" fill="#3A6F8F" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="14" font-weight="600" text-decoration="underline">Text link</text><text x="24" y="105" fill="#5c6b7a" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="11">Card</text><rect width="360" height="120" x="24" y="115" fill="#ffffff" stroke="#d8dee6" rx="14"/><text x="40" y="145" fill="#1a2332" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="14" font-weight="500">Feature Flags</text><text x="40" y="167" fill="#5c6b7a" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="13" font-weight="400">Runtime decisions, made clear.</text><rect width="76" height="22" x="40" y="185" fill="#dcfce7" stroke="#86efac" rx="999"/><text x="78" y="200" fill="#2d7753" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10" font-weight="600" text-anchor="middle">enabled</text><text x="24" y="255" fill="#5c6b7a" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="11">Badges</text><rect width="72" height="22" x="24" y="264" fill="#eef1f5" stroke="#d8dee6" rx="999"/><text x="60" y="279" fill="#5c6b7a" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10" font-weight="600" text-anchor="middle">neutral</text><rect width="76" height="22" x="108" y="264" fill="#dcfce7" stroke="#86efac" rx="999"/><text x="146" y="279" fill="#2d7753" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10" font-weight="600" text-anchor="middle">enabled</text><rect width="76" height="22" x="196" y="264" fill="#fef3c7" stroke="#fcd34d" rx="999"/><text x="234" y="279" fill="#8f601a" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10" font-weight="600" text-anchor="middle">warning</text><rect width="72" height="22" x="284" y="264" fill="#fee2e2" stroke="#fca5a5" rx="999"/><text x="320" y="279" fill="#B44949" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10" font-weight="600" text-anchor="middle">critical</text><rect width="60" height="22" x="368" y="264" fill="#fde8dc" stroke="#9b5931" rx="999"/><text x="398" y="279" fill="#9b5931" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10" font-weight="600" text-anchor="middle">draft</text></g></svg></div><figcaption><strong>Components</strong><span>3455 bytes</span><a href="assets/specimens/components.svg">assets/specimens/components.svg</a></figcaption></figure><figure class="asset-card"><div class="asset-preview"><svg role="img" xmlns="http://www.w3.org/2000/svg" aria-labelledby="code-block__t code-block__d" viewBox="0 0 680 280"><title id="code-block__t">Rulestead — Code Block Specimen</title><desc id="code-block__d">Code block specimen: Rulestead Elixir API on mineral dark background with IBM Plex Mono syntax coloring.</desc><g aria-hidden="true"><rect width="680" height="280" fill="#10161f" rx="10"/><rect width="680" height="36" fill="#19222e" rx="10"/><path fill="#19222e" d="M0 18h680v18H0z"/><text x="20" y="23" fill="#7a8fa3" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="11">feature_flags.ex</text><circle cx="652" cy="18" r="5" fill="#2e3d52"/><circle cx="636" cy="18" r="5" fill="#2e3d52"/><circle cx="620" cy="18" r="5" fill="#2e3d52"/><text x="20" y="65" fill="#a8b9ca" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="12"># Evaluate a feature flag</text><text x="20" y="87" fill="#e8edf3" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="12">{:ok, result} = Rulestead.evaluate(:dark_mode, ctx)</text><text x="20" y="109" fill="#e8edf3" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="12">IO.inspect(result.value)     # =&gt; true</text><text x="20" y="131" fill="#e8edf3" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="12">IO.inspect(result.reason)    # =&gt; &quot;matched rule 3&quot;</text><text x="20" y="175" fill="#a8b9ca" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="12"># Check rollout percentage</text><text x="20" y="197" fill="#e8edf3" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="12">{:ok, pct} = Rulestead.rollout_percentage(:beta, ctx)</text><text x="20" y="219" fill="#e8edf3" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="12">IO.inspect(pct)  # =&gt; 25</text></g></svg></div><figcaption><strong>Code Block</strong><span>1785 bytes</span><a href="assets/specimens/code-block.svg">assets/specimens/code-block.svg</a></figcaption></figure></div></div>
+</section>
+<section id="iconography-and-imagery" class="brand-section">
+<h2>Iconography and imagery</h2>
+<div class="source-refs"><span>Sources</span><a href="brand-book.md">brand-book.md</a><a href="assets/specimens/readme-header.svg">assets/specimens/readme-header.svg</a><a href="assets/specimens/social-card.svg">assets/specimens/social-card.svg</a></div>
+<div class="section-copy"><h3>Icon style</h3>
+<ul><li>outlined or lightly filled</li><li>geometric</li><li>low ornament</li><li>consistent stroke weight</li><li>readable at small sizes</li></ul>
+<h3>Icon themes</h3>
+<ul><li>rule</li><li>path</li><li>environment</li><li>schedule</li><li>audit</li><li>explain</li><li>variant</li><li>lifecycle</li><li>target</li><li>snapshot</li></ul>
+<h3>Avoid</h3>
+<ul><li>emoji-like icons</li><li>cute metaphor icons</li><li>hyper-detailed skeuomorphic glyphs</li></ul>
+<hr aria-hidden="true">
+<h3>Acceptable imagery</h3>
+<p>Use imagery that suggests:</p>
+<ul><li>architecture</li><li>signal routing</li><li>layered systems</li><li>maps and paths</li><li>calm industrial precision</li><li>real operators working with legible systems</li></ul>
+<h3>Photography direction</h3>
+<p>When using photography, prefer:</p>
+<ul><li>architectural textures</li><li>drafting surfaces</li><li>infrastructure at human scale</li><li>calm control-room or studio light</li><li>minimal, grounded, intentional compositions</li></ul>
+<h3>Illustration direction</h3>
+<p>Illustrations should feel like:</p>
+<ul><li>diagrams with depth</li><li>layered routing systems</li><li>abstract topography</li><li>structured linework</li><li>evaluated paths through constrained spaces</li></ul>
+<h3>Product imagery</h3>
+<p>Show:</p>
+<ul><li>rule lists</li><li>explain panels</li><li>timeline views</li><li>simulation surfaces</li><li>lifecycle states</li><li>environment diffs</li></ul>
+<p>Show the product as a place where complexity becomes understandable.</p>
+<h3>Never use</h3>
+<ul><li>waving flags</li><li>phoenix mascots</li><li>random stock-team high-fives</li><li>code-rain cyberpunk backgrounds</li><li>explosive fire visuals</li><li>growth-chart rockets</li><li>generic server racks with blue overlays</li></ul>
+<hr aria-hidden="true"><div class="asset-grid"><figure class="asset-card"><div class="asset-preview"><svg role="img" xmlns="http://www.w3.org/2000/svg" aria-labelledby="readme-header__t readme-header__d" viewBox="0 0 480 96"><title id="readme-header__t">Rulestead — README Header</title><desc id="readme-header__d">README header mock showing the Rulestead mark and wordmark with tagline: Runtime decisions, made clear.</desc><g aria-hidden="true"><path fill="#F5F7F6" d="M0 0h480v96H0z"/><g transform="translate(16 16)"><rect width="7.5" height="39.5" x="30" y="13" fill="#3a6f8f" rx="1"/><rect width="20" height="7.5" x="12" y="28.25" fill="#3a6f8f" rx="1"/><circle cx="12" cy="32" r="6.5" fill="#3a6f8f"/><rect width="14" height="7.5" x="32" y="12.25" fill="#9b5931" rx="1"/><circle cx="50" cy="16" r="6.5" fill="#9b5931"/><rect width="14" height="7.5" x="32" y="28.25" fill="#3a6f8f" rx="1"/><circle cx="50" cy="32" r="6.5" fill="#c4ccd1"/><rect width="14" height="7.5" x="32" y="44.25" fill="#3a6f8f" rx="1"/><circle cx="50" cy="48" r="6.5" fill="#c4ccd1"/></g><text x="96" y="48" fill="#183247" font-family="Sora, Inter, ui-sans-serif, system-ui, sans-serif" font-size="32" font-weight="700">Rulestead</text><text x="96" y="72" fill="#5c6b7a" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="14" font-weight="400">Runtime decisions, made clear.</text></g></svg></div><figcaption><strong>Readme Header</strong><span>1227 bytes</span><a href="assets/specimens/readme-header.svg">assets/specimens/readme-header.svg</a></figcaption></figure><figure class="asset-card"><div class="asset-preview"><svg role="img" xmlns="http://www.w3.org/2000/svg" width="1200" height="630" aria-labelledby="social-card__t social-card__d" viewBox="0 0 1200 630"><title id="social-card__t">Rulestead — Social Card Specimen</title><desc id="social-card__d">Social card design reference (1200x630). Ink Blue background with mark, wordmark, and tagline. Annotated with key token names.</desc><g aria-hidden="true"><path fill="#183247" d="M0 0h1200v630H0z"/><g transform="matrix(4 0 0 4 120 187)"><rect width="7.5" height="39.5" x="30" y="13" fill="#5885a0" rx="1"/><rect width="20" height="7.5" x="12" y="28.25" fill="#5885a0" rx="1"/><circle cx="12" cy="32" r="6.5" fill="#5885a0"/><rect width="14" height="7.5" x="32" y="12.25" fill="#9b5931" rx="1"/><circle cx="50" cy="16" r="6.5" fill="#9b5931"/><rect width="14" height="7.5" x="32" y="28.25" fill="#5885a0" rx="1"/><circle cx="50" cy="32" r="6.5" fill="#c4ccd1"/><rect width="14" height="7.5" x="32" y="44.25" fill="#5885a0" rx="1"/><circle cx="50" cy="48" r="6.5" fill="#c4ccd1"/></g><text x="444" y="310" fill="#e8edf3" font-family="Sora, Inter, ui-sans-serif, system-ui, sans-serif" font-size="84" font-weight="700">Rulestead</text><text x="444" y="390" fill="#e8edf3" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="36" font-weight="400" opacity=".75">Runtime decisions, made clear.</text><text x="36" y="608" fill="#e8edf3" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="16" opacity=".45">bg: #183247 · ink-blue.base · mark: #5885a0 · stead-blue.dark</text></g></svg></div><figcaption><strong>Social Card</strong><span>1501 bytes</span><a href="assets/specimens/social-card.svg">assets/specimens/social-card.svg</a></figcaption></figure></div></div>
+</section>
+<section id="motion" class="brand-section">
+<h2>Motion</h2>
+<div class="source-refs"><span>Sources</span><a href="brand-book.md">brand-book.md</a><a href="tokens.css">tokens.css</a></div>
+<div class="section-copy"><h3>Motion character</h3>
+<p>Motion should express:</p>
+<ul><li>controlled progression</li><li>evaluation</li><li>reveal of reasoning</li><li>deliberate state changes</li></ul>
+<h3>Motion principles</h3>
+<ul><li>smooth, moderate timing</li><li>no jittery or game-like motion</li><li>transitions should clarify structure, not decorate it</li><li>explanation panels should unfold with confidence</li></ul>
+<h3>Good motion patterns</h3>
+<ul><li>stepped reveal</li><li>layered fade/slide</li><li>path tracing</li><li>rule highlight sequencing</li><li>diff transitions</li></ul>
+<h3>Bad motion patterns</h3>
+<ul><li>bouncing</li><li>flashy looping glows</li><li>exaggerated springiness</li><li>gimmicky 3D spins</li></ul>
+<hr aria-hidden="true"><table><thead><tr><th>Token</th><th>Value</th><th>Policy</th></tr></thead><tbody><tr><td><code>--rs-motion-fast</code></td><td><code>150ms</code></td><td></td></tr><tr><td><code>--rs-motion-base</code></td><td><code>200ms</code></td><td></td></tr><tr><td><code>--rs-motion-slow</code></td><td><code>320ms</code></td><td></td></tr><tr><td><code>--rs-motion-slower</code></td><td><code>480ms</code></td><td></td></tr><tr><td><code>--rs-ease-standard</code></td><td><code>cubic-bezier(0.2, 0, 0, 1)</code></td><td></td></tr><tr><td><code>--rs-ease-out</code></td><td><code>cubic-bezier(0.16, 1, 0.3, 1)</code></td><td></td></tr><tr><td><code>--rs-ease-in</code></td><td><code>cubic-bezier(0.4, 0, 1, 1)</code></td><td></td></tr><tr><td><code>--rs-ease-in-out</code></td><td><code>cubic-bezier(0.65, 0, 0.35, 1)</code></td><td></td></tr></tbody></table></div>
+</section>
+<section id="assets-and-maintenance" class="brand-section">
+<h2>Assets and maintenance</h2>
+<div class="source-refs"><span>Sources</span><a href="brand-book.md">brand-book.md</a><a href="README.md">README.md</a><a href="BUDGET.md">BUDGET.md</a><a href="docs/brand-usage.md">docs/brand-usage.md</a><a href="../scripts/gen_brandbook_html.py">../scripts/gen_brandbook_html.py</a></div>
+<div class="section-copy"><h3>Default brand stack for website/docs/UI</h3>
+<ul><li>Headings: Sora</li><li>Body/UI: Inter</li><li>Mono: IBM Plex Mono</li><li>Background: Rain Tint / Stone Mist</li><li>Primary text: Basalt</li><li>Primary accent: Stead Blue</li><li>Secondary accent: Ember Copper</li></ul>
+<h3>Default interface styling</h3>
+<ul><li>clean off-white backgrounds</li><li>dark headings</li><li>blue actions</li><li>warm accent highlights</li><li>disciplined spacing</li><li>visible rule order and hierarchy</li></ul>
+<h3>Default illustration style</h3>
+<ul><li>line-led diagrams</li><li>topographic layers</li><li>structured route maps</li><li>system panels and overlays</li></ul>
+<hr aria-hidden="true"><div class="doc-grid"><article class="doc-excerpt"><h3>brandbook/</h3>
+<p>Source-controlled brand system for Rulestead v1.14+.</p>
+<h3>Directory Index</h3>
+<table><thead><tr><th>Path</th><th>Purpose</th><th>Status</th></tr></thead><tbody><tr><td><a href="brand-book.md"><code>brand-book.md</code></a></td><td>Canonical brand book: identity, messaging, palette, typography, voice, layout, and guardrails.</td><td>Active</td></tr><tr><td><a href="tokens.json"><code>tokens.json</code></a></td><td>Machine-readable design tokens in DTCG 2025.10 shape.</td><td>Active</td></tr><tr><td><a href="tokens.css"><code>tokens.css</code></a></td><td>Hand-authored CSS custom-property mirror for the shipped <code>--rs-*</code> token shape.</td><td>Active</td></tr><tr><td><a href="COPY.md"><code>COPY.md</code></a></td><td>Ready-to-paste GitHub, Hex.pm, README, landing, feature, and szTheory suite copy.</td><td>Active</td></tr><tr><td><a href="VOICE.md"><code>VOICE.md</code></a></td><td>Voice and microcopy reference for empty, error, and success states.</td><td>Active</td></tr><tr><td><a href="RELEASE-TEMPLATE.md"><code>RELEASE-TEMPLATE.md</code></a></td><td>Release-announcement scaffold in the maintainer tone.</td><td>Active</td></tr><tr><td><a href="BUDGET.md"><code>BUDGET.md</code></a></td><td>Brand asset size budget and binary-export policy.</td><td>Active</td></tr><tr><td><a href="docs/brand-usage.md"><code>docs/brand-usage.md</code></a></td><td>Contributor guide for token sync, admin re-skin edits, and guard scripts.</td><td>Active</td></tr><tr><td><a href="assets/logo/"><code>assets/logo/</code></a></td><td>Final logo and mark SVG system: wordmark, mark, mono, favicon, social card, light/dark variants.</td><td>Active</td></tr><tr><td><a href="assets/specimens/"><code>assets/specimens/</code></a></td><td>Reproducible SVG specimens for palette, typography, components, code block, README header, and social card.</td><td>Active</td></tr></tbody></table>
+<h3>Admin Cascade Cross-Reference</h3>
+<p><a href="../rulestead_admin/priv/static/css/rulestead_admin.css"><code>../rulestead_admin/priv/static/css/rulestead_admin.css</code></a> contains the four shipped admin cascade blocks. Block 1 (<code>.rs-shell, [data-rulestead]</code>) and Block 4 (<code>[data-theme=&quot;light&quot;]</code>) are the light synced pair. Block 2 (<code>@media (prefers-color-scheme: dark)</code>) and Block 3 (<code>[data-theme=&quot;dark&quot;]</code>) are the dark synced pair.</p>
+<p><code>scripts/check_brand_tokens.py</code> compares <code>tokens.json</code> admin mappings against the admin CSS. <code>scripts/check_synced_pair.py</code> keeps the paired cascade blocks byte-identical by token value.</p>
+<h3>Maintenance Commands</h3>
+<p>Run from the repo root:</p>
+<pre><code class="language-bash">python3 scripts/check_synced_pair.py
+python3 scripts/check_brand_tokens.py
+python3 scripts/check_tokens_css.py
+bash scripts/ci/lint.sh</code></pre>
+<p>Expected current token output:</p>
+<pre><code class="language-text">BRAND TOKENS SYNCED (68 tokens)</code></pre>
+<h3>Source of Truth</h3>
+<p>The canonical brand book lives here: <a href="brand-book.md"><code>brand-book.md</code></a>. <code>../prompts/rulestead-brand-book.md</code> is a pointer only and should not be edited for brand changes.</p>
+<p>Phase 101 will add the generated HTML brand book. Until then, this directory remains the reviewable source for brand copy, tokens, logos, specimens, and repository guardrails.</p></article><article class="doc-excerpt"><h3>Brand Asset Budget</h3>
+<p>Phase 100 documents the live budget that <code>scripts/ci/lint.sh</code> already enforces. Do not change these numbers in docs without changing the script in the same review.</p>
+<table><thead><tr><th>Asset type</th><th>Path</th><th>Limit</th><th>Enforced by</th></tr></thead><tbody><tr><td>Logo SVG</td><td><code>brandbook/assets/logo/*.svg</code></td><td>20 KB / 20480 bytes each</td><td><code>scripts/ci/lint.sh</code></td></tr><tr><td>Specimen SVG</td><td><code>brandbook/assets/specimens/*.svg</code></td><td>50 KB / 51200 bytes each</td><td><code>scripts/ci/lint.sh</code></td></tr></tbody></table>
+<h3>Policy</h3>
+<ul><li>Commit source SVGs for logos and specimens. Keep them text-diffable and reviewable.</li><li>Do not embed raster data in SVGs. <code>base64</code>, <code>&lt;image&gt;</code>, and script content are not allowed in brand SVGs.</li><li>Keep accessibility metadata in committed SVGs: <code>role=&quot;img&quot;</code>, <code>title</code>, <code>desc</code>, and <code>aria-labelledby</code>.</li><li>Do not commit font binaries (<code>.woff</code>, <code>.woff2</code>, <code>.ttf</code>, <code>.otf</code>) for the brand stack. Use the documented Sora, Inter, and IBM Plex Mono font stacks.</li><li>Raster brand exports are generated on demand. The only raster exceptions allowed by policy are favicon exports (<code>favicon.ico</code>, <code>favicon.png</code>, <code>apple-touch-icon.png</code>) when they are generated from committed logo source and reviewed explicitly.</li><li>Root <code>.gitattributes</code> marks source assets as text and binary export formats as binary so large assets are visible in review.</li></ul>
+<h3>Verification</h3>
+<p>Run the full lint gate from repo root:</p>
+<pre><code class="language-bash">bash scripts/ci/lint.sh</code></pre>
+<p>For a narrow size check:</p>
+<pre><code class="language-bash">shopt -s nullglob
+for f in brandbook/assets/logo/*.svg; do
+  size=$(wc -c &lt; &quot;$f&quot; | tr -d &#x27; &#x27;)
+  [ &quot;$size&quot; -le 20480 ] || { echo &quot;logo over budget: $f $size&quot;; exit 1; }
+done
+for f in brandbook/assets/specimens/*.svg; do
+  size=$(wc -c &lt; &quot;$f&quot; | tr -d &#x27; &#x27;)
+  [ &quot;$size&quot; -le 51200 ] || { echo &quot;specimen over budget: $f $size&quot;; exit 1; }
+done
+echo &quot;SVG SIZE BUDGET OK&quot;</code></pre>
+<p>If an asset exceeds budget, simplify the SVG, remove redundant metadata, split the specimen, or move generated exports out of the repository. Do not raise the budget for one-off exports.</p></article><article class="doc-excerpt"><h3>Brand Token Usage</h3>
+<p>This guide explains how the brand tokens stay synchronized with the shipped admin cascade. Run all commands from the repository root.</p>
+<h3>Current Guard State</h3>
+<p>Phase 98 re-skinned the admin CSS to the mineral palette. The token drift check is now green:</p>
+<pre><code class="language-bash">python3 scripts/check_brand_tokens.py</code></pre>
+<p>Expected output:</p>
+<pre><code class="language-text">BRAND TOKENS SYNCED (68 tokens)</code></pre>
+<p>The script reads <code>brandbook/tokens.json</code> (<code>admin_css_mapping.light</code> and <code>admin_css_mapping.dark</code>) and compares each mapped <code>--rs-*</code> value against <code>rulestead_admin/priv/static/css/rulestead_admin.css</code>. It uses the same comment-strip and brace-walk approach as <code>check_synced_pair.py</code>.</p>
+<h3>Synced-Pair Rule</h3>
+<p><code>rulestead_admin.css</code> has four cascade blocks:</p>
+<table><thead><tr><th>Block</th><th>Selector</th><th>Theme</th></tr></thead><tbody><tr><td>Block 1</td><td><code>.rs-shell, [data-rulestead]</code></td><td>Light explicit default</td></tr><tr><td>Block 2</td><td><code>@media (prefers-color-scheme: dark)</code></td><td>Dark system preference</td></tr><tr><td>Block 3</td><td><code>[data-theme=&quot;dark&quot;]</code></td><td>Dark explicit pin</td></tr><tr><td>Block 4</td><td><code>[data-theme=&quot;light&quot;]</code></td><td>Light explicit pin</td></tr></tbody></table>
+<p>Blocks 1 and 4 are the light synced pair. Blocks 2 and 3 are the dark synced pair.</p>
+<p>When you edit a token value in one block of a pair, update the partner block in the same change. Then run:</p>
+<pre><code class="language-bash">python3 scripts/check_synced_pair.py</code></pre>
+<p>Expected output:</p>
+<pre><code class="language-text">SYNCED PAIR IDENTICAL (56 tokens)
+SYNCED PAIR IDENTICAL (light: 57 tokens)</code></pre>
+<h3>New-Contributor Path</h3>
+<ol><li>Read <a href="../brand-book.md"><code>../brand-book.md</code></a> for brand intent and usage policy.</li><li>Read <a href="../tokens.json"><code>../tokens.json</code></a> for canonical token values.</li><li>If the change is theme-insensitive, edit the invariant <code>:root</code> token in the admin CSS,</li></ol>
+<p><code>tokens.css</code>, and <code>tokens.json</code>.</p>
+<ol><li>If the change is color/theme-sensitive, edit all four admin cascade blocks plus the</li></ol>
+<p>corresponding light/dark sections in <code>tokens.css</code> and <code>tokens.json</code>.</p>
+<ol><li>If the token is a hex-literal admin token, update <code>admin_css_mapping.light</code> and/or</li></ol>
+<p><code>admin_css_mapping.dark</code>.</p>
+<ol><li>Run the verification commands below before committing.</li></ol>
+<h3>Adding a New Token</h3>
+<p>Invariant tokens do not vary by theme: font families, spacing, radius, control heights, z-index, and motion durations. Add them to the admin CSS <code>:root</code> block, <code>tokens.css</code>, and the <code>invariant</code> group in <code>tokens.json</code>.</p>
+<p>Variant tokens differ by theme. Add them to all four admin cascade blocks, the light/dark sections in <code>tokens.css</code>, and the corresponding groups in <code>tokens.json</code>.</p>
+<p>Only add plain hex-literal values to <code>admin_css_mapping</code>. Do not add <code>var()</code>, <code>rgba()</code>, or computed values to the mapping because the drift check compares literal strings.</p>
+<h3>Verification</h3>
+<p>Run the narrow guards:</p>
+<pre><code class="language-bash">python3 scripts/check_synced_pair.py
+python3 scripts/check_brand_tokens.py
+python3 scripts/check_tokens_css.py</code></pre>
+<p>Run the full scripts-first lint gate:</p>
+<pre><code class="language-bash">bash scripts/ci/lint.sh</code></pre>
+<p>The full lint gate includes the synced-pair guard, brand-token drift check, tokens.css mirror check, and SVG size-budget loop.</p>
+<h3>Admin CSS Cross-Reference</h3>
+<p><a href="../../rulestead_admin/priv/static/css/rulestead_admin.css"><code>../../rulestead_admin/priv/static/css/rulestead_admin.css</code></a> contains the four cascade blocks plus the invariant <code>:root</code> block. Block 1 is the primary <code>check_brand_tokens.py</code> light comparison target; Block 3 is the dark comparison target.</p></article></div></div>
+</section>
+      </main>
+      <footer class="brand-footer">
+        Generated from canonical brandbook sources by <code>scripts/gen_brandbook_html.py</code>.
+      </footer>
+    </div>
+  </div>
+</body>
+</html>

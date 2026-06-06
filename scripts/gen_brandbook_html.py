@@ -218,10 +218,10 @@ def render_markdown(markdown: str) -> str:
             blocks.append(f"<pre><code{class_attr}>{html.escape(chr(10).join(code_lines))}</code></pre>")
             continue
 
-        heading = re.match(r"^(#{3,6})\s+(.+)$", stripped)
+        heading = re.match(r"^(#{1,6})\s+(.+)$", stripped)
         if heading:
             flush_paragraph()
-            level = min(len(heading.group(1)) + 1, 6)
+            level = min(max(len(heading.group(1)), 3), 6)
             blocks.append(f"<h{level}>{render_inline(heading.group(2))}</h{level}>")
             index += 1
             continue
@@ -461,6 +461,683 @@ def load_svg_assets(repo_root: Path, directory: str, filenames: list[str]) -> li
     return [load_svg_asset(repo_root, directory, filename) for filename in filenames]
 
 
+def page_href(repo_rel_path: str) -> str:
+    if repo_rel_path.startswith("brandbook/"):
+        return repo_rel_path.removeprefix("brandbook/")
+    return f"../{repo_rel_path}"
+
+
+def source_refs(paths: list[str]) -> str:
+    links = []
+    for path in paths:
+        href = page_href(path)
+        label = href
+        links.append(f'<a href="{html.escape(href, quote=True)}">{html.escape(label)}</a>')
+    return '<div class="source-refs"><span>Sources</span>' + "".join(links) + "</div>"
+
+
+def section_title(section_id: str) -> str:
+    titles = {
+        "overview": "Overview",
+        "voice-and-messaging": "Voice and messaging",
+        "color": "Color",
+        "typography": "Typography",
+        "logo": "Logo",
+        "layout-and-components": "Layout and components",
+        "iconography-and-imagery": "Iconography and imagery",
+        "motion": "Motion",
+        "assets-and-maintenance": "Assets and maintenance",
+    }
+    return titles[section_id]
+
+
+def brand_section_html(sources: dict[str, Any], numbers: list[str]) -> str:
+    return "\n".join(sources["brand_sections"][number]["html"] for number in numbers)
+
+
+def extract_tagline(sources: dict[str, Any]) -> str:
+    body = sources["brand_sections"]["8"]["body"]
+    match = re.search(r"### Recommended default tagline\s+\*\*(.+?)\*\*", body, flags=re.S)
+    if not match:
+        raise BrandbookError("ERROR: required default tagline not found in brand-book section 8")
+    return match.group(1).strip()
+
+
+def token_rows(tokens: list[dict[str, str]]) -> str:
+    rows = []
+    for token in tokens:
+        rows.append(
+            "<tr>"
+            f"<td><code>{html.escape(token['name'])}</code></td>"
+            f"<td><code>{html.escape(token['value'])}</code></td>"
+            f"<td>{render_inline(token['description'])}</td>"
+            "</tr>"
+        )
+    return "<table><thead><tr><th>Token</th><th>Value</th><th>Policy</th></tr></thead><tbody>" + "".join(rows) + "</tbody></table>"
+
+
+def render_color_swatches(tokens: list[dict[str, str]]) -> str:
+    swatches = []
+    for token in tokens:
+        value = token["value"]
+        if not value.startswith("#"):
+            continue
+        swatches.append(
+            '<article class="swatch" style="--swatch-color: '
+            f'{html.escape(value, quote=True)}">'
+            '<span class="swatch__chip" aria-hidden="true"></span>'
+            f'<strong>{html.escape(token["name"])}</strong>'
+            f'<code>{html.escape(value)}</code>'
+            "</article>"
+        )
+    return '<div class="swatch-grid">' + "".join(swatches) + "</div>"
+
+
+def render_invariant_rows(tokens: dict[str, Any], group: str) -> str:
+    group_data = tokens["raw"]["invariant"].get(group, {})
+    rows = []
+    for key in sorted(k for k in group_data if not k.startswith("$")):
+        value = group_data[key].get("$value") if isinstance(group_data.get(key), dict) else None
+        if isinstance(value, (str, int, float)):
+            rows.append({"name": f"invariant.{group}.{key}", "value": str(value), "description": group_data[key].get("$description", "")})
+    return token_rows(rows)
+
+
+def render_css_var_table(values: dict[str, str], names: list[str]) -> str:
+    rows = [
+        {
+            "name": name,
+            "value": values[name],
+            "description": "",
+        }
+        for name in names
+        if name in values
+    ]
+    return token_rows(rows)
+
+
+def render_asset_grid(assets: list[dict[str, Any]]) -> str:
+    cards = []
+    for asset in assets:
+        href = page_href(asset["source_path"])
+        cards.append(
+            '<figure class="asset-card">'
+            f'<div class="asset-preview">{asset["svg"]}</div>'
+            f'<figcaption><strong>{html.escape(asset["label"])}</strong>'
+            f'<span>{asset["bytes"]} bytes</span>'
+            f'<a href="{html.escape(href, quote=True)}">{html.escape(href)}</a>'
+            "</figcaption>"
+            "</figure>"
+        )
+    return '<div class="asset-grid">' + "".join(cards) + "</div>"
+
+
+def css_declarations(mapping: dict[str, Any]) -> str:
+    lines = []
+    for name, value in sorted(mapping.items()):
+        if name.startswith("--rs-"):
+            lines.append(f"  {name}: {value};")
+    return "\n".join(lines)
+
+
+def root_css_declarations(css_text: str) -> str:
+    declarations = extract_css_declarations(strip_css_comments(css_text), ":root")
+    return "\n".join(f"  {name}: {value};" for name, value in sorted(declarations.items()))
+
+
+def render_styles(sources: dict[str, Any]) -> str:
+    mappings = sources["tokens"]["admin_css_mapping"]
+    css_root = root_css_declarations(sources["brandbook/tokens.css"])
+    light = css_declarations(mappings["light"])
+    dark = css_declarations(mappings["dark"])
+    return f"""
+body {{
+  margin: 0;
+}}
+
+[data-rulestead-brandbook] {{
+{css_root}
+{light}
+  --rs-bg: var(--rs-neutral-50);
+  --rs-surface: var(--rs-neutral-0);
+  --rs-surface-muted: var(--rs-neutral-100);
+  --rs-text: var(--rs-neutral-900);
+  --rs-text-muted: var(--rs-neutral-600);
+  --rs-border: var(--rs-neutral-300);
+  --rs-border-subtle: var(--rs-neutral-200);
+  --rs-focus-ring: 0 0 0 2px var(--rs-neutral-0), 0 0 0 4px var(--rs-primary);
+  min-height: 100vh;
+  background: var(--rs-bg);
+  color: var(--rs-text);
+  font-family: var(--rs-font-sans);
+  font-size: var(--rs-text-base);
+  line-height: var(--rs-leading-normal);
+  letter-spacing: 0;
+}}
+
+@media (prefers-color-scheme: dark) {{
+  [data-rulestead-brandbook]:not([data-theme]) {{
+{dark}
+    --rs-bg: var(--rs-neutral-50);
+    --rs-surface: var(--rs-neutral-25);
+    --rs-surface-muted: var(--rs-neutral-100);
+    --rs-text: var(--rs-neutral-900);
+    --rs-text-muted: var(--rs-neutral-600);
+    --rs-border: var(--rs-neutral-300);
+    --rs-border-subtle: var(--rs-neutral-200);
+    --rs-focus-ring: 0 0 0 2px var(--rs-neutral-0), 0 0 0 4px var(--rs-primary);
+  }}
+}}
+
+[data-rulestead-brandbook][data-theme="light"] {{
+{light}
+}}
+
+[data-rulestead-brandbook][data-theme="dark"] {{
+{dark}
+  --rs-bg: var(--rs-neutral-50);
+  --rs-surface: var(--rs-neutral-25);
+  --rs-surface-muted: var(--rs-neutral-100);
+  --rs-text: var(--rs-neutral-900);
+  --rs-text-muted: var(--rs-neutral-600);
+  --rs-border: var(--rs-neutral-300);
+  --rs-border-subtle: var(--rs-neutral-200);
+  --rs-focus-ring: 0 0 0 2px var(--rs-neutral-0), 0 0 0 4px var(--rs-primary);
+}}
+
+[data-rulestead-brandbook] *,
+[data-rulestead-brandbook] *::before,
+[data-rulestead-brandbook] *::after {{
+  box-sizing: border-box;
+}}
+
+[data-rulestead-brandbook] a {{
+  color: var(--rs-primary);
+  font-weight: 600;
+}}
+
+[data-rulestead-brandbook] a:focus-visible,
+[data-rulestead-brandbook] button:focus-visible {{
+  outline: none;
+  box-shadow: var(--rs-focus-ring);
+}}
+
+.brand-shell {{
+  max-width: var(--rs-shell-max);
+  margin: 0 auto;
+  padding: 24px;
+}}
+
+.brand-header {{
+  display: grid;
+  gap: 24px;
+  padding: 24px 0 32px;
+  border-bottom: 1px solid var(--rs-border-subtle);
+}}
+
+.brand-identity {{
+  display: grid;
+  gap: 16px;
+}}
+
+.brand-identity svg {{
+  width: min(360px, 100%);
+  height: auto;
+}}
+
+.brand-title {{
+  max-width: 760px;
+}}
+
+.brand-title h1 {{
+  margin: 0 0 8px;
+  font-family: var(--rs-font-display);
+  font-size: 2rem;
+  line-height: var(--rs-leading-tight);
+  font-weight: 600;
+  letter-spacing: 0;
+}}
+
+.brand-title p {{
+  margin: 0;
+  max-width: 66ch;
+  color: var(--rs-text-muted);
+}}
+
+.theme-control {{
+  display: inline-flex;
+  width: fit-content;
+  min-height: 44px;
+  padding: 4px;
+  gap: 4px;
+  border: 1px solid var(--rs-border);
+  border-radius: var(--rs-radius-full);
+  background: var(--rs-surface);
+}}
+
+.theme-control button {{
+  min-height: 36px;
+  border: 1px solid transparent;
+  border-radius: var(--rs-radius-full);
+  padding: 0 14px;
+  background: transparent;
+  color: var(--rs-text-muted);
+  font: inherit;
+  font-weight: 600;
+}}
+
+.theme-control [aria-checked="true"] {{
+  border-color: var(--rs-primary);
+  background: var(--rs-primary-soft, var(--rs-surface-muted));
+  color: var(--rs-primary-hover, var(--rs-primary));
+}}
+
+.brand-nav {{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}}
+
+.brand-nav a,
+.source-refs a {{
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  border: 1px solid var(--rs-border-subtle);
+  border-radius: var(--rs-radius-sm);
+  padding: 4px 8px;
+  background: var(--rs-surface);
+  color: var(--rs-text);
+  font-size: var(--rs-text-sm);
+  text-decoration: none;
+}}
+
+.brand-main {{
+  display: grid;
+  gap: 32px;
+  padding: 32px 0;
+}}
+
+.brand-section {{
+  display: grid;
+  gap: 16px;
+  padding: 32px 0;
+  border-bottom: 1px solid var(--rs-border-subtle);
+}}
+
+.brand-section h2 {{
+  margin: 0;
+  font-family: var(--rs-font-display);
+  font-size: 1.4rem;
+  line-height: var(--rs-leading-tight);
+  font-weight: 600;
+  letter-spacing: 0;
+}}
+
+.section-copy {{
+  max-width: 78ch;
+}}
+
+.section-copy h3,
+.section-copy h4,
+.doc-excerpt h3 {{
+  margin: 24px 0 8px;
+  font-family: var(--rs-font-display);
+  font-size: 1.05rem;
+  line-height: var(--rs-leading-snug);
+  font-weight: 600;
+  letter-spacing: 0;
+}}
+
+.section-copy p,
+.section-copy li {{
+  color: var(--rs-text);
+}}
+
+.section-copy blockquote {{
+  margin: 16px 0;
+  border-left: 3px solid var(--rs-accent);
+  padding-left: 16px;
+  color: var(--rs-text-muted);
+}}
+
+.source-refs {{
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}}
+
+.source-refs span {{
+  color: var(--rs-text-muted);
+  font-family: var(--rs-font-mono);
+  font-size: var(--rs-text-xs);
+}}
+
+.swatch-grid,
+.asset-grid,
+.doc-grid {{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}}
+
+.swatch,
+.asset-card,
+.doc-excerpt {{
+  border: 1px solid var(--rs-border-subtle);
+  border-radius: 8px;
+  background: var(--rs-surface);
+}}
+
+.swatch {{
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+}}
+
+.swatch__chip {{
+  display: block;
+  aspect-ratio: 4 / 1;
+  border: 1px solid var(--rs-border-subtle);
+  border-radius: 6px;
+  background: var(--swatch-color);
+}}
+
+code,
+pre {{
+  font-family: var(--rs-font-mono);
+}}
+
+.section-copy code,
+.swatch code,
+table code {{
+  font-size: var(--rs-text-xs);
+}}
+
+pre {{
+  overflow: auto;
+  border-radius: 8px;
+  padding: 16px;
+  background: var(--rs-neutral-0);
+  color: var(--rs-text);
+}}
+
+table {{
+  width: 100%;
+  border-collapse: collapse;
+  overflow-wrap: anywhere;
+}}
+
+th,
+td {{
+  border-bottom: 1px solid var(--rs-border-subtle);
+  padding: 10px 8px;
+  text-align: left;
+  vertical-align: top;
+}}
+
+th {{
+  color: var(--rs-text-muted);
+  font-size: var(--rs-text-sm);
+  font-weight: 600;
+}}
+
+.asset-card {{
+  margin: 0;
+  overflow: hidden;
+}}
+
+.asset-preview {{
+  display: grid;
+  min-height: 180px;
+  aspect-ratio: 16 / 9;
+  place-items: center;
+  overflow: hidden;
+  padding: 16px;
+  background: var(--rs-surface-muted);
+}}
+
+.asset-preview svg {{
+  max-width: min(100%, 720px);
+  max-height: 100%;
+  height: auto;
+}}
+
+.asset-card figcaption {{
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+}}
+
+.asset-card figcaption span,
+.asset-card figcaption a {{
+  color: var(--rs-text-muted);
+  font-family: var(--rs-font-mono);
+  font-size: var(--rs-text-xs);
+}}
+
+.doc-excerpt {{
+  padding: 16px;
+}}
+
+.brand-footer {{
+  padding: 24px 0;
+  color: var(--rs-text-muted);
+  font-size: var(--rs-text-sm);
+}}
+
+@media (max-width: 720px) {{
+  .brand-shell {{
+    padding: 16px;
+  }}
+
+  .brand-header {{
+    padding-top: 16px;
+  }}
+}}
+"""
+
+
+def render_section(section_id: str, refs: list[str], body: str) -> str:
+    title = section_title(section_id)
+    return (
+        f'<section id="{section_id}" class="brand-section">\n'
+        f"<h2>{html.escape(title)}</h2>\n"
+        f"{source_refs(refs)}\n"
+        f'<div class="section-copy">{body}</div>\n'
+        "</section>"
+    )
+
+
+def render_overview(sources: dict[str, Any]) -> str:
+    return brand_section_html(sources, ["3", "4", "5", "26", "27"])
+
+
+def render_voice(sources: dict[str, Any]) -> str:
+    return (
+        brand_section_html(sources, ["7", "8", "9", "19"])
+        + '<div class="doc-grid">'
+        + f'<article class="doc-excerpt">{render_markdown(sources["brandbook/VOICE.md"])}</article>'
+        + f'<article class="doc-excerpt">{render_markdown(sources["brandbook/COPY.md"])}</article>'
+        + "</div>"
+    )
+
+
+def render_color(sources: dict[str, Any]) -> str:
+    tokens = sources["tokens"]
+    return (
+        brand_section_html(sources, ["12"])
+        + "<h3>Primitive palette</h3>"
+        + render_color_swatches(tokens["primitive"])
+        + "<h3>Light semantic tokens</h3>"
+        + token_rows(tokens["light"])
+        + "<h3>Dark semantic tokens</h3>"
+        + token_rows(tokens["dark"])
+        + render_asset_grid([asset for asset in sources["specimens"] if asset["source_path"].endswith("/palette.svg")])
+    )
+
+
+def render_typography(sources: dict[str, Any]) -> str:
+    invariants = sources["tokens_css_invariants"]
+    font_names = ["--rs-font-display", "--rs-font-sans", "--rs-font-mono"]
+    type_names = ["--rs-text-base", "--rs-text-xl", "--rs-text-2xl"]
+    return (
+        brand_section_html(sources, ["13"])
+        + "<h3>Font invariants</h3>"
+        + render_css_var_table(invariants, font_names)
+        + "<h3>Type-scale invariants</h3>"
+        + render_css_var_table(invariants, type_names)
+        + render_asset_grid([asset for asset in sources["specimens"] if asset["source_path"].endswith("/typography.svg")])
+    )
+
+
+def render_logo(sources: dict[str, Any]) -> str:
+    return brand_section_html(sources, ["14"]) + render_asset_grid(sources["logos"])
+
+
+def render_layout_components(sources: dict[str, Any]) -> str:
+    specimen_names = {"/components.svg", "/code-block.svg"}
+    specimens = [asset for asset in sources["specimens"] if any(asset["source_path"].endswith(name) for name in specimen_names)]
+    return (
+        brand_section_html(sources, ["15"])
+        + "<h3>Spacing tokens</h3>"
+        + render_invariant_rows(sources["tokens"], "spacing")
+        + "<h3>Radius tokens</h3>"
+        + render_invariant_rows(sources["tokens"], "radius")
+        + render_asset_grid(specimens)
+    )
+
+
+def render_iconography_imagery(sources: dict[str, Any]) -> str:
+    specimen_names = {"/readme-header.svg", "/social-card.svg"}
+    specimens = [asset for asset in sources["specimens"] if any(asset["source_path"].endswith(name) for name in specimen_names)]
+    return brand_section_html(sources, ["16", "17"]) + render_asset_grid(specimens)
+
+
+def render_motion(sources: dict[str, Any]) -> str:
+    invariants = sources["tokens_css_invariants"]
+    motion_names = [
+        "--rs-motion-fast",
+        "--rs-motion-base",
+        "--rs-motion-slow",
+        "--rs-motion-slower",
+        "--rs-ease-standard",
+        "--rs-ease-out",
+        "--rs-ease-in",
+        "--rs-ease-in-out",
+    ]
+    return brand_section_html(sources, ["18"]) + render_css_var_table(invariants, motion_names)
+
+
+def render_assets_maintenance(sources: dict[str, Any]) -> str:
+    return (
+        brand_section_html(sources, ["25"])
+        + '<div class="doc-grid">'
+        + f'<article class="doc-excerpt">{render_markdown(sources["brandbook/README.md"])}</article>'
+        + f'<article class="doc-excerpt">{render_markdown(sources["brandbook/BUDGET.md"])}</article>'
+        + f'<article class="doc-excerpt">{render_markdown(sources["brandbook/docs/brand-usage.md"])}</article>'
+        + "</div>"
+    )
+
+
+def render_page(sources: dict[str, Any]) -> str:
+    tagline = extract_tagline(sources)
+    hero_logo = prefix_svg_ids(sources["logos"][0]["source_path"], sources["logos"][0]["svg"], "hero-")
+    nav = "".join(
+        f'<a href="#{section_id}">{html.escape(section_title(section_id))}</a>' for section_id in SECTION_ORDER
+    )
+
+    section_bodies = {
+        "overview": (
+            ["brandbook/brand-book.md", "brandbook/assets/logo/rs-wordmark.svg"],
+            render_overview(sources),
+        ),
+        "voice-and-messaging": (
+            ["brandbook/brand-book.md", "brandbook/VOICE.md", "brandbook/COPY.md"],
+            render_voice(sources),
+        ),
+        "color": (
+            ["brandbook/brand-book.md", "brandbook/tokens.json", "brandbook/assets/specimens/palette.svg"],
+            render_color(sources),
+        ),
+        "typography": (
+            ["brandbook/brand-book.md", "brandbook/tokens.css", "brandbook/assets/specimens/typography.svg"],
+            render_typography(sources),
+        ),
+        "logo": (
+            ["brandbook/brand-book.md", *[asset["source_path"] for asset in sources["logos"]]],
+            render_logo(sources),
+        ),
+        "layout-and-components": (
+            ["brandbook/brand-book.md", "brandbook/tokens.json", "brandbook/assets/specimens/components.svg", "brandbook/assets/specimens/code-block.svg"],
+            render_layout_components(sources),
+        ),
+        "iconography-and-imagery": (
+            ["brandbook/brand-book.md", "brandbook/assets/specimens/readme-header.svg", "brandbook/assets/specimens/social-card.svg"],
+            render_iconography_imagery(sources),
+        ),
+        "motion": (
+            ["brandbook/brand-book.md", "brandbook/tokens.css"],
+            render_motion(sources),
+        ),
+        "assets-and-maintenance": (
+            ["brandbook/brand-book.md", "brandbook/README.md", "brandbook/BUDGET.md", "brandbook/docs/brand-usage.md", "scripts/gen_brandbook_html.py"],
+            render_assets_maintenance(sources),
+        ),
+    }
+
+    sections = "\n".join(
+        render_section(section_id, section_bodies[section_id][0], section_bodies[section_id][1])
+        for section_id in SECTION_ORDER
+    )
+
+    return f"""<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rulestead Brand Book</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Inter:wght@400;600&family=Sora:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+{render_styles(sources)}
+  </style>
+</head>
+<body>
+  <div data-rulestead-brandbook>
+    <div class="brand-shell">
+      <header class="brand-header">
+        <div class="brand-identity">
+          {hero_logo}
+          <div class="brand-title">
+            <h1>Rulestead Brand Book</h1>
+            <p>{html.escape(tagline)}</p>
+          </div>
+        </div>
+        <div class="theme-control" role="radiogroup" aria-label="Theme">
+          <button type="button" role="radio" aria-checked="true">System</button>
+          <button type="button" role="radio" aria-checked="false">Light</button>
+          <button type="button" role="radio" aria-checked="false">Dark</button>
+        </div>
+        <nav class="brand-nav" aria-label="Brand book sections">
+          {nav}
+        </nav>
+      </header>
+      <main class="brand-main">
+        {sections}
+      </main>
+      <footer class="brand-footer">
+        Generated from canonical brandbook sources by <code>scripts/gen_brandbook_html.py</code>.
+      </footer>
+    </div>
+  </div>
+</body>
+</html>
+"""
+
+
 def load_sources(repo_root: Path) -> dict[str, Any]:
     sources: dict[str, Any] = {}
     for rel_path in REQUIRED_FILES:
@@ -477,8 +1154,7 @@ def load_sources(repo_root: Path) -> dict[str, Any]:
 
 
 def render_brandbook(repo_root: Path) -> str:
-    load_sources(repo_root)
-    return "<!doctype html>\n"
+    return render_page(load_sources(repo_root)).rstrip() + "\n"
 
 
 def main() -> int:
