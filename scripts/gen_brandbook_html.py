@@ -1223,7 +1223,12 @@ def render_page(sources: dict[str, Any]) -> str:
 
     section_bodies = {
         "overview": (
-            ["brandbook/brand-book.md", "brandbook/assets/logo/rs-wordmark.svg"],
+            [
+                "brandbook/brand-book.md",
+                ".planning/phases/101-html-brand-book/101-UI-SPEC.md",
+                "rulestead_admin/lib/rulestead_admin/components/shell.ex",
+                "brandbook/assets/logo/rs-wordmark.svg",
+            ],
             render_overview_section(sources),
         ),
         "voice-and-messaging": (
