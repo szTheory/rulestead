@@ -593,6 +593,34 @@ def css_declarations(mapping: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+def theme_alias_declarations(theme: str) -> str:
+    aliases = {
+        "light": {
+            "--rs-bg": "#f4f6f8",
+            "--rs-surface": "#ffffff",
+            "--rs-surface-muted": "#eef1f5",
+            "--rs-text": "#1a2332",
+            "--rs-text-muted": "#5c6b7a",
+            "--rs-border": "#d8dee6",
+            "--rs-border-subtle": "#e7ebf0",
+            "--rs-focus-ring-color": "rgba(37, 99, 235, 0.55)",
+            "--rs-focus-ring": "0 0 0 var(--rs-focus-ring-offset) #ffffff, 0 0 0 calc(var(--rs-focus-ring-offset) + 3px) var(--rs-focus-ring-color)",
+        },
+        "dark": {
+            "--rs-bg": "#19222e",
+            "--rs-surface": "#141c27",
+            "--rs-surface-muted": "#1f2a38",
+            "--rs-text": "#e8edf3",
+            "--rs-text-muted": "#a8b9ca",
+            "--rs-border": "#2e3d52",
+            "--rs-border-subtle": "#253243",
+            "--rs-focus-ring-color": "rgba(96, 165, 250, 0.75)",
+            "--rs-focus-ring": "0 0 0 var(--rs-focus-ring-offset) #141c27, 0 0 0 calc(var(--rs-focus-ring-offset) + 3px) var(--rs-focus-ring-color)",
+        },
+    }
+    return "\n".join(f"  {name}: {value};" for name, value in aliases[theme].items())
+
+
 def root_css_declarations(css_text: str) -> str:
     declarations = extract_css_declarations(strip_css_comments(css_text), ":root")
     return "\n".join(f"  {name}: {value};" for name, value in sorted(declarations.items()))
@@ -603,6 +631,8 @@ def render_styles(sources: dict[str, Any]) -> str:
     css_root = root_css_declarations(sources["brandbook/tokens.css"])
     light = css_declarations(mappings["light"])
     dark = css_declarations(mappings["dark"])
+    light_aliases = theme_alias_declarations("light")
+    dark_aliases = theme_alias_declarations("dark")
     return f"""
 body {{
   margin: 0;
@@ -611,14 +641,7 @@ body {{
 [data-rulestead-brandbook] {{
 {css_root}
 {light}
-  --rs-bg: var(--rs-neutral-50);
-  --rs-surface: var(--rs-neutral-0);
-  --rs-surface-muted: var(--rs-neutral-100);
-  --rs-text: var(--rs-neutral-900);
-  --rs-text-muted: var(--rs-neutral-600);
-  --rs-border: var(--rs-neutral-300);
-  --rs-border-subtle: var(--rs-neutral-200);
-  --rs-focus-ring: 0 0 0 2px var(--rs-neutral-0), 0 0 0 4px var(--rs-primary);
+{light_aliases}
   min-height: 100vh;
   background: var(--rs-bg);
   color: var(--rs-text);
@@ -631,31 +654,18 @@ body {{
 @media (prefers-color-scheme: dark) {{
   [data-rulestead-brandbook]:not([data-theme]) {{
 {dark}
-    --rs-bg: var(--rs-neutral-50);
-    --rs-surface: var(--rs-neutral-25);
-    --rs-surface-muted: var(--rs-neutral-100);
-    --rs-text: var(--rs-neutral-900);
-    --rs-text-muted: var(--rs-neutral-600);
-    --rs-border: var(--rs-neutral-300);
-    --rs-border-subtle: var(--rs-neutral-200);
-    --rs-focus-ring: 0 0 0 2px var(--rs-neutral-0), 0 0 0 4px var(--rs-primary);
+{dark_aliases}
   }}
 }}
 
 [data-rulestead-brandbook][data-theme="light"] {{
 {light}
+{light_aliases}
 }}
 
 [data-rulestead-brandbook][data-theme="dark"] {{
 {dark}
-  --rs-bg: var(--rs-neutral-50);
-  --rs-surface: var(--rs-neutral-25);
-  --rs-surface-muted: var(--rs-neutral-100);
-  --rs-text: var(--rs-neutral-900);
-  --rs-text-muted: var(--rs-neutral-600);
-  --rs-border: var(--rs-neutral-300);
-  --rs-border-subtle: var(--rs-neutral-200);
-  --rs-focus-ring: 0 0 0 2px var(--rs-neutral-0), 0 0 0 4px var(--rs-primary);
+{dark_aliases}
 }}
 
 [data-rulestead-brandbook] *,
@@ -743,6 +753,19 @@ body {{
   border-color: var(--rs-primary);
   background: var(--rs-primary-soft, var(--rs-surface-muted));
   color: var(--rs-primary-hover, var(--rs-primary));
+}}
+
+.theme-cluster {{
+  display: grid;
+  gap: 8px;
+}}
+
+.theme-label {{
+  margin: 0;
+  color: var(--rs-text-muted);
+  font-family: var(--rs-font-mono);
+  font-size: var(--rs-text-xs);
+  font-weight: 600;
 }}
 
 .brand-nav {{
@@ -940,6 +963,24 @@ th {{
   font-size: var(--rs-text-sm);
 }}
 
+@media (prefers-reduced-motion: no-preference) {{
+  [data-rulestead-brandbook] a,
+  [data-rulestead-brandbook] button,
+  [data-rulestead-brandbook] .asset-card {{
+    transition: color var(--rs-motion-fast) var(--rs-ease-standard), background-color var(--rs-motion-fast) var(--rs-ease-standard), border-color var(--rs-motion-fast) var(--rs-ease-standard), box-shadow var(--rs-motion-base) var(--rs-ease-standard);
+  }}
+}}
+
+@media (prefers-reduced-motion: reduce) {{
+  [data-rulestead-brandbook],
+  [data-rulestead-brandbook] * {{
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }}
+}}
+
 @media (max-width: 720px) {{
   .brand-shell {{
     padding: 16px;
@@ -949,6 +990,90 @@ th {{
     padding-top: 16px;
   }}
 }}
+"""
+
+
+def render_theme_script() -> str:
+    return """
+  <script>
+    (() => {
+      const wrapper = document.querySelector("[data-rulestead-brandbook]");
+      const control = document.querySelector("[data-brandbook-theme-control]");
+      if (!wrapper || !control) return;
+
+      const valid = ["system", "light", "dark"];
+      const storageKey = "rulestead.brandbook.theme";
+      const options = Array.from(control.querySelectorAll("[role='radio'][data-value]"));
+
+      const readTheme = () => {
+        try {
+          const value = window.localStorage.getItem(storageKey);
+          return valid.includes(value) ? value : "system";
+        } catch (_error) {
+          return "system";
+        }
+      };
+
+      const writeTheme = (value) => {
+        try {
+          window.localStorage.setItem(storageKey, value);
+        } catch (_error) {}
+      };
+
+      const syncOptions = (value) => {
+        options.forEach((option) => {
+          const active = option.dataset.value === value;
+          option.setAttribute("aria-checked", String(active));
+          option.tabIndex = active ? 0 : -1;
+        });
+      };
+
+      const applyTheme = (value) => {
+        const next = valid.includes(value) ? value : "system";
+        if (next === "light" || next === "dark") {
+          wrapper.setAttribute("data-theme", next);
+        } else {
+          wrapper.removeAttribute("data-theme");
+        }
+        syncOptions(next);
+      };
+
+      let current = readTheme();
+      applyTheme(current);
+
+      control.addEventListener("click", (event) => {
+        const option = event.target.closest("[role='radio'][data-value]");
+        if (!option) return;
+        current = valid.includes(option.dataset.value) ? option.dataset.value : "system";
+        writeTheme(current);
+        applyTheme(current);
+        option.focus();
+      });
+
+      control.addEventListener("keydown", (event) => {
+        const index = options.findIndex((option) => option.tabIndex === 0);
+        let nextIndex = -1;
+        if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+          event.preventDefault();
+          nextIndex = (index + 1) % options.length;
+        } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+          event.preventDefault();
+          nextIndex = (index - 1 + options.length) % options.length;
+        } else if (event.key === "Home") {
+          event.preventDefault();
+          nextIndex = 0;
+        } else if (event.key === "End") {
+          event.preventDefault();
+          nextIndex = options.length - 1;
+        }
+        if (nextIndex < 0) return;
+        current = options[nextIndex].dataset.value;
+        writeTheme(current);
+        applyTheme(current);
+        options[nextIndex].focus();
+      });
+    })();
+  </script>
 """
 
 
@@ -1145,10 +1270,13 @@ def render_page(sources: dict[str, Any]) -> str:
             <p>{html.escape(tagline)}</p>
           </div>
         </div>
-        <div class="theme-control" role="radiogroup" aria-label="Theme">
-          <button type="button" role="radio" aria-checked="true">System</button>
-          <button type="button" role="radio" aria-checked="false">Light</button>
-          <button type="button" role="radio" aria-checked="false">Dark</button>
+        <div class="theme-cluster">
+          <p class="theme-label" id="brandbook-theme-label">Theme</p>
+          <div class="theme-control" role="radiogroup" aria-labelledby="brandbook-theme-label" data-brandbook-theme-control>
+            <button type="button" role="radio" aria-checked="true" tabindex="0" data-value="system">System</button>
+            <button type="button" role="radio" aria-checked="false" tabindex="-1" data-value="light">Light</button>
+            <button type="button" role="radio" aria-checked="false" tabindex="-1" data-value="dark">Dark</button>
+          </div>
         </div>
         <nav class="brand-nav" aria-label="Brand book sections">
           {nav}
@@ -1162,6 +1290,7 @@ def render_page(sources: dict[str, Any]) -> str:
       </footer>
     </div>
   </div>
+{render_theme_script()}
 </body>
 </html>
 """
