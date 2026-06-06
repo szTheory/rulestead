@@ -72,6 +72,7 @@ Each task was committed atomically:
 2. **Task 2: Add scoped theme control** - `6fff242` / `6fff2429bd510b8a44ebb2988a54fc9c01d3179d`
 3. **Task 3: Stabilize inline asset previews** - `a629482` / `a629482332deea66e5255a24fdb5520af57f7a2d`
 4. **Task 4: Polish accessibility and spacing** - `1e012ac` / `1e012ace60384318d418768f4dac2b732af865bd`
+5. **Post-wave key-link closure** - `bccdf98` / `bccdf98f77cf137fa7f280ae568bd52295fcb197`
 
 ## Files Created/Modified
 
@@ -85,6 +86,7 @@ Each task was committed atomically:
 - Kept generated theme variables under `[data-rulestead-brandbook]` instead of `:root`, `html`, or `body`.
 - Used inline SVG previews for committed final assets and kept concept logo paths out of primary output.
 - Kept Signal Gold visible as a swatch and policy value while avoiding generated text color CSS that uses `#D2A94E`.
+- Added visible overview source references to the Phase 101 UI spec and admin shell theme-control precedent so the generated page carries its implementation contract links.
 
 ## Deviations from Plan
 
@@ -107,10 +109,13 @@ Each task was committed atomically:
 
 The final broad acceptance sweep initially had two check-pattern mistakes: one expected non-existent asset filenames, and one treated the swatch custom property `--swatch-color: #D2A94E` as text color. The corrected sweep uses the actual final asset set and checks only actual `color: #D2A94E` declarations.
 
+The orchestrator spot-check found missing visible references from `brandbook/index.html` to `.planning/phases/101-html-brand-book/101-UI-SPEC.md` and `rulestead_admin/lib/rulestead_admin/components/shell.ex`. Commit `bccdf98` added those source refs and regenerated the page.
+
 ## Verification
 
-- `python3 scripts/gen_brandbook_html.py` - passed, wrote `brandbook/index.html` at 132349 bytes.
+- `python3 scripts/gen_brandbook_html.py` - passed, wrote `brandbook/index.html` at 132603 bytes.
 - `python3 -m py_compile scripts/gen_brandbook_html.py` - passed.
+- `gsd-sdk query verify.key-links .planning/phases/101-html-brand-book/101-02-PLAN.md` - passed, 3/3 links verified.
 - Section/landmark assertion - passed: all nine section IDs appear exactly once and in order; `header`, `nav`, `main`, and `footer` are present.
 - Theme/source-safety assertion - passed: `rulestead.brandbook.theme`, `prefers-color-scheme: dark`, and `prefers-reduced-motion` are present; `<script src=`, `<img `, `base64`, `<image`, and `<foreignObject>` are absent.
 - Comprehensive acceptance sweep - passed: explicit render functions, Signal Gold policy, source refs, scoped theme markers, compact preview classes, focus markers, asset refs, and forbidden markers all match the plan contract.
