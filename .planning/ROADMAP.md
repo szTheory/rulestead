@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- 🚧 **v1.14 - Brand System Realization** — Phases 95–101 (in progress) — current milestone
+- ✅ **v1.14 - Brand System Realization** — Phases 95–101 (shipped 2026-06-06)
 - ✅ **v1.13 - Admin UI: First-Class Dark Mode + Design-System Polish** — Phases 87-94 (shipped 2026-06-04) — [.planning/milestones/v1.13-MILESTONE-AUDIT.md](milestones/v1.13-MILESTONE-AUDIT.md)
 - ✅ **v1.12 - Adoption Evidence Depth** — Phases 82-86 (shipped 2026-05-29) — [.planning/milestones/v1.12-MILESTONE-AUDIT.md](milestones/v1.12-MILESTONE-AUDIT.md)
 - ✅ **v1.11.1 - Gap Closure** — Phases 79-81 (shipped 2026-05-29) — [.planning/milestones/v1.11.1-gap-closure-ROADMAP.md](milestones/v1.11.1-gap-closure-ROADMAP.md) · [audit](milestones/v1.11.1-MILESTONE-AUDIT.md)
@@ -14,13 +14,13 @@
 
 ## Current focus
 
-**v1.14 — Brand System Realization** (Phases 95–101). Turn the recovered brand book into a buildable, WCAG-AA-verified, source-controlled brand system in `brandbook/`, re-skin the shipped admin UI to the canonical mineral palette, and publish a generated HTML brand book — without repo bloat or widening the sibling-package product shape.
+No active milestone. **v1.14 — Brand System Realization** shipped on 2026-06-06 across Phases 95–101 with the generated HTML brand book capstone complete and no runtime API or publishing-posture changes.
 
 ## Phase numbering
 
-v1.13 completed at Phase 94. This milestone (v1.14) runs **Phases 95–101**. Next milestone starts at **102**.
+v1.14 completed at Phase 101. Next milestone starts at **102**.
 
-(Phase 101 — HTML Brand Book — was appended 2026-06-05 by scope amendment; it is the milestone capstone, queued to build after Phases 98–100.)
+(Phase 101 — HTML Brand Book — was appended 2026-06-05 by scope amendment and completed 2026-06-06 as the milestone capstone.)
 
 ## Phases
 
@@ -30,7 +30,7 @@ v1.13 completed at Phase 94. This milestone (v1.14) runs **Phases 95–101**. Ne
 - [x] **Phase 98: Admin Re-skin (CSS Cascade)** — Colors-only edit to all four `rulestead_admin.css` cascade blocks, aligned to the locked mineral palette from Phase 96. Gates: `check_synced_pair.py` green, `check_brand_tokens.py` green, `design-system.html` swatches updated, WCAG-AA both themes passing. (completed 2026-06-05)
 - [x] **Phase 99: Specimens** — Author reproducible SVG specimens: palette, typography, UI components, code-block, README header, social card. All committed to `brandbook/assets/specimens/`. CI size-budget lint passing for all specimen SVGs. (completed 2026-06-05)
 - [x] **Phase 100: Marketing Copy + Repo Artifact Plan** — Ready-to-paste copy blocks, voice/microcopy reference, szTheory brand-architecture note, `brandbook/README.md` with directory index and GitHub description/topics, size budget, accessibility note, pointer from `prompts/`, full CI end-to-end confirmation. (completed 2026-06-06)
-- [ ] **Phase 101: HTML Brand Book** — A generated, source-controlled `brandbook/index.html` renders the full brand system (essence, voice, messaging, color, type, logo lockups, layout, iconography, motion, UI-writing) in light + dark, emitted by a committed generator from `brand-book.md` + `tokens.*` + logo SVGs and kept honest by a drift-check. Milestone capstone; queued after 98–100.
+- [x] **Phase 101: HTML Brand Book** — A generated, source-controlled `brandbook/index.html` renders the full brand system (essence, voice, messaging, color, type, logo lockups, layout, iconography, motion, UI-writing) in light + dark, emitted by a committed generator from `brand-book.md` + `tokens.*` + logo SVGs and kept honest by a drift-check. Milestone capstone; completed 2026-06-06.
 
 ## Phase Details
 
@@ -238,7 +238,9 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3)*
 
-- [ ] 101-04-PLAN.md — Wave 4: file:// browser evidence, `brandbook/README.md`, and v1.14 milestone closeout after verification passes
+**Completed 2026-06-06.** Final gate passed: `python3 scripts/check_brandbook_html.py` printed `BRANDBOOK HTML SYNCED (133765 bytes)`, `bash scripts/ci/lint.sh` exited 0 with `SVG SIZE BUDGET OK`, and `npm run test:e2e -- brandbook.spec.ts` passed 6/6 browser checks against `file://` `brandbook/index.html`.
+
+- [x] 101-04-PLAN.md — Wave 4: file:// browser evidence, `brandbook/README.md`, and v1.14 milestone closeout after verification passes
 
 ## Progress Table
 
@@ -250,4 +252,4 @@ Plans:
 | 98. Admin Re-skin (CSS Cascade) | 4/4 | Complete    | 2026-06-05 |
 | 99. Specimens | 4/4 | Complete    | 2026-06-05 |
 | 100. Marketing Copy + Repo Artifact Plan | 4/4 | Complete | 2026-06-06 |
-| 101. HTML Brand Book (capstone) | 3/4 | In Progress|  |
+| 101. HTML Brand Book (capstone) | 4/4 | Complete | 2026-06-06 |

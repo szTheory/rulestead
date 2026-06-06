@@ -2,28 +2,28 @@
 gsd_state_version: 1.0
 milestone: v1.14
 milestone_name: Brand System Realization
-status: executing
-last_updated: "2026-06-06T05:35:00.000Z"
-last_activity: 2026-06-06 -- Phase 101 Wave 3 complete
+status: complete
+last_updated: "2026-06-06T05:45:00.000Z"
+last_activity: 2026-06-06 -- Phase 101 complete; v1.14 shipped
 progress:
   total_phases: 7
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 28
-  completed_plans: 27
-  percent: 96
+  completed_plans: 28
+  percent: 100
 ---
 
 # State: Rulestead
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-06-04)
+See: `.planning/PROJECT.md` (updated 2026-06-06)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
 
-**Current focus:** Phase 101 — html-brand-book
+**Current focus:** v1.14 shipped — maintenance or deferred-trigger assessment only
 
-**Milestone:** v1.14 opened 2026-06-04 — see `.planning/ROADMAP.md` for phase structure
+**Milestone:** v1.14 shipped 2026-06-06 — see `.planning/ROADMAP.md` for phase structure
 
 **Previous milestone:** v1.13 Admin UI dark mode + design-system polish shipped 2026-06-04 — see `.planning/milestones/v1.13-MILESTONE-AUDIT.md`
 
@@ -31,12 +31,12 @@ See: `.planning/PROJECT.md` (updated 2026-06-04)
 
 ## Current Position
 
-Phase: 101 (html-brand-book) — EXECUTING
+Phase: 101 (html-brand-book) — COMPLETE
 Plan: 4 of 4
-Status: Executing Phase 101
-Last activity: 2026-06-06 -- Phase 101 Wave 3 complete
+Status: v1.14 shipped
+Last activity: 2026-06-06 -- Phase 101 complete; final guard, lint, and browser evidence passed
 
-Progress bar: `[ ##########░ ] 96% — 6/7 phases` (Phase 101 — HTML brand book — appended as v1.14 capstone, queued after 98–100)
+Progress bar: `[ ########### ] 100% — 7/7 phases` (Phase 101 — HTML brand book — completed as v1.14 capstone)
 
 ## Phase Dependency Map
 
@@ -80,7 +80,7 @@ Human checkpoints (cannot be automated):
 - **v1.14 re-skin scope:** Colors only across all 4 cascade blocks. Zero non-color property changes in `rulestead_admin.css`. Confirmed by narrow-diff review in Phase 98.
 - **v1.14 SVG policy:** Only raster binaries allowed in repo: `favicon.ico`, `favicon.png`, `apple-touch-icon.png`. All logo and specimen SVGs are source-controlled. PNGs generated on demand (never committed).
 - **v1.14 font policy:** Google Fonts CDN references only (Sora, Inter, IBM Plex Mono — all SIL OFL 1.1). No font binaries committed. SVG wordmark text outlined to paths before committing.
-- Phase numbering continues at **101** if a new milestone opens.
+- Phase numbering continues at **102** if a new milestone opens.
 - [Phase 97-02]: Selected mark: **G4c** — multivariate decision branch, lit route (Stead Blue structure/input/off-arms, Ember Copper active top route, Quarry off-nodes). Gate pre-resolved in 97-CONCEPT-REVIEW.md.
 - [Phase 97-02]: Wordmark letterforms: geometric hand-authored outline paths (fontTools Pattern 6 fallback — Google Fonts CDN unreachable in exec env; script committed for future use).
 - [Phase 97-02]: Mono mark treatment: G4f — active node filled, off nodes hollow-stroked, so active-vs-off survives in `fill="currentColor"` contexts.
@@ -137,6 +137,8 @@ Human checkpoints (cannot be automated):
 - [Phase 101-01]: generator core committed. `scripts/gen_brandbook_html.py` renders deterministic stdlib-only `brandbook/index.html` from brand-book, tokens, docs, final logo SVGs, and specimen SVGs; generated output is 119012 bytes and regenerates cleanly.
 - [Phase 101-02]: full generated page experience committed. `brandbook/index.html` now has all nine source-driven sections, scoped System/Light/Dark control, no-JS baseline, inline logo/specimen previews, focus/reduced-motion polish, and visible links to the UI spec + admin shell theme-control precedent.
 - [Phase 101-03]: generated HTML guard committed. `scripts/check_brandbook_html.py` enforces drift, required sections/source refs, unsafe marker exclusions, local link validity, unique inline SVG IDs, trailing newline, and the 262144-byte budget; `scripts/ci/lint.sh` now prints `BRANDBOOK HTML SYNCED (133280 bytes)` before `SVG SIZE BUDGET OK`.
+- [Phase 101-04]: file:// browser evidence committed in `examples/demo/frontend/tests/brandbook.spec.ts`; `brandbook/README.md` now links generated `index.html` and generator/checker commands; final gate passed with `BRANDBOOK HTML SYNCED (133765 bytes)`, `BRAND TOKENS SYNCED (68 tokens)`, `TOKENS.CSS MIRROR SYNCED (68 tokens)`, `SVG SIZE BUDGET OK`, and `brandbook.spec.ts` 6/6 tests passing.
+- [v1.14]: shipped 2026-06-06 after Phase 101 verification. No runtime API, schema, package-version, release-workflow, Hex publishing config, or `rulestead_admin` publish-prep changes were made in the capstone closeout.
 
 ### Deferred Items (v2)
 
@@ -166,11 +168,9 @@ All closed — v1.12 adoption evidence depth complete.
 
 ## Operator Next Steps
 
-- Execute Phase 101 with `$gsd-execute-phase 101`
-- Phase 100 complete: copy kit and repo artifact guard committed, lint.sh exits 0 with SVG SIZE BUDGET OK
-- Phase 99 complete: all 6 specimens committed, lint.sh exits 0 with SVG SIZE BUDGET OK
-- Phase 98 complete: all guards green, SC-1 approved, planning artifacts updated
-- Note: Phase 96 drift-proofing is resolved by Phase 98; live token checks now exit 0.
+- v1.14 is shipped; next project work should be maintenance-only or start a new milestone at Phase 102 only when a deferred v2 trigger fires.
+- Final Phase 101 proof bar: `python3 scripts/check_brandbook_html.py`, `bash scripts/ci/lint.sh`, and `cd examples/demo/frontend && npm run test:e2e -- brandbook.spec.ts` all exit 0.
+- No `rulestead_admin` publish preparation, package-version change, release workflow change, or Phase 8-only doc was introduced during closeout.
 
 ## Performance Metrics
 

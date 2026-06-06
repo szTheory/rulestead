@@ -21,6 +21,7 @@ Rulestead is a batteries-included, Elixir-native feature-flag and remote-config 
 - `v1.10.1` shipped on 2026-05-28 across Phases 73–75: support-truth doc/API catalog alignment, `mix verify.phase73` proof umbrella — no new product APIs.
 - `v1.11` shipped on 2026-05-28 across Phases 76–78: first-hour Phoenix integration spine, evaluation/lifecycle doc alignment, `mix verify.phase76` contract guards — closes INV-INTRO-01; no new product APIs.
 - `v1.11` gap closure completed 2026-05-29 across Phases 79–81: lifecycle deep-link anchor fix, Phase 76/77 verification backfill, DOC-01 `evaluation.md` contract guard + `76-VALIDATION.md` Nyquist artifact.
+- `v1.14` shipped on 2026-06-06 across Phases 95–101: source-controlled brand system, mineral admin re-skin, final SVG assets/specimens, copy kit, generated `brandbook/index.html`, stdlib generator, drift/budget guard, CI wiring, and file:// browser evidence — no new runtime APIs, schema changes, package-version changes, or publish-posture changes.
 
 <details>
 <summary>Shipped: v1.11 Integration Spine (2026-05-28)</summary>
@@ -60,19 +61,22 @@ v1.1–v1.9 feature band is **complete**. v1.10.x–v1.11 doc bands are **shippe
 
 **Scope note:** This is a deliberate post-GA UX-quality milestone (not one of the deferred v2 feature wedges in `.planning/DEFERRED.md`). Dark mode was already prescribed by the admin UX spec (`prompts/rulestead-admin-ux-and-operator-ia.md` §9) but never implemented. No new product runtime APIs.
 
-## Current Milestone: v1.14 Brand System Realization
+## Shipped: v1.14 Brand System Realization (2026-06-06)
 
-**Goal:** Turn the recovered Rulestead brand book (`prompts/rulestead-brand-book.md`) into a buildable, WCAG-AA-verified, source-controlled brand system in a self-contained `brandbook/` folder, and re-skin the shipped admin UI to the canonical mineral palette — without bloating the repo or widening the sibling-package product shape.
+**Delivered (Phases 95–101, 28 plans):** The recovered Rulestead brand book is now a buildable, WCAG-AA-verified, source-controlled brand system in `brandbook/`, the shipped admin UI is re-skinned to the canonical mineral palette, and `brandbook/index.html` is generated from canonical sources for browser review.
 
-**Target features:**
+**Delivered features:**
 - Pressure-test audit of the recovered 27-section brand book + canonical AA-verified palette reconciliation (brand-book mineral palette wins over shipped `#2563eb`/`#9a3f12`).
 - Machine-readable design tokens (`brandbook/tokens.json`, `brandbook/tokens.css`) mirroring the shipped `--rs-*` token shape, with semantic + state roles.
 - Net-new brand-aligned logo/mark SVG system (A/B/C concepts → user picks → full lockup: wordmark, icon, monochrome, favicon, social card, dark/light); retire the off-brand phoenix flame.
 - Admin re-skin (`rulestead_admin/priv/static/css/rulestead_admin.css`) to the mineral palette across all 4 cascade blocks — colors only — gated by `check_synced_pair.py`, WCAG-AA both themes, and the design-system fixture.
 - Reproducible SVG specimens (palette, typography, components, code-block, README header, social card).
 - Ready-to-paste marketing/README/Hex.pm copy, szTheory suite brand-architecture note, and a repo artifact plan with a size-budget + token-sync CI guard.
+- Generated, source-controlled `brandbook/index.html` emitted by `scripts/gen_brandbook_html.py`, guarded by `scripts/check_brandbook_html.py`, wired into `scripts/ci/lint.sh`, and verified by targeted Playwright `file://` browser evidence.
 
-**Scope note:** Post-GA brand/UX-quality milestone (like v1.13), not a deferred v2 feature wedge. No new product runtime APIs. Phase numbering continues at 95.
+**Proof:** `python3 scripts/check_brandbook_html.py` printed `BRANDBOOK HTML SYNCED (133765 bytes)`; `bash scripts/ci/lint.sh` exited 0 with `SVG SIZE BUDGET OK`; `cd examples/demo/frontend && npm run test:e2e -- brandbook.spec.ts` passed 6/6 tests.
+
+**Scope note:** Post-GA brand/UX-quality milestone (like v1.13), not a deferred v2 feature wedge. No new product runtime APIs, schema changes, package-version changes, release workflow changes, or `rulestead_admin` publish preparation.
 
 ## Next Milestone Goals
 
@@ -85,7 +89,8 @@ v1.1–v1.9 feature band is **complete**. v1.10.x–v1.11 doc bands are **shippe
 | 2b | **v1.11.1 — Gap closure** | **Complete** (2026-05-29) — audit deferrals (Phases 79–81) |
 | 2c | **v1.12 — Adoption evidence depth** | **Complete** (2026-05-29) — Phases 82–86 |
 | 3 | **v1.13 — Admin UI dark mode + design-system polish** | **Complete** (2026-06-04) — Phases 87–94; mounted-admin UX quality, no new runtime APIs; on branch (unmerged) |
-| 4+ | **v2.0+ wedges (triggered only)** | GOV-02-ext → ROL-08 → ADM-06 per `.planning/DEFERRED.md` |
+| 4 | **v1.14 — Brand System Realization** | **Complete** (2026-06-06) — Phases 95–101; generated HTML brand book capstone; no runtime API or publish-posture changes |
+| 5+ | **v2.0+ wedges (triggered only)** | GOV-02-ext → ROL-08 → ADM-06 per `.planning/DEFERRED.md` |
 | — | **Maintenance** | Patches and adopter support until a v2 trigger fires |
 
 **Done band:** Post-GA scope through v1.11 is repo-verified; feature band v1.1–v1.9 in `lib/` + contract tests.
@@ -358,4 +363,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-04 — opened v1.14 Brand System Realization (brand book → buildable, AA-verified, source-controlled brand system + admin mineral re-skin)*
+*Last updated: 2026-06-06 — shipped v1.14 Brand System Realization with generated HTML brand book capstone and no runtime API or publish-posture changes*

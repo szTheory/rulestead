@@ -62,8 +62,8 @@ Requirements for this milestone. Each maps to exactly one roadmap phase.
 
 *Added 2026-06-05 by scope amendment (see Out of Scope note).*
 
-- [ ] **BOOK-01**: A source-controlled `brandbook/index.html` renders the full brand system — essence, voice, messaging, color (from tokens), type ramp, logo lockups (embedded committed SVGs), layout, iconography, motion, and UI-writing — browsable in light and dark.
-- [ ] **BOOK-02**: `index.html` is produced by a committed generator (`scripts/gen_brandbook_html.*`) from the canonical `brand-book.md` + `tokens.json` + logo SVGs (no second source of truth), kept honest by a drift-check and within the CI size budget.
+- [x] **BOOK-01**: A source-controlled `brandbook/index.html` renders the full brand system — essence, voice, messaging, color (from tokens), type ramp, logo lockups (embedded committed SVGs), layout, iconography, motion, and UI-writing — browsable in light and dark.
+- [x] **BOOK-02**: `index.html` is produced by a committed generator (`scripts/gen_brandbook_html.*`) from the canonical `brand-book.md` + `tokens.json` + logo SVGs (no second source of truth), kept honest by a drift-check and within the CI size budget.
 
 ## v2 Requirements
 
@@ -134,3 +134,5 @@ Which phases cover which requirements. Filled during roadmap creation.
 | COPY-02 | Phase 100 | Complete |
 | REPO-01 | Phase 100 | Complete |
 | REPO-02 | Phase 100 | Complete |
+| BOOK-01 | Phase 101 | Complete |
+| BOOK-02 | Phase 101 | Complete |
