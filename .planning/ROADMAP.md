@@ -230,7 +230,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1)*
 
-- [ ] 101-02-PLAN.md — Wave 2: full generated page experience, scoped theme control, no-JS baseline, accessibility, and inline source references
+- [x] 101-02-PLAN.md — Wave 2: full generated page experience, scoped theme control, no-JS baseline, accessibility, and inline source references
 
 **Wave 3** *(blocked on Wave 2)*
 
@@ -250,4 +250,4 @@ Plans:
 | 98. Admin Re-skin (CSS Cascade) | 4/4 | Complete    | 2026-06-05 |
 | 99. Specimens | 4/4 | Complete    | 2026-06-05 |
 | 100. Marketing Copy + Repo Artifact Plan | 4/4 | Complete | 2026-06-06 |
-| 101. HTML Brand Book (capstone) | 1/4 | In Progress|  |
+| 101. HTML Brand Book (capstone) | 2/4 | In Progress|  |
