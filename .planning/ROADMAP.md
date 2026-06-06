@@ -234,7 +234,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2)*
 
-- [ ] 101-03-PLAN.md — Wave 3: generated-HTML drift checker, 256 KB HTML budget, `brandbook/BUDGET.md`, and `scripts/ci/lint.sh` wiring
+- [x] 101-03-PLAN.md — Wave 3: generated-HTML drift checker, 256 KB HTML budget, `brandbook/BUDGET.md`, and `scripts/ci/lint.sh` wiring
 
 **Wave 4** *(blocked on Wave 3)*
 
@@ -250,4 +250,4 @@ Plans:
 | 98. Admin Re-skin (CSS Cascade) | 4/4 | Complete    | 2026-06-05 |
 | 99. Specimens | 4/4 | Complete    | 2026-06-05 |
 | 100. Marketing Copy + Repo Artifact Plan | 4/4 | Complete | 2026-06-06 |
-| 101. HTML Brand Book (capstone) | 2/4 | In Progress|  |
+| 101. HTML Brand Book (capstone) | 3/4 | In Progress|  |

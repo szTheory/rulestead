@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.14
 milestone_name: Brand System Realization
 status: executing
-last_updated: "2026-06-06T05:20:00.000Z"
-last_activity: 2026-06-06 -- Phase 101 Wave 2 complete
+last_updated: "2026-06-06T05:35:00.000Z"
+last_activity: 2026-06-06 -- Phase 101 Wave 3 complete
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 28
-  completed_plans: 26
-  percent: 93
+  completed_plans: 27
+  percent: 96
 ---
 
 # State: Rulestead
@@ -32,11 +32,11 @@ See: `.planning/PROJECT.md` (updated 2026-06-04)
 ## Current Position
 
 Phase: 101 (html-brand-book) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 Status: Executing Phase 101
-Last activity: 2026-06-06 -- Phase 101 Wave 2 complete
+Last activity: 2026-06-06 -- Phase 101 Wave 3 complete
 
-Progress bar: `[ ##########░ ] 93% — 6/7 phases` (Phase 101 — HTML brand book — appended as v1.14 capstone, queued after 98–100)
+Progress bar: `[ ##########░ ] 96% — 6/7 phases` (Phase 101 — HTML brand book — appended as v1.14 capstone, queued after 98–100)
 
 ## Phase Dependency Map
 
@@ -136,6 +136,7 @@ Human checkpoints (cannot be automated):
 - [Phase 101]: plan approved with 4 waves: generator core, page experience, drift/CI guard, browser evidence + v1.14 closeout
 - [Phase 101-01]: generator core committed. `scripts/gen_brandbook_html.py` renders deterministic stdlib-only `brandbook/index.html` from brand-book, tokens, docs, final logo SVGs, and specimen SVGs; generated output is 119012 bytes and regenerates cleanly.
 - [Phase 101-02]: full generated page experience committed. `brandbook/index.html` now has all nine source-driven sections, scoped System/Light/Dark control, no-JS baseline, inline logo/specimen previews, focus/reduced-motion polish, and visible links to the UI spec + admin shell theme-control precedent.
+- [Phase 101-03]: generated HTML guard committed. `scripts/check_brandbook_html.py` enforces drift, required sections/source refs, unsafe marker exclusions, local link validity, unique inline SVG IDs, trailing newline, and the 262144-byte budget; `scripts/ci/lint.sh` now prints `BRANDBOOK HTML SYNCED (133280 bytes)` before `SVG SIZE BUDGET OK`.
 
 ### Deferred Items (v2)
 
