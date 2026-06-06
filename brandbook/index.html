@@ -1047,13 +1047,7 @@ echo &quot;SVG SIZE BUDGET OK&quot;</code></pre>
 <pre><code class="language-text">SYNCED PAIR IDENTICAL (56 tokens)
 SYNCED PAIR IDENTICAL (light: 57 tokens)</code></pre>
 <h3>New-Contributor Path</h3>
-<ol><li>Read <a href="../brand-book.md"><code>../brand-book.md</code></a> for brand intent and usage policy.</li><li>Read <a href="../tokens.json"><code>../tokens.json</code></a> for canonical token values.</li><li>If the change is theme-insensitive, edit the invariant <code>:root</code> token in the admin CSS,</li></ol>
-<p><code>tokens.css</code>, and <code>tokens.json</code>.</p>
-<ol><li>If the change is color/theme-sensitive, edit all four admin cascade blocks plus the</li></ol>
-<p>corresponding light/dark sections in <code>tokens.css</code> and <code>tokens.json</code>.</p>
-<ol><li>If the token is a hex-literal admin token, update <code>admin_css_mapping.light</code> and/or</li></ol>
-<p><code>admin_css_mapping.dark</code>.</p>
-<ol><li>Run the verification commands below before committing.</li></ol>
+<ol><li>Read <a href="../brand-book.md"><code>../brand-book.md</code></a> for brand intent and usage policy.</li><li>Read <a href="../tokens.json"><code>../tokens.json</code></a> for canonical token values.</li><li>If the change is theme-insensitive, edit the invariant <code>:root</code> token in the admin CSS, <code>tokens.css</code>, and <code>tokens.json</code>.</li><li>If the change is color/theme-sensitive, edit all four admin cascade blocks plus the corresponding light/dark sections in <code>tokens.css</code> and <code>tokens.json</code>.</li><li>If the token is a hex-literal admin token, update <code>admin_css_mapping.light</code> and/or <code>admin_css_mapping.dark</code>.</li><li>Run the verification commands below before committing.</li></ol>
 <h3>Adding a New Token</h3>
 <p>Invariant tokens do not vary by theme: font families, spacing, radius, control heights, z-index, and motion durations. Add them to the admin CSS <code>:root</code> block, <code>tokens.css</code>, and the <code>invariant</code> group in <code>tokens.json</code>.</p>
 <p>Variant tokens differ by theme. Add them to all four admin cascade blocks, the light/dark sections in <code>tokens.css</code>, and the corresponding groups in <code>tokens.json</code>.</p>

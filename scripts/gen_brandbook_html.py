@@ -95,6 +95,18 @@ REQUIRED_CSS_INVARIANTS = [
 ]
 
 UNSAFE_SVG_MARKERS = ["base64", "<image", "<script", "<foreignObject"]
+UNSAFE_URI_SCHEMES = {"javascript", "data", "file"}
+
+
+def uri_scheme(value: str) -> str:
+    match = re.match(r"^\s*([a-z][a-z0-9+.-]*)\s*:", html.unescape(value), flags=re.IGNORECASE)
+    return match.group(1).lower() if match else ""
+
+
+def assert_safe_href(href: str) -> None:
+    scheme = uri_scheme(href)
+    if scheme in UNSAFE_URI_SCHEMES:
+        raise BrandbookError(f"ERROR: unsafe markdown link scheme: {scheme}")
 
 
 class BrandbookError(RuntimeError):
@@ -151,7 +163,9 @@ def render_inline(text: str) -> str:
 
     def link(match: re.Match[str]) -> str:
         label = match.group(1)
-        href = html.escape(match.group(2), quote=True)
+        raw_href = match.group(2).strip()
+        assert_safe_href(raw_href)
+        href = html.escape(raw_href, quote=True)
         return f'<a href="{href}">{label}</a>'
 
     return re.sub(r"\[([^\]]+)\]\(([^)]+)\)", link, rendered)
@@ -250,23 +264,33 @@ def render_markdown(markdown: str) -> str:
             items: list[str] = []
             while index < len(lines):
                 item = re.match(r"^[-*]\s+(.+)$", lines[index].strip())
-                if not item:
-                    break
-                items.append(f"<li>{render_inline(item.group(1))}</li>")
-                index += 1
-            blocks.append("<ul>" + "".join(items) + "</ul>")
+                if item:
+                    items.append(item.group(1))
+                    index += 1
+                    continue
+                if items and lines[index].startswith((" ", "\t")) and lines[index].strip():
+                    items[-1] = f"{items[-1]} {lines[index].strip()}"
+                    index += 1
+                    continue
+                break
+            blocks.append("<ul>" + "".join(f"<li>{render_inline(item)}</li>" for item in items) + "</ul>")
             continue
 
         if re.match(r"^\d+\.\s+", stripped):
             flush_paragraph()
-            items = []
+            items: list[str] = []
             while index < len(lines):
                 item = re.match(r"^\d+\.\s+(.+)$", lines[index].strip())
-                if not item:
-                    break
-                items.append(f"<li>{render_inline(item.group(1))}</li>")
-                index += 1
-            blocks.append("<ol>" + "".join(items) + "</ol>")
+                if item:
+                    items.append(item.group(1))
+                    index += 1
+                    continue
+                if items and lines[index].startswith((" ", "\t")) and lines[index].strip():
+                    items[-1] = f"{items[-1]} {lines[index].strip()}"
+                    index += 1
+                    continue
+                break
+            blocks.append("<ol>" + "".join(f"<li>{render_inline(item)}</li>" for item in items) + "</ol>")
             continue
 
         paragraph.append(stripped)
@@ -392,6 +416,12 @@ def assert_safe_svg(rel_path: str, svg_text: str) -> None:
     for marker in UNSAFE_SVG_MARKERS:
         if marker.lower() in lowered:
             raise BrandbookError(f"ERROR: unsafe SVG content in {rel_path}")
+    if re.search(r"\s+on[a-z0-9_-]+\s*=", svg_text, flags=re.IGNORECASE):
+        raise BrandbookError(f"ERROR: unsafe SVG event handler in {rel_path}")
+    if re.search(r"\b(?:href|xlink:href)\s*=\s*(['\"])\s*(?:javascript|data|file)\s*:", svg_text, flags=re.IGNORECASE):
+        raise BrandbookError(f"ERROR: unsafe SVG URI in {rel_path}")
+    if re.search(r"url\(\s*(['\"]?)\s*(?:javascript|data|file)\s*:", svg_text, flags=re.IGNORECASE):
+        raise BrandbookError(f"ERROR: unsafe SVG CSS URI in {rel_path}")
 
 
 def add_svg_role(svg_text: str) -> str:

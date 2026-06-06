@@ -3,6 +3,7 @@
 import difflib
 import re
 import sys
+from html import unescape
 from html.parser import HTMLParser
 from pathlib import Path
 
@@ -50,7 +51,15 @@ UNSAFE_PATTERNS = [
     ("base64", re.compile(r"base64", re.IGNORECASE)),
     ("<image", re.compile(r"<image\b", re.IGNORECASE)),
     ("foreignObject", re.compile(r"<foreignobject\b", re.IGNORECASE)),
+    ("event handler attribute", re.compile(r"\s+on[a-z0-9_-]+\s*=", re.IGNORECASE)),
+    (
+        "unsafe href URI",
+        re.compile(r"\b(?:href|xlink:href)\s*=\s*(['\"])\s*(?:javascript|data|file)\s*:", re.IGNORECASE),
+    ),
+    ("unsafe CSS url", re.compile(r"url\(\s*(['\"]?)\s*(?:javascript|data|file)\s*:", re.IGNORECASE)),
 ]
+
+UNSAFE_URI_SCHEMES = {"javascript", "data", "file"}
 
 
 class LinkAndIdParser(HTMLParser):
@@ -143,12 +152,13 @@ def assert_unique_ids(parser: LinkAndIdParser) -> str | None:
     return None
 
 
+def href_scheme(href: str) -> str:
+    match = re.match(r"^\s*([a-z][a-z0-9+.-]*)\s*:", unescape(href), flags=re.IGNORECASE)
+    return match.group(1).lower() if match else ""
+
+
 def should_skip_href(href: str) -> bool:
-    if href.startswith("#"):
-        return True
-    if re.match(r"^[a-z][a-z0-9+.-]*:", href, flags=re.IGNORECASE):
-        return True
-    return False
+    return href.startswith("#")
 
 
 def doc_excerpt_base(source_index: int | None) -> Path | None:
@@ -168,15 +178,22 @@ def assert_local_links(parser: LinkAndIdParser) -> str | None:
     for href, source_index in parser.hrefs:
         if should_skip_href(href):
             continue
+        scheme = href_scheme(href)
+        if scheme in UNSAFE_URI_SCHEMES:
+            return f"unsafe href scheme found: {href}"
+        if scheme:
+            continue
         local_path = href.split("#", 1)[0].split("?", 1)[0]
         if not local_path:
             continue
         target = (brandbook_root / local_path).resolve()
-        if target.exists():
+        if target.exists() and target.is_relative_to(REPO_ROOT):
             continue
         source_base = doc_excerpt_base(source_index)
-        if source_base and (source_base / local_path).resolve().exists():
-            continue
+        if source_base:
+            source_target = (source_base / local_path).resolve()
+            if source_target.exists() and source_target.is_relative_to(REPO_ROOT):
+                continue
         return f"local non-fragment href does not resolve from brandbook/: {href}"
     return None
 
