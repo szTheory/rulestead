@@ -14,11 +14,9 @@ operator screens — not when you are ready to install into your app (that path 
 
 You are running **three things**:
 
-1. **FleetDesk** (`http://localhost:3000`) — sample customer app. Flags change what
-   dispatchers see.
-2. **Rulestead admin** (`http://localhost:4000/demo/sign-in`) — where operators manage
-   flags, rollouts, and kill switches.
-3. **Rulestead API** (`http://localhost:4000/api/...`) — what both apps talk to.
+1. **FleetDesk** — sample customer app. Flags change what dispatchers see.
+2. **Rulestead admin** — where operators manage flags, rollouts, and kill switches.
+3. **Rulestead API** — what both apps talk to.
 
 ## Quick start (5 minutes)
 
@@ -49,12 +47,32 @@ These are the preferred default URLs. If those ports are already in use,
 `scripts/demo/up.sh` chooses free fallback ports and prints the actual URLs.
 Postgres and Redis stay on the internal Compose network by default.
 
+Maintainers running several UI demos at once can use stable hostnames instead:
+
+```bash
+scripts/demo/proxy-up.sh
+```
+
+That reuses or starts the shared local Traefik proxy and prints the same three
+surfaces at `.localhost` URLs. The expected maintainer setup has no port in the
+browser URL. If an unrelated local process owns port `80`, the script chooses a
+free loopback port and includes it in the printed URLs.
+
+| URL | What it is |
+|-----|------------|
+| `http://fleetdesk.rulestead.localhost` | FleetDesk |
+| `http://rulestead.localhost/demo/sign-in` | Rulestead admin |
+| `http://rulestead.localhost/api/flags` | Rulestead API |
+
 Optional API sanity checks:
 
 ```bash
 curl http://localhost:4000/api/demo/personas
 curl "http://localhost:4000/api/flags?env=staging&flag_key=enable-new-dashboard"
 ```
+
+When using proxy mode, swap in the printed backend URL, usually
+`http://rulestead.localhost`.
 
 **Stack:**
 
@@ -139,6 +157,14 @@ Compose project, and prints the actual URLs:
 ```bash
 scripts/demo/up.sh    # start (auto free ports)
 scripts/demo/down.sh  # stop
+```
+
+For maintainer work across several local UI demos, use the proxy path. It keeps
+the app URLs stable and leaves Postgres/Redis internal:
+
+```bash
+scripts/demo/proxy-up.sh    # start at .localhost hostnames
+scripts/demo/proxy-down.sh  # stop this demo stack
 ```
 
 **Honest boundary:** FleetDesk is a **pre-installed** host. Compose builds an image that

@@ -3,10 +3,10 @@ defmodule RulesteadDemoWeb.Plugs.DemoCors do
 
   import Plug.Conn
 
-  @allowed_origins MapSet.new([
-                     "http://localhost:3000",
-                     "http://127.0.0.1:3000"
-                   ])
+  @default_allowed_origins [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000"
+  ]
 
   def init(opts), do: opts
 
@@ -28,7 +28,7 @@ defmodule RulesteadDemoWeb.Plugs.DemoCors do
   defp maybe_put_cors_headers(conn) do
     case get_req_header(conn, "origin") do
       [origin | _rest] ->
-        if MapSet.member?(@allowed_origins, origin) do
+        if MapSet.member?(allowed_origins(), origin) do
           conn
           |> put_resp_header("access-control-allow-origin", origin)
           |> put_resp_header("access-control-allow-methods", "GET, OPTIONS")
@@ -41,5 +41,10 @@ defmodule RulesteadDemoWeb.Plugs.DemoCors do
       _other ->
         conn
     end
+  end
+
+  defp allowed_origins do
+    configured = Application.get_env(:rulestead_demo, :demo_cors_origins, [])
+    MapSet.new(@default_allowed_origins ++ configured)
   end
 end

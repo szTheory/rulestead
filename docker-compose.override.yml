@@ -1,0 +1,10 @@
+# Docker Compose loads this file automatically for the plain local demo path.
+# Proxy mode uses explicit `-f` flags and intentionally skips these host ports.
+services:
+  backend:
+    ports:
+      - "127.0.0.1:${DEMO_BACKEND_PORT:-4000}:4000"
+
+  frontend:
+    ports:
+      - "127.0.0.1:${DEMO_FRONTEND_PORT:-3000}:3000"

@@ -9,6 +9,9 @@ Next.js frontend + Postgres + Redis) locally via Docker Compose.
 |---|---|
 | `scripts/demo/up.sh` | Start the stack. Auto-selects free host ports, namespaces the Compose project per git branch, and prints the URLs. |
 | `scripts/demo/down.sh` | Stop the stack for the current branch/project. Pass `--volumes` to also drop demo DB/Redis state. |
+| `scripts/demo/proxy-up.sh` | Start the stack behind Traefik at `.localhost` hostnames. Preferred for maintainers running several UI demos. |
+| `scripts/demo/proxy-down.sh` | Stop the proxy-mode demo stack. Leaves shared Traefik running for other demos. |
+| `scripts/demo/proxy-smoke.sh` | Build, start, and smoke-check the `.localhost` proxy path. |
 | `scripts/demo/smoke.sh` | Build, start, wait for health, and run endpoint smoke checks. |
 | `scripts/demo/proof.sh` | Bounded adopter proof (smoke + adopter verification). |
 | `scripts/demo/verify.sh` | Full browser proof (smoke + Playwright e2e). |
@@ -36,44 +39,71 @@ To pin values by hand instead, copy `.env.example` to `.env` (Compose auto-loads
 it) and set `DEMO_BACKEND_PORT` / `DEMO_FRONTEND_PORT` / `COMPOSE_PROJECT_NAME`.
 If you change `DEMO_BACKEND_PORT`, change `NEXT_PUBLIC_FLAGS_API_BASE` to match.
 
-## Optional: one proxy for many demos (`*.localhost`)
+## Stable hostnames with Traefik
 
-If you routinely run several sibling demos at once and want stable hostnames
-instead of remembering ports, a shared reverse proxy is an option — but it is
-**not** wired up here, and it is deliberately not the default (it adds friction
-for adopters who just want `docker compose up` + a browser). Treat the following
-as a power-user recipe.
-
-Shape: run one Traefik project that owns ports `:80`/`:443` and watches the
-Docker socket; every demo joins a shared external network and routes by
-hostname (`rulestead.localhost`, `cairnloop.localhost`, …) instead of publishing
-host ports.
+Use proxy mode when you are running several sibling library demos and want one
+memorable URL per app instead of tracking `3000`, `4000`, `4001`, and friends:
 
 ```bash
-docker network create web        # once, shared across all demos
-# proxy/compose.yaml runs traefik with restart: always, ports 80/443,
-# and /var/run/docker.sock mounted read-only.
+scripts/demo/proxy-up.sh
 ```
 
-Each demo then drops its `ports:` blocks, joins `web` (`external: true`), and
-adds `traefik.http.routers.*` labels pointing at the container port.
+The script reuses an existing local Traefik proxy named `dev_proxy` on the
+external Docker network `proxy` when it finds one. If that shared proxy is not
+running, it creates the network and starts a loopback-only bundled proxy. The
+normal result is no port in the browser URL:
 
-Honest caveats before you go down this road:
+- FleetDesk: `http://fleetdesk.rulestead.localhost`
+- Rulestead admin: `http://rulestead.localhost/demo/sign-in`
+- Rulestead API: `http://rulestead.localhost/api/flags`
 
-- **`*.localhost` resolves in browsers but not reliably in `curl`, `ping`, or
-  Docker's internal DNS on macOS.** So the smoke/verify scripts (which `curl`
-  the URLs) and any Next.js server-side rendering would break unless they keep
-  using the Docker **service name** (`http://backend:4000`) rather than the
-  public hostname. The current frontend split — `FLAGS_API_BASE` = service name
-  for SSR, `NEXT_PUBLIC_FLAGS_API_BASE` = public host for the browser — is
-  already the correct shape and must be preserved.
-- **Phoenix/LiveView behind a proxy** needs `PHX_HOST` set to the routed host and
-  that host added to `check_origin` (in `examples/demo/backend/config/`), or the
-  LiveView WebSocket upgrade fails its origin check.
-- Custom TLDs via `dnsmasq` + `/etc/resolver` are fragile on recent macOS;
-  trusted local HTTPS needs `mkcert`.
-- Postgres has no SNI, so a TCP proxy can't replace its port mapping — databases
-  here stay internal anyway, so that's moot for this stack.
+Stop only this demo:
 
-Because this spans every sibling lib (one proxy + one shared network they all
-join), it belongs in a separate cross-repo setup, not in rulestead's demo.
+```bash
+scripts/demo/proxy-down.sh
+```
+
+Stop this demo and the Traefik proxy only when you intentionally own the shared
+proxy and no other local demo is using it:
+
+```bash
+DEMO_PROXY_DOWN_TRAEFIK=1 scripts/demo/proxy-down.sh
+```
+
+The proxy watches Docker labels through the Docker socket. That is acceptable
+for a loopback-only local developer proxy, but it is not deployment guidance.
+Traefik is configured with `exposedByDefault=false`, and only the demo frontend
+and backend opt in with explicit labels.
+
+If another unrelated process owns port `80`, `proxy-up.sh` falls back to a free
+loopback port and includes that port in the printed URLs. That is a compatibility
+fallback, not the preferred maintainer setup.
+
+### Proxy knobs
+
+| Variable | Default | Use |
+|---|---|---|
+| `DEMO_PROXY_NETWORK` | `proxy` | Shared external Docker network watched by local Traefik. |
+| `DEMO_PROXY_PROJECT_NAME` | `dev_proxy` | Compose project name/container prefix for Traefik. |
+| `DEMO_PROXY_HTTP_PORT` | `80` when available | Host port Traefik binds on `127.0.0.1`; fallback ports are printed. |
+| `DEMO_HOST_SLUG` | `local` | Suffix for branch-specific hostnames. |
+| `DEMO_BACKEND_HOST` | `rulestead.localhost` | Public Phoenix/admin/API host. |
+| `DEMO_FRONTEND_HOST` | `fleetdesk.rulestead.localhost` | Public FleetDesk host. |
+
+If you want to pin the proxy port by hand, set `DEMO_PROXY_HTTP_PORT=8088`.
+The printed URLs include the port whenever the selected port is not `80`.
+If you run two Rulestead checkouts at once, set `DEMO_HOST_SLUG` on one of them
+so its hosts become branch-specific, for example
+`rulestead-feature-x.localhost` and
+`fleetdesk-feature-x.rulestead.localhost`.
+
+### Caveats worth knowing
+
+- Browsers understand `.localhost` well; some CLI tools do not. The proxy smoke
+  script uses `curl --noproxy '*' --resolve ...` so it does not depend on host
+  DNS behavior or a developer machine's HTTP proxy settings.
+- The frontend keeps two API bases: browser calls use the public backend host,
+  while server-side rendering uses the Docker service name.
+- Phoenix allows `.rulestead.localhost` LiveView origins and excludes those
+  local hosts from its production SSL redirect.
+- Postgres and Redis remain internal-only; the proxy only routes HTTP services.

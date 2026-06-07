@@ -2,10 +2,6 @@
 FROM node:22-alpine AS deps
 WORKDIR /app
 
-ARG NEXT_PUBLIC_FLAGS_API_BASE=http://localhost:4000
-ARG NEXT_PUBLIC_FLAGS_ENVIRONMENT_KEY=staging
-ARG NEXT_PUBLIC_FLAGS_TARGETING_KEY=demo-user
-
 # Lockfile + manifest only, so a source edit never reinstalls node_modules.
 # The npm cache mount re-uses downloaded packages even when the lockfile changes.
 COPY examples/demo/frontend/package.json examples/demo/frontend/package-lock.json ./
@@ -15,7 +11,10 @@ FROM node:22-alpine AS builder
 WORKDIR /app
 
 COPY --from=deps /app/node_modules ./node_modules
-COPY examples/demo/frontend ./
+COPY examples/demo/frontend/package.json examples/demo/frontend/package-lock.json ./
+COPY examples/demo/frontend/next.config.ts examples/demo/frontend/tsconfig.json examples/demo/frontend/next-env.d.ts ./
+COPY examples/demo/frontend/app ./app
+COPY examples/demo/frontend/lib ./lib
 
 ARG NEXT_PUBLIC_FLAGS_API_BASE=http://localhost:4000
 ARG NEXT_PUBLIC_FLAGS_ENVIRONMENT_KEY=staging

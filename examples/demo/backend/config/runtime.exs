@@ -23,6 +23,28 @@ end
 config :rulestead_demo, RulesteadDemoWeb.Endpoint,
   http: [port: String.to_integer(System.get_env("PORT", "4000"))]
 
+split_env_list = fn name ->
+  name
+  |> System.get_env("")
+  |> String.split(",", trim: true)
+  |> Enum.map(&String.trim/1)
+  |> Enum.reject(&(&1 == ""))
+end
+
+demo_cors_origins = split_env_list.("DEMO_CORS_ORIGINS")
+
+if demo_cors_origins != [] do
+  config :rulestead_demo, :demo_cors_origins, demo_cors_origins
+end
+
+demo_check_origins = split_env_list.("DEMO_CHECK_ORIGINS")
+
+if demo_check_origins != [] do
+  config :rulestead_demo, RulesteadDemoWeb.Endpoint,
+    check_origin:
+      Enum.uniq(["//localhost", "//127.0.0.1", "//*.rulestead.localhost"] ++ demo_check_origins)
+end
+
 if config_env() == :prod do
   database_url =
     System.get_env("DATABASE_URL") ||
@@ -71,11 +93,21 @@ if config_env() == :prod do
       """
 
   host = System.get_env("PHX_HOST") || "example.com"
+  scheme = System.get_env("PHX_SCHEME") || "https"
+
+  default_url_port =
+    case scheme do
+      "http" -> 80
+      "https" -> 443
+      _other -> 443
+    end
+
+  url_port = String.to_integer(System.get_env("PHX_PORT") || Integer.to_string(default_url_port))
 
   config :rulestead_demo, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
 
   config :rulestead_demo, RulesteadDemoWeb.Endpoint,
-    url: [host: host, port: 443, scheme: "https"],
+    url: [host: host, port: url_port, scheme: scheme],
     http: [
       # Enable IPv6 and bind on all interfaces.
       # Set it to  {0, 0, 0, 0, 0, 0, 0, 1} for local network only access.

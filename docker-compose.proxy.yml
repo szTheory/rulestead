@@ -1,0 +1,45 @@
+services:
+  backend:
+    environment:
+      PHX_HOST: ${DEMO_BACKEND_HOST:-rulestead.localhost}
+      PHX_SCHEME: http
+      PHX_PORT: ${DEMO_PROXY_HTTP_PORT:-80}
+      DEMO_CHECK_ORIGINS: ${DEMO_CHECK_ORIGINS:-//rulestead.localhost,//*.rulestead.localhost}
+      DEMO_CORS_ORIGINS: ${DEMO_CORS_ORIGINS:-http://fleetdesk.rulestead.localhost}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${DEMO_PROXY_NETWORK:-proxy}"
+      - "traefik.http.routers.rulestead-${DEMO_HOST_SLUG:-local}-backend.rule=Host(`${DEMO_BACKEND_HOST:-rulestead.localhost}`)"
+      - "traefik.http.routers.rulestead-${DEMO_HOST_SLUG:-local}-backend.entrypoints=web"
+      - "traefik.http.routers.rulestead-${DEMO_HOST_SLUG:-local}-backend.service=rulestead-${DEMO_HOST_SLUG:-local}-backend"
+      - "traefik.http.services.rulestead-${DEMO_HOST_SLUG:-local}-backend.loadbalancer.server.port=4000"
+    networks:
+      - default
+      - proxy
+
+  frontend:
+    build:
+      args:
+        NEXT_PUBLIC_FLAGS_API_BASE: ${NEXT_PUBLIC_FLAGS_API_BASE:-http://rulestead.localhost}
+        NEXT_PUBLIC_FLAGS_ENVIRONMENT_KEY: staging
+        NEXT_PUBLIC_FLAGS_TARGETING_KEY: demo-user
+    environment:
+      FLAGS_API_BASE: http://backend:4000
+      NEXT_PUBLIC_FLAGS_API_BASE: ${NEXT_PUBLIC_FLAGS_API_BASE:-http://rulestead.localhost}
+      NEXT_PUBLIC_FLAGS_ENVIRONMENT_KEY: staging
+      NEXT_PUBLIC_FLAGS_TARGETING_KEY: demo-user
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${DEMO_PROXY_NETWORK:-proxy}"
+      - "traefik.http.routers.rulestead-${DEMO_HOST_SLUG:-local}-frontend.rule=Host(`${DEMO_FRONTEND_HOST:-fleetdesk.rulestead.localhost}`)"
+      - "traefik.http.routers.rulestead-${DEMO_HOST_SLUG:-local}-frontend.entrypoints=web"
+      - "traefik.http.routers.rulestead-${DEMO_HOST_SLUG:-local}-frontend.service=rulestead-${DEMO_HOST_SLUG:-local}-frontend"
+      - "traefik.http.services.rulestead-${DEMO_HOST_SLUG:-local}-frontend.loadbalancer.server.port=3000"
+    networks:
+      - default
+      - proxy
+
+networks:
+  proxy:
+    external: true
+    name: ${DEMO_PROXY_NETWORK:-proxy}

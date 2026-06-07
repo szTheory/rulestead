@@ -16,11 +16,13 @@ config :rulestead_demo, RulesteadDemoWeb.Endpoint,
     rewrite_on: [:x_forwarded_proto],
     exclude: [
       # paths: ["/health"],
-      hosts: ["localhost", "127.0.0.1", "backend"]
+      hosts: ["localhost", "127.0.0.1", "backend"],
+      conn: {RulesteadDemoWeb.LocalProxy, :localhost_demo?, []}
     ]
   ]
 
-config :rulestead_demo, RulesteadDemoWeb.Endpoint, check_origin: ["//localhost", "//127.0.0.1"]
+config :rulestead_demo, RulesteadDemoWeb.Endpoint,
+  check_origin: ["//localhost", "//127.0.0.1", "//*.rulestead.localhost"]
 
 # Do not print debug messages in production
 config :logger, level: :info
