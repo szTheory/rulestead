@@ -341,13 +341,15 @@ defmodule Rulestead.ScheduledExecutionAuditContractTest do
   end
 
   defp ensure_phase10_schema! do
-    Repo.query!("ALTER TABLE flags ADD COLUMN IF NOT EXISTS permanent boolean DEFAULT false")
-
     Repo.query!(
-      "ALTER TABLE flag_environments ADD COLUMN IF NOT EXISTS last_evaluated_at timestamp(6) with time zone"
+      "ALTER TABLE rulestead.flags ADD COLUMN IF NOT EXISTS permanent boolean DEFAULT false"
     )
 
-    Repo.query!("CREATE TABLE IF NOT EXISTS change_requests (
+    Repo.query!(
+      "ALTER TABLE rulestead.flag_environments ADD COLUMN IF NOT EXISTS last_evaluated_at timestamp(6) with time zone"
+    )
+
+    Repo.query!("CREATE TABLE IF NOT EXISTS rulestead.change_requests (
       id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
       status text NOT NULL DEFAULT 'submitted',
       governed_action text NOT NULL,
@@ -370,12 +372,12 @@ defmodule Rulestead.ScheduledExecutionAuditContractTest do
     )")
 
     Repo.query!(
-      "CREATE UNIQUE INDEX IF NOT EXISTS change_requests_correlation_id_index ON change_requests (correlation_id)"
+      "CREATE UNIQUE INDEX IF NOT EXISTS change_requests_correlation_id_index ON rulestead.change_requests (correlation_id)"
     )
 
-    Repo.query!("CREATE TABLE IF NOT EXISTS approvals (
+    Repo.query!("CREATE TABLE IF NOT EXISTS rulestead.approvals (
       id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-      change_request_id uuid NOT NULL REFERENCES change_requests(id) ON DELETE CASCADE,
+      change_request_id uuid NOT NULL REFERENCES rulestead.change_requests(id) ON DELETE CASCADE,
       decision text NOT NULL,
       reviewer_id text NOT NULL,
       reviewer_type text NOT NULL,
@@ -387,10 +389,10 @@ defmodule Rulestead.ScheduledExecutionAuditContractTest do
       inserted_at timestamp(6) with time zone NOT NULL
     )")
 
-    Repo.query!("CREATE TABLE IF NOT EXISTS scheduled_executions (
+    Repo.query!("CREATE TABLE IF NOT EXISTS rulestead.scheduled_executions (
       id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
       state text NOT NULL DEFAULT 'scheduled',
-      change_request_id uuid REFERENCES change_requests(id) ON DELETE SET NULL,
+      change_request_id uuid REFERENCES rulestead.change_requests(id) ON DELETE SET NULL,
       governed_action text NOT NULL,
       environment_key text,
       resource_type text,
@@ -416,16 +418,16 @@ defmodule Rulestead.ScheduledExecutionAuditContractTest do
     )")
 
     Repo.query!(
-      "CREATE UNIQUE INDEX IF NOT EXISTS scheduled_executions_correlation_id_index ON scheduled_executions (correlation_id)"
+      "CREATE UNIQUE INDEX IF NOT EXISTS scheduled_executions_correlation_id_index ON rulestead.scheduled_executions (correlation_id)"
     )
 
     Repo.query!(
-      "CREATE UNIQUE INDEX IF NOT EXISTS scheduled_executions_idempotency_key_index ON scheduled_executions (idempotency_key)"
+      "CREATE UNIQUE INDEX IF NOT EXISTS scheduled_executions_idempotency_key_index ON rulestead.scheduled_executions (idempotency_key)"
     )
 
-    Repo.query!("CREATE TABLE IF NOT EXISTS execution_attempts (
+    Repo.query!("CREATE TABLE IF NOT EXISTS rulestead.execution_attempts (
       id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-      scheduled_execution_id uuid NOT NULL REFERENCES scheduled_executions(id) ON DELETE CASCADE,
+      scheduled_execution_id uuid NOT NULL REFERENCES rulestead.scheduled_executions(id) ON DELETE CASCADE,
       attempt_number integer NOT NULL,
       state text NOT NULL,
       started_at timestamp(6) with time zone NOT NULL,
@@ -436,10 +438,10 @@ defmodule Rulestead.ScheduledExecutionAuditContractTest do
     )")
 
     Repo.query!(
-      "CREATE UNIQUE INDEX IF NOT EXISTS execution_attempts_scheduled_execution_attempt_number_index ON execution_attempts (scheduled_execution_id, attempt_number)"
+      "CREATE UNIQUE INDEX IF NOT EXISTS execution_attempts_scheduled_execution_attempt_number_index ON rulestead.execution_attempts (scheduled_execution_id, attempt_number)"
     )
 
-    Repo.query!("CREATE TABLE IF NOT EXISTS oban_jobs (
+    Repo.query!("CREATE TABLE IF NOT EXISTS rulestead.oban_jobs (
       id bigserial PRIMARY KEY,
       state text NOT NULL DEFAULT 'scheduled',
       queue text NOT NULL DEFAULT 'default',

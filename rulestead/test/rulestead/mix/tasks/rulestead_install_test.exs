@@ -113,6 +113,7 @@ defmodule Rulestead.Mix.Tasks.RulesteadInstallTest do
 
     rulestead_config = File.read!(Path.join(config_path, "rulestead.exs"))
     assert rulestead_config =~ "MyApp.Repo"
+    assert rulestead_config =~ ~s(prefix: "rulestead")
     assert rulestead_config =~ "notifier: Rulestead.Runtime.Notifier.PhoenixPubSub"
     assert rulestead_config =~ "pubsub: MyApp.PubSub"
     assert rulestead_config =~ ~s(pubsub_topic: "rulestead:runtime_snapshot")
@@ -128,6 +129,43 @@ defmodule Rulestead.Mix.Tasks.RulesteadInstallTest do
            )
 
     assert File.read!(Path.join(config_path, "config.exs")) == updated_config
+  end
+
+  test "supports explicit public schema opt-out", %{tmp_dir: tmp_dir} do
+    config_path = Path.join(tmp_dir, "config")
+    migration_path = Path.join(tmp_dir, "priv/repo/migrations")
+
+    assert {:ok, _messages} =
+             ConfigWriter.write(MyApp.Repo, config_path: config_path, prefix: "public")
+
+    assert File.read!(Path.join(config_path, "rulestead.exs")) =~ ~s(prefix: "public")
+
+    assert {:ok, _messages} =
+             MigrationWriter.copy_migrations(
+               MyApp.Repo,
+               migrations_path: migration_path,
+               prefix: "public"
+             )
+
+    base_migration =
+      migration_path
+      |> Path.join("20260524000000_create_rulestead_tables.exs")
+      |> File.read!()
+
+    assert base_migration =~ ~s(use Rulestead.Migration, prefix: "public", create_schema: false)
+    refute base_migration =~ ~s(CREATE SCHEMA IF NOT EXISTS "public")
+  end
+
+  test "rejects missing or unsafe repo prefixes" do
+    assert Rulestead.RepoPrefix.normalize!("public") == "public"
+
+    assert_raise ArgumentError, ~r/use "public" for the public schema/, fn ->
+      Rulestead.RepoPrefix.normalize!(nil)
+    end
+
+    assert_raise ArgumentError, ~r/valid unquoted PostgreSQL identifier/, fn ->
+      Rulestead.RepoPrefix.normalize!("rulestead-billing")
+    end
   end
 
   test "validates explicit phase 5 seam settings through NimbleOptions defaults" do
@@ -216,6 +254,7 @@ defmodule Rulestead.Mix.Tasks.RulesteadInstallTest do
 
     rulestead_config = File.read!(Path.join(tmp_dir, "config/rulestead.exs"))
     assert rulestead_config =~ "environment_key: \"dev\""
+    assert rulestead_config =~ ~s(prefix: "rulestead")
     assert rulestead_config =~ "api: Rulestead.Runtime"
     assert rulestead_config =~ "notifier: Rulestead.Runtime.Notifier.PhoenixPubSub"
     assert rulestead_config =~ "pubsub: MyApp.PubSub"

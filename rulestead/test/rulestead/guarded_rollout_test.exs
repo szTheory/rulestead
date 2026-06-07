@@ -358,7 +358,7 @@ defmodule Rulestead.GuardedRolloutTest do
   defp adapter_suffix(StoreEcto), do: "ecto"
 
   defp ensure_phase50_schema! do
-    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS guardrail_decisions (
+    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS rulestead.guardrail_decisions (
       id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
       flag_key text NOT NULL,
       environment_key text NOT NULL,

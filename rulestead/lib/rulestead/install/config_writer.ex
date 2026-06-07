@@ -14,7 +14,7 @@ defmodule Rulestead.Install.ConfigWriter do
 
     File.mkdir_p!(config_dir)
 
-    rendered = render_template(repo)
+    rendered = render_template(repo, opts)
 
     with {:ok, config_message} <- maybe_write_rulestead_config(rulestead_path, rendered),
          {:ok, import_message} <- maybe_inject_import(config_path) do
@@ -22,8 +22,10 @@ defmodule Rulestead.Install.ConfigWriter do
     end
   end
 
-  defp render_template(repo) do
+  defp render_template(repo, opts) do
     host_defaults = host_defaults(repo)
+    prefix = Keyword.get(opts, :prefix, Rulestead.RepoPrefix.default_prefix())
+    prefix = Rulestead.RepoPrefix.normalize!(prefix)
 
     """
     import Config
@@ -31,7 +33,8 @@ defmodule Rulestead.Install.ConfigWriter do
     config :rulestead, :store, Rulestead.Store.Ecto
 
     config :rulestead, Rulestead.Repo,
-      repo: #{inspect(repo)}
+      repo: #{inspect(repo)},
+      prefix: #{inspect(prefix)}
 
     config :rulestead, :host,
     #{render_keyword_block(host_defaults, 2)}

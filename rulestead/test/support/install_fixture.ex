@@ -14,6 +14,10 @@ defmodule Rulestead.Test.InstallFixture do
     "config/rulestead.exs",
     "lib/host_app_web/endpoint.ex",
     "lib/host_app_web/router.ex",
+    "priv/repo/migrations/TIMESTAMP_add_guardrail_decisions.exs",
+    "priv/repo/migrations/TIMESTAMP_add_rollout_auto_advance_policies.exs",
+    "priv/repo/migrations/TIMESTAMP_create_audience_reference_projection.exs",
+    "priv/repo/migrations/TIMESTAMP_create_oban_jobs_support_table.exs",
     "priv/repo/migrations/TIMESTAMP_create_rulestead_tables.exs"
   ]
 

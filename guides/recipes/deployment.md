@@ -23,6 +23,12 @@ The installed schema is required for authoring and snapshot publication. If the
 tables are not present yet, the runtime can only serve what it already has in
 memory or on disk backup.
 
+Fresh installs place package-owned tables in the `rulestead` Postgres schema.
+Run migrations with the same repo you use for the host app; no special
+`search_path` is required. If your deployment already has public-schema
+Rulestead tables, plan an explicit data migration rather than expecting the
+installer to move them.
+
 ## Start with degraded-mode expectations
 
 The runtime is designed to tolerate startup-order imperfections better than a

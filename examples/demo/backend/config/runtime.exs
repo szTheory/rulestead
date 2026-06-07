@@ -65,6 +65,7 @@ if config_env() == :prod do
 
   config :rulestead, Rulestead.Repo,
     url: database_url,
+    prefix: System.get_env("RULESTEAD_DB_PREFIX") || "rulestead",
     pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
     socket_options: maybe_ipv6
 

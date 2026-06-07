@@ -74,7 +74,7 @@ defmodule Rulestead.WebhookOutboundAdapterContractTest do
 
       # Enqueue should have created an Oban job
       if adapter == StoreEcto do
-        result = Rulestead.Repo.query!("SELECT queue, args FROM oban_jobs")
+        result = Rulestead.Repo.query!("SELECT queue, args FROM rulestead.oban_jobs")
         assert [[queue, args]] = result.rows
         assert queue == "rulestead_webhook_delivery"
         assert args["delivery_id"] == delivery.id
@@ -128,14 +128,14 @@ defmodule Rulestead.WebhookOutboundAdapterContractTest do
   defp ensure_phase9_schema! do
     # Re-use schema from GovernanceAdapterContractTest
     Rulestead.Repo.query!(
-      "ALTER TABLE flags ADD COLUMN IF NOT EXISTS permanent boolean DEFAULT false"
+      "ALTER TABLE rulestead.flags ADD COLUMN IF NOT EXISTS permanent boolean DEFAULT false"
     )
 
     Rulestead.Repo.query!(
-      "ALTER TABLE flag_environments ADD COLUMN IF NOT EXISTS last_evaluated_at timestamp(6) with time zone"
+      "ALTER TABLE rulestead.flag_environments ADD COLUMN IF NOT EXISTS last_evaluated_at timestamp(6) with time zone"
     )
 
-    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS change_requests (
+    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS rulestead.change_requests (
       id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
       status text NOT NULL DEFAULT 'submitted',
       governed_action text NOT NULL,
@@ -159,7 +159,7 @@ defmodule Rulestead.WebhookOutboundAdapterContractTest do
   end
 
   defp ensure_phase12_schema! do
-    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS webhook_destinations (
+    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS rulestead.webhook_destinations (
       id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
       name text NOT NULL,
       description text,
@@ -173,7 +173,7 @@ defmodule Rulestead.WebhookOutboundAdapterContractTest do
       updated_at timestamp(6) with time zone NOT NULL
     )")
 
-    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS webhook_outbound_events (
+    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS rulestead.webhook_outbound_events (
       id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
       event_type text NOT NULL,
       payload jsonb NOT NULL DEFAULT '{}'::jsonb,
@@ -184,10 +184,10 @@ defmodule Rulestead.WebhookOutboundAdapterContractTest do
       inserted_at timestamp(6) with time zone NOT NULL
     )")
 
-    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS webhook_deliveries (
+    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS rulestead.webhook_deliveries (
       id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-      webhook_destination_id uuid NOT NULL REFERENCES webhook_destinations(id) ON DELETE CASCADE,
-      webhook_outbound_event_id uuid NOT NULL REFERENCES webhook_outbound_events(id) ON DELETE CASCADE,
+      webhook_destination_id uuid NOT NULL REFERENCES rulestead.webhook_destinations(id) ON DELETE CASCADE,
+      webhook_outbound_event_id uuid NOT NULL REFERENCES rulestead.webhook_outbound_events(id) ON DELETE CASCADE,
       state text NOT NULL DEFAULT 'pending',
       attempt_count integer NOT NULL DEFAULT 0,
       last_attempt_at timestamp(6) with time zone,
@@ -201,7 +201,7 @@ defmodule Rulestead.WebhookOutboundAdapterContractTest do
   end
 
   defp ensure_oban_jobs! do
-    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS oban_jobs (
+    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS rulestead.oban_jobs (
       id bigserial PRIMARY KEY,
       state text NOT NULL DEFAULT 'scheduled',
       queue text NOT NULL DEFAULT 'default',

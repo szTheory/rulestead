@@ -639,14 +639,14 @@ defmodule Rulestead.ScheduledExecutionAdapterContractTest do
 
   defp ensure_phase10_schema! do
     Rulestead.Repo.query!(
-      "ALTER TABLE flags ADD COLUMN IF NOT EXISTS permanent boolean DEFAULT false"
+      "ALTER TABLE rulestead.flags ADD COLUMN IF NOT EXISTS permanent boolean DEFAULT false"
     )
 
     Rulestead.Repo.query!(
-      "ALTER TABLE flag_environments ADD COLUMN IF NOT EXISTS last_evaluated_at timestamp(6) with time zone"
+      "ALTER TABLE rulestead.flag_environments ADD COLUMN IF NOT EXISTS last_evaluated_at timestamp(6) with time zone"
     )
 
-    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS change_requests (
+    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS rulestead.change_requests (
       id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
       status text NOT NULL DEFAULT 'submitted',
       governed_action text NOT NULL,
@@ -669,12 +669,12 @@ defmodule Rulestead.ScheduledExecutionAdapterContractTest do
     )")
 
     Rulestead.Repo.query!(
-      "CREATE UNIQUE INDEX IF NOT EXISTS change_requests_correlation_id_index ON change_requests (correlation_id)"
+      "CREATE UNIQUE INDEX IF NOT EXISTS change_requests_correlation_id_index ON rulestead.change_requests (correlation_id)"
     )
 
-    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS approvals (
+    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS rulestead.approvals (
       id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-      change_request_id uuid NOT NULL REFERENCES change_requests(id) ON DELETE CASCADE,
+      change_request_id uuid NOT NULL REFERENCES rulestead.change_requests(id) ON DELETE CASCADE,
       decision text NOT NULL,
       reviewer_id text NOT NULL,
       reviewer_type text NOT NULL,
@@ -686,10 +686,10 @@ defmodule Rulestead.ScheduledExecutionAdapterContractTest do
       inserted_at timestamp(6) with time zone NOT NULL
     )")
 
-    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS scheduled_executions (
+    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS rulestead.scheduled_executions (
       id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
       state text NOT NULL DEFAULT 'scheduled',
-      change_request_id uuid REFERENCES change_requests(id) ON DELETE SET NULL,
+      change_request_id uuid REFERENCES rulestead.change_requests(id) ON DELETE SET NULL,
       governed_action text NOT NULL,
       environment_key text,
       resource_type text,
@@ -715,14 +715,14 @@ defmodule Rulestead.ScheduledExecutionAdapterContractTest do
     )")
 
     Rulestead.Repo.query!(
-      "CREATE UNIQUE INDEX IF NOT EXISTS scheduled_executions_correlation_id_index ON scheduled_executions (correlation_id)"
+      "CREATE UNIQUE INDEX IF NOT EXISTS scheduled_executions_correlation_id_index ON rulestead.scheduled_executions (correlation_id)"
     )
 
     Rulestead.Repo.query!(
-      "CREATE UNIQUE INDEX IF NOT EXISTS scheduled_executions_idempotency_key_index ON scheduled_executions (idempotency_key)"
+      "CREATE UNIQUE INDEX IF NOT EXISTS scheduled_executions_idempotency_key_index ON rulestead.scheduled_executions (idempotency_key)"
     )
 
-    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS environment_versions (
+    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS rulestead.environment_versions (
       id uuid PRIMARY KEY,
       environment_key varchar(128) NOT NULL,
       version integer NOT NULL,
@@ -740,12 +740,12 @@ defmodule Rulestead.ScheduledExecutionAdapterContractTest do
     )")
 
     Rulestead.Repo.query!(
-      "CREATE UNIQUE INDEX IF NOT EXISTS environment_versions_environment_key_version_index ON environment_versions (environment_key, version)"
+      "CREATE UNIQUE INDEX IF NOT EXISTS environment_versions_environment_key_version_index ON rulestead.environment_versions (environment_key, version)"
     )
 
-    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS execution_attempts (
+    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS rulestead.execution_attempts (
       id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-      scheduled_execution_id uuid NOT NULL REFERENCES scheduled_executions(id) ON DELETE CASCADE,
+      scheduled_execution_id uuid NOT NULL REFERENCES rulestead.scheduled_executions(id) ON DELETE CASCADE,
       attempt_number integer NOT NULL,
       state text NOT NULL,
       started_at timestamp(6) with time zone NOT NULL,
@@ -756,10 +756,10 @@ defmodule Rulestead.ScheduledExecutionAdapterContractTest do
     )")
 
     Rulestead.Repo.query!(
-      "CREATE UNIQUE INDEX IF NOT EXISTS execution_attempts_scheduled_execution_attempt_number_index ON execution_attempts (scheduled_execution_id, attempt_number)"
+      "CREATE UNIQUE INDEX IF NOT EXISTS execution_attempts_scheduled_execution_attempt_number_index ON rulestead.execution_attempts (scheduled_execution_id, attempt_number)"
     )
 
-    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS oban_jobs (
+    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS rulestead.oban_jobs (
       id bigserial PRIMARY KEY,
       state text NOT NULL DEFAULT 'scheduled',
       queue text NOT NULL DEFAULT 'default',
@@ -781,19 +781,19 @@ defmodule Rulestead.ScheduledExecutionAdapterContractTest do
     )")
 
     Rulestead.Repo.query!(
-      "ALTER TABLE change_requests DROP CONSTRAINT IF EXISTS change_requests_governed_action_must_be_valid"
+      "ALTER TABLE rulestead.change_requests DROP CONSTRAINT IF EXISTS change_requests_governed_action_must_be_valid"
     )
 
     Rulestead.Repo.query!(
-      "ALTER TABLE change_requests ADD CONSTRAINT change_requests_governed_action_must_be_valid CHECK (governed_action IN ('publish_ruleset', 'advance_rollout', 'engage_kill_switch', 'manage_settings', 'promote_environment'))"
+      "ALTER TABLE rulestead.change_requests ADD CONSTRAINT change_requests_governed_action_must_be_valid CHECK (governed_action IN ('publish_ruleset', 'advance_rollout', 'engage_kill_switch', 'manage_settings', 'promote_environment'))"
     )
 
     Rulestead.Repo.query!(
-      "ALTER TABLE scheduled_executions DROP CONSTRAINT IF EXISTS scheduled_executions_governed_action_must_be_valid"
+      "ALTER TABLE rulestead.scheduled_executions DROP CONSTRAINT IF EXISTS scheduled_executions_governed_action_must_be_valid"
     )
 
     Rulestead.Repo.query!(
-      "ALTER TABLE scheduled_executions ADD CONSTRAINT scheduled_executions_governed_action_must_be_valid CHECK (governed_action IN ('publish_ruleset', 'advance_rollout', 'engage_kill_switch', 'release_kill_switch', 'promote_environment'))"
+      "ALTER TABLE rulestead.scheduled_executions ADD CONSTRAINT scheduled_executions_governed_action_must_be_valid CHECK (governed_action IN ('publish_ruleset', 'advance_rollout', 'engage_kill_switch', 'release_kill_switch', 'promote_environment'))"
     )
   end
 end

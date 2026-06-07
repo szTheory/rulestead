@@ -1,8 +1,8 @@
 defmodule Rulestead.Repo.Migrations.AddGuardrailDecisions do
-  use Ecto.Migration
+  use Rulestead.Migration, prefix: "rulestead", create_schema: true
 
   def change do
-    create table(:guardrail_decisions, primary_key: false) do
+    create rulestead_table(:guardrail_decisions, primary_key: false) do
       add(:id, :uuid, primary_key: true, default: fragment("gen_random_uuid()"))
       add(:flag_key, :text, null: false)
       add(:environment_key, :text, null: false)
@@ -28,25 +28,36 @@ defmodule Rulestead.Repo.Migrations.AddGuardrailDecisions do
       timestamps(type: :utc_datetime_usec, updated_at: false)
     end
 
-    create(index(:guardrail_decisions, [:flag_key, :environment_key, :occurred_at]))
-    create(index(:guardrail_decisions, [:flag_key, :environment_key, :rule_key, :stage, :occurred_at]))
-    create(index(:guardrail_decisions, [:correlation_id]))
+    create(rulestead_index(:guardrail_decisions, [:flag_key, :environment_key, :occurred_at]))
 
     create(
-      constraint(:guardrail_decisions, :guardrail_decisions_decision_state_must_be_valid,
-        check:
-          "decision_state IN ('healthy', 'pending_data', 'held', 'rollback_triggered')"
+      rulestead_index(:guardrail_decisions, [
+        :flag_key,
+        :environment_key,
+        :rule_key,
+        :stage,
+        :occurred_at
+      ])
+    )
+
+    create(rulestead_index(:guardrail_decisions, [:correlation_id]))
+
+    create(
+      rulestead_constraint(
+        :guardrail_decisions,
+        :guardrail_decisions_decision_state_must_be_valid,
+        check: "decision_state IN ('healthy', 'pending_data', 'held', 'rollback_triggered')"
       )
     )
 
     create(
-      constraint(:guardrail_decisions, :guardrail_decisions_action_type_must_be_valid,
+      rulestead_constraint(:guardrail_decisions, :guardrail_decisions_action_type_must_be_valid,
         check: "action_type IN ('advance', 'evaluate', 'hold', 'rollback')"
       )
     )
 
     create(
-      constraint(:guardrail_decisions, :guardrail_decisions_effective_percentage_bounds,
+      rulestead_constraint(:guardrail_decisions, :guardrail_decisions_effective_percentage_bounds,
         check:
           "effective_percentage IS NULL OR (effective_percentage >= 0 AND effective_percentage <= 100)"
       )

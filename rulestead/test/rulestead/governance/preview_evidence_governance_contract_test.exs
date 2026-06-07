@@ -322,14 +322,14 @@ defmodule Rulestead.Governance.PreviewEvidenceGovernanceContractTest do
 
   defp ensure_phase9_schema! do
     Rulestead.Repo.query!(
-      "ALTER TABLE flags ADD COLUMN IF NOT EXISTS permanent boolean DEFAULT false"
+      "ALTER TABLE rulestead.flags ADD COLUMN IF NOT EXISTS permanent boolean DEFAULT false"
     )
 
     Rulestead.Repo.query!(
-      "ALTER TABLE flag_environments ADD COLUMN IF NOT EXISTS last_evaluated_at timestamp(6) with time zone"
+      "ALTER TABLE rulestead.flag_environments ADD COLUMN IF NOT EXISTS last_evaluated_at timestamp(6) with time zone"
     )
 
-    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS change_requests (
+    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS rulestead.change_requests (
       id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
       status text NOT NULL DEFAULT 'submitted',
       governed_action text NOT NULL,
@@ -352,12 +352,12 @@ defmodule Rulestead.Governance.PreviewEvidenceGovernanceContractTest do
     )")
 
     Rulestead.Repo.query!(
-      "CREATE UNIQUE INDEX IF NOT EXISTS change_requests_correlation_id_index ON change_requests (correlation_id)"
+      "CREATE UNIQUE INDEX IF NOT EXISTS change_requests_correlation_id_index ON rulestead.change_requests (correlation_id)"
     )
 
-    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS approvals (
+    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS rulestead.approvals (
       id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-      change_request_id uuid NOT NULL REFERENCES change_requests(id) ON DELETE CASCADE,
+      change_request_id uuid NOT NULL REFERENCES rulestead.change_requests(id) ON DELETE CASCADE,
       decision text NOT NULL,
       reviewer_id text NOT NULL,
       reviewer_type text NOT NULL,
@@ -370,11 +370,11 @@ defmodule Rulestead.Governance.PreviewEvidenceGovernanceContractTest do
     )")
 
     Rulestead.Repo.query!(
-      "ALTER TABLE change_requests DROP CONSTRAINT IF EXISTS change_requests_governed_action_must_be_valid"
+      "ALTER TABLE rulestead.change_requests DROP CONSTRAINT IF EXISTS change_requests_governed_action_must_be_valid"
     )
 
     Rulestead.Repo.query!(
-      "ALTER TABLE change_requests ADD CONSTRAINT change_requests_governed_action_must_be_valid CHECK (governed_action IN ('publish_ruleset', 'advance_rollout', 'engage_kill_switch', 'manage_settings', 'promote_environment', 'apply_audience_mutation'))"
+      "ALTER TABLE rulestead.change_requests ADD CONSTRAINT change_requests_governed_action_must_be_valid CHECK (governed_action IN ('publish_ruleset', 'advance_rollout', 'engage_kill_switch', 'manage_settings', 'promote_environment', 'apply_audience_mutation'))"
     )
   end
 end

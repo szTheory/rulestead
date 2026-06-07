@@ -111,7 +111,7 @@ defmodule Rulestead.Store.PromotionApplyContractTest do
 
     defp ensure_environment_versions_schema! do
       Repo.query!("""
-      CREATE TABLE IF NOT EXISTS environment_versions (
+      CREATE TABLE IF NOT EXISTS rulestead.environment_versions (
         id uuid PRIMARY KEY,
         environment_key varchar(128) NOT NULL,
         version integer NOT NULL,
@@ -131,7 +131,7 @@ defmodule Rulestead.Store.PromotionApplyContractTest do
       """)
 
       Repo.query!(
-        "CREATE UNIQUE INDEX IF NOT EXISTS environment_versions_environment_key_version_index ON environment_versions (environment_key, version)"
+        "CREATE UNIQUE INDEX IF NOT EXISTS environment_versions_environment_key_version_index ON rulestead.environment_versions (environment_key, version)"
       )
     end
 

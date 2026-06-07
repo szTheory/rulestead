@@ -15,6 +15,7 @@ config :rulestead, Rulestead.Repo,
   password: "postgres",
   hostname: "localhost",
   database: "rulestead_demo_dev",
+  prefix: "rulestead",
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
