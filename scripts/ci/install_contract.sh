@@ -146,12 +146,12 @@ run_probe() {
       {:ok, %{rows: table_rows}} =
         Ecto.Adapters.SQL.query(
           Repo,
-          "select table_name from information_schema.tables where table_schema = '\''public'\'' and table_name in ('\''flags'\'', '\''environments'\'', '\''flag_environments'\'', '\''rulesets'\'', '\''audit_events'\'') order by table_name",
+          "select table_name from information_schema.tables where table_schema = '\''rulestead'\'' and table_name in ('\''flags'\'', '\''environments'\'', '\''flag_environments'\'', '\''rulesets'\'', '\''audit_events'\'') order by table_name",
           []
         )
 
       {:ok, %{rows: env_rows}} =
-        Ecto.Adapters.SQL.query(Repo, "select key from environments order by key", [])
+        Ecto.Adapters.SQL.query(Repo, "select key from rulestead.environments order by key", [])
 
       endpoint_source = File.read!("lib/host_app_web/endpoint.ex")
       router_source = File.read!("lib/host_app_web/router.ex")
