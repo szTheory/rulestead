@@ -162,16 +162,16 @@ All closed — v1.12 adoption evidence depth complete.
 
 | ID | Topic | Status | Proof |
 |----|-------|--------|-------|
-| INV-CTX-01 | Quickstart `traits:` vs `attributes:` | **Closed** | Phase 73 |
-| INV-API-01 | `api_stability.md` vs release contract | **Closed** | Phase 74–75 |
-| INV-MAINT-01 | MAINTAINING vs `api_stability.md` | **Closed** | Phase 73 |
-| INV-INTRO-01 | Intro spine missing Plug/supervision/lifecycle | **Closed** | Phase 78 |
+| INV-CTX-01 | Quickstart `traits:` vs `attributes:` | **Closed** | v1.10.1 context-truth work |
+| INV-API-01 | `api_stability.md` vs release contract | **Closed** | v1.10.1 API contract work |
+| INV-MAINT-01 | MAINTAINING vs `api_stability.md` | **Closed** | v1.10.1 maintainer-doc work |
+| INV-INTRO-01 | Intro spine missing Plug/supervision/lifecycle | **Closed** | v1.11 integration-spine work |
 
 ## Operator Next Steps
 
-- v1.14 is shipped; next project work should be maintenance-only or start a new milestone at Phase 102 only when a deferred v2 trigger fires.
+- v1.14 is shipped; next project work should be maintenance-only or start a new milestone at the next phase number only when a deferred v2 trigger fires.
 - Final Phase 101 proof bar: `python3 scripts/check_brandbook_html.py`, `bash scripts/ci/lint.sh`, and `cd examples/demo/frontend && npm run test:e2e -- brandbook.spec.ts` all exit 0.
-- No `rulestead_admin` publish preparation, package-version change, release workflow change, or Phase 8-only doc was introduced during closeout.
+- No `rulestead_admin` publish preparation, package-version change, release workflow change, or future-only documentation was introduced during closeout.
 
 ## Performance Metrics
 
