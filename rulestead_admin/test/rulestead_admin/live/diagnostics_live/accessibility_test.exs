@@ -49,7 +49,10 @@ defmodule RulesteadAdmin.Live.DiagnosticsLive.AccessibilityTest do
 
     assert has_element?(view, "section[aria-label='Topology scope']")
     assert has_element?(view, "section[aria-label='Infrastructure health summary']")
+    assert has_element?(view, "main h1.sr-only", "Diagnostics")
+    refute has_element?(view, ".rs-shell__header h1")
     assert has_element?(view, "button[aria-label='Refresh diagnostics']")
+    refute has_element?(view, ".rs-shell__header button[aria-label='Refresh diagnostics']")
 
     refreshed_html =
       view

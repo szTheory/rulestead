@@ -91,7 +91,7 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Show do
               <strong><%= humanize_status(finding.severity) %></strong>
               <code><%= finding.code %></code> — <%= finding.message %>
               <span :if={finding.audience_key}>
-                · audience <a href={audience_path(@page, finding)}><code><%= finding.audience_key %></code></a>
+                · audience <.link navigate={audience_path(@page, finding)}><code><%= finding.audience_key %></code></.link>
               </span>
             </li>
           </ul>

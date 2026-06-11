@@ -92,23 +92,26 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
         body={"You are viewing the #{@current_environment.name} environment scope. This switch changes the state you inspect; it does not promote or copy a flag between environments."}
       >
         <:actions>
-          <a
+          <.link
             :if={@missing_environment.primary_environment}
-            href={@missing_environment.primary_path}
+            navigate={@missing_environment.primary_path}
             class="rs-button rs-button--primary"
           >
+            <OperatorComponents.action_icon name="preview" />
             View <%= @missing_environment.primary_environment.name %> state
-          </a>
-          <a href={Session.current_path(assigns, fetch_mount_path(assigns) <> "/flags", %{"view" => "all"})} class="rs-button">
+          </.link>
+          <.link navigate={Session.current_path(assigns, fetch_mount_path(assigns) <> "/flags", %{"view" => "all"})} class="rs-button">
+            <OperatorComponents.action_icon name="back" />
             Open flags in <%= @current_environment.name %>
-          </a>
-          <a
+          </.link>
+          <.link
             :if={@missing_environment.compare_path}
-            href={@missing_environment.compare_path}
+            navigate={@missing_environment.compare_path}
             class="rs-button"
           >
+            <OperatorComponents.action_icon name="compare" />
             Compare environments
-          </a>
+          </.link>
         </:actions>
       </OperatorComponents.empty_state>
 
@@ -153,13 +156,13 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
                 The flag key is global, but rules, status, kill switch, and publish history are stored per environment.
               </p>
             </div>
-            <a href={compare_path(assigns, @detail.flag.key)}>Compare environments</a>
+            <.link navigate={compare_path(assigns, @detail.flag.key)}>Compare environments</.link>
           </header>
           <div class="rs-env-state-grid">
             <%= for card <- @environment_state_cards do %>
-              <a
+              <.link
                 :if={card.available?}
-                href={card.href}
+                navigate={card.href}
                 class="rs-env-state"
                 data-current={to_string(card.current?)}
                 data-available="true"
@@ -169,7 +172,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
                 <FlagComponents.environment_status status={card.status} />
                 <span><%= card.ruleset_label %></span>
                 <span><%= card.lifecycle_label %></span>
-              </a>
+              </.link>
               <div
                 :if={!card.available?}
                 class="rs-env-state"
@@ -214,11 +217,13 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
               summary="Review active and draft behavior before publishing."
               href={path_for(assigns, "/#{@detail.flag.key}/rules")}
               primary?={true}
+              icon="rules"
             />
             <OperatorComponents.task_link
               title="Rollouts"
               summary="Advance, hold, or inspect rollout stages."
               href={path_for(assigns, "/#{@detail.flag.key}/rollouts")}
+              icon="publish"
             />
           </section>
           <section class="rs-task-group" aria-label="Investigate">
@@ -227,16 +232,19 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
               title="Simulate"
               summary="Run this flag against a controlled context."
               href={path_for(assigns, "/#{@detail.flag.key}/simulate")}
+              icon="simulate"
             />
             <OperatorComponents.task_link
               title="Explain"
               summary="Answer why an actor received a decision."
               href={path_for(assigns, "/#{@detail.flag.key}/explain")}
+              icon="explain"
             />
             <OperatorComponents.task_link
               title="Open audit timeline"
               summary="Read append-only history for this flag."
               href={path_for(assigns, "/#{@detail.flag.key}/timeline")}
+              icon="timeline"
             />
           </section>
           <section class="rs-task-group" aria-label="Govern">
@@ -246,16 +254,19 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
               title="Edit metadata"
               summary="Update ownership, tags, and lifecycle posture."
               href={path_for(assigns, "/#{@detail.flag.key}/edit")}
+              icon="edit"
             />
             <OperatorComponents.task_link
               title="Review cleanup"
               summary="Check evidence before archiving."
               href={path_for(assigns, "/#{@detail.flag.key}/cleanup")}
+              icon="archive"
             />
             <OperatorComponents.task_link
               title="Compare environments"
               summary="Preview source and target state before any governed promotion."
               href={compare_path(assigns, @detail.flag.key)}
+              icon="compare"
             />
             <OperatorComponents.task_link
               :if={@rulestead_admin_policy_state.capabilities.execute? or @rulestead_admin_policy_state.capabilities.admin?}
@@ -263,6 +274,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
               summary="Emergency override route."
               href={path_for(assigns, "/#{@detail.flag.key}/kill")}
               tone="critical"
+              icon="kill"
             />
           </section>
         </nav>
@@ -285,9 +297,9 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
           <div class="rs-inline-badges">
             <FlagComponents.lifecycle_badge state={@detail.lifecycle} />
             <%= if @detail.lifecycle.state in [:stale, :potentially_stale] do %>
-              <a href={path_for(assigns, "/#{@detail.flag.key}/cleanup")}>
+              <.link navigate={path_for(assigns, "/#{@detail.flag.key}/cleanup")}>
                 <FlagComponents.stale_badge state={@detail.lifecycle.state} last_evaluated_at={@detail.lifecycle.last_evaluated_at} />
-              </a>
+              </.link>
             <% else %>
               <FlagComponents.stale_badge state={@detail.lifecycle.state} last_evaluated_at={@detail.lifecycle.last_evaluated_at} />
             <% end %>
@@ -301,7 +313,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
                 <p class="rs-eyebrow">Rules</p>
                 <h2>Rules status</h2>
               </div>
-              <a href={path_for(assigns, "/#{@detail.flag.key}/rules")}>Open rules workspace</a>
+              <.link navigate={path_for(assigns, "/#{@detail.flag.key}/rules")}>Open rules workspace</.link>
             </header>
             <OperatorComponents.detail_grid rows={[
               %{label: "Active ruleset", value: active_ruleset_label(@detail)},
@@ -322,14 +334,14 @@ defmodule RulesteadAdmin.Live.FlagLive.Show do
               <p :if={@change_request_preview == []}>No open change requests for this flag in <%= @current_environment.name %>.</p>
               <ul :if={@change_request_preview != []}>
                 <li :for={entry <- @change_request_preview}>
-                  <a href={entry.path}><%= humanize(entry.state) %> · <%= entry.title %></a>
+                  <.link navigate={entry.path}><%= humanize(entry.state) %> · <%= entry.title %></.link>
                 </li>
               </ul>
               <h3>Scheduled changes</h3>
               <p :if={@scheduled_execution_preview == []}>No scheduled changes for this flag in <%= @current_environment.name %>.</p>
               <ul :if={@scheduled_execution_preview != []}>
                 <li :for={entry <- @scheduled_execution_preview}>
-                  <a href={entry.path}><%= humanize(entry.state) %> · <%= entry.title %></a>
+                  <.link navigate={entry.path}><%= humanize(entry.state) %> · <%= entry.title %></.link>
                 </li>
               </ul>
             </div>

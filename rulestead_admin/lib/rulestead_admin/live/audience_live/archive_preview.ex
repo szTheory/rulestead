@@ -84,11 +84,11 @@ defmodule RulesteadAdmin.Live.AudienceLive.ArchivePreview do
 
       <FlagComponents.section_card :if={@preview} title="Continue">
         <p>
-          <a :if={@governance_mode != :blocked} href={confirm_path(assigns)}>
+          <.link :if={@governance_mode != :blocked} navigate={confirm_path(assigns)}>
             {continue_link_text(@governance_mode)}
-          </a>
+          </.link>
           <span :if={@governance_mode != :blocked}> · </span>
-          <a href={Shared.path(assigns, "/audiences/#{@audience_key}")}>Back to audience</a>
+          <.link navigate={Shared.path(assigns, "/audiences/#{@audience_key}")}>Back to audience</.link>
         </p>
       </FlagComponents.section_card>
     </Shell.page>

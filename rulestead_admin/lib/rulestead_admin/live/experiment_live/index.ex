@@ -160,9 +160,9 @@ defmodule RulesteadAdmin.Live.ExperimentLive.Index do
           <tbody id="experiments" phx-update="stream">
             <tr :for={{dom_id, entry} <- @streams.experiments} id={dom_id} data-flag-key={entry.flag.key} tabindex="0">
               <td>
-                <a href={experiment_path(@base_path, entry.flag.key, @current_environment.key)}>
+                <.link navigate={experiment_path(@base_path, entry.flag.key, @current_environment.key)}>
                   <code><%= entry.flag.key %></code>
-                </a>
+                </.link>
                 <FlagComponents.tag_list tags={entry.flag.tags} />
               </td>
               <td><%= humanize(entry.flag.flag_type) %></td>
@@ -180,7 +180,11 @@ defmodule RulesteadAdmin.Live.ExperimentLive.Index do
           </tbody>
         </table>
 
-        <FlagComponents.pagination page={@page} base_path={@base_path} params={pagination_params(@filters)} />
+        <FlagComponents.pagination
+          page={@page}
+          prev_path={pagination_path(@base_path, @filters, :prev, @page)}
+          next_path={pagination_path(@base_path, @filters, :next, @page)}
+        />
       </section>
     </Shell.page>
     """
@@ -230,13 +234,6 @@ defmodule RulesteadAdmin.Live.ExperimentLive.Index do
 
       {environment.key, build_index_path(base_path, env_filters)}
     end)
-  end
-
-  defp pagination_params(filters) do
-    filters
-    |> Map.drop(["after", "before"])
-    |> Enum.reject(fn {_key, value} -> is_nil(value) or value == "" or value == "false" end)
-    |> Map.new()
   end
 
   defp build_index_path(base_path, filters) do
@@ -363,6 +360,28 @@ defmodule RulesteadAdmin.Live.ExperimentLive.Index do
   defp empty_page do
     %Rulestead.Store.Command.Page{entries: [], limit: @default_limit}
   end
+
+  defp pagination_path(_base_path, _filters, :next, %{has_next_page?: false}), do: nil
+
+  defp pagination_path(base_path, filters, :next, %{next_cursor: cursor})
+       when is_binary(cursor) do
+    filters
+    |> Map.put("after", cursor)
+    |> Map.put("before", nil)
+    |> then(&build_index_path(base_path, &1))
+  end
+
+  defp pagination_path(_base_path, _filters, :prev, %{has_previous_page?: false}), do: nil
+
+  defp pagination_path(base_path, filters, :prev, %{prev_cursor: cursor})
+       when is_binary(cursor) do
+    filters
+    |> Map.put("before", cursor)
+    |> Map.put("after", nil)
+    |> then(&build_index_path(base_path, &1))
+  end
+
+  defp pagination_path(_base_path, _filters, _direction, _page), do: nil
 
   defp experiment_path(base_path, key, env), do: "#{base_path}/#{key}?env=#{env}"
 

@@ -149,7 +149,7 @@ defmodule RulesteadAdmin.Components.RolloutComponents do
         </p>
       </div>
 
-      <a href={@timeline_path}>Open full timeline</a>
+      <.link navigate={@timeline_path}>Open full timeline</.link>
     </section>
     """
   end

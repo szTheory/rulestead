@@ -127,9 +127,9 @@ defmodule RulesteadAdmin.Live.AudienceLive.ArchiveConfirm do
         />
 
         <p :if={no_confirm_form?(@governance_mode, @can_submit?)}>
-          <a href={Shared.path(assigns, "/audiences/#{@audience_key}/archive/preview")}>
+          <.link navigate={Shared.path(assigns, "/audiences/#{@audience_key}/archive/preview")}>
             Back to preview
-          </a>
+          </.link>
         </p>
       </FlagComponents.section_card>
     </Shell.page>

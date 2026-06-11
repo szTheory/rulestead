@@ -71,12 +71,11 @@ defmodule RulesteadAdmin.Live.FlagLive.Cleanup do
       env_context_help="Shows this flag key's cleanup evidence in the selected environment. Promotion uses Compare."
       policy_state={@rulestead_admin_policy_state}
     >
-      <:header_actions>
-        <a :if={@return_to} href={@return_to}>Back to flags</a>
-        <a :if={@flag_key} href={path_for(assigns, "/#{@flag_key}")}>Back to flag</a>
-      </:header_actions>
-
       <p :if={@error_message} role="alert">{@error_message}</p>
+
+      <OperatorComponents.action_bar :if={@return_to} aria_label="Cleanup navigation">
+        <a href={@return_to}>Back to flags</a>
+      </OperatorComponents.action_bar>
 
       <div :if={@detail}>
         <div class="rs-summary-grid" aria-label="Cleanup summary">
@@ -110,7 +109,10 @@ defmodule RulesteadAdmin.Live.FlagLive.Cleanup do
             Guidance limited by missing evidence. Review this flag manually before choosing a cleanup path.
           </p>
           <p :if={can_preview_archive?(@rulestead_admin_policy_state.capabilities)}>
-            <a class="rs-button rs-button--primary" href={path_for(assigns, "/#{@detail.flag.key}/cleanup/preview")}>Preview archive</a>
+            <.link class="rs-button rs-button--primary" navigate={path_for(assigns, "/#{@detail.flag.key}/cleanup/preview")}>
+              <OperatorComponents.action_icon name="preview" />
+              Preview archive
+            </.link>
           </p>
         </FlagComponents.callout>
 

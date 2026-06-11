@@ -96,7 +96,7 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Show do
             <p class="rs-eyebrow">Execution</p>
             <h2>Scheduled execution <code><%= @scheduled_execution.id %></code></h2>
           </div>
-          <a href={@page.schedule_path}>Back to schedule</a>
+          <.link navigate={@page.schedule_path}>Back to schedule</.link>
         </header>
         <p>Execution detail remains route-backed so retries, quarantine context, and audit links stay explicit.</p>
         <OperatorComponents.detail_grid rows={detail_rows(@scheduled_execution, @page)} />

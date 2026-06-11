@@ -161,9 +161,10 @@ defmodule RulesteadAdmin.Live.ScheduleLive.IndexTest do
 
   test "schedule page defaults to a dense env-aware list instead of a calendar-first interface",
        %{conn: conn} do
-    {:ok, view, html} = live(conn, "/admin/flags/schedule?env=prod")
+    {:ok, view, _html} = live(conn, "/admin/flags/schedule?env=prod")
+    html = render(view)
 
-    assert html =~ "Scheduled changes"
+    assert html =~ "Schedule"
     assert has_element?(view, ".rs-shell__header [aria-label='Access']", "Admin")
     refute has_element?(view, "main aside.rs-policy-state")
     assert html =~ "Dense operator list"
@@ -176,7 +177,8 @@ defmodule RulesteadAdmin.Live.ScheduleLive.IndexTest do
     refute html =~ "corr-staging"
     refute html =~ "checkout-redesign?env=staging"
 
-    {:ok, _view, filtered_html} = live(conn, "/admin/flags/schedule?env=prod&state=failed")
+    {:ok, filtered_view, _html} = live(conn, "/admin/flags/schedule?env=prod&state=failed")
+    filtered_html = render(filtered_view)
 
     assert filtered_html =~ "Filtered to failed executions"
     assert filtered_html =~ "Timed out waiting for approval snapshot refresh"

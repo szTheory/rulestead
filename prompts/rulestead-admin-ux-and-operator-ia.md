@@ -18,6 +18,7 @@
 8. **Progressive disclosure.** Beginner mode shows boolean flags only. Advanced mode surfaces variants, audiences, percentage rollouts, kill switches, scheduled changes.
 9. **AI-assist is suggestive, not autopilot.** Change-request drafts, naming hints, and rule suggestions land in a review pane — never auto-applied.
 10. **No visual novelty for its own sake.** Clarity > cleverness. Operators wake up at 3am to use this.
+11. **Affordance honesty.** Controls must look interactive, current location labels must not, and read-only evidence must not borrow input styling. Breadcrumb terminal items render as current-page text, internal admin navigation uses LiveView navigation, same-view state changes use patches, and narrative change notes use list/prose styling instead of field-like boxes. Reuse these patterns before inventing a new surface.
 
 ---
 
@@ -297,6 +298,20 @@ Destructive actions (publish, kill, advance, rollback) are NEVER optimistic. The
 - Every list has: empty state, loading skeleton, error state with retry button.
 - LiveView uses `assign_async` with `.async_result` components so skeletons render instantly.
 - Errors show a sanitized message + "Show technical details" collapse.
+
+### 4.8 Affordance catalog
+
+- **Shell header:** The app shell header is global chrome only: Rulestead wordmark, command search, and a single baseline-aligned control bar for access, environment, tenant, and theme. Environment and tenant scope use compact field-shaped selector controls that show the current scope in one trigger and list alternatives in a menu; do not render adjacent environment pills or visible "Viewing" copy. Access is low-emphasis metadata, not a button-shaped badge. Do not render visible page titles, section kickers, summaries, stacked context labels, helper prose, or page-specific actions in the header because they create route-to-route height shifts and crowd the global controls.
+- **Pills vs. selectors:** Reserve rounded pills for true status badges, filter tokens, and small inline tags. Dropdown triggers, static scope values, and shell metadata use the rectangular selector/control language (`--rs-radius-md`, left-aligned value, right-pinned affordance when interactive) so the UI does not collapse into one repeated pill shape.
+- **Brand lockup:** The top-left shell identity is the complete Rulestead wordmark SVG, linked to the mounted admin overview while preserving the current environment. Do not rebuild the logo from arbitrary text spans; the mark-to-typemark spacing, glyph outlines, and optical alignment belong to the canonical wordmark artwork. The favicon square is for browser chrome, not the in-app shell lockup.
+- **Page context:** Page-specific orientation belongs at the top of `main`, not in the shell header. Render breadcrumbs first, then the short page summary as an unframed content intro. Keep `page_title` available as a screen-reader-only H1 for semantic page naming, but do not add a second visible title above the main job-to-be-done.
+- **Breadcrumbs:** Always reserve the breadcrumb row. Top-level pages render a single current crumb such as `Flags`; detail pages render ancestors as LiveView links and the terminal crumb as non-link text with `aria-current="page"`.
+- **Page actions:** Commands belong near the content they affect: refresh and diagnostics actions in banners or section headers, filtered return links in main-content action bars, and mutation commands inside governed cards/forms. Do not put action buttons inside breadcrumbs; breadcrumbs stay navigation-only.
+- **Theme:** Theme selection is a compact global appearance menu in the shell, not a filter-like segmented control. The trigger shows the current mode with a familiar system/light/dark icon and opens three explicit choices. Keep the `system | light | dark` persistence contract, but avoid exposing all three options as equal-weight header pills.
+- **Navigation:** Internal admin page changes use LiveView navigation; same-page state such as filters, sort, search tokens, and cursor pagination uses patches. Sort and pagination must not reset theme or document identity; sort should preserve scroll position.
+- **Pagination:** Render pagination only when a previous or next page exists. Do not show filler meta like "Showing 1 flag" when the result heading already communicates count.
+- **Action icons:** Use icons only in action clusters where scanability improves: create, edit, rules, simulate, explain, preview, save, publish, archive, diagnostics, compare, back, schedule, execute, reject, timeline, and kill-switch routes. Do not add icons to breadcrumbs, pagination, filter tabs, row titles, badges, tags, or dense table links.
+- **Read-only evidence:** Narrative audit notes and change summaries use prose/list styling. Field-like borders, input backgrounds, and form spacing are reserved for editable controls or structured before/after values.
 
 ---
 

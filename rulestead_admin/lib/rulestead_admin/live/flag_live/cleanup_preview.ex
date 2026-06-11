@@ -4,7 +4,7 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupPreview do
 
   use Phoenix.LiveView
 
-  alias RulesteadAdmin.Components.{FlagComponents, Shell}
+  alias RulesteadAdmin.Components.{FlagComponents, OperatorComponents, Shell}
   alias RulesteadAdmin.Live.Session
   import Ecto.Query, only: [from: 2]
 
@@ -73,12 +73,17 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupPreview do
       env_context_help="Shows this flag key's archive preview in the selected environment. Promotion uses Compare."
       policy_state={@rulestead_admin_policy_state}
     >
-      <:header_actions>
-        <a :if={@return_to} href={@return_to}>Back to flags</a>
-        <a :if={@flag_key} href={path_for(assigns, "/#{@flag_key}/cleanup")}>Back to cleanup review</a>
-      </:header_actions>
-
       <p :if={@error_message} role="alert">{@error_message}</p>
+
+      <OperatorComponents.action_bar
+        :if={@return_to || @flag_key}
+        aria_label="Archive preview navigation"
+      >
+        <a :if={@return_to} href={@return_to}>Back to flags</a>
+        <.link :if={@flag_key} navigate={path_for(assigns, "/#{@flag_key}/cleanup")}>
+          Back to cleanup review
+        </.link>
+      </OperatorComponents.action_bar>
 
       <FlagComponents.callout :if={@drift_message} title="Preview refreshed" tone="warning">
         <p>{@drift_message}</p>
@@ -119,7 +124,7 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupPreview do
         <FlagComponents.section_card title="Decision point">
           <p>Archive consequences stay explicit on this route. Continue only when the current readiness, evidence quality, and blockers match your intent.</p>
           <p>
-            <a href={confirm_path(assigns)}>Continue to archive confirmation</a>
+            <.link navigate={confirm_path(assigns)}>Continue to archive confirmation</.link>
           </p>
         </FlagComponents.section_card>
       </div>

@@ -139,7 +139,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Rules do
             </p>
           </div>
           <div class="rs-rules-workspace__links">
-            <a href={path_for(assigns, "/#{@detail.flag.key}")}>Back to flag</a>
+            <.link navigate={path_for(assigns, "/#{@detail.flag.key}")}>Back to flag</.link>
           </div>
         </div>
 

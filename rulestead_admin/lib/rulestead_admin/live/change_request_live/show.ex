@@ -164,6 +164,7 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Show do
             phx-click="start_action"
             phx-value-action="approve"
           >
+            <OperatorComponents.action_icon name="publish" />
             Approve
           </button>
           <button
@@ -172,6 +173,7 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Show do
             phx-click="start_action"
             phx-value-action="reject"
           >
+            <OperatorComponents.action_icon name="reject" />
             Reject
           </button>
           <button
@@ -180,6 +182,7 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Show do
             phx-click="start_action"
             phx-value-action="execute"
           >
+            <OperatorComponents.action_icon name="execute" />
             Execute now
           </button>
           <button
@@ -188,6 +191,7 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Show do
             phx-click="start_action"
             phx-value-action="schedule"
           >
+            <OperatorComponents.action_icon name="schedule" />
             Schedule
           </button>
         </div>

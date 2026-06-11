@@ -118,12 +118,15 @@ defmodule RulesteadAdmin.Integration.AdminMountTest do
              live(inventory_conn, "/admin/flags/flags")
 
     redirected_conn = conn |> Phoenix.ConnTest.recycle() |> host_conn()
-    {:ok, _list_view, list_html} = live(redirected_conn, "/admin/flags/flags?env=prod&view=all")
+    {:ok, list_view, list_html} = live(redirected_conn, "/admin/flags/flags?env=prod&view=all")
     assert list_html =~ "Feature flags"
     assert list_html =~ "Viewing environment"
     assert list_html =~ "Production"
+    assert list_html =~ ~s(id="rs-env-trigger")
+    assert list_html =~ ~s(aria-label="Environment: Production")
+    assert list_html =~ ~s(id="rs-env-menu")
     assert list_html =~ ~s(href="/admin/flags/flags?env=dev&amp;view=all")
-    assert list_html =~ ~s(href="/admin/flags/flags?env=prod&amp;view=all")
+    refute has_element?(list_view, "#rs-env-menu a[data-current='true']")
     assert list_html =~ "/admin/flags/checkout-redesign"
 
     detail_conn = conn |> Phoenix.ConnTest.recycle() |> host_conn()

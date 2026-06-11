@@ -249,11 +249,6 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
       env_context_help="Shows this flag key's rollout state in the selected environment. Promotion uses Compare."
       policy_state={@rulestead_admin_policy_state}
     >
-      <:header_actions>
-        <a href={path_for(assigns, "/#{@flag_key}")}>Back to flag</a>
-        <a href={path_for(assigns, "/#{@flag_key}/rules")}>Open rules workspace</a>
-      </:header_actions>
-
       <FlagComponents.flag_sub_nav
         :if={@flag_key}
         flag_key={@flag_key}
@@ -313,9 +308,18 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
               </form>
 
               <div class="rs-rollouts__actions">
-                <button :if={@editable?} type="button" phx-click="preview">Preview sample</button>
-                <button :if={@editable? and (@rulestead_admin_policy_state.capabilities.edit? or @rulestead_admin_policy_state.capabilities.admin?)} type="button" phx-click="save_draft">Save draft</button>
-                <button :if={@editable? and (@rulestead_admin_policy_state.capabilities.execute? or @rulestead_admin_policy_state.capabilities.admin?)} type="button" phx-click="publish">Publish</button>
+                <button :if={@editable?} type="button" phx-click="preview">
+                  <OperatorComponents.action_icon name="preview" />
+                  Preview sample
+                </button>
+                <button :if={@editable? and (@rulestead_admin_policy_state.capabilities.edit? or @rulestead_admin_policy_state.capabilities.admin?)} type="button" phx-click="save_draft">
+                  <OperatorComponents.action_icon name="save" />
+                  Save draft
+                </button>
+                <button :if={@editable? and (@rulestead_admin_policy_state.capabilities.execute? or @rulestead_admin_policy_state.capabilities.admin?)} type="button" phx-click="publish">
+                  <OperatorComponents.action_icon name="publish" />
+                  Publish
+                </button>
               </div>
             </FlagComponents.section_card>
 
@@ -358,7 +362,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Rollouts do
               <div :for={entry <- @guardrail_interventions}>
                 <AuditComponents.timeline_row entry={entry} />
               </div>
-              <a href={path_for(assigns, "/#{@flag_key}/timeline")}>Open full timeline</a>
+              <.link navigate={path_for(assigns, "/#{@flag_key}/timeline")}>Open full timeline</.link>
             </section>
           </section>
 

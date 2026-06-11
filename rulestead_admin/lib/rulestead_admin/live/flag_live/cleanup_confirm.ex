@@ -4,7 +4,7 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupConfirm do
   use Phoenix.LiveView
 
   alias Rulestead.Store.Command
-  alias RulesteadAdmin.Components.{ConfirmComponents, FlagComponents, Shell}
+  alias RulesteadAdmin.Components.{ConfirmComponents, FlagComponents, OperatorComponents, Shell}
   alias RulesteadAdmin.Live.Session
 
   @impl true
@@ -73,13 +73,16 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupConfirm do
       env_context_help="Shows this flag key's archive confirmation in the selected environment. Promotion uses Compare."
       policy_state={@rulestead_admin_policy_state}
     >
-      <:header_actions>
-        <a :if={@return_to} href={@return_to}>Back to flags</a>
-        <a :if={@flag_key} href={preview_path(assigns)}>Back to archive preview</a>
-      </:header_actions>
-
       <p :if={@error_message} role="alert">{@error_message}</p>
       <p :if={@notice} role="status">{@notice}</p>
+
+      <OperatorComponents.action_bar
+        :if={@return_to || @flag_key}
+        aria_label="Archive confirmation navigation"
+      >
+        <a :if={@return_to} href={@return_to}>Back to flags</a>
+        <.link :if={@flag_key} navigate={preview_path(assigns)}>Back to archive preview</.link>
+      </OperatorComponents.action_bar>
 
       <div :if={@detail}>
         <div class="rs-summary-grid" aria-label="Archive confirm summary">

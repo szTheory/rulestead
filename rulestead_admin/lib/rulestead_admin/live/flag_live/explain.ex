@@ -109,12 +109,6 @@ defmodule RulesteadAdmin.Live.FlagLive.Explain do
       env_context_help="Shows this flag key's explanation context in the selected environment. Promotion uses Compare."
       policy_state={@page.policy_state}
     >
-      <:header_actions>
-        <a href={flag_detail_path(assigns)}>Back to flag</a>
-        <a href={simulate_path(assigns)}>Open simulate</a>
-        <a href={timeline_path(assigns)}>Open timeline</a>
-      </:header_actions>
-
       <FlagComponents.flag_sub_nav
         flag_key={@page.flag_key}
         base_path={@rulestead_admin_mount_path}
@@ -152,7 +146,10 @@ defmodule RulesteadAdmin.Live.FlagLive.Explain do
               <p class="rs-field-help">Optional support trace handle.</p>
             </div>
             <div class="rs-form-actions rs-form-field--wide">
-              <button class="rs-button rs-button--primary" type="submit">Explain decision</button>
+              <button class="rs-button rs-button--primary" type="submit">
+                <OperatorComponents.action_icon name="explain" />
+                Explain decision
+              </button>
             </div>
           </div>
         </form>
@@ -249,27 +246,6 @@ defmodule RulesteadAdmin.Live.FlagLive.Explain do
       |> maybe_put("request_id", blank_to_nil(form["request_id"]))
 
     "#{socket.assigns.rulestead_admin_mount_path}/#{flag_key}/explain?#{URI.encode_query(params)}"
-  end
-
-  defp flag_detail_path(assigns) do
-    Session.current_path(
-      assigns,
-      "#{assigns.rulestead_admin_mount_path}/#{assigns.page.flag_key}"
-    )
-  end
-
-  defp simulate_path(assigns) do
-    Session.current_path(
-      assigns,
-      "#{assigns.rulestead_admin_mount_path}/#{assigns.page.flag_key}/simulate"
-    )
-  end
-
-  defp timeline_path(assigns) do
-    Session.current_path(
-      assigns,
-      "#{assigns.rulestead_admin_mount_path}/#{assigns.page.flag_key}/timeline"
-    )
   end
 
   defp normalize_form(params) do

@@ -28,8 +28,10 @@ defmodule RulesteadAdmin.Components.AuditComponents do
       </p>
       <p :if={@reason} class="rs-banner__meta">Latest reason: {@reason}</p>
       <div class="rs-banner__actions">
-        <a href={@kill_path}>{if(@active?, do: "Open kill switch", else: "Engage kill switch")}</a>
-        <a href={@timeline_path}>Open audit timeline</a>
+        <.link navigate={@kill_path}>
+          {if(@active?, do: "Open kill switch", else: "Engage kill switch")}
+        </.link>
+        <.link navigate={@timeline_path}>Open audit timeline</.link>
         <button :if={@show_release_button} type="button" phx-click="release_kill_switch">
           Release kill switch
         </button>
@@ -195,12 +197,12 @@ defmodule RulesteadAdmin.Components.AuditComponents do
       </p>
       <div :if={nav} class="rs-audit-row__resource">
         <span class="rs-audit-row__resource-label">{nav.label}</span>
-        <a :if={nav.primary} href={nav.primary} class="rs-audit-row__resource-key">
+        <.link :if={nav.primary} navigate={nav.primary} class="rs-audit-row__resource-key">
           <code>{nav.key}</code>
-        </a>
+        </.link>
         <code :if={is_nil(nav.primary)} class="rs-audit-row__resource-key">{nav.key}</code>
         <span :if={nav.actions != []} class="rs-audit-row__resource-actions">
-          <a :for={action <- nav.actions} href={action.href}>{action.label}</a>
+          <.link :for={action <- nav.actions} navigate={action.href}>{action.label}</.link>
         </span>
       </div>
       <p :if={@entry.reason} class="rs-audit-row__reason">Reason: {@entry.reason}</p>
@@ -311,7 +313,7 @@ defmodule RulesteadAdmin.Components.AuditComponents do
         <code>{Map.get(@entry, :proposed_target_summary) || Map.get(@entry, :after_summary) || "No recorded state"}</code>
       </div>
     </div>
-    <ul :if={Map.get(@entry, :diff_lines, []) != []} class="rs-diff-card__positions">
+    <ul :if={Map.get(@entry, :diff_lines, []) != []} class="rs-diff-card__notes">
       <li :for={line <- Map.get(@entry, :diff_lines, [])}>{line}</li>
     </ul>
     """

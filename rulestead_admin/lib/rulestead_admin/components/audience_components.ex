@@ -37,9 +37,9 @@ defmodule RulesteadAdmin.Components.AudienceComponents do
             <td><code><%= entry.environment_key %></code></td>
             <td><code><%= entry.tenant_key || "—" %></code></td>
             <td>
-              <a :if={visible_flag_key?(entry.flag_key)} href={flag_link(@mount_path, entry, @environment_key, @tenant_key)}>
+              <.link :if={visible_flag_key?(entry.flag_key)} navigate={flag_link(@mount_path, entry, @environment_key, @tenant_key)}>
                 <code><%= entry.flag_key %></code>
-              </a>
+              </.link>
               <span :if={redacted_flag_key?(entry.flag_key)}>Hidden reference</span>
             </td>
             <td><code><%= entry.rule_key %></code></td>

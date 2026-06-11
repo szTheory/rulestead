@@ -55,7 +55,7 @@ defmodule RulesteadAdmin.Live.AudienceLive.DeletePreview do
 
       <AudienceComponents.impact_preview :if={@preview} preview={@preview} />
 
-      <p><a href={Shared.path(assigns, "/audiences/#{@audience_key}")}>Back to audience</a></p>
+      <p><.link navigate={Shared.path(assigns, "/audiences/#{@audience_key}")}>Back to audience</.link></p>
     </Shell.page>
     """
   end

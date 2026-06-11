@@ -3,6 +3,8 @@ defmodule RulesteadAdmin.Components.RuleEditorComponents do
 
   use Phoenix.Component
 
+  alias RulesteadAdmin.Components.OperatorComponents
+
   attr(:detail, :map, required: true)
   attr(:editable?, :boolean, required: true)
   attr(:status_message, :string, default: nil)
@@ -47,9 +49,18 @@ defmodule RulesteadAdmin.Components.RuleEditorComponents do
     <section class="rs-rule-actions" aria-label="Draft and publish actions">
       <h3>Draft and publish</h3>
       <p>Save draft and publish remain separate actions so operators can stage work safely.</p>
-      <button :if={@editable?} type="button" phx-click="save_draft">Save draft</button>
-      <button :if={@editable?} type="button" phx-click="publish">Publish</button>
-      <button :if={@editable?} type="button" phx-click="archive_flag">Archive flag</button>
+      <button :if={@editable?} type="button" phx-click="save_draft">
+        <OperatorComponents.action_icon name="save" />
+        Save draft
+      </button>
+      <button :if={@editable?} type="button" phx-click="publish">
+        <OperatorComponents.action_icon name="publish" />
+        Publish
+      </button>
+      <button :if={@editable?} type="button" phx-click="archive_flag">
+        <OperatorComponents.action_icon name="archive" />
+        Archive flag
+      </button>
       <p>Active ruleset: <%= active_version(@detail) %></p>
       <p>Draft ruleset: <%= draft_version(@detail) %></p>
     </section>
@@ -69,7 +80,7 @@ defmodule RulesteadAdmin.Components.RuleEditorComponents do
           <strong><%= audience.key %></strong>
           <span :if={Map.get(audience, :description)}> <%= Map.get(audience, :description) %></span>
           <span :if={Map.get(audience, :archived_at)}> (archived)</span>
-          <a :if={@mount_path} href={"#{@mount_path}/audiences/#{audience.key}"}>View audience <%= audience.key %></a>
+          <.link :if={@mount_path} navigate={"#{@mount_path}/audiences/#{audience.key}"}>View audience <%= audience.key %></.link>
         </li>
         <li :if={@audiences == []}>No reusable audiences available.</li>
       </ul>
@@ -96,9 +107,9 @@ defmodule RulesteadAdmin.Components.RuleEditorComponents do
             <span :if={missing_audience?(@rule, @audiences)} role="alert">
               — Audience not found in snapshot — pick another audience or remove the reference before publish.
             </span>
-            <a :if={@mount_path && @rule["audience_key"]} href={"#{@mount_path}/audiences/#{@rule["audience_key"]}"}>
+            <.link :if={@mount_path && @rule["audience_key"]} navigate={"#{@mount_path}/audiences/#{@rule["audience_key"]}"}>
               View audience <%= @rule["audience_key"] %>
-            </a>
+            </.link>
           </p>
         </div>
         <div class="rs-rule-card__moves">

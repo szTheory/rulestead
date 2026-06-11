@@ -107,11 +107,11 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Index do
               <span :if={finding.audience_key}> · audience <code><%= finding.audience_key %></code></span>
               <span :if={finding.flag_key}>
                 ·
-                <a href={dependency_flag_path(@page, finding)}><code><%= finding.flag_key %></code></a>
+                <.link navigate={dependency_flag_path(@page, finding)}><code><%= finding.flag_key %></code></.link>
               </span>
               <span :if={finding.audience_key}>
                 ·
-                <a href={dependency_audience_path(@page, finding)}><code>audience detail</code></a>
+                <.link navigate={dependency_audience_path(@page, finding)}><code>audience detail</code></.link>
               </span>
             </li>
           </ul>
@@ -127,9 +127,9 @@ defmodule RulesteadAdmin.Live.EnvironmentCompareLive.Index do
           <% else %>
             <ul class="rs-compact-list">
               <li :for={flag <- @compare.flags}>
-                <a href={flag_path(@page, flag.flag_key, @compare.compare_token)}>
+                <.link navigate={flag_path(@page, flag.flag_key, @compare.compare_token)}>
                   <strong><code><%= flag.flag_key %></code></strong>
-                </a>
+                </.link>
                 <span> · <%= humanize_status(flag_status(flag)) %></span>
                 <span> · <%= length(flag.changed_fields || []) %> changed fields</span>
                 <span> · <%= length(flag.dependency_closure_keys || []) %> dependency keys</span>

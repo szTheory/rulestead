@@ -12,11 +12,12 @@
  *  4.  system removes attr — selecting system removes data-theme
  *  5.  system follows OS — matchMedia dark OS change live-updates in system mode
  *  6.  pinned ignores OS — pinned dark ignores OS color-scheme change
- *  7.  keyboard nav — arrow keys move radiogroup selection
+ *  7.  keyboard nav — trigger opens menu and arrows move between choices
  *  8.  aria-checked — tracks active option on click
- *  9.  no animated wipe — data-theme-pending absent after hook mount
- *  10. pending cleared — data-theme-pending removed after load regardless of pinned value
- *  11. input validation — unknown localStorage value defaults to system
+ *  9.  menu dismissal — Escape and outside click close the menu
+ *  10. no animated wipe — data-theme-pending absent after hook mount
+ *  11. pending cleared — data-theme-pending removed after load regardless of pinned value
+ *  12. input validation — unknown localStorage value defaults to system
  */
 
 import { expect, test } from "@playwright/test";
@@ -56,6 +57,21 @@ async function setStoredTheme(
   );
 }
 
+async function openThemeMenu(
+  page: import("@playwright/test").Page,
+): Promise<void> {
+  await page.locator("#rs-theme-trigger").click();
+  await expect(page.locator("#rs-theme-menu")).toBeVisible();
+}
+
+async function chooseTheme(
+  page: import("@playwright/test").Page,
+  value: "system" | "light" | "dark",
+): Promise<void> {
+  await openThemeMenu(page);
+  await page.locator(`#rs-theme-menu [data-value='${value}']`).click();
+}
+
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
@@ -65,8 +81,7 @@ test("select dark — applies data-theme=dark on shell", async ({ browser }) => 
   const page = await context.newPage();
   await page.goto(harnessUrl);
 
-  // Click the Dark button directly
-  await page.locator("[data-value='dark']").click();
+  await chooseTheme(page, "dark");
 
   // data-theme should be set to "dark" on #shell
   expect(await getShellTheme(page)).toBe("dark");
@@ -79,7 +94,7 @@ test("persists dark — localStorage written on select", async ({ browser }) => 
   const page = await context.newPage();
   await page.goto(harnessUrl);
 
-  await page.locator("[data-value='dark']").click();
+  await chooseTheme(page, "dark");
 
   // localStorage must have been written synchronously by the click handler
   expect(await getStoredTheme(page)).toBe("dark");
@@ -119,8 +134,8 @@ test("system removes attr — selecting system removes data-theme", async ({
   // Confirm dark is applied
   expect(await getShellTheme(page)).toBe("dark");
 
-  // Click System — must REMOVE data-theme (not set it to "system")
-  await page.locator("[data-value='system']").click();
+  // Choose System — must REMOVE data-theme (not set it to "system")
+  await chooseTheme(page, "system");
 
   expect(await getShellTheme(page)).toBeNull();
 
@@ -172,28 +187,41 @@ test("pinned ignores OS — pinned dark ignores OS color-scheme change", async (
   await context.close();
 });
 
-test("keyboard nav — arrow keys move radiogroup selection", async ({
+test("keyboard nav — trigger opens menu and arrows move between choices", async ({
   browser,
 }) => {
   const context = await browser.newContext({ colorScheme: "light" });
   const page = await context.newPage();
   await page.goto(harnessUrl);
 
-  // Focus the System button (first option, aria-checked="true" by default)
-  await page.locator("[data-value='system']").focus();
+  await page.locator("#rs-theme-trigger").focus();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("#rs-theme-menu")).toBeVisible();
+  await expect(page.locator("[data-value='system']")).toBeFocused();
 
-  // ArrowRight → should move to Light
-  await page.keyboard.press("ArrowRight");
+  // ArrowDown moves focus to Light without selecting until Enter/Space.
+  await page.keyboard.press("ArrowDown");
+  await expect(page.locator("[data-value='light']")).toBeFocused();
+  expect(
+    await page.locator("[data-value='system']").getAttribute("aria-checked"),
+  ).toBe("true");
 
+  await page.keyboard.press("Enter");
   expect(
     await page.locator("[data-value='light']").getAttribute("aria-checked"),
   ).toBe("true");
   expect(
     await page.locator("[data-value='light']").getAttribute("tabindex"),
   ).toBe("0");
+  await expect(page.locator("#rs-theme-menu")).toBeHidden();
+  await expect(page.locator("#rs-theme-trigger")).toBeFocused();
 
-  // ArrowRight again → should move to Dark
-  await page.keyboard.press("ArrowRight");
+  await page.keyboard.press("Enter");
+  await expect(page.locator("#rs-theme-menu")).toBeVisible();
+  await expect(page.locator("[data-value='light']")).toBeFocused();
+  await page.keyboard.press("ArrowDown");
+  await expect(page.locator("[data-value='dark']")).toBeFocused();
+  await page.keyboard.press(" ");
 
   expect(
     await page.locator("[data-value='dark']").getAttribute("aria-checked"),
@@ -218,8 +246,7 @@ test("aria-checked — tracks active option on click", async ({ browser }) => {
   const page = await context.newPage();
   await page.goto(harnessUrl);
 
-  // Click Dark
-  await page.locator("[data-value='dark']").click();
+  await chooseTheme(page, "dark");
 
   expect(
     await page.locator("[data-value='dark']").getAttribute("aria-checked"),
@@ -230,6 +257,23 @@ test("aria-checked — tracks active option on click", async ({ browser }) => {
   expect(
     await page.locator("[data-value='light']").getAttribute("aria-checked"),
   ).toBe("false");
+
+  await context.close();
+});
+
+test("menu closes with Escape and outside click", async ({ browser }) => {
+  const context = await browser.newContext({ colorScheme: "light" });
+  const page = await context.newPage();
+  await page.goto(harnessUrl);
+
+  await openThemeMenu(page);
+  await page.keyboard.press("Escape");
+  await expect(page.locator("#rs-theme-menu")).toBeHidden();
+  await expect(page.locator("#rs-theme-trigger")).toBeFocused();
+
+  await openThemeMenu(page);
+  await page.locator("#outside-shell").click();
+  await expect(page.locator("#rs-theme-menu")).toBeHidden();
 
   await context.close();
 });

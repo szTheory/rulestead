@@ -194,7 +194,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
       <FlagComponents.callout :if={@outcome_notice} title="Archive result" tone="positive">
         <p><%= @outcome_notice %></p>
         <p :if={@outcome_audit_path}>
-          <a href={@outcome_audit_path}>Open audit timeline</a>
+          <.link navigate={@outcome_audit_path}>Open audit timeline</.link>
         </p>
       </FlagComponents.callout>
 
@@ -203,12 +203,13 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
           :if={@rulestead_admin_policy_state.capabilities.edit? or @rulestead_admin_policy_state.capabilities.admin?}
           class="rs-inventory__toolbar"
         >
-          <a
-            href={@rulestead_admin_mount_path <> "/new?env=" <> @current_environment.key}
+          <.link
+            navigate={@rulestead_admin_mount_path <> "/new?env=" <> @current_environment.key}
             class="rs-button rs-button--primary"
           >
+            <OperatorComponents.action_icon name="create" />
             Create flag
-          </a>
+          </.link>
         </div>
 
         <form
@@ -352,16 +353,16 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
           >
             <div class="rs-card__header">
               <div class="rs-card__title-group">
-                <a href={flag_path(assigns, entry.flag.key)} class="rs-card__title-link">
+                <.link navigate={flag_path(assigns, entry.flag.key)} class="rs-card__title-link">
                   <code><%= entry.flag.key %></code>
-                </a>
+                </.link>
                 <FlagComponents.environment_status status={entry.environment_status || entry.flag_environment.status || :draft} />
               </div>
               <div class="rs-card__actions">
                 <%= if stale_state(entry.lifecycle) in [:stale, :potentially_stale] do %>
-                  <a href={cleanup_path(assigns, entry.flag.key)}>
+                  <.link navigate={cleanup_path(assigns, entry.flag.key)}>
                     <FlagComponents.stale_badge state={stale_state(entry.lifecycle)} last_evaluated_at={entry.lifecycle.last_evaluated_at} />
-                  </a>
+                  </.link>
                 <% else %>
                   <FlagComponents.stale_badge state={stale_state(entry.lifecycle)} last_evaluated_at={entry.lifecycle.last_evaluated_at} />
                 <% end %>
@@ -421,7 +422,11 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
           variant="hero"
         />
 
-        <FlagComponents.pagination page={@page} base_path={@base_path} params={pagination_params(@filters)} />
+        <FlagComponents.pagination
+          page={@page}
+          prev_path={pagination_path(@base_path, @filters, :prev, @page)}
+          next_path={pagination_path(@base_path, @filters, :next, @page)}
+        />
       </section>
     </Shell.page>
     """
@@ -604,13 +609,6 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
 
       {environment.key, build_index_path(base_path, env_filters)}
     end)
-  end
-
-  defp pagination_params(filters) do
-    filters
-    |> Map.drop(["after", "before"])
-    |> Enum.reject(fn {_key, value} -> is_nil(value) or value == "" or value == "false" end)
-    |> Map.new()
   end
 
   defp patch_filters(socket, filters) do
@@ -823,7 +821,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
   defp normalize_view_filters(%{"view" => view} = filters, true)
        when view in ["all", "needs_review", "archive_candidates", "recently_stale", "archived"] do
     filters
-    |> apply_view(view)
+    |> apply_view(view, reset_pagination?: false)
     |> Map.put("view", view)
   end
 
@@ -832,15 +830,18 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
   defp normalize_view_filters(filters, _view_provided?) do
     case matching_inventory_view(filters) do
       nil -> Map.put(filters, "view", "custom")
-      view -> filters |> apply_view(view) |> Map.put("view", view)
+      view -> filters |> apply_view(view, reset_pagination?: false) |> Map.put("view", view)
     end
   end
 
-  defp apply_view(filters, view) do
-    filters
-    |> Map.merge(inventory_view_params(view))
-    |> Map.put("after", nil)
-    |> Map.put("before", nil)
+  defp apply_view(filters, view, opts) do
+    filters = Map.merge(filters, inventory_view_params(view))
+
+    if Keyword.get(opts, :reset_pagination?, true) do
+      reset_pagination(filters)
+    else
+      filters
+    end
   end
 
   defp matching_inventory_view(filters) do
@@ -890,11 +891,33 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
   defp inventory_view_path(assigns, view) do
     filters =
       assigns.filters
-      |> apply_view(view)
+      |> apply_view(view, reset_pagination?: true)
       |> Map.put("view", view)
 
     build_index_path(assigns.base_path, filters)
   end
+
+  defp pagination_path(_base_path, _filters, :next, %{has_next_page?: false}), do: nil
+
+  defp pagination_path(base_path, filters, :next, %{next_cursor: cursor})
+       when is_binary(cursor) do
+    filters
+    |> Map.put("after", cursor)
+    |> Map.put("before", nil)
+    |> then(&build_index_path(base_path, &1))
+  end
+
+  defp pagination_path(_base_path, _filters, :prev, %{has_previous_page?: false}), do: nil
+
+  defp pagination_path(base_path, filters, :prev, %{prev_cursor: cursor})
+       when is_binary(cursor) do
+    filters
+    |> Map.put("before", cursor)
+    |> Map.put("after", nil)
+    |> then(&build_index_path(base_path, &1))
+  end
+
+  defp pagination_path(_base_path, _filters, _direction, _page), do: nil
 
   defp omnisearch_suggestion_path(assigns, scope, value) do
     scoped_value = scoped_query_value(scope, value)
@@ -964,8 +987,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
         <strong><%= @summary.title %></strong>
         <span><%= @summary.detail %></span>
       </div>
-      <a :if={@summary.action == :cleanup} href={@cleanup_path}>Review cleanup</a>
-      <a :if={@summary.action == :timeline} href={@timeline_path}>Open timeline</a>
+      <.link :if={@summary.action == :cleanup} navigate={@cleanup_path}>Review cleanup</.link>
+      <.link :if={@summary.action == :timeline} navigate={@timeline_path}>Open timeline</.link>
     </div>
     """
   end

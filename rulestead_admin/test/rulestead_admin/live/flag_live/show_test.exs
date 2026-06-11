@@ -139,6 +139,9 @@ defmodule RulesteadAdmin.Live.FlagLive.ShowTest do
     assert html =~ "Production"
     assert html =~ "Staging"
     assert html =~ "Viewing environment"
+    assert has_element?(view, "#rs-env-trigger[aria-label='Environment: Production']")
+    assert has_element?(view, "#rs-env-menu [data-current='true']", "Production")
+    refute has_element?(view, "#rs-env-menu a[data-current='true']")
 
     assert html =~
              "Shows this flag key&#39;s state in the selected environment. Promotion uses Compare."
@@ -169,7 +172,14 @@ defmodule RulesteadAdmin.Live.FlagLive.ShowTest do
     assert html =~ "ops-cleanup is not configured in Staging"
     assert html =~ "You are viewing the Staging environment scope"
     assert html =~ "This switch changes the state you inspect"
-    assert has_element?(view, ".rs-shell__env-link[aria-disabled='true']", "Staging")
+
+    assert has_element?(
+             view,
+             "#rs-env-menu [data-current='true'][data-available='false'][aria-disabled='true']",
+             "Staging"
+           )
+
+    assert has_element?(view, "#rs-env-menu [data-current='true']", "Not configured")
 
     assert has_element?(
              view,
@@ -202,8 +212,24 @@ defmodule RulesteadAdmin.Live.FlagLive.ShowTest do
     assert html =~ "Version 1"
     assert html =~ "Draft ruleset"
     assert html =~ "Version 2"
-    assert has_element?(view, "a[href='/admin/flags/flags?env=prod']", "Flags")
-    assert has_element?(view, "a[href='/admin/flags/checkout-redesign?env=prod']", "checkout-redesign")
+
+    assert has_element?(
+             view,
+             ".rs-shell__breadcrumbs a[href='/admin/flags/flags?env=prod'][data-phx-link='redirect']",
+             "Flags"
+           )
+
+    refute has_element?(
+             view,
+             ".rs-shell__breadcrumbs a[href='/admin/flags/checkout-redesign?env=prod']",
+             "checkout-redesign"
+           )
+
+    assert has_element?(
+             view,
+             ".rs-shell__breadcrumb-current[aria-current='page']",
+             "checkout-redesign"
+           )
 
     assert has_element?(
              view,

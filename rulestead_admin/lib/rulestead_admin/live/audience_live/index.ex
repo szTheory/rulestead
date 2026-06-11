@@ -63,7 +63,7 @@ defmodule RulesteadAdmin.Live.AudienceLive.Index do
           <tbody>
             <tr :for={audience <- @audiences}>
               <td>
-                <a href={Shared.path(assigns, "/audiences/#{audience.key}")}><code><%= audience.key %></code></a>
+                <.link navigate={Shared.path(assigns, "/audiences/#{audience.key}")}><code><%= audience.key %></code></.link>
               </td>
               <td><%= audience.description || "—" %></td>
               <td>

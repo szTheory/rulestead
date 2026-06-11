@@ -47,9 +47,9 @@ defmodule RulesteadAdmin.Live.DiagnosticsLive.IndexTest do
 
     loaded_html = render_async(view)
 
-    assert html =~ "Infrastructure health"
+    assert html =~ "Diagnostics"
     assert loaded_html =~ "Current node only"
-    assert loaded_html =~ "Infrastructure health"
+    assert loaded_html =~ "Infrastructure health summary"
     assert loaded_html =~ "Cache age"
     assert loaded_html =~ "Sync latency"
     assert loaded_html =~ "Snapshot version"
@@ -59,6 +59,56 @@ defmodule RulesteadAdmin.Live.DiagnosticsLive.IndexTest do
     assert loaded_html =~ "PubSub"
     assert loaded_html =~ "Production"
     assert has_element?(view, "a[href='/admin/flags/diagnostics?env=staging']")
+
+    assert has_element?(
+             view,
+             ".rs-shell__brand[aria-label='Rulestead overview'][href='/admin/flags?env=prod']"
+           )
+
+    assert has_element?(view, ".rs-shell__wordmark[viewBox='0 0 372 64']")
+    refute has_element?(view, ".rs-shell__brand-word")
+    refute has_element?(view, ".rs-shell__brand-mark")
+    refute has_element?(view, ".rs-shell__header .rs-shell__kicker")
+    refute has_element?(view, ".rs-shell__header h1")
+    refute has_element?(view, ".rs-shell__header .rs-shell__context-label")
+    refute has_element?(view, ".rs-shell__header .rs-shell__context-help")
+    assert has_element?(view, ".rs-shell__controls[aria-label='Global controls']")
+    assert has_element?(view, ".rs-shell__controls #rs-env-context-help.sr-only")
+    assert has_element?(view, "#rs-env-trigger[aria-haspopup='menu'][aria-expanded='false']")
+    assert has_element?(view, "#rs-env-trigger[aria-label='Environment: Production']")
+    assert has_element?(view, "#rs-env-menu[role='menu'][hidden]")
+
+    assert has_element?(
+             view,
+             "#rs-env-menu [role='menuitemradio'][data-current='true'][aria-checked='true']",
+             "Production"
+           )
+
+    refute has_element?(view, "#rs-env-menu a[data-current='true']")
+    assert has_element?(view, ".rs-shell__page-intro h1.sr-only", "Diagnostics")
+
+    assert has_element?(
+             view,
+             ".rs-shell__page-intro .rs-shell__breadcrumb-current",
+             "Diagnostics"
+           )
+
+    assert has_element?(
+             view,
+             ".rs-shell__page-intro .rs-shell__page-summary",
+             "Read current-node cache freshness, sync latency, and adapter health without leaving the mounted admin surface."
+           )
+
+    assert has_element?(view, "#rs-theme-trigger[aria-haspopup='menu'][aria-expanded='false']")
+    assert has_element?(view, "#rs-theme-trigger[aria-label='Theme: System']")
+    assert has_element?(view, "#rs-theme-menu[role='menu'][hidden]")
+
+    assert has_element?(
+             view,
+             "#rs-theme-menu [role='menuitemradio'][data-value='system'][aria-checked='true']"
+           )
+
+    refute has_element?(view, ".rs-theme-control__group")
 
     assert :binary.match(loaded_html, "Current health summary") <
              :binary.match(loaded_html, "Freshness details")
@@ -72,7 +122,9 @@ defmodule RulesteadAdmin.Live.DiagnosticsLive.IndexTest do
     initial_html = render_async(view)
 
     assert has_element?(view, "button[phx-click='refresh'][aria-label='Refresh diagnostics']")
-    assert initial_html =~ "Viewing</span>"
+    refute has_element?(view, ".rs-shell__header button[phx-click='refresh']")
+    refute has_element?(view, ".rs-shell__header-actions")
+    refute initial_html =~ "Viewing</span>"
 
     refreshed_html =
       view
@@ -82,6 +134,7 @@ defmodule RulesteadAdmin.Live.DiagnosticsLive.IndexTest do
     assert refreshed_html =~ "Refresh requested"
     assert refreshed_html =~ "Current node only"
     assert refreshed_html =~ "Viewing environment"
+    assert refreshed_html =~ "Environment: Production"
   end
 
   test "diagnostics renders warning copy when selected environment has no health snapshot", %{

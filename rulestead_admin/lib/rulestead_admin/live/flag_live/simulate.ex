@@ -184,10 +184,6 @@ defmodule RulesteadAdmin.Live.FlagLive.Simulate do
       env_context_help="Shows this flag key's simulation context in the selected environment. Promotion uses Compare."
       policy_state={@page.policy_state}
     >
-      <:header_actions>
-        <a href={"#{@rulestead_admin_mount_path}/#{@page.flag_key}?env=#{@page.current_environment.key}"}>Back to flag</a>
-      </:header_actions>
-
       <FlagComponents.flag_sub_nav
         flag_key={@page.flag_key}
         base_path={@rulestead_admin_mount_path}
@@ -261,8 +257,14 @@ defmodule RulesteadAdmin.Live.FlagLive.Simulate do
                 </div>
 
                 <div class="rs-form-actions rs-form-field--wide">
-                  <button class="rs-button rs-button--primary" type="submit">Run simulation</button>
-                  <button class="rs-button" type="button" phx-click="export_fixture">Regenerate fixture export</button>
+                  <button class="rs-button rs-button--primary" type="submit">
+                    <OperatorComponents.action_icon name="simulate" />
+                    Run simulation
+                  </button>
+                  <button class="rs-button" type="button" phx-click="export_fixture">
+                    <OperatorComponents.action_icon name="save" />
+                    Regenerate fixture export
+                  </button>
                 </div>
               </div>
             </form>

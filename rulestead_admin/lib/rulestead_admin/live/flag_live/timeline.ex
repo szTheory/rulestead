@@ -53,13 +53,6 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
       env_context_help="Shows this flag key's audit history in the selected environment. Promotion uses Compare."
       policy_state={@rulestead_admin_policy_state}
     >
-      <:header_actions>
-        <a :if={@flag_key} href={path_for(assigns, "/#{@flag_key}")}>Back to flag</a>
-        <a href={Session.current_path(assigns, admin_base_path(assigns, "/audit"), %{"env_filter" => @current_environment.key})}>
-          Open global audit
-        </a>
-      </:header_actions>
-
       <FlagComponents.flag_sub_nav
         :if={@flag_key}
         flag_key={@flag_key}
@@ -80,7 +73,13 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
         title="Append-only flag history"
         body={"Use this timeline to see when #{@detail.flag.key} changed in #{@detail.environment.name}, who changed it, and the recorded reason."}
         tone="neutral"
-      />
+      >
+        <:actions>
+          <.link navigate={Session.current_path(assigns, admin_base_path(assigns, "/audit"), %{"env_filter" => @current_environment.key})}>
+            Open global audit
+          </.link>
+        </:actions>
+      </OperatorComponents.banner>
 
       <FlagComponents.callout :if={@show_rollback_guidance?} title="Rollback appends history" tone="warning">
         <p>Rollback creates a new audit event that reverses the selected change. The original event stays in history.</p>
@@ -94,10 +93,14 @@ defmodule RulesteadAdmin.Live.FlagLive.Timeline do
         variant="hero"
       >
         <:actions>
-          <a :if={@flag_key} class="rs-button" href={path_for(assigns, "/#{@flag_key}")}>Back to flag</a>
-          <a class="rs-button" href={Session.current_path(assigns, admin_base_path(assigns, "/audit"), %{"env_filter" => @current_environment.key})}>
+          <.link :if={@flag_key} class="rs-button" navigate={path_for(assigns, "/#{@flag_key}")}>
+            <OperatorComponents.action_icon name="back" />
+            Back to flag
+          </.link>
+          <.link class="rs-button" navigate={Session.current_path(assigns, admin_base_path(assigns, "/audit"), %{"env_filter" => @current_environment.key})}>
+            <OperatorComponents.action_icon name="timeline" />
             Open global audit
-          </a>
+          </.link>
         </:actions>
       </OperatorComponents.empty_state>
 

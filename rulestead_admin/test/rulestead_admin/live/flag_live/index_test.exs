@@ -178,6 +178,14 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
              "Custom"
            )
 
+    assert has_element?(
+             view,
+             ".rs-shell__breadcrumbs .rs-shell__breadcrumb-current[aria-current='page']",
+             "Flags"
+           )
+
+    refute has_element?(view, ".rs-shell__breadcrumbs a", "Flags")
+
     refute has_element?(view, "fieldset.rs-view-selector")
     refute html =~ "<legend>View</legend>"
     refute html =~ "Quick Views"
@@ -270,6 +278,43 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
     assert has_element?(archived_view, "[data-flag-key='archive-me']")
     assert has_element?(archived_view, ".rs-triage-note", "Archived")
     assert has_element?(archived_view, ".rs-triage-note a", "Open timeline")
+  end
+
+  test "cursor pagination preserves selected inventory view and replaces page entries", %{
+    conn: conn
+  } do
+    for index <- 1..11 do
+      key = "zz-page-#{String.pad_leading(Integer.to_string(index), 2, "0")}"
+
+      seed_flag!(
+        key: key,
+        ownership: %{owner_ref: "platform", owner_kind: :team, owner_display: "Platform"},
+        tags: ["pagination"]
+      )
+
+      publish_flag!(key)
+    end
+
+    {:ok, view, _html} = live(conn, "/admin/flags/flags?env=prod&view=all")
+
+    assert has_element?(view, "a[rel='next'][data-phx-link='patch']", "Next page")
+    refute has_element?(view, "a[rel='prev']", "Previous page")
+    assert has_element?(view, "[data-flag-key='checkout-redesign']")
+
+    view
+    |> element("a[rel='next']", "Next page")
+    |> render_click()
+
+    path = assert_patch(view)
+    assert path =~ "env=prod"
+    assert path =~ "view=all"
+    assert path =~ "after="
+    refute path =~ "before="
+
+    assert has_element?(view, "a[rel='prev'][data-phx-link='patch']", "Previous page")
+    refute has_element?(view, "a[rel='next']", "Next page")
+    assert has_element?(view, "[data-flag-key='zz-page-11']")
+    refute has_element?(view, "[data-flag-key='checkout-redesign']")
   end
 
   test "removes the empty state after a filtered stream resets to matching results", %{conn: conn} do
@@ -426,7 +471,10 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
          conn: conn
        } do
     {:ok, view, _html} =
-      case live(conn, "/admin/flags/flags?env=prod&readiness=archive_candidate&evidence_quality=strong") do
+      case live(
+             conn,
+             "/admin/flags/flags?env=prod&readiness=archive_candidate&evidence_quality=strong"
+           ) do
         {:ok, view, html} ->
           {:ok, view, html}
 
@@ -444,7 +492,10 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
     refute has_element?(view, "[data-flag-key='checkout-redesign']")
 
     {:ok, custom_view, _html} =
-      live(conn, "/admin/flags/flags?env=prod&view=custom&readiness=needs_review&evidence_quality=weak")
+      live(
+        conn,
+        "/admin/flags/flags?env=prod&view=custom&readiness=needs_review&evidence_quality=weak"
+      )
 
     assert has_element?(custom_view, "[data-flag-key='search-ranking']")
     refute has_element?(custom_view, "[data-flag-key='remote-config-review']")

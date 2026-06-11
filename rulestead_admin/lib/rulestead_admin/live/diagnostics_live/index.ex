@@ -22,7 +22,7 @@ defmodule RulesteadAdmin.Live.DiagnosticsLive.Index do
     page =
       Session.placeholder_assigns(socket,
         current_path: "#{socket.assigns.rulestead_admin_mount_path}/diagnostics",
-        page_title: "Infrastructure health",
+        page_title: "Diagnostics",
         page_kicker: "Diagnostics",
         page_summary:
           "Read current-node cache freshness, sync latency, and adapter health without leaving the mounted admin surface."
@@ -70,23 +70,18 @@ defmodule RulesteadAdmin.Live.DiagnosticsLive.Index do
         tenant_links={@page.tenant_links}
         policy_state={@page.policy_state}
       >
-        <:header_actions>
-          <button
-            type="button"
-            class="rs-button"
-            phx-click="refresh"
-            aria-label="Refresh diagnostics"
-          >
-            Refresh diagnostics
-          </button>
-        </:header_actions>
-
         <OperatorComponents.banner
           title={scope_title(@health_snapshot)}
           body={scope_body(@health_snapshot, @page.current_environment)}
           tone={scope_tone(@health_snapshot)}
           aria_label="Topology scope"
-        />
+        >
+          <:actions>
+            <button type="button" phx-click="refresh" aria-label="Refresh diagnostics">
+              Refresh diagnostics
+            </button>
+          </:actions>
+        </OperatorComponents.banner>
 
         <OperatorComponents.banner
           :if={@refresh_notice}

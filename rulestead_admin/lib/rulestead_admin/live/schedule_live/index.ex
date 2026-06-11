@@ -81,9 +81,9 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Index do
       <section class="rs-page-section" aria-label="State filters">
         <h2>State filters</h2>
         <div class="rs-segmented-links">
-          <a :for={filter <- @page.filter_links} href={filter.path} aria-current={if(filter.current?, do: "page", else: nil)}>
+          <.link :for={filter <- @page.filter_links} navigate={filter.path} aria-current={if(filter.current?, do: "page", else: nil)}>
             <%= filter.label %>
-          </a>
+          </.link>
         </div>
       </section>
 
@@ -107,13 +107,13 @@ defmodule RulesteadAdmin.Live.ScheduleLive.Index do
               tone={state_tone(scheduled_execution.state)}
             >
               <:actions>
-                <a href={flag_path(@rulestead_admin_mount_path, @page.current_environment.key, scheduled_execution.resource_key)}>Open flag</a>
-                <a
+                <.link navigate={flag_path(@rulestead_admin_mount_path, @page.current_environment.key, scheduled_execution.resource_key)}>Open flag</.link>
+                <.link
                   :if={scheduled_execution.change_request_id}
-                  href={change_request_path(@rulestead_admin_mount_path, @page.current_environment.key, scheduled_execution.change_request_id)}
+                  navigate={change_request_path(@rulestead_admin_mount_path, @page.current_environment.key, scheduled_execution.change_request_id)}
                 >
                   Open change request
-                </a>
+                </.link>
               </:actions>
               <OperatorComponents.detail_grid rows={schedule_rows(scheduled_execution)} />
               <p :if={scheduled_execution.failure_reason} class="rs-record-row__body">

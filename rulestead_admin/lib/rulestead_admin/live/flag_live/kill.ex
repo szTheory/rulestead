@@ -61,10 +61,6 @@ defmodule RulesteadAdmin.Live.FlagLive.Kill do
       env_context_help="Shows this flag key's kill-switch state in the selected environment. Promotion uses Compare."
       policy_state={@rulestead_admin_policy_state}
     >
-      <:header_actions>
-        <a :if={@flag_key} href={path_for(assigns, "/#{@flag_key}")}>Back to flag</a>
-      </:header_actions>
-
       <p :if={@error_message} role="alert">{@error_message}</p>
       <p :if={@notice} role="status">{@notice}</p>
 
@@ -133,8 +129,14 @@ defmodule RulesteadAdmin.Live.FlagLive.Kill do
             <h2>After action</h2>
             <p>Verify diagnostics, then use the audit timeline as the incident handoff trail.</p>
             <div class="rs-inline-actions">
-              <a class="rs-button" href={path_for(assigns, "/diagnostics")}>Open diagnostics</a>
-              <a class="rs-button" href={path_for(assigns, "/#{@detail.flag.key}/timeline")}>Open audit timeline</a>
+              <.link class="rs-button" navigate={path_for(assigns, "/diagnostics")}>
+                <OperatorComponents.action_icon name="diagnostics" />
+                Open diagnostics
+              </.link>
+              <.link class="rs-button" navigate={path_for(assigns, "/#{@detail.flag.key}/timeline")}>
+                <OperatorComponents.action_icon name="timeline" />
+                Open audit timeline
+              </.link>
             </div>
           </div>
           <div class="rs-runbook__history">

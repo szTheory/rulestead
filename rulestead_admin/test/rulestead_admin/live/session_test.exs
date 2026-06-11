@@ -241,14 +241,16 @@ defmodule RulesteadAdmin.Live.SessionTest do
           %{key: "prod", name: "Production"}
         ],
         tenants: [
-          %{key: "acme", name: "Acme"}
+          %{key: "acme", name: "Acme"},
+          %{key: "globex", name: "Globex"}
         ],
         env_links: %{
           "dev" => "/admin/flags?env=dev",
           "prod" => "/admin/flags?env=prod"
         },
         tenant_links: %{
-          "acme" => "/admin/flags?env=prod&tenant=acme"
+          "acme" => "/admin/flags?env=prod&tenant=acme",
+          "globex" => "/admin/flags?env=prod&tenant=globex"
         },
         inner_block: [
           %{
@@ -261,11 +263,91 @@ defmodule RulesteadAdmin.Live.SessionTest do
     assert html =~ "Switches the admin view scope."
     assert html =~ "Tenant"
     assert html =~ "Production"
-    assert html =~ "Viewing"
+    assert html =~ "rs-env-switcher"
+    assert html =~ "rs-env-trigger"
+    assert html =~ "aria-label=\"Environment: Production\""
+    assert html =~ "rs-env-menu"
+    assert html =~ "Current"
+    refute html =~ "Viewing</span>"
     assert html =~ "Scoped to"
     assert html =~ "Acme"
     assert html =~ "Flag list placeholder"
     assert html =~ "data-env-tone=\"production\""
     assert html =~ "/admin/flags?env=dev"
+    assert html =~ "rs-shell__page-intro"
+    assert html =~ "rs-shell-page-title"
+    assert html =~ "Compile-safe placeholder"
+    assert html =~ "rs-shell__controls"
+    assert html =~ "rs-env-context-help"
+    assert html =~ "rs-tenant-scope-help"
+    assert html =~ "rs-shell__scope-picker"
+    assert html =~ "rs-shell__scope-link"
+    refute html =~ "rs-shell__env-picker"
+    refute html =~ "rs-shell__context-label"
+    refute html =~ "rs-shell__context-help"
+    refute html =~ "rs-shell__kicker"
+    refute html =~ "rs-shell__brand-divider"
+    refute html =~ "rs-shell__title"
+  end
+
+  test "shell renders a static environment chip when only one environment is available" do
+    html =
+      render_component(&Shell.page/1,
+        page_title: "Flags",
+        page_kicker: "Flag inventory",
+        page_summary: "Compile-safe placeholder",
+        current_environment: %{key: "prod", name: "Production"},
+        environments: [
+          %{key: "prod", name: "Production"}
+        ],
+        inner_block: [
+          %{
+            inner_block: fn _changed, _slot_value -> "Flag list placeholder" end
+          }
+        ]
+      )
+
+    assert html =~ "rs-shell__env-static"
+    assert html =~ "rs-shell__scope-static"
+    assert html =~ "Production"
+    refute html =~ "rs-shell__context-item"
+    refute html =~ ~s(id="rs-env-trigger")
+    refute html =~ ~s(id="rs-env-menu")
+  end
+
+  test "shell renders access as metadata with the real highest capability" do
+    html =
+      render_component(&Shell.page/1,
+        page_title: "Flags",
+        page_kicker: "Flag inventory",
+        page_summary: "Compile-safe placeholder",
+        current_environment: %{key: "staging", name: "Staging"},
+        environments: [
+          %{key: "staging", name: "Staging"}
+        ],
+        policy_state: %{
+          capabilities: %{
+            read?: true,
+            edit?: true,
+            execute?: false,
+            propose?: false,
+            admin?: false
+          }
+        },
+        inner_block: [
+          %{
+            inner_block: fn _changed, _slot_value -> "Flag list placeholder" end
+          }
+        ]
+      )
+
+    assert html =~ "rs-shell__access-readout"
+    assert html =~ "rs-shell__access-label"
+    assert html =~ "rs-shell__access-value"
+    assert html =~ ~s(data-capability="edit")
+    assert html =~ "Access"
+    assert html =~ "Edit"
+    assert html =~ "Edit: true"
+    refute html =~ ~s(class="rs-shell__context-item")
   end
 end

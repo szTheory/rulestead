@@ -107,30 +107,19 @@ defmodule RulesteadAdmin.Components.FlagComponents do
   end
 
   attr(:page, :map, required: true)
-  attr(:base_path, :string, required: true)
-  attr(:params, :map, default: %{})
+  attr(:prev_path, :string, default: nil)
+  attr(:next_path, :string, default: nil)
 
   def pagination(assigns) do
     assigns =
-      assigns
-      |> assign(
-        :next_path,
-        pagination_path(assigns.base_path, assigns.params, :next, assigns.page)
-      )
-      |> assign(
-        :prev_path,
-        pagination_path(assigns.base_path, assigns.params, :prev, assigns.page)
-      )
+      assign(assigns, :show_pagination?, assigns.prev_path || assigns.next_path)
 
     ~H"""
-    <nav class="rs-pagination" aria-label="Flag inventory pagination">
-      <.link :if={@page.has_previous_page?} patch={@prev_path} rel="prev">
+    <nav :if={@show_pagination?} class="rs-pagination" aria-label="Flag inventory pagination">
+      <.link :if={@prev_path} patch={@prev_path} rel="prev">
         Previous page
       </.link>
-      <span class="rs-pagination__meta">
-        Showing up to <%= @page.limit %> flags
-      </span>
-      <.link :if={@page.has_next_page?} patch={@next_path} rel="next">
+      <.link :if={@next_path} patch={@next_path} rel="next">
         Next page
       </.link>
     </nav>
@@ -204,46 +193,26 @@ defmodule RulesteadAdmin.Components.FlagComponents do
     ~H"""
     <nav class="rs-flag-subnav" aria-label="Flag views">
       <div class="rs-flag-subnav__tabs">
-        <a
+        <.link
           :for={{key, label, suffix} <- @tabs}
-          href={"#{@base_path}/#{@flag_key}#{suffix}?env=#{@env_key}"}
+          navigate={"#{@base_path}/#{@flag_key}#{suffix}?env=#{@env_key}"}
           class="rs-flag-subnav__tab"
           data-current={to_string(key == @current)}
           aria-current={if(key == @current, do: "page", else: nil)}
         >
           {label}
-        </a>
+        </.link>
       </div>
-      <a
+      <.link
         :if={@show_kill?}
-        href={"#{@base_path}/#{@flag_key}/kill?env=#{@env_key}"}
+        navigate={"#{@base_path}/#{@flag_key}/kill?env=#{@env_key}"}
         class="rs-flag-subnav__kill"
         data-tone="critical"
       >
         Kill switch
-      </a>
+      </.link>
     </nav>
     """
-  end
-
-  defp pagination_path(base_path, params, :next, %{next_cursor: cursor}) when is_binary(cursor) do
-    build_path(base_path, Map.merge(params, %{"after" => cursor, "before" => nil}))
-  end
-
-  defp pagination_path(base_path, params, :prev, %{prev_cursor: cursor}) when is_binary(cursor) do
-    build_path(base_path, Map.merge(params, %{"before" => cursor, "after" => nil}))
-  end
-
-  defp pagination_path(_base_path, _params, _direction, _page), do: nil
-
-  defp build_path(base_path, params) do
-    query =
-      params
-      |> Enum.reject(fn {_key, value} -> is_nil(value) or value in ["", false, "false"] end)
-      |> Enum.into([])
-      |> URI.encode_query()
-
-    if query == "", do: base_path, else: base_path <> "?" <> query
   end
 
   @known_states %{

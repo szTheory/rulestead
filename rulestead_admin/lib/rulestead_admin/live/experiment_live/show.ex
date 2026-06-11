@@ -59,8 +59,14 @@ defmodule RulesteadAdmin.Live.ExperimentLive.Show do
 
       <div :if={@detail} class="rs-detail">
         <div class="rs-detail__actions">
-          <a href={path_for(assigns, "/#{@detail.flag.key}/edit")}>Edit metadata</a>
-          <a href={path_for(assigns, "/#{@detail.flag.key}/rules")}>Open rules workspace</a>
+          <.link navigate={path_for(assigns, "/#{@detail.flag.key}/edit")}>
+            <OperatorComponents.action_icon name="edit" />
+            Edit metadata
+          </.link>
+          <.link navigate={path_for(assigns, "/#{@detail.flag.key}/rules")}>
+            <OperatorComponents.action_icon name="rules" />
+            Open rules workspace
+          </.link>
         </div>
 
         <OperatorComponents.banner

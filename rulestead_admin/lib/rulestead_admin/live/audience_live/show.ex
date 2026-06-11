@@ -4,7 +4,7 @@ defmodule RulesteadAdmin.Live.AudienceLive.Show do
 
   use Phoenix.LiveView
 
-  alias RulesteadAdmin.Components.{AudienceComponents, FlagComponents, Shell}
+  alias RulesteadAdmin.Components.{AudienceComponents, FlagComponents, OperatorComponents, Shell}
   alias RulesteadAdmin.Live.{AudienceLive.Shared, Session}
 
   @impl true
@@ -55,10 +55,6 @@ defmodule RulesteadAdmin.Live.AudienceLive.Show do
       tenant_links={@tenant_links}
       policy_state={@rulestead_admin_policy_state}
     >
-      <:header_actions>
-        <a href={Shared.path(assigns, "/audiences")}>Back to audiences</a>
-      </:header_actions>
-
       <p :if={@error_message} role="alert"><%= @error_message %></p>
 
       <div :if={@audience}>
@@ -81,9 +77,18 @@ defmodule RulesteadAdmin.Live.AudienceLive.Show do
         <FlagComponents.section_card :if={editable?(@audience)} title="Governed actions">
           <p>Every mutation uses preview, confirm, and audit.</p>
           <p class="rs-action-bar">
-            <a href={Shared.path(assigns, "/audiences/#{@audience.key}/edit/preview")}>Preview update</a>
-            <a href={Shared.path(assigns, "/audiences/#{@audience.key}/archive/preview")}>Preview archive</a>
-            <a href={Shared.path(assigns, "/audiences/#{@audience.key}/delete/preview")}>Preview delete attempt</a>
+            <.link navigate={Shared.path(assigns, "/audiences/#{@audience.key}/edit/preview")}>
+              <OperatorComponents.action_icon name="edit" />
+              Preview update
+            </.link>
+            <.link navigate={Shared.path(assigns, "/audiences/#{@audience.key}/archive/preview")}>
+              <OperatorComponents.action_icon name="archive" />
+              Preview archive
+            </.link>
+            <.link navigate={Shared.path(assigns, "/audiences/#{@audience.key}/delete/preview")}>
+              <OperatorComponents.action_icon name="reject" />
+              Preview delete attempt
+            </.link>
           </p>
         </FlagComponents.section_card>
       </div>

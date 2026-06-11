@@ -71,7 +71,7 @@ defmodule RulesteadAdmin.Live.HomeLive.Index do
     ~H"""
     <Shell.page
       page_title={"What's happening in #{@current_environment.name}"}
-      page_kicker="Rulestead"
+      page_kicker="Operator console"
       page_summary="A live read of this environment — what's serving, what's moving, and what needs you."
       current_environment={@current_environment}
       environments={@available_environments}
@@ -111,11 +111,11 @@ defmodule RulesteadAdmin.Live.HomeLive.Index do
           </p>
 
           <div :if={attention != []} class="rs-attention">
-            <a :for={item <- attention} class="rs-attention__card" data-tone={item.tone} href={item.href}>
+            <.link :for={item <- attention} class="rs-attention__card" data-tone={item.tone} navigate={item.href}>
               <span class="rs-attention__count">{item.count}</span>
               <span class="rs-attention__label">{item.label}</span>
               <span class="rs-attention__hint">{item.hint}</span>
-            </a>
+            </.link>
           </div>
         </section>
 
@@ -129,9 +129,9 @@ defmodule RulesteadAdmin.Live.HomeLive.Index do
               <p class="rs-eyebrow">What's live &amp; moving</p>
               <h2>Recent changes in {@current_environment.name}</h2>
             </div>
-            <a :if={summary.upcoming > 0 or summary.running > 0} href={@base <> "/schedule" <> @env_q}>
+            <.link :if={summary.upcoming > 0 or summary.running > 0} navigate={@base <> "/schedule" <> @env_q}>
               {schedule_label(summary)}
-            </a>
+            </.link>
           </header>
 
           <p :if={summary.high_impact == []} class="rs-attention-empty">
@@ -147,8 +147,8 @@ defmodule RulesteadAdmin.Live.HomeLive.Index do
               tone={event.tone}
             >
               <:actions>
-                <a :if={event.flag_path} href={event.flag_path}>Open flag</a>
-                <a href={@base <> "/audit" <> @env_q}>Audit</a>
+                <.link :if={event.flag_path} navigate={event.flag_path}>Open flag</.link>
+                <.link navigate={@base <> "/audit" <> @env_q}>Audit</.link>
               </:actions>
             </OperatorComponents.record_row>
           </div>

@@ -140,8 +140,8 @@ defmodule RulesteadAdmin.Live.ChangeRequestLive.Index do
             tone={change_request_tone(entry.state)}
           >
             <:actions>
-              <a href={entry.detail_path}>Review change request</a>
-              <a :if={entry.flag_path} href={entry.flag_path}>Open flag</a>
+              <.link navigate={entry.detail_path}>Review change request</.link>
+              <.link :if={entry.flag_path} navigate={entry.flag_path}>Open flag</.link>
             </:actions>
             <p>Requested by <%= actor_display(entry.submitted_by) %>.</p>
           </OperatorComponents.record_row>

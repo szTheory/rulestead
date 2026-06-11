@@ -128,7 +128,7 @@ defmodule RulesteadAdmin.Live.AudienceLive.EditConfirm do
         />
 
         <p :if={no_confirm_form?(@governance_mode, @can_submit?)}>
-          <a href={preview_path(assigns)}>Back to preview</a>
+          <.link navigate={preview_path(assigns)}>Back to preview</.link>
         </p>
       </FlagComponents.section_card>
 

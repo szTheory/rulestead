@@ -93,6 +93,26 @@ defmodule RulesteadAdmin.Live.FlagLive.TimelineTest do
     assert has_element?(view, ".rs-event-panel__result", "Denied")
     assert has_element?(view, ".rs-event-panel__result", "Applied")
 
+    assert has_element?(
+             view,
+             ".rs-shell__breadcrumbs a[href='/admin/flags/flags?env=prod'][data-phx-link='redirect']",
+             "Flags"
+           )
+
+    assert has_element?(
+             view,
+             ".rs-shell__breadcrumbs a[href='/admin/flags/checkout-redesign?env=prod'][data-phx-link='redirect']",
+             "checkout-redesign"
+           )
+
+    refute has_element?(
+             view,
+             ".rs-shell__breadcrumbs a[href='/admin/flags/checkout-redesign/timeline?env=prod']",
+             "Timeline"
+           )
+
+    assert has_element?(view, ".rs-shell__breadcrumb-current[aria-current='page']", "Timeline")
+
     rollback_html =
       view
       |> element("button[phx-click='rollback']")
@@ -117,6 +137,8 @@ defmodule RulesteadAdmin.Live.FlagLive.TimelineTest do
     assert html =~ "No published rules"
     assert html =~ "checkout-canary at position 1"
     assert html =~ "Added checkout-canary as the first rule."
+    assert html =~ "rs-diff-card__notes"
+    refute html =~ "rs-diff-card__positions"
     assert html =~ "Show redacted JSON"
     assert html =~ "Debug view. Sensitive or non-allowlisted fields may be hidden."
     assert html =~ "rs-json-token rs-json-token--key"
