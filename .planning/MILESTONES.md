@@ -1,5 +1,25 @@
 # Milestones
 
+## v1.14 Brand System Realization (Shipped: 2026-06-06)
+
+**Phases completed:** 7 phases, 28 plans
+
+**Key accomplishments:**
+
+- Recovered 27-section brand book pressure-tested and relocated to a self-contained, source-controlled `brandbook/` (BRD-01/02), with szTheory suite brand-architecture note (BRD-03)
+- 68-token DTCG 2025.10 design-token system (`tokens.json` + `tokens.css` mirror) with drift guards (`check_brand_tokens.py`, `check_tokens_css.py`, `check_synced_pair.py`)
+- Logo SVG system: wordmark, mark, mono/dark variants, 16px favicon, social card — all within 20KB budgets, concept exploration archived
+- Admin UI re-skinned to the canonical mineral palette across all four CSS cascade blocks (light default, system dark, explicit pins)
+- Six reproducible SVG specimens (palette, typography, components, code-block, readme-header, social-card)
+- Marketing copy kit (VOICE.md, COPY.md, RELEASE-TEMPLATE.md) and asset-size policy (BUDGET.md)
+- Generated `brandbook/index.html` capstone (stdlib generator, 256KB budget, drift check, file:// browser evidence, CI wiring)
+
+No new runtime APIs, schema changes, package-version changes, or publish-posture changes.
+
+**Archive:** [.planning/milestones/v1.14-ROADMAP.md](milestones/v1.14-ROADMAP.md) · phases in `.planning/milestones/v1.14-phases/`
+
+---
+
 ## v1.13 Admin UI — First-Class Dark Mode + Design-System Polish (Shipped: 2026-06-04)
 
 **Phases completed:** 8 phases, 14 plans, 24 tasks
