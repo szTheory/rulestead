@@ -1,9 +1,9 @@
-# Requirements: Rulestead — v1.14 Brand System Realization
+# Requirements: Rulestead — v1.15 Identity Tournament
 
-**Defined:** 2026-06-04
+**Defined:** 2026-06-11
 **Core Value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
 
-**Milestone goal:** Turn the recovered 27-section brand book into a buildable, WCAG-AA-verified, source-controlled brand system in a self-contained `brandbook/`, and re-skin the shipped admin UI to the canonical mineral palette — without repo bloat or widening the sibling-package product shape. No new runtime APIs. Phases 95–101.
+**Milestone goal:** Replace the icon-left-of-text lockup with a unified, integrated logo identity selected by the maintainer through an iterative rendered-options tournament, propagate it to every rendered surface, and elevate `brandbook/index.html` into a designed artifact that stands on its own. Palette/voice/copy stay frozen; fonts/colors may change only if the winning design demands it. No new runtime APIs. Phases 102–106.
 
 ## v1 Requirements
 
@@ -11,59 +11,21 @@ Requirements for this milestone. Each maps to exactly one roadmap phase.
 
 ### Brand Audit & Strategy (BRD)
 
-- [x] **BRD-01**: Maintainer has a written pressure-test audit of the recovered brand book (KEEP / TIGHTEN / REWORK / ADD / REMOVE + scorecard) identifying what is strong vs needs work.
-- [x] **BRD-02**: A canonical living `brand-book.md` exists in `brandbook/` (relocated from `prompts/` with a pointer left behind), reconciled to ship-true reality.
-- [x] **BRD-03**: A short szTheory suite brand-architecture note defines what is shared vs unique across Rulestead and sibling libraries (Parapet, Scoria, Cairnloop).
-
-### Color & Palette (PAL)
-
-- [x] **PAL-01**: Every brand-palette pairing (text / border / UI element) on light and dark surfaces has a documented, computed WCAG contrast ratio.
-- [x] **PAL-02**: All AA-failing pairings are remediated with hue-preserving (OKLCH uniform-scale) variants, and one canonical AA-passing value is selected per role/surface.
-- [x] **PAL-03**: A full dark-mode ramp is derived, anchored on the shipped v1.13 mineral-dark approach (not pure black; elevation via lightening + hairline borders).
-- [x] **PAL-04**: Decorative-only colors (e.g. Signal Gold) carry an explicit "never as normal-weight text" usage policy.
-
-### Design Tokens (TOK)
-
-- [x] **TOK-01**: `brandbook/tokens.json` expresses raw → semantic → state tokens in DTCG format with light and dark values.
-- [x] **TOK-02**: `brandbook/tokens.css` emits CSS custom properties mirroring the shipped `--rs-*` token shape for light and dark.
-- [x] **TOK-03**: Tokens cover semantic + state roles (default/hover/active/focus/disabled/selected/success/warning/error/info/subtle/muted) plus spacing, radius, border, shadow, focus-ring, code-block, and callout primitives.
-- [x] **TOK-04**: An optional Tailwind token excerpt is provided for downstream marketing/site reuse.
+- [ ] **BRD-06**: Maintainer has a written pressure-test **delta** audit of the shipped logo lockup (scored against brand-book §14's own wordmark-first recommendation and the maintainer's rejection of icon-left layouts) and of the HTML brand book's presentation quality — scoped so palette/voice/copy are not re-litigated.
 
 ### Logo & Mark System (LOGO)
 
-- [x] **LOGO-01**: Three SVG mark concepts (A structured path / B stead frame / C layered field) are produced for maintainer selection.
-- [x] **LOGO-02**: The chosen mark ships a full lockup: primary (wordmark + icon), icon-only, monochrome, and dark/light variants.
-- [x] **LOGO-03**: A `favicon.svg` (with minimal raster fallback) is legible at 16px, and a 1200×630 social/OG card is committed as SVG.
-- [x] **LOGO-04**: All logo SVGs are optimized (SVGO), accessible (`title`/`desc`), free of embedded raster, and use outlined text or a documented font fallback.
-- [x] **LOGO-05**: The off-brand phoenix-flame demo logo (and its fingerprinted copy) is replaced with the new mark, and admin/demo references are updated.
-
-### Admin Re-skin (SKIN)
-
-- [x] **SKIN-01**: `rulestead_admin/priv/static/css/rulestead_admin.css` is re-skinned to the canonical mineral palette across all 4 cascade blocks — colors only, invariant tokens untouched.
-- [x] **SKIN-02**: The re-skin passes `scripts/check_synced_pair.py` and WCAG-AA in both light and dark themes, with the `design-system.html` fixture updated.
-- [x] **SKIN-03**: A token-drift check (`check_brand_tokens.py`, mirroring `check_synced_pair.py`) verifies the admin CSS palette matches `brandbook/tokens`.
-
-### Specimens (SPEC)
-
-- [x] **SPEC-01**: Reproducible SVG specimens exist for the color palette and the typography system.
-- [x] **SPEC-02**: Reproducible SVG specimens exist for core UI components (buttons/cards/badges), a code block, a README header mock, and a social card.
-
-### Marketing & Voice Copy (COPY)
-
-- [x] **COPY-01**: Ready-to-paste copy blocks exist for the GitHub repo description, Hex.pm package description, 140-char blurb, README intro/hero, landing hero/sub + primary/secondary CTAs, and three feature blurbs.
-- [x] **COPY-02**: A voice/microcopy reference (say-this / not-this) covers error, empty, and success states plus a release-announcement template.
-
-### Repo Artifacts & Guard (REPO)
-
-- [x] **REPO-01**: `brandbook/` has a self-contained directory structure with a `README.md` and a `docs/brand-usage.md`, cross-linked to the admin CSS and the canonical brand book.
-- [x] **REPO-02**: A repo-size guard (size budget + CI check + `.gitattributes`) prevents binary bloat, and the token-sync + SVG checks are wired into the existing scripts-first CI.
+- [ ] **LOGO-06**: Tournament infrastructure exists: a generalized glyph→path pipeline (`scripts/gen_glyph_paths.py`: any pinned OFL font via curl fetch, per-glyph editable `<path>` output, weight/tracking params) plus a reproducible studio→PNG render harness (headless Chrome).
+- [ ] **LOGO-07**: Maintainer selects a winning lockup through a round-based tournament: every round is rendered (light/dark/mono, in-context sizes), gated by a maintainer keep/cut checkpoint with per-candidate feedback, logged in a persistent bracket (`103-TOURNAMENT.md`), and the winner is frozen as an executable spec (`103-WINNER.md`).
+- [ ] **LOGO-08**: Every tournament round honors the candidate guarantee: fully-integrated custom typemarks are always present; zero icon-left-of-plain-text compositions; zero rectangular container backgrounds behind the mark; primary lockups carry no tagline.
+- [ ] **LOGO-09**: The winner ships as a complete family — primary lockup (no tagline), tagline secondary, derived mark/sigil, monochrome, dark/light variants, 16px-legible favicon, 1200×630 social card — SVGO-optimized, accessible (`title`/`desc`), within the 20KB logo budgets.
+- [ ] **LOGO-10**: Brand sources are reconciled to the winner: `brand-book.md` §14 rewritten as the shipped logo system (construction, clear space, minimum sizes, usage/misuse); tokens.json/tokens.css and affected specimens updated if the winner changed fonts/colors; all token drift guards pass.
+- [ ] **LOGO-11**: The new identity is propagated to every rendered surface: admin shell wordmark + `--logo-*` theme vars (all cascade blocks), admin static marks, demo logo + favicon (with digest regen); admin LiveView and demo e2e suites pass.
 
 ### HTML Brand Book (BOOK)
 
-*Added 2026-06-05 by scope amendment (see Out of Scope note).*
-
-- [x] **BOOK-01**: A source-controlled `brandbook/index.html` renders the full brand system — essence, voice, messaging, color (from tokens), type ramp, logo lockups (embedded committed SVGs), layout, iconography, motion, and UI-writing — browsable in light and dark.
-- [x] **BOOK-02**: `index.html` is produced by a committed generator (`scripts/gen_brandbook_html.*`) from the canonical `brand-book.md` + `tokens.json` + logo SVGs (no second source of truth), kept honest by a drift-check and within the CI size budget.
+- [ ] **BOOK-03**: `brandbook/index.html` is a designed, self-contained artifact — cover/hero with the new lockup, sticky scrollspy navigation, editorial typography, live token swatch cards (hex, role, AA badge), designed logo plates, print stylesheet — still emitted by the committed generator with no second source of truth.
+- [ ] **BOOK-04**: The elevated brand book passes the drift check, stays within the documented size budget (raised only if needed, with `BUDGET.md` + guard updated in the same change), and is verified by extended `file://` browser e2e; v1.15 closes with a full guard sweep.
 
 ## v2 Requirements
 
@@ -88,20 +50,14 @@ Explicitly excluded. Documented to prevent scope creep.
 
 | Feature | Reason |
 |---------|--------|
-| **Binary** PDF brand book as a primary artifact | A committed PDF rots immediately and bloats the repo. *(Amended 2026-06-05 — see note below: a **generated, source-controlled HTML** brand book is now in scope.)* |
-| Figma (or any external tool) as source of truth | `brandbook/` text+SVG files are the canonical, reviewable source; no vendor lock-in. |
-| Mascot / character | Conflicts with the Architect+Steward positioning and the book's explicit no-phoenix/no-mascot stance. |
-| New product runtime APIs | This is a brand/UX-quality milestone; the sibling-package product shape does not widen. |
-| Re-deriving the v1.13 dark base | The shipped `#10161f` mineral-dark base is kept; only brand hues change, anchored on it. |
-| Build-time token pipeline (Style Dictionary) | Mirror-not-generate; hand-authored CSS + a drift-check avoids coupling the auto-publish release pipeline. |
-
-> **Scope amendment (2026-06-05):** A **generated, source-controlled HTML brand book**
-> (`brandbook/index.html`, emitted by a committed generator from the canonical `brand-book.md`
-> + `tokens.*` + committed logo SVGs, kept honest by a drift-check) is **in scope** as a new
-> phase. It is reviewable text — not a binary — and creates no second source of truth, so it
-> honors the anti-rot / anti-bloat / no-lock-in principles above. Only a *binary* PDF as a
-> primary artifact, and external tools as source of truth, remain out of scope. Tracked as the
-> new HTML Brand Book phase (see `ROADMAP.md`).
+| Palette / voice / copy rework | v1.14 pressure-tested and shipped these; re-litigating them is thrash. Only the logo system and the HTML book's presentation are in play. |
+| Font/color changes independent of the winner | Fonts/colors move **only** if the tournament-winning design demands it, recorded as an explicit deviation in `103-WINNER.md`. |
+| Hand-authored `index.html` | The drift guard re-renders via `render_brandbook()`; the professional redesign lives in the generator's chrome layer — no second source of truth. |
+| Auto-deciding the logo | The maintainer picks winners each round; checkpoints are mandatory, never skipped. |
+| Mascot / character / literal flags / phoenix / shields / hexagons | Standing brand-book constraints (§14, §17). |
+| New product runtime APIs | Brand/UX-quality milestone; the sibling-package product shape does not widen. |
+| Committed font binaries | BUDGET.md policy stands; glyphs are outlined to paths in artwork (OFL-permitted), TTFs stay in temp dirs. |
+| Binary PDF brand book | Print stylesheet + browser print-to-PDF covers the need without committing a binary. |
 
 ## Traceability
 
@@ -109,30 +65,12 @@ Which phases cover which requirements. Filled during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| BRD-01 | Phase 95 | Complete |
-| BRD-02 | Phase 95 | Complete |
-| BRD-03 | Phase 100 | Complete |
-| PAL-01 | Phase 95 | Complete |
-| PAL-02 | Phase 95 | Complete |
-| PAL-03 | Phase 95 | Complete |
-| PAL-04 | Phase 95 | Complete |
-| TOK-01 | Phase 96 | Complete |
-| TOK-02 | Phase 96 | Complete |
-| TOK-03 | Phase 96 | Complete |
-| TOK-04 | Phase 96 | Complete |
-| LOGO-01 | Phase 97 | Complete |
-| LOGO-02 | Phase 97 | Complete |
-| LOGO-03 | Phase 97 | Complete |
-| LOGO-04 | Phase 97 | Complete |
-| LOGO-05 | Phase 97 | Complete |
-| SKIN-01 | Phase 98 | Complete |
-| SKIN-02 | Phase 98 | Complete |
-| SKIN-03 | Phase 98 | Complete |
-| SPEC-01 | Phase 99 | Complete |
-| SPEC-02 | Phase 99 | Complete |
-| COPY-01 | Phase 100 | Complete |
-| COPY-02 | Phase 100 | Complete |
-| REPO-01 | Phase 100 | Complete |
-| REPO-02 | Phase 100 | Complete |
-| BOOK-01 | Phase 101 | Complete |
-| BOOK-02 | Phase 101 | Complete |
+| BRD-06 | Phase 102 | Pending |
+| LOGO-06 | Phase 102 | Pending |
+| LOGO-07 | Phase 103 | Pending |
+| LOGO-08 | Phase 103 | Pending |
+| LOGO-09 | Phase 104 | Pending |
+| LOGO-10 | Phase 104 | Pending |
+| LOGO-11 | Phase 105 | Pending |
+| BOOK-03 | Phase 106 | Pending |
+| BOOK-04 | Phase 106 | Pending |
