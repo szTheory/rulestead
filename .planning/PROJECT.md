@@ -78,6 +78,20 @@ v1.1–v1.9 feature band is **complete**. v1.10.x–v1.11 doc bands are **shippe
 
 **Scope note:** Post-GA brand/UX-quality milestone (like v1.13), not a deferred v2 feature wedge. No new product runtime APIs, schema changes, package-version changes, release workflow changes, or `rulestead_admin` publish preparation.
 
+## Current Milestone: v1.15 Identity Tournament
+
+**Goal:** Replace the icon-left-of-text lockup with a unified, integrated logo identity selected by the maintainer through an iterative rendered-options tournament, propagate it to every rendered surface, and elevate `brandbook/index.html` into a designed artifact that stands on its own.
+
+**Target features:**
+- Scoped pressure-test delta audit of the shipped logo (against brand-book §14's own wordmark-first recommendation) and of the HTML brand book's presentation quality — palette/voice/copy stay frozen.
+- Tournament infrastructure: generalized multi-font glyph→path pipeline (per-glyph editable SVG paths) + reproducible studio→PNG render harness.
+- Human-gated logo tournament: rendered candidate rounds (integrated typemarks mandatory; no icon-left layouts, no rectangular container backgrounds, primary lockup tagline-free), maintainer keep/cut feedback per round, variations on winners until a winner spec is frozen.
+- Winner lockup family: primary (no tagline), tagline secondary, derived mark/sigil, mono, dark/light, 16px-legible favicon, social card — within existing SVG budgets.
+- Propagation: admin shell wordmark + `--logo-*` theme vars, admin static marks, demo logo/favicon, specimens, brand-book §14 rewritten as the shipped logo system; tokens updated only if the winner changes fonts/colors.
+- HTML brand book elevation: designed cover, sticky scrollspy navigation, live token swatch cards, designed logo plates, print styles — still generator-emitted with no second source of truth.
+
+**Scope note:** Post-GA brand/UX-quality milestone (like v1.13/v1.14). No new product runtime APIs, schema changes, package-version changes, or publish-posture changes. Fonts/colors may change only if the tournament winner demands it, recorded as an explicit deviation in the winner spec.
+
 ## Next Milestone Goals
 
 **Path-to-done (canonical):** See [`.planning/threads/2026-05-28-path-to-done-milestones.md`](.planning/threads/2026-05-28-path-to-done-milestones.md).
@@ -90,12 +104,13 @@ v1.1–v1.9 feature band is **complete**. v1.10.x–v1.11 doc bands are **shippe
 | 2c | **v1.12 — Adoption evidence depth** | **Complete** (2026-05-29) — Phases 82–86 |
 | 3 | **v1.13 — Admin UI dark mode + design-system polish** | **Complete** (2026-06-04) — Phases 87–94; mounted-admin UX quality, no new runtime APIs; on branch (unmerged) |
 | 4 | **v1.14 — Brand System Realization** | **Complete** (2026-06-06) — Phases 95–101; generated HTML brand book capstone; no runtime API or publish-posture changes |
+| 4b | **v1.15 — Identity Tournament** | **Active** (started 2026-06-11) — Phases 102–106; integrated logo via maintainer tournament + HTML brand book elevation; no runtime API or publish-posture changes |
 | 5+ | **v2.0+ wedges (triggered only)** | GOV-02-ext → ROL-08 → ADM-06 per `.planning/DEFERRED.md` |
 | — | **Maintenance** | Patches and adopter support until a v2 trigger fires |
 
 **Done band:** Post-GA scope through v1.11 is repo-verified; feature band v1.1–v1.9 in `lib/` + contract tests.
 
-**Next action:** `/gsd-new-milestone` when a deferred v2 trigger fires, or maintenance-only work
+**Next action:** Execute v1.15 phases 102–106 (`/gsd-plan-phase 102`)
 
 <details>
 <summary>Latest shipped: v1.10.0 Post-GA Band Truth & Adopter Closure (2026-05-28)</summary>
@@ -363,4 +378,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-06 — shipped v1.14 Brand System Realization with generated HTML brand book capstone and no runtime API or publish-posture changes*
+*Last updated: 2026-06-11 — started v1.15 Identity Tournament (integrated logo via maintainer tournament + HTML brand book elevation; Phases 102–106)*
