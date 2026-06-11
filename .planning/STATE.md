@@ -6,7 +6,7 @@ status: planning
 last_updated: "2026-06-11T21:36:26.833Z"
 last_activity: 2026-06-11
 progress:
-  total_phases: 0
+  total_phases: 5
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -17,43 +17,45 @@ progress:
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-06-06)
+See: `.planning/PROJECT.md` (updated 2026-06-11)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
 
-**Current focus:** Milestone complete
+**Current focus:** v1.15 Identity Tournament — replace the icon-left-of-text lockup with a unified, integrated logo identity selected by the maintainer through an iterative rendered-options tournament, propagate it to every rendered surface, and elevate `brandbook/index.html` into a designed artifact that stands on its own.
 
-**Milestone:** v1.14 shipped 2026-06-06 — see `.planning/ROADMAP.md` for phase structure
+**Milestone:** v1.15 active 2026-06-11 — see `.planning/ROADMAP.md` for phase structure
 
-**Previous milestone:** v1.13 Admin UI dark mode + design-system polish shipped 2026-06-04 — see `.planning/milestones/v1.13-MILESTONE-AUDIT.md`
+**Previous milestone:** v1.14 Brand System Realization shipped 2026-06-06 — see `.planning/milestones/v1.14-ROADMAP.md`
 
 **Assessment:** `.planning/threads/2026-05-28-post-v1.11-milestone-next-step-assessment.md` (done band 93–95%)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: Phase 102 not started
 Plan: —
-Status: Defining requirements
-Last activity: 2026-06-11 — Milestone v1.15 started
+Status: Planning (roadmap created 2026-06-11; awaiting `/gsd:plan-phase 102`)
+Last activity: 2026-06-11 — Milestone v1.15 roadmap written
+
+```
+[░░░░░░░░░░░░░░░░░░░░] 0% — 0/5 phases complete
+```
 
 ## Phase Dependency Map
 
 ```
-95 (audit + palette reconciliation — GATE ZERO)
-  └──► 96 (tokens + brandbook/ scaffold)
-         └──► 98 (admin re-skin) ──► 99 (specimens) ──► 100 (copy + repo)
-  └──► 97 (logo/mark SVG system) ──► 98 (confirms final hex)
-         └──► 99 (specimens use final marks)
+102 (logo delta audit + tournament studio — GATE)
+  └──► 103 (logo tournament — human-gated rounds)
+         └──► 104 (winner lockup family + brand source reconciliation)
+                └──► 105 (propagation: admin shell + demo)
+                       └──► 106 (HTML brand book elevation + milestone close)
 ```
 
-Strict spine: **95 → 96 → 98 → 99 → 100 → 101**
-Phase 97 can overlap Phase 96 (logo design needs only Phase 95 palette, not committed tokens); Phase 97 must complete before Phase 98 closes.
-Phase 100 is the final non-capstone phase. Phase 101 builds the generated HTML brand book and closes v1.14.
+Strictly sequential: **102 → 103 → 104 → 105 → 106**
 
 Human checkpoints (cannot be automated):
 
-- Phase 95 close: maintainer accepts each AA-adjusted hex as brand-compatible
-- Phase 97 mid: maintainer selects logo concept A, B, or C before full lockup is produced
+- Phase 103: every round ends in a mandatory `autonomous: false` keep/cut checkpoint; winner checkpoint is terminal
+- Phase 105: merge-order decision for parked `fix/admin-ui-polish-attention-rail-search` branch must be resolved before execution
 
 ## Accumulated Context
 
@@ -78,7 +80,7 @@ Human checkpoints (cannot be automated):
 - **v1.14 re-skin scope:** Colors only across all 4 cascade blocks. Zero non-color property changes in `rulestead_admin.css`. Confirmed by narrow-diff review in Phase 98.
 - **v1.14 SVG policy:** Only raster binaries allowed in repo: `favicon.ico`, `favicon.png`, `apple-touch-icon.png`. All logo and specimen SVGs are source-controlled. PNGs generated on demand (never committed).
 - **v1.14 font policy:** Google Fonts CDN references only (Sora, Inter, IBM Plex Mono — all SIL OFL 1.1). No font binaries committed. SVG wordmark text outlined to paths before committing.
-- Phase numbering continues at **102** if a new milestone opens.
+- Phase numbering continues at **102** for v1.15.
 - [Phase 97-02]: Selected mark: **G4c** — multivariate decision branch, lit route (Stead Blue structure/input/off-arms, Ember Copper active top route, Quarry off-nodes). Gate pre-resolved in 97-CONCEPT-REVIEW.md.
 - [Phase 97-02]: Wordmark letterforms: geometric hand-authored outline paths (fontTools Pattern 6 fallback — Google Fonts CDN unreachable in exec env; script committed for future use).
 - [Phase 97-02]: Mono mark treatment: G4f — active node filled, off nodes hollow-stroked, so active-vs-off survives in `fill="currentColor"` contexts.
@@ -97,27 +99,6 @@ Human checkpoints (cannot be automated):
 - [Phase 97-04]: Phase 97 complete 2026-06-05. Full Nyquist sweep passed (13/13 assertions green). Selected mark G4c (multivariate decision branch). 7-SVG lockup set in brandbook/assets/logo/. Admin copies in rulestead_admin/priv/static/images/. Phoenix-flame demo logo retired; new fingerprint `2d303e8acdf20eb43468b22535dfba4e`. LOGO-01..05 done.
 - [Phase 87-01]: Theme specs use file:// harness navigation (no Phoenix required). wcagRatio inline TypeScript, no external dep.
 - [Phase 88]: --rs-primary-ring gap token added to all 4 cascade blocks; 18 hardcoded rgba() literals replaced; warning-flash amber border fixed
-- [Phase ?]: Token-contract docs in CSS THEME LAYER comment; guide links to CSS (DRY)
-- [Phase ?]: Use semibold + hairline --rs-border-subtle separator for overview rail link; suppress on mobile
-- [Phase ?]: Swap .rs-attention-empty background to --rs-surface-muted for calm raised card in dark mode
-- [Phase ?]: Darkened --rs-accent from #c45c26 to #9a3f12 in light Blocks 1+4; normal AA gate restored; dark accent unchanged
-- [Phase ?]: Canonical light-surface hex per role = Stone-Mist-passing value (trivially passes all three light surfaces)
-- [Phase ?]: Gap 2 resolution (Success/Danger on Stone Mist) escalated to D-11 maintainer gate
-- [Phase ?]: Dark shipped generics (#4ade80 #fbbf24 #f87171) documented as non-mineral; Phase 98 replaces with mineral equivalents
-- [Phase 95-03]: Brand-book pressure-test audit complete: 17 KEEP, 8 TIGHTEN, 1 REWORK (§12 color system), 3 ADD, 0 REMOVE across 27 sections
-- [Phase 95-03]: §12 REWORK (primary blocker for Phase 96): replace book-literal hexes with AA-verified values from 95-PALETTE-RECONCILIATION.md
-- [Phase 95-03]: ADD-2 BRD-03 szTheory suite note scoped to Phase 100; content outline provided in 95-BRAND-AUDIT.md
-- [Phase 95-03]: §8 tagline lock target: "Runtime decisions, made clear." — Phase 96 action
-- [Phase 96-01]: DTCG 2025.10 tokens.json committed with 37-light/31-dark admin_css_mapping; 7 primary mismatch tokens (#3A6F8F vs #2563eb, #9b5931 vs #9a3f12, #2d7753 vs #15803d, #8f601a vs #b45309, #B44949 vs #b91c1c) guarantee check_brand_tokens.py exits 1 against current CSS
-- [Phase 96-01]: tokens.css reference mirror committed with :root invariant block + two-block light/dark + Tailwind excerpt; no color token on :root (D-05)
-- [Phase 96-01]: --rs-primary-hover interim target #2d5f7c (darkened Stead Blue); Phase 98 may refine the hover shade
-- [Phase 96]: [Phase 96-03]: check_brand_tokens.py exits 1 by design against un-re-skinned CSS — Phase 96 success criterion 3 — proves the guard mechanism works before Phase 98 re-skins the admin CSS
-- [Phase 96]: brandbook/ scaffold committed — tokens.json (DTCG 2025.10), tokens.css (--rs-* mirror), check_brand_tokens.py (exits 1 intentionally against generic CSS), lint.sh extended additively
-- [Phase 96]: brand-book.md relocated from prompts/ via git mv; §12 hexes reconciled to AA-verified canonicals; Gap-2 per-surface notes added for Success/Danger on Stone Mist
-- [Phase 96]: check_synced_pair.py wired into lint.sh (was dev-only; now CI guard)
-- [Phase ?]: D-05a: Block 1≡4 light-pair assertion added to check_synced_pair.py — both pairs must pass for exit 0
-- [Phase ?]: D-05b: Block 3 dark diff folded into same mismatches list in check_brand_tokens.py — [dark] prefix; single exit condition preserves T-98-02 threat mitigation
-- [Phase ?]: lint.sh CWD fix: cd back to RULESTEAD_REPO at line 18 before guard scripts
 - [Phase 98-03]: Block 3 source-of-truth; 8 mineral dark swaps applied verbatim from tokens.json admin_css_mapping.dark; --rs-success-border #166534→#166634 one-digit fix applied
 - [Phase 98-03]: Dark synced-pair restored: Block 2 (@media) mirrors Block 3 ([data-theme=dark]); check_synced_pair.py exits 0 (56 dark + 57 light tokens)
 - [Phase 98-03]: SKIN-01 complete — all 4 cascade blocks carry mineral palette; check_brand_tokens.py exits 0 (68 tokens, 15 mismatches resolved)
@@ -137,6 +118,10 @@ Human checkpoints (cannot be automated):
 - [Phase 101-03]: generated HTML guard committed. `scripts/check_brandbook_html.py` enforces drift, required sections/source refs, unsafe marker exclusions, local link validity, unique inline SVG IDs, trailing newline, and the 262144-byte budget; `scripts/ci/lint.sh` now prints `BRANDBOOK HTML SYNCED (133280 bytes)` before `SVG SIZE BUDGET OK`.
 - [Phase 101-04]: file:// browser evidence committed in `examples/demo/frontend/tests/brandbook.spec.ts`; `brandbook/README.md` now links generated `index.html` and generator/checker commands; final gate passed with `BRANDBOOK HTML SYNCED (133765 bytes)`, `BRAND TOKENS SYNCED (68 tokens)`, `TOKENS.CSS MIRROR SYNCED (68 tokens)`, `SVG SIZE BUDGET OK`, and `brandbook.spec.ts` 6/6 tests passing.
 - [v1.14]: shipped 2026-06-06 after Phase 101 verification. No runtime API, schema, package-version, release-workflow, Hex publishing config, or `rulestead_admin` publish-prep changes were made in the capstone closeout.
+- **v1.15 scope:** Tournament lockup unit = the whole integrated lockup (icon fused with type), not just the icon. Hard constraints every round: no icon-left-of-plain-text; no rectangular container behind mark; logotype visually fused; primary lockup tagline-free; a with-tagline secondary variant ships.
+- **v1.15 font/color policy:** fonts/colors move ONLY if the tournament-winning design demands it; recorded explicitly in `103-WINNER.md`; palette/voice/copy otherwise frozen.
+- **v1.15 curl policy:** `gen_glyph_paths.py` fetches TTFs via curl subprocess (not urllib — urllib hangs on gstatic fonts requiring browser UA per exec-env memory).
+- **v1.15 parked branch:** `fix/admin-ui-polish-attention-rail-search` has dirty `shell.ex`, `rulestead_admin.css`, `root.html.heex`, `favicon.ico`, untracked `favicon.svg`. Merge-order decision required from maintainer before Phase 105 executes.
 
 ### Deferred Items (v2)
 
@@ -166,9 +151,10 @@ All closed — v1.12 adoption evidence depth complete.
 
 ## Operator Next Steps
 
-- v1.14 is shipped; next project work should be maintenance-only or start a new milestone at the next phase number only when a deferred v2 trigger fires.
-- Final Phase 101 proof bar: `python3 scripts/check_brandbook_html.py`, `bash scripts/ci/lint.sh`, and `cd examples/demo/frontend && npm run test:e2e -- brandbook.spec.ts` all exit 0.
-- No `rulestead_admin` publish preparation, package-version change, release workflow change, or future-only documentation was introduced during closeout.
+- v1.15 roadmap is written. Next action: `/gsd:plan-phase 102`.
+- Scope reminder: palette/voice/copy are frozen; fonts/colors move only if the winner demands it (recorded in `103-WINNER.md`).
+- Before Phase 105 executes: surface merge order for `fix/admin-ui-polish-attention-rail-search` to the maintainer.
+- Final proof bars (carried from v1.14, extended in v1.15): `bash scripts/ci/lint.sh`, `python3 scripts/check_brandbook_html.py`, all check scripts, admin LiveView suite, and `npm run test:e2e` in demo frontend.
 
 ## Performance Metrics
 
