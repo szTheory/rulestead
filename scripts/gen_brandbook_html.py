@@ -869,7 +869,7 @@ def theme_alias_declarations(theme: str) -> str:
             "--rs-text-muted": "#5c6b7a",
             "--rs-border": "#d8dee6",
             "--rs-border-subtle": "#e7ebf0",
-            "--rs-focus-ring-color": "rgba(37, 99, 235, 0.55)",
+            "--rs-focus-ring-color": "rgba(58, 111, 143, 0.58)",
             "--rs-focus-ring": "0 0 0 var(--rs-focus-ring-offset) #ffffff, 0 0 0 calc(var(--rs-focus-ring-offset) + 3px) var(--rs-focus-ring-color)",
         },
         "dark": {
@@ -880,7 +880,7 @@ def theme_alias_declarations(theme: str) -> str:
             "--rs-text-muted": "#a8b9ca",
             "--rs-border": "#2e3d52",
             "--rs-border-subtle": "#253243",
-            "--rs-focus-ring-color": "rgba(96, 165, 250, 0.75)",
+            "--rs-focus-ring-color": "rgba(88, 133, 160, 0.78)",
             "--rs-focus-ring": "0 0 0 var(--rs-focus-ring-offset) #141c27, 0 0 0 calc(var(--rs-focus-ring-offset) + 3px) var(--rs-focus-ring-color)",
         },
     }

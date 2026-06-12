@@ -27,6 +27,18 @@ const dsUrl =
     __dirname,
     "../../../../rulestead_admin/priv/static/design-system.html",
   );
+const themeHarnessUrl =
+  "file://" +
+  path.resolve(
+    __dirname,
+    "../../../../rulestead_admin/priv/static/theme-harness.html",
+  );
+const themeControlHarnessUrl =
+  "file://" +
+  path.resolve(
+    __dirname,
+    "../../../../rulestead_admin/priv/static/theme-control-harness.html",
+  );
 
 // ---------------------------------------------------------------------------
 // LIGHT THEME
@@ -34,12 +46,16 @@ const dsUrl =
 
 test("light: text on surface passes AA", () => {
   assertAABatch([
-    { label: "--rs-text on --rs-surface",              fg: "#1a2332", bg: "#ffffff" },
-    { label: "--rs-text-muted on --rs-surface",        fg: "#5c6b7a", bg: "#ffffff" },
-    { label: "--rs-text on --rs-bg",                   fg: "#1a2332", bg: "#f4f6f8" },
-    { label: "--rs-text-muted on --rs-bg",             fg: "#5c6b7a", bg: "#f4f6f8" },
-    { label: "--rs-text on --rs-surface-muted",        fg: "#1a2332", bg: "#eef1f5" },
-    { label: "--rs-text-muted on --rs-surface-muted",  fg: "#5c6b7a", bg: "#eef1f5" },
+    { label: "--rs-text on --rs-surface", fg: "#1a2332", bg: "#ffffff" },
+    { label: "--rs-text-muted on --rs-surface", fg: "#5c6b7a", bg: "#ffffff" },
+    { label: "--rs-text on --rs-bg", fg: "#1a2332", bg: "#f4f6f8" },
+    { label: "--rs-text-muted on --rs-bg", fg: "#5c6b7a", bg: "#f4f6f8" },
+    { label: "--rs-text on --rs-surface-muted", fg: "#1a2332", bg: "#eef1f5" },
+    {
+      label: "--rs-text-muted on --rs-surface-muted",
+      fg: "#5c6b7a",
+      bg: "#eef1f5",
+    },
   ]);
 });
 
@@ -47,17 +63,37 @@ test("light: badge text on soft surfaces passes AA", () => {
   // All five badge tones achieve normal-text AA (≥ 4.5:1) in light mode.
   // accent: #9a3f12 on #fde8dc = 5.74:1 — fixed in Phase 93 (A11Y-01).
   assertAABatch([
-    { label: "positive badge: --rs-success on --rs-success-soft",      fg: "#15803d", bg: "#dcfce7" },
-    { label: "warning badge: --rs-warning on --rs-warning-soft",       fg: "#b45309", bg: "#fef3c7" },
-    { label: "critical badge: --rs-error on --rs-error-soft",          fg: "#b91c1c", bg: "#fee2e2" },
-    { label: "accent badge: --rs-accent on --rs-accent-soft",          fg: "#9a3f12", bg: "#fde8dc" },
-    { label: "neutral badge: --rs-text-muted on --rs-surface-muted",   fg: "#5c6b7a", bg: "#eef1f5" },
+    {
+      label: "positive badge: --rs-success on --rs-success-soft",
+      fg: "#15803d",
+      bg: "#dcfce7",
+    },
+    {
+      label: "warning badge: --rs-warning on --rs-warning-soft",
+      fg: "#b45309",
+      bg: "#fef3c7",
+    },
+    {
+      label: "critical badge: --rs-error on --rs-error-soft",
+      fg: "#b91c1c",
+      bg: "#fee2e2",
+    },
+    {
+      label: "accent badge: --rs-accent on --rs-accent-soft",
+      fg: "#9a3f12",
+      bg: "#fde8dc",
+    },
+    {
+      label: "neutral badge: --rs-text-muted on --rs-surface-muted",
+      fg: "#5c6b7a",
+      bg: "#eef1f5",
+    },
   ]);
 });
 
 test("light: primary button text passes AA", () => {
-  // --rs-on-primary (#ffffff) on --rs-primary (#2563eb)
-  assertAA(wcagRatio("#ffffff", "#2563eb"), "normal");
+  // --rs-on-primary (#ffffff) on --rs-primary (#3A6F8F)
+  assertAA(wcagRatio("#ffffff", "#3A6F8F"), "normal");
 });
 
 test("light: text placeholder ratio is documented (known sub-AA exception)", () => {
@@ -82,12 +118,28 @@ test("dark: text on surface passes AA", () => {
   // Dark surface aliases: --rs-surface = #141c27, --rs-bg = #19222e, --rs-surface-muted = #1f2a38
   // Dark text: --rs-text = #e8edf3, --rs-text-muted = #a8b9ca
   assertAABatch([
-    { label: "--rs-text on --rs-surface (dark)",             fg: "#e8edf3", bg: "#141c27" },
-    { label: "--rs-text-muted on --rs-surface (dark)",       fg: "#a8b9ca", bg: "#141c27" },
-    { label: "--rs-text on --rs-bg (dark)",                  fg: "#e8edf3", bg: "#19222e" },
-    { label: "--rs-text-muted on --rs-bg (dark)",            fg: "#a8b9ca", bg: "#19222e" },
-    { label: "--rs-text on --rs-surface-muted (dark)",       fg: "#e8edf3", bg: "#1f2a38" },
-    { label: "--rs-text-muted on --rs-surface-muted (dark)", fg: "#a8b9ca", bg: "#1f2a38" },
+    { label: "--rs-text on --rs-surface (dark)", fg: "#e8edf3", bg: "#141c27" },
+    {
+      label: "--rs-text-muted on --rs-surface (dark)",
+      fg: "#a8b9ca",
+      bg: "#141c27",
+    },
+    { label: "--rs-text on --rs-bg (dark)", fg: "#e8edf3", bg: "#19222e" },
+    {
+      label: "--rs-text-muted on --rs-bg (dark)",
+      fg: "#a8b9ca",
+      bg: "#19222e",
+    },
+    {
+      label: "--rs-text on --rs-surface-muted (dark)",
+      fg: "#e8edf3",
+      bg: "#1f2a38",
+    },
+    {
+      label: "--rs-text-muted on --rs-surface-muted (dark)",
+      fg: "#a8b9ca",
+      bg: "#1f2a38",
+    },
   ]);
 });
 
@@ -96,17 +148,37 @@ test("dark: badge text on dark soft surfaces passes AA", () => {
   // --rs-surface-muted (#1f2a38) as the opaque backing surface — this is a conservative
   // (darker-than-actual) baseline that still reliably passes if the token values are correct.
   assertAABatch([
-    { label: "positive badge dark: --rs-success on surface-muted",       fg: "#4ade80", bg: "#1f2a38" },
-    { label: "warning badge dark: --rs-warning on surface-muted",        fg: "#fbbf24", bg: "#1f2a38" },
-    { label: "critical badge dark: --rs-error on surface-muted",         fg: "#f87171", bg: "#1f2a38" },
-    { label: "accent badge dark: --rs-accent on surface-muted",          fg: "#e8834a", bg: "#1f2a38" },
-    { label: "neutral badge dark: --rs-text-muted on --rs-surface-muted", fg: "#a8b9ca", bg: "#1f2a38" },
+    {
+      label: "positive badge dark: --rs-success on surface-muted",
+      fg: "#4ade80",
+      bg: "#1f2a38",
+    },
+    {
+      label: "warning badge dark: --rs-warning on surface-muted",
+      fg: "#fbbf24",
+      bg: "#1f2a38",
+    },
+    {
+      label: "critical badge dark: --rs-error on surface-muted",
+      fg: "#f87171",
+      bg: "#1f2a38",
+    },
+    {
+      label: "accent badge dark: --rs-accent on surface-muted",
+      fg: "#e8834a",
+      bg: "#1f2a38",
+    },
+    {
+      label: "neutral badge dark: --rs-text-muted on --rs-surface-muted",
+      fg: "#a8b9ca",
+      bg: "#1f2a38",
+    },
   ]);
 });
 
 test("dark: primary button text passes AA", () => {
-  // --rs-on-primary (#ffffff) on --rs-primary (#2563eb) — same in dark as light
-  assertAA(wcagRatio("#ffffff", "#2563eb"), "normal");
+  // --rs-on-primary (#10161f) on --rs-primary (#5885a0)
+  assertAA(wcagRatio("#10161f", "#5885a0"), "normal");
 });
 
 test("dark: text placeholder is large/UI compliant", () => {
@@ -130,7 +202,49 @@ test("design-system.html loads in both themes", async ({ browser }) => {
   const ctx2 = await browser.newContext({ colorScheme: "dark" });
   const page2 = await ctx2.newPage();
   await page2.goto(dsUrl);
-  await page2.evaluate(() => (window as unknown as { setTheme: (t: string) => void }).setTheme("dark"));
+  await page2.evaluate(() =>
+    (window as unknown as { setTheme: (t: string) => void }).setTheme("dark"),
+  );
   await expect(page2.locator(".rs-shell")).toBeVisible();
   await ctx2.close();
+});
+
+test("static fixtures expose the shipped wordmark in light and dark modes", async ({
+  browser,
+}) => {
+  for (const fixtureUrl of [dsUrl, themeHarnessUrl]) {
+    const context = await browser.newContext({ colorScheme: "light" });
+    const page = await context.newPage();
+    await page.goto(fixtureUrl);
+
+    await expect(page.getByRole("link", { name: "Rulestead" })).toBeVisible();
+    await expect(
+      page.locator(".rs-shell__fixture-wordmark--light"),
+    ).toBeVisible();
+
+    await page.evaluate(() =>
+      (window as unknown as { setTheme: (theme: string) => void }).setTheme(
+        "dark",
+      ),
+    );
+
+    await expect(
+      page.locator(".rs-shell__fixture-wordmark--dark"),
+    ).toBeVisible();
+    await context.close();
+  }
+
+  const context = await browser.newContext({ colorScheme: "light" });
+  const page = await context.newPage();
+  await page.goto(themeControlHarnessUrl);
+
+  await expect(page.getByRole("link", { name: "Rulestead" })).toBeVisible();
+  await expect(
+    page.locator(".rs-shell__fixture-wordmark--light"),
+  ).toBeVisible();
+
+  await page.getByRole("radio", { name: "Dark" }).click();
+
+  await expect(page.locator(".rs-shell__fixture-wordmark--dark")).toBeVisible();
+  await context.close();
 });

@@ -132,7 +132,7 @@
   /* Brand */
   --rs-primary: #3A6F8F;
   --rs-primary-hover: #2d5f7c;
-  --rs-primary-soft: #dbeafe;
+  --rs-primary-soft: #e4eff4;
   --rs-on-primary: #ffffff;
   --rs-accent: #9b5931;
   --rs-accent-soft: #fde8dc;
@@ -185,7 +185,7 @@
   /* Brand */
   --rs-primary:       #5885a0;
   --rs-primary-hover: #4a7d9c;
-  --rs-on-primary:    #ffffff;
+  --rs-on-primary:    #10161f;
   --rs-accent:        #ba6b3c;
 
   /* Status — success */

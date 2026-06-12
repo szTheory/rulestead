@@ -47,17 +47,20 @@ defmodule RulesteadDemoWeb.Layouts do
       <div class="flex-none">
         <ul class="flex flex-column px-1 space-x-4 items-center">
           <li>
-            <a href="https://phoenixframework.org/" class="btn btn-ghost">Website</a>
+            <a href="http://localhost:3000" class="btn btn-ghost">FleetDesk</a>
           </li>
           <li>
-            <a href="https://github.com/phoenixframework/phoenix" class="btn btn-ghost">GitHub</a>
+            <a href="/demo/sign-in" class="btn btn-ghost">Admin</a>
           </li>
           <li>
             <.theme_toggle />
           </li>
           <li>
-            <a href="https://hexdocs.pm/phoenix/overview.html" class="btn btn-primary">
-              Get Started <span aria-hidden="true">&rarr;</span>
+            <a
+              href="https://github.com/szTheory/rulestead/blob/main/guides/introduction/adoption-lab.md"
+              class="btn btn-primary"
+            >
+              Adoption guide <span aria-hidden="true">&rarr;</span>
             </a>
           </li>
         </ul>

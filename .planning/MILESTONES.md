@@ -1,5 +1,22 @@
 # Milestones
 
+## v1.16 Brand-Faithful UI Iteration (Shipped: 2026-06-12)
+
+**Phases completed:** 6 phases, 6 plans
+
+**Key accomplishments:**
+
+- Repo-local UI-SPEC locked the brand boundary: mounted admin, brandbook, fixtures, and demo launcher use the v1.15 Rulestead identity; FleetDesk remains a distinct host/example app.
+- Static fixtures now render the shipped wordmark family, stale token literals were removed, copied admin wordmark assets are drift-checked against `brandbook/assets/logo/`, and logo/contrast guards run in the normal lint path.
+- Admin primitive tokens were corrected within the frozen palette: primary foreground contrast, soft primary states, Stead Blue-derived focus/selection rings, scoped theme cascade, and non-color-only status semantics.
+- Browser evidence covers admin route clusters, demo launcher, FleetDesk, fixtures, light/dark/system modes, desktop/mobile widths, logo visibility, theme controls, and horizontal-overflow absence.
+- Demo surfaces now teach the mounted-library boundary: the Phoenix launcher wears Rulestead, FleetDesk has its own host-brand visual system, and dirty generated asset state no longer breaks the demo build.
+- Full proof closed with deterministic brand/token/logo guards, frontend fixture specs, full compose/browser proof, core/admin/demo backend tests, and a Redis publisher regression fix discovered by the browser verifier.
+
+**Scope note:** No public runtime APIs, schemas, release workflow changes, component framework adoption, palette redesign, logo redraw, or `rulestead_admin` publish preparation.
+
+---
+
 ## v1.15 Identity Tournament (Shipped: 2026-06-12)
 
 **Phases completed:** 5 phases, 8 plans

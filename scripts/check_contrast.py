@@ -185,6 +185,9 @@ PALETTE_CHECKS = [
     ("Stead Blue dark #5885a0 on #10161f",
      "#5885a0", "#10161f", 4.5),
 
+    ("Dark primary button foreground #10161f on #5885a0",
+     "#10161f", "#5885a0", 4.5),
+
     ("Ember Copper dark #ba6b3c on #10161f",
      "#ba6b3c", "#10161f", 4.5),
 

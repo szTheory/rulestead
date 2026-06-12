@@ -29,8 +29,15 @@ python3 "${RULESTEAD_REPO}/scripts/check_brand_tokens.py"
 # after future token edits.
 python3 "${RULESTEAD_REPO}/scripts/check_tokens_css.py"
 
+# Static contrast targets from the brand palette and semantic foreground pairs.
+python3 "${RULESTEAD_REPO}/scripts/check_contrast.py"
+
 # Generated HTML brand book drift and size budget.
 python3 "${RULESTEAD_REPO}/scripts/check_brandbook_html.py"
+
+# Logo asset drift: copied admin/demo assets must stay byte-identical with
+# brandbook sources, and the real shell must retain the theme-aware classes.
+python3 "${RULESTEAD_REPO}/scripts/check_logo_assets.py"
 
 # SVG size budget: logo <=20KB, specimens <=50KB.
 shopt -s nullglob

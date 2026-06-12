@@ -1,61 +1,57 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.15
-milestone_name: milestone
-status: milestone_complete
-last_updated: "2026-06-12"
-last_activity: 2026-06-12 -- v1.15 Identity Tournament shipped (Phases 102-106); next phase number 107
+milestone: v1.16
+milestone_name: Brand-Faithful UI Iteration
+status: complete
+last_updated: "2026-06-12T17:32:05Z"
+last_activity: 2026-06-12
 progress:
-  total_phases: 5
-  completed_phases: 3
-  total_plans: 7
-  completed_plans: 5
-  percent: 60
+  total_phases: 6
+  completed_phases: 6
+  total_plans: 6
+  completed_plans: 6
+  percent: 100
 ---
 
 # State: Rulestead
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-06-11)
+See: `.planning/PROJECT.md` (updated 2026-06-12)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
 
-**Current focus:** Phase 102 — logo-delta-audit-tournament-studio
+**Current focus:** v1.16 complete — branch topology / PR sequencing remains at maintainer discretion
 
-**Milestone:** v1.15 active 2026-06-11 — see `.planning/ROADMAP.md` for phase structure
+**Milestone:** v1.16 Brand-Faithful UI Iteration shipped 2026-06-12 — see `.planning/ROADMAP.md` for phase structure
 
-**Previous milestone:** v1.14 Brand System Realization shipped 2026-06-06 — see `.planning/milestones/v1.14-ROADMAP.md`
+**Previous milestone:** v1.15 Identity Tournament shipped 2026-06-12 — see `.planning/milestones/v1.15-ROADMAP.md`
 
 **Assessment:** `.planning/threads/2026-05-28-post-v1.11-milestone-next-step-assessment.md` (done band 93–95%)
 
 ## Current Position
 
-Phase: 105 — COMPLETE
-Plan: 1 of 2
-Status: Phase 105 complete
-Last activity: 2026-06-12 -- Phase 105 marked complete
-
-```
-[░░░░░░░░░░░░░░░░░░░░] 0% — 0/5 phases complete
-```
+Phase: 112 complete
+Plan: 112-01 complete
+Status: Verified and ready for maintainer branch-topology decision
+Last activity: 2026-06-12 — v1.16 brand-faithful UI iteration implemented and verified
 
 ## Phase Dependency Map
 
 ```
-102 (logo delta audit + tournament studio — GATE)
-  └──► 103 (logo tournament — human-gated rounds)
-         └──► 104 (winner lockup family + brand source reconciliation)
-                └──► 105 (propagation: admin shell + demo)
-                       └──► 106 (HTML brand book elevation + milestone close)
+107 (brand/UI audit + UI-SPEC)
+  └──► 108 (fixture + guardrail alignment)
+         └──► 109 (shared admin primitive pass)
+                └──► 110 (admin workflow screen pass)
+                       └──► 111 (demo surface alignment)
+                              └──► 112 (visual evidence + closeout)
 ```
 
-Strictly sequential: **102 → 103 → 104 → 105 → 106**
+Strictly sequential: **107 → 108 → 109 → 110 → 111 → 112**
 
-Human checkpoints (cannot be automated):
+Human checkpoints:
 
-- Phase 103: every round ends in a mandatory `autonomous: false` keep/cut checkpoint; winner checkpoint is terminal
-- Phase 105: merge-order decision for parked `fix/admin-ui-polish-attention-rail-search` branch must be resolved before execution
+- None currently required. FleetDesk brand boundary is locked: FleetDesk remains host-branded, Rulestead-owned demo/admin chrome uses the v1.15 identity.
 
 ## Accumulated Context
 
@@ -122,6 +118,14 @@ Human checkpoints (cannot be automated):
 - **v1.15 font/color policy:** fonts/colors move ONLY if the tournament-winning design demands it; recorded explicitly in `103-WINNER.md`; palette/voice/copy otherwise frozen.
 - **v1.15 curl policy:** `gen_glyph_paths.py` fetches TTFs via curl subprocess (not urllib — urllib hangs on gstatic fonts requiring browser UA per exec-env memory).
 - **v1.15 parked branch:** `fix/admin-ui-polish-attention-rail-search` has dirty `shell.ex`, `rulestead_admin.css`, `root.html.heex`, `favicon.ico`, untracked `favicon.svg`. Merge-order decision required from maintainer before Phase 105 executes.
+- **v1.16 brand boundary:** FleetDesk is intentionally a distinct host/example app. Rulestead identity applies to the mounted admin, brandbook, static fixtures, and demo launcher chrome; FleetDesk should be harmonized but not Rulestead-branded.
+- **v1.16 token correction policy:** Palette and logo remain frozen. Evidence-proven semantic-token drift may be corrected using existing palette colors (for example foreground/focus/soft-primary roles) with token mirrors and generated brandbook kept in sync.
+- **v1.16 evidence posture:** Prefer broad Playwright screenshot artifacts across route clusters/themes/viewports over checked-in pixel baselines for every screen.
+- **v1.16 shipped scope:** Static fixtures now expose the v1.15 winner wordmark, copied admin wordmark assets are drift-checked, brandbook token output stays generated from canonical sources, and normal lint now covers logo drift + contrast.
+- **v1.16 admin UI:** Shared primitives keep theme tokens scoped to `.rs-shell` / `[data-rulestead]`; primary-button foreground, soft-primary states, and focus rings are aligned to the frozen mineral palette in light/dark/system modes.
+- **v1.16 demo boundary:** The Phoenix launcher carries Rulestead identity, while FleetDesk uses a separate host-app visual system. FleetDesk must not be converted into a Rulestead-branded app in future polish.
+- **v1.16 runtime verifier fix:** Compose/browser evidence exposed a Redis publisher transaction race; the snapshot fetch is now deferred through the publisher process with a bounded retry so kill-switch browser proof reflects the committed runtime state.
+- **v1.16 compose proof fix:** Dynamic-port browser proof now serves the frontend with a matching `NEXT_PUBLIC_FLAGS_API_BASE` and backend CORS allowlist for both selected loopback origins.
 
 ### Deferred Items (v2)
 
@@ -151,10 +155,20 @@ All closed — v1.12 adoption evidence depth complete.
 
 ## Operator Next Steps
 
-- v1.15 roadmap is written. Next action: `/gsd:plan-phase 102`.
-- Scope reminder: palette/voice/copy are frozen; fonts/colors move only if the winner demands it (recorded in `103-WINNER.md`).
-- Before Phase 105 executes: surface merge order for `fix/admin-ui-polish-attention-rail-search` to the maintainer.
-- Final proof bars (carried from v1.14, extended in v1.15): `bash scripts/ci/lint.sh`, `python3 scripts/check_brandbook_html.py`, all check scripts, admin LiveView suite, and `npm run test:e2e` in demo frontend.
+- Decide branch topology for the still-unmerged v1.13 -> v1.16 chain before merging to `main` because main auto-publishes to Hex.
+- Preserve scope boundaries in any follow-up: no public runtime APIs, schemas, component framework, admin publish prep, palette redesign, or logo redraw.
+- If the parked admin-polish WIP is resumed, merge it after this branch and resolve against the Phase 105/v1.16 shell component class scheme.
+
+## Latest Verification
+
+Fresh v1.16 proof bars:
+
+- Deterministic brand/token/logo guard chain: `check_synced_pair.py`, `check_brand_tokens.py`, `check_tokens_css.py`, `check_contrast.py`, `check_brandbook_html.py`, `check_logo_assets.py`.
+- Frontend fixture/file evidence: `brandbook.spec.ts`, `design-system.spec.ts`, `theme-cascade.spec.ts`, `theme-control.spec.ts`, `theme-scope.spec.ts`.
+- Full compose/browser proof: `scripts/demo/verify.sh` including smoke health and browser suite.
+- Core package proof: `cd rulestead && mix test`.
+- Admin package proof: `cd rulestead_admin && mix test`.
+- Demo backend proof: `cd examples/demo/backend && mix test --max-cases 1`.
 
 ## Performance Metrics
 

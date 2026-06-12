@@ -85,6 +85,7 @@ defmodule RulesteadDemo.MixProject do
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
       "assets.copy_admin": [
         "cmd mkdir -p priv/static/assets/css",
+        "cmd rm -f priv/static/assets/css/rulestead_admin.css",
         "cmd cp ../../../rulestead_admin/priv/static/css/rulestead_admin.css priv/static/assets/css/rulestead_admin.css"
       ],
       "assets.build": [

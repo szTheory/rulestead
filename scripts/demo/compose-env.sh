@@ -264,8 +264,13 @@ demo_prepare_compose_env() {
   fi
 
   if [ -z "${NEXT_PUBLIC_FLAGS_API_BASE:-}" ]; then
-    NEXT_PUBLIC_FLAGS_API_BASE="http://localhost:${DEMO_BACKEND_PORT}"
+    NEXT_PUBLIC_FLAGS_API_BASE="http://127.0.0.1:${DEMO_BACKEND_PORT}"
     export NEXT_PUBLIC_FLAGS_API_BASE
+  fi
+
+  if [ -z "${DEMO_CORS_ORIGINS:-}" ]; then
+    DEMO_CORS_ORIGINS="http://127.0.0.1:${DEMO_FRONTEND_PORT},http://localhost:${DEMO_FRONTEND_PORT}"
+    export DEMO_CORS_ORIGINS
   fi
 }
 

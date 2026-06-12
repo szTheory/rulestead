@@ -26,4 +26,6 @@
 /priv/static/**/*.gz
 /priv/static/css/*-*.css
 /priv/static/images/*-*.svg
+!/priv/static/images/rs-wordmark.svg
+!/priv/static/images/rs-wordmark-dark.svg
 /priv/static/*-*.html

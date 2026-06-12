@@ -23,6 +23,7 @@ Rulestead is a batteries-included, Elixir-native feature-flag and remote-config 
 - `v1.11` gap closure completed 2026-05-29 across Phases 79–81: lifecycle deep-link anchor fix, Phase 76/77 verification backfill, DOC-01 `evaluation.md` contract guard + `76-VALIDATION.md` Nyquist artifact.
 - `v1.14` shipped on 2026-06-06 across Phases 95–101: source-controlled brand system, mineral admin re-skin, final SVG assets/specimens, copy kit, generated `brandbook/index.html`, stdlib generator, drift/budget guard, CI wiring, and file:// browser evidence — no new runtime APIs, schema changes, package-version changes, or publish-posture changes.
 - `v1.15` shipped on 2026-06-12 across Phases 102–106: tournament-selected integrated logo identity (winner A3-3, maintainer-gated rounds), 8-file lockup family, brand-book §14 logo system, admin/demo propagation, and the elevated designed `brandbook/index.html` (cover, scrollspy rail, AA-badged swatches, logo plates, print) — zero token deviations, no runtime API or publish-posture changes.
+- `v1.16` shipped on 2026-06-12 across Phases 107–112: full brand-faithful UI iteration over static fixtures, admin primitives, admin workflow evidence, demo launcher, FleetDesk host-brand boundary, logo/token/contrast drift guards, and full compose/browser proof — no public runtime APIs, schemas, release workflow changes, component framework adoption, or admin publish prep.
 
 <details>
 <summary>Shipped: v1.11 Integration Spine (2026-05-28)</summary>
@@ -95,6 +96,18 @@ v1.1–v1.9 feature band is **complete**. v1.10.x–v1.11 doc bands are **shippe
 
 **Scope note:** Post-GA brand/UX-quality milestone (like v1.13/v1.14). No new product runtime APIs, schema changes, package-version changes, or publish-posture changes. Fonts/colors may change only if the tournament winner demands it, recorded as an explicit deviation in the winner spec.
 
+## Shipped: v1.16 Brand-Faithful UI Iteration (2026-06-12)
+
+**Goal:** Make every rendered Rulestead-owned surface faithfully reflect the v1.15 identity in light, dark, and system modes, while keeping FleetDesk clearly host-branded.
+
+**Delivered features:**
+- Brand/UI conformance matrix and UI-SPEC across admin route clusters, static fixtures, demo launcher, FleetDesk, and brandbook evidence.
+- Fixture/test/guard alignment: shipped wordmark in static harnesses, current token literals, logo asset drift guard, contrast guard in lint.
+- Shared admin primitive pass for primary/action foregrounds, Stead Blue-derived focus/selection rings, scoped theme cascade, and non-color-only status semantics.
+- Admin workflow browser evidence across Build & release, Explain & diagnose, Review & approve, and destructive per-flag flows in light/dark/system modes.
+- Demo surface alignment: Rulestead-owned launcher chrome uses the new identity; FleetDesk remains a separate host brand with its own system-dark visual language.
+- Visual evidence closeout via Playwright artifacts and GSD planning truth; no new runtime APIs, schemas, release workflow changes, component framework, or `rulestead_admin` publish prep.
+
 ## Next Milestone Goals
 
 **Path-to-done (canonical):** See [`.planning/threads/2026-05-28-path-to-done-milestones.md`](.planning/threads/2026-05-28-path-to-done-milestones.md).
@@ -108,12 +121,13 @@ v1.1–v1.9 feature band is **complete**. v1.10.x–v1.11 doc bands are **shippe
 | 3 | **v1.13 — Admin UI dark mode + design-system polish** | **Complete** (2026-06-04) — Phases 87–94; mounted-admin UX quality, no new runtime APIs; on branch (unmerged) |
 | 4 | **v1.14 — Brand System Realization** | **Complete** (2026-06-06) — Phases 95–101; generated HTML brand book capstone; no runtime API or publish-posture changes |
 | 4b | **v1.15 — Identity Tournament** | **Complete** (2026-06-12) — Phases 102–106; tournament-selected integrated logo + elevated HTML brand book; no runtime API or publish-posture changes |
+| 4c | **v1.16 — Brand-Faithful UI Iteration** | **Complete** (2026-06-12) — v1.15 identity conformance + demo/admin visual evidence; no runtime APIs or publish-posture changes |
 | 5+ | **v2.0+ wedges (triggered only)** | GOV-02-ext → ROL-08 → ADM-06 per `.planning/DEFERRED.md` |
 | — | **Maintenance** | Patches and adopter support until a v2 trigger fires |
 
 **Done band:** Post-GA scope through v1.11 is repo-verified; feature band v1.1–v1.9 in `lib/` + contract tests.
 
-**Next action:** Merge-topology decision (v1.13/v1.14/v1.15 + polish branch → main), then `/gsd-new-milestone` when a v2 trigger fires
+**Next action:** Revisit merge topology for v1.13→v1.16 before main auto-publish.
 
 <details>
 <summary>Latest shipped: v1.10.0 Post-GA Band Truth & Adopter Closure (2026-05-28)</summary>
