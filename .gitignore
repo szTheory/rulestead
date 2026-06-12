@@ -16,3 +16,5 @@ __pycache__/
 .planning/phases/102-logo-delta-audit-tournament-studio/studio-render-*.png
 .planning/phases/103-logo-tournament/*.png
 .planning/phases/103-logo-tournament/scratch/
+# Phase 105 propagation evidence — throwaway scratch renders
+.planning/phases/105-propagation-admin-demo/scratch/
