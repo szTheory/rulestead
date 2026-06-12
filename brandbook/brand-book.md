@@ -574,52 +574,73 @@ IBM Plex Mono, medium
 
 ---
 
-## 14. Logo direction
+## 14. Logo system
 
-### Logo strategy
-The logo should feel infrastructural, ownable, and calm.
-It should suggest rule structure and stability without becoming literal.
+The shipped Rulestead identity is a Sora Bold **Rulestead** wordmark in Ink Blue
+with a thin Stead Blue routing trace that the word itself generates: one input,
+ordered evaluation, one lit decision. Canonical source files live in
+`brandbook/assets/logo/`. The geometry is frozen — derive, never redraw.
 
-### Recommended logo direction
-#### Wordmark-first identity
-Start with a strong **Rulestead** wordmark before building a complex symbol system.
-This is the right move for an OSS infrastructure brand.
+### Construction
 
-### Symbol directions to explore later
-#### Option A: Structured path mark
-A minimal geometric mark built from ordered lines or a stepped path, suggesting:
-- rule evaluation
-- decision flow
-- progression with control
+- The route exits **collinear from the R's diagonal leg** at slope 0.6975.
+  The word generates the route; the route is added geometry, not glyph surgery.
+- The trace curves under the baseline, runs beneath the full word, rises hidden
+  inside the final d's stem, and exits right as **three short routes** to
+  vertically stacked nodes.
+- Node semantics: the top node is lit **Ember Copper** `#9b5931` — the selected
+  route. The lower two are **Quarry** `#C4CCD1` — the routes not taken.
+- Route stroke: Stead Blue `#3A6F8F`, width 3.2, round caps and joins.
+- Letterforms are unmodified Sora Bold 700 outlines (per-glyph paths,
+  tracking −0.015). No glyph surgery anywhere in the system.
+- The lockup palette is exactly four hexes, all frozen v1.14 tokens:
+  type `#183247` (ink-blue), route `#3A6F8F` (stead-blue), lit node `#9b5931`
+  (ember-copper), muted nodes `#C4CCD1` (quarry).
 
-#### Option B: Stead frame
-A calm rectangular or architectural enclosure motif, suggesting:
-- stable operating ground
-- governed system boundaries
-- clarity and containment
+### Clear space
 
-#### Option C: Layered field
-A layered contour/grid motif suggesting:
-- environments
-- rule layers
-- snapshots
-- topology of change
+Keep at least **1 cap height** of clear space on all sides of the lockup.
+The route descender below the baseline is artwork, not clear space — measure
+from the route's lowest point, not from the glyph baseline.
 
-### Logo constraints
-- no literal flags
-- no phoenix bird icon
-- no shield cliché
-- no lightning bolts
-- no generic cube/SaaS hexagon
-- no aggressive flame iconography
+### Minimum sizes
 
-### Wordmark character
-The wordmark should feel:
-- grounded
-- slightly condensed or tightly spaced
-- confident
-- architected
-- not playful
+- Full lockup: **120px width minimum**. Route detail degrades below that.
+- Below 120px (favicons, avatars, dense UI chrome): use the **d-sigil mark**,
+  never a shrunken lockup.
+
+### Variant usage
+
+| File | Use |
+|------|-----|
+| `rs-wordmark.svg` | Primary lockup on light surfaces |
+| `rs-wordmark-dark.svg` | Primary lockup on dark surfaces (mechanical hex swap) |
+| `rs-wordmark-tagline.svg` | Secondary lockup only: tagline "Runtime decisions, made clear." set below the lockup in letter-spaced Inter Medium, Moss Grey. For surfaces where the tagline must travel with the mark (README headers, social embeds). Never a substitute for the primary lockup |
+| `rs-mark.svg` | d-sigil mark (final d + exit routes + node stack) on light surfaces at small sizes |
+| `rs-mark-dark.svg` | d-sigil mark on dark surfaces |
+| `rs-mark-mono.svg` | Single-color contexts; node hierarchy carried by geometry alone |
+| `rs-favicon.svg` | Favicon: transparent d-sigil, no container rectangle |
+| `rs-social-card.svg` | 1200×630 social/OG card — lockup and tagline on a Basalt field |
+
+### Misuse
+
+Never:
+
+- place a rectangular container, badge, or panel behind the mark
+- recompose as icon-left + wordmark — the route is integral to the lockup, and
+  the marks are crops of it, not standalone icons
+- add the tagline to the primary lockup
+- recolor outside the four frozen hexes or their specified dark/mono swaps
+- redraw the route at a different slope or stroke weight
+- use literal flags, a phoenix bird icon, a shield cliché, lightning bolts,
+  a generic cube/SaaS hexagon, or aggressive flame iconography anywhere near
+  the identity
+
+### Provenance
+
+Selected as **A3-3 "R-anchored entry"** in the v1.15 logo tournament: Round 1
+ran 12 candidates plus a control across 4 axes; Round 2 ran 6 A3 variants and
+picked A3-3 ("trace grows collinear from the R's leg").
 
 ---
 
