@@ -5,6 +5,8 @@ defmodule RulesteadDemoWeb.Layouts do
   """
   use RulesteadDemoWeb, :html
 
+  alias RulesteadDemo.DemoUrls
+
   # Embed all files in layouts/* within this module.
   # The default root.html.heex file contains the HTML
   # skeleton of your application, namely HTML headers
@@ -31,9 +33,20 @@ defmodule RulesteadDemoWeb.Layouts do
     default: nil,
     doc: "the current [scope](https://hexdocs.pm/phoenix/scopes.html)"
 
+  attr :fleetdesk_frontend_url, :string,
+    default: nil,
+    doc: "the FleetDesk frontend URL used by demo navigation"
+
   slot :inner_block, required: true
 
   def app(assigns) do
+    assigns =
+      assign(
+        assigns,
+        :fleetdesk_frontend_url,
+        assigns[:fleetdesk_frontend_url] || DemoUrls.fleetdesk_frontend_url()
+      )
+
     ~H"""
     <header class="navbar px-4 sm:px-6 lg:px-8">
       <div class="flex-1">
@@ -47,7 +60,7 @@ defmodule RulesteadDemoWeb.Layouts do
       <div class="flex-none">
         <ul class="flex flex-column px-1 space-x-4 items-center">
           <li>
-            <a href="http://localhost:3000" class="btn btn-ghost">FleetDesk</a>
+            <a href={@fleetdesk_frontend_url} class="btn btn-ghost">FleetDesk</a>
           </li>
           <li>
             <a href="/demo/sign-in" class="btn btn-ghost">Admin</a>

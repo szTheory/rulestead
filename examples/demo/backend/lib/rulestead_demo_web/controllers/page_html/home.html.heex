@@ -1,5 +1,5 @@
-<main class="min-h-screen bg-base-200 px-4 py-12 sm:px-8">
-  <div class="mx-auto max-w-3xl space-y-8">
+<Layouts.app flash={@flash} fleetdesk_frontend_url={@fleetdesk_frontend_url}>
+  <div class="space-y-8">
     <header class="space-y-3">
       <img
         src={~p"/images/logo.svg"}
@@ -23,12 +23,12 @@
 
     <section class="grid gap-4 sm:grid-cols-3">
       <a
-        href="http://localhost:3000"
+        href={@fleetdesk_frontend_url}
         class="rounded-box border border-base-300 bg-base-100 p-5 shadow-sm transition hover:border-primary/40 hover:shadow-md"
       >
         <h2 class="text-lg font-semibold">FleetDesk app</h2>
         <p class="mt-2 text-sm text-base-content/70">
-          Sample customer dispatch product on port 3000. Flags change what dispatchers see.
+          Sample customer dispatch product. Flags change what dispatchers see.
         </p>
       </a>
 
@@ -75,4 +75,4 @@
       </a>
     </p>
   </div>
-</main>
+</Layouts.app>
