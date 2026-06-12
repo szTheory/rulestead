@@ -89,7 +89,7 @@ Make every rendered Rulestead-owned surface faithfully reflect the v1.15 identit
 **Goal:** Fix Phoenix-owned FleetDesk launcher and navigation links so they use the live selected `DEMO_FRONTEND_URL`, prove launcher click-through evidence, and record gap-closure verification truth.
 **Requirements**: TBD
 **Depends on:** Phase 112
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 - [x] 112.1-01-PLAN.md — Phoenix runtime URL plumbing, launcher/nav link rendering, and backend regression evidence
