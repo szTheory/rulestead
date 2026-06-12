@@ -1,5 +1,7 @@
 /**
- * brandbook.spec.ts -- Phase 101 / BOOK-01 / BOOK-02 browser evidence
+ * brandbook.spec.ts -- Phase 101 / BOOK-01 / BOOK-02 browser evidence,
+ * extended in Phase 106 (BOOK-03/BOOK-04) for the elevated chrome: cover,
+ * sticky scrollspy rail, AA-badged token swatches, logo plates, print styles.
  *
  * Validates the generated brandbook/index.html artifact through file:// so no
  * Phoenix, Next.js, or demo server is required.
@@ -31,7 +33,7 @@ test("desktop file:// brand book exposes required landmarks and sections", async
   await page.goto(brandbookUrl);
 
   await expect(page.locator("[data-rulestead-brandbook]")).toBeVisible();
-  await expect(page.locator("header")).toBeVisible();
+  await expect(page.locator("header.brand-cover")).toBeVisible();
   await expect(page.locator("nav")).toBeVisible();
   await expect(page.locator("main")).toBeVisible();
 
@@ -127,6 +129,99 @@ test("required previews use inline SVGs instead of img elements", async ({
 
   await expect(page.locator("img")).toHaveCount(0);
   await expect(page.locator(".asset-card svg").first()).toBeVisible();
-  await expect(page.locator("#logo .asset-card svg")).not.toHaveCount(0);
+  await expect(page.locator("#logo .plate svg")).not.toHaveCount(0);
   await expect(page.locator("#layout-and-components .asset-card svg")).not.toHaveCount(0);
+});
+
+test("cover renders as a designed brand statement", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto(brandbookUrl);
+
+  const cover = page.locator(".brand-cover");
+  await expect(cover).toBeVisible();
+  await expect(cover.locator(".cover-logo--screen svg")).toBeVisible();
+  await expect(cover.locator(".cover-mantra")).toHaveText(
+    "Rulestead makes change feel governed, not chaotic.",
+  );
+  await expect(cover).toContainText("Brand System v1.15");
+});
+
+test("section rail is present and sticky on desktop", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto(brandbookUrl);
+
+  const rail = page.locator(".brand-rail");
+  await expect(rail).toBeVisible();
+  await expect(rail.locator(".rail-list a")).toHaveCount(9);
+  await expect(rail.locator(".rail-num").first()).toHaveText("01");
+
+  const position = await rail.evaluate(
+    (element) => getComputedStyle(element).position,
+  );
+  expect(position).toBe("sticky");
+});
+
+test("scrollspy activates rail links while scrolling", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto(brandbookUrl);
+
+  await expect(
+    page.locator(".rail-list a[aria-current='true']"),
+  ).toHaveAttribute("href", "#overview");
+
+  await page.evaluate(() =>
+    document.querySelector("#logo")?.scrollIntoView(),
+  );
+  await expect(
+    page.locator(".rail-list a[aria-current='true']"),
+  ).toHaveAttribute("href", "#logo");
+
+  await page.evaluate(() =>
+    document.querySelector("#motion")?.scrollIntoView(),
+  );
+  await expect(
+    page.locator(".rail-list a[aria-current='true']"),
+  ).toHaveAttribute("href", "#motion");
+});
+
+test("print stylesheet exists and hides screen chrome", async ({ page }) => {
+  await page.goto(brandbookUrl);
+
+  const hasPrintBlock = await page.evaluate(() =>
+    Array.from(document.querySelectorAll("style")).some((style) =>
+      (style.textContent ?? "").includes("@media print"),
+    ),
+  );
+  expect(hasPrintBlock).toBe(true);
+
+  await page.emulateMedia({ media: "print" });
+  await expect(page.locator(".brand-rail")).toBeHidden();
+  await expect(page.locator(".theme-control")).toBeHidden();
+  await expect(page.locator(".cover-logo--print svg")).toBeVisible();
+});
+
+test("token swatches expose computed WCAG badges", async ({ page }) => {
+  await page.goto(brandbookUrl);
+
+  const badges = page.locator("#color .sem-badge");
+  expect(await badges.count()).toBeGreaterThan(10);
+  await expect(badges.first()).toBeVisible();
+
+  const badgeText = await badges.allTextContents();
+  expect(
+    badgeText.every((text) => /^(AAA|AA|AA large|Below AA)$/.test(text.trim())),
+  ).toBe(true);
+  expect(badgeText.some((text) => /^AA(A)?$/.test(text.trim()))).toBe(true);
+});
+
+test("logo plates render the full family on light and dark tiles", async ({
+  page,
+}) => {
+  await page.goto(brandbookUrl);
+
+  await expect(page.locator("#logo .plate")).toHaveCount(8);
+  await expect(page.locator("#logo .plate-tile--light")).toHaveCount(8);
+  await expect(page.locator("#logo .plate-tile--dark")).toHaveCount(8);
+  await expect(page.locator("#logo .clearspace")).toBeVisible();
+  await expect(page.locator("#logo .usage--dont")).toHaveCount(3);
 });
