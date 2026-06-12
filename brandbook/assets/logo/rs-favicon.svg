@@ -1,1 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" aria-labelledby="rs-favicon-title rs-favicon-desc" viewBox="0 0 64 64"><title id="rs-favicon-title">Rulestead</title><desc id="rs-favicon-desc">Rulestead favicon — simplified decision branch mark on solid blue background, legible at 16px</desc><g aria-hidden="true"><path fill="#3a6f8f" d="M0 0h64v64H0z"/><rect width="8" height="44" x="28" y="10" fill="#ffffff" rx="2"/><circle cx="14" cy="32" r="8" fill="#ffffff"/><path fill="#ffffff" d="M14 28h22v8H14z"/><circle cx="50" cy="14" r="8" fill="#ffffff"/><circle cx="50" cy="32" r="5" fill="#ffffff"/><circle cx="50" cy="50" r="5" fill="#ffffff"/></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="rs-favicon-title rs-favicon-desc" viewBox="0 0 62 62">
+  <title id="rs-favicon-title">Rulestead</title>
+  <desc id="rs-favicon-desc">Rulestead favicon — the d-sigil mark on a transparent background: the final d of the wordmark with the routing trace exiting to three stacked nodes, the top node lit Ember Copper.</desc>
+  <path d="M-4 56.2H33Q40 56.2 40 49.2V15M40 15H52.5M40 26.5H52.5M40 38H52.5" fill="none" stroke="#3A6F8F" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <g fill="#183247">
+    <path transform="translate(3.728,50.000) scale(0.064000,-0.064000)" d="M299 -18Q241 -18 193.5 3.0Q146 24 111.0 61.5Q76 99 57.5 150.0Q39 201 39 260V283Q39 342 56.5 393.0Q74 444 107.5 482.5Q141 521 188.0 542.5Q235 564 293 564Q359 564 407.0 535.5Q455 507 482.0 451.5Q509 396 512 315L470 354V730H631V0H504V227H526Q523 149 493.5 94.0Q464 39 414.0 10.5Q364 -18 299 -18ZM339 116Q376 116 406.5 132.5Q437 149 455.5 181.0Q474 213 474 258V295Q474 339 455.0 369.0Q436 399 405.0 415.0Q374 431 338 431Q298 431 266.5 410.5Q235 390 217.0 354.5Q199 319 199 272Q199 224 217.0 189.0Q235 154 267.0 135.0Q299 116 339 116Z"/>
+  </g>
+  <circle cx="52.5" cy="15" r="3.2" fill="#9b5931"/>
+  <circle cx="52.5" cy="26.5" r="3.2" fill="#C4CCD1"/>
+  <circle cx="52.5" cy="38" r="3.2" fill="#C4CCD1"/>
+</svg>
