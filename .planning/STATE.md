@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.16
 milestone_name: Brand-Faithful UI Iteration
-status: complete
-last_updated: "2026-06-12T17:32:05Z"
-last_activity: 2026-06-12
+status: executing
+last_updated: "2026-06-12T21:50:21.447Z"
+last_activity: 2026-06-12 -- Phase 112.1 planning complete
 progress:
-  total_phases: 6
+  total_phases: 7
   completed_phases: 6
-  total_plans: 6
+  total_plans: 8
   completed_plans: 6
-  percent: 100
+  percent: 75
 ---
 
 # State: Rulestead
@@ -21,7 +21,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-12)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
 
-**Current focus:** v1.16 complete — branch topology / PR sequencing remains at maintainer discretion
+**Current focus:** v1.16 gap closure — Phase 112.1 dynamic FleetDesk launcher URL and evidence
 
 **Milestone:** v1.16 Brand-Faithful UI Iteration shipped 2026-06-12 — see `.planning/ROADMAP.md` for phase structure
 
@@ -31,10 +31,10 @@ See: `.planning/PROJECT.md` (updated 2026-06-12)
 
 ## Current Position
 
-Phase: 112 complete
-Plan: 112-01 complete
-Status: Verified and ready for maintainer branch-topology decision
-Last activity: 2026-06-12 — v1.16 brand-faithful UI iteration implemented and verified
+Phase: 112.1
+Plan: not planned
+Status: Ready to execute
+Last activity: 2026-06-12 -- Phase 112.1 planning complete
 
 ## Phase Dependency Map
 
@@ -54,6 +54,10 @@ Human checkpoints:
 - None currently required. FleetDesk brand boundary is locked: FleetDesk remains host-branded, Rulestead-owned demo/admin chrome uses the v1.15 identity.
 
 ## Accumulated Context
+
+### Roadmap Evolution
+
+- Phase 112.1 inserted after Phase 112: Close gap: BUI-05/BUI-06 - dynamic FleetDesk launcher URL and evidence (URGENT)
 
 ### Decisions
 
