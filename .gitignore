@@ -2,6 +2,8 @@
 *.swp
 *.swo
 erl_crash.dump
+__pycache__/
+*.pyc
 
 # Local demo overrides (copy from .env.example). Compose auto-loads it.
 .env
