@@ -38,7 +38,9 @@ defmodule RulesteadDemoWeb.Layouts do
     <header class="navbar px-4 sm:px-6 lg:px-8">
       <div class="flex-1">
         <a href="/" class="flex-1 flex w-fit items-center gap-2">
-          <img src={~p"/images/logo.svg"} width="36" />
+          <%!-- Full Rulestead lockup: brand §14 sets a 120px minimum lockup width,
+                so the old 36px mark slot widens to 140px for the wordmark. --%>
+          <img src={~p"/images/logo.svg"} width="140" alt="Rulestead" />
           <span class="text-sm font-semibold">v{Application.spec(:phoenix, :vsn)}</span>
         </a>
       </div>
