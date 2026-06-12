@@ -25,6 +25,7 @@ REQUIRED_FILES = [
 FINAL_LOGOS = [
     "rs-wordmark.svg",
     "rs-wordmark-dark.svg",
+    "rs-wordmark-tagline.svg",
     "rs-mark.svg",
     "rs-mark-dark.svg",
     "rs-mark-mono.svg",
@@ -64,7 +65,7 @@ REQUIRED_BRAND_SECTIONS = {
     "9": "Verbal identity",
     "12": "Color system",
     "13": "Typography",
-    "14": "Logo direction",
+    "14": "Logo system",
     "15": "Layout system",
     "16": "Iconography",
     "17": "Imagery",

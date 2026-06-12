@@ -29,6 +29,7 @@ REQUIRED_SECTION_IDS = [
 FINAL_LOGO_SOURCE_REFS = [
     "assets/logo/rs-wordmark.svg",
     "assets/logo/rs-wordmark-dark.svg",
+    "assets/logo/rs-wordmark-tagline.svg",
     "assets/logo/rs-mark.svg",
     "assets/logo/rs-mark-dark.svg",
     "assets/logo/rs-mark-mono.svg",

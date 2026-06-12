@@ -15,7 +15,7 @@ Source-controlled brand system for Rulestead v1.14+.
 | [`RELEASE-TEMPLATE.md`](RELEASE-TEMPLATE.md) | Release-announcement scaffold in the maintainer tone. | Active |
 | [`BUDGET.md`](BUDGET.md) | Generated HTML and SVG budget policy plus binary-export guardrails. | Active |
 | [`docs/brand-usage.md`](docs/brand-usage.md) | Contributor guide for token sync, admin re-skin edits, and guard scripts. | Active |
-| [`assets/logo/`](assets/logo/) | Final logo and mark SVG system: wordmark, mark, mono, favicon, social card, light/dark variants. | Active |
+| [`assets/logo/`](assets/logo/) | Final logo and mark SVG system: wordmark, tagline secondary, d-sigil mark, mono, favicon, social card, light/dark variants. | Active |
 | [`assets/specimens/`](assets/specimens/) | Reproducible SVG specimens for palette, typography, components, code block, README header, and social card. | Active |
 
 ## Admin Cascade Cross-Reference
