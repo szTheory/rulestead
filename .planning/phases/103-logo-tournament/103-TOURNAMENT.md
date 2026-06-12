@@ -5,9 +5,9 @@
 
 ## Status
 
-- **Current round:** 2 (A3 variants in production)
-- **Rounds completed:** 1 (checkpoint 2026-06-11: A3 sole survivor)
-- **Winner:** not yet selected
+- **Current round:** — (tournament closed)
+- **Rounds completed:** 2
+- **Winner:** **A3-3 — R-anchored entry** (frozen in 103-WINNER.md, 2026-06-11)
 
 ## Candidate Registry
 
@@ -27,6 +27,18 @@
 | D2 | D | 1 | Archivo weight-contrast seam — Rule(700)+stead(500), zero gap, monochrome ink | cut-r1 | no comment — cut by omission at R1 checkpoint (resurrectable on request) |
 | D3 | D | 1 | Sora stepped baseline — stead drops half x-height to lower terrace, blue riser + copper footing | cut-r1 | no comment — cut by omission at R1 checkpoint (resurrectable on request) |
 
+
+### Round 2 registry (A3 variants)
+
+| ID | Round | Delta vs A3 | Status | Feedback |
+|----|-------|-------------|--------|----------|
+| A3-1 | 2 | Refined original (inset start, tuned weight/radii/nodes) | cut-r2 | — |
+| A3-2 | 2 | Single lit copper node, no stubs | cut-r2 | — |
+| A3-3 | 2 | R-anchored entry — trace collinear from the R leg | **WINNER** | "i like this one let's run with it" |
+| A3-4 | 2 | Partial route (under "stead" only) | cut-r2 | — |
+| A3-5 | 2 | Copper trace, muted nodes | cut-r2 | — |
+| A3-6 | 2 | Fanned exit from d stem (G4c DNA) | cut-r2 | — |
+
 ## Round Briefs
 
 ### Round 2 brief
@@ -45,9 +57,15 @@ typemark / alt-font structural) carries the brand.
 
 | Round | Sheet | File |
 |-------|-------|------|
+| 2 | Per-variant context (light/dark/mono/36px/favicon) | round-2-studio.html → round-2-sheet.png (git-ignored) |
 | 1 | Gallery light+dark, 13 cells | round-1-studio.html → round-1-sheet.png (git-ignored render) |
 
 ## Feedback Log
+
+### Round 2 checkpoint (2026-06-11)
+Maintainer: "A3-3 R-anchored entry — trace grows collinear from the R's leg <--- i like
+this one let's run with it"
+Decision: WINNER. A3-3 frozen in 103-WINNER.md. Variants a3-1/2/4/5/6 cut.
 
 ### Round 1 checkpoint (2026-06-11)
 Maintainer: "A3 — Route threads the baseline, rises through the d stem <--- this direction
