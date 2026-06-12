@@ -5,6 +5,7 @@ import html
 import re
 import sys
 from pathlib import Path
+from string import Template
 from typing import Any
 
 
@@ -41,6 +42,27 @@ SPECIMENS = [
     "readme-header.svg",
     "social-card.svg",
 ]
+
+BRAND_VERSION = "v1.15"
+BRAND_DATE = "June 2026"
+
+# Token-defined contrast check surfaces (see tokens.json primitive descriptions).
+LIGHT_PAIR_BG = "#E8ECE8"  # Stone Mist — Gap-2 canonical check surface
+LIGHT_PAIR_LABEL = "Stone Mist"
+DARK_PAIR_BG = "#10161f"  # neutral-ramp dark-0 — dark surface base
+DARK_PAIR_LABEL = "dark surface"
+
+# Intended-surface captions for the logo plate duals.
+LOGO_PLATE_INFO = {
+    "rs-wordmark.svg": ("light", "Primary lockup — light surfaces"),
+    "rs-wordmark-dark.svg": ("dark", "Primary lockup — dark surfaces"),
+    "rs-wordmark-tagline.svg": ("light", "Tagline lockup — light surfaces, generous widths only"),
+    "rs-mark.svg": ("light", "d-sigil mark — light surfaces"),
+    "rs-mark-dark.svg": ("dark", "d-sigil mark — dark surfaces"),
+    "rs-mark-mono.svg": ("light", "Monochrome mark — single-ink contexts"),
+    "rs-favicon.svg": ("any", "Favicon — browser chrome, any theme"),
+    "rs-social-card.svg": ("any", "Social card — self-backed, theme-independent"),
+}
 
 SECTION_ORDER = [
     "overview",
@@ -97,6 +119,35 @@ REQUIRED_CSS_INVARIANTS = [
 
 UNSAFE_SVG_MARKERS = ["base64", "<image", "<script", "<foreignObject"]
 UNSAFE_URI_SCHEMES = {"javascript", "data", "file"}
+
+
+def srgb_channel(value: int) -> float:
+    scaled = value / 255
+    return scaled / 12.92 if scaled <= 0.03928 else ((scaled + 0.055) / 1.055) ** 2.4
+
+
+def relative_luminance(hex_color: str) -> float:
+    digits = hex_color.lstrip("#")
+    if len(digits) == 3:
+        digits = "".join(ch * 2 for ch in digits)
+    red, green, blue = (srgb_channel(int(digits[i : i + 2], 16)) for i in (0, 2, 4))
+    return 0.2126 * red + 0.7152 * green + 0.0722 * blue
+
+
+def contrast_ratio(foreground: str, background: str) -> float:
+    lighter, darker = sorted((relative_luminance(foreground), relative_luminance(background)), reverse=True)
+    return (lighter + 0.05) / (darker + 0.05)
+
+
+def wcag_badge(ratio: float) -> tuple[str, str]:
+    """Return (label, modifier class) for a WCAG text-contrast ratio."""
+    if ratio >= 7.0:
+        return "AAA", "sem-badge--aaa"
+    if ratio >= 4.5:
+        return "AA", "sem-badge--aa"
+    if ratio >= 3.0:
+        return "AA large", "sem-badge--large"
+    return "Below AA", "sem-badge--below"
 
 
 def uri_scheme(value: str) -> str:
@@ -336,9 +387,13 @@ def iter_token_values(tokens: dict[str, Any], group: str) -> list[dict[str, str]
         if isinstance(node, dict) and "$value" in node:
             raw = node["$value"]
             resolved = resolve_token_value(tokens, raw)
+            ref = ""
+            if isinstance(raw, str) and re.fullmatch(r"\{[A-Za-z0-9_.-]+\}", raw):
+                ref = raw.strip("{}")
             values.append({
                 "name": ".".join(parts),
                 "value": str(resolved),
+                "ref": ref,
                 "description": str(node.get("$description", "")),
             })
             return
@@ -535,6 +590,14 @@ def extract_tagline(sources: dict[str, Any]) -> str:
     return match.group(1).strip()
 
 
+def extract_mantra(sources: dict[str, Any]) -> str:
+    body = sources["brand_sections"]["27"]["body"]
+    match = re.search(r"\*\*(.+?)\*\*", body, flags=re.S)
+    if not match:
+        raise BrandbookError("ERROR: required brand mantra not found in brand-book section 27")
+    return match.group(1).strip()
+
+
 def token_rows(tokens: list[dict[str, str]]) -> str:
     rows = []
     for token in tokens:
@@ -554,15 +617,50 @@ def render_color_swatches(tokens: list[dict[str, str]]) -> str:
         value = token["value"]
         if not value.startswith("#"):
             continue
+        role = token["description"].split("—")[1].strip() if "—" in token["description"] else token["description"]
         swatches.append(
             '<article class="swatch" style="--swatch-color: '
             f'{html.escape(value, quote=True)}">'
             '<span class="swatch__chip" aria-hidden="true"></span>'
-            f'<strong>{html.escape(token["name"])}</strong>'
+            '<span class="swatch__meta">'
+            f'<strong>{html.escape(token["name"].removeprefix("primitive."))}</strong>'
             f'<code>{html.escape(value)}</code>'
+            "</span>"
+            f'<span class="swatch__role">{render_inline(role)}</span>'
             "</article>"
         )
     return '<div class="swatch-grid">' + "".join(swatches) + "</div>"
+
+
+def render_semantic_swatches(tokens: list[dict[str, str]], group: str, pair_bg: str, pair_label: str) -> str:
+    cards = []
+    for token in tokens:
+        value = token["value"]
+        if not value.startswith("#"):
+            continue
+        ratio = contrast_ratio(value, pair_bg)
+        badge_label, badge_class = wcag_badge(ratio)
+        short_name = token["name"].removeprefix(f"{group}.")
+        ref = token["ref"]
+        ref_html = f'<code class="sem-ref">&rarr; {html.escape(ref)}</code>' if ref else ""
+        cards.append(
+            '<article class="sem-card">'
+            '<span class="sem-chip" aria-hidden="true" style="'
+            f"--pair-bg: {html.escape(pair_bg, quote=True)}; --pair-fg: {html.escape(value, quote=True)}"
+            '">Aa</span>'
+            '<span class="sem-meta">'
+            f"<strong>{html.escape(short_name)}</strong>"
+            f"{ref_html}"
+            f"<code>{html.escape(value)}</code>"
+            "</span>"
+            '<span class="sem-verdict">'
+            f'<span class="sem-badge {badge_class}">{badge_label}</span>'
+            f'<span class="sem-ratio">{ratio:.2f}:1 on {html.escape(pair_label)} '
+            f"<code>{html.escape(pair_bg)}</code></span>"
+            "</span>"
+            "</article>"
+        )
+    return '<div class="sem-grid">' + "".join(cards) + "</div>"
 
 
 def render_invariant_rows(tokens: dict[str, Any], group: str) -> str:
@@ -621,6 +719,138 @@ def render_asset_grid(assets: list[dict[str, Any]]) -> str:
     return '<div class="asset-grid">' + "".join(cards) + "</div>"
 
 
+def set_svg_root_id(svg_text: str, root_id: str) -> str:
+    root_match = re.match(r"\s*<svg\b([^>]*)>", svg_text)
+    if not root_match:
+        raise BrandbookError("ERROR: SVG root element not found while assigning plate ID")
+    root = root_match.group(0)
+    if re.search(r"\sid\s*=", root):
+        raise BrandbookError("ERROR: SVG root already carries an ID; refusing to overwrite")
+    return svg_text[: root_match.start()] + root.replace("<svg", f'<svg id="{root_id}"', 1) + svg_text[root_match.end() :]
+
+
+def svg_view_box(svg_text: str) -> str:
+    match = re.search(r'viewBox="([^"]+)"', svg_text)
+    if not match:
+        raise BrandbookError("ERROR: SVG viewBox not found for plate reuse")
+    return match.group(1)
+
+
+def svg_use(root_id: str, view_box: str) -> str:
+    return (
+        f'<svg viewBox="{html.escape(view_box, quote=True)}" aria-hidden="true" focusable="false">'
+        f'<use href="#{html.escape(root_id, quote=True)}"></use>'
+        "</svg>"
+    )
+
+
+def plate_root_id(filename: str) -> str:
+    return f"plate-{Path(filename).stem}"
+
+
+def render_logo_plates(assets: list[dict[str, Any]]) -> str:
+    plates = []
+    for asset in assets:
+        filename = Path(asset["source_path"]).name
+        intended, caption = LOGO_PLATE_INFO[filename]
+        root_id = plate_root_id(filename)
+        inline_svg = set_svg_root_id(asset["svg"], root_id)
+        view_box = svg_view_box(asset["svg"])
+        compact = filename in {"rs-mark.svg", "rs-mark-dark.svg", "rs-mark-mono.svg", "rs-favicon.svg"}
+        plate_class = "plate plate--compact" if compact else "plate plate--wide"
+        href = page_href(asset["source_path"])
+        light_tag = '<span class="plate-tag">primary surface</span>' if intended == "light" else ""
+        dark_tag = '<span class="plate-tag plate-tag--dark">primary surface</span>' if intended == "dark" else ""
+        if filename == "rs-mark-mono.svg":
+            dark_tag = '<span class="plate-tag plate-tag--dark">single ink &mdash; light surfaces only</span>'
+        plates.append(
+            f'<figure class="{plate_class}">'
+            '<div class="plate-tiles">'
+            f'<div class="plate-tile plate-tile--light">{inline_svg}{light_tag}</div>'
+            f'<div class="plate-tile plate-tile--dark">{svg_use(root_id, view_box)}{dark_tag}</div>'
+            "</div>"
+            "<figcaption>"
+            f'<strong>{html.escape(asset["label"])}</strong>'
+            f"<span>{html.escape(caption)}</span>"
+            f'<span class="plate-file"><a href="{html.escape(href, quote=True)}">{html.escape(href)}</a> &middot; {asset["bytes"]} bytes</span>'
+            "</figcaption>"
+            "</figure>"
+        )
+    return '<div class="plate-grid">' + "".join(plates) + "</div>"
+
+
+def render_clearspace_diagram(assets: list[dict[str, Any]]) -> str:
+    wordmark = next(asset for asset in assets if asset["source_path"].endswith("/rs-wordmark.svg"))
+    view_box = svg_view_box(wordmark["svg"])
+    return (
+        '<figure class="clearspace">'
+        '<div class="clearspace-stage">'
+        '<div class="clearspace-zone">'
+        '<span class="clearspace-mark clearspace-mark--top" aria-hidden="true">1 cap</span>'
+        '<span class="clearspace-mark clearspace-mark--right" aria-hidden="true">1 cap</span>'
+        '<span class="clearspace-mark clearspace-mark--bottom" aria-hidden="true">1 cap</span>'
+        '<span class="clearspace-mark clearspace-mark--left" aria-hidden="true">1 cap</span>'
+        f'{svg_use(plate_root_id("rs-wordmark.svg"), view_box)}'
+        "</div>"
+        "</div>"
+        "<figcaption>Clear space &mdash; keep at least one cap height (the height of the R) free on every side "
+        "of the lockup. The dashed boundary marks the exclusion zone: no copy, rules, or competing marks inside it.</figcaption>"
+        "</figure>"
+    )
+
+
+def render_logo_usage(assets: list[dict[str, Any]]) -> str:
+    by_name = {Path(asset["source_path"]).name: asset for asset in assets}
+    wordmark_vb = svg_view_box(by_name["rs-wordmark.svg"]["svg"])
+    wordmark_dark_vb = svg_view_box(by_name["rs-wordmark-dark.svg"]["svg"])
+    mark_vb = svg_view_box(by_name["rs-mark.svg"]["svg"])
+
+    def card(kind: str, tile: str, verdict: str, caption: str) -> str:
+        symbol = "&#10003;" if kind == "do" else "&#10007;"
+        return (
+            f'<figure class="usage usage--{kind}">'
+            f'<div class="usage-tile">{tile}</div>'
+            "<figcaption>"
+            f'<span class="usage-verdict usage-verdict--{kind}" aria-hidden="true">{symbol}</span>'
+            f"<strong>{html.escape(verdict)}</strong>"
+            f"<span>{html.escape(caption)}</span>"
+            "</figcaption>"
+            "</figure>"
+        )
+
+    correct = card(
+        "do",
+        svg_use(plate_root_id("rs-wordmark.svg"), wordmark_vb),
+        "Correct",
+        "The lockup as shipped, on a calm surface, with full clear space.",
+    )
+    container = card(
+        "dont",
+        f'<span class="usage-mock usage-mock--container">{svg_use(plate_root_id("rs-wordmark-dark.svg"), wordmark_dark_vb)}</span>',
+        "No container shapes",
+        "Never box the lockup inside a filled rectangle, pill, or badge.",
+    )
+    recompose = card(
+        "dont",
+        '<span class="usage-mock usage-mock--recompose">'
+        f'{svg_use(plate_root_id("rs-mark.svg"), mark_vb)}'
+        '<span class="usage-mock-text" aria-hidden="true">Rulestead</span>'
+        "</span>",
+        "No icon-left recomposition",
+        "Never rebuild an icon-plus-text lockup; the d-sigil already lives inside the wordmark.",
+    )
+    tagline = card(
+        "dont",
+        '<span class="usage-mock usage-mock--tagline">'
+        f'{svg_use(plate_root_id("rs-wordmark.svg"), wordmark_vb)}'
+        '<span class="usage-mock-text usage-mock-text--tagline" aria-hidden="true">Runtime decisions, made clear.</span>'
+        "</span>",
+        "No tagline in the primary lockup",
+        "Never attach the tagline to the primary lockup; use rs-wordmark-tagline where it is already set.",
+    )
+    return '<div class="usage-grid">' + correct + container + recompose + tagline + "</div>"
+
+
 def css_declarations(mapping: dict[str, Any]) -> str:
     lines = []
     for name, value in sorted(mapping.items()):
@@ -662,22 +892,15 @@ def root_css_declarations(css_text: str) -> str:
     return "\n".join(f"  {name}: {value};" for name, value in sorted(declarations.items()))
 
 
-def render_styles(sources: dict[str, Any]) -> str:
-    mappings = sources["tokens"]["admin_css_mapping"]
-    css_root = root_css_declarations(sources["brandbook/tokens.css"])
-    light = css_declarations(mappings["light"])
-    dark = css_declarations(mappings["dark"])
-    light_aliases = theme_alias_declarations("light")
-    dark_aliases = theme_alias_declarations("dark")
-    return f"""
-body {{
+BRANDBOOK_CSS = Template("""
+body {
   margin: 0;
-}}
+}
 
-[data-rulestead-brandbook] {{
-{css_root}
-{light}
-{light_aliases}
+[data-rulestead-brandbook] {
+$css_root
+$light
+$light_aliases
   min-height: 100vh;
   background: var(--rs-bg);
   color: var(--rs-text);
@@ -685,89 +908,238 @@ body {{
   font-size: var(--rs-text-base);
   line-height: var(--rs-leading-normal);
   letter-spacing: 0;
-}}
+}
 
-@media (prefers-color-scheme: dark) {{
-  [data-rulestead-brandbook]:not([data-theme]) {{
-{dark}
-{dark_aliases}
-  }}
-}}
+@media (prefers-color-scheme: dark) {
+  [data-rulestead-brandbook]:not([data-theme]) {
+$dark
+$dark_aliases
+  }
+}
 
-[data-rulestead-brandbook][data-theme="light"] {{
-{light}
-{light_aliases}
-}}
+[data-rulestead-brandbook][data-theme="light"] {
+$light
+$light_aliases
+}
 
-[data-rulestead-brandbook][data-theme="dark"] {{
-{dark}
-{dark_aliases}
-}}
+[data-rulestead-brandbook][data-theme="dark"] {
+$dark
+$dark_aliases
+}
 
 [data-rulestead-brandbook] *,
 [data-rulestead-brandbook] *::before,
-[data-rulestead-brandbook] *::after {{
+[data-rulestead-brandbook] *::after {
   box-sizing: border-box;
-}}
+}
 
-[data-rulestead-brandbook] a {{
+[data-rulestead-brandbook] a {
   color: var(--rs-primary);
   font-weight: 600;
-}}
+}
 
-[data-rulestead-brandbook] strong {{
+[data-rulestead-brandbook] strong {
   font-weight: 600;
-}}
+}
 
 [data-rulestead-brandbook] a:focus-visible,
-[data-rulestead-brandbook] button:focus-visible {{
+[data-rulestead-brandbook] button:focus-visible {
   outline: none;
   box-shadow: var(--rs-focus-ring);
-}}
+}
 
-.brand-shell {{
+/* ---------- Cover ---------- */
+
+.brand-cover {
+  display: flex;
+  flex-direction: column;
+  min-height: 94vh;
+  padding: 36px clamp(24px, 6vw, 88px) 40px;
+  background: #0F1720;
+  color: #e8edf3;
+}
+
+.cover-bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px 24px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid rgba(232, 237, 243, 0.14);
+  color: #7a8fa3;
+  font-family: var(--rs-font-mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.cover-center {
+  display: grid;
+  flex: 1;
+  width: 100%;
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 72px 0 56px;
+  align-content: center;
+  justify-items: start;
+  gap: 36px;
+}
+
+.cover-logo {
+  display: block;
+  width: min(560px, 92%);
+}
+
+.cover-logo svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.cover-logo--print {
+  display: none;
+}
+
+.cover-kicker {
+  margin: 0;
+  color: #a8b9ca;
+  font-family: var(--rs-font-display);
+  font-size: 0.82rem;
+  font-weight: 400;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+}
+
+.cover-rule {
+  width: 76px;
+  height: 2px;
+  background: #ba6b3c;
+}
+
+.cover-mantra {
+  margin: 0;
+  max-width: 20ch;
+  font-family: var(--rs-font-display);
+  font-size: clamp(2.1rem, 4.3vw, 3.35rem);
+  font-weight: 600;
+  line-height: 1.16;
+  letter-spacing: -0.015em;
+  color: #f0f4f8;
+}
+
+.cover-foot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px 24px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(232, 237, 243, 0.14);
+  color: #7a8fa3;
+  font-family: var(--rs-font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+}
+
+.cover-foot em {
+  font-style: normal;
+  color: #a8b9ca;
+}
+
+/* ---------- Layout: rail + content ---------- */
+
+.brand-layout {
+  display: grid;
+  grid-template-columns: 232px minmax(0, 1fr);
+  gap: clamp(32px, 5vw, 72px);
   max-width: var(--rs-shell-max);
   margin: 0 auto;
-  padding: 24px;
-}}
+  padding: 0 clamp(20px, 4vw, 48px);
+}
 
-.brand-header {{
+.brand-rail {
+  position: sticky;
+  top: 0;
   display: grid;
-  gap: 24px;
-  padding: 24px 0 32px;
-  border-bottom: 1px solid var(--rs-border-subtle);
-}}
+  gap: 20px;
+  align-self: start;
+  align-content: start;
+  max-height: 100vh;
+  overflow-y: auto;
+  padding: 44px 0 24px;
+}
 
-.brand-identity {{
-  display: grid;
-  gap: 16px;
-}}
-
-.brand-identity svg {{
-  width: min(360px, 100%);
-  height: auto;
-}}
-
-.brand-title {{
-  max-width: 760px;
-}}
-
-.brand-title h1 {{
-  margin: 0 0 8px;
-  font-family: var(--rs-font-display);
-  font-size: 2rem;
-  line-height: var(--rs-leading-tight);
-  font-weight: 600;
-  letter-spacing: 0;
-}}
-
-.brand-title p {{
+.rail-title {
   margin: 0;
-  max-width: 66ch;
   color: var(--rs-text-muted);
-}}
+  font-family: var(--rs-font-mono);
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
 
-.theme-control {{
+.rail-list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rail-list a {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 9px 12px 9px 14px;
+  border-left: 2px solid var(--rs-border-subtle);
+  color: var(--rs-text-muted);
+  font-size: 0.88rem;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.rail-num {
+  min-width: 2ch;
+  color: var(--rs-text-muted);
+  font-family: var(--rs-font-mono);
+  font-size: 0.68rem;
+  opacity: 0.75;
+}
+
+.rail-list a:hover {
+  color: var(--rs-text);
+}
+
+.rail-list a[aria-current="true"] {
+  border-left-color: var(--rs-accent);
+  background: var(--rs-surface);
+  color: var(--rs-text);
+  font-weight: 600;
+}
+
+.rail-list a[aria-current="true"] .rail-num {
+  color: var(--rs-accent);
+  opacity: 1;
+}
+
+.theme-cluster {
+  display: grid;
+  gap: 8px;
+  padding-top: 18px;
+  border-top: 1px solid var(--rs-border-subtle);
+}
+
+.theme-label {
+  margin: 0;
+  color: var(--rs-text-muted);
+  font-family: var(--rs-font-mono);
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.theme-control {
   display: inline-flex;
   width: fit-content;
   min-height: 44px;
@@ -776,195 +1148,683 @@ body {{
   border: 1px solid var(--rs-border);
   border-radius: var(--rs-radius-full);
   background: var(--rs-surface);
-}}
+}
 
-.theme-control button {{
-  min-height: 44px;
+.theme-control button {
+  min-height: 36px;
   border: 1px solid transparent;
   border-radius: var(--rs-radius-full);
   padding: 0 12px;
   background: transparent;
   color: var(--rs-text-muted);
   font: inherit;
+  font-size: 0.85rem;
   font-weight: 600;
-}}
+}
 
-.theme-control [aria-checked="true"] {{
+.theme-control [aria-checked="true"] {
   border-color: var(--rs-primary);
   background: var(--rs-primary-soft, var(--rs-surface-muted));
   color: var(--rs-primary-hover, var(--rs-primary));
-}}
+}
 
-.theme-cluster {{
+/* ---------- Sections: editorial rhythm ---------- */
+
+.brand-main {
+  padding: 24px 0 64px;
+}
+
+.brand-section {
   display: grid;
-  gap: 8px;
-}}
+  gap: 12px;
+  padding: 64px 0 44px;
+  border-top: 1px solid var(--rs-border-subtle);
+  scroll-margin-top: 16px;
+}
 
-.theme-label {{
-  margin: 0;
-  color: var(--rs-text-muted);
-  font-family: var(--rs-font-mono);
-  font-size: var(--rs-text-xs);
-  font-weight: 600;
-}}
+.brand-section:first-child {
+  border-top: 0;
+  padding-top: 44px;
+}
 
-.brand-nav {{
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}}
-
-.brand-nav a,
-.source-refs a {{
-  display: inline-flex;
-  min-height: 44px;
-  align-items: center;
-  border: 1px solid var(--rs-border-subtle);
-  border-radius: var(--rs-radius-sm);
-  padding: 8px 12px;
-  background: var(--rs-surface);
-  color: var(--rs-text);
-  font-size: var(--rs-text-sm);
-  text-decoration: none;
-}}
-
-.brand-main {{
+.section-head {
   display: grid;
-  gap: 32px;
-  padding: 32px 0;
-}}
+  gap: 0;
+  margin-bottom: 12px;
+}
 
-.brand-section {{
-  display: grid;
-  gap: 16px;
-  padding: 32px 0;
-  border-bottom: 1px solid var(--rs-border-subtle);
-}}
-
-.brand-section h2 {{
-  margin: 0;
+.section-num {
   font-family: var(--rs-font-display);
-  font-size: 1.4rem;
+  font-size: 3.6rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: transparent;
+  -webkit-text-stroke: 1.25px var(--rs-border);
+}
+
+.section-head h2 {
+  margin: 10px 0 0;
+  font-family: var(--rs-font-display);
+  font-size: 1.9rem;
   line-height: var(--rs-leading-tight);
   font-weight: 600;
-  letter-spacing: 0;
-}}
+  letter-spacing: -0.015em;
+}
 
-.section-copy {{
-  max-width: 78ch;
-}}
+.section-copy > p,
+.section-copy > ul,
+.section-copy > ol,
+.section-copy > blockquote {
+  max-width: 68ch;
+}
 
-.section-copy h3,
+.section-copy p,
+.section-copy li {
+  color: var(--rs-text);
+  line-height: 1.7;
+}
+
+.section-copy > h3 {
+  margin: 44px 0 14px;
+  font-family: var(--rs-font-display);
+  font-size: 1.22rem;
+  line-height: var(--rs-leading-snug);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.section-copy > h3::before {
+  content: "";
+  display: block;
+  width: 28px;
+  height: 2px;
+  margin-bottom: 10px;
+  background: var(--rs-accent);
+}
+
 .section-copy h4,
-.doc-excerpt h3 {{
+.doc-excerpt h3,
+.doc-excerpt h4 {
   margin: 24px 0 8px;
   font-family: var(--rs-font-display);
-  font-size: 1.05rem;
+  font-size: 1.02rem;
   line-height: var(--rs-leading-snug);
   font-weight: 600;
   letter-spacing: 0;
-}}
+}
 
-.section-copy p,
-.section-copy li {{
+.section-copy blockquote {
+  margin: 30px 0;
+  padding: 6px 0 6px 26px;
+  border-left: 3px solid var(--rs-accent);
   color: var(--rs-text);
-}}
+}
 
-.section-copy blockquote {{
-  margin: 16px 0;
-  border-left: 4px solid var(--rs-accent);
-  padding-left: 16px;
+.section-copy blockquote p {
+  margin: 0 0 6px;
+  font-family: var(--rs-font-display);
+  font-size: 1.22rem;
+  line-height: 1.55;
+  font-weight: 400;
+}
+
+.section-lede {
+  font-family: var(--rs-font-display);
+  font-size: 1.3rem;
+  line-height: 1.5;
+  color: var(--rs-text);
+}
+
+.policy-note,
+.plate-note {
   color: var(--rs-text-muted);
-}}
+}
 
-.source-refs {{
+.source-refs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--rs-border-subtle);
+}
+
+.source-refs span {
+  color: var(--rs-text-muted);
+  font-family: var(--rs-font-mono);
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin-right: 6px;
+}
+
+.source-refs a {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-all;
+  border: 1px solid var(--rs-border-subtle);
+  border-radius: var(--rs-radius-sm);
+  padding: 4px 9px;
+  background: var(--rs-surface);
+  color: var(--rs-text-muted);
+  font-family: var(--rs-font-mono);
+  font-size: var(--rs-text-xs);
+  font-weight: 400;
+  text-decoration: none;
+}
+
+.source-refs a:hover {
+  color: var(--rs-text);
+  border-color: var(--rs-border);
+}
+
+/* ---------- Token swatches ---------- */
+
+.swatch-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(216px, 1fr));
+  gap: 14px;
+}
+
+.asset-grid,
+.doc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.swatch,
+.sem-card,
+.asset-card,
+.doc-excerpt {
+  border: 1px solid var(--rs-border-subtle);
+  border-radius: var(--rs-radius-md);
+  background: var(--rs-surface);
+}
+
+.swatch {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  align-content: start;
+}
+
+.swatch__chip {
+  display: block;
+  aspect-ratio: 7 / 2;
+  border: 1px solid var(--rs-border-subtle);
+  border-radius: 6px;
+  background: var(--swatch-color);
+}
+
+.swatch__meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.swatch__meta strong {
+  font-family: var(--rs-font-display);
+  font-size: 0.88rem;
+}
+
+.swatch__role {
+  color: var(--rs-text-muted);
+  font-size: var(--rs-text-xs);
+  line-height: 1.55;
+}
+
+.sem-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+  gap: 14px;
+}
+
+.sem-card {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  gap: 6px 14px;
+  padding: 14px;
+  align-items: center;
+}
+
+.sem-chip {
+  grid-row: 1 / span 2;
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border: 1px solid var(--rs-border-subtle);
+  border-radius: var(--rs-radius-sm);
+  background: var(--pair-bg);
+  color: var(--pair-fg);
+  font-family: var(--rs-font-display);
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.sem-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+}
+
+.sem-meta strong {
+  font-family: var(--rs-font-display);
+  font-size: 0.9rem;
+}
+
+.sem-meta code,
+.sem-ref {
+  color: var(--rs-text-muted);
+  font-size: var(--rs-text-xs);
+}
+
+.sem-verdict {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-}}
+}
 
-.source-refs span {{
-  color: var(--rs-text-muted);
+.sem-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 9px;
+  border: 1px solid currentColor;
+  border-radius: var(--rs-radius-full);
   font-family: var(--rs-font-mono);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.sem-badge--aaa,
+.sem-badge--aa {
+  color: var(--rs-success);
+}
+
+.sem-badge--large {
+  color: var(--rs-warning);
+}
+
+.sem-badge--below {
+  border-style: dashed;
+  color: var(--rs-text-muted);
+}
+
+.sem-ratio {
+  color: var(--rs-text-muted);
   font-size: var(--rs-text-xs);
-}}
+}
 
-.swatch-grid,
-.asset-grid,
-.doc-grid {{
+/* ---------- Logo plates ---------- */
+
+.plate-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
-}}
+}
 
-.swatch,
-.asset-card,
-.doc-excerpt {{
+.plate {
+  margin: 0;
+  overflow: hidden;
   border: 1px solid var(--rs-border-subtle);
-  border-radius: 8px;
+  border-radius: var(--rs-radius-md);
   background: var(--rs-surface);
-}}
+}
 
-.swatch {{
+.plate--wide {
+  grid-column: 1 / -1;
+}
+
+.plate-tiles {
   display: grid;
-  gap: 8px;
-  padding: 12px;
-}}
+  grid-template-columns: 1fr 1fr;
+}
 
-.swatch__chip {{
+.plate-tile {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 150px;
+  padding: 30px 26px;
+}
+
+.plate-tile--light {
+  background: #f4f6f8;
+}
+
+.plate-tile--dark {
+  background: #10161f;
+}
+
+.plate-tile svg {
   display: block;
-  aspect-ratio: 4 / 1;
+  width: 100%;
+  max-width: 330px;
+  max-height: 116px;
+  height: auto;
+}
+
+.plate--compact .plate-tile svg {
+  max-width: 84px;
+}
+
+.plate-tag {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  padding: 2px 8px;
+  border: 1px solid rgba(26, 35, 50, 0.22);
+  border-radius: var(--rs-radius-full);
+  color: #5c6b7a;
+  font-family: var(--rs-font-mono);
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.plate-tag--dark {
+  border-color: rgba(232, 237, 243, 0.26);
+  color: #a8b9ca;
+}
+
+.plate figcaption {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 14px;
+  padding: 12px 16px;
+}
+
+.plate figcaption strong {
+  font-family: var(--rs-font-display);
+  font-size: 0.88rem;
+}
+
+.plate figcaption span {
+  color: var(--rs-text-muted);
+  font-size: var(--rs-text-xs);
+}
+
+.plate-file,
+.plate-file a {
+  font-family: var(--rs-font-mono);
+}
+
+.plate-file a {
+  color: var(--rs-text-muted);
+  font-size: var(--rs-text-xs);
+  font-weight: 400;
+}
+
+/* ---------- Clear space ---------- */
+
+.clearspace {
+  display: grid;
+  gap: 12px;
+  margin: 8px 0 0;
+}
+
+.clearspace-stage {
+  display: grid;
+  place-items: center;
+  padding: clamp(28px, 6vw, 64px);
   border: 1px solid var(--rs-border-subtle);
-  border-radius: 6px;
-  background: var(--swatch-color);
-}}
+  border-radius: var(--rs-radius-md);
+  background: #f4f6f8;
+}
+
+.clearspace-zone {
+  position: relative;
+  padding: min(11%, 52px);
+  border: 1.5px dashed #8fa0b0;
+}
+
+.clearspace-zone svg {
+  display: block;
+  width: min(440px, 56vw);
+  height: auto;
+}
+
+.clearspace-mark {
+  position: absolute;
+  color: #5c6b7a;
+  font-family: var(--rs-font-mono);
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.clearspace-mark--top {
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.clearspace-mark--bottom {
+  bottom: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.clearspace-mark--left {
+  top: 50%;
+  left: 8px;
+  transform: translateY(-50%);
+}
+
+.clearspace-mark--right {
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+}
+
+.clearspace figcaption {
+  max-width: 64ch;
+  color: var(--rs-text-muted);
+  font-size: var(--rs-text-sm);
+  line-height: 1.6;
+}
+
+/* ---------- Do / don't ---------- */
+
+.usage-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+@media (max-width: 640px) {
+  .usage-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.usage {
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--rs-border-subtle);
+  border-radius: var(--rs-radius-md);
+  background: var(--rs-surface);
+}
+
+.usage-tile {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 136px;
+  padding: 26px 22px;
+  background: #f4f6f8;
+}
+
+.usage-tile > svg {
+  width: min(210px, 84%);
+  height: auto;
+}
+
+.usage--dont .usage-tile::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(to top right, transparent calc(50% - 1.5px), rgba(176, 72, 72, 0.85) calc(50% - 1.5px) calc(50% + 1.5px), transparent calc(50% + 1.5px));
+}
+
+.usage figcaption {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 2px 10px;
+  padding: 12px 14px;
+  align-items: baseline;
+}
+
+.usage figcaption strong {
+  font-family: var(--rs-font-display);
+  font-size: 0.88rem;
+}
+
+.usage figcaption > span:last-child {
+  grid-column: 2;
+  color: var(--rs-text-muted);
+  font-size: var(--rs-text-xs);
+  line-height: 1.55;
+}
+
+.usage-verdict {
+  font-weight: 700;
+  line-height: 1;
+}
+
+.usage-verdict--do {
+  color: var(--rs-success);
+}
+
+.usage-verdict--dont {
+  color: var(--rs-error);
+}
+
+.usage-mock {
+  display: block;
+}
+
+.usage-mock--container {
+  width: min(230px, 86%);
+  padding: 18px 22px;
+  border-radius: 12px;
+  background: #3A6F8F;
+}
+
+.usage-mock--container svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.usage-mock--recompose {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.usage-mock--recompose svg {
+  width: 44px;
+  height: auto;
+}
+
+.usage-mock-text {
+  font-family: var(--rs-font-display);
+  font-size: 1.45rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #183247;
+}
+
+.usage-mock--tagline {
+  display: grid;
+  gap: 4px;
+  justify-items: center;
+  width: min(220px, 84%);
+}
+
+.usage-mock--tagline svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.usage-mock-text--tagline {
+  font-family: var(--rs-font-sans);
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #5c6b7a;
+  white-space: nowrap;
+}
+
+/* ---------- Code, tables, docs, assets ---------- */
 
 code,
-pre {{
+pre {
   font-family: var(--rs-font-mono);
-}}
+}
 
 .section-copy code,
 .swatch code,
-table code {{
+table code {
   font-size: var(--rs-text-xs);
-}}
+}
 
-pre {{
+pre {
   overflow: auto;
   border-radius: 8px;
   padding: 16px;
   background: var(--rs-neutral-0);
   color: var(--rs-text);
-}}
+}
 
-table {{
+table {
   width: 100%;
   border-collapse: collapse;
   overflow-wrap: anywhere;
-}}
+}
 
 th,
-td {{
+td {
   border-bottom: 1px solid var(--rs-border-subtle);
   padding: 12px 8px;
   text-align: left;
   vertical-align: top;
-}}
+}
 
-th {{
+th {
   color: var(--rs-text-muted);
-  font-size: var(--rs-text-sm);
+  font-family: var(--rs-font-mono);
+  font-size: 0.68rem;
   font-weight: 600;
-}}
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
 
-.asset-card {{
+.asset-card {
   margin: 0;
   overflow: hidden;
-}}
+}
 
-.asset-preview {{
+.asset-preview {
   display: grid;
   min-height: 180px;
   aspect-ratio: 16 / 9;
@@ -972,75 +1832,258 @@ th {{
   overflow: hidden;
   padding: 16px;
   background: var(--rs-surface-muted);
-}}
+}
 
-.asset-preview svg {{
+.asset-preview svg {
   max-width: min(100%, 720px);
   max-height: 100%;
   height: auto;
-}}
+}
 
-.asset-preview--compact {{
+.asset-preview--compact {
   min-height: 120px;
   aspect-ratio: 1 / 1;
-}}
+}
 
-.asset-preview--compact svg {{
+.asset-preview--compact svg {
   max-width: min(100%, 96px);
   max-height: 96px;
-}}
+}
 
-.asset-card figcaption {{
+.asset-card figcaption {
   display: grid;
   gap: 4px;
   padding: 12px;
-}}
+}
 
 .asset-card figcaption span,
-.asset-card figcaption a {{
+.asset-card figcaption a {
   color: var(--rs-text-muted);
   font-family: var(--rs-font-mono);
   font-size: var(--rs-text-xs);
-}}
+}
 
-.doc-excerpt {{
+.doc-excerpt {
+  min-width: 0;
   padding: 16px;
-}}
+  overflow-wrap: anywhere;
+}
 
-.brand-footer {{
-  padding: 24px 0;
+.brand-footer {
+  max-width: var(--rs-shell-max);
+  margin: 0 auto;
+  padding: 24px clamp(20px, 4vw, 48px) 32px;
+  border-top: 1px solid var(--rs-border-subtle);
   color: var(--rs-text-muted);
   font-size: var(--rs-text-sm);
-}}
+}
 
-@media (prefers-reduced-motion: no-preference) {{
+/* ---------- Motion ---------- */
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-rulestead-brandbook] {
+    scroll-behavior: smooth;
+  }
+
   [data-rulestead-brandbook] a,
   [data-rulestead-brandbook] button,
-  [data-rulestead-brandbook] .asset-card {{
+  [data-rulestead-brandbook] .asset-card {
     transition: color var(--rs-motion-fast) var(--rs-ease-standard), background-color var(--rs-motion-fast) var(--rs-ease-standard), border-color var(--rs-motion-fast) var(--rs-ease-standard), box-shadow var(--rs-motion-base) var(--rs-ease-standard);
-  }}
-}}
+  }
+}
 
-@media (prefers-reduced-motion: reduce) {{
+@media (prefers-reduced-motion: reduce) {
   [data-rulestead-brandbook],
-  [data-rulestead-brandbook] * {{
+  [data-rulestead-brandbook] * {
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
-  }}
-}}
+  }
+}
 
-@media (max-width: 720px) {{
-  .brand-shell {{
-    padding: 16px;
-  }}
+/* ---------- Narrow viewports ---------- */
 
-  .brand-header {{
-    padding-top: 16px;
-  }}
-}}
-"""
+@media (max-width: 960px) {
+  .brand-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  .brand-rail {
+    position: static;
+    max-height: none;
+    overflow: visible;
+    padding: 28px 0 20px;
+    border-bottom: 1px solid var(--rs-border-subtle);
+  }
+
+  .rail-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .rail-list a {
+    border: 1px solid var(--rs-border-subtle);
+    border-radius: var(--rs-radius-full);
+    padding: 7px 13px;
+    background: var(--rs-surface);
+  }
+
+  .rail-list a[aria-current="true"] {
+    border-color: var(--rs-accent);
+  }
+
+  .brand-section {
+    padding: 44px 0 32px;
+  }
+
+  .section-num {
+    font-size: 2.6rem;
+  }
+
+  .section-head h2 {
+    font-size: 1.55rem;
+  }
+
+  .plate-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .plate--wide {
+    grid-column: auto;
+  }
+
+  .plate-tiles {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .brand-cover {
+    min-height: 88vh;
+    padding: 24px 20px 28px;
+  }
+
+  .cover-center {
+    padding: 56px 0 44px;
+  }
+}
+
+/* ---------- Print ---------- */
+
+@media print {
+  body {
+    background: #ffffff;
+  }
+
+  [data-rulestead-brandbook],
+  [data-rulestead-brandbook][data-theme="dark"],
+  [data-rulestead-brandbook][data-theme="light"] {
+$light
+$light_aliases
+    background: #ffffff;
+  }
+
+  .brand-rail,
+  .theme-cluster,
+  .source-refs {
+    display: none;
+  }
+
+  .brand-cover {
+    min-height: auto;
+    padding: 36pt 0 24pt;
+    background: #ffffff;
+    color: #1a2332;
+  }
+
+  .cover-bar,
+  .cover-foot {
+    color: #5c6b7a;
+    border-color: #d8dee6;
+  }
+
+  .cover-kicker {
+    color: #5c6b7a;
+  }
+
+  .cover-mantra {
+    color: #0F1720;
+  }
+
+  .cover-logo--screen {
+    display: none;
+  }
+
+  .cover-logo--print {
+    display: block;
+  }
+
+  .brand-layout {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+
+  .brand-section {
+    border-top: 0;
+    padding: 0 0 18pt;
+    break-before: page;
+    page-break-before: always;
+  }
+
+  .swatch,
+  .sem-card,
+  .plate,
+  .usage,
+  .asset-card,
+  .doc-excerpt,
+  .clearspace-stage,
+  blockquote,
+  tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .swatch__chip,
+  .sem-chip,
+  .plate-tile,
+  .usage-tile,
+  .usage-mock--container,
+  .asset-preview {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .swatch code,
+  .sem-meta code {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #1a2332;
+  }
+
+  .section-num {
+    color: transparent;
+    -webkit-text-stroke: 1.25px #d8dee6;
+  }
+
+  [data-rulestead-brandbook] a {
+    color: #1a2332;
+    text-decoration: none;
+  }
+}
+""")
+
+
+def render_styles(sources: dict[str, Any]) -> str:
+    mappings = sources["tokens"]["admin_css_mapping"]
+    return BRANDBOOK_CSS.substitute(
+        css_root=root_css_declarations(sources["brandbook/tokens.css"]),
+        light=css_declarations(mappings["light"]),
+        dark=css_declarations(mappings["dark"]),
+        light_aliases=theme_alias_declarations("light"),
+        dark_aliases=theme_alias_declarations("dark"),
+    )
 
 
 def render_theme_script() -> str:
@@ -1123,17 +2166,73 @@ def render_theme_script() -> str:
         options[nextIndex].focus();
       });
     })();
+
+    (() => {
+      const rail = document.querySelector("[data-brandbook-rail]");
+      if (!rail || !("IntersectionObserver" in window)) return;
+
+      const links = new Map();
+      rail.querySelectorAll("a[href^='#']").forEach((link) => {
+        links.set(link.getAttribute("href").slice(1), link);
+      });
+
+      const sections = Array.from(
+        document.querySelectorAll(".brand-section[id]"),
+      ).filter((section) => links.has(section.id));
+      if (sections.length === 0) return;
+
+      const setActive = (id) => {
+        links.forEach((link, key) => {
+          if (key === id) {
+            link.setAttribute("aria-current", "true");
+          } else {
+            link.removeAttribute("aria-current");
+          }
+        });
+      };
+
+      const visible = new Set();
+      const pickActive = () => {
+        const candidate = sections.find((section) => visible.has(section.id));
+        if (candidate) setActive(candidate.id);
+      };
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              visible.add(entry.target.id);
+            } else {
+              visible.delete(entry.target.id);
+            }
+          });
+          pickActive();
+        },
+        { rootMargin: "-12% 0px -55% 0px", threshold: 0 },
+      );
+
+      sections.forEach((section) => observer.observe(section));
+      setActive(sections[0].id);
+    })();
   </script>
 """
 
 
+def section_number(section_id: str) -> str:
+    return f"{SECTION_ORDER.index(section_id) + 1:02d}"
+
+
 def render_section(section_id: str, refs: list[str], body: str) -> str:
     title = section_title(section_id)
+    number = section_number(section_id)
     return (
         f'<section id="{section_id}" class="brand-section" aria-labelledby="{section_id}-title">\n'
+        '<header class="section-head">\n'
+        f'<span class="section-num" aria-hidden="true">{number}</span>\n'
         f'<h2 id="{section_id}-title">{html.escape(title)}</h2>\n'
-        f"{source_refs(refs)}\n"
+        "</header>\n"
         f'<div class="section-copy">{body}</div>\n'
+        f"{source_refs(refs)}\n"
         "</section>"
     )
 
@@ -1165,9 +2264,11 @@ def render_color_section(sources: dict[str, Any]) -> str:
         + "<h3>Primitive palette</h3>"
         + render_color_swatches(tokens["primitive"])
         + "<h3>Light semantic tokens</h3>"
-        + token_rows(tokens["light"])
+        + '<p class="plate-note">Each card maps the semantic role to its primitive, with the WCAG verdict computed '
+        + "at generation time against the token-defined light check surface.</p>"
+        + render_semantic_swatches(tokens["light"], "light", LIGHT_PAIR_BG, LIGHT_PAIR_LABEL)
         + "<h3>Dark semantic tokens</h3>"
-        + token_rows(tokens["dark"])
+        + render_semantic_swatches(tokens["dark"], "dark", DARK_PAIR_BG, DARK_PAIR_LABEL)
         + "<h3>Light admin CSS mapping</h3>"
         + render_admin_mapping_table(mappings["light"])
         + "<h3>Dark admin CSS mapping</h3>"
@@ -1191,7 +2292,18 @@ def render_typography_section(sources: dict[str, Any]) -> str:
 
 
 def render_logo_section(sources: dict[str, Any]) -> str:
-    return brand_section_html(sources, ["14"]) + render_asset_grid(sources["logos"])
+    logos = sources["logos"]
+    return (
+        brand_section_html(sources, ["14"])
+        + "<h3>Logo plates</h3>"
+        + '<p class="plate-note">Every shipped file, rendered live on both reference surfaces '
+        + "(<code>#f4f6f8</code> light &middot; <code>#10161f</code> dark). The tagged tile is the variant&rsquo;s primary surface.</p>"
+        + render_logo_plates(logos)
+        + "<h3>Clear space</h3>"
+        + render_clearspace_diagram(logos)
+        + "<h3>Use and misuse</h3>"
+        + render_logo_usage(logos)
+    )
 
 
 def render_layout_components_section(sources: dict[str, Any]) -> str:
@@ -1247,9 +2359,23 @@ def render_assets_maintenance_section(sources: dict[str, Any]) -> str:
 
 def render_page(sources: dict[str, Any]) -> str:
     tagline = extract_tagline(sources)
-    hero_logo = prefix_svg_ids(sources["logos"][0]["source_path"], sources["logos"][0]["svg"], "hero-")
-    nav = "".join(
-        f'<a href="#{section_id}">{html.escape(section_title(section_id))}</a>' for section_id in SECTION_ORDER
+    mantra = extract_mantra(sources)
+    logos_by_name = {Path(asset["source_path"]).name: asset for asset in sources["logos"]}
+    cover_logo_dark = prefix_svg_ids(
+        logos_by_name["rs-wordmark-dark.svg"]["source_path"],
+        logos_by_name["rs-wordmark-dark.svg"]["svg"],
+        "cover-",
+    )
+    cover_logo_print = prefix_svg_ids(
+        logos_by_name["rs-wordmark.svg"]["source_path"],
+        logos_by_name["rs-wordmark.svg"]["svg"],
+        "coverprint-",
+    )
+    rail_items = "".join(
+        f'<li><a href="#{section_id}">'
+        f'<span class="rail-num" aria-hidden="true">{section_number(section_id)}</span>'
+        f"{html.escape(section_title(section_id))}</a></li>"
+        for section_id in SECTION_ORDER
     )
 
     section_bodies = {
@@ -1309,22 +2435,36 @@ def render_page(sources: dict[str, Any]) -> str:
   <title>Rulestead Brand Book</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Inter:wght@400;600&family=Sora:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Inter:wght@400;600&family=Sora:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
 {render_styles(sources)}
   </style>
 </head>
 <body>
   <div data-rulestead-brandbook>
-    <div class="brand-shell">
-      <header class="brand-header">
-        <div class="brand-identity">
-          {hero_logo}
-          <div class="brand-title">
-            <h1>Rulestead Brand Book</h1>
-            <p>{html.escape(tagline)}</p>
-          </div>
-        </div>
+    <header class="brand-cover">
+      <div class="cover-bar">
+        <span>Rulestead</span>
+        <span>Brand System {html.escape(BRAND_VERSION)}</span>
+      </div>
+      <div class="cover-center">
+        <span class="cover-logo cover-logo--screen">{cover_logo_dark}</span>
+        <span class="cover-logo cover-logo--print" aria-hidden="true">{cover_logo_print}</span>
+        <h1 class="cover-kicker" aria-label="Rulestead Brand Book">Brand Book</h1>
+        <span class="cover-rule" aria-hidden="true"></span>
+        <p class="cover-mantra">{html.escape(mantra)}</p>
+      </div>
+      <div class="cover-foot">
+        <span><em>{html.escape(tagline)}</em></span>
+        <span>Brand System {html.escape(BRAND_VERSION)} &middot; {html.escape(BRAND_DATE)}</span>
+      </div>
+    </header>
+    <div class="brand-layout">
+      <nav class="brand-rail" aria-label="Brand book sections" data-brandbook-rail>
+        <p class="rail-title">Contents</p>
+        <ol class="rail-list">
+          {rail_items}
+        </ol>
         <div class="theme-cluster">
           <p class="theme-label" id="brandbook-theme-label">Theme</p>
           <div class="theme-control" role="radiogroup" aria-labelledby="brandbook-theme-label" data-brandbook-theme-control>
@@ -1333,17 +2473,14 @@ def render_page(sources: dict[str, Any]) -> str:
             <button type="button" role="radio" aria-checked="false" tabindex="-1" data-value="dark">Dark</button>
           </div>
         </div>
-        <nav class="brand-nav" aria-label="Brand book sections">
-          {nav}
-        </nav>
-      </header>
+      </nav>
       <main class="brand-main">
         {sections}
       </main>
-      <footer class="brand-footer">
-        Generated from canonical brandbook sources by <code>scripts/gen_brandbook_html.py</code>.
-      </footer>
     </div>
+    <footer class="brand-footer">
+      Rulestead Brand System {html.escape(BRAND_VERSION)} &middot; generated from canonical brandbook sources by <code>scripts/gen_brandbook_html.py</code>.
+    </footer>
   </div>
 {render_theme_script()}
 </body>
