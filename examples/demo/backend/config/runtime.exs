@@ -33,6 +33,9 @@ end
 
 demo_cors_origins = split_env_list.("DEMO_CORS_ORIGINS")
 
+config :rulestead_demo,
+  fleetdesk_frontend_url: System.get_env("DEMO_FRONTEND_URL", "http://localhost:3000")
+
 if demo_cors_origins != [] do
   config :rulestead_demo, :demo_cors_origins, demo_cors_origins
 end
