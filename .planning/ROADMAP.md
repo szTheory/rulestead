@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- 🔄 **v1.15 - Identity Tournament** — Phases 102–106 (active 2026-06-11)
+- ✅ **v1.15 - Identity Tournament** — Phases 102–106 (shipped 2026-06-12) — [.planning/milestones/v1.15-ROADMAP.md](milestones/v1.15-ROADMAP.md)
 - ✅ **v1.14 - Brand System Realization** — Phases 95–101 (shipped 2026-06-06) — [.planning/milestones/v1.14-ROADMAP.md](milestones/v1.14-ROADMAP.md)
 - ✅ **v1.13 - Admin UI: First-Class Dark Mode + Design-System Polish** — Phases 87-94 (shipped 2026-06-04) — [.planning/milestones/v1.13-MILESTONE-AUDIT.md](milestones/v1.13-MILESTONE-AUDIT.md)
 - ✅ **v1.12 - Adoption Evidence Depth** — Phases 82-86 (shipped 2026-05-29) — [.planning/milestones/v1.12-MILESTONE-AUDIT.md](milestones/v1.12-MILESTONE-AUDIT.md)
@@ -27,7 +27,7 @@ v1.14 completed at Phase 101. v1.15 runs **Phases 102–106**.
 - [x] **Phase 103: Logo Tournament** — Human-gated iterative tournament: one plan per round, every round rendered (light/dark/mono, in-context sizes), maintainer keep/cut checkpoint per candidate, persistent bracket in `103-TOURNAMENT.md`, winner frozen in `103-WINNER.md`. Soft cap 5 rounds then consolidation checkpoint.
 - [x] **Phase 104: Winner Lockup Family + Brand Source Reconciliation** — Build the complete winner lockup family (primary, tagline secondary, derived mark/sigil, mono, dark/light, 16px favicon, social card), rewrite brand-book §14 as the shipped logo system, update tokens/specimens if the winner changed fonts/colors, and pass all token drift guards.
 - [x] **Phase 105: Propagation — Admin Shell + Demo** — Wire the new identity into the admin shell wordmark + `--logo-*` theme vars across all cascade blocks, update admin static marks, replace demo logo/favicon, regenerate digest, and pass admin LiveView and demo e2e suites. (Merge-order decision for parked polish branch required before execution.)
-- [ ] **Phase 106: HTML Brand Book Elevation + Milestone Close** — Redesign the generator's chrome layer to produce a designed, self-contained brand book artifact (cover/hero, sticky scrollspy nav, editorial typography, live token swatch cards, designed logo plates, print stylesheet); pass all drift/budget/e2e guards; close milestone v1.15.
+- [x] **Phase 106: HTML Brand Book Elevation + Milestone Close** — Redesign the generator's chrome layer to produce a designed, self-contained brand book artifact (cover/hero, sticky scrollspy nav, editorial typography, live token swatch cards, designed logo plates, print stylesheet); pass all drift/budget/e2e guards; close milestone v1.15.
 
 ## Phase Details
 
