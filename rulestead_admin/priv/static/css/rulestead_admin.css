@@ -259,6 +259,13 @@
   --rs-accent:        #9b5931;
   --rs-accent-soft:   #fde8dc;
 
+  /* Logo — winner lockup semantic roles (route / lit node / muted nodes / type).
+     Not --rs- prefixed on purpose: these theme the inline wordmark SVG only. */
+  --logo-line:   #3a6f8f;
+  --logo-active: #9b5931;
+  --logo-muted:  #c4ccd1;
+  --logo-type:   #183247;
+
   /* Status — success */
   --rs-success:           #2d7753;
   --rs-success-hover:     #166534;
@@ -340,6 +347,12 @@
     --rs-on-primary:    #ffffff;
     --rs-accent:        #ba6b3c;
     --rs-accent-soft:   rgba(232, 131, 74, 0.12);
+
+    /* Logo — winner lockup semantic roles (dark surfaces; copper holds) */
+    --logo-line:   #5885a0;
+    --logo-active: #9b5931;
+    --logo-muted:  #3d4a55;
+    --logo-type:   #e8edf3;
 
     /* Status — success */
     --rs-success:           #488d6b;
@@ -423,6 +436,12 @@
   --rs-accent:        #ba6b3c;
   --rs-accent-soft:   rgba(232, 131, 74, 0.12);
 
+  /* Logo — winner lockup semantic roles (dark surfaces; copper holds) */
+  --logo-line:   #5885a0;
+  --logo-active: #9b5931;
+  --logo-muted:  #3d4a55;
+  --logo-type:   #e8edf3;
+
   /* Status — success */
   --rs-success:           #488d6b;
   --rs-success-hover:     #86efac;
@@ -504,6 +523,13 @@
   --rs-on-primary:    #ffffff;
   --rs-accent:        #9b5931;
   --rs-accent-soft:   #fde8dc;
+
+  /* Logo — winner lockup semantic roles (route / lit node / muted nodes / type).
+     Not --rs- prefixed on purpose: these theme the inline wordmark SVG only. */
+  --logo-line:   #3a6f8f;
+  --logo-active: #9b5931;
+  --logo-muted:  #c4ccd1;
+  --logo-type:   #183247;
 
   /* Status — success */
   --rs-success:           #2d7753;
@@ -1310,6 +1336,84 @@
     align-items: start;
     padding: 1.55rem 2rem 0.85rem;
   }
+}
+
+/* Brand lockup — the inline winner wordmark in the shell header.
+   Colors come from the four --logo-* vars declared in every theme cascade
+   block above, so the lockup re-themes with light/dark/system pins. */
+
+.rs-shell__brand {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 1 auto;
+  max-width: 100%;
+  margin: 0 0 0.55rem -0.4rem;
+  padding: 0.3rem 0.45rem 0.3rem 0.4rem;
+  border-radius: var(--rs-radius-md);
+  color: var(--rs-text);
+  line-height: 1;
+  text-decoration: none;
+}
+
+a.rs-shell__brand {
+  transition-property: background-color, box-shadow, color, transform;
+  transition-duration: var(--rs-motion-fast);
+  transition-timing-function: var(--rs-ease-standard);
+}
+
+a.rs-shell__brand:hover {
+  background: var(--rs-surface-muted);
+  box-shadow: var(--rs-shadow-sm);
+  color: var(--rs-text);
+  text-decoration: none;
+}
+
+a.rs-shell__brand:focus-visible {
+  outline: none;
+  box-shadow: var(--rs-focus-ring);
+}
+
+a.rs-shell__brand:active {
+  transform: scale(0.96);
+}
+
+/* Visually hidden brand text — gives the lockup link a real text node for
+   accessible-name audits while the wordmark stays purely graphical. */
+.rs-shell__brand-text {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.rs-shell__wordmark {
+  display: block;
+  width: clamp(9.75rem, 14vw, 11.75rem);
+  max-width: min(100%, 72vw);
+  height: auto;
+  aspect-ratio: 340 / 62;
+}
+
+.rs-shell__wordmark-line {
+  fill: none;
+  stroke: var(--logo-line);
+}
+
+.rs-shell__wordmark-active {
+  fill: var(--logo-active);
+}
+
+.rs-shell__wordmark-muted {
+  fill: var(--logo-muted);
+}
+
+.rs-shell__wordmark-type {
+  fill: var(--logo-type);
 }
 
 .rs-shell__kicker {
