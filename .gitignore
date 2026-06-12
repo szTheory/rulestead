@@ -10,3 +10,5 @@ erl_crash.dump
 .planning/phases/97-logo-mark-svg-system/logo-studio*.png
 .planning/phases/97-logo-mark-svg-system/logo-studio.pdf
 .planning/phases/97-logo-mark-svg-system/final-lockup-preview.png
+# Phase 102 tournament studio — throwaway rendered binaries (studio HTML is committed; PNGs are not)
+.planning/phases/102-logo-delta-audit-tournament-studio/studio-render-*.png
