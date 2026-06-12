@@ -1256,7 +1256,7 @@ def render_page(sources: dict[str, Any]) -> str:
         "overview": (
             [
                 "brandbook/brand-book.md",
-                ".planning/phases/101-html-brand-book/101-UI-SPEC.md",
+                ".planning/milestones/v1.14-phases/101-html-brand-book/101-UI-SPEC.md",
                 "rulestead_admin/lib/rulestead_admin/components/shell.ex",
                 "brandbook/assets/logo/rs-wordmark.svg",
             ],
