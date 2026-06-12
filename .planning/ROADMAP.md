@@ -92,5 +92,5 @@ Make every rendered Rulestead-owned surface faithfully reflect the v1.15 identit
 **Plans:** 2 plans
 
 Plans:
-- [ ] 112.1-01-PLAN.md — Phoenix runtime URL plumbing, launcher/nav link rendering, and backend regression evidence
+- [x] 112.1-01-PLAN.md — Phoenix runtime URL plumbing, launcher/nav link rendering, and backend regression evidence
 - [ ] 112.1-02-PLAN.md — Playwright href/click-through evidence, build/release route row, and verification truth

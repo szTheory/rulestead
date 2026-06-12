@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.16
 milestone_name: Brand-Faithful UI Iteration
 status: executing
-last_updated: "2026-06-12T21:50:21.447Z"
-last_activity: 2026-06-12 -- Phase 112.1 planning complete
+last_updated: "2026-06-12T21:56:10Z"
+last_activity: 2026-06-12 -- Phase 112.1 plan 01 complete
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 8
-  completed_plans: 6
-  percent: 75
+  completed_plans: 7
+  percent: 87
 ---
 
 # State: Rulestead
@@ -21,7 +21,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-12)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
 
-**Current focus:** v1.16 gap closure — Phase 112.1 dynamic FleetDesk launcher URL and evidence
+**Current focus:** Phase 112.1 — close-gap-bui-05-bui-06-dynamic-fleetdesk-launcher-url-and-e
 
 **Milestone:** v1.16 Brand-Faithful UI Iteration shipped 2026-06-12 — see `.planning/ROADMAP.md` for phase structure
 
@@ -31,10 +31,10 @@ See: `.planning/PROJECT.md` (updated 2026-06-12)
 
 ## Current Position
 
-Phase: 112.1
-Plan: not planned
-Status: Ready to execute
-Last activity: 2026-06-12 -- Phase 112.1 planning complete
+Phase: 112.1 (close-gap-bui-05-bui-06-dynamic-fleetdesk-launcher-url-and-e) — EXECUTING
+Plan: 2 of 2
+Status: Ready for Phase 112.1 plan 02
+Last activity: 2026-06-12 -- Phase 112.1 plan 01 complete
 
 ## Phase Dependency Map
 
@@ -130,6 +130,7 @@ Human checkpoints:
 - **v1.16 demo boundary:** The Phoenix launcher carries Rulestead identity, while FleetDesk uses a separate host-app visual system. FleetDesk must not be converted into a Rulestead-branded app in future polish.
 - **v1.16 runtime verifier fix:** Compose/browser evidence exposed a Redis publisher transaction race; the snapshot fetch is now deferred through the publisher process with a bounded retry so kill-switch browser proof reflects the committed runtime state.
 - **v1.16 compose proof fix:** Dynamic-port browser proof now serves the frontend with a matching `NEXT_PUBLIC_FLAGS_API_BASE` and backend CORS allowlist for both selected loopback origins.
+- **Phase 112.1-01:** Phoenix-owned FleetDesk launcher and shared layout navigation links now read `DEMO_FRONTEND_URL` through runtime application config, with `http://localhost:3000` only as the unaided local fallback. Backend regression tests prove a non-3000 configured URL renders in both surfaces.
 
 ### Deferred Items (v2)
 
@@ -208,3 +209,4 @@ Fresh v1.16 proof bars:
 | Phase 100-marketing-copy-repo-artifact-plan P02 | 2min | 1 tasks | 2 files |
 | Phase 100-marketing-copy-repo-artifact-plan P03 | 5min | 2 tasks | 5 files |
 | Phase 100-marketing-copy-repo-artifact-plan P04 | 5min | 2 tasks | 3 files |
+| Phase 112.1-close-gap-bui-05-bui-06-dynamic-fleetdesk-launcher-url-and-e P01 | 8min | 3 tasks | 6 files |
