@@ -25,9 +25,16 @@ const themes: ThemeCase[] = [
   { name: "system-dark", colorScheme: "dark", storedTheme: null },
 ];
 
+const fleetdeskFrontendUrl = new URL(
+  process.env.DEMO_FRONTEND_URL ?? "http://127.0.0.1:3000",
+);
+const fleetdeskFrontendHref = fleetdeskFrontendUrl.href;
+const fleetdeskFrontendOrigin = fleetdeskFrontendUrl.origin;
+
 const adminSurfaces = [
   { name: "overview", path: "/admin/flags" },
   { name: "inventory", path: "/admin/flags/flags?env=staging&view=all" },
+  { name: "rollouts", path: "/admin/flags/fleet-map-v2/rollouts?env=staging" },
   { name: "diagnostics", path: "/admin/flags/diagnostics" },
   { name: "review", path: "/admin/flags/change-requests" },
   { name: "explain", path: "/admin/flags/enable-new-dashboard/explain" },
@@ -68,6 +75,21 @@ async function expectNoHorizontalOverflow(page: Page) {
   });
 
   expect(overflow).toBeLessThanOrEqual(1);
+}
+
+async function expectResolvedHref(
+  locator: ReturnType<Page["getByRole"]>,
+  expectedHref: string,
+) {
+  const actualHref = await locator.evaluate((element) => {
+    if (!(element instanceof HTMLAnchorElement)) {
+      throw new Error("Expected link locator to resolve to an anchor element");
+    }
+
+    return element.href;
+  });
+
+  expect(actualHref).toBe(expectedHref);
 }
 
 test.describe("brand-faithful UI evidence", () => {
@@ -118,7 +140,17 @@ test.describe("brand-faithful UI evidence", () => {
         const page = await context.newPage();
 
         await page.goto(backendUrl);
-        await expect(page.getByAltText("Rulestead")).toBeVisible();
+        await expect(
+          page.getByRole("main").getByAltText("Rulestead"),
+        ).toBeVisible();
+        await expectResolvedHref(
+          page.getByRole("link", { name: "FleetDesk app" }),
+          fleetdeskFrontendHref,
+        );
+        await expectResolvedHref(
+          page.getByRole("link", { name: "FleetDesk", exact: true }),
+          fleetdeskFrontendHref,
+        );
         await expect(
           page.getByRole("heading", { name: /FleetDesk host/ }),
         ).toBeVisible();
@@ -130,6 +162,28 @@ test.describe("brand-faithful UI evidence", () => {
             `demo-launcher-${colorScheme}-${viewport.name}.png`,
           ),
         });
+
+        await context.close();
+      });
+
+      test(`FleetDesk launcher click-through reaches selected origin: ${colorScheme} / ${viewport.name}`, async ({
+        browser,
+      }) => {
+        const context = await browser.newContext({
+          colorScheme,
+          viewport: { width: viewport.width, height: viewport.height },
+        });
+        const page = await context.newPage();
+
+        await page.goto(backendUrl);
+        await page.getByRole("link", { name: "FleetDesk app" }).click();
+
+        expect(new URL(page.url()).origin).toBe(fleetdeskFrontendOrigin);
+        await expect(page.locator(".fd-brand-name")).toHaveText("FleetDesk");
+        await expect(page.locator(".fd-brand-mark")).toHaveText("FD");
+        await expect(
+          page.getByRole("heading", { name: "Live map" }),
+        ).toBeVisible();
 
         await context.close();
       });
