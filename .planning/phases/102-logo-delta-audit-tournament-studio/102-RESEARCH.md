@@ -907,7 +907,7 @@ e_with_notch = boolean_op(e_path, notch_path, pathops.PathOp.DIFFERENCE)
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Incumbent audit verdict detail level**
    - What we know: D-01 says KEEP/TIGHTEN/REWORK verdicts; the shipped lockup is icon-left which is the pattern the brand book rejects.

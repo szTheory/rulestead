@@ -44,7 +44,10 @@ v1.14 completed at Phase 101. v1.15 runs **Phases 102–106**.
   4. A studio HTML template and headless-Chrome screenshot helper exist (in the phase dir) that can render a candidate sheet to PNG, following the Phase 97 `logo-studio.html` precedent — confirmed by producing at least one test render.
   5. `102-RESEARCH.md` records pinned gstatic URLs for the font shortlist (Sora incumbent + 2–3 OFL alternates: Space Grotesk, Archivo, IBM Plex Sans) and confirms SIL OFL 1.1 licensing permits glyph-outlining in artwork.
 
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 102-01-PLAN.md — Generalized glyph→path pipeline (gen_glyph_paths.py) + studio HTML + render helper + test render (LOGO-06)
+- [ ] 102-02-PLAN.md — Logo delta audit + HTML brand book presentation audit (BRD-06)
 
 ### Phase 103: Logo Tournament
 
@@ -114,7 +117,7 @@ v1.14 completed at Phase 101. v1.15 runs **Phases 102–106**.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 102. Logo Delta Audit + Tournament Studio | 0/TBD | Not started | - |
+| 102. Logo Delta Audit + Tournament Studio | 0/2 | Not started | - |
 | 103. Logo Tournament | 0/TBD | Not started | - |
 | 104. Winner Lockup Family + Brand Source Reconciliation | 0/TBD | Not started | - |
 | 105. Propagation — Admin Shell + Demo | 0/TBD | Not started | - |
