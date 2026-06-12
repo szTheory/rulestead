@@ -83,3 +83,14 @@ Make every rendered Rulestead-owned surface faithfully reflect the v1.15 identit
 | 110. Admin Workflow Screen Pass | 1/1 | Complete | 2026-06-12 |
 | 111. Demo Surface Alignment | 1/1 | Complete | 2026-06-12 |
 | 112. Visual Evidence + Closeout | 1/1 | Complete | 2026-06-12 |
+
+### Phase 112.1: Close gap: BUI-05/BUI-06 - dynamic FleetDesk launcher URL and evidence (INSERTED)
+
+**Goal:** Fix Phoenix-owned FleetDesk launcher and navigation links so they use the live selected `DEMO_FRONTEND_URL`, prove launcher click-through evidence, and record gap-closure verification truth.
+**Requirements**: TBD
+**Depends on:** Phase 112
+**Plans:** 2 plans
+
+Plans:
+- [ ] 112.1-01-PLAN.md — Phoenix runtime URL plumbing, launcher/nav link rendering, and backend regression evidence
+- [ ] 112.1-02-PLAN.md — Playwright href/click-through evidence, build/release route row, and verification truth
