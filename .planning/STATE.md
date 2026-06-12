@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.15
 milestone_name: milestone
-status: completed
-last_updated: "2026-06-12T14:56:19.142Z"
-last_activity: 2026-06-12 -- Phase 105 marked complete
+status: milestone_complete
+last_updated: "2026-06-12"
+last_activity: 2026-06-12 -- v1.15 Identity Tournament shipped (Phases 102-106); next phase number 107
 progress:
   total_phases: 5
   completed_phases: 3

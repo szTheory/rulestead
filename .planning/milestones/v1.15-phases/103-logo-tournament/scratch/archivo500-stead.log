@@ -1,0 +1,4 @@
+gen_glyph_paths.py: text='stead' em=64.0 weight=500 url=https://fonts.gstatic.com/s/archivo/v25/k3k6o8UDI-1M0wlSV9XAw6lQkqWY8Q82sJaRE-NWIDdgffTT6jRZ9xds.ttf
+Downloading font from https://fonts.gstatic.com/s/archivo/v25/k3k6o8UDI-1M0wlSV9XAw6lQkqWY8Q82sJaRE-NWIDdgffTT6jRZ9xds.ttf
+Font loaded. UPM=1000
+'stead': 5 glyphs, total_w=159.3 SVG units at em=64.0

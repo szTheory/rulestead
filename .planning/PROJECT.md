@@ -22,6 +22,7 @@ Rulestead is a batteries-included, Elixir-native feature-flag and remote-config 
 - `v1.11` shipped on 2026-05-28 across Phases 76–78: first-hour Phoenix integration spine, evaluation/lifecycle doc alignment, `mix verify.phase76` contract guards — closes INV-INTRO-01; no new product APIs.
 - `v1.11` gap closure completed 2026-05-29 across Phases 79–81: lifecycle deep-link anchor fix, Phase 76/77 verification backfill, DOC-01 `evaluation.md` contract guard + `76-VALIDATION.md` Nyquist artifact.
 - `v1.14` shipped on 2026-06-06 across Phases 95–101: source-controlled brand system, mineral admin re-skin, final SVG assets/specimens, copy kit, generated `brandbook/index.html`, stdlib generator, drift/budget guard, CI wiring, and file:// browser evidence — no new runtime APIs, schema changes, package-version changes, or publish-posture changes.
+- `v1.15` shipped on 2026-06-12 across Phases 102–106: tournament-selected integrated logo identity (winner A3-3, maintainer-gated rounds), 8-file lockup family, brand-book §14 logo system, admin/demo propagation, and the elevated designed `brandbook/index.html` (cover, scrollspy rail, AA-badged swatches, logo plates, print) — zero token deviations, no runtime API or publish-posture changes.
 
 <details>
 <summary>Shipped: v1.11 Integration Spine (2026-05-28)</summary>
@@ -78,9 +79,11 @@ v1.1–v1.9 feature band is **complete**. v1.10.x–v1.11 doc bands are **shippe
 
 **Scope note:** Post-GA brand/UX-quality milestone (like v1.13), not a deferred v2 feature wedge. No new product runtime APIs, schema changes, package-version changes, release workflow changes, or `rulestead_admin` publish preparation.
 
-## Current Milestone: v1.15 Identity Tournament
+## Shipped: v1.15 Identity Tournament (2026-06-12)
 
 **Goal:** Replace the icon-left-of-text lockup with a unified, integrated logo identity selected by the maintainer through an iterative rendered-options tournament, propagate it to every rendered surface, and elevate `brandbook/index.html` into a designed artifact that stands on its own.
+
+**Delivered (Phases 102–106, 8 plans):** All target features below shipped; see `.planning/milestones/v1.15-MILESTONE-AUDIT.md`.
 
 **Target features:**
 - Scoped pressure-test delta audit of the shipped logo (against brand-book §14's own wordmark-first recommendation) and of the HTML brand book's presentation quality — palette/voice/copy stay frozen.
@@ -104,13 +107,13 @@ v1.1–v1.9 feature band is **complete**. v1.10.x–v1.11 doc bands are **shippe
 | 2c | **v1.12 — Adoption evidence depth** | **Complete** (2026-05-29) — Phases 82–86 |
 | 3 | **v1.13 — Admin UI dark mode + design-system polish** | **Complete** (2026-06-04) — Phases 87–94; mounted-admin UX quality, no new runtime APIs; on branch (unmerged) |
 | 4 | **v1.14 — Brand System Realization** | **Complete** (2026-06-06) — Phases 95–101; generated HTML brand book capstone; no runtime API or publish-posture changes |
-| 4b | **v1.15 — Identity Tournament** | **Active** (started 2026-06-11) — Phases 102–106; integrated logo via maintainer tournament + HTML brand book elevation; no runtime API or publish-posture changes |
+| 4b | **v1.15 — Identity Tournament** | **Complete** (2026-06-12) — Phases 102–106; tournament-selected integrated logo + elevated HTML brand book; no runtime API or publish-posture changes |
 | 5+ | **v2.0+ wedges (triggered only)** | GOV-02-ext → ROL-08 → ADM-06 per `.planning/DEFERRED.md` |
 | — | **Maintenance** | Patches and adopter support until a v2 trigger fires |
 
 **Done band:** Post-GA scope through v1.11 is repo-verified; feature band v1.1–v1.9 in `lib/` + contract tests.
 
-**Next action:** Execute v1.15 phases 102–106 (`/gsd-plan-phase 102`)
+**Next action:** Merge-topology decision (v1.13/v1.14/v1.15 + polish branch → main), then `/gsd-new-milestone` when a v2 trigger fires
 
 <details>
 <summary>Latest shipped: v1.10.0 Post-GA Band Truth & Adopter Closure (2026-05-28)</summary>
@@ -378,4 +381,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-11 — started v1.15 Identity Tournament (integrated logo via maintainer tournament + HTML brand book elevation; Phases 102–106)*
+*Last updated: 2026-06-12 — shipped v1.15 Identity Tournament (tournament-selected integrated logo + elevated HTML brand book; next phase number: 107)*

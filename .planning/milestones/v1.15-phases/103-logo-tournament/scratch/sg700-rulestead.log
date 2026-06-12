@@ -1,0 +1,4 @@
+gen_glyph_paths.py: text='Rulestead' em=64.0 weight=700 url=https://fonts.gstatic.com/s/spacegrotesk/v22/V8mQoQDjQSkFtoMM3T6r8E7mF71Q-gOoraIAEj7aUXskPMU.ttf
+Downloading font from https://fonts.gstatic.com/s/spacegrotesk/v22/V8mQoQDjQSkFtoMM3T6r8E7mF71Q-gOoraIAEj7aUXskPMU.ttf
+Font loaded. UPM=1000
+'Rulestead': 9 glyphs, total_w=303.1 SVG units at em=64.0

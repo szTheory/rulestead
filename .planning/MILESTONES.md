@@ -1,5 +1,24 @@
 # Milestones
 
+## v1.15 Identity Tournament (Shipped: 2026-06-12)
+
+**Phases completed:** 5 phases, 8 plans
+
+**Key accomplishments:**
+
+- Human-gated logo tournament (2 rounds, 18 candidates + incumbent control, 4 design axes) produced winner A3-3: an integrated lockup where a Stead-Blue route grows collinear from the R's leg, threads the baseline, and rises through the final d to three exit nodes — lit copper = the selected route
+- Complete 8-file logo family (primary, NEW tagline secondary, dark, d-sigil mark/dark/mono, 16px-verified transparent favicon, social card), all within 20KB budgets; SVGO config hardened to preserve accessibility attrs and per-glyph structure
+- Zero token deviations — winner ships on the frozen v1.14 mineral palette and Sora Bold; all drift guards green untouched
+- brand-book §14 rewritten as the shipped logo system (construction, clearspace, min sizes, usage/misuse); specimens regenerated programmatically from shipped sources
+- Admin shell + demo propagation: brand_lockup/brand_wordmark components with semantic --logo-* vars across all four cascade blocks, d-sigil statics, demo favicon + digest regen; admin suite 200/0
+- brandbook/index.html elevated to a designed artifact: Basalt cover with hero lockup + mantra, sticky numbered scrollspy rail, editorial numerals/pull-quotes, build-time WCAG AA/AAA-badged token swatches, dual-tile logo plates with clear-space diagram and struck don't-examples, print stylesheet — 223,744B (256KB budget unchanged), 12/12 file:// e2e
+
+**Archive:** [.planning/milestones/v1.15-ROADMAP.md](milestones/v1.15-ROADMAP.md) · phases in `.planning/milestones/v1.15-phases/`
+
+**Audit:** [.planning/milestones/v1.15-MILESTONE-AUDIT.md](milestones/v1.15-MILESTONE-AUDIT.md) (`milestone_complete`)
+
+---
+
 ## v1.14 Brand System Realization (Shipped: 2026-06-06)
 
 **Phases completed:** 7 phases, 28 plans

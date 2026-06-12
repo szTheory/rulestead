@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Axis C scratch grid — pure custom typemarks</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: #d8dde2; font-family: system-ui, sans-serif; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 28px; }
+  h1 { font-size: 1.1rem; margin: 0 0 18px; color: #1a2332; }
+  .row { display: flex; gap: 20px; align-items: flex-start; margin-bottom: 20px; }
+  .card { background: #ffffff; border-radius: 10px; padding: 26px; flex: 1; }
+  .card .label { font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase;
+                 color: #5c6b7a; margin-bottom: 14px; }
+  .card img.big { width: 480px; max-width: 100%; display: block; }
+  .strip { background: #ffffff; border-radius: 10px; padding: 14px 20px;
+           display: flex; gap: 36px; align-items: center; }
+  .strip img { height: 36px; display: block; }
+  .zoomrow { display: flex; gap: 20px; }
+  .zoom { background: #ffffff; border-radius: 10px; padding: 18px; flex: 1; overflow: hidden; }
+  .zoom .label { font-size: 0.72rem; color: #5c6b7a; margin-bottom: 8px; }
+  .zoom .win { width: 340px; height: 200px; overflow: hidden; position: relative; }
+  .zoom img { position: absolute; width: 2400px; }
+  .z1 img { left: -60px; top: -60px; }     /* R counter */
+  .z2 img { left: -1000px; top: -40px; }   /* st beam */
+  .z3 img { left: -2060px; top: -10px; }   /* d terminal */
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Axis C — pure custom typemarks on Sora (scratch, iteration render)</h1>
+
+  <div class="row">
+    <div class="card"><div class="label">c1 — forked R (480px)</div>
+      <img class="big" src="../candidates/c1.svg"></div>
+  </div>
+  <div class="row">
+    <div class="card"><div class="label">c2 — st beam ligature (480px)</div>
+      <img class="big" src="../candidates/c2.svg"></div>
+  </div>
+  <div class="row">
+    <div class="card"><div class="label">c3 — lit terminal (480px)</div>
+      <img class="big" src="../candidates/c3.svg"></div>
+  </div>
+
+  <div class="row">
+    <div class="strip" style="flex:1">
+      <span class="card label" style="padding:0">36px row</span>
+      <img src="../candidates/c1.svg">
+      <img src="../candidates/c2.svg">
+      <img src="../candidates/c3.svg">
+    </div>
+  </div>
+
+  <div class="zoomrow">
+    <div class="zoom z1"><div class="label">c1 detail — R counter</div>
+      <div class="win"><img src="../candidates/c1.svg"></div></div>
+    <div class="zoom z2"><div class="label">c2 detail — st beam</div>
+      <div class="win"><img src="../candidates/c2.svg"></div></div>
+    <div class="zoom z3"><div class="label">c3 detail — d terminal</div>
+      <div class="win"><img src="../candidates/c3.svg"></div></div>
+  </div>
+</div>
+</body>
+</html>
