@@ -1,6 +1,6 @@
 # Phase 113 UI Matrix Contract
 
-**Status:** Task 1 state/evidence contract complete
+**Status:** Task 2 matrix/lens contract complete
 **Scope:** Documentation-only DSM-03 contract. Phase 113 does not add a UI matrix route, PhoenixStorybook, JavaScript Storybook, Playwright implementation, checked-in pixel baselines, external AI judging, runtime code, CSS, schemas, package changes, release workflow changes, FleetDesk branding changes, or `rulestead_admin` publish-prep work.
 
 ## Contract Rules
@@ -41,6 +41,39 @@
 | desktop | Wide enough for dense operator workflows and normal shell layout. | 1280 x 900 browser evidence viewport. |
 | mobile/narrow | Narrow viewport evidence for route clusters, shell, command palette, tables/cards, and destructive flows. | 390 x 844 browser evidence viewport and `expectNoHorizontalOverflow(page)`. |
 | reduced-motion | Motion-sensitive behavior where animations, transitions, or staged effects affect correctness or comfort. | `prefers-reduced-motion` CSS contract; future Phase 114/118 browser evidence should assert only where behavior differs. |
+
+## Operator Lens Map
+
+The existing `RulesteadAdmin.Navigation` mental model remains the source of truth: Overview, Build & release, Explain & diagnose, and Review & approve. Phase 113 maps additional lenses for matrix coverage without renaming the shipped navigation.
+
+| Operator lens | Current source anchors | Future matrix example | Required fixture-data outcome |
+| --- | --- | --- | --- |
+| build/release | `RulesteadAdmin.Navigation` Build & release group, flag inventory, rules workspace, schedule, experiments | Flag inventory dense view with filter tokens, rule editor long-key values, schedule row happy path | Happy path, dense data, long values, loading/error, focus/keyboard |
+| explain/diagnose | `RulesteadAdmin.Navigation` Explain & diagnose group, diagnostics, compare, simulate, explain, timeline | Explain route with explicit sample, missing dependency, and long reason/code value states | Missing host evidence, loading/error, audit diff/raw-detail rows, long values |
+| review/approve | `RulesteadAdmin.Navigation` Review & approve group, change-request index/show, webhooks, governance panels | Change request show page with approve/reject/execute states and blocked reviewer capability | Permission-denied, stale/blocked guardrail signals, archived/read-only records, audit diff/raw-detail rows |
+| audiences | Audience index/show/edit/archive/delete routes, `AudienceComponents.used_by_table/1`, impact preview, audience archive confirm | Audience dependency panel with visible, hidden, denied, empty, and long audience key examples | Permission-denied, dense data, empty data, destructive confirmation, archived/read-only records |
+| rollouts | Rollout route, `RolloutComponents.ladder/1`, preview, guardrail status, risky jump confirmation | Rollout ladder with healthy, pending, held, rollback, stale/blocked, and risky jump confirmation states | Stale/blocked guardrail signals, missing host evidence, destructive confirmation, dense data |
+| audit | Audit index, flag timeline, `AuditComponents.timeline_item/1`, readable diff, raw detail | Audit timeline with automatic/manual events, rollback action, readable diff, and raw-detail expanded row | Audit diff/raw-detail rows, dense data, long values, read-only history |
+| onboarding | Home overview, task launcher, attention band, empty/happy paths, shell command palette | Overview page with no urgent work, first task links, and command palette long-label search result | Happy path, empty data, long values, focus/keyboard |
+| destructive | Kill switch, cleanup/archive, audience archive/delete, rollout risky jump, governed execution, production typed-confirm routes | Kill switch and archive confirmation examples with required reason, typed key, disabled unavailable submit, back link, and audit handoff | Destructive confirmation, permission-denied/read-only, stale/blocked, preview -> confirm -> audit |
+
+## Fixture-Data Needs
+
+Fixture-data must be named by state and operator outcome. Phase 113 defines the contract only; it does not add seed data, route code, LiveView code, CSS, or Playwright implementation.
+
+| State / outcome | Fixture-data requirement | Source anchor | Future matrix expectation |
+| --- | --- | --- | --- |
+| happy path | One representative success path for shell/home, flag inventory, flag detail, rules, audience, rollout, audit, and change request review. | Router, `RulesteadAdmin.Navigation`, current LiveView routes | Normal state gives the baseline for every later stress state. |
+| dense data | Many flags, many tags, many rules, dense audit/timeline events, long approval queues, and high-count audience dependencies. | Flag inventory, rules workspace, audit/timeline, audience dependency table | Dense rows remain scannable without page-level horizontal overflow. |
+| empty data | No records, no urgent work, no evidence, no dependencies, no audit rows, no available related links. | `empty_state/1`, home attention band, audience/audit pages | Empty states include specific headings, explanatory body copy, and valid next step or no-action copy. |
+| loading/error | Loading state where source supports it, validation errors, failed dependency, unavailable diagnostics, and form errors. | Home loading band, rule errors, diagnostics, confirm forms | Error names the problem and recovery path; loading does not mimic disabled/unavailable state. |
+| permission-denied | Denied dependency list, hidden references, suppressed action, blocked approve/execute path, denied destructive route. | Audience dependency table, change request show, shell policy state, governed routes | Denied state is visible, actionable where possible, and does not weaken policy code. |
+| long values | Long flag key, long audience key, long environment/tenant name, long owner/team, long audit reason, long JSON/code value, long command label. | Detail grids, shell controls, command palette, audit raw detail, mutation confirm scope | Long labels and long keys stay readable in desktop and mobile/narrow dimensions. |
+| destructive confirmation | Kill switch, cleanup/archive/delete, risky rollout jump, governed execute, production typed confirmation, required reason, back link. | `ConfirmComponents.mutation_confirm/1`, kill, cleanup confirm, audience archive confirm, change request show | Destructive examples preserve preview -> confirm -> audit and expose disabled/unavailable cases. |
+| missing host evidence | Host evidence unavailable, diagnostics unavailable, explicit sample-only preview, no guardrail status, missing signal provider. | Simulate/explain, audience impact preview, rollout guardrail status, diagnostics | Missing host evidence is not silently treated as healthy or successful. |
+| archived/read-only records | Archived flag or audience, read-only historical audit entry, unavailable mutation for current actor or lifecycle. | Audience archive, flag cleanup/archive, audit timeline | Read-only state preserves navigation and explanatory context while suppressing unsafe mutation. |
+| stale/blocked guardrail signals | Held rollout, stale guardrail, blocked approval, failed revalidation, drifted preview signature. | Rollout guardrail status, cleanup confirm, audience archive confirm, governance blast radius | Stale/blocked states explain why action is blocked and where to inspect evidence. |
+| audit diff/raw-detail rows | Readable diff, raw-detail JSON/code expansion, redacted audit detail, rollback action, automatic/manual event contrast. | `AuditComponents.timeline_item/1`, `AuditComponents.timeline_row/1`, audit index/timeline routes | Audit diff and raw-detail rows remain legible under dense, long-key, dark, and mobile/narrow dimensions. |
 
 ## Phase 114 Implementation Boundary
 
