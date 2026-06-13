@@ -19,6 +19,13 @@ Turn the mounted admin/operator UI into a coherent, testable design system acros
 3. Operator lenses are explicit for build/release, explain/diagnose, review/approve, audiences, rollouts, audit, onboarding, and destructive actions.
 4. Scope constraints are locked: no runtime API/schema changes, palette redesign, logo redraw, component framework adoption, broad pixel baselines, v2 wedges, or admin publish prep.
 
+**Plans:** 3 plans
+
+Plans:
+- [ ] 113-01-PLAN.md - Source-backed design-system inventory.
+- [ ] 113-02-PLAN.md - UI matrix state, evidence, operator-lens, and fixture-data contract.
+- [ ] 113-03-PLAN.md - Acceptance gates, requirement closeout, and state handoff.
+
 ## Phase 114: Repo-Native Component Matrix Harness
 
 **Goal:** Build a repo-native Phoenix/Playwright matrix that renders real admin components and stress states.
@@ -87,7 +94,7 @@ Turn the mounted admin/operator UI into a coherent, testable design system acros
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 113. Design-System Inventory + UI Matrix Contract | 0/0 | Pending | - |
+| 113. Design-System Inventory + UI Matrix Contract | 0/3 | Planned | - |
 | 114. Repo-Native Component Matrix Harness | 0/0 | Pending | - |
 | 115. Foundations Hardening | 0/0 | Pending | - |
 | 116. Primitive + Composite Polish | 0/0 | Pending | - |
@@ -109,10 +116,6 @@ Turn the mounted admin/operator UI into a coherent, testable design system acros
 
 ## Next
 
-Start with Phase 113:
+Execute Phase 113:
 
-`$gsd-discuss-phase 113`
-
-Also available:
-
-`$gsd-plan-phase 113`
+`$gsd-execute-phase 113`
