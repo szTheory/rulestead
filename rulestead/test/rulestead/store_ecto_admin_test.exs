@@ -260,19 +260,19 @@ defmodule Rulestead.StoreEctoAdminTest do
 
   defp ensure_phase6_schema! do
     Rulestead.Repo.query!(
-      "ALTER TABLE flags ADD COLUMN IF NOT EXISTS permanent boolean DEFAULT false"
+      "ALTER TABLE rulestead.flags ADD COLUMN IF NOT EXISTS permanent boolean DEFAULT false"
     )
 
     Rulestead.Repo.query!(
-      "ALTER TABLE flags ADD COLUMN IF NOT EXISTS ownership jsonb NOT NULL DEFAULT '{}'::jsonb"
+      "ALTER TABLE rulestead.flags ADD COLUMN IF NOT EXISTS ownership jsonb NOT NULL DEFAULT '{}'::jsonb"
     )
 
     Rulestead.Repo.query!(
-      "ALTER TABLE flags ADD COLUMN IF NOT EXISTS lifecycle jsonb NOT NULL DEFAULT '{}'::jsonb"
+      "ALTER TABLE rulestead.flags ADD COLUMN IF NOT EXISTS lifecycle jsonb NOT NULL DEFAULT '{}'::jsonb"
     )
 
     Rulestead.Repo.query!(
-      "ALTER TABLE flag_environments ADD COLUMN IF NOT EXISTS last_evaluated_at timestamp(6) with time zone"
+      "ALTER TABLE rulestead.flag_environments ADD COLUMN IF NOT EXISTS last_evaluated_at timestamp(6) with time zone"
     )
 
     Rulestead.Repo.query!("""

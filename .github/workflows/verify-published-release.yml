@@ -40,7 +40,7 @@ jobs:
       - name: Install phx_new archive
         run: |
           mix local.hex --force
-          mix archive.install hex phx_new --force
+          mix archive.install hex phx_new 1.8.8 --force
       - id: resolve
         name: Resolve published release version
         env:

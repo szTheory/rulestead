@@ -62,7 +62,8 @@ import Config
 config :rulestead, :store, Rulestead.Store.Ecto
 
 config :rulestead, Rulestead.Repo,
-  repo: MyApp.Repo
+  repo: MyApp.Repo,
+  prefix: "rulestead"
 
 config :rulestead, :host,
   environment_key: "dev",
@@ -86,6 +87,10 @@ Tune `environment_key` per deploy. The installer default is `"dev"` — keep
 Runtime lookups, flag `environment_keys`, and admin `?env=` routing aligned with
 that value (or your chosen override). Plug and runtime keys must stay aligned with
 how you build `%Rulestead.Context{}` in request handlers.
+
+The `prefix: "rulestead"` line is also installer-generated. It keeps package
+tables in the `rulestead` Postgres schema by default. Use `--prefix public` at
+install time only if your app explicitly wants public-schema tables.
 
 ## 4. Request boundary: Plug
 

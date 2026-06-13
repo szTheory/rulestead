@@ -1,11 +1,59 @@
-/* FleetDesk — sample customer dispatch app */
+/* FleetDesk — sample customer dispatch app.
+   FleetDesk is deliberately host-branded, not Rulestead-branded. */
 
 .fd-app {
+  --fd-bg: #f6f8fb;
+  --fd-surface: #ffffff;
+  --fd-surface-muted: #edf2f6;
+  --fd-border: #d8e0e7;
+  --fd-border-strong: #b7c3ce;
+  --fd-text: #17202a;
+  --fd-muted: #5d6976;
+  --fd-brand: #2f4f6f;
+  --fd-brand-strong: #263f59;
+  --fd-brand-soft: #e8eff5;
+  --fd-accent: #6f7f4f;
+  --fd-accent-soft: #edf3df;
+  --fd-warning: #9a661c;
+  --fd-warning-soft: #fff4d7;
+  --fd-success: #2f7552;
+  --fd-success-soft: #e2f3e8;
+  --fd-shadow-sm: 0 4px 16px rgba(23, 32, 42, 0.06);
+  --fd-shadow-lg: 0 14px 36px rgba(23, 32, 42, 0.12);
+
   min-height: 100vh;
-  background: #f8fafc;
-  color: #0f172a;
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: var(--fd-bg);
+  color: var(--fd-text);
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    sans-serif;
   line-height: 1.5;
+}
+
+@media (prefers-color-scheme: dark) {
+  .fd-app {
+    --fd-bg: #121820;
+    --fd-surface: #18212b;
+    --fd-surface-muted: #202c38;
+    --fd-border: #2c3a48;
+    --fd-border-strong: #445465;
+    --fd-text: #e7edf3;
+    --fd-muted: #a7b4c2;
+    --fd-brand: #86a2bd;
+    --fd-brand-strong: #a4b9cc;
+    --fd-brand-soft: #223140;
+    --fd-accent: #b5c080;
+    --fd-accent-soft: #273322;
+    --fd-warning: #d9a54b;
+    --fd-warning-soft: #352719;
+    --fd-success: #80bc95;
+    --fd-success-soft: #203126;
+    --fd-shadow-sm: 0 4px 18px rgba(0, 0, 0, 0.25);
+    --fd-shadow-lg: 0 16px 42px rgba(0, 0, 0, 0.34);
+  }
 }
 
 .fd-header {
@@ -15,8 +63,8 @@
   justify-content: space-between;
   gap: 1rem;
   padding: 0.85rem 1.25rem;
-  background: #ffffff;
-  border-bottom: 1px solid #e2e8f0;
+  background: var(--fd-surface);
+  border-bottom: 1px solid var(--fd-border);
 }
 
 .fd-brand {
@@ -26,22 +74,21 @@
 }
 
 .fd-brand-mark {
+  display: grid;
   width: 2rem;
   height: 2rem;
-  border-radius: 0.5rem;
-  background: linear-gradient(135deg, #0f766e, #164e63);
-  color: #fff;
-  display: grid;
   place-items: center;
-  font-weight: 700;
+  border-radius: 0.45rem;
+  background: linear-gradient(135deg, var(--fd-brand), var(--fd-accent));
+  color: #ffffff;
   font-size: 0.85rem;
+  font-weight: 750;
 }
 
 .fd-brand-name {
   margin: 0;
   font-size: 1.05rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-weight: 750;
 }
 
 .fd-nav {
@@ -52,20 +99,20 @@
 .fd-nav-link {
   padding: 0.4rem 0.75rem;
   border-radius: 0.45rem;
+  color: var(--fd-muted);
   font-size: 0.875rem;
-  font-weight: 500;
-  color: #64748b;
+  font-weight: 550;
   text-decoration: none;
 }
 
 .fd-nav-link--active {
-  background: #ecfdf5;
-  color: #0f766e;
-  font-weight: 600;
+  background: var(--fd-brand-soft);
+  color: var(--fd-brand-strong);
+  font-weight: 700;
 }
 
 .fd-nav-link--disabled {
-  opacity: 0.45;
+  opacity: 0.58;
   pointer-events: none;
 }
 
@@ -78,34 +125,35 @@
 
 .fd-view-as label {
   display: block;
+  margin-bottom: 0.25rem;
+  color: var(--fd-muted);
   font-size: 0.7rem;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #64748b;
-  margin-bottom: 0.25rem;
 }
 
 .fd-view-as select {
   min-width: 260px;
-  border: 1px solid #cbd5e1;
-  border-radius: 0.5rem;
-  padding: 0.45rem 0.65rem;
+  border: 1px solid var(--fd-border-strong);
+  border-radius: 0.45rem;
+  background: var(--fd-surface);
+  color: var(--fd-text);
   font-size: 0.875rem;
-  background: #fff;
+  padding: 0.45rem 0.65rem;
 }
 
 .fd-view-as-summary {
   margin: 0.25rem 0 0;
+  color: var(--fd-muted);
   font-size: 0.8rem;
-  color: #64748b;
 }
 
 .fd-main {
+  display: grid;
   max-width: 1120px;
   margin: 0 auto;
   padding: 1.25rem;
-  display: grid;
   gap: 1rem;
 }
 
@@ -116,9 +164,9 @@
   justify-content: space-between;
   gap: 0.75rem;
   padding: 0.85rem 1rem;
-  border-radius: 0.65rem;
-  border: 1px solid #fcd34d;
-  background: #fffbeb;
+  border: 1px solid color-mix(in srgb, var(--fd-warning) 42%, transparent);
+  border-radius: 0.6rem;
+  background: var(--fd-warning-soft);
 }
 
 .fd-alert strong {
@@ -126,45 +174,59 @@
   font-size: 0.95rem;
 }
 
-.fd-alert button {
-  border: 1px solid #d97706;
-  background: #fff;
-  color: #92400e;
-  border-radius: 0.45rem;
-  padding: 0.4rem 0.75rem;
-  font-size: 0.82rem;
-  font-weight: 600;
+.fd-alert button,
+.fd-dev-toggle button {
+  border: 1px solid var(--fd-border-strong);
+  border-radius: 999px;
+  background: var(--fd-surface);
+  color: var(--fd-text);
   cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 0.4rem 0.75rem;
+}
+
+.fd-alert button:hover,
+.fd-dev-toggle button:hover {
+  border-color: var(--fd-brand);
+  background: var(--fd-brand-soft);
 }
 
 .fd-hero {
-  border-radius: 1rem;
   padding: 1.5rem;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+  border: 1px solid var(--fd-border);
+  border-radius: 0.8rem;
+  box-shadow: var(--fd-shadow-lg);
 }
 
 .fd-hero--live {
-  background: linear-gradient(135deg, #0f766e 0%, #164e63 100%);
-  color: #f8fafc;
+  background: linear-gradient(
+    135deg,
+    var(--fd-brand-strong) 0%,
+    var(--fd-accent) 100%
+  );
+  color: #ffffff;
 }
 
 .fd-hero--steady {
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-  color: #0f172a;
+  background: linear-gradient(
+    135deg,
+    var(--fd-surface) 0%,
+    var(--fd-surface-muted) 100%
+  );
+  color: var(--fd-text);
 }
 
 .fd-hero h1 {
   margin: 0 0 0.5rem;
   font-size: clamp(1.75rem, 4vw, 2.5rem);
-  letter-spacing: -0.03em;
   line-height: 1.1;
 }
 
 .fd-hero-sub {
+  max-width: 52ch;
   margin: 0;
   opacity: 0.9;
-  max-width: 52ch;
 }
 
 .fd-workspace {
@@ -179,53 +241,63 @@
 }
 
 .fd-map-panel,
+.fd-routes-panel,
+.fd-dev-panel,
+.fd-flag-card {
+  border: 1px solid var(--fd-border);
+  background: var(--fd-surface);
+  box-shadow: var(--fd-shadow-sm);
+}
+
+.fd-map-panel,
 .fd-routes-panel {
-  background: #fff;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.85rem;
   padding: 1rem;
-  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+  border-radius: 0.75rem;
 }
 
 .fd-map-panel h2,
 .fd-routes-panel h2 {
   margin: 0 0 0.75rem;
   font-size: 0.95rem;
-  font-weight: 650;
+  font-weight: 700;
 }
 
 .fd-map-preview {
+  display: grid;
   min-height: 220px;
-  border-radius: 0.65rem;
-  border: 1px dashed #cbd5e1;
+  place-items: center;
+  padding: 1rem;
+  border: 1px dashed var(--fd-border-strong);
+  border-radius: 0.6rem;
   background:
-    linear-gradient(180deg, rgba(15, 118, 110, 0.08), rgba(15, 118, 110, 0.02)),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--fd-brand) 14%, transparent),
+      transparent
+    ),
     repeating-linear-gradient(
       90deg,
       transparent,
       transparent 24px,
-      rgba(148, 163, 184, 0.15) 24px,
-      rgba(148, 163, 184, 0.15) 25px
+      color-mix(in srgb, var(--fd-muted) 18%, transparent) 24px,
+      color-mix(in srgb, var(--fd-muted) 18%, transparent) 25px
     );
-  display: grid;
-  place-items: center;
   text-align: center;
-  padding: 1rem;
 }
 
 .fd-map-preview span {
   display: block;
-  font-size: 0.82rem;
-  color: #64748b;
   margin-top: 0.35rem;
+  color: var(--fd-muted);
+  font-size: 0.82rem;
 }
 
 .fd-route-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
   display: grid;
   gap: 0.65rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .fd-route-item {
@@ -233,9 +305,9 @@
   justify-content: space-between;
   gap: 0.75rem;
   padding: 0.65rem 0.75rem;
+  border: 1px solid var(--fd-border);
   border-radius: 0.55rem;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: var(--fd-surface-muted);
 }
 
 .fd-route-item strong {
@@ -244,18 +316,18 @@
 }
 
 .fd-route-item span {
+  color: var(--fd-muted);
   font-size: 0.78rem;
-  color: #64748b;
 }
 
 .fd-status-pill {
   align-self: center;
-  font-size: 0.72rem;
-  font-weight: 650;
   padding: 0.15rem 0.5rem;
   border-radius: 999px;
-  background: #dcfce7;
-  color: #15803d;
+  background: var(--fd-success-soft);
+  color: var(--fd-success);
+  font-size: 0.72rem;
+  font-weight: 700;
   white-space: nowrap;
 }
 
@@ -264,69 +336,49 @@
   text-align: center;
 }
 
-.fd-dev-toggle button {
-  border: 1px solid #cbd5e1;
-  background: #fff;
-  color: #475569;
-  border-radius: 999px;
-  padding: 0.4rem 0.85rem;
-  font-size: 0.78rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.fd-dev-toggle button:hover {
-  border-color: #94a3b8;
-  background: #f1f5f9;
-}
-
 .fd-dev-panel {
-  margin-top: 0.75rem;
-  padding: 1rem;
-  border-radius: 0.85rem;
-  border: 1px solid #cbd5e1;
-  background: #f1f5f9;
   display: grid;
   gap: 0.85rem;
+  margin-top: 0.75rem;
+  padding: 1rem;
+  border-radius: 0.75rem;
 }
 
 .fd-dev-panel h3 {
   margin: 0;
+  color: var(--fd-muted);
   font-size: 0.82rem;
-  font-weight: 700;
+  font-weight: 750;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: #64748b;
 }
 
 .fd-dev-panel p {
   margin: 0.35rem 0 0;
+  color: var(--fd-text);
   font-size: 0.875rem;
-  color: #334155;
   line-height: 1.6;
 }
 
 .fd-flag-grid {
   display: grid;
-  gap: 0.5rem;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.5rem;
 }
 
 .fd-flag-card {
   padding: 0.65rem 0.75rem;
   border-radius: 0.55rem;
-  background: #fff;
-  border: 1px solid #e2e8f0;
   font-size: 0.82rem;
 }
 
 .fd-flag-card code {
+  color: var(--fd-brand-strong);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 0.78rem;
-  color: #0f766e;
 }
 
 .fd-flag-card p {
   margin: 0.25rem 0 0;
-  color: #64748b;
+  color: var(--fd-muted);
 }

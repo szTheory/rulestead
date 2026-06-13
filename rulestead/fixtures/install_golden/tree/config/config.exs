@@ -24,6 +24,11 @@ config :host_app, HostAppWeb.Endpoint,
   pubsub_server: HostApp.PubSub,
   live_view: [signing_salt: "SIGNING_SALT"]
 
+# Configure LiveView
+config :phoenix_live_view,
+  # the attribute set on all root tags. Used for Phoenix.LiveView.ColocatedCSS.
+  root_tag_attribute: "phx-r"
+
 # Configure Elixir's Logger
 config :logger, :default_formatter,
   format: "$time $metadata[$level] $message\n",

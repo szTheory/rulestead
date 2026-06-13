@@ -96,8 +96,10 @@ BACKEND_URL="$DEMO_BACKEND_URL" retry_command 15 sh -c 'curl -fsS "$BACKEND_URL/
 
 echo "[smoke] checking seeded runtime bridge"
 BACKEND_URL="$DEMO_BACKEND_URL" retry_command 15 sh -c '
-  bridge_payload="$(curl -fsS "$BACKEND_URL/api/flags?env=production&flag_key=enable-new-dashboard")" &&
-    printf "%s\n" "$bridge_payload" | grep -q "\"enabled\":true"
+  for env in production staging; do
+    bridge_payload="$(curl -fsS "$BACKEND_URL/api/flags?env=$env&flag_key=enable-new-dashboard")" &&
+      printf "%s\n" "$bridge_payload" | grep -q "\"enabled\":true" || exit 1
+  done
 ' || {
   dump_failure_logs
   exit 1
@@ -114,8 +116,10 @@ COOKIE_JAR="$cookie_jar" BACKEND_URL="$DEMO_BACKEND_URL" retry_command 15 sh -c 
 
 echo "[smoke] checking frontend render"
 FRONTEND_URL="$DEMO_FRONTEND_URL" retry_command 15 sh -c '
-  curl -fsS "$FRONTEND_URL" | grep -q "FleetDesk" &&
-    curl -fsS "$FRONTEND_URL" | grep -q "View as"
+  page="$(curl -fsS "$FRONTEND_URL")" &&
+    printf "%s\n" "$page" | grep -q "FleetDesk" &&
+    printf "%s\n" "$page" | grep -q "View as" &&
+    printf "%s\n" "$page" | grep -q "Fleet map v2 is live for your dispatch desk."
 ' || {
   dump_failure_logs
   exit 1

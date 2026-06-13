@@ -62,6 +62,33 @@ defmodule RulesteadDemoWeb.FlagControllerTest do
     assert %{"flagKey" => "enable-new-dashboard"} = json_response(conn, 200)
   end
 
+  test "GET /api/flags includes allow-origin for configured proxy frontend", %{conn: conn} do
+    previous = Application.get_env(:rulestead_demo, :demo_cors_origins)
+
+    Application.put_env(:rulestead_demo, :demo_cors_origins, [
+      "http://fleetdesk.rulestead.localhost"
+    ])
+
+    on_exit(fn ->
+      if is_nil(previous) do
+        Application.delete_env(:rulestead_demo, :demo_cors_origins)
+      else
+        Application.put_env(:rulestead_demo, :demo_cors_origins, previous)
+      end
+    end)
+
+    conn =
+      conn
+      |> put_req_header("origin", "http://fleetdesk.rulestead.localhost")
+      |> get(~p"/api/flags?env=staging&flag_key=enable-new-dashboard")
+
+    assert get_resp_header(conn, "access-control-allow-origin") == [
+             "http://fleetdesk.rulestead.localhost"
+           ]
+
+    assert %{"flagKey" => "enable-new-dashboard"} = json_response(conn, 200)
+  end
+
   defp seed_demo_flag! do
     demo_actor = %{id: "seed", roles: ["admin"]}
     flag_key = "enable-new-dashboard"

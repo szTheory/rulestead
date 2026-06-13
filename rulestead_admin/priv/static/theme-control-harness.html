@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>rs theme-control harness</title>
+  <link rel="stylesheet" href="./css/rulestead_admin.css">
+  <style>
+    body { margin: 0; padding: 0; }
+    #outside-shell {
+      padding: 1rem;
+      font-family: sans-serif;
+      font-size: 0.875rem;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+
+<!--
+  theme-control-harness.html
+  ==========================
+  Standalone file:// test fixture for Phase 90 (THM-02 + THM-04).
+  Mirrors theme-harness.html structure with the tri-state theme control markup
+  and an inlined copy of the .ThemeControl hook logic (no LiveView, no Phoenix).
+
+  The DOMContentLoaded handler below calls the same logic that mounted() would
+  call in the real ColocatedHook — behavior under test is identical.
+-->
+
+<div class="rs-shell" id="shell" data-theme-pending>
+  <header class="rs-shell__header">
+    <div>
+      <a href="#" class="rs-shell__brand" aria-label="Rulestead">
+        <img class="rs-shell__fixture-wordmark rs-shell__fixture-wordmark--light" src="./images/rs-wordmark.svg" alt="" aria-hidden="true">
+        <img class="rs-shell__fixture-wordmark rs-shell__fixture-wordmark--dark" src="./images/rs-wordmark-dark.svg" alt="" aria-hidden="true">
+        <span class="rs-shell__brand-text">Rulestead</span>
+      </a>
+      <h1 class="rs-shell__title">Theme Control Harness</h1>
+      <p class="rs-shell__summary">Tri-state theme control · file:// fixture</p>
+    </div>
+    <section class="rs-shell__context" aria-label="Access">
+      <p class="rs-shell__context-label">Access</p>
+      <div class="rs-shell__context-item">admin</div>
+    </section>
+    <section class="rs-shell__context" aria-label="Theme">
+      <p class="rs-shell__context-label" id="rs-theme-label">Theme</p>
+      <div id="rs-theme-control" role="radiogroup" aria-labelledby="rs-theme-label"
+           class="rs-theme-control__group">
+        <button type="button" role="radio" aria-checked="true"  tabindex="0"  data-value="system" class="rs-theme-control__opt">System</button>
+        <button type="button" role="radio" aria-checked="false" tabindex="-1" data-value="light"  class="rs-theme-control__opt">Light</button>
+        <button type="button" role="radio" aria-checked="false" tabindex="-1" data-value="dark"   class="rs-theme-control__opt">Dark</button>
+      </div>
+    </section>
+  </header>
+  <div class="rs-shell__layout">
+    <nav class="rs-shell__rail">
+      <div class="rs-shell__rail-group">
+        <a href="#" class="rs-shell__rail-link" aria-current="page">Flags</a>
+        <a href="#" class="rs-shell__rail-link">Rollouts</a>
+        <a href="#" class="rs-shell__rail-link">Audiences</a>
+        <a href="#" class="rs-shell__rail-link">Settings</a>
+      </div>
+    </nav>
+    <main class="rs-shell__main">
+      <div class="rs-shell__body">
+        <p style="color: var(--rs-text-muted); font-size: var(--rs-text-sm);">
+          Theme control harness — use the segmented control above to switch System / Light / Dark.
+          The choice is persisted in <code>localStorage["rulestead_admin.theme"]</code>.
+        </p>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- THM-05 scope-containment visual probe.
+     If --rs-bg leaks outside .rs-shell, this div turns blue (the dark --rs-bg resolved value).
+     If correctly scoped to .rs-shell, --rs-bg is undeclared here and the fallback `red` shows. -->
+<div id="outside-shell" style="background: var(--rs-bg, red); padding: 1rem; border-top: 2px solid #888;">
+  <strong>outside-shell scope probe</strong><br>
+  Background is <code>var(--rs-bg, red)</code>. If this shows <strong>red</strong>, token scoping is correct
+  (--rs-bg is not declared outside .rs-shell). If any other color, the token has leaked to :root.
+</div>
+
+<script>
+  // =============================================================================
+  // Inlined .ThemeControl hook logic
+  // =============================================================================
+  // This is the EXACT logic that will be shipped as a Phoenix.LiveView.ColocatedHook
+  // in Plan 90-02 (shell.ex). The hook body here is adapted as a plain IIFE that
+  // runs on DOMContentLoaded — `this.el` becomes the element reference directly.
+  //
+  // Whitelist: unknown localStorage values fall through to "system" (T-90-01 mitigation).
+  // System = removeAttribute("data-theme"); light/dark = setAttribute("data-theme", value).
+  // =============================================================================
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const ctrl  = document.getElementById("rs-theme-control");
+    const shell = ctrl.closest(".rs-shell");
+    const opts  = Array.from(ctrl.querySelectorAll("[role=radio]"));
+
+    // Whitelist: only these values are valid (T-90-01 — localStorage tampering mitigation)
+    const VALID = ["system", "light", "dark"];
+
+    const readTheme = () => {
+      try {
+        const v = localStorage.getItem("rulestead_admin.theme");
+        return VALID.includes(v) ? v : "system";
+      } catch (_) {
+        return "system";
+      }
+    };
+
+    const writeTheme = (val) => {
+      try { localStorage.setItem("rulestead_admin.theme", val); } catch (_) {}
+    };
+
+    // Track current mode in a closure variable (mirrors this._mode in the hook)
+    let _mode = "system";
+
+    const applyTheme = (val) => {
+      _mode = val;
+      if (val === "dark")       shell.setAttribute("data-theme", "dark");
+      else if (val === "light") shell.setAttribute("data-theme", "light");
+      else                      shell.removeAttribute("data-theme");
+    };
+
+    const syncAria = () => {
+      const current = _mode || "system";
+      opts.forEach((opt) => {
+        const isActive = opt.dataset.value === current;
+        opt.setAttribute("aria-checked", String(isActive));
+        opt.tabIndex = isActive ? 0 : -1;
+      });
+    };
+
+    // Initial apply — synchronous, before rAF (mirrors mounted() timing in the real hook)
+    applyTheme(readTheme());
+    shell.removeAttribute("data-theme-pending");  // un-freeze transitions (THM-04 snap)
+    syncAria();
+
+    // matchMedia listener — active only in system mode
+    // Mirrors: this._mq / this._mqListener in the ColocatedHook
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const mqListener = (_e) => {
+      if (_mode !== "system") return;  // pinned users: ignore OS changes
+      syncAria();  // aria-checked for System button stays correct; CSS @media handles visuals
+    };
+    mq.addEventListener("change", mqListener);
+
+    // Click handler — select option on click
+    const onClick = (e) => {
+      const opt = e.target.closest("[role=radio]");
+      if (!opt) return;
+      const val = opt.dataset.value;
+      writeTheme(val);
+      applyTheme(val);
+      syncAria();
+      opt.focus();
+    };
+    ctrl.addEventListener("click", onClick);
+
+    // Roving tabindex keyboard nav — ArrowRight/Left/Down/Up + Home/End
+    const onKeydown = (e) => {
+      const current = opts.findIndex(o => o.tabIndex === 0);
+      let next = -1;
+      if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+        e.preventDefault(); next = (current + 1) % opts.length;
+      } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        e.preventDefault(); next = (current - 1 + opts.length) % opts.length;
+      } else if (e.key === "Home") {
+        e.preventDefault(); next = 0;
+      } else if (e.key === "End") {
+        e.preventDefault(); next = opts.length - 1;
+      }
+      if (next >= 0) {
+        const val = opts[next].dataset.value;
+        writeTheme(val);
+        applyTheme(val);
+        syncAria();
+        opts[next].focus();
+      }
+    };
+    ctrl.addEventListener("keydown", onKeydown);
+
+    // Expose helpers for manual console testing (mirrors window.setTheme / window.clearTheme
+    // in theme-harness.html). Used by Playwright tests via page.evaluate.
+    window.themeHarnessSetTheme = (t) => {
+      writeTheme(t);
+      applyTheme(VALID.includes(t) ? t : "system");
+      syncAria();
+    };
+    window.themeHarnessClearTheme = () => {
+      try { localStorage.removeItem("rulestead_admin.theme"); } catch (_) {}
+      applyTheme("system");
+      syncAria();
+    };
+  });
+</script>
+</body>
+</html>

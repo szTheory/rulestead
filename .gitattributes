@@ -1,0 +1,31 @@
+* text=auto eol=lf
+
+# Source brand assets stay reviewable and diffable.
+*.md text eol=lf
+*.css text eol=lf
+*.json text eol=lf
+*.svg text eol=lf diff
+*.ex text eol=lf
+*.exs text eol=lf
+*.sh text eol=lf
+*.py text eol=lf
+
+brandbook/**/*.md text eol=lf
+brandbook/**/*.css text eol=lf
+brandbook/**/*.json text eol=lf
+brandbook/**/*.svg text eol=lf diff
+
+# Binary exports are explicit review events, not quiet text diffs.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.tar binary
+*.gz binary
+*.zip binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary

@@ -5,6 +5,8 @@ defmodule RulesteadDemoWeb.Layouts do
   """
   use RulesteadDemoWeb, :html
 
+  alias RulesteadDemo.DemoUrls
+
   # Embed all files in layouts/* within this module.
   # The default root.html.heex file contains the HTML
   # skeleton of your application, namely HTML headers
@@ -31,31 +33,47 @@ defmodule RulesteadDemoWeb.Layouts do
     default: nil,
     doc: "the current [scope](https://hexdocs.pm/phoenix/scopes.html)"
 
+  attr :fleetdesk_frontend_url, :string,
+    default: nil,
+    doc: "the FleetDesk frontend URL used by demo navigation"
+
   slot :inner_block, required: true
 
   def app(assigns) do
+    assigns =
+      assign(
+        assigns,
+        :fleetdesk_frontend_url,
+        assigns[:fleetdesk_frontend_url] || DemoUrls.fleetdesk_frontend_url()
+      )
+
     ~H"""
-    <header class="navbar px-4 sm:px-6 lg:px-8">
+    <header class="navbar flex-wrap gap-3 px-4 sm:px-6 lg:px-8">
       <div class="flex-1">
         <a href="/" class="flex-1 flex w-fit items-center gap-2">
-          <img src={~p"/images/logo.svg"} width="36" />
+          <%!-- Full Rulestead lockup: brand §14 sets a 120px minimum lockup width,
+                so the old 36px mark slot widens to 140px for the wordmark. --%>
+          <img src={~p"/images/logo.svg"} width="140" alt="Rulestead" />
           <span class="text-sm font-semibold">v{Application.spec(:phoenix, :vsn)}</span>
         </a>
       </div>
-      <div class="flex-none">
-        <ul class="flex flex-column px-1 space-x-4 items-center">
+      <div class="flex w-full justify-end sm:flex-none sm:w-auto">
+        <ul class="flex flex-wrap justify-end gap-2 px-1 items-center">
           <li>
-            <a href="https://phoenixframework.org/" class="btn btn-ghost">Website</a>
+            <a href={@fleetdesk_frontend_url} class="btn btn-ghost">FleetDesk</a>
           </li>
           <li>
-            <a href="https://github.com/phoenixframework/phoenix" class="btn btn-ghost">GitHub</a>
+            <a href="/demo/sign-in" class="btn btn-ghost">Admin</a>
           </li>
           <li>
             <.theme_toggle />
           </li>
           <li>
-            <a href="https://hexdocs.pm/phoenix/overview.html" class="btn btn-primary">
-              Get Started <span aria-hidden="true">&rarr;</span>
+            <a
+              href="https://github.com/szTheory/rulestead/blob/main/guides/introduction/adoption-lab.md"
+              class="btn btn-primary"
+            >
+              Adoption guide <span aria-hidden="true">&rarr;</span>
             </a>
           </li>
         </ul>

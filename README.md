@@ -50,6 +50,10 @@ mix rulestead.install
 mix ecto.migrate
 ```
 
+By default the installer creates Rulestead-owned tables in the Postgres schema
+`rulestead`, keeping the host app's `public` schema clear. To install into
+`public` instead, run `mix rulestead.install --prefix public`.
+
 **Phoenix integrators:** follow the
 [Phoenix Integration Spine](guides/introduction/phoenix-integration-spine.md)
 for supervision → Plug → `Rulestead.Runtime` → lifecycle-honest flag create.
@@ -154,8 +158,8 @@ The guided walkthrough continues in
 
 ## Local demo
 
-The **FleetDesk adoption lab** runs three surfaces locally: customer app
-(`:3000`), Rulestead admin (`/demo/sign-in`), and API (`:4000`).
+The **FleetDesk adoption lab** runs three surfaces locally: customer app,
+Rulestead admin, and API.
 
 ```bash
 scripts/demo/up.sh
@@ -163,6 +167,17 @@ scripts/demo/up.sh
 
 The script uses `3000` and `4000` when they are free, chooses fallback ports
 when they are not, and prints the actual URLs to open.
+
+Maintainers who run several UI demos side by side can use stable `.localhost`
+hostnames instead:
+
+```bash
+scripts/demo/proxy-up.sh
+```
+
+That reuses or starts the shared local Traefik proxy and prints
+`fleetdesk.rulestead.localhost`, `rulestead.localhost/demo/sign-in`, and the
+API URL. In the normal shared-proxy setup, no port is needed in the browser.
 
 **Runbook:** [Adoption Lab](guides/introduction/adoption-lab.md#at-a-glance)
 

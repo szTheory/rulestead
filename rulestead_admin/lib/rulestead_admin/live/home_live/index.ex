@@ -217,7 +217,7 @@ defmodule RulesteadAdmin.Live.HomeLive.Index do
 
     %{
       count: count,
-      label: pluralize(count, "kill switch engaged", "kill switches engaged"),
+      label: noun_phrase(count, "kill switch engaged", "kill switches engaged"),
       hint: "Review forced evaluations",
       tone: "critical",
       href: href
@@ -230,7 +230,7 @@ defmodule RulesteadAdmin.Live.HomeLive.Index do
     %{
       count: count,
       label:
-        pluralize(count, "change request awaiting review", "change requests awaiting review"),
+        noun_phrase(count, "change request awaiting review", "change requests awaiting review"),
       hint: "Approve, reject, or schedule",
       tone: "warning",
       href: "#{base}/change-requests#{env_q}"
@@ -243,7 +243,7 @@ defmodule RulesteadAdmin.Live.HomeLive.Index do
     %{
       count: count,
       label:
-        pluralize(count, "scheduled change needs attention", "scheduled changes need attention"),
+        noun_phrase(count, "scheduled change needs attention", "scheduled changes need attention"),
       hint: "Failed or quarantined executions",
       tone: "critical",
       href: "#{base}/schedule#{env_q}"
@@ -255,7 +255,7 @@ defmodule RulesteadAdmin.Live.HomeLive.Index do
   defp stale_item(%{stale_candidates: count}, base, env_q) when count > 0 do
     %{
       count: count,
-      label: pluralize(count, "flag ready for cleanup", "flags ready for cleanup"),
+      label: noun_phrase(count, "flag ready for cleanup", "flags ready for cleanup"),
       hint: "Archive candidates",
       tone: "warning",
       href: "#{base}/flags#{env_q}&view=archive_candidates"
@@ -409,4 +409,8 @@ defmodule RulesteadAdmin.Live.HomeLive.Index do
 
   defp pluralize(1, singular, _plural), do: "1 #{singular}"
   defp pluralize(count, _singular, plural), do: "#{count} #{plural}"
+
+  # Count-free noun phrase (the count is shown separately, e.g. on attention cards).
+  defp noun_phrase(1, singular, _plural), do: singular
+  defp noun_phrase(_count, _singular, plural), do: plural
 end

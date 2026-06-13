@@ -35,63 +35,12 @@
      --bp-lg: 60rem  (960px)  small desktop
      --bp-xl: 75rem  (1200px) = --rs-shell-max
    =========================================================================== */
+/* ─── INVARIANT TOKENS (declared once; not theme-sensitive) ──────────── */
 :root {
   /* Typography families */
   --rs-font-display: "Sora", "Inter", ui-sans-serif, system-ui, sans-serif;
   --rs-font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --rs-font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
-
-  /* Neutral ramp — mineral grays. Foundation for surfaces, borders, text. */
-  --rs-neutral-0: #ffffff;
-  --rs-neutral-25: #f8fafc;
-  --rs-neutral-50: #f4f6f8;
-  --rs-neutral-100: #eef1f5;
-  --rs-neutral-200: #e7ebf0;
-  --rs-neutral-300: #d8dee6;
-  --rs-neutral-400: #b8c2cf;
-  --rs-neutral-500: #99a3af;
-  --rs-neutral-600: #5c6b7a;
-  --rs-neutral-700: #263241;
-  --rs-neutral-900: #1a2332;
-
-  /* Surface / border / text — aliases onto the ramp (identical values) */
-  --rs-bg: var(--rs-neutral-50);
-  --rs-surface: var(--rs-neutral-0);
-  --rs-surface-muted: var(--rs-neutral-100);
-  --rs-surface-faint: var(--rs-neutral-25);
-  --rs-border: var(--rs-neutral-300);
-  --rs-border-subtle: var(--rs-neutral-200);
-  --rs-border-strong: var(--rs-neutral-400);
-  --rs-text: var(--rs-neutral-900);
-  --rs-text-muted: var(--rs-neutral-600);
-  --rs-text-placeholder: var(--rs-neutral-500);
-
-  /* Semantic colors — base, hover, soft fill, text-on-soft, border */
-  --rs-primary: #2563eb;
-  --rs-primary-hover: #1d4ed8;
-  --rs-primary-soft: #dbeafe;
-  --rs-on-primary: #ffffff;
-  --rs-accent: #c45c26;
-  --rs-accent-soft: #fde8dc;
-  --rs-success: #15803d;
-  --rs-success-hover: #166534;
-  --rs-success-soft: #dcfce7;
-  --rs-success-bg-subtle: #f7fff9;
-  --rs-success-text: #047857;
-  --rs-success-border: #86efac;
-  --rs-warning: #b45309;
-  --rs-warning-soft: #fef3c7;
-  --rs-warning-text: #a16207;
-  --rs-warning-border: #fcd34d;
-  --rs-error: #b91c1c;
-  --rs-error-hover: #991b1b;
-  --rs-critical: #b91c1c;
-  --rs-error-soft: #fee2e2;
-  --rs-error-bg-subtle: #fff7f7;
-  --rs-error-text: #be123c;
-  --rs-error-text-strong: #7f1d1d;
-  --rs-error-border: #fca5a5;
-  --rs-error-border-strong: #fecaca;
 
   /* Typography scale — size (role), line-height, weight, tracking */
   --rs-text-2xs: 0.72rem;   /* overline / badge / micro-label */
@@ -121,11 +70,6 @@
   --rs-radius-xl: 18px;
   --rs-radius-full: 999px;
 
-  /* Shadows */
-  --rs-shadow-sm: 0 1px 2px rgba(26, 35, 50, 0.05);
-  --rs-shadow: 0 1px 2px rgba(26, 35, 50, 0.06), 0 8px 24px rgba(26, 35, 50, 0.06);
-  --rs-shadow-panel: 0 1px 2px rgba(26, 35, 50, 0.04), 0 12px 32px rgba(26, 35, 50, 0.07);
-
   /* Layout + spacing scale (4px base) */
   --rs-shell-max: 1200px;
   --rs-space-1: 0.25rem;
@@ -148,12 +92,9 @@
   --rs-control-px: 0.75rem;
   --rs-touch-target-min: 44px;
 
-  /* Focus + disabled */
-  --rs-focus-ring: 0 0 0 3px rgba(37, 99, 235, 0.35);
+  /* Focus structural scalars (non-color; safe on :root) */
   --rs-focus-ring-offset: 2px;
   --rs-disabled-opacity: 0.55;
-  --rs-disabled-bg: var(--rs-neutral-100);
-  --rs-disabled-text: var(--rs-neutral-500);
 
   /* Z-index ladder */
   --rs-z-base: 0;
@@ -176,6 +117,464 @@
   --rs-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
   --rs-ease-emphasis: cubic-bezier(0.2, 0, 0, 1.15);
 }
+
+/* ─── THEME LAYER ────────────────────────────────────────────────────────────
+   All color, surface, border, text, shadow, and focus tokens are declared
+   here — once per theme. Re-theming = redeclaring these tokens on the
+   correct scope selector. Theme scope: .rs-shell / [data-rulestead] ONLY.
+   NEVER declare theme tokens on :root or <html> (mounted-package discipline).
+
+   ── INVARIANT vs VARIANT SPLIT ──────────────────────────────────────────────
+
+   INVARIANT tokens live in :root (above). They are not theme-sensitive and
+   are never re-declared in the blocks below. Categories:
+     Typography  — --rs-font-display/sans/mono; --rs-text-2xs..2xl;
+                   --rs-leading-*; --rs-weight-*; --rs-tracking-*
+     Radius      — --rs-radius-sm/md/lg/xl/full
+     Spacing     — --rs-space-1..10; --rs-section-gap; --rs-page-gap
+     Control     — --rs-control-h/h-sm/h-lg/px; --rs-touch-target-min
+     Focus structural (non-color) — --rs-focus-ring-offset; --rs-disabled-opacity
+     Z-index     — --rs-z-base/raised/dropdown/sticky/overlay/modal/toast
+     Motion      — --rs-motion-fast/base/slow/slower;
+                   --rs-ease-standard/out/in/in-out/emphasis
+
+   VARIANT tokens are declared per-theme in the four blocks below (one value
+   set per block). They must NEVER appear in :root. Categories:
+     Neutral ramp      — --rs-neutral-0/25/50/100/200/300/400/500/600/900
+     Surface/border/text aliases
+                       — --rs-bg; --rs-surface; --rs-surface-muted;
+                         --rs-surface-faint; --rs-border; --rs-border-subtle;
+                         --rs-border-strong; --rs-text; --rs-text-muted;
+                         --rs-text-placeholder
+     Brand             — --rs-primary; --rs-primary-hover; --rs-primary-soft;
+                         --rs-on-primary; --rs-accent; --rs-accent-soft
+     Status success    — --rs-success; --rs-success-hover; --rs-success-soft;
+                         --rs-success-bg-subtle; --rs-success-text;
+                         --rs-success-border
+     Status warning    — --rs-warning; --rs-warning-hover; --rs-warning-soft;
+                         --rs-warning-text; --rs-warning-border
+     Status error      — --rs-error; --rs-error-hover; --rs-critical;
+                         --rs-error-soft; --rs-error-bg-subtle; --rs-error-text;
+                         --rs-error-text-strong; --rs-error-border;
+                         --rs-error-border-strong
+     Shadows           — --rs-shadow-sm; --rs-shadow; --rs-shadow-panel
+     Focus + disabled  — --rs-focus-ring-color; --rs-focus-ring;
+                         --rs-primary-ring; --rs-disabled-bg; --rs-disabled-text
+     Overlay / scrim   — --rs-overlay-veil; --rs-scrim
+
+   ── CASCADE BLOCKS ──────────────────────────────────────────────────────────
+
+   Four blocks constitute the complete theme cascade:
+
+     Block 1: .rs-shell, [data-rulestead]
+              Light default — applies when neither @media dark nor data-theme is
+              active. This is the baseline every browser sees first.
+
+     Block 2: @media (prefers-color-scheme: dark) .rs-shell:not([data-theme])
+              System dark — activates automatically when the OS reports dark mode
+              AND no explicit data-theme pin is present on the scope element.
+
+     Block 3: .rs-shell[data-theme="dark"], [data-rulestead][data-theme="dark"]
+              Explicit dark pin — applies regardless of OS preference. Beats
+              Block 2 in both directions (dark OS and light OS).
+
+     Block 4: .rs-shell[data-theme="light"], [data-rulestead][data-theme="light"]
+              Explicit light pin — re-asserts light-mode values over a dark OS.
+
+   PRECEDENCE: The :not([data-theme]) guard on Block 2 ensures that an explicit
+   pin (Block 3 or 4) ALWAYS wins over the @media rule, in either OS direction.
+   Block 1 and Block 4 carry identical light-mode declarations (SYNCED PAIR).
+   Block 2 and Block 3 carry identical dark-mode declarations (SYNCED PAIR).
+
+   ── SYNCED-PAIR RULE ────────────────────────────────────────────────────────
+
+   Blocks 1 + 4 are a SYNCED-PAIR (light). Blocks 2 + 3 are a SYNCED-PAIR
+   (dark). The --rs- declarations inside each member of a pair must be
+   verbatim-identical at all times.
+
+   Rule: when you change a token value in one block of a pair, you MUST update
+   the partner block to the same value before committing.
+
+   Verification command (run from repo root — must print IDENTICAL):
+
+     python3 scripts/check_synced_pair.py
+
+   (The check lives in a script rather than inline here because a CSS comment
+   cannot contain a comment-stripping regex without prematurely closing itself —
+   CSS comments do not nest.)
+
+   ── HOW TO ADD A TOKEN ──────────────────────────────────────────────────────
+
+   a. Is the value the same in both light and dark themes?
+      → INVARIANT: add it to :root only (above the THEME LAYER). Done.
+
+   b. Is the value theme-sensitive?
+      → VARIANT: add the light value to Block 1 AND Block 4 (identical value;
+        update BOTH). Add the dark value to Block 2 AND Block 3 (identical
+        value; update BOTH).
+
+   c. Run the SYNCED-PAIR verification command above and confirm IDENTICAL
+      before committing.
+
+   d. Add the new token to the design-system fixture (priv/static/design-system.html)
+      and re-run design-system.spec.ts to keep the regression gate green.
+
+─────────────────────────────────────────────────────────────────────────────── */
+
+/* ── 1. Light default ─────────────────────────────────────────────────── */
+.rs-shell,
+[data-rulestead] {
+  color-scheme: light;
+
+  /* Neutral ramp — mineral grays. Foundation for surfaces, borders, text. */
+  --rs-neutral-0: #ffffff;
+  --rs-neutral-25: #f8fafc;
+  --rs-neutral-50: #f4f6f8;
+  --rs-neutral-100: #eef1f5;
+  --rs-neutral-200: #e7ebf0;
+  --rs-neutral-300: #d8dee6;
+  --rs-neutral-400: #b8c2cf;
+  --rs-neutral-500: #99a3af;
+  --rs-neutral-600: #5c6b7a;
+  --rs-neutral-700: #263241;
+  --rs-neutral-900: #1a2332;
+
+  /* Surface / border / text aliases */
+  --rs-bg:               var(--rs-neutral-50);
+  --rs-surface:          var(--rs-neutral-0);
+  --rs-surface-muted:    var(--rs-neutral-100);
+  --rs-surface-faint:    var(--rs-neutral-25);
+  --rs-border:           var(--rs-neutral-300);
+  --rs-border-subtle:    var(--rs-neutral-200);
+  --rs-border-strong:    var(--rs-neutral-400);
+  --rs-text:             var(--rs-neutral-900);
+  --rs-text-muted:       var(--rs-neutral-600);
+  --rs-text-placeholder: var(--rs-neutral-500);
+
+  /* Brand */
+  --rs-primary:       #3A6F8F;
+  --rs-primary-hover: #2d5f7c;
+  --rs-primary-soft:  #e4eff4;
+  --rs-on-primary:    #ffffff;
+  --rs-accent:        #9b5931;
+  --rs-accent-soft:   #fde8dc;
+
+  /* Logo — winner lockup semantic roles (route / lit node / muted nodes / type).
+     Not --rs- prefixed on purpose: these theme the inline wordmark SVG only. */
+  --logo-line:   #3a6f8f;
+  --logo-active: #9b5931;
+  --logo-muted:  #c4ccd1;
+  --logo-type:   #183247;
+
+  /* Status — success */
+  --rs-success:           #2d7753;
+  --rs-success-hover:     #166534;
+  --rs-success-soft:      #dcfce7;
+  --rs-success-bg-subtle: #f7fff9;
+  --rs-success-text:      #047857;
+  --rs-success-border:    #86efac;
+
+  /* Status — warning */
+  --rs-warning:        #8f601a;
+  --rs-warning-hover:  #92400e;
+  --rs-warning-soft:   #fef3c7;
+  --rs-warning-text:   #a16207;
+  --rs-warning-border: #fcd34d;
+
+  /* Status — error / critical */
+  --rs-error:               #B44949;
+  --rs-error-hover:         #991b1b;
+  --rs-critical:            #B44949;
+  --rs-error-soft:          #fee2e2;
+  --rs-error-bg-subtle:     #fff7f7;
+  --rs-error-text:          #be123c;
+  --rs-error-text-strong:   #7f1d1d;
+  --rs-error-border:        #fca5a5;
+  --rs-error-border-strong: #fecaca;
+
+  /* Shadows */
+  --rs-shadow-sm:    0 1px 2px rgba(26, 35, 50, 0.05);
+  --rs-shadow:       0 1px 2px rgba(26, 35, 50, 0.06), 0 8px 24px rgba(26, 35, 50, 0.06);
+  --rs-shadow-panel: 0 1px 2px rgba(26, 35, 50, 0.04), 0 12px 32px rgba(26, 35, 50, 0.07);
+
+  /* Focus + disabled */
+  --rs-focus-ring-color: rgba(58, 111, 143, 0.58);
+  --rs-focus-ring:       0 0 0 var(--rs-focus-ring-offset) var(--rs-surface), 0 0 0 calc(var(--rs-focus-ring-offset) + 3px) var(--rs-focus-ring-color);
+  --rs-primary-ring:     rgba(58, 111, 143, 0.22);
+  --rs-disabled-bg:      var(--rs-neutral-100);
+  --rs-disabled-text:    var(--rs-neutral-500);
+
+  /* Overlay / scrim (consumed by Phases 88 + 89) */
+  --rs-overlay-veil: rgba(238, 241, 245, 0.9);
+  --rs-scrim:        rgba(15, 23, 35, 0.45);
+}
+
+/* ── 2. System dark (only when no explicit choice is pinned) ─────────── */
+@media (prefers-color-scheme: dark) {
+  .rs-shell:not([data-theme]),
+  [data-rulestead]:not([data-theme]) {
+    color-scheme: dark;
+    /* !! SYNCED PAIR: keep this block identical to [data-theme="dark"] below !! */
+
+    /* Neutral ramp — mineral dark. Direction FLIPS: 0 = darkest surface, 900 = lightest text. */
+    --rs-neutral-0:   #10161f;
+    --rs-neutral-25:  #141c27;
+    --rs-neutral-50:  #19222e;
+    --rs-neutral-100: #1f2a38;
+    --rs-neutral-200: #253243;
+    --rs-neutral-300: #2e3d52;
+    --rs-neutral-400: #3d5168;
+    --rs-neutral-500: #7a8fa3;
+    --rs-neutral-600: #a8b9ca;
+    --rs-neutral-900: #e8edf3;
+
+    /* Surface / border / text aliases — elevation = lighter surface in dark */
+    --rs-bg:               var(--rs-neutral-50);
+    --rs-surface:          var(--rs-neutral-25);
+    --rs-surface-muted:    var(--rs-neutral-100);
+    --rs-surface-faint:    var(--rs-neutral-0);
+    --rs-border:           var(--rs-neutral-300);
+    --rs-border-subtle:    var(--rs-neutral-200);
+    --rs-border-strong:    var(--rs-neutral-400);
+    --rs-text:             var(--rs-neutral-900);
+    --rs-text-muted:       var(--rs-neutral-600);
+    --rs-text-placeholder: var(--rs-neutral-500);
+
+    /* Brand */
+    --rs-primary:       #5885a0;
+    --rs-primary-hover: #4a7d9c;
+    --rs-primary-soft:  rgba(88, 133, 160, 0.14);
+    --rs-on-primary:    #10161f;
+    --rs-accent:        #ba6b3c;
+    --rs-accent-soft:   rgba(232, 131, 74, 0.12);
+
+    /* Logo — winner lockup semantic roles (dark surfaces; copper holds) */
+    --logo-line:   #5885a0;
+    --logo-active: #9b5931;
+    --logo-muted:  #3d4a55;
+    --logo-type:   #e8edf3;
+
+    /* Status — success */
+    --rs-success:           #488d6b;
+    --rs-success-hover:     #86efac;
+    --rs-success-soft:      rgba(74, 222, 128, 0.12);
+    --rs-success-bg-subtle: rgba(74, 222, 128, 0.06);
+    --rs-success-text:      #4ade80;
+    --rs-success-border:    #166634;
+
+    /* Status — warning */
+    --rs-warning:        #B57A21;
+    --rs-warning-hover:  #fcd34d;
+    --rs-warning-soft:   rgba(251, 191, 36, 0.12);
+    --rs-warning-text:   #fbbf24;
+    --rs-warning-border: #78350f;
+
+    /* Status — error / critical */
+    --rs-error:               #bf6464;
+    --rs-error-hover:         #fca5a5;
+    --rs-critical:            #bf6464;
+    --rs-error-soft:          rgba(248, 113, 113, 0.12);
+    --rs-error-bg-subtle:     rgba(248, 113, 113, 0.06);
+    --rs-error-text:          #f87171;
+    --rs-error-text-strong:   #fca5a5;
+    --rs-error-border:        #7f1d1d;
+    --rs-error-border-strong: #991b1b;
+
+    /* Shadows — near-black keys + inset top-edge hairline for dark elevation */
+    --rs-shadow-sm:    0 1px 2px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    --rs-shadow:       0 1px 3px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    --rs-shadow-panel: 0 1px 3px rgba(0, 0, 0, 0.45), 0 12px 32px rgba(0, 0, 0, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+
+    /* Focus + disabled */
+    --rs-focus-ring-color: rgba(88, 133, 160, 0.78);
+    --rs-focus-ring:       0 0 0 var(--rs-focus-ring-offset) var(--rs-surface), 0 0 0 calc(var(--rs-focus-ring-offset) + 3px) var(--rs-focus-ring-color);
+    --rs-primary-ring:     rgba(88, 133, 160, 0.28);
+    --rs-disabled-bg:      #253243;
+    --rs-disabled-text:    #6b84a0;
+
+    /* Overlay / scrim */
+    --rs-overlay-veil: rgba(20, 28, 39, 0.85);
+    --rs-scrim:        rgba(0, 0, 0, 0.65);
+  }
+}
+
+/* ── 3. Explicit dark (pinned; beats OS in both directions) ───────────── */
+.rs-shell[data-theme="dark"],
+[data-rulestead][data-theme="dark"] {
+  color-scheme: dark;
+  /* !! SYNCED PAIR: keep this block identical to @media dark above !! */
+
+  /* Neutral ramp — mineral dark. Direction FLIPS: 0 = darkest surface, 900 = lightest text. */
+  --rs-neutral-0:   #10161f;
+  --rs-neutral-25:  #141c27;
+  --rs-neutral-50:  #19222e;
+  --rs-neutral-100: #1f2a38;
+  --rs-neutral-200: #253243;
+  --rs-neutral-300: #2e3d52;
+  --rs-neutral-400: #3d5168;
+  --rs-neutral-500: #7a8fa3;
+  --rs-neutral-600: #a8b9ca;
+  --rs-neutral-900: #e8edf3;
+
+  /* Surface / border / text aliases — elevation = lighter surface in dark */
+  --rs-bg:               var(--rs-neutral-50);
+  --rs-surface:          var(--rs-neutral-25);
+  --rs-surface-muted:    var(--rs-neutral-100);
+  --rs-surface-faint:    var(--rs-neutral-0);
+  --rs-border:           var(--rs-neutral-300);
+  --rs-border-subtle:    var(--rs-neutral-200);
+  --rs-border-strong:    var(--rs-neutral-400);
+  --rs-text:             var(--rs-neutral-900);
+  --rs-text-muted:       var(--rs-neutral-600);
+  --rs-text-placeholder: var(--rs-neutral-500);
+
+  /* Brand */
+  --rs-primary:       #5885a0;
+  --rs-primary-hover: #4a7d9c;
+  --rs-primary-soft:  rgba(88, 133, 160, 0.14);
+  --rs-on-primary:    #10161f;
+  --rs-accent:        #ba6b3c;
+  --rs-accent-soft:   rgba(232, 131, 74, 0.12);
+
+  /* Logo — winner lockup semantic roles (dark surfaces; copper holds) */
+  --logo-line:   #5885a0;
+  --logo-active: #9b5931;
+  --logo-muted:  #3d4a55;
+  --logo-type:   #e8edf3;
+
+  /* Status — success */
+  --rs-success:           #488d6b;
+  --rs-success-hover:     #86efac;
+  --rs-success-soft:      rgba(74, 222, 128, 0.12);
+  --rs-success-bg-subtle: rgba(74, 222, 128, 0.06);
+  --rs-success-text:      #4ade80;
+  --rs-success-border:    #166634;
+
+  /* Status — warning */
+  --rs-warning:        #B57A21;
+  --rs-warning-hover:  #fcd34d;
+  --rs-warning-soft:   rgba(251, 191, 36, 0.12);
+  --rs-warning-text:   #fbbf24;
+  --rs-warning-border: #78350f;
+
+  /* Status — error / critical */
+  --rs-error:               #bf6464;
+  --rs-error-hover:         #fca5a5;
+  --rs-critical:            #bf6464;
+  --rs-error-soft:          rgba(248, 113, 113, 0.12);
+  --rs-error-bg-subtle:     rgba(248, 113, 113, 0.06);
+  --rs-error-text:          #f87171;
+  --rs-error-text-strong:   #fca5a5;
+  --rs-error-border:        #7f1d1d;
+  --rs-error-border-strong: #991b1b;
+
+  /* Shadows — near-black keys + inset top-edge hairline for dark elevation */
+  --rs-shadow-sm:    0 1px 2px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --rs-shadow:       0 1px 3px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --rs-shadow-panel: 0 1px 3px rgba(0, 0, 0, 0.45), 0 12px 32px rgba(0, 0, 0, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+
+  /* Focus + disabled */
+  --rs-focus-ring-color: rgba(88, 133, 160, 0.78);
+  --rs-focus-ring:       0 0 0 var(--rs-focus-ring-offset) var(--rs-surface), 0 0 0 calc(var(--rs-focus-ring-offset) + 3px) var(--rs-focus-ring-color);
+  --rs-primary-ring:     rgba(88, 133, 160, 0.28);
+  --rs-disabled-bg:      #253243;
+  --rs-disabled-text:    #6b84a0;
+
+  /* Overlay / scrim */
+  --rs-overlay-veil: rgba(20, 28, 39, 0.85);
+  --rs-scrim:        rgba(0, 0, 0, 0.65);
+}
+
+/* ── 4. Explicit light (re-asserts light over dark OS) ───────────────── */
+.rs-shell[data-theme="light"],
+[data-rulestead][data-theme="light"] {
+  color-scheme: light;
+  /* !! SYNCED PAIR: keep this block identical to .rs-shell default above !! */
+
+  /* Neutral ramp — mineral grays. Foundation for surfaces, borders, text. */
+  --rs-neutral-0: #ffffff;
+  --rs-neutral-25: #f8fafc;
+  --rs-neutral-50: #f4f6f8;
+  --rs-neutral-100: #eef1f5;
+  --rs-neutral-200: #e7ebf0;
+  --rs-neutral-300: #d8dee6;
+  --rs-neutral-400: #b8c2cf;
+  --rs-neutral-500: #99a3af;
+  --rs-neutral-600: #5c6b7a;
+  --rs-neutral-700: #263241;
+  --rs-neutral-900: #1a2332;
+
+  /* Surface / border / text aliases */
+  --rs-bg:               var(--rs-neutral-50);
+  --rs-surface:          var(--rs-neutral-0);
+  --rs-surface-muted:    var(--rs-neutral-100);
+  --rs-surface-faint:    var(--rs-neutral-25);
+  --rs-border:           var(--rs-neutral-300);
+  --rs-border-subtle:    var(--rs-neutral-200);
+  --rs-border-strong:    var(--rs-neutral-400);
+  --rs-text:             var(--rs-neutral-900);
+  --rs-text-muted:       var(--rs-neutral-600);
+  --rs-text-placeholder: var(--rs-neutral-500);
+
+  /* Brand */
+  --rs-primary:       #3A6F8F;
+  --rs-primary-hover: #2d5f7c;
+  --rs-primary-soft:  #e4eff4;
+  --rs-on-primary:    #ffffff;
+  --rs-accent:        #9b5931;
+  --rs-accent-soft:   #fde8dc;
+
+  /* Logo — winner lockup semantic roles (route / lit node / muted nodes / type).
+     Not --rs- prefixed on purpose: these theme the inline wordmark SVG only. */
+  --logo-line:   #3a6f8f;
+  --logo-active: #9b5931;
+  --logo-muted:  #c4ccd1;
+  --logo-type:   #183247;
+
+  /* Status — success */
+  --rs-success:           #2d7753;
+  --rs-success-hover:     #166534;
+  --rs-success-soft:      #dcfce7;
+  --rs-success-bg-subtle: #f7fff9;
+  --rs-success-text:      #047857;
+  --rs-success-border:    #86efac;
+
+  /* Status — warning */
+  --rs-warning:        #8f601a;
+  --rs-warning-hover:  #92400e;
+  --rs-warning-soft:   #fef3c7;
+  --rs-warning-text:   #a16207;
+  --rs-warning-border: #fcd34d;
+
+  /* Status — error / critical */
+  --rs-error:               #B44949;
+  --rs-error-hover:         #991b1b;
+  --rs-critical:            #B44949;
+  --rs-error-soft:          #fee2e2;
+  --rs-error-bg-subtle:     #fff7f7;
+  --rs-error-text:          #be123c;
+  --rs-error-text-strong:   #7f1d1d;
+  --rs-error-border:        #fca5a5;
+  --rs-error-border-strong: #fecaca;
+
+  /* Shadows */
+  --rs-shadow-sm:    0 1px 2px rgba(26, 35, 50, 0.05);
+  --rs-shadow:       0 1px 2px rgba(26, 35, 50, 0.06), 0 8px 24px rgba(26, 35, 50, 0.06);
+  --rs-shadow-panel: 0 1px 2px rgba(26, 35, 50, 0.04), 0 12px 32px rgba(26, 35, 50, 0.07);
+
+  /* Focus + disabled */
+  --rs-focus-ring-color: rgba(58, 111, 143, 0.58);
+  --rs-focus-ring:       0 0 0 var(--rs-focus-ring-offset) var(--rs-surface), 0 0 0 calc(var(--rs-focus-ring-offset) + 3px) var(--rs-focus-ring-color);
+  --rs-primary-ring:     rgba(58, 111, 143, 0.22);
+  --rs-disabled-bg:      var(--rs-neutral-100);
+  --rs-disabled-text:    var(--rs-neutral-500);
+
+  /* Overlay / scrim (consumed by Phases 88 + 89) */
+  --rs-overlay-veil: rgba(238, 241, 245, 0.9);
+  --rs-scrim:        rgba(15, 23, 35, 0.45);
+}
+
+/* ─── END THEME LAYER ─────────────────────────────────────────────────── */
 
 *,
 *::before,
@@ -203,6 +602,15 @@
 .rs-shell :where(a:hover) {
   color: var(--rs-primary-hover);
   text-decoration: underline;
+}
+
+/* ── Unified :focus-visible ring (A11Y-02) ──────────────────────────── */
+/* Zero-specificity via :where() — per-element rules above this override cleanly. */
+.rs-shell :where(a, button, input, select, textarea,
+  [tabindex], [role="option"], [role="tab"], summary):focus-visible {
+  outline: none;
+  box-shadow: var(--rs-focus-ring);
+  border-radius: inherit;
 }
 
 .rs-shell code {
@@ -303,9 +711,7 @@
 .rs-shell .rs-button--text:focus-visible:not(:disabled) {
   border: 0;
   background: transparent;
-  box-shadow: none;
   color: var(--rs-primary-hover);
-  outline: none;
   text-decoration: underline;
   text-decoration-thickness: 0.12em;
 }
@@ -332,7 +738,9 @@
 }
 
 .rs-shell button:disabled {
-  opacity: 0.55;
+  background: var(--rs-disabled-bg);
+  color: var(--rs-disabled-text);
+  border-color: var(--rs-border);
   cursor: not-allowed;
 }
 
@@ -448,7 +856,7 @@
   border-radius: var(--rs-radius-sm);
   background: var(--rs-surface);
   color: var(--rs-text);
-  box-shadow: 0 1px 2px rgba(26, 35, 50, 0.04);
+  box-shadow: var(--rs-shadow-sm);
 }
 
 .rs-flash[data-kind="info"],
@@ -460,6 +868,11 @@
 .rs-flash[data-kind="error"] {
   border-left-color: var(--rs-error);
   background: var(--rs-error-bg-subtle);
+}
+
+.rs-flash[data-kind="warning"] {
+  border-left-color: var(--rs-warning);
+  background: var(--rs-warning-soft);
 }
 
 .rs-flash strong,
@@ -485,7 +898,7 @@
   border-left: 4px solid var(--rs-error);
   background: var(--rs-error-bg-subtle);
   color: var(--rs-text);
-  box-shadow: 0 1px 2px rgba(26, 35, 50, 0.04);
+  box-shadow: var(--rs-shadow-sm);
 }
 
 .rs-form-summary strong,
@@ -580,7 +993,7 @@
   border: 1px solid var(--rs-border);
   border-radius: var(--rs-radius-md);
   background: var(--rs-surface);
-  box-shadow: 0 1px 1px rgba(26, 35, 50, 0.03);
+  box-shadow: var(--rs-shadow-sm);
   transition-property: border-color, box-shadow, background-color, transform;
   transition-duration: 150ms;
   transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
@@ -588,7 +1001,7 @@
 
 .rs-radio-card:hover .rs-radio-card__body {
   border-color: var(--rs-border-strong);
-  box-shadow: 0 4px 14px rgba(26, 35, 50, 0.07);
+  box-shadow: var(--rs-shadow);
 }
 
 .rs-radio-card:active .rs-radio-card__body {
@@ -596,19 +1009,19 @@
 }
 
 .rs-radio-card input:focus-visible + .rs-radio-card__body {
-  outline: 3px solid rgba(37, 99, 235, 0.18);
-  outline-offset: 2px;
+  box-shadow: var(--rs-focus-ring);
 }
 
 .rs-radio-card input:checked + .rs-radio-card__body {
   border-color: var(--rs-primary);
   background: var(--rs-surface-faint);
-  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.18), 0 8px 20px rgba(37, 99, 235, 0.08);
+  box-shadow: 0 0 0 1px var(--rs-focus-ring-color), 0 8px 20px var(--rs-focus-ring-color);
 }
 
 .rs-radio-card input:disabled + .rs-radio-card__body {
   cursor: not-allowed;
-  opacity: 0.65;
+  background: var(--rs-disabled-bg);
+  border-color: var(--rs-border);
   box-shadow: none;
 }
 
@@ -680,7 +1093,7 @@
   padding: 0.8rem;
   border-radius: var(--rs-radius-md);
   background: var(--rs-surface);
-  box-shadow: 0 18px 45px rgba(26, 35, 50, 0.16), 0 0 0 1px rgba(26, 35, 50, 0.08);
+  box-shadow: var(--rs-shadow-panel);
 }
 
 .rs-date-calendar__header,
@@ -850,7 +1263,7 @@
   min-height: 18rem;
   margin: 0;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(238, 241, 245, 0.9)),
+    var(--rs-overlay-veil),
     var(--rs-surface-muted);
 }
 
@@ -898,10 +1311,10 @@
   border-color: var(--rs-primary);
 }
 
-.rs-shell input:focus,
-.rs-shell select:focus,
-.rs-shell textarea:focus {
-  outline: 2px solid var(--rs-primary-soft);
+.rs-shell input:focus-visible,
+.rs-shell select:focus-visible,
+.rs-shell textarea:focus-visible {
+  box-shadow: var(--rs-focus-ring);
   border-color: var(--rs-primary);
 }
 
@@ -919,10 +1332,126 @@
 
 @media (min-width: 900px) {
   .rs-shell__header {
-    grid-template-columns: minmax(0, 1fr) repeat(3, auto);
+    grid-template-columns: minmax(0, 1fr) repeat(4, auto);
     align-items: start;
     padding: 1.55rem 2rem 0.85rem;
   }
+}
+
+/* Brand lockup — the inline winner wordmark in the shell header.
+   Colors come from the four --logo-* vars declared in every theme cascade
+   block above, so the lockup re-themes with light/dark/system pins. */
+
+.rs-shell__brand {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 1 auto;
+  max-width: 100%;
+  margin: 0 0 0.55rem -0.4rem;
+  padding: 0.3rem 0.45rem 0.3rem 0.4rem;
+  border-radius: var(--rs-radius-md);
+  color: var(--rs-text);
+  line-height: 1;
+  text-decoration: none;
+}
+
+a.rs-shell__brand {
+  transition-property: background-color, box-shadow, color, transform;
+  transition-duration: var(--rs-motion-fast);
+  transition-timing-function: var(--rs-ease-standard);
+}
+
+a.rs-shell__brand:hover {
+  background: var(--rs-surface-muted);
+  box-shadow: var(--rs-shadow-sm);
+  color: var(--rs-text);
+  text-decoration: none;
+}
+
+a.rs-shell__brand:focus-visible {
+  outline: none;
+  box-shadow: var(--rs-focus-ring);
+}
+
+a.rs-shell__brand:active {
+  transform: scale(0.96);
+}
+
+/* Visually hidden brand text — gives the lockup link a real text node for
+   accessible-name audits while the wordmark stays purely graphical. */
+.rs-shell__brand-text {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.rs-shell__wordmark {
+  display: block;
+  width: clamp(9.75rem, 14vw, 11.75rem);
+  max-width: min(100%, 72vw);
+  height: auto;
+  aspect-ratio: 340 / 62;
+}
+
+.rs-shell__wordmark-line {
+  fill: none;
+  stroke: var(--logo-line);
+}
+
+.rs-shell__wordmark-active {
+  fill: var(--logo-active);
+}
+
+.rs-shell__wordmark-muted {
+  fill: var(--logo-muted);
+}
+
+.rs-shell__wordmark-type {
+  fill: var(--logo-type);
+}
+
+.rs-shell__fixture-wordmark {
+  display: block;
+  width: clamp(9.75rem, 14vw, 11.75rem);
+  max-width: min(100%, 72vw);
+  height: auto;
+  aspect-ratio: 340 / 62;
+}
+
+.rs-shell__fixture-wordmark--dark {
+  display: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  .rs-shell:not([data-theme]) .rs-shell__fixture-wordmark--light {
+    display: none;
+  }
+
+  .rs-shell:not([data-theme]) .rs-shell__fixture-wordmark--dark {
+    display: block;
+  }
+}
+
+.rs-shell[data-theme="dark"] .rs-shell__fixture-wordmark--light {
+  display: none;
+}
+
+.rs-shell[data-theme="dark"] .rs-shell__fixture-wordmark--dark {
+  display: block;
+}
+
+.rs-shell[data-theme="light"] .rs-shell__fixture-wordmark--light {
+  display: block;
+}
+
+.rs-shell[data-theme="light"] .rs-shell__fixture-wordmark--dark {
+  display: none;
 }
 
 .rs-shell__kicker {
@@ -1099,7 +1628,7 @@ a.rs-shell__env-link:active {
     top: 0;
     flex-direction: column;
     align-items: stretch;
-    gap: var(--rs-space-5);
+    gap: var(--rs-space-6);
     overflow: visible;
     padding: var(--rs-space-6) var(--rs-space-4) var(--rs-space-6);
     border-bottom: 0;
@@ -1118,7 +1647,7 @@ a.rs-shell__env-link:active {
     padding: 0 var(--rs-space-2);
     font-size: var(--rs-text-2xs);
     font-weight: var(--rs-weight-semibold);
-    letter-spacing: var(--rs-tracking-wide);
+    letter-spacing: var(--rs-tracking-wider);
     text-transform: uppercase;
     color: var(--rs-text-muted);
   }
@@ -1130,7 +1659,7 @@ a.rs-shell__env-link:active {
   min-height: var(--rs-control-h-sm);
   padding: 0.3rem 0.65rem;
   border-radius: var(--rs-radius-sm);
-  color: var(--rs-text-muted);
+  color: var(--rs-text);
   font-size: var(--rs-text-sm);
   font-weight: var(--rs-weight-medium);
   white-space: nowrap;
@@ -1140,14 +1669,30 @@ a.rs-shell__env-link:active {
 }
 
 .rs-shell__rail-link:hover {
-  background: var(--rs-surface-muted);
-  color: var(--rs-text);
+  background: var(--rs-primary-soft);
+  color: var(--rs-primary-hover);
 }
 
 .rs-shell__rail-link[aria-current="page"] {
   background: var(--rs-primary-soft);
   color: var(--rs-primary-hover);
   font-weight: var(--rs-weight-semibold);
+}
+
+/* Overview anchor — visually distinct from task-rhythm group links */
+.rs-shell__rail-link--overview {
+  font-weight: var(--rs-weight-semibold);
+  margin-bottom: var(--rs-space-2);
+  padding-bottom: var(--rs-space-3);
+  border-bottom: 1px solid var(--rs-border-subtle);
+}
+
+@media (max-width: 47.99rem) {
+  .rs-shell__rail-link--overview {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0.3rem;
+  }
 }
 
 .rs-shell__main {
@@ -1198,7 +1743,7 @@ a.rs-shell__env-link:active {
 .rs-card--flag[data-highlighted="true"] {
   border-color: var(--rs-primary);
   box-shadow:
-    0 0 0 1px rgba(14, 165, 233, 0.22),
+    0 0 0 1px var(--rs-primary-ring),
     var(--rs-shadow);
 }
 
@@ -1341,7 +1886,7 @@ a.rs-shell__env-link:active {
   border: 1px solid var(--rs-border);
   border-radius: var(--rs-radius-lg);
   background: var(--rs-surface);
-  box-shadow: 0 1px 2px rgba(26, 35, 50, 0.04);
+  box-shadow: var(--rs-shadow-sm);
 }
 
 .rs-record-row[data-tone="critical"] {
@@ -1623,6 +2168,63 @@ a.rs-shell__env-link:active {
   color: var(--rs-primary-hover);
 }
 
+/* ── Theme control (segmented radiogroup in shell header) ──────────── */
+
+.rs-theme-control__group {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.rs-theme-control__opt {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--rs-control-h-sm);
+  padding: 0.2rem 0.55rem;
+  border: 1px solid var(--rs-border);
+  border-radius: var(--rs-radius-full);
+  background: var(--rs-surface);
+  color: var(--rs-text-muted);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: var(--rs-weight-semibold);
+  cursor: pointer;
+  transition:
+    color var(--rs-motion-fast) var(--rs-ease-out),
+    background var(--rs-motion-fast) var(--rs-ease-out),
+    border-color var(--rs-motion-fast) var(--rs-ease-out);
+}
+
+.rs-theme-control__opt:hover {
+  color: var(--rs-text);
+}
+
+.rs-theme-control__opt[aria-checked="true"] {
+  border-color: var(--rs-primary);
+  background: var(--rs-primary-soft);
+  color: var(--rs-primary-hover);
+}
+
+.rs-theme-control__opt:focus-visible {
+  outline: none;
+  border-radius: var(--rs-radius-sm);
+  box-shadow: var(--rs-focus-ring);
+}
+
+/* ── FOUC snap: freeze transitions while pinned-theme correction is in flight.
+   The .ThemeControl hook removes data-theme-pending synchronously in mounted()
+   after applying data-theme. Once removed, transitions work normally.
+   Phase 94 micro-animations are unaffected — this attribute is gone before any
+   animation CSS is applied.
+   data-theme-switching covers user-toggle suppression (Phase 94): set before
+   every applyTheme() call and removed on the next requestAnimationFrame so the
+   token swap is instant with no animated color wipe. ──────────────────────── */
+[data-theme-pending],
+[data-theme-pending] *,
+[data-theme-switching],
+[data-theme-switching] * {
+  transition: none !important;
+}
+
 .rs-card h2,
 .rs-card h3,
 .rs-banner h2,
@@ -1789,9 +2391,8 @@ a.rs-shell__env-link:active {
   box-shadow: none;
 }
 
-.rs-filter-panel__search .rs-omnisearch__control input:focus {
-  outline: none;
-  box-shadow: none;
+.rs-filter-panel__search .rs-omnisearch__control:focus-within {
+  border-color: var(--rs-primary);
 }
 
 .rs-omnisearch__token {
@@ -1845,11 +2446,15 @@ a.rs-shell__env-link:active {
   stroke-linecap: round;
 }
 
-.rs-omnisearch__token-remove:hover,
+.rs-omnisearch__token-remove:hover {
+  background: var(--rs-border-subtle);
+  color: var(--rs-text);
+}
 .rs-omnisearch__token-remove:focus-visible {
   background: var(--rs-border-subtle);
   color: var(--rs-text);
   outline: none;
+  box-shadow: var(--rs-focus-ring);
 }
 
 .rs-omnisearch__menu {
@@ -1909,10 +2514,13 @@ a.rs-shell__env-link:active {
   text-transform: uppercase;
 }
 
-.rs-shell .rs-omnisearch__option:hover,
+.rs-shell .rs-omnisearch__option:hover {
+  background: var(--rs-primary-soft);
+}
 .rs-shell .rs-omnisearch__option:focus-visible {
   background: var(--rs-primary-soft);
   outline: none;
+  box-shadow: var(--rs-focus-ring);
 }
 
 .rs-inventory-views {
@@ -2340,7 +2948,7 @@ a.rs-shell__env-link:active {
   border: 1px solid var(--rs-border);
   border-radius: var(--rs-radius-lg);
   background: var(--rs-surface);
-  box-shadow: 0 1px 2px rgba(26, 35, 50, 0.04);
+  box-shadow: var(--rs-shadow-sm);
 }
 
 .rs-detail-actions__group {
@@ -2423,7 +3031,7 @@ a.rs-shell__env-link:active {
   gap: 1.25rem;
   padding: 1.35rem;
   background:
-    linear-gradient(135deg, rgba(219, 234, 254, 0.66), rgba(255, 255, 255, 0) 42%),
+    var(--rs-overlay-veil),
     var(--rs-surface);
 }
 
@@ -2472,7 +3080,7 @@ a.rs-shell__env-link:active {
   padding: 0.75rem 0.85rem;
   border: 1px solid var(--rs-border-subtle);
   border-radius: var(--rs-radius-md);
-  background: rgba(244, 246, 248, 0.7);
+  background: var(--rs-surface-faint);
 }
 
 .rs-signal span {
@@ -2541,7 +3149,7 @@ a.rs-shell__env-link:active {
   padding: 0.85rem;
   border: 1px solid var(--rs-border-subtle);
   border-radius: var(--rs-radius-md);
-  background: rgba(244, 246, 248, 0.64);
+  background: var(--rs-surface-faint);
   color: var(--rs-text);
   text-decoration: none;
 }
@@ -2566,7 +3174,7 @@ a.rs-env-state:active {
 
 .rs-env-state[data-current="true"] {
   border-color: var(--rs-primary);
-  box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.18);
+  box-shadow: inset 0 0 0 1px var(--rs-focus-ring-color);
 }
 
 .rs-env-state[data-available="false"] {
@@ -2703,7 +3311,7 @@ a.rs-env-state:active {
   padding: var(--rs-space-4);
   border: 1px dashed var(--rs-border);
   border-radius: var(--rs-radius-md);
-  background: var(--rs-surface-faint);
+  background: var(--rs-surface-muted);
   color: var(--rs-text-muted);
 }
 
@@ -2773,6 +3381,19 @@ a.rs-env-state:active {
 
 .rs-task-link--primary strong,
 .rs-task-link--primary span {
+  color: var(--rs-on-primary);
+}
+
+.rs-task-link--primary:hover,
+.rs-task-link--primary:focus-visible {
+  border-color: var(--rs-primary-hover);
+  background: var(--rs-primary-hover);
+}
+
+.rs-task-link--primary:hover strong,
+.rs-task-link--primary:hover span,
+.rs-task-link--primary:focus-visible strong,
+.rs-task-link--primary:focus-visible span {
   color: var(--rs-on-primary);
 }
 
@@ -3268,7 +3889,7 @@ a.rs-env-state:active {
   border: 1px solid var(--rs-border);
   border-radius: var(--rs-radius-md);
   background: var(--rs-surface);
-  box-shadow: 0 1px 2px rgba(26, 35, 50, 0.04);
+  box-shadow: var(--rs-shadow-sm);
 }
 
 .rs-event-panel__header {
@@ -3704,11 +4325,11 @@ a.rs-env-state:active {
 
 @media (prefers-reduced-motion: no-preference) {
   .rs-card--flag {
-    animation: rs-slide-in var(--rs-motion-base) var(--rs-ease-standard) both;
+    animation: rs-slide-in var(--rs-motion-base) var(--rs-ease-out) both;
   }
 
   .rs-record-row {
-    animation: rs-slide-in var(--rs-motion-base) var(--rs-ease-standard) both;
+    animation: rs-slide-in var(--rs-motion-base) var(--rs-ease-out) both;
   }
 
   /* Content that resolves from an async load settles in rather than popping —
@@ -3785,15 +4406,18 @@ a.rs-env-state:active {
   display: inline-flex;
   align-items: center;
   gap: var(--rs-space-2);
+  width: 100%;
+  max-width: 22rem;
   min-height: var(--rs-control-h-sm);
   margin-top: var(--rs-space-3);
   padding: 0 var(--rs-space-2) 0 var(--rs-space-3);
-  border-radius: var(--rs-radius-full);
+  border-radius: var(--rs-radius-md);
   border: 1px solid var(--rs-border);
   background: var(--rs-surface-muted);
-  color: var(--rs-text-muted);
+  color: var(--rs-text-placeholder);
   font-size: var(--rs-text-sm);
-  cursor: pointer;
+  text-align: start;
+  cursor: text;
 }
 
 .rs-shell .rs-shell__search:hover {
@@ -3805,6 +4429,12 @@ a.rs-env-state:active {
 .rs-shell__search-glyph {
   font-size: 1rem;
   line-height: 1;
+}
+
+.rs-shell__search-label {
+  flex: 1;
+  text-align: start;
+  color: inherit;
 }
 
 .rs-shell__search-kbd {
@@ -3834,7 +4464,7 @@ a.rs-env-state:active {
 .rs-cmdk__backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 35, 0.45);
+  background: var(--rs-scrim);
 }
 
 .rs-cmdk__panel {
@@ -3874,7 +4504,8 @@ a.rs-env-state:active {
   color: var(--rs-text);
 }
 
-.rs-shell .rs-cmdk__input:focus {
+.rs-shell .rs-cmdk__input:focus-visible {
+  /* cmdk: inside modal; ring suppressed intentionally — modal context is the affordance */
   outline: none;
   box-shadow: none;
 }

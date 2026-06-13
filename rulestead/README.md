@@ -42,6 +42,10 @@ mix rulestead.install
 mix ecto.migrate
 ```
 
+The default install uses the Postgres schema `rulestead` for package-owned
+tables. Use `mix rulestead.install --prefix public` only when you explicitly
+want those tables in the host app's `public` schema.
+
 Phoenix integrators: follow the
 [Phoenix Integration Spine](https://hexdocs.pm/rulestead/phoenix-integration-spine.html)
 for supervision → Plug → `Rulestead.Runtime` → lifecycle-honest flag create.

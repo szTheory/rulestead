@@ -1,0 +1,22 @@
+services:
+  traefik:
+    image: traefik:v3.7.1
+    command:
+      - "--api.dashboard=false"
+      - "--entrypoints.web.address=:80"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=${DEMO_PROXY_NETWORK:-proxy}"
+      - "--log.level=INFO"
+    ports:
+      - "127.0.0.1:${DEMO_PROXY_HTTP_PORT:-80}:80"
+    restart: unless-stopped
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true
+    name: ${DEMO_PROXY_NETWORK:-proxy}

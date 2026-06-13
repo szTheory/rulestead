@@ -9,10 +9,19 @@
 **/.next
 **/coverage
 **/cover
+**/test-results
 **/*.log
 **/debug_out.txt
 **/form_failures.txt
 **/test_failures.txt
+**/erl_crash.dump
+
+.planning
+prompts
+brandbook
+rulestead/doc
+rulestead/priv/plts
+examples/demo/frontend/playwright.config.ts
 
 examples/demo/backend/priv/static/cache_manifest.json
 examples/demo/backend/priv/static/assets

@@ -69,7 +69,8 @@ defmodule Rulestead.MixProject do
   defp package do
     [
       name: "rulestead",
-      description: "Runtime decisions, made clear.",
+      description:
+        "Elixir-native feature management for safe rollout, multivariate config, and explainable runtime decisions.",
       licenses: ["MIT"],
       links: %{
         "GitHub" => @source_url,

@@ -18,6 +18,7 @@ config :rulestead, Rulestead.Repo,
   password: "postgres",
   hostname: "localhost",
   database: "rulestead_demo_test#{System.get_env("MIX_TEST_PARTITION")}",
+  prefix: "rulestead",
   pool: Ecto.Adapters.SQL.Sandbox,
   pool_size: System.schedulers_online() * 2
 

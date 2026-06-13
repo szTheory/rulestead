@@ -1,8 +1,8 @@
 defmodule Rulestead.Repo.Migrations.AddRolloutAutoAdvancePolicies do
-  use Ecto.Migration
+  use Rulestead.Migration, prefix: "rulestead", create_schema: true
 
   def change do
-    create table(:rollout_auto_advance_policies, primary_key: false) do
+    create rulestead_table(:rollout_auto_advance_policies, primary_key: false) do
       add(:id, :uuid, primary_key: true, default: fragment("gen_random_uuid()"))
       add(:flag_key, :text, null: false)
       add(:environment_key, :text, null: false)
@@ -17,17 +17,21 @@ defmodule Rulestead.Repo.Migrations.AddRolloutAutoAdvancePolicies do
     end
 
     create(
-      unique_index(:rollout_auto_advance_policies, [:flag_key, :environment_key, :rule_key])
+      rulestead_unique_index(:rollout_auto_advance_policies, [
+        :flag_key,
+        :environment_key,
+        :rule_key
+      ])
     )
 
     create(
-      constraint(:rollout_auto_advance_policies, :observation_window_positive,
+      rulestead_constraint(:rollout_auto_advance_policies, :observation_window_positive,
         check: "observation_window_seconds IS NULL OR observation_window_seconds > 0"
       )
     )
 
     create(
-      constraint(:rollout_auto_advance_policies, :next_percentage_bounds,
+      rulestead_constraint(:rollout_auto_advance_policies, :next_percentage_bounds,
         check: "next_percentage IS NULL OR (next_percentage >= 0 AND next_percentage <= 100)"
       )
     )

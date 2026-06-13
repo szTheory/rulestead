@@ -1,0 +1,4 @@
+gen_glyph_paths.py: text='Rule' em=64.0 weight=700 url=https://fonts.gstatic.com/s/sora/v17/xMQOuFFYT72X5wkB_18qmnndmSe1mU-NKQc.ttf
+Downloading font from https://fonts.gstatic.com/s/sora/v17/xMQOuFFYT72X5wkB_18qmnndmSe1mU-NKQc.ttf
+Font loaded. UPM=1000
+'Rule': 4 glyphs, total_w=144.3 SVG units at em=64.0

@@ -1,0 +1,605 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rulestead — Logo Decision Studio (Phase 97)</title>
+
+<!--
+  THROWAWAY decision aid for the Phase 97 A/B/C concept gate. NOT a brand
+  deliverable — Phase 99 owns the committed SVG specimens (palette.svg,
+  typography.svg, social-card.svg). Do not promote this file into
+  brandbook/assets/specimens/.
+
+  Marks are generated inline from JS geometry (see CONCEPTS below) rather than
+  <img src=...> so a single headless-Chrome render has no extra file-fetch /
+  load race, and so the exact committed rect geometry is what's shown.
+  Live color tokens are linked from ../../../brandbook/tokens.css; the named
+  mineral primitives that tokens.css does NOT expose as CSS vars are labelled
+  from brandbook/tokens.json canonical hexes, and a drift-check compares the
+  CSS-backed ones (--rs-primary = Stead Blue, --rs-accent = Ember Copper) to
+  their canonical hexes at runtime.
+-->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<!-- Live design tokens (color vars scoped to .rs-shell / [data-rulestead]) -->
+<link rel="stylesheet" href="../../../brandbook/tokens.css">
+
+<style>
+  /* Font-race guard: hide until webfonts resolve (see settle script). */
+  body { visibility: hidden; }
+
+  :root {
+    --page-bg: #eceff2;
+    --card-radius: 12px;
+    --hair: rgba(0,0,0,0.12);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    background: var(--page-bg);
+    color: #1a2332;
+    font-family: var(--rs-font-sans, system-ui, sans-serif);
+    font-size: 16px;
+    line-height: var(--rs-leading-normal, 1.5);
+  }
+
+  .wrap {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 40px 28px 80px;
+  }
+
+  header.studio-head {
+    border-bottom: 2px solid #1a2332;
+    padding-bottom: 18px;
+    margin-bottom: 8px;
+  }
+  header.studio-head h1 {
+    font-family: var(--rs-font-display, sans-serif);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    font-size: 1.9rem;
+    margin: 0 0 6px;
+  }
+  header.studio-head p {
+    margin: 0;
+    color: #5c6b7a;
+    font-size: 0.92rem;
+    max-width: 70ch;
+  }
+  header.studio-head code {
+    font-family: var(--rs-font-mono, monospace);
+    font-size: 0.82em;
+    background: #dde3e9;
+    padding: 1px 5px;
+    border-radius: 4px;
+  }
+
+  section { margin-top: 46px; }
+  section > h2 {
+    font-family: var(--rs-font-display, sans-serif);
+    font-weight: 600;
+    font-size: 1.25rem;
+    margin: 0 0 4px;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  section > h2 .ord {
+    font-family: var(--rs-font-mono, monospace);
+    font-weight: 500;
+    font-size: 0.8rem;
+    color: #99a3af;
+  }
+  section > .lede {
+    margin: 0 0 20px;
+    color: #5c6b7a;
+    font-size: 0.9rem;
+    max-width: 78ch;
+  }
+
+  /* ---- light / dark surface cards ---- */
+  .surface {
+    border-radius: var(--card-radius);
+    border: 1px solid var(--hair);
+    padding: 26px;
+  }
+  .surface.light { background: #ffffff; color: #1a2332; }
+  .surface.dark  { background: #10161f; color: #e8edf3; border-color: rgba(255,255,255,0.10); }
+  .surface .surface-label {
+    font-family: var(--rs-font-mono, monospace);
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.55;
+    margin: 0 0 18px;
+  }
+  .pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+  @media (max-width: 720px) { .pair { grid-template-columns: 1fr; } }
+
+  /* ---- mark size strips ---- */
+  .concept-block { margin-bottom: 26px; }
+  .concept-title {
+    font-family: var(--rs-font-display, sans-serif);
+    font-weight: 600;
+    font-size: 1.02rem;
+    margin: 0 0 2px;
+  }
+  .concept-sub { margin: 0 0 14px; color: #5c6b7a; font-size: 0.85rem; max-width: 80ch; }
+
+  .strip {
+    display: flex;
+    align-items: flex-end;
+    gap: 26px;
+    flex-wrap: wrap;
+  }
+  .cell { text-align: center; }
+  .cell .holder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .cell.ring .holder {
+    outline: 1px solid currentColor;
+    outline-offset: 3px;
+    opacity: 0.999;
+  }
+  .cell .px {
+    margin-top: 12px;
+    font-family: var(--rs-font-mono, monospace);
+    font-size: 0.68rem;
+    opacity: 0.6;
+  }
+  .cell .px.demo { opacity: 1; font-weight: 500; color: #3A6F8F; }
+  .surface.dark .cell .px.demo { color: #8fbcd6; }
+  .cell svg { display: block; }
+
+  /* ---- wordmark + lockups ---- */
+  .wordmark {
+    font-family: var(--rs-font-display, sans-serif);
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    line-height: 1;
+  }
+  .wm-row { display: flex; align-items: baseline; gap: 28px; flex-wrap: wrap; margin-bottom: 20px; }
+  .wm-24 { font-size: 24px; }
+  .wm-48 { font-size: 48px; }
+  .wm-note { font-family: var(--rs-font-mono, monospace); font-size: 0.66rem; opacity: 0.5; }
+  .lockup { display: flex; align-items: center; gap: 12px; }
+  .lockup .lk-word { font-family: var(--rs-font-display, sans-serif); font-weight: 700; font-size: 28px; letter-spacing: -0.015em; }
+  .lockup-set { display: flex; flex-direction: column; gap: 20px; }
+  .lockup-line { display: flex; align-items: center; gap: 18px; }
+  .lockup-line .lk-id { font-family: var(--rs-font-mono, monospace); font-size: 0.66rem; opacity: 0.5; width: 84px; }
+
+  /* ---- palette swatches ---- */
+  .swatch-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+  }
+  .swatch {
+    border-radius: 10px;
+    border: 1px solid var(--hair);
+    overflow: hidden;
+    background: #fff;
+  }
+  .surface.dark .swatch { background: #19222e; border-color: rgba(255,255,255,0.08); }
+  .swatch .chip { height: 64px; position: relative; }
+  .swatch .meta { padding: 8px 10px 10px; }
+  .swatch .name { font-weight: 600; font-size: 0.82rem; }
+  .swatch .tok  { font-family: var(--rs-font-mono, monospace); font-size: 0.66rem; opacity: 0.6; }
+  .swatch .hex  { font-family: var(--rs-font-mono, monospace); font-size: 0.72rem; margin-top: 3px; text-transform: uppercase; }
+  .badge {
+    display: inline-block; font-family: var(--rs-font-mono, monospace);
+    font-size: 0.6rem; letter-spacing: 0.04em; padding: 1px 5px; border-radius: 4px;
+    margin-top: 5px;
+  }
+  .badge.warn { background: #fef3c7; color: #8f601a; }
+  .badge.drift { background: #B44949; color: #fff; }
+  .surface.dark .badge.warn { background: #3a2e12; color: #fbbf24; }
+
+  /* ---- typography specimen ---- */
+  .type-row { display: flex; align-items: baseline; gap: 18px; padding: 12px 0; border-bottom: 1px solid var(--hair); }
+  .type-row:last-child { border-bottom: 0; }
+  .type-row .sample { flex: 1; min-width: 0; }
+  .type-row .tmeta { font-family: var(--rs-font-mono, monospace); font-size: 0.66rem; opacity: 0.6; white-space: nowrap; text-align: right; }
+  .ff-display { font-family: var(--rs-font-display, sans-serif); }
+  .ff-sans { font-family: var(--rs-font-sans, sans-serif); }
+  .ff-mono { font-family: var(--rs-font-mono, monospace); }
+
+  @media print {
+    body { visibility: visible !important; background: #fff; }
+    .wrap { max-width: none; padding: 0; }
+    section, .concept-block, .surface { break-inside: avoid; }
+    .surface.dark { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+  @page { size: A4; margin: 12mm; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="studio-head">
+    <h1>Rulestead — Logo Decision Studio</h1>
+    <p>
+      Phase 97 concept gate — <strong>round 4</strong>. The chosen form is <strong>G4 — the three-way / multivariate
+      decision branch</strong> (input routes to three variants; reads as multivariate feature flags). Eight
+      <em>color</em> treatments below — copper accent, two-tone, lit route, square nodes, three-state, monochrome,
+      no-copper — shown at real sizes on light and dark beside the <strong>Sora&nbsp;Bold</strong> wordmark. The demo
+      renders the mark at <code>width="36"</code> — that cell is flagged.
+    </p>
+  </header>
+
+  <!-- ============ WORDMARK ============ -->
+  <section id="wordmark">
+    <h2><span class="ord">01</span> Wordmark &amp; lockups</h2>
+    <p class="lede">
+      Rulestead is wordmark-first (§14). The chosen symbol always sits beside “Rulestead” set in Sora Bold.
+      Below: the wordmark alone, then each concept locked up with it. This is the decision-critical context the
+      bare icons lack.
+    </p>
+    <div class="pair">
+      <div class="surface light rs-shell">
+        <p class="surface-label">Light surface</p>
+        <div class="wm-row">
+          <span class="wordmark wm-48" style="color:#1a2332">Rulestead</span>
+        </div>
+        <div class="wm-row">
+          <span class="wordmark wm-24" style="color:#1a2332">Rulestead</span>
+          <span class="wm-note">Sora 700 · 24px &amp; 48px</span>
+        </div>
+        <div class="lockup-set" data-lockups="light"></div>
+      </div>
+      <div class="surface dark rs-shell" data-theme="dark">
+        <p class="surface-label">Dark surface</p>
+        <div class="wm-row">
+          <span class="wordmark wm-48" style="color:#e8edf3">Rulestead</span>
+        </div>
+        <div class="wm-row">
+          <span class="wordmark wm-24" style="color:#e8edf3">Rulestead</span>
+          <span class="wm-note">Sora 700 · 24px &amp; 48px</span>
+        </div>
+        <div class="lockup-set" data-lockups="dark"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CONCEPTS ============ -->
+  <section id="concepts">
+    <h2><span class="ord">02</span> Concept G4 — multivariate branch color family</h2>
+    <p class="lede">
+      The three-way branch in eight color treatments, each at 16 / 36 / 64 / 128&nbsp;px on a white card and a dark
+      (#10161f) card. The 16 and 36&nbsp;px cells carry a hairline ring so a small silhouette is still judgeable.
+    </p>
+    <div id="concept-host"></div>
+  </section>
+
+  <!-- ============ PALETTE ============ -->
+  <section id="palette">
+    <h2><span class="ord">03</span> Mineral palette</h2>
+    <p class="lede">
+      The locked palette the marks draw from. Friendly name / token / canonical hex are from
+      <code>brandbook/tokens.json</code>; swatches whose token is exposed in <code>tokens.css</code> are filled
+      from the live <code>var(--rs-*)</code> and drift-checked (a red “DRIFT” badge means the rendered color
+      diverged from the canonical hex).
+    </p>
+    <div class="pair">
+      <div class="surface light rs-shell">
+        <p class="surface-label">Light theme</p>
+        <div class="swatch-grid" data-palette="light"></div>
+      </div>
+      <div class="surface dark rs-shell" data-theme="dark">
+        <p class="surface-label">Dark theme</p>
+        <div class="swatch-grid" data-palette="dark"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TYPOGRAPHY ============ -->
+  <section id="type">
+    <h2><span class="ord">04</span> Typography</h2>
+    <p class="lede">
+      Sora (display + wordmark), Inter (body / UI), IBM Plex Mono (code), across the brand type scale.
+    </p>
+    <div class="surface light rs-shell" data-type-host></div>
+  </section>
+
+  <footer style="margin-top:60px; color:#99a3af; font-size:0.74rem; font-family:var(--rs-font-mono,monospace)">
+    Throwaway decision aid · .planning/phases/97-logo-mark-svg-system/logo-studio.html · not a committed brand artifact
+  </footer>
+</div>
+
+<script>
+/* ---------- concept geometry (viewBox 0 0 64 64) ----------
+   Palette: #3a6f8f Stead Blue · #183247 Ink Blue · #24313d Slate Stead
+            #c4ccd1 Quarry · #e8ece8 Stone Mist · #9b5931 Ember Copper (the "on/active" accent)
+   element forms: {t:'rect',x,y,w,h,fill,rx?} | {t:'circle',cx,cy,r,fill,stroke?,sw?} | {t:'path',d,stroke,sw,fill?} */
+
+/* makeBranch — Concept G family. Input node routes to N variant nodes; one is "active". */
+function pushNode(els, o, cx, cy, color, hollow, strokeColor) {
+  const r = o.nodeR || 6;
+  if (o.node === "square") {
+    if (hollow) els.push({t:"rect", x:cx-r, y:cy-r, w:2*r, h:2*r, rx:3, fill:"none", stroke:strokeColor, sw:3});
+    else        els.push({t:"rect", x:cx-r, y:cy-r, w:2*r, h:2*r, rx:3, fill:color});
+  } else {
+    if (hollow) els.push({t:"circle", cx, cy, r, fill:"none", stroke:strokeColor, sw:3});
+    else        els.push({t:"circle", cx, cy, r, fill:color});
+  }
+}
+function makeBranch(o) {
+  const struct = o.struct, bar = o.bar || 6;
+  const ways = o.ways || 2;
+  const ys = ways === 3 ? [16, 32, 48] : [19, 45];
+  const top = Math.min(...ys), bot = Math.max(...ys);
+  const els = [];
+  els.push({t:"rect", x:30, y:top-3, w:bar, h:(bot-top)+bar, rx:1, fill:struct}); // vertical
+  els.push({t:"rect", x:12, y:32-bar/2, w:20, h:bar, rx:1, fill:struct});         // trunk
+  pushNode(els, o, 12, 32, o.input, false);                                       // input
+  ys.forEach((cy, i) => {
+    const isActive = i === o.activeIdx;
+    const armColor = (o.lit && isActive) ? o.active : struct;
+    els.push({t:"rect", x:32, y:cy-bar/2, w:14, h:bar, rx:1, fill:armColor});
+    let col = o.nodeColors ? o.nodeColors[i] : (isActive ? o.active : o.off);
+    const hollow = (col === "hollow");
+    pushNode(els, o, 50, cy, col, hollow, struct);
+  });
+  return els;
+}
+
+/* Round 4 — G4 (three-way multivariate) color family. Bold weight by default for favicon legibility. */
+const G4B = { ways:3, nodeR:6.5, bar:7.5 };  // shared form: 3-way, bold-ish
+const CONCEPTS = [
+  { id:"G4a", group:"g", title:"G4a — Baseline (copper active)",
+    sub:"Blue structure, Ink Blue input, top variant active in copper, the other two Ink Blue off.",
+    els: makeBranch({...G4B, node:"circle", struct:"#3a6f8f", input:"#183247", active:"#9b5931", off:"#183247", activeIdx:0}) },
+
+  { id:"G4b", group:"g", title:"G4b — Two-tone (blue + copper)",
+    sub:"All Stead Blue + one copper active node. Cleanest two-color read.",
+    els: makeBranch({...G4B, node:"circle", struct:"#3a6f8f", input:"#3a6f8f", active:"#9b5931", off:"#3a6f8f", activeIdx:0}) },
+
+  { id:"G4c", group:"g", title:"G4c — Lit route",
+    sub:"The arm to the active variant is copper too; the two off variants fade to Quarry. Emphasizes the selected route.",
+    els: makeBranch({...G4B, node:"circle", struct:"#3a6f8f", input:"#3a6f8f", active:"#9b5931", off:"#c4ccd1", activeIdx:0, lit:true}) },
+
+  { id:"G4d", group:"g", title:"G4d — Square nodes (architected)",
+    sub:"Square variant nodes + Slate input/off — more structural, less ‘network diagram’.",
+    els: makeBranch({...G4B, node:"square", struct:"#3a6f8f", input:"#24313d", active:"#9b5931", off:"#24313d", activeIdx:0}) },
+
+  { id:"G4e", group:"g", title:"G4e — Three states (multivariate)",
+    sub:"Each variant a distinct color — copper / Stead Blue / Quarry — reading as three real variants, not on/off.",
+    els: makeBranch({...G4B, node:"circle", struct:"#3a6f8f", input:"#183247", nodeColors:["#9b5931","#3a6f8f","#c4ccd1"]}) },
+
+  { id:"G4f", group:"g", title:"G4f — Monochrome (ink) · favicon/mono test",
+    sub:"Single-ink (#183247); off variants hollow so active-vs-off survives with no color. The currentColor / favicon case.",
+    els: makeBranch({...G4B, node:"circle", struct:"#183247", input:"#183247", active:"#183247", off:"hollow", activeIdx:0}) },
+
+  { id:"G4g", group:"g", title:"G4g — No copper (cool)",
+    sub:"Ink Blue structure, Stead Blue active node, Quarry off nodes. No warm accent.",
+    els: makeBranch({...G4B, node:"circle", struct:"#183247", input:"#183247", active:"#3a6f8f", off:"#c4ccd1", activeIdx:0}) },
+
+  { id:"G4h", group:"g", title:"G4h — Square + three states",
+    sub:"G4e’s three distinct variant colors on square nodes — the most ‘multivariate config’ read.",
+    els: makeBranch({...G4B, node:"square", struct:"#3a6f8f", input:"#24313d", nodeColors:["#9b5931","#3a6f8f","#c4ccd1"]}) },
+];
+const SIZES = [16, 36, 64, 128];
+
+function svgFor(c, px) {
+  const ns = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(ns, "svg");
+  svg.setAttribute("viewBox", "0 0 64 64");
+  svg.setAttribute("width", px); svg.setAttribute("height", px);
+  svg.setAttribute("role", "img");
+  svg.setAttribute("aria-label", "Rulestead mark " + c.id);
+  for (const e of c.els) {
+    let el;
+    if (e.t === "rect") {
+      el = document.createElementNS(ns, "rect");
+      el.setAttribute("x", e.x); el.setAttribute("y", e.y);
+      el.setAttribute("width", e.w); el.setAttribute("height", e.h);
+      el.setAttribute("rx", e.rx == null ? 1 : e.rx);
+      el.setAttribute("fill", e.fill);
+      if (e.stroke) { el.setAttribute("fill", e.fill || "none"); el.setAttribute("stroke", e.stroke); el.setAttribute("stroke-width", e.sw); }
+    } else if (e.t === "circle") {
+      el = document.createElementNS(ns, "circle");
+      el.setAttribute("cx", e.cx); el.setAttribute("cy", e.cy); el.setAttribute("r", e.r);
+      el.setAttribute("fill", e.fill || "none");
+      if (e.stroke) { el.setAttribute("stroke", e.stroke); el.setAttribute("stroke-width", e.sw); }
+    } else if (e.t === "path") {
+      el = document.createElementNS(ns, "path");
+      el.setAttribute("d", e.d);
+      el.setAttribute("fill", e.fill || "none");
+      if (e.stroke) { el.setAttribute("stroke", e.stroke); el.setAttribute("stroke-width", e.sw); }
+      el.setAttribute("stroke-linecap", "round");
+      el.setAttribute("stroke-linejoin", "round");
+    }
+    if (el) svg.appendChild(el);
+  }
+  return svg;
+}
+
+function strip(c, theme) {
+  const s = document.createElement("div");
+  s.className = "strip";
+  for (const px of SIZES) {
+    const cell = document.createElement("div");
+    cell.className = "cell" + (px <= 36 ? " ring" : "");
+    const holder = document.createElement("div");
+    holder.className = "holder";
+    holder.style.height = Math.max(px, 36) + "px";
+    holder.appendChild(svgFor(c, px));
+    const label = document.createElement("div");
+    label.className = "px" + (px === 36 ? " demo" : "");
+    label.textContent = px + "px" + (px === 36 ? "  ← demo" : "");
+    cell.appendChild(holder); cell.appendChild(label);
+    s.appendChild(cell);
+  }
+  return s;
+}
+
+/* build concept section: per concept, a light card + dark card of size strips */
+const host = document.getElementById("concept-host");
+let lastGroup = null;
+for (const c of CONCEPTS) {
+  if (c.group !== lastGroup) {
+    lastGroup = c.group;
+    const gh = document.createElement("p");
+    gh.style.cssText = "font-family:var(--rs-font-mono,monospace);font-size:0.72rem;letter-spacing:0.08em;text-transform:uppercase;color:#99a3af;margin:30px 0 6px;border-top:1px solid #d8dee6;padding-top:18px";
+    gh.textContent = "Concept G4 — multivariate branch · color family (round 4)";
+    host.appendChild(gh);
+  }
+  const block = document.createElement("div");
+  block.className = "concept-block";
+  block.innerHTML =
+    '<p class="concept-title">' + c.title + '</p>' +
+    '<p class="concept-sub">' + c.sub + '</p>';
+  const pair = document.createElement("div");
+  pair.className = "pair";
+  for (const theme of ["light","dark"]) {
+    const card = document.createElement("div");
+    card.className = "surface " + theme + " rs-shell";
+    if (theme === "dark") card.setAttribute("data-theme","dark");
+    const lab = document.createElement("p");
+    lab.className = "surface-label";
+    lab.textContent = theme === "light" ? "On white" : "On dark #10161f";
+    card.appendChild(lab);
+    card.appendChild(strip(c, theme));
+    pair.appendChild(card);
+  }
+  block.appendChild(pair);
+  host.appendChild(block);
+}
+
+/* lockups: mark (~36px) beside Sora Bold wordmark, per concept, per theme */
+for (const theme of ["light","dark"]) {
+  const set = document.querySelector('.lockup-set[data-lockups="'+theme+'"]');
+  for (const c of CONCEPTS) {
+    const line = document.createElement("div");
+    line.className = "lockup-line";
+    const id = document.createElement("span");
+    id.className = "lk-id"; id.textContent = "Concept " + c.id;
+    const lk = document.createElement("div");
+    lk.className = "lockup";
+    lk.appendChild(svgFor(c, 36));
+    const word = document.createElement("span");
+    word.className = "lk-word";
+    word.style.color = theme === "light" ? "#1a2332" : "#e8edf3";
+    word.textContent = "Rulestead";
+    lk.appendChild(word);
+    line.appendChild(id); line.appendChild(lk);
+    set.appendChild(line);
+  }
+}
+
+/* ---------- palette ---------- */
+/* canonical (friendly, token-or-null, lightHex, darkHex|null, note) from tokens.json.
+   cssVar: the tokens.css custom property to live-check (null = not exposed as a var). */
+const PALETTE = [
+  { name: "Stead Blue",   tok: "stead-blue",   cssVar: "--rs-primary", light: "#3A6F8F", dark: "#5885a0", note: "Primary brand" },
+  { name: "Ink Blue",     tok: "ink-blue",     cssVar: null,           light: "#183247", dark: null,      note: "Deep contrast" },
+  { name: "Slate Stead",  tok: "slate-stead",  cssVar: null,           light: "#24313D", dark: null,      note: "Structural dark" },
+  { name: "Basalt",       tok: "basalt",       cssVar: null,           light: "#0F1720", dark: null,      note: "Deepest dark" },
+  { name: "Stone Mist",   tok: "stone-mist",   cssVar: null,           light: "#E8ECE8", dark: null,      note: "Light surface" },
+  { name: "Rain Tint",    tok: "rain-tint",    cssVar: null,           light: "#F5F7F6", dark: null,      note: "Lightest tint" },
+  { name: "Quarry",       tok: "quarry",       cssVar: null,           light: "#C4CCD1", dark: null,      note: "Mid neutral" },
+  { name: "Moss Grey",    tok: "moss-grey",    cssVar: null,           light: "#606D66", dark: "#75827B", note: "Secondary text" },
+  { name: "Ember Copper", tok: "ember-copper", cssVar: "--rs-accent",  light: "#9B5931", dark: "#BA6B3C", note: "Warm accent" },
+  { name: "Signal Gold",  tok: "signal-gold",  cssVar: null,           light: "#D2A94E", dark: null,      note: "decorative", warn: true },
+  { name: "Success",      tok: "success",      cssVar: "--rs-success", light: "#2D7753", dark: "#488D6B", note: "Status" },
+  { name: "Warning",      tok: "warning",      cssVar: "--rs-warning", light: "#8F601A", dark: "#B57A21", note: "Status" },
+  { name: "Danger",       tok: "error",        cssVar: "--rs-error",   light: "#B44949", dark: "#BF6464", note: "Status" },
+  { name: "Info",         tok: "info",         cssVar: null,           light: "#356E8C", dark: "#55859E", note: "Status" },
+];
+
+function rgbToHex(rgb) {
+  const m = rgb.match(/\d+/g);
+  if (!m) return null;
+  return "#" + m.slice(0,3).map(n => (+n).toString(16).padStart(2,"0")).join("").toUpperCase();
+}
+
+for (const theme of ["light","dark"]) {
+  const grid = document.querySelector('.swatch-grid[data-palette="'+theme+'"]');
+  for (const p of PALETTE) {
+    const hex = theme === "dark" ? (p.dark || p.light) : p.light;
+    const sw = document.createElement("div");
+    sw.className = "swatch";
+    const chip = document.createElement("div");
+    chip.className = "chip";
+    // live var() fill when exposed, else canonical hex
+    chip.style.background = p.cssVar ? "var(" + p.cssVar + ")" : hex;
+    sw.appendChild(chip);
+    const meta = document.createElement("div");
+    meta.className = "meta";
+    meta.innerHTML =
+      '<div class="name">' + p.name + '</div>' +
+      '<div class="tok">' + (p.tok || "—") + (p.cssVar ? " · " + p.cssVar : "") + '</div>' +
+      '<div class="hex">' + hex + (theme === "dark" && !p.dark ? " (light-only)" : "") + '</div>';
+    if (p.warn) meta.innerHTML += '<span class="badge warn">never as text</span>';
+    sw.appendChild(meta);
+    grid.appendChild(sw);
+    // drift check (only for css-backed swatches that have a value this theme)
+    if (p.cssVar) {
+      requestAnimationFrame(() => {
+        const got = rgbToHex(getComputedStyle(chip).backgroundColor);
+        if (got && got.toUpperCase() !== hex.toUpperCase()) {
+          const b = document.createElement("span");
+          b.className = "badge drift";
+          b.textContent = "DRIFT " + got;
+          meta.appendChild(b);
+        }
+      });
+    }
+  }
+}
+
+/* ---------- typography specimen ---------- */
+const TYPE = [
+  { ff: "ff-display", w: 700, size: "2rem",     fam: "Sora 700",  tok: "wordmark / hero" },
+  { ff: "ff-display", w: 600, size: "1.4rem",   fam: "Sora 600",  tok: "--rs-text-xl · section head" },
+  { ff: "ff-sans",    w: 600, size: "1.15rem",  fam: "Inter 600", tok: "--rs-text-lg" },
+  { ff: "ff-sans",    w: 500, size: "0.95rem",  fam: "Inter 500", tok: "--rs-text-base · UI label" },
+  { ff: "ff-sans",    w: 400, size: "0.95rem",  fam: "Inter 400", tok: "--rs-text-base · body" },
+  { ff: "ff-sans",    w: 400, size: "0.86rem",  fam: "Inter 400", tok: "--rs-text-sm · muted meta" },
+  { ff: "ff-mono",    w: 500, size: "0.86rem",  fam: "Plex Mono 500", tok: "--rs-text-sm · token label" },
+  { ff: "ff-mono",    w: 400, size: "0.72rem",  fam: "Plex Mono 400", tok: "--rs-text-2xs · micro" },
+];
+const SAMPLE = "Rulestead — runtime decisions, made clear.";
+const SAMPLE_MONO = 'flag("checkout.v2") · variant=blue · 1.0.0';
+const th = document.querySelector("[data-type-host]");
+for (const t of TYPE) {
+  const row = document.createElement("div");
+  row.className = "type-row";
+  const s = document.createElement("div");
+  s.className = "sample " + t.ff;
+  s.style.fontWeight = t.w; s.style.fontSize = t.size;
+  s.textContent = t.ff === "ff-mono" ? SAMPLE_MONO : SAMPLE;
+  const m = document.createElement("div");
+  m.className = "tmeta";
+  m.textContent = t.fam + "  ·  " + t.tok;
+  row.appendChild(s); row.appendChild(m);
+  th.appendChild(row);
+}
+
+/* ---------- font-race guard: reveal once fonts resolve ---------- */
+function reveal() {
+  document.body.style.visibility = "visible";
+  document.documentElement.setAttribute("data-studio-ready", "1");
+}
+if (document.fonts && document.fonts.ready) {
+  document.fonts.ready.then(reveal);
+  setTimeout(reveal, 4000); // safety net if fonts.ready never settles (offline)
+} else {
+  reveal();
+}
+</script>
+</body>
+</html>

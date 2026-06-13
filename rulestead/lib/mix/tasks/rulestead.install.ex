@@ -9,7 +9,7 @@ defmodule Mix.Tasks.Rulestead.Install do
 
   @shortdoc "Copies rulestead migrations and config into the host app"
 
-  @switches [repo: :string, yes: :boolean]
+  @switches [repo: :string, yes: :boolean, prefix: :string, create_schema: :boolean]
 
   @impl Mix.Task
   def run(args) do

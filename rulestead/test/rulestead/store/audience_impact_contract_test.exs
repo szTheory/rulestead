@@ -789,14 +789,14 @@ defmodule Rulestead.Store.AudienceImpactContractTest do
 
   defp ensure_phase9_schema! do
     Rulestead.Repo.query!(
-      "ALTER TABLE flags ADD COLUMN IF NOT EXISTS permanent boolean DEFAULT false"
+      "ALTER TABLE rulestead.flags ADD COLUMN IF NOT EXISTS permanent boolean DEFAULT false"
     )
 
     Rulestead.Repo.query!(
-      "ALTER TABLE flag_environments ADD COLUMN IF NOT EXISTS last_evaluated_at timestamp(6) with time zone"
+      "ALTER TABLE rulestead.flag_environments ADD COLUMN IF NOT EXISTS last_evaluated_at timestamp(6) with time zone"
     )
 
-    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS change_requests (
+    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS rulestead.change_requests (
       id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
       status text NOT NULL DEFAULT 'submitted',
       governed_action text NOT NULL,

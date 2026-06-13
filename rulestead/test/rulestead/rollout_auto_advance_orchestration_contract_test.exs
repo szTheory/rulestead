@@ -44,10 +44,10 @@ defmodule Rulestead.RolloutAutoAdvanceOrchestrationContractTest do
 
   defp ensure_phase10_schema! do
     Rulestead.Repo.query!(
-      "ALTER TABLE flags ADD COLUMN IF NOT EXISTS permanent boolean DEFAULT false"
+      "ALTER TABLE rulestead.flags ADD COLUMN IF NOT EXISTS permanent boolean DEFAULT false"
     )
 
-    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS change_requests (
+    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS rulestead.change_requests (
       id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
       status text NOT NULL DEFAULT 'submitted',
       governed_action text NOT NULL,
@@ -69,10 +69,10 @@ defmodule Rulestead.RolloutAutoAdvanceOrchestrationContractTest do
       updated_at timestamp(6) with time zone NOT NULL
     )")
 
-    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS scheduled_executions (
+    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS rulestead.scheduled_executions (
       id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
       state text NOT NULL DEFAULT 'scheduled',
-      change_request_id uuid REFERENCES change_requests(id) ON DELETE SET NULL,
+      change_request_id uuid REFERENCES rulestead.change_requests(id) ON DELETE SET NULL,
       governed_action text NOT NULL,
       environment_key text,
       resource_type text,
@@ -98,12 +98,12 @@ defmodule Rulestead.RolloutAutoAdvanceOrchestrationContractTest do
     )")
 
     Rulestead.Repo.query!(
-      "CREATE UNIQUE INDEX IF NOT EXISTS scheduled_executions_idempotency_key_index ON scheduled_executions (idempotency_key)"
+      "CREATE UNIQUE INDEX IF NOT EXISTS scheduled_executions_idempotency_key_index ON rulestead.scheduled_executions (idempotency_key)"
     )
 
-    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS execution_attempts (
+    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS rulestead.execution_attempts (
       id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-      scheduled_execution_id uuid NOT NULL REFERENCES scheduled_executions(id) ON DELETE CASCADE,
+      scheduled_execution_id uuid NOT NULL REFERENCES rulestead.scheduled_executions(id) ON DELETE CASCADE,
       attempt_number integer NOT NULL,
       state text NOT NULL,
       started_at timestamp(6) with time zone NOT NULL,
@@ -113,7 +113,7 @@ defmodule Rulestead.RolloutAutoAdvanceOrchestrationContractTest do
       inserted_at timestamp(6) with time zone NOT NULL
     )")
 
-    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS oban_jobs (
+    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS rulestead.oban_jobs (
       id bigserial PRIMARY KEY,
       state text NOT NULL DEFAULT 'scheduled',
       queue text NOT NULL DEFAULT 'default',
@@ -135,16 +135,16 @@ defmodule Rulestead.RolloutAutoAdvanceOrchestrationContractTest do
     )")
 
     Rulestead.Repo.query!(
-      "ALTER TABLE scheduled_executions ADD COLUMN IF NOT EXISTS last_oban_job_id bigint"
+      "ALTER TABLE rulestead.scheduled_executions ADD COLUMN IF NOT EXISTS last_oban_job_id bigint"
     )
 
     Rulestead.Repo.query!(
-      "ALTER TABLE scheduled_executions ADD COLUMN IF NOT EXISTS executed_at timestamp(6) with time zone"
+      "ALTER TABLE rulestead.scheduled_executions ADD COLUMN IF NOT EXISTS executed_at timestamp(6) with time zone"
     )
   end
 
   defp ensure_phase50_schema! do
-    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS guardrail_decisions (
+    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS rulestead.guardrail_decisions (
       id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
       flag_key text NOT NULL,
       environment_key text NOT NULL,
@@ -172,7 +172,7 @@ defmodule Rulestead.RolloutAutoAdvanceOrchestrationContractTest do
   end
 
   defp ensure_auto_advance_schema! do
-    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS rollout_auto_advance_policies (
+    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS rulestead.rollout_auto_advance_policies (
       id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
       flag_key text NOT NULL,
       environment_key text NOT NULL,
@@ -187,7 +187,7 @@ defmodule Rulestead.RolloutAutoAdvanceOrchestrationContractTest do
     )")
 
     Rulestead.Repo.query!(
-      "CREATE UNIQUE INDEX IF NOT EXISTS rollout_auto_advance_policies_flag_key_environment_key_rule_key_index ON rollout_auto_advance_policies (flag_key, environment_key, rule_key)"
+      "CREATE UNIQUE INDEX IF NOT EXISTS rollout_auto_advance_policies_flag_key_environment_key_rule_key_index ON rulestead.rollout_auto_advance_policies (flag_key, environment_key, rule_key)"
     )
   end
 
@@ -195,8 +195,9 @@ defmodule Rulestead.RolloutAutoAdvanceOrchestrationContractTest do
 
   defp reset_adapter!(StoreEcto) do
     for table <- ~w(
-         execution_attempts approvals change_requests scheduled_executions
-         rollout_auto_advance_policies audit_events rulesets flag_environments flags
+         rulestead.execution_attempts rulestead.approvals rulestead.change_requests
+         rulestead.scheduled_executions rulestead.rollout_auto_advance_policies
+         rulestead.audit_events rulestead.rulesets rulestead.flag_environments rulestead.flags
        ) do
       Repo.query!("DELETE FROM #{table}")
     end

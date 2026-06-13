@@ -1,0 +1,250 @@
+/* =========================================================
+   Rulestead Design Tokens — Reference Mirror
+   Source of truth: brandbook/tokens.json (DTCG 2025.10)
+   Admin cascade: rulestead_admin/priv/static/css/rulestead_admin.css
+
+   Note: the four-block @media + explicit-pin cascade is a live-app concern;
+   see rulestead_admin.css for full Block 1–4 structure (light default,
+   system dark @media, explicit dark pin, explicit light pin).
+
+   This file is the reference mirror only — it uses a simplified two-block
+   light/dark pair. The four-block synced-pair cascade in rulestead_admin.css
+   is required for correct theme behavior in the running application.
+
+   Scope: .rs-shell / [data-rulestead] only — never :root or the root element for color.
+
+   Phase-98 target: when rulestead_admin.css Block 1 is re-skinned to mineral
+   palette, check_brand_tokens.py will print "BRAND TOKENS SYNCED (37 tokens)"
+   and exit 0.
+   ========================================================= */
+
+
+/* ─── INVARIANT TOKENS (declared once; not theme-sensitive) ──────────── */
+:root {
+  /* INVARIANT — theme-insensitive scalars; these are NOT re-skinned in Phase 98 */
+
+  /* Typography families */
+  --rs-font-display: "Sora", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --rs-font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --rs-font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  /* Typography scale — size (role), line-height, weight, tracking */
+  --rs-text-2xs: 0.72rem;   /* overline / badge / micro-label */
+  --rs-text-xs: 0.78rem;    /* caption / helper / timestamp */
+  --rs-text-sm: 0.86rem;    /* secondary body / label / muted meta */
+  --rs-text-base: 0.95rem;  /* body default */
+  --rs-text-md: 1.05rem;    /* lead / card title */
+  --rs-text-lg: 1.15rem;    /* section header */
+  --rs-text-xl: 1.4rem;     /* sub-page title */
+  --rs-text-2xl: clamp(1.5rem, 2vw, 2rem); /* page title */
+  --rs-leading-tight: 1.2;
+  --rs-leading-snug: 1.35;
+  --rs-leading-normal: 1.5;
+  --rs-leading-relaxed: 1.55;
+  --rs-weight-normal: 400;
+  --rs-weight-medium: 500;
+  --rs-weight-semibold: 600;
+  --rs-weight-bold: 700;
+  --rs-tracking-normal: 0;
+  --rs-tracking-wide: 0.05em;
+  --rs-tracking-wider: 0.08em;
+
+  /* Radius */
+  --rs-radius-sm: 6px;
+  --rs-radius-md: 10px;
+  --rs-radius-lg: 14px;
+  --rs-radius-xl: 18px;
+  --rs-radius-full: 999px;
+
+  /* Layout + spacing scale (4px base) */
+  --rs-shell-max: 1200px;
+  --rs-space-1: 0.25rem;
+  --rs-space-2: 0.5rem;
+  --rs-space-3: 0.75rem;
+  --rs-space-4: 1rem;
+  --rs-space-5: 1.25rem;
+  --rs-space-6: 1.5rem;
+  --rs-space-7: 1.75rem;
+  --rs-space-8: 2rem;
+  --rs-space-9: 2.25rem;
+  --rs-space-10: 2.5rem;
+  --rs-section-gap: 1rem;
+  --rs-page-gap: 1.25rem;
+
+  /* Control sizing */
+  --rs-control-h: 2.5rem;
+  --rs-control-h-sm: 2rem;
+  --rs-control-h-lg: 3rem;
+  --rs-control-px: 0.75rem;
+  --rs-touch-target-min: 44px;
+
+  /* Focus structural scalars (non-color; safe on :root) */
+  --rs-focus-ring-offset: 2px;
+  --rs-disabled-opacity: 0.55;
+
+  /* Z-index ladder */
+  --rs-z-base: 0;
+  --rs-z-raised: 1;
+  --rs-z-dropdown: 100;
+  --rs-z-sticky: 200;
+  --rs-z-overlay: 300;
+  --rs-z-modal: 400;
+  --rs-z-toast: 500;
+
+  /* Motion — durations + easing */
+  --rs-motion-fast: 150ms;
+  --rs-motion-base: 200ms;
+  --rs-motion-slow: 320ms;
+  --rs-motion-slower: 480ms;
+  --rs-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --rs-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --rs-ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --rs-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --rs-ease-emphasis: cubic-bezier(0.2, 0, 0, 1.15);
+}
+
+
+/* ─── LIGHT — mineral palette (Phase-98 targets) ──────────────────────── */
+/*
+   Scope: .rs-shell / [data-rulestead] only.
+   NEVER declare color tokens on :root (mounted-package discipline; D-05).
+   Note: rulestead_admin.css has FOUR cascade blocks; this file mirrors
+   only the simplified light+dark pair. For production, Blocks 1+4 are a
+   SYNCED PAIR (light) and Blocks 2+3 are a SYNCED PAIR (dark).
+*/
+.rs-shell,
+[data-rulestead] {
+  /* LIGHT — mineral palette (Phase-98 targets) */
+
+  /* Neutral ramp — mineral grays */
+  --rs-neutral-0:   #ffffff;
+  --rs-neutral-25:  #f8fafc;
+  --rs-neutral-50:  #f4f6f8;
+  --rs-neutral-100: #eef1f5;
+  --rs-neutral-200: #e7ebf0;
+  --rs-neutral-300: #d8dee6;
+  --rs-neutral-400: #b8c2cf;
+  --rs-neutral-500: #99a3af;
+  --rs-neutral-600: #5c6b7a;
+  --rs-neutral-700: #263241;
+  --rs-neutral-900: #1a2332;
+
+  /* Brand */
+  --rs-primary: #3A6F8F;
+  --rs-primary-hover: #2d5f7c;
+  --rs-primary-soft: #e4eff4;
+  --rs-on-primary: #ffffff;
+  --rs-accent: #9b5931;
+  --rs-accent-soft: #fde8dc;
+
+  /* Status — success */
+  --rs-success:           #2d7753;
+  --rs-success-hover:     #166534;
+  --rs-success-soft:      #dcfce7;
+  --rs-success-bg-subtle: #f7fff9;
+  --rs-success-text:      #047857;
+  --rs-success-border:    #86efac;
+
+  /* Status — warning */
+  --rs-warning:        #8f601a;
+  --rs-warning-hover:  #92400e;
+  --rs-warning-soft:   #fef3c7;
+  --rs-warning-text:   #a16207;
+  --rs-warning-border: #fcd34d;
+
+  /* Status — error / critical */
+  --rs-error:               #B44949;
+  --rs-error-hover:         #991b1b;
+  --rs-critical:            #B44949;
+  --rs-error-soft:          #fee2e2;
+  --rs-error-bg-subtle:     #fff7f7;
+  --rs-error-text:          #be123c;
+  --rs-error-text-strong:   #7f1d1d;
+  --rs-error-border:        #fca5a5;
+  --rs-error-border-strong: #fecaca;
+}
+
+
+/* ─── DARK — mineral palette (Phase-98 targets) ───────────────────────── */
+.rs-shell[data-theme="dark"],
+[data-rulestead][data-theme="dark"] {
+  /* DARK — mineral palette (Phase-98 targets) */
+
+  /* Neutral ramp — mineral dark. Direction FLIPS: 0 = darkest surface, 900 = lightest text. */
+  --rs-neutral-0:   #10161f;
+  --rs-neutral-25:  #141c27;
+  --rs-neutral-50:  #19222e;
+  --rs-neutral-100: #1f2a38;
+  --rs-neutral-200: #253243;
+  --rs-neutral-300: #2e3d52;
+  --rs-neutral-400: #3d5168;
+  --rs-neutral-500: #7a8fa3;
+  --rs-neutral-600: #a8b9ca;
+  --rs-neutral-900: #e8edf3;
+
+  /* Brand */
+  --rs-primary:       #5885a0;
+  --rs-primary-hover: #4a7d9c;
+  --rs-on-primary:    #10161f;
+  --rs-accent:        #ba6b3c;
+
+  /* Status — success */
+  --rs-success:        #488d6b;
+  --rs-success-hover:  #86efac;
+  --rs-success-text:   #4ade80;
+  --rs-success-border: #166634;
+
+  /* Status — warning */
+  --rs-warning:        #B57A21;
+  --rs-warning-hover:  #fcd34d;
+  --rs-warning-text:   #fbbf24;
+  --rs-warning-border: #78350f;
+
+  /* Status — error / critical */
+  --rs-error:               #bf6464;
+  --rs-error-hover:         #fca5a5;
+  --rs-critical:            #bf6464;
+  --rs-error-text:          #f87171;
+  --rs-error-text-strong:   #fca5a5;
+  --rs-error-border:        #7f1d1d;
+  --rs-error-border-strong: #991b1b;
+
+  /* Dark-only hex-literal tokens (var() in light — omitted from light block) */
+  --rs-disabled-bg:   #253243;
+  --rs-disabled-text: #6b84a0;
+}
+
+/* Note: --rs-neutral-700 is light-only (absent in dark). --rs-disabled-bg and
+   --rs-disabled-text are dark-only hex-literals (var() references in light). */
+
+/* Note: @media (prefers-color-scheme: dark) block is handled in rulestead_admin.css
+   only (Block 2 — system dark). This reference mirror uses an explicit [data-theme]
+   selector only. */
+
+
+/* =========================================================
+   Optional Tailwind v3/v4 token excerpt — commented out.
+   For downstream marketing/site reuse. Side-effect-free.
+   Reference only; no --rs-* tokens are redefined here.
+   =========================================================
+
+module.exports = {
+  theme: {
+    extend: {
+      colors: {
+        'rs-stead-blue':   '#3A6F8F',
+        'rs-ember-copper': '#9b5931',
+        'rs-stone-mist':   '#E8ECE8',
+        'rs-basalt':       '#0F1720',
+        'rs-signal-gold':  '#D2A94E',
+        'rs-success':      '#2d7753',
+        'rs-warning':      '#8f601a',
+        'rs-danger':       '#B44949',
+        'rs-info':         '#356E8C',
+        'rs-moss-grey':    '#606d66',
+      }
+    }
+  }
+}
+
+*/

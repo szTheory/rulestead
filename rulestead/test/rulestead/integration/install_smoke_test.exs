@@ -29,9 +29,11 @@ defmodule Rulestead.Integration.InstallSmokeTest do
     assert router =~ "use RulesteadAdmin.Router"
     assert router =~ ~s(rulestead_admin "/flags")
     assert rulestead_config =~ "middlewares: [{Rulestead.Oban.Middleware, []}]"
+    assert rulestead_config =~ ~s(prefix: "rulestead")
 
     probe_output = run_probe!(result)
     assert probe_output =~ "tables=audit_events,environments,flag_environments,flags,rulesets"
+    assert probe_output =~ "public_tables="
     assert probe_output =~ "envs=development,production,staging,test"
     assert probe_output =~ "admin_mount=true"
     assert probe_output =~ "plug_wired=true"
@@ -73,18 +75,26 @@ defmodule Rulestead.Integration.InstallSmokeTest do
     {:ok, %{rows: table_rows}} =
       Ecto.Adapters.SQL.query(
         Repo,
+        "select table_name from information_schema.tables where table_schema = 'rulestead' and table_name in ('flags', 'environments', 'flag_environments', 'rulesets', 'audit_events') order by table_name",
+        []
+      )
+
+    {:ok, %{rows: public_table_rows}} =
+      Ecto.Adapters.SQL.query(
+        Repo,
         "select table_name from information_schema.tables where table_schema = 'public' and table_name in ('flags', 'environments', 'flag_environments', 'rulesets', 'audit_events') order by table_name",
         []
       )
 
     {:ok, %{rows: env_rows}} =
-      Ecto.Adapters.SQL.query(Repo, "select key from environments order by key", [])
+      Ecto.Adapters.SQL.query(Repo, "select key from rulestead.environments order by key", [])
 
     endpoint_source = File.read!("lib/host_app_web/endpoint.ex")
     router_source = File.read!("lib/host_app_web/router.ex")
     rulestead_config = File.read!("config/rulestead.exs")
 
     IO.puts("tables=" <> Enum.map_join(table_rows, ",", &hd/1))
+    IO.puts("public_tables=" <> Enum.map_join(public_table_rows, ",", &hd/1))
     IO.puts("envs=" <> Enum.map_join(env_rows, ",", &hd/1))
     IO.puts("admin_mount=" <> to_string(String.contains?(router_source, ~s(rulestead_admin "/flags"))))
     IO.puts("plug_wired=" <> to_string(String.contains?(endpoint_source, "plug Rulestead.Plug")))

@@ -4,6 +4,7 @@ set -euo pipefail
 RULESTEAD_REPO="${GITHUB_WORKSPACE:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
 RULESTEAD_DIR="${RULESTEAD_REPO}/rulestead"
 RULESTEAD_ADMIN_DIR="${RULESTEAD_REPO}/rulestead_admin"
+PHX_NEW_VERSION="${PHX_NEW_VERSION:-1.8.8}"
 FIXTURE_ROOT="${RULESTEAD_DIR}/fixtures/install_golden"
 
 TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/rulestead-install-contract-XXXXXX")"
@@ -24,9 +25,15 @@ cleanup() {
 trap cleanup EXIT
 
 ensure_phx_new() {
-  if ! (cd "${RULESTEAD_DIR}" && mix help phx.new >/dev/null 2>&1); then
-    (cd "${RULESTEAD_DIR}" && mix archive.install hex phx_new --force)
-  fi
+  local archives
+  archives="$(cd "${RULESTEAD_DIR}" && mix archive)"
+
+  case "${archives}" in
+    *"* phx_new-${PHX_NEW_VERSION}"*) return 0 ;;
+  esac
+
+  (cd "${RULESTEAD_DIR}" && mix local.hex --force)
+  (cd "${RULESTEAD_DIR}" && mix archive.install hex phx_new "${PHX_NEW_VERSION}" --force)
 }
 
 normalize_stdout_file() {
@@ -146,12 +153,12 @@ run_probe() {
       {:ok, %{rows: table_rows}} =
         Ecto.Adapters.SQL.query(
           Repo,
-          "select table_name from information_schema.tables where table_schema = '\''public'\'' and table_name in ('\''flags'\'', '\''environments'\'', '\''flag_environments'\'', '\''rulesets'\'', '\''audit_events'\'') order by table_name",
+          "select table_name from information_schema.tables where table_schema = '\''rulestead'\'' and table_name in ('\''flags'\'', '\''environments'\'', '\''flag_environments'\'', '\''rulesets'\'', '\''audit_events'\'') order by table_name",
           []
         )
 
       {:ok, %{rows: env_rows}} =
-        Ecto.Adapters.SQL.query(Repo, "select key from environments order by key", [])
+        Ecto.Adapters.SQL.query(Repo, "select key from rulestead.environments order by key", [])
 
       endpoint_source = File.read!("lib/host_app_web/endpoint.ex")
       router_source = File.read!("lib/host_app_web/router.ex")

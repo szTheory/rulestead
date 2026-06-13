@@ -11,6 +11,8 @@ defmodule Rulestead.Redis.Publisher do
 
   @handler_id "rulestead-redis-publisher"
   @event [:rulestead, :runtime, :snapshot, :published]
+  @max_fetch_attempts 10
+  @fetch_retry_delay_ms 25
 
   @spec start_link(keyword()) :: GenServer.on_start()
   def start_link(opts \\ []) do
@@ -32,16 +34,50 @@ defmodule Rulestead.Redis.Publisher do
 
   @impl true
   def handle_cast({:publish_snapshot, snapshot}, state) do
+    write_snapshot(snapshot)
+    {:noreply, state}
+  end
+
+  def handle_cast({:publish_snapshot_command, store, command, attempt}, state) do
+    publish_snapshot_command(store, command, attempt)
+    {:noreply, state}
+  end
+
+  @impl true
+  def handle_info({:retry_publish_snapshot_command, store, command, attempt}, state) do
+    publish_snapshot_command(store, command, attempt)
+    {:noreply, state}
+  end
+
+  defp write_snapshot(snapshot) do
     case Redis.client().command(
            Redis.name(),
            ["SET", Redis.snapshot_key(snapshot.environment_key), :erlang.term_to_binary(snapshot)]
          ) do
       {:ok, _response} ->
-        {:noreply, state}
+        :ok
 
       {:error, reason} ->
         Logger.warning("Redis snapshot publish failed: #{inspect(reason)}")
-        {:noreply, state}
+        :ok
+    end
+  end
+
+  defp publish_snapshot_command(store, command, attempt) do
+    case store.fetch_snapshot(command) do
+      {:ok, snapshot} ->
+        write_snapshot(snapshot)
+
+      {:error, error} ->
+        if attempt < @max_fetch_attempts do
+          Process.send_after(
+            self(),
+            {:retry_publish_snapshot_command, store, command, attempt + 1},
+            @fetch_retry_delay_ms
+          )
+        else
+          Logger.warning("Redis publisher could not load snapshot: #{inspect(error)}")
+        end
     end
   end
 
@@ -70,13 +106,7 @@ defmodule Rulestead.Redis.Publisher do
         with store when is_atom(store) <- Redis.publisher_store(),
              true <- function_exported?(store, :fetch_snapshot, 1),
              false <- same_process_store?(store) do
-          case store.fetch_snapshot(command) do
-            {:ok, snapshot} ->
-              GenServer.cast(__MODULE__, {:publish_snapshot, snapshot})
-
-            {:error, error} ->
-              Logger.warning("Redis publisher could not load snapshot: #{inspect(error)}")
-          end
+          GenServer.cast(__MODULE__, {:publish_snapshot_command, store, command, 0})
         else
           _ -> :ok
         end

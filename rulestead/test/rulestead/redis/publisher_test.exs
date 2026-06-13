@@ -20,7 +20,9 @@ defmodule Rulestead.Redis.PublisherTest do
     alias Rulestead.StoreError
 
     def fetch_snapshot(%Command.FetchSnapshot{} = command) do
-      send(self(), {:active_store_fetch_snapshot, command})
+      if pid = Application.get_env(:rulestead, :redis_test_pid) do
+        send(pid, {:active_store_fetch_snapshot, command})
+      end
 
       case Application.get_env(:rulestead, :redis_test_snapshot) do
         nil -> {:error, StoreError.snapshot_not_found(command.environment_key)}
@@ -33,9 +35,11 @@ defmodule Rulestead.Redis.PublisherTest do
     previous_redis = Application.get_env(:rulestead, :redis, [])
     previous_snapshot = Application.get_env(:rulestead, :redis_test_snapshot)
     previous_store = Application.get_env(:rulestead, :store)
+    previous_pid = Application.get_env(:rulestead, :redis_test_pid)
     client_name = :"redis-publisher-test-#{System.unique_integer([:positive])}"
     start_supervised!({RedisClient, name: client_name})
     start_supervised!(Publisher)
+    Application.put_env(:rulestead, :redis_test_pid, self())
 
     Application.put_env(:rulestead, :redis,
       enabled: false,
@@ -57,6 +61,12 @@ defmodule Rulestead.Redis.PublisherTest do
         Application.delete_env(:rulestead, :store)
       else
         Application.put_env(:rulestead, :store, previous_store)
+      end
+
+      if is_nil(previous_pid) do
+        Application.delete_env(:rulestead, :redis_test_pid)
+      else
+        Application.put_env(:rulestead, :redis_test_pid, previous_pid)
       end
     end)
 
@@ -91,6 +101,45 @@ defmodule Rulestead.Redis.PublisherTest do
         %{environment: "test", snapshot_version: 4},
         nil
       )
+
+    assert_eventually(fn ->
+      case RedisClient.get(client_name, Rulestead.Redis.snapshot_key("test")) do
+        nil -> false
+        payload -> :erlang.binary_to_term(payload) == snapshot
+      end
+    end)
+  end
+
+  test "handle_event/4 retries the snapshot load after telemetry returns", %{
+    client_name: client_name
+  } do
+    snapshot = %{
+      environment_key: "test",
+      version: 5,
+      payload: :erlang.term_to_binary(%{flags: %{deferred: true}}),
+      payload_checksum: String.duplicate("d", 64),
+      metadata: %{schema_version: 1, flag_count: 1},
+      published_at: ~U[2026-05-17 12:30:00Z]
+    }
+
+    Application.delete_env(:rulestead, :redis_test_snapshot)
+
+    Application.put_env(:rulestead, :redis,
+      enabled: true,
+      client: RedisClient,
+      name: client_name,
+      publisher_store: StoreStub
+    )
+
+    :ok =
+      Publisher.handle_event(
+        [:rulestead, :runtime, :snapshot, :published],
+        %{count: 1},
+        %{environment: "test", snapshot_version: 5},
+        nil
+      )
+
+    Application.put_env(:rulestead, :redis_test_snapshot, snapshot)
 
     assert_eventually(fn ->
       case RedisClient.get(client_name, Rulestead.Redis.snapshot_key("test")) do
@@ -154,7 +203,7 @@ defmodule Rulestead.Redis.PublisherTest do
         nil
       )
 
-    assert_received {:active_store_fetch_snapshot, %Command.FetchSnapshot{} = command}
+    assert_receive {:active_store_fetch_snapshot, %Command.FetchSnapshot{} = command}, 100
     assert command.environment_key == "test"
     assert command.version == 3
 

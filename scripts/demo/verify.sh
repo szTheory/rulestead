@@ -20,6 +20,7 @@ demo_export_urls_from_compose
 echo "[verify] installing frontend test dependencies"
 (
   cd examples/demo/frontend
+  rm -rf node_modules
   npm ci
 )
 

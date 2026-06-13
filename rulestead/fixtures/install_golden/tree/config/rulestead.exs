@@ -3,7 +3,8 @@ import Config
 config :rulestead, :store, Rulestead.Store.Ecto
 
 config :rulestead, Rulestead.Repo,
-  repo: HostApp.Repo
+  repo: HostApp.Repo,
+  prefix: "rulestead"
 
 config :rulestead, :host,
   [

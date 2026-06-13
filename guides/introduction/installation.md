@@ -52,6 +52,20 @@ mix ecto.migrate
 surface. If you mount `rulestead_admin`, follow the router seam documented in
 [rulestead_admin on HexDocs](https://hexdocs.pm/rulestead_admin).
 
+By default the generated migrations create a dedicated Postgres schema named
+`rulestead` and install package-owned tables there. This keeps your host app's
+`public` schema focused on host-owned tables while preserving normal Ecto joins
+and transactions through the same repo.
+
+To install into `public` instead, choose that explicitly:
+
+```bash
+mix rulestead.install --prefix public
+```
+
+Rulestead does not automatically move existing `public` tables into
+`rulestead`; treat schema moves as app-owned data migrations.
+
 ## Two adoption paths
 
 Choose the path that matches where you are:

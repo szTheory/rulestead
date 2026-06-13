@@ -1,100 +1,385 @@
-# Stack: v1.6.0 Reusable Targeting Deepening
+# Stack Research — v1.14 Brand System Realization
 
-**Project:** Rulestead
-**Milestone:** v1.6.0 - Reusable Targeting Deepening
-**Researched:** 2026-05-27
-**Question:** What stack additions or changes are needed for reusable targeting impact previews, dependency visibility, and explainability?
-**Confidence:** HIGH for repo-local stack guidance; MEDIUM for ecosystem analogies from prior research.
+**Domain:** Source-controlled brand system for an Elixir/Hex OSS monorepo (design tokens, SVG assets, font references, repo hygiene)
+**Researched:** 2026-06-04
+**Confidence:** HIGH (DTCG spec, SVGO, font licensing verified via official sources; Tailwind v4 @theme verified)
 
-## Recommendation
+---
 
-Do **not** add a new external library stack for v1.6.0. The current Elixir/Phoenix/Ecto/LiveView stack already has the right primitives. The needed "stack changes" are internal domain surfaces in `rulestead`, mounted workflow surfaces in `rulestead_admin`, and a small authored-state/indexing migration so previews and dependency visibility are cheap, deterministic, and auditable.
+## Recommended Stack
 
-The milestone should deepen the existing audience reuse model. The repo already has `Rulestead.Audience`, `segment_match` rules with `audience_key`, snapshot-backed runtime reads, promotion/manifest dependency closure, mounted rules UI audience picking, audit/governance patterns, and code-reference precedent. Build on those; do not introduce a second targeting abstraction.
+### Core Technologies
 
-## Carry Forward
+| Technology | Version | Purpose | Why Recommended |
+|------------|---------|---------|-----------------|
+| DTCG `tokens.json` | 2025.10 stable | Machine-readable token source of truth | First stable spec published 2025-10-28; vendor-neutral; `$value`/`$type`/`$description` keys; aliasing with `{group.token}` syntax; `.tokens.json` extension is spec-blessed; no build required to read |
+| Hand-authored `tokens.css` | n/a | Emitted CSS custom properties for direct consumption | For an OSS repo with no JS build pipeline, a human-maintained CSS file mirroring `tokens.json` is lower-friction than Style Dictionary; the existing `--rs-*` shape is already the right output format |
+| SVGO | v4.0.1 | SVG optimization for logo, icon, favicon, and specimen files | Latest stable (2025-03); v4 disables `removeViewBox` and `removeTitle` by default — correct accessibility posture out of the box; `svgo.config.mjs` ESM-only |
+| Google Fonts CDN reference (no binaries) | n/a | Sora, Inter, IBM Plex Mono delivery | All three fonts are SIL OFL 1.1; reference via `<link>` in specimens/marketing; do NOT commit font binary files |
 
-| Technology | Current Posture | Use for v1.6.0 | Why |
-|------------|-----------------|----------------|-----|
-| Elixir | `~> 1.17` | Pure impact/dependency/explain modules | Keeps preview logic testable and deterministic without service dependencies. |
-| Ecto / Ecto SQL | `ecto_sql ~> 3.14`, locked `3.14.0` | Transactional audience edits, reference indexing, audit rows, snapshot publish | `Ecto.Multi` is the right fit for "validate dependencies -> write authored state -> write audit -> publish snapshot" in one mutation envelope. |
-| PostgreSQL via Postgrex | Existing runtime/admin persistence | Indexed audience reference table or derived reference rows | Dependency visibility should be queryable, not repeatedly inferred from opaque JSON in every admin render. |
-| Jason | `~> 1.4`, locked `1.4.5` | Manifest/export/import and preview payloads | Existing JSON contract is sufficient; no schema registry dependency needed. |
-| Phoenix / LiveView | admin locked Phoenix `1.8.7`, LiveView `1.1.30` | Impact preview screens, "used by" lists, async sample previews | LiveView already supports async assigns/streams and cancellation, which matches bounded preview jobs. |
-| Telemetry | locked `1.4.2` | Preview duration/count/error events only | Use existing event discipline for operator/debug visibility without making Rulestead an observability product. |
-| StreamData / ExUnit | existing test stack | Property tests for dependency closure, deterministic snapshots, explain trace stability | Reusable targeting adds indirection; property tests should guard equivalence and fail-closed behavior. |
+### Supporting Libraries / Tools
 
-## Add Internally
+| Library | Version | Purpose | When to Use |
+|---------|---------|---------|-------------|
+| Style Dictionary | v5.4.x (current) | Transform `tokens.json` to CSS / JSON / other | Use only if multi-platform output (iOS, Android, JS constants) is needed; overkill for CSS-only OSS context |
+| Terrazzo / Cobalt UI | latest | Alternative DTCG-to-CSS transformer | Lighter than Style Dictionary if a build step is ever added; both understand DTCG 2025.10 aliases |
+| `npx svgo` CLI | v4.0.1 | One-shot SVG optimization, no install required | Run as `npx svgo --config svgo.config.mjs` per asset; or add to a `Makefile` target in `brandbook/` |
+| `python3` (stdlib) | 3.x (already in repo via `check_synced_pair.py`) | Lightweight token-sync / size-budget CI script | Use the existing scripting pattern — no new runtime dependency |
+| `lfs-warning` GitHub Action | latest | Flag files exceeding a per-file byte threshold in PRs | Zero-config guard; set threshold to 50 KB for `brandbook/` directory |
 
-### `rulestead` Core Surfaces
+### Development Tools
 
-| Addition | Shape | Rationale |
-|----------|-------|-----------|
-| `Rulestead.Targeting.ImpactPreview` | Pure service module returning counts, referenced flags/rules, before/after decision deltas, blockers, warnings | Centralizes preview semantics for admin, CLI, promotion, and tests. LiveViews should call this; they should not compute impact themselves. |
-| `Rulestead.Targeting.Dependencies` | Query/build module for audience -> flag/ruleset/rule references and transitive manifest closure | Makes "used by N flags in env/tenant" a domain fact, not UI scraping. |
-| `Rulestead.Targeting.Explain` or extension to `Rulestead.Explainer` | Structured explain trace nodes for `audience_key`, audience match/miss, missing/archived audience failures | Preserves one-click explainability when shared audiences add indirection. |
-| Audience mutation command(s) | Existing command/store style with actor, environment, tenant, reason, and expected version/fingerprint | Keeps shared-audience edits inside the established governed/audited mutation model. |
-| Reference index migration | `audience_references`-style table or materialized rows maintained at ruleset publish/import time | Querying dependencies from normalized rows is safer and faster than scanning every ruleset JSON at render time. |
-| Snapshot schema bump | Compile audience definitions and reference metadata into runtime snapshots | Runtime evaluation must stay local and deterministic; missing dependencies should fail closed before publish/import. |
+| Tool | Purpose | Notes |
+|------|---------|-------|
+| `brandbook/svgo.config.mjs` | SVGO configuration committed to `brandbook/` | ESM module; override `preset-default` per asset category (logo, icon, specimen) |
+| `Makefile` or `scripts/brandbook/` | Orchestrate `npx svgo` passes and validation | Keeps build logic in shell, consistent with repo's existing `scripts/` pattern |
+| SVGOMG (web) | Interactive SVGO exploration during authoring | https://jakearchibald.github.io/svgomg/ — use for author workflow, not CI |
 
-### `rulestead_admin` Companion Surfaces
+---
 
-| Addition | Shape | Rationale |
-|----------|-------|-----------|
-| Audience impact preview route | Mounted LiveView under existing admin router | Operators need blast-radius preview before saving shared targeting edits. |
-| Audience dependency detail | "Used by" list with flag, environment, tenant, ruleset version, rule key, lifecycle/rollout hints | Dependency visibility is the main safety feature; keep it scannable and shareable through URL params. |
-| Rules editor explain carry-through | Show selected audience summary and warn on archived/missing references | Prevents `segment_match` from becoming a hidden rule path. |
-| Async preview execution | `assign_async` / `stream_async` with cancel behavior | Large previews should not block mount or imply background automation. |
+## Token File Format
 
-## Package Boundaries
+### Use DTCG `tokens.json` (2025.10 stable) — hand-authored, no build step
 
-| Package | Owns | Must Not Own |
-|---------|------|--------------|
-| `rulestead` | Schemas, migrations, store commands, dependency closure, impact-preview computation, snapshot compilation, runtime evaluation, structured explain data, manifest/promotion validation, telemetry events | Mounted copy, admin navigation, visual diff layout, standalone dashboards |
-| `rulestead_admin` | Mounted LiveViews, operator IA, preview/confirm/audit screens, reference-count presentation, fallback copy, policy-aware actions | Targeting semantics, runtime evaluation rules, persistence invariants, dependency graph truth |
-| Host app | Auth, RBAC policy implementation, actor/context data, tenant catalog truth, observability/metrics data | Rulestead-owned identity graph, hidden tenant expansion, remote evaluation dependency |
+The DTCG spec reached its first stable release 2025-10-28. The format uses `$value`, `$type`, `$description` keys and supports group nesting and `{group.token}` alias references.
 
-Keep both sibling packages linked-versioned. Do not prepare or publish `rulestead_admin` as a standalone product.
+**Three-tier structure to commit:**
 
-## Integration Points
+1. `brandbook/tokens.json` — DTCG source: primitive (raw brand values) → semantic (role aliases) → state (hover/disabled/focus). Light and dark value sets are separate alias groups (or split into `tokens.light.json` / `tokens.dark.json`) rather than a single flat file, because DTCG 2025.10 Resolver module (for modes/themes) is still a draft — alias-per-set is the current stable approach.
 
-- **Evaluation:** keep ordered-rule evaluation shape; `segment_match` remains a rule strategy that resolves against compiled snapshot audience data.
-- **Snapshots:** bump snapshot payload schema only as needed to include referenced audience definition fingerprints and explain metadata. Runtime reads must not query authored tables or admin state.
-- **Authoring:** audience edits run through an `Ecto.Multi` path that validates references, computes impact, writes audit evidence, and publishes/queues a snapshot update.
-- **Promotion/import/export:** reuse existing manifest dependency closure. Extend it to surface impact and incompatible audience-definition drift, not just missing/archived dependencies.
-- **Explainability:** return structured trace data first, then render human copy in admin/docs. Copy-only explanations will become brittle as dependency surfaces grow.
-- **Tenancy/environment:** dependency and impact queries must be scoped explicitly by environment and tenant. No implicit all-tenant preview.
-- **Audit:** shared-audience edits need exact impacted references and preview fingerprint in the audit payload, so later operators can replay why a broad edit was allowed.
+2. `brandbook/tokens.css` — Hand-maintained CSS custom properties mirroring the `--rs-*` shape; acts as the authoritative emitted artifact for adopters who want to copy-paste. Updated whenever `tokens.json` changes. Enforce via a `scripts/check_tokens_sync.py` script (same pattern as the existing synced-pair check).
 
-## Non-Recommendations
+3. `brandbook/tokens.tailwind.js` or `brandbook/tokens.tailwind.css` — Optional hand-authored excerpt: either a `theme.extend` block for Tailwind v3 or a `@theme {}` CSS block for Tailwind v4.
 
-| Do Not Add | Why |
-|------------|-----|
-| Graph libraries such as `libgraph` | Audience dependencies are a small bounded DAG/list problem; adding graph infrastructure increases API surface without meaningful leverage. |
-| Broadway, Oban, or a new background-job requirement | Previews should be bounded request-time/admin async work for v1.6.0. Existing snapshot/governance paths can publish changes without a new runtime prerequisite. |
-| Search/indexing systems | Reference counts and "used by" lists should come from Ecto/Postgres indexes. External search is disproportionate. |
-| D3/Vega/charting libraries | Impact preview is mostly counts, lists, and before/after tables. Keep mounted admin lightweight and static-asset-simple. |
-| Nx/statistics engines | This is targeting impact preview, not experimentation analysis or guardrail baseline modeling. |
-| OpenTelemetry/backend adapters | Emit existing telemetry-style events only. Host apps own observability backends. |
-| Template/workflow engine | Templates, if ever justified, should generate draft rules. v1.6.0 should not create live inheritance or release orchestration. |
-| Standalone admin/control plane | Violates the mounted sibling-package release design and current project constraints. |
-| Phase 8 docs or publishing prep | Explicitly out of scope for this research and contrary to the current phase boundary. |
+**Skeleton `tokens.json` structure:**
 
-## Verification Stack
+```json
+{
+  "primitive": {
+    "color": {
+      "basalt":       { "$value": "#0F1720", "$type": "color", "$description": "Primary dark surface" },
+      "slate-stead":  { "$value": "#24313D", "$type": "color" },
+      "stead-blue":   { "$value": "#3A6F8F", "$type": "color" },
+      "ember-copper": { "$value": "#B96A3A", "$type": "color" }
+    }
+  },
+  "semantic": {
+    "color": {
+      "light": {
+        "primary":    { "$value": "{primitive.color.stead-blue}", "$type": "color" },
+        "bg":         { "$value": "{primitive.color.rain-tint}",  "$type": "color" }
+      },
+      "dark": {
+        "primary":    { "$value": "{primitive.color.stead-blue}", "$type": "color" },
+        "bg":         { "$value": "{primitive.color.basalt}",     "$type": "color" }
+      }
+    }
+  }
+}
+```
 
-| Proof | Tooling | Scope |
-|-------|---------|-------|
-| Dependency closure correctness | ExUnit + property tests | Referenced audiences are complete, stable, environment/tenant scoped, and fail closed when missing/archived. |
-| Impact preview determinism | ExUnit + StreamData | Same snapshot/context sample yields same before/after delta and fingerprint. |
-| Explain trace carry-through | ExUnit golden-ish assertions | Segment/audience match and miss paths are present in structured trace and rendered admin copy. |
-| Mounted workflow | LiveViewTest | Preview -> confirm -> audit for audience edits; missing dependency fallback copy; reference lists. |
-| Manifest/promotion safety | Existing manifest/import/promotion tests | Plans block incompatible or unresolved audience dependencies and show actionable findings. |
+**Why not Style Dictionary for this milestone:**
+
+Style Dictionary v5 introduces an async plugin API and non-trivial config. For a `brandbook/` folder emitting only CSS, the added complexity is unjustified. The existing `check_synced_pair.py` proves the team can maintain a mirrored-pair contract without a build tool. If a future milestone adds multi-platform token output, reach for Style Dictionary v5+ or Terrazzo — both understand DTCG aliases and modes.
+
+**Style Dictionary version caveat:** v4.x has first-class support for pre-2025.10 DTCG. v5.4.x is the current release; full 2025.10 Resolver support is still in progress as of mid-2026.
+
+---
+
+## CSS Custom Properties Emission
+
+### Keep the existing `--rs-*` namespace and four-block cascade
+
+The shipped `rulestead_admin.css` already encodes the correct shape:
+
+- Invariant tokens on `:root` (typography, spacing, radius, motion, z-index)
+- Variant tokens on `.rs-shell` / `[data-rulestead]` in four cascade blocks
+
+`brandbook/tokens.css` follows the same structure but scoped to `:root` only — it is the portable brand reference, not the mounted-admin theme engine. The admin re-skin in `rulestead_admin.css` remains the single place where the four-block cascade lives.
+
+**Tailwind v4 `@theme` bridge (optional, hand-authored):**
+
+```css
+/* brandbook/tokens.tailwind.css — paste into a Tailwind v4 project's CSS input */
+@theme {
+  --color-basalt:       #0F1720;
+  --color-slate-stead:  #24313D;
+  --color-stead-blue:   #3A6F8F;
+  --color-ember-copper: #B96A3A;
+  --font-display: "Sora", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans:    "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono:    "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+```
+
+Tailwind v4 reads `@theme` blocks from CSS and generates utilities from them. No `tailwind.config.js` required. This file is a copy-paste excerpt for adopters, not a build input.
+
+---
+
+## SVG Hygiene
+
+### SVGO v4.0.1 configuration
+
+Commit a `brandbook/svgo.config.mjs`:
+
+```js
+export default {
+  plugins: [
+    {
+      name: 'preset-default',
+      params: {
+        overrides: {
+          removeViewBox: false,   // REQUIRED — preserves SVG scalability (v4 default is already false)
+          removeTitle: false,     // REQUIRED — preserves <title> for screen readers (v4 default is already false)
+        },
+      },
+    },
+    { name: 'removeEditorsNSData' },  // strip Figma/Inkscape namespace metadata
+  ],
+};
+```
+
+Note: SVGO v4 already has `removeViewBox` and `removeTitle` disabled by default. Spelling them out in the config makes the intent explicit and guards against accidental re-enablement.
+
+**Accessible title/desc pattern** for every meaningful logo or icon SVG:
+
+```svg
+<svg viewBox="0 0 200 48" xmlns="http://www.w3.org/2000/svg"
+     role="img" aria-labelledby="rs-logo-title">
+  <title id="rs-logo-title">Rulestead wordmark</title>
+  <!-- paths here -->
+</svg>
+```
+
+For decorative SVGs (dividers, background specimens): `aria-hidden="true"`, no `<title>`.
+
+### Wordmark: outline text on export, no embedded fonts in committed SVGs
+
+Do NOT use `<text font-family="Sora">` in committed wordmark SVGs — this creates a font-file dependency that breaks rendering for anyone without the font installed. Convert text to path outlines before export.
+
+- **Figma:** enable "Outline text" in export settings before saving SVG
+- **Inkscape:** `Path > Object to Path` on all text layers before export
+
+Keep a separate master source file (`.fig` or editable `.svg` with live text layers) outside committed `brandbook/` artifacts if future editing is needed.
+
+**Exception for documentation specimens:** `brandbook/specimens/typography.svg` and similar files may use `<text font-family="...">` if they are always displayed in a browser where fonts are loaded. Add a `<!-- REQUIRES FONTS LOADED -->` comment.
+
+---
+
+## Favicon Strategy
+
+### `favicon.svg` primary + `favicon.ico` legacy fallback
+
+```html
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+```
+
+Safari does not support SVG favicons as of mid-2026 (partial/inconsistent support; home-screen icon still requires PNG/ICO). The layered approach covers all browsers.
+
+**File inventory for `brandbook/favicon/`:**
+
+| File | Format | Approx Size | Notes |
+|------|--------|-------------|-------|
+| `favicon.svg` | SVG | 1–3 KB | Clean icon mark (no wordmark), viewBox preserved, `<title>Rulestead</title>` |
+| `favicon.ico` | ICO | ~5 KB | 16×16 + 32×32 embedded; only raster binary allowed by hard constraint |
+| `apple-touch-icon.png` | PNG | ~3–5 KB | 180×180; required for iOS home-screen pinning |
+
+These are the only raster binaries that should enter the repo. Generate them once locally:
+
+```bash
+# Using Inkscape CLI (adjust paths)
+inkscape favicon.svg --export-filename=favicon-32.png --export-width=32
+# ICO from PNG pairs — use ImageMagick locally, commit result:
+convert favicon-16.png favicon-32.png favicon.ico
+```
+
+---
+
+## Social / OG Card
+
+### Canonical dimensions: 1200×630 px
+
+All major platforms (Facebook, X/Twitter large card, LinkedIn, Slack, Discord) use 1200×630 px as of 2026.
+
+**Approach:** Commit `brandbook/social/og-card.svg` at `viewBox="0 0 1200 630"`. This is the authored source and renders correctly in any browser for preview.
+
+Rasterize on demand when needed for platform upload:
+
+```bash
+# resvg (Rust, no Node dependency):
+resvg brandbook/social/og-card.svg og-card.png -w 1200 -h 630
+# OR via npx (Node):
+npx svgexport brandbook/social/og-card.svg og-card.png 1200:630
+```
+
+Do NOT commit the PNG to the repo. The SVG is the source; the PNG is a build artifact. If Hex.pm or GitHub's social preview requires a static raster, generate in CI or document the one-liner for maintainers.
+
+**SVG social card text:** Use outlined paths or embed font data URIs (woff2 base64) inside the SVG itself so it renders standalone without a `<link>` to Google Fonts. The social card is a standalone artifact, not a browser page.
+
+---
+
+## Font Licensing
+
+All three typefaces are **SIL Open Font License 1.1** — confirmed against upstream source repositories:
+
+| Font | Upstream | License | Binary in Repo? |
+|------|----------|---------|-----------------|
+| **Sora** | github.com/sora-xor/sora-font | OFL-1.1 | NO |
+| **Inter** | github.com/rsms/inter | OFL-1.1 | NO |
+| **IBM Plex Mono** | github.com/IBM/plex | OFL-1.1 | NO |
+
+**OFL key terms (relevant facts, not legal advice):**
+
+- Free to use, study, modify, and redistribute — including commercially
+- May be bundled with software (including sold products)
+- Cannot be sold as standalone fonts
+- Derivative fonts using reserved font names are prohibited; derivatives must be renamed
+
+**CDN reference (recommended for all `brandbook/` HTML specimens):**
+
+```html
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+```
+
+**Do NOT commit:** `.ttf`, `.woff`, `.woff2`, `.otf`, or `.eot` files. The OFL permits it legally, but it violates the repo-light constraint and adds binary blob churn.
+
+**If offline/air-gapped self-hosting is needed in future:** Document Fontsource as the path — `@fontsource/sora`, `@fontsource/inter`, `@fontsource/ibm-plex-mono` are all OFL-1.1 npm packages. Add guidance to `brandbook/FONTS.md` without committing binaries.
+
+---
+
+## Repo-Size Guard
+
+### Strategy: prevention over remediation
+
+| Layer | Mechanism | Threshold |
+|-------|-----------|-----------|
+| `.gitattributes` | Mark SVG/JSON/CSS as `text` (diffable); mark PNG/ICO as `binary`; mark font extensions as `binary` so size is obvious | — |
+| Pre-commit script | `scripts/check_brand_assets.sh` — reject any font file, reject non-raster brandbook files >50 KB | 50 KB |
+| CI step | `find brandbook/ -size +100k ! -name "*.ico" ! -name "*.png"` exits 1 on any match | 100 KB hard wall for non-raster |
+| PR feedback (optional) | `lfs-warning` GitHub Action | 50 KB default |
+
+**`.gitattributes` additions:**
+
+```gitattributes
+# Brand system — SVG/JSON/CSS are text (diffable, meaningful diffs)
+brandbook/**/*.svg  text eol=lf
+brandbook/**/*.json text eol=lf
+brandbook/**/*.css  text eol=lf
+brandbook/**/*.js   text eol=lf
+# Raster exceptions (favicon + apple-touch only)
+brandbook/**/*.png  binary
+brandbook/**/*.ico  binary
+# Font binaries are banned — mark so they stand out in size reports
+*.ttf   binary
+*.woff  binary
+*.woff2 binary
+*.otf   binary
+*.eot   binary
+```
+
+**`scripts/check_brand_assets.sh` skeleton:**
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+LIMIT_BYTES=51200  # 50 KB
+
+# Reject font binaries anywhere in the tree
+if git diff --cached --name-only | grep -qE '\.(ttf|woff2?|otf|eot)$'; then
+  echo "ERROR: Font binary files must not be committed." \
+       "Reference via CDN or document Fontsource instead." >&2
+  exit 1
+fi
+
+# Reject non-raster brandbook files over 50 KB
+while IFS= read -r file; do
+  if [[ -f "$file" ]]; then
+    size=$(wc -c < "$file")
+    if [[ $size -gt $LIMIT_BYTES ]]; then
+      echo "ERROR: $file is ${size} bytes (limit: ${LIMIT_BYTES})" >&2
+      exit 1
+    fi
+  fi
+done < <(git diff --cached --name-only | grep '^brandbook/' | grep -vE '\.(png|ico)$')
+
+echo "Brand asset size check passed."
+```
+
+Add as a pre-commit hook or call from the existing CI workflow.
+
+---
+
+## Alternatives Considered
+
+| Recommended | Alternative | When to Use Alternative |
+|-------------|-------------|------------------------|
+| Hand-authored `tokens.json` + `tokens.css` | Style Dictionary v5 build | Use Style Dictionary if multi-platform output (iOS Swift, Android XML, JS constants) is needed — not the case for this milestone |
+| SVGO v4 CLI via `npx` | SVGR, Vite SVG plugin | Use SVGR/Vite only inside a React/Vue app — not applicable to a static `brandbook/` folder |
+| Google Fonts CDN for specimen HTML | Fontsource npm packages | Use Fontsource if admin UI or docs site adds a Node build step and wants self-hosted fonts |
+| `favicon.svg` + `favicon.ico` (16+32) + `apple-touch-icon.png` | Full PWA icon suite (192, 512, maskable) | Full suite only if Rulestead adds a PWA manifest — out of scope for v1.14 |
+| `og-card.svg` source, rasterize on demand | Commit `og-card.png` | Commit PNG only if a platform definitively requires it and the file is <300 KB |
+| Hand-written `check_brand_assets.sh` | `size-limit` npm tool | `size-limit` is JS-bundle focused; a shell script is idiomatic for this repo's tooling pattern |
+
+---
+
+## What NOT to Use
+
+| Avoid | Why | Use Instead |
+|-------|-----|-------------|
+| Committing `.woff`, `.woff2`, `.ttf`, `.otf` | Binary blob churn, repo bloat — OFL does not require it | Google Fonts CDN reference or Fontsource documentation |
+| Style Dictionary as a mandatory `brandbook/` build step | Adds a Node.js toolchain dependency to a pure Elixir/Hex repo | Hand-authored `tokens.css` mirroring `tokens.json` |
+| Figma plugin token exports committed verbatim | Figma export format produces proprietary metadata noise; goes stale when design changes | Hand-author `tokens.json` from brand book values; Figma is the design source, not the token source |
+| `removeViewBox: true` in SVGO | Destroys SVG scalability | Leave at SVGO v4 default (`false`) |
+| `<text font-family="...">` in committed logo/icon SVGs | Renders incorrectly when font is not loaded | Outline text on export |
+| Generating `og-card.png` via headless Chrome/Puppeteer in CI | Heavy CI dependency for a static brand artifact | `resvg` CLI (Rust, no Node dependency) or generate once locally |
+| Embedding full font data URIs in `tokens.css` | Massively inflates file size; wrong layer | Keep fonts separate from token CSS |
+| DTCG Resolver module features (theming modes via `$resolvers`) | The Resolver module is still a draft in the 2025.10 release cycle | Use explicit alias groups (`semantic.color.light.*` / `semantic.color.dark.*`) for now |
+
+---
+
+## Integration with Existing `--rs-*` CSS
+
+`brandbook/tokens.css` is the **brand reference layer** (`:root` scope, portable primitives). `rulestead_admin/priv/static/css/rulestead_admin.css` is the **mounted admin theme layer** (`.rs-shell` / `[data-rulestead]` scope, four cascade blocks, semantic roles).
+
+The two files remain **independent** — no `@import` coupling. The admin ships as a Hex package asset and must be self-contained.
+
+The v1.14 re-skin task is: update the color literal values in the four cascade blocks of `rulestead_admin.css` to match the brand book mineral palette (e.g., `#3A6F8F` Stead Blue replaces `#2563eb`; `#B96A3A` Ember Copper replaces `#9a3f12`) while keeping `check_synced_pair.py` green and WCAG-AA contrast passing in both themes.
+
+---
+
+## Version Compatibility
+
+| Package | Version | Notes |
+|---------|---------|-------|
+| SVGO | v4.0.1 | Requires Node ≥18; `svgo.config.mjs` (ESM only in v4) |
+| DTCG spec | 2025.10 stable | File extension `.tokens.json` or `.tokens`; `$value`/`$type` keys |
+| Style Dictionary (if added later) | v5.4.x | Full 2025.10 DTCG Resolver support WIP; v4.x covers pre-2025.10 DTCG |
+| Tailwind CSS v4 `@theme` | v4.x | CSS-first config; `@theme {}` block in CSS file replaces `tailwind.config.js` |
+| Tailwind CSS v3 `theme.extend` | v3.x | Still valid JS config for adopters on v3 |
+
+---
 
 ## Sources
 
-- Repo: `rulestead/mix.exs`, `rulestead/mix.lock`, `rulestead_admin/mix.exs`, `rulestead_admin/mix.lock`
-- Repo: `rulestead/lib/rulestead/audience.ex`, `rulestead/lib/rulestead/ruleset/rule.ex`, `rulestead/lib/rulestead/manifest/plan.ex`, `rulestead/lib/rulestead/manifest/import.ex`, `rulestead/lib/rulestead/promotion/compare.ex`
-- Planning: `.planning/PROJECT.md`, `.planning/MILESTONE-ARC.md`, `.planning/milestones/v1.5.0-REQUIREMENTS.md`
-- Prior research: `.planning/research/v1.2.0-reusable-targeting-assets-memo.md`
-- Anchor docs: `prompts/rulestead-engineering-dna-from-prior-libs.md`, `prompts/rulestead-admin-ux-and-operator-ia.md`
-- Context7 / official docs: Ecto `Ecto.Multi` docs, Phoenix LiveView `assign_async` / `stream_async` / `cancel_async`, Phoenix Router `forward/4`
+- [DTCG Design Tokens Format Module 2025.10](https://www.designtokens.org/tr/drafts/format/) — spec structure, file extensions, alias syntax — HIGH confidence (official spec)
+- [DTCG first stable version announcement 2025-10-28](https://www.w3.org/community/design-tokens/2025/10/28/design-tokens-specification-reaches-first-stable-version/) — HIGH confidence
+- [Style Dictionary DTCG support page](https://styledictionary.com/info/dtcg/) — v4 first-class DTCG; v5 working toward 2025.10 Resolver — HIGH confidence (official docs)
+- [style-dictionary npm](https://www.npmjs.com/package/style-dictionary) — current latest v5.4.x — HIGH confidence
+- [SVGO GitHub Releases](https://github.com/svg/svgo/releases) — v4.0.1 latest; `removeViewBox`/`removeTitle` disabled by default in v4 — HIGH confidence
+- [SVGO preset-default docs](https://svgo.dev/docs/preset-default/) — plugin list — HIGH confidence (official docs)
+- [Sora OFL.txt](https://github.com/sora-xor/sora-font/blob/master/OFL.txt) — SIL OFL 1.1 confirmed — HIGH confidence
+- [Inter LICENSE.txt](https://github.com/rsms/inter/blob/master/LICENSE.txt) — SIL OFL 1.1 confirmed — HIGH confidence
+- [IBM Plex on Fontsource](https://fontsource.org/fonts/ibm-plex-mono) — OFL-1.1 confirmed — HIGH confidence
+- [Favicon best practices 2025](https://browserux.com/blog/guides/web-icons/favicons-best-practices.html) — SVG + ICO + apple-touch-icon strategy — MEDIUM confidence (community source, consistent across multiple references)
+- [Tailwind CSS v4 announcement](https://tailwindcss.com/blog/tailwindcss-v4) — `@theme` CSS-first config — HIGH confidence (official)
+- [lfs-warning GitHub Action](https://github.com/ppremk/lfs-warning) — per-file size threshold — MEDIUM confidence
+- Direct read of `rulestead_admin/priv/static/css/rulestead_admin.css` — `--rs-*` token shape and four-block cascade — HIGH confidence
+
+---
+
+*Stack research for: v1.14 Brand System Realization — design tokens, SVG hygiene, font licensing, repo-size guard*
+*Researched: 2026-06-04*

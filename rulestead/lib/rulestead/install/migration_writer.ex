@@ -7,6 +7,11 @@ defmodule Rulestead.Install.MigrationWriter do
           {:ok, [String.t()]} | {:error, Rulestead.Error.t()}
   def copy_migrations(repo, opts \\ []) do
     target_dir = Keyword.get(opts, :migrations_path) || target_path_for_repo(repo)
+
+    prefix =
+      opts |> Keyword.get(:prefix, Rulestead.RepoPrefix.default_prefix()) |> normalize_prefix()
+
+    create_schema? = Keyword.get(opts, :create_schema, prefix != "public")
     File.mkdir_p!(target_dir)
 
     messages =
@@ -22,7 +27,11 @@ defmodule Rulestead.Install.MigrationWriter do
             "skip #{Path.relative_to_cwd(target)} already present"
 
           false ->
-            File.cp!(source, target)
+            source
+            |> File.read!()
+            |> render_migration(prefix, create_schema?)
+            |> then(&File.write!(target, &1))
+
             "copy #{Path.relative_to_cwd(target)}"
         end
       end)
@@ -33,5 +42,15 @@ defmodule Rulestead.Install.MigrationWriter do
   defp target_path_for_repo(repo) do
     _repo = repo
     Path.join(File.cwd!(), "priv/repo/migrations")
+  end
+
+  defp normalize_prefix(prefix), do: Rulestead.RepoPrefix.normalize!(prefix)
+
+  defp render_migration(contents, prefix, create_schema?) do
+    contents
+    |> String.replace(
+      ~r/use Rulestead\.Migration, prefix: "rulestead", create_schema: (true|false)/,
+      ~s(use Rulestead.Migration, prefix: #{inspect(prefix)}, create_schema: #{inspect(create_schema?)})
+    )
   end
 end

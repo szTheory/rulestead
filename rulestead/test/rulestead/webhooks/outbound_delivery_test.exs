@@ -135,7 +135,7 @@ defmodule Rulestead.Webhooks.OutboundDeliveryTest do
   end
 
   defp ensure_oban_jobs! do
-    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS oban_jobs (
+    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS rulestead.oban_jobs (
       id bigserial PRIMARY KEY,
       state text NOT NULL DEFAULT 'scheduled',
       queue text NOT NULL DEFAULT 'default',

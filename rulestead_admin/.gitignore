@@ -20,3 +20,12 @@
 /debug_out.txt
 /form_failures.txt
 /test_failures.txt
+
+# mix phx.digest output — generated fingerprinted assets and manifests.
+/priv/static/cache_manifest.json
+/priv/static/**/*.gz
+/priv/static/css/*-*.css
+/priv/static/images/*-*.svg
+!/priv/static/images/rs-wordmark.svg
+!/priv/static/images/rs-wordmark-dark.svg
+/priv/static/*-*.html

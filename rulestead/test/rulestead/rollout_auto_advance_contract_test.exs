@@ -446,7 +446,7 @@ defmodule Rulestead.RolloutAutoAdvanceContractTest do
   defp adapter_suffix(StoreEcto), do: "ecto"
 
   defp ensure_phase50_schema! do
-    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS guardrail_decisions (
+    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS rulestead.guardrail_decisions (
       id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
       flag_key text NOT NULL,
       environment_key text NOT NULL,
@@ -474,7 +474,7 @@ defmodule Rulestead.RolloutAutoAdvanceContractTest do
   end
 
   defp ensure_auto_advance_schema! do
-    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS rollout_auto_advance_policies (
+    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS rulestead.rollout_auto_advance_policies (
       id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
       flag_key text NOT NULL,
       environment_key text NOT NULL,
@@ -489,7 +489,7 @@ defmodule Rulestead.RolloutAutoAdvanceContractTest do
     )")
 
     Rulestead.Repo.query!(
-      "CREATE UNIQUE INDEX IF NOT EXISTS rollout_auto_advance_policies_flag_key_environment_key_rule_key_index ON rollout_auto_advance_policies (flag_key, environment_key, rule_key)"
+      "CREATE UNIQUE INDEX IF NOT EXISTS rollout_auto_advance_policies_flag_key_environment_key_rule_key_index ON rulestead.rollout_auto_advance_policies (flag_key, environment_key, rule_key)"
     )
   end
 end

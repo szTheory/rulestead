@@ -1,5 +1,83 @@
 # Milestones
 
+## v1.16 Brand-Faithful UI Iteration (Shipped: 2026-06-13)
+
+**Phases completed:** 7 phases, 8 plans
+
+**Key accomplishments:**
+
+- Repo-local UI-SPEC locked the boundary: mounted admin, brandbook, fixtures, and demo launcher use the v1.15 Rulestead identity; FleetDesk remains a distinct host/example app.
+- Static fixtures render the shipped wordmark family, copied admin wordmark assets are drift-checked against `brandbook/assets/logo/`, and logo/contrast guards run in the normal lint path.
+- Admin primitive tokens were corrected inside the frozen mineral palette: primary foreground contrast, soft-primary states, Stead Blue-derived focus/selection rings, scoped theme cascade, and non-color-only status semantics.
+- Browser evidence covers admin route clusters, demo launcher, FleetDesk, fixtures, light/dark/system modes, desktop/mobile widths, logo visibility, theme controls, and horizontal-overflow absence.
+- Phase 112.1 closed the audit gap: Phoenix-owned FleetDesk launcher/layout links render from `DEMO_FRONTEND_URL`, backend tests prove non-3000 URLs, and Playwright clicks through to the selected FleetDesk origin.
+- Audit backfill added BUI requirement rows, summary frontmatter, and Nyquist validation artifacts for Phases 107-112; the v1.16 milestone audit now passes.
+
+**Scope note:** No public runtime APIs, schemas, release workflow changes, component framework adoption, palette redesign, logo redraw, or `rulestead_admin` publish preparation.
+
+**Archive:** [.planning/milestones/v1.16-ROADMAP.md](milestones/v1.16-ROADMAP.md)
+
+**Requirements:** [.planning/milestones/v1.16-REQUIREMENTS.md](milestones/v1.16-REQUIREMENTS.md)
+
+**Audit:** [.planning/milestones/v1.16-MILESTONE-AUDIT.md](milestones/v1.16-MILESTONE-AUDIT.md) (`passed`)
+
+---
+
+## v1.15 Identity Tournament (Shipped: 2026-06-12)
+
+**Phases completed:** 5 phases, 8 plans
+
+**Key accomplishments:**
+
+- Human-gated logo tournament (2 rounds, 18 candidates + incumbent control, 4 design axes) produced winner A3-3: an integrated lockup where a Stead-Blue route grows collinear from the R's leg, threads the baseline, and rises through the final d to three exit nodes — lit copper = the selected route
+- Complete 8-file logo family (primary, NEW tagline secondary, dark, d-sigil mark/dark/mono, 16px-verified transparent favicon, social card), all within 20KB budgets; SVGO config hardened to preserve accessibility attrs and per-glyph structure
+- Zero token deviations — winner ships on the frozen v1.14 mineral palette and Sora Bold; all drift guards green untouched
+- brand-book §14 rewritten as the shipped logo system (construction, clearspace, min sizes, usage/misuse); specimens regenerated programmatically from shipped sources
+- Admin shell + demo propagation: brand_lockup/brand_wordmark components with semantic --logo-* vars across all four cascade blocks, d-sigil statics, demo favicon + digest regen; admin suite 200/0
+- brandbook/index.html elevated to a designed artifact: Basalt cover with hero lockup + mantra, sticky numbered scrollspy rail, editorial numerals/pull-quotes, build-time WCAG AA/AAA-badged token swatches, dual-tile logo plates with clear-space diagram and struck don't-examples, print stylesheet — 223,744B (256KB budget unchanged), 12/12 file:// e2e
+
+**Archive:** [.planning/milestones/v1.15-ROADMAP.md](milestones/v1.15-ROADMAP.md) · phases in `.planning/milestones/v1.15-phases/`
+
+**Audit:** [.planning/milestones/v1.15-MILESTONE-AUDIT.md](milestones/v1.15-MILESTONE-AUDIT.md) (`milestone_complete`)
+
+---
+
+## v1.14 Brand System Realization (Shipped: 2026-06-06)
+
+**Phases completed:** 7 phases, 28 plans
+
+**Key accomplishments:**
+
+- Recovered 27-section brand book pressure-tested and relocated to a self-contained, source-controlled `brandbook/` (BRD-01/02), with szTheory suite brand-architecture note (BRD-03)
+- 68-token DTCG 2025.10 design-token system (`tokens.json` + `tokens.css` mirror) with drift guards (`check_brand_tokens.py`, `check_tokens_css.py`, `check_synced_pair.py`)
+- Logo SVG system: wordmark, mark, mono/dark variants, 16px favicon, social card — all within 20KB budgets, concept exploration archived
+- Admin UI re-skinned to the canonical mineral palette across all four CSS cascade blocks (light default, system dark, explicit pins)
+- Six reproducible SVG specimens (palette, typography, components, code-block, readme-header, social-card)
+- Marketing copy kit (VOICE.md, COPY.md, RELEASE-TEMPLATE.md) and asset-size policy (BUDGET.md)
+- Generated `brandbook/index.html` capstone (stdlib generator, 256KB budget, drift check, file:// browser evidence, CI wiring)
+
+No new runtime APIs, schema changes, package-version changes, or publish-posture changes.
+
+**Archive:** [.planning/milestones/v1.14-ROADMAP.md](milestones/v1.14-ROADMAP.md) · phases in `.planning/milestones/v1.14-phases/`
+
+---
+
+## v1.13 Admin UI — First-Class Dark Mode + Design-System Polish (Shipped: 2026-06-04)
+
+**Phases completed:** 8 phases, 14 plans, 24 tasks
+
+**Key accomplishments:**
+
+- Standalone HTML harness, five-case Playwright cascade spec, scope-containment spec, and WCAG contrast-check helper providing the complete verification substrate for Plans 02 and 03.
+- Interactive focus targets added to theme-harness.html covering page-bg, card, and colored-fill surfaces so Plan 02's unified two-stop ring can be screenshot-verified on every context
+- File:// Playwright fixture (inlined hook JS + radiogroup markup) + 11-test spec covering THM-02/THM-04 persistence, system/pinned/keyboard/ARIA/FOUC behaviors
+- Delivered .ThemeControl runtime ColocatedHook with localStorage persistence, segmented radiogroup in shell header, and FOUC suppression via data-theme-pending — all 11 theme-control + 5 theme-cascade Playwright tests pass
+- Added section 20 (Theme Persistence and Dark Mode) to the host integration guide: covers the theme_default attr on Shell.page/1, the optional layer-3 head script for pinned-mismatch fast-path, and CSP/nonce requirements for the runtime ColocatedHook
+- --rs-accent darkened to #9a3f12 (5.74:1) in light-mode cascade; design-system gate restored to normal 4.5 threshold; 7-screen broadened sweep shows clean both-theme rendering with no straggler
+- Entrance animations on card/record-row rows aligned to ease-out; theme-toggle background-transition flicker eliminated via transient `data-theme-switching` rAF suppression
+
+---
+
 ## v1.11.1 Gap Closure (Shipped: 2026-05-29)
 
 **Phases completed:** 3 phases, 3 plans, 8 tasks

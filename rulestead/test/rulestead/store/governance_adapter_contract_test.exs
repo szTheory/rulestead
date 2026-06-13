@@ -245,14 +245,14 @@ defmodule Rulestead.GovernanceAdapterContractTest do
 
   defp ensure_phase9_schema! do
     Rulestead.Repo.query!(
-      "ALTER TABLE flags ADD COLUMN IF NOT EXISTS permanent boolean DEFAULT false"
+      "ALTER TABLE rulestead.flags ADD COLUMN IF NOT EXISTS permanent boolean DEFAULT false"
     )
 
     Rulestead.Repo.query!(
-      "ALTER TABLE flag_environments ADD COLUMN IF NOT EXISTS last_evaluated_at timestamp(6) with time zone"
+      "ALTER TABLE rulestead.flag_environments ADD COLUMN IF NOT EXISTS last_evaluated_at timestamp(6) with time zone"
     )
 
-    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS change_requests (
+    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS rulestead.change_requests (
       id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
       status text NOT NULL DEFAULT 'submitted',
       governed_action text NOT NULL,
@@ -275,16 +275,16 @@ defmodule Rulestead.GovernanceAdapterContractTest do
     )")
 
     Rulestead.Repo.query!(
-      "CREATE UNIQUE INDEX IF NOT EXISTS change_requests_correlation_id_index ON change_requests (correlation_id)"
+      "CREATE UNIQUE INDEX IF NOT EXISTS change_requests_correlation_id_index ON rulestead.change_requests (correlation_id)"
     )
 
     Rulestead.Repo.query!(
-      "CREATE INDEX IF NOT EXISTS change_requests_environment_status_index ON change_requests (environment_key, status)"
+      "CREATE INDEX IF NOT EXISTS change_requests_environment_status_index ON rulestead.change_requests (environment_key, status)"
     )
 
-    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS approvals (
+    Rulestead.Repo.query!("CREATE TABLE IF NOT EXISTS rulestead.approvals (
       id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-      change_request_id uuid NOT NULL REFERENCES change_requests(id) ON DELETE CASCADE,
+      change_request_id uuid NOT NULL REFERENCES rulestead.change_requests(id) ON DELETE CASCADE,
       decision text NOT NULL,
       reviewer_id text NOT NULL,
       reviewer_type text NOT NULL,
@@ -297,11 +297,11 @@ defmodule Rulestead.GovernanceAdapterContractTest do
     )")
 
     Rulestead.Repo.query!(
-      "CREATE UNIQUE INDEX IF NOT EXISTS approvals_change_request_reviewer_index ON approvals (change_request_id, reviewer_id)"
+      "CREATE UNIQUE INDEX IF NOT EXISTS approvals_change_request_reviewer_index ON rulestead.approvals (change_request_id, reviewer_id)"
     )
 
     Rulestead.Repo.query!(
-      "CREATE INDEX IF NOT EXISTS approvals_change_request_reviewed_at_index ON approvals (change_request_id, reviewed_at)"
+      "CREATE INDEX IF NOT EXISTS approvals_change_request_reviewed_at_index ON rulestead.approvals (change_request_id, reviewed_at)"
     )
   end
 end

@@ -2,6 +2,21 @@
 *.swp
 *.swo
 erl_crash.dump
+__pycache__/
+*.pyc
 
 # Local demo overrides (copy from .env.example). Compose auto-loads it.
 .env
+
+# Phase 97 logo decision aid — throwaway rendered binaries (Phase 99 owns committed specimens)
+.planning/phases/97-logo-mark-svg-system/logo-studio*.png
+.planning/phases/97-logo-mark-svg-system/logo-studio.pdf
+.planning/phases/97-logo-mark-svg-system/final-lockup-preview.png
+# Phase 102 tournament studio — throwaway rendered binaries (studio HTML is committed; PNGs are not)
+.planning/phases/102-logo-delta-audit-tournament-studio/studio-render-*.png
+.planning/phases/103-logo-tournament/*.png
+.planning/phases/103-logo-tournament/scratch/
+# Phase 105 propagation evidence — throwaway scratch renders
+.planning/phases/105-propagation-admin-demo/scratch/
+# Phase 106 brand book elevation — throwaway scratch renders
+.planning/phases/106-html-brand-book-elevation/scratch/
