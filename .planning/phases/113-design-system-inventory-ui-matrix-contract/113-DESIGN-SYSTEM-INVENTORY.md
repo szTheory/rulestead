@@ -1,6 +1,6 @@
 # Phase 113 Design-System Inventory
 
-**Status:** Task 1 taxonomy complete
+**Status:** Task 2 inventory complete
 **Scope:** Documentation-only inventory for DSM-01. No runtime code, CSS, schema, package, release workflow, FleetDesk brand, or `rulestead_admin` publish-prep changes are introduced here.
 
 ## Inventory Rules
@@ -35,3 +35,48 @@
 - `RulesteadAdmin.Components.Shell.page/1` owns shell chrome and is the anchor for environment/tenant controls, command palette controls, flash, rail, breadcrumbs, and brand lockup.
 - `RulesteadAdmin.Components.ConfirmComponents.mutation_confirm/1` is the destructive/governed mutation anchor for shared preview -> confirm -> audit expectations.
 - Phase 114 should turn these rows into real component and route examples with representative fixed assigns. Phase 115 owns foundations hardening. Phase 116 owns primitive/composite consolidation and polish. Phase 117 owns page-flow/IA changes. Phase 118 owns milestone-wide evidence closeout.
+
+## Raw `rs-*` Classification
+
+This ledger separates Reusable component modules from raw `rs-*` LiveView markup, CSS definition sites, token literals, Static fixtures, and Current evidence. A raw class cluster is not automatically a bug: Phase 113 records the source and routes it to Phase 116 consolidation, a page-flow follow-up, or an explicit exception.
+
+| Source category | Files | Classification | Follow-on |
+| --- | --- | --- | --- |
+| Reusable component modules | `rulestead_admin/lib/rulestead_admin/components/operator_components.ex`, `flag_components.ex`, `confirm_components.ex`, `rollout_components.ex`, `rule_editor_components.ex`, `audit_components.ex`, `audience_components.ex`, `audience_trace_components.ex`, `governance_components.ex`, `simulate_components.ex`, `shell.ex` | Canonical HEEx component sources. These own reusable primitives and composites that the future Phase 114 matrix should render with fixed assigns. | Phase 114 matrix inputs, Phase 116 polish |
+| Raw `rs-*` LiveView markup | `home_live/index.ex`, `flag_live/index.ex`, `flag_live/rules.ex`, `flag_live/kill.ex`, `audience_live/index.ex`, `audit_live/index.ex` | Page-owned markup clusters that are currently not extracted into component modules. They are listed below by route family. | Phase 116 consolidation candidate or Phase 117 page-flow exception |
+| CSS definition sites | `rulestead_admin/priv/static/css/rulestead_admin.css` | Selector and token definitions. These must not be counted as LiveView duplication. They provide foundation source truth for focus, motion, responsive behavior, and class contracts. | Phase 115 foundations hardening |
+| Token literals | `brandbook/tokens.json`, `brandbook/tokens.css`, CSS custom properties in `rulestead_admin.css` | Design token source/mirror values. They are guard inputs, not raw UI markup. | Phase 115 and guard-chain preservation |
+| Static fixtures | `design-system.html`, `theme-control-harness.html`, `theme-harness.html` | Static fixtures for token, theme, logo, disabled, focus, and contrast probes. They are useful evidence inputs but not the primary component contract. | Phase 115 guard inputs, Phase 118 evidence |
+| Current evidence | `brand-ui-evidence.spec.ts`, `theme-control.spec.ts`, `theme-cascade.spec.ts`, `theme-scope.spec.ts`, `scripts/ci/lint.sh` | Browser and CI assertions that currently cover theme/viewport routes, no horizontal overflow, theme control, token scoping, contrast, brandbook, logo, and SVG budgets. | Phase 114+ may extend only for real drift classes |
+
+## Raw LiveView Markup Ledger
+
+| Cluster | Source files and examples | Why raw today | Classification | Follow-on |
+| --- | --- | --- | --- | --- |
+| Home attention band and task board | `home_live/index.ex`: `rs-page-section`, `rs-section-header`, `rs-eyebrow`, `rs-attention-empty`, `rs-attention`, `rs-attention__card`, `rs-task-board`, `rs-task-group` | Home uses page-specific launcher and queue composition around navigation items. | Page pattern; do not extract until matrix proves duplicated behavior. | Phase 117 page-flow review; Phase 116 if reusable task-board behavior emerges |
+| Flag inventory toolbar, filters, omnisearch, cards, and triage note | `flag_live/index.ex`: `rs-inventory`, `rs-filter-panel`, `rs-omnisearch`, `rs-results-header`, `rs-results-sort`, `rs-card-list`, `rs-card--flag`, `rs-card__meta`, `rs-card__tags`, `rs-triage-note` | Dense flag inventory has route-specific search, filter, card, and stream behavior. | Phase 116 consolidation candidate for filter/card/metadata primitives after fixed-state matrix examples exist. | Phase 114 matrix examples, Phase 116 consolidation |
+| Rules workspace shell | `flag_live/rules.ex`: `rs-rules-workspace`, `rs-rules-workspace__header`, `rs-rules-workspace__links`, `rs-rules-workspace__layout`, `rs-rules-workspace__editor`, `rs-rules-workspace__toolbar`, `rs-rules-workspace__sidebar` | Rules layout mixes editor actions, sidebar context, and rule ordering. | Composite candidate; keep route-owned until long-key, error, dense, and narrow states are visible in the matrix. | Phase 114, Phase 116 |
+| Kill-switch runbook | `flag_live/kill.ex`: `rs-runbook`, `rs-runbook__state`, `rs-runbook__signals`, `rs-runbook__action`, `rs-runbook__context`, `rs-runbook__history`, `rs-inline-actions` | Emergency workflow is intentionally fenced and destructive. | Destructive page-pattern exception unless other governed flows need the same runbook structure. | Phase 114 destructive examples, Phase 117 flow review |
+| Audience list table and status badges | `audience_live/index.ex`: `rs-table`, `rs-badge` | Audience inventory uses table behavior and inline status marking. | Reuse table/badge primitives where possible; classify table responsiveness as foundation/page-pattern stress. | Phase 115 responsive table hardening, Phase 116 primitive polish |
+| Audit filter grid | `audit_live/index.ex`: `rs-filter-grid`, `rs-form-field` | Audit filters are route-specific but use repeated form-field classes. | Phase 116 candidate if form field markup appears across more admin workflows. | Phase 116, Phase 118 audit evidence |
+
+## Current Evidence Sources
+
+| Evidence source | Current responsibility | Phase 113 disposition |
+| --- | --- | --- |
+| `brand-ui-evidence.spec.ts` | Loops over desktop/mobile and light/dark/system-dark admin surfaces, asserts `.rs-shell`, brand wordmark, theme control, FleetDesk boundary proof, and `expectNoHorizontalOverflow(page)`. | Preserve as current route/theme/viewport evidence. Future matrix can reuse the loop shape. |
+| `theme-control.spec.ts` | Verifies tri-state theme control, persistence, system mode, keyboard navigation, `aria-checked`, pending-state clearing, and unknown localStorage handling. | Preserve as theme control evidence; do not edit in Phase 113. |
+| `theme-cascade.spec.ts` | Verifies light/system-dark/explicit theme cascade behavior against `theme-harness.html`. | Preserve as foundation evidence; do not treat static fixture markup as component source. |
+| `theme-scope.spec.ts` | Verifies token scope does not leak from `.rs-shell` to `:root` or outside-shell probes. | Preserve as token-scope evidence. |
+| `scripts/ci/lint.sh` | Runs Elixir package checks and guard scripts: `check_synced_pair.py`, `check_brand_tokens.py`, `check_tokens_css.py`, `check_contrast.py`, `check_brandbook_html.py`, `check_logo_assets.py`, plus SVG budgets. | Preserve guard responsibilities. Phase 113 adds no new guard script. |
+| `rulestead_admin/priv/static/design-system.html` | Static token/logo/contrast/focus/disabled fixture. | Static fixture input only. |
+| `rulestead_admin/priv/static/theme-control-harness.html` | Static tri-state theme-control fixture. | Static fixture input only. |
+| `rulestead_admin/priv/static/theme-harness.html` | Static theme cascade, focus, disabled, badge, flash, and outside-shell probe fixture. | Static fixture input only. |
+
+## Evidence Gaps Routed Forward
+
+- Phase 114 should render real admin components and seeded route examples for normal, dense, empty, loading, error, permission-denied/read-only, long-label/long-key, narrow-width/mobile, destructive-action, disabled/unavailable, and focus/keyboard states.
+- Phase 115 should harden foundations found by the matrix: breakpoints, responsive table behavior, focus rings, reduced motion, token scope, and contrast pairs.
+- Phase 116 should decide whether repeated raw `rs-*` clusters become reusable components or remain documented exceptions.
+- Phase 117 should review shell, navigation, home launcher, kill-switch, and route-flow ergonomics without renaming the existing `RulesteadAdmin.Navigation` mental model.
+- Phase 118 should close evidence with curated screenshots plus deterministic assertions, not broad pixel baselines or external AI judging.
