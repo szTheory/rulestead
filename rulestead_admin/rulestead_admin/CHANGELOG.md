@@ -1,5 +1,43 @@
 # Changelog
 
+## [0.1.8](https://github.com/szTheory/rulestead/compare/rulestead_admin-v0.1.7...rulestead_admin-v0.1.8) (2026-06-13)
+
+
+### Features
+
+* **87-01:** add standalone HTML theme harness ([57df382](https://github.com/szTheory/rulestead/commit/57df3825a35f097215ecc77eb876089fa92b40b1))
+* **87-02:** split :root into invariant-only + .rs-shell light default ([a287d2e](https://github.com/szTheory/rulestead/commit/a287d2e17b57c2466713d4387b1532c921ac1db2))
+* **87-03:** author dark cascade blocks 2/3/4 in rulestead_admin.css ([7266b3a](https://github.com/szTheory/rulestead/commit/7266b3ac05630a56d2fa97c2e321ca4cd9e4bdef))
+* **88-01:** add --rs-primary-ring token gap to all four theme cascade blocks ([c5c5368](https://github.com/szTheory/rulestead/commit/c5c536870a37e9cd8e9b109bd32929b065ac682d))
+* **88-01:** redirect all hardcoded color literals in component rules to tokens ([d6f1b21](https://github.com/szTheory/rulestead/commit/d6f1b2107f754cc3d69a9277643d58ec34abbc48))
+* **89-01:** add Focus Ring Targets section to theme harness ([caf01ea](https://github.com/szTheory/rulestead/commit/caf01eab7bceb81b670c19dfac51237aa70f32ae))
+* **89-02:** add canonical :where() base rule, remove old focus idioms, fix hover/disabled ([04d7839](https://github.com/szTheory/rulestead/commit/04d78395c9616864707ac2ddb2144d2c9168936c))
+* **89-02:** upgrade --rs-focus-ring to two-stop form in all 4 cascade blocks ([d7506c3](https://github.com/szTheory/rulestead/commit/d7506c389854ed28c3ffc5221688585a2a478527))
+* **90-01:** add theme-control fixture + Playwright spec (11 tests) ([a8a4226](https://github.com/szTheory/rulestead/commit/a8a4226835802cee51c0904b7e0c291e31530b7e))
+* **90-02:** add .ThemeControl colocated hook + radiogroup control to shell.ex ([93141d5](https://github.com/szTheory/rulestead/commit/93141d5aee469a475e82de91868fd2ab91a217e0))
+* **90-02:** add theme control CSS + FOUC transition suppression ([a8af6a6](https://github.com/szTheory/rulestead/commit/a8af6a6f10069fcf94c9f87c095e475bbe5c1fe4))
+* **91-02:** add design-system.html fixture + assertAABatch helper ([8800b87](https://github.com/szTheory/rulestead/commit/8800b87946d50a80405612bcd1e5163f311f7871))
+* **97-03:** embed rs-mark in admin + replace phoenix-flame demo logo ([04a46a5](https://github.com/szTheory/rulestead/commit/04a46a5f7f775aa44e32c1a17d2609037a56a40c))
+* **98-02:** mirror Block 1 → Block 4 verbatim (light synced-pair invariant) ([74606fa](https://github.com/szTheory/rulestead/commit/74606fa6f730a20d0aa0297e00969d274c5d0947))
+* **98-02:** re-skin Block 1 — 7 light hex swaps from tokens.json admin_css_mapping.light ([bac7a1b](https://github.com/szTheory/rulestead/commit/bac7a1bc8a7407a55f73417aadd1817767602b7b))
+* **98-03:** mirror Block 3 → Block 2 (dark synced-pair invariant) + phx.digest ([d6f341c](https://github.com/szTheory/rulestead/commit/d6f341c32fc714b6a23643044fd5b4b437b0487f))
+* **98-03:** re-skin Block 3 — 8 dark hex swaps from tokens.json admin_css_mapping.dark ([54d5bfa](https://github.com/szTheory/rulestead/commit/54d5bfa929904e8caf8dd5aff847666c03ed326b))
+* **admin:** render winner wordmark lockup in shell header ([9f02a49](https://github.com/szTheory/rulestead/commit/9f02a490ae2b47d16089c4411a90beeea1c3b88f))
+* **admin:** replace static rs-mark family with winner d-sigil ([60deace](https://github.com/szTheory/rulestead/commit/60deacec9ce041780e6ed32a18e9c024359b577f))
+* **admin:** theme winner lockup via --logo-* vars in all four cascade blocks ([24d227d](https://github.com/szTheory/rulestead/commit/24d227de298dc6dc6ed6e7a15b4ee8702184d29e))
+
+
+### Bug Fixes
+
+* **91-01:** extract synced-pair check to script; remove nested comment delimiters that broke the CSS header comment ([0ac1fb4](https://github.com/szTheory/rulestead/commit/0ac1fb4564ea8b7aa1d3df7830351bbae9c447b2))
+* **91-01:** harden documented synced-pair check to strip comments (header now mentions selectors) ([fee691c](https://github.com/szTheory/rulestead/commit/fee691cda6e6ca7f6a610a6d3e5577c6c0c64137))
+* **92-01:** add overview rail-link modifier CSS + fix attention-empty token ([640b9b0](https://github.com/szTheory/rulestead/commit/640b9b0c6f4c542fdb441bc73aa3d0f4e78cf6d5))
+* **94-01:** add transient data-theme-switching suppression to .ThemeControl applyTheme ([513bc0a](https://github.com/szTheory/rulestead/commit/513bc0a5121b6dbac5695094a95e1b7392c1f39f))
+* **94-01:** align entrance easing to ease-out; extend FOUC suppression to data-theme-switching ([e245007](https://github.com/szTheory/rulestead/commit/e245007a8d5cdd9f96b2a6f0eed50f4fc3869c2b))
+* **94:** clear data-theme-switching in ThemeControl destroyed() (integration-check WARNING) ([b7b35e1](https://github.com/szTheory/rulestead/commit/b7b35e131c4e20e51e11c973ffef4773a05ef694))
+* **a11y:** darken --rs-accent to [#9](https://github.com/szTheory/rulestead/issues/9)a3f12 for WCAG AA in light mode ([fbb3327](https://github.com/szTheory/rulestead/commit/fbb33277bd8dc49a72129bda1e125db4010eee0a))
+* **admin:** de-duplicate attention counts, fix hover/nav/search affordances ([6386a1f](https://github.com/szTheory/rulestead/commit/6386a1f65e7d9be97c69c3ed1e7fd0cf9bb76ae2))
+
 ## [0.1.7](https://github.com/szTheory/rulestead/compare/rulestead_admin-v0.1.6...rulestead_admin-v0.1.7) (2026-06-04)
 
 
