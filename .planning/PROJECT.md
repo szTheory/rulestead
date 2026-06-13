@@ -110,6 +110,19 @@ v1.1–v1.9 feature band is **complete**. v1.10.x–v1.11 doc bands are **shippe
 - Audit closeout backfilled canonical BUI requirement rows, `requirements-completed` summary frontmatter, and Nyquist validation artifacts for Phases 107-112; `.planning/milestones/v1.16-MILESTONE-AUDIT.md` is `passed`.
 - No new runtime APIs, schemas, release workflow changes, component framework, or `rulestead_admin` publish prep.
 
+## Current Milestone: v1.17 Admin Design System Stress Test
+
+**Goal:** Turn the mounted admin/operator UI into a coherent, testable design system across foundations, primitives, composites, page patterns, rare states, light/dark/system modes, and responsive widths.
+
+**Target features:**
+- Repo-native Phoenix/Playwright UI matrix that renders real admin components and seeded flows instead of duplicating HEEx in static Storybook-style fixtures.
+- Foundation hardening for breakpoints, scalar token usage, typography rhythm, radius/shape rules, shadows/elevation, focus rings, reduced motion, table responsiveness, and brand-token drift guards.
+- Systematic primitive and composite polish for buttons, forms, badges, cards, stats, tables, task links, banners, empty states, audit/timeline/diff panels, rollout panels, rule editor surfaces, audience/governance panels, and mutation-confirm flows.
+- Page-flow and IA pass across operator jobs-to-be-done: build/release, explain/diagnose, review/approve, audiences, rollouts, audit, destructive actions, onboarding/happy paths, and boundary/error cases.
+- Screenshot artifacts plus deterministic assertions for contrast, overflow, focus visibility, keyboard flow, motion preferences, fixture health, and planning traceability.
+
+**Scope note:** This is a post-GA design-system quality milestone. It does not add public runtime APIs, schemas, release workflow changes, palette redesign, logo redraw, v2 feature wedges, broad pixel-baseline infrastructure, external AI judging dependency, component framework adoption, or `rulestead_admin` standalone publish preparation.
+
 ## Next Milestone Goals
 
 **Path-to-done (canonical):** See [`.planning/threads/2026-05-28-path-to-done-milestones.md`](.planning/threads/2026-05-28-path-to-done-milestones.md).
@@ -124,6 +137,7 @@ v1.1–v1.9 feature band is **complete**. v1.10.x–v1.11 doc bands are **shippe
 | 4 | **v1.14 — Brand System Realization** | **Complete** (2026-06-06) — Phases 95–101; generated HTML brand book capstone; no runtime API or publish-posture changes |
 | 4b | **v1.15 — Identity Tournament** | **Complete** (2026-06-12) — Phases 102–106; tournament-selected integrated logo + elevated HTML brand book; no runtime API or publish-posture changes |
 | 4c | **v1.16 — Brand-Faithful UI Iteration** | **Complete** (2026-06-13) — v1.15 identity conformance + demo/admin visual evidence + dynamic FleetDesk launcher proof; no runtime APIs or publish-posture changes |
+| 4d | **v1.17 — Admin Design System Stress Test** | **Active** — component/system matrix, foundations hardening, primitive/composite polish, page-flow IA pass, and reusable evidence; no runtime APIs or publish-posture changes |
 | 5+ | **v2.0+ wedges (triggered only)** | GOV-02-ext → ROL-08 → ADM-06 per `.planning/DEFERRED.md` |
 | — | **Maintenance** | Patches and adopter support until a v2 trigger fires |
 
@@ -245,7 +259,7 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 
 ### Active
 
-- **CTX-01**, **CTX-02**, **API-01** through **API-03**, **DOC-01**, **DOC-02**, **VER-01** through **VER-03**, **AUD-01**, **AUD-02** — v1.10.1 support-truth & contract honesty (Phases 73-75)
+- **DSM-01** through **DSM-03**, **FND-01** through **FND-06**, **CMP-01** through **CMP-05**, **FLOW-01** through **FLOW-04**, **VER-01** through **VER-04** — v1.17 admin design-system stress test (Phases 113-118). No public runtime APIs, schema changes, component framework adoption, or publish-posture changes.
 
 ### Validated
 
@@ -365,6 +379,7 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 | Path-to-done = support-truth → integration docs → optional v2 wedges → stop | 2026-05-28 milestone assessment; canonical sequence in path-to-done thread. | Active |
 | Open v1.13 as a deliberate post-GA UX-quality milestone (admin dark mode + design-system polish) outside the v2 trigger gate | Dark mode was already prescribed by the admin UX spec but unimplemented; the token-based CSS made a first-class theme high-leverage and low-risk; deepened the mounted UI without new runtime APIs or widening product shape. | Validated — shipped v1.13 (16/16 reqs, 8 phases) |
 | Close v1.16 only after audit backfill instead of accepting verification gaps as debt | The audit gate requires `*-VERIFICATION.md`, `requirements-completed` summary frontmatter, and Nyquist validation artifacts; backfilling preserves closeout truth without product code changes. | Validated — v1.16 audit passed |
+| Use a repo-native Phoenix/Playwright UI matrix for v1.17 instead of adding Storybook | The admin package is Phoenix LiveView with no JS bundler; rendering real components in a mounted test/dev harness avoids duplicated HEEx, keeps evidence close to the existing demo runner, and leaves PhoenixStorybook as a later maintainer-docs option if needed. | Active |
 
 ## Milestone Archives
 
@@ -401,4 +416,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-13 — shipped v1.16 Brand-Faithful UI Iteration (brand conformance, demo/admin evidence, dynamic FleetDesk launcher proof, audit passed; next milestone requires fresh requirements)*
+*Last updated: 2026-06-13 — started v1.17 Admin Design System Stress Test*
