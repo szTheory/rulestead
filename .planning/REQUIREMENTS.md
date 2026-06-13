@@ -7,9 +7,9 @@
 
 ### Design-System Matrix
 
-- [ ] **DSM-01**: Maintainer can inspect a documented admin component taxonomy that separates foundations, primitives, composites, page patterns, and workflow states.
+- [x] **DSM-01**: Maintainer can inspect a documented admin component taxonomy that separates foundations, primitives, composites, page patterns, and workflow states.
 - [ ] **DSM-02**: Maintainer can open a repo-native UI matrix that renders real `RulesteadAdmin.Components.*` components with fixed assigns instead of duplicated static HEEx.
-- [ ] **DSM-03**: UI matrix examples cover normal, dense, empty, loading, error, permission-denied, long-label, and destructive-action states needed for design-system review.
+- [x] **DSM-03**: UI matrix examples cover normal, dense, empty, loading, error, permission-denied, long-label, and destructive-action states needed for design-system review.
 
 ### Foundations
 
@@ -68,9 +68,9 @@ Deferred until a later milestone or a concrete maintainer need exists.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DSM-01 | Phase 113 | Pending |
+| DSM-01 | Phase 113 | Complete |
 | DSM-02 | Phase 114 | Pending |
-| DSM-03 | Phase 113 | Pending |
+| DSM-03 | Phase 113 | Complete |
 | FND-01 | Phase 115 | Pending |
 | FND-02 | Phase 115 | Pending |
 | FND-03 | Phase 115 | Pending |
@@ -98,4 +98,4 @@ Deferred until a later milestone or a concrete maintainer need exists.
 
 ---
 *Requirements defined: 2026-06-13*
-*Last updated: 2026-06-13 after v1.17 requirements definition*
+*Last updated: 2026-06-13 after Phase 113 completion*
