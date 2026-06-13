@@ -2,6 +2,48 @@
 
 *A living document updated after each milestone. Lessons feed forward into future planning.*
 
+## Milestone: v1.16 — Brand-Faithful UI Iteration
+
+**Shipped:** 2026-06-13
+**Phases:** 7 | **Plans:** 8
+
+### What Was Built
+
+- Rulestead-owned admin, fixture, brandbook, and demo launcher surfaces now match the v1.15 identity across light, dark, and system modes.
+- Static fixtures expose the shipped wordmark, copied logo assets are drift-checked, and logo/contrast guards run in the normal lint path.
+- Shared admin primitive tokens now align primary foregrounds, soft-primary states, and focus/selection rings with the frozen mineral palette.
+- Browser evidence covers admin route clusters, demo launcher, FleetDesk, fixtures, desktop/mobile widths, theme modes, logo visibility, theme controls, and overflow absence.
+- Phase 112.1 closed the audit-discovered FleetDesk dynamic URL gap and added click-through proof plus a build/release rollouts evidence row.
+- Canonical verification/validation artifacts were backfilled so the milestone audit now passes.
+
+### What Worked
+
+- The UI-SPEC boundary kept FleetDesk host-branded while letting Rulestead-owned surfaces inherit the v1.15 identity.
+- Reusable guard scripts (`check_*`) made token/logo/contrast drift cheap to verify after every visual correction.
+- Compose-backed Playwright evidence caught a real dynamic-port bug that screenshots alone would have missed.
+
+### What Was Inefficient
+
+- Initial closeout marked v1.16 complete before canonical `VERIFICATION.md`, `VALIDATION.md`, and summary frontmatter were present.
+- `milestone.complete` auto-extracted weak accomplishments from summary bodies and duplicated the existing v1.16 `MILESTONES.md` entry, requiring manual cleanup.
+
+### Patterns Established
+
+- Treat demo launcher navigation as runtime URL plumbing, not a fixed local-port assumption.
+- Keep visual evidence broad and assertion-heavy rather than committing brittle pixel baselines.
+- Backfill audit artifacts as first-class closeout work rather than accepting verification-record gaps as silent debt.
+
+### Key Lessons
+
+1. A milestone can be functionally shipped while still failing the planning audit; closeout needs both product evidence and canonical traceability.
+2. Host-brand boundaries need browser assertions, not just copy in a UI-SPEC.
+3. Dynamic compose ports are useful audit pressure: they expose hidden localhost assumptions before release.
+
+### Cost Observations
+
+- Same-day milestone with one inserted gap-closure phase.
+- Fresh closeout proof: deterministic guard chain, backend page-controller regression, and `scripts/demo/verify.sh` with compose smoke plus 105 Playwright tests.
+
 ## Milestone: v1.11.1 — Gap Closure
 
 **Shipped:** 2026-05-29
@@ -255,6 +297,7 @@
 | v1.5.0 | 4 | 8 | Introduced guarded rollout foundations with host-owned signal seam |
 | v1.6.0 | 4 | 16 | Deepened reusable targeting with equal core/mounted/proof phase split |
 | v1.7.0 | 4 | 16 | Closed reusable-targeting safety arc with blast-radius governance via change requests |
+| v1.16 | 7 | 8 | Closed brand-faithful UI iteration with browser evidence and audit traceability backfill |
 
 ### Cumulative Quality
 
@@ -263,6 +306,7 @@
 | v1.5.0 | verify.phase52 | guarded rollout drift guards | 2 |
 | v1.6.0 | verify.phase54–56 | reusable targeting drift guards | 4 |
 | v1.7.0 | verify.phase60 | blast-radius governance drift guards | 3 |
+| v1.16 | v1.16 audit passed | brand/token/logo/contrast guards + demo verifier | 1 |
 
 ### Top Lessons (Verified Across Milestones)
 

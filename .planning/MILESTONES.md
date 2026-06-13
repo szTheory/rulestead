@@ -1,19 +1,25 @@
 # Milestones
 
-## v1.16 Brand-Faithful UI Iteration (Shipped: 2026-06-12)
+## v1.16 Brand-Faithful UI Iteration (Shipped: 2026-06-13)
 
-**Phases completed:** 6 phases, 6 plans
+**Phases completed:** 7 phases, 8 plans
 
 **Key accomplishments:**
 
-- Repo-local UI-SPEC locked the brand boundary: mounted admin, brandbook, fixtures, and demo launcher use the v1.15 Rulestead identity; FleetDesk remains a distinct host/example app.
-- Static fixtures now render the shipped wordmark family, stale token literals were removed, copied admin wordmark assets are drift-checked against `brandbook/assets/logo/`, and logo/contrast guards run in the normal lint path.
-- Admin primitive tokens were corrected within the frozen palette: primary foreground contrast, soft primary states, Stead Blue-derived focus/selection rings, scoped theme cascade, and non-color-only status semantics.
+- Repo-local UI-SPEC locked the boundary: mounted admin, brandbook, fixtures, and demo launcher use the v1.15 Rulestead identity; FleetDesk remains a distinct host/example app.
+- Static fixtures render the shipped wordmark family, copied admin wordmark assets are drift-checked against `brandbook/assets/logo/`, and logo/contrast guards run in the normal lint path.
+- Admin primitive tokens were corrected inside the frozen mineral palette: primary foreground contrast, soft-primary states, Stead Blue-derived focus/selection rings, scoped theme cascade, and non-color-only status semantics.
 - Browser evidence covers admin route clusters, demo launcher, FleetDesk, fixtures, light/dark/system modes, desktop/mobile widths, logo visibility, theme controls, and horizontal-overflow absence.
-- Demo surfaces now teach the mounted-library boundary: the Phoenix launcher wears Rulestead, FleetDesk has its own host-brand visual system, and dirty generated asset state no longer breaks the demo build.
-- Full proof closed with deterministic brand/token/logo guards, frontend fixture specs, full compose/browser proof, core/admin/demo backend tests, and a Redis publisher regression fix discovered by the browser verifier.
+- Phase 112.1 closed the audit gap: Phoenix-owned FleetDesk launcher/layout links render from `DEMO_FRONTEND_URL`, backend tests prove non-3000 URLs, and Playwright clicks through to the selected FleetDesk origin.
+- Audit backfill added BUI requirement rows, summary frontmatter, and Nyquist validation artifacts for Phases 107-112; the v1.16 milestone audit now passes.
 
 **Scope note:** No public runtime APIs, schemas, release workflow changes, component framework adoption, palette redesign, logo redraw, or `rulestead_admin` publish preparation.
+
+**Archive:** [.planning/milestones/v1.16-ROADMAP.md](milestones/v1.16-ROADMAP.md)
+
+**Requirements:** [.planning/milestones/v1.16-REQUIREMENTS.md](milestones/v1.16-REQUIREMENTS.md)
+
+**Audit:** [.planning/milestones/v1.16-MILESTONE-AUDIT.md](milestones/v1.16-MILESTONE-AUDIT.md) (`passed`)
 
 ---
 

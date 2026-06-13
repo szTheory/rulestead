@@ -23,7 +23,7 @@ Rulestead is a batteries-included, Elixir-native feature-flag and remote-config 
 - `v1.11` gap closure completed 2026-05-29 across Phases 79–81: lifecycle deep-link anchor fix, Phase 76/77 verification backfill, DOC-01 `evaluation.md` contract guard + `76-VALIDATION.md` Nyquist artifact.
 - `v1.14` shipped on 2026-06-06 across Phases 95–101: source-controlled brand system, mineral admin re-skin, final SVG assets/specimens, copy kit, generated `brandbook/index.html`, stdlib generator, drift/budget guard, CI wiring, and file:// browser evidence — no new runtime APIs, schema changes, package-version changes, or publish-posture changes.
 - `v1.15` shipped on 2026-06-12 across Phases 102–106: tournament-selected integrated logo identity (winner A3-3, maintainer-gated rounds), 8-file lockup family, brand-book §14 logo system, admin/demo propagation, and the elevated designed `brandbook/index.html` (cover, scrollspy rail, AA-badged swatches, logo plates, print) — zero token deviations, no runtime API or publish-posture changes.
-- `v1.16` shipped on 2026-06-12 across Phases 107–112: full brand-faithful UI iteration over static fixtures, admin primitives, admin workflow evidence, demo launcher, FleetDesk host-brand boundary, logo/token/contrast drift guards, and full compose/browser proof — no public runtime APIs, schemas, release workflow changes, component framework adoption, or admin publish prep.
+- `v1.16` shipped on 2026-06-13 across Phases 107–112.1: full brand-faithful UI iteration over static fixtures, admin primitives, admin workflow evidence, demo launcher, FleetDesk host-brand boundary, logo/token/contrast drift guards, dynamic FleetDesk launcher URL/click-through evidence, and passed milestone audit backfill — no public runtime APIs, schemas, release workflow changes, component framework adoption, or admin publish prep.
 
 <details>
 <summary>Shipped: v1.11 Integration Spine (2026-05-28)</summary>
@@ -96,7 +96,7 @@ v1.1–v1.9 feature band is **complete**. v1.10.x–v1.11 doc bands are **shippe
 
 **Scope note:** Post-GA brand/UX-quality milestone (like v1.13/v1.14). No new product runtime APIs, schema changes, package-version changes, or publish-posture changes. Fonts/colors may change only if the tournament winner demands it, recorded as an explicit deviation in the winner spec.
 
-## Shipped: v1.16 Brand-Faithful UI Iteration (2026-06-12)
+## Shipped: v1.16 Brand-Faithful UI Iteration (2026-06-13)
 
 **Goal:** Make every rendered Rulestead-owned surface faithfully reflect the v1.15 identity in light, dark, and system modes, while keeping FleetDesk clearly host-branded.
 
@@ -106,7 +106,9 @@ v1.1–v1.9 feature band is **complete**. v1.10.x–v1.11 doc bands are **shippe
 - Shared admin primitive pass for primary/action foregrounds, Stead Blue-derived focus/selection rings, scoped theme cascade, and non-color-only status semantics.
 - Admin workflow browser evidence across Build & release, Explain & diagnose, Review & approve, and destructive per-flag flows in light/dark/system modes.
 - Demo surface alignment: Rulestead-owned launcher chrome uses the new identity; FleetDesk remains a separate host brand with its own system-dark visual language.
-- Visual evidence closeout via Playwright artifacts and GSD planning truth; no new runtime APIs, schemas, release workflow changes, component framework, or `rulestead_admin` publish prep.
+- Visual evidence closeout via Playwright artifacts and GSD planning truth; Phase 112.1 added dynamic `DEMO_FRONTEND_URL` click-through proof and the build/release rollouts evidence row.
+- Audit closeout backfilled canonical BUI requirement rows, `requirements-completed` summary frontmatter, and Nyquist validation artifacts for Phases 107-112; `.planning/milestones/v1.16-MILESTONE-AUDIT.md` is `passed`.
+- No new runtime APIs, schemas, release workflow changes, component framework, or `rulestead_admin` publish prep.
 
 ## Next Milestone Goals
 
@@ -121,7 +123,7 @@ v1.1–v1.9 feature band is **complete**. v1.10.x–v1.11 doc bands are **shippe
 | 3 | **v1.13 — Admin UI dark mode + design-system polish** | **Complete** (2026-06-04) — Phases 87–94; mounted-admin UX quality, no new runtime APIs; on branch (unmerged) |
 | 4 | **v1.14 — Brand System Realization** | **Complete** (2026-06-06) — Phases 95–101; generated HTML brand book capstone; no runtime API or publish-posture changes |
 | 4b | **v1.15 — Identity Tournament** | **Complete** (2026-06-12) — Phases 102–106; tournament-selected integrated logo + elevated HTML brand book; no runtime API or publish-posture changes |
-| 4c | **v1.16 — Brand-Faithful UI Iteration** | **Complete** (2026-06-12) — v1.15 identity conformance + demo/admin visual evidence; no runtime APIs or publish-posture changes |
+| 4c | **v1.16 — Brand-Faithful UI Iteration** | **Complete** (2026-06-13) — v1.15 identity conformance + demo/admin visual evidence + dynamic FleetDesk launcher proof; no runtime APIs or publish-posture changes |
 | 5+ | **v2.0+ wedges (triggered only)** | GOV-02-ext → ROL-08 → ADM-06 per `.planning/DEFERRED.md` |
 | — | **Maintenance** | Patches and adopter support until a v2 trigger fires |
 
@@ -247,6 +249,8 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 
 ### Validated
 
+- ✓ **BUI-01** through **BUI-06** — brand-faithful UI iteration: conformance matrix, fixture/guardrail alignment, shared admin primitive token pass, admin workflow evidence, demo host/Rulestead boundary, browser evidence and audit closeout — `v1.16`, Phases 107-112.1 (2026-06-13). No public runtime APIs or publish-posture changes.
+
 - ✓ **THM-01–06**, **A11Y-01–03**, **DSY-01–02**, **IA-01–02**, **SCRN-01**, **MOT-01–02** — first-class tri-state (System/Light/Dark) dark mode for `rulestead_admin`: on-brand mineral-dark token cascade, WCAG-AA both themes, unified focus ring, persistent theme control + FOUC handling, consolidated/documented/gated design system, IA/home refinement, restrained motion — `v1.13` (Phases 87–94, 2026-06-04). No new runtime APIs.
 
 - ✓ **IMP-05**, **IMP-06**, **IMP-07**, **GOV-05**, **ADM-05**, **VER-01** through **VER-03** — host-supplied preview evidence contract, governance boundary, mounted workflows, and proof/docs support truth — `v1.9.0`, Phases 65-68 (2026-05-28)
@@ -360,9 +364,11 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 | Defer v2.0.0 until a deferred trigger is real; ship v1.10.1 support-truth first | Repo assessment found quickstart `traits:`/`attributes:` mismatch and api_stability drift; post-GA feature band is code-complete (~91–94% done). | Validated |
 | Path-to-done = support-truth → integration docs → optional v2 wedges → stop | 2026-05-28 milestone assessment; canonical sequence in path-to-done thread. | Active |
 | Open v1.13 as a deliberate post-GA UX-quality milestone (admin dark mode + design-system polish) outside the v2 trigger gate | Dark mode was already prescribed by the admin UX spec but unimplemented; the token-based CSS made a first-class theme high-leverage and low-risk; deepened the mounted UI without new runtime APIs or widening product shape. | Validated — shipped v1.13 (16/16 reqs, 8 phases) |
+| Close v1.16 only after audit backfill instead of accepting verification gaps as debt | The audit gate requires `*-VERIFICATION.md`, `requirements-completed` summary frontmatter, and Nyquist validation artifacts; backfilling preserves closeout truth without product code changes. | Validated — v1.16 audit passed |
 
 ## Milestone Archives
 
+- Latest archive: [.planning/milestones/v1.16-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.16-ROADMAP.md), [.planning/milestones/v1.16-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v1.16-REQUIREMENTS.md), [.planning/milestones/v1.16-MILESTONE-AUDIT.md](/Users/jon/projects/rulestead/.planning/milestones/v1.16-MILESTONE-AUDIT.md)
 - Roadmap archive: [.planning/milestones/v0.1.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.1.0-ROADMAP.md), [.planning/milestones/v0.2.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.2.0-ROADMAP.md), [.planning/milestones/v0.3.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.3.0-ROADMAP.md), [.planning/milestones/v0.4.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.4.0-ROADMAP.md), [.planning/milestones/v0.5.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.5.0-ROADMAP.md), [.planning/milestones/v0.6.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v0.6.0-ROADMAP.md), [.planning/milestones/v1.0.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.0.0-ROADMAP.md), [.planning/milestones/v1.1.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.1.0-ROADMAP.md), [.planning/milestones/v1.2.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.2.0-ROADMAP.md), [.planning/milestones/v1.3.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.3.0-ROADMAP.md), [.planning/milestones/v1.4.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.4.0-ROADMAP.md), [.planning/milestones/v1.5.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.5.0-ROADMAP.md), [.planning/milestones/v1.6.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.6.0-ROADMAP.md), [.planning/milestones/v1.7.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.7.0-ROADMAP.md), [.planning/milestones/v1.8.0-ROADMAP.md](/Users/jon/projects/rulestead/.planning/milestones/v1.8.0-ROADMAP.md)
 - Requirements archive: [.planning/milestones/v0.1.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.1.0-REQUIREMENTS.md), [.planning/milestones/v0.2.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.2.0-REQUIREMENTS.md), [.planning/milestones/v0.3.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.3.0-REQUIREMENTS.md), [.planning/milestones/v0.4.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.4.0-REQUIREMENTS.md), [.planning/milestones/v0.5.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.5.0-REQUIREMENTS.md), [.planning/milestones/v0.6.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v0.6.0-REQUIREMENTS.md), [.planning/milestones/v1.0.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v1.0.0-REQUIREMENTS.md), [.planning/milestones/v1.1.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v1.1.0-REQUIREMENTS.md), [.planning/milestones/v1.2.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v1.2.0-REQUIREMENTS.md), [.planning/milestones/v1.3.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v1.3.0-REQUIREMENTS.md), [.planning/milestones/v1.4.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v1.4.0-REQUIREMENTS.md), [.planning/milestones/v1.5.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v1.5.0-REQUIREMENTS.md), [.planning/milestones/v1.6.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v1.6.0-REQUIREMENTS.md), [.planning/milestones/v1.7.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v1.7.0-REQUIREMENTS.md), [.planning/milestones/v1.8.0-REQUIREMENTS.md](/Users/jon/projects/rulestead/.planning/milestones/v1.8.0-REQUIREMENTS.md)
 
@@ -395,4 +401,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-12 — shipped v1.15 Identity Tournament (tournament-selected integrated logo + elevated HTML brand book; next phase number: 107)*
+*Last updated: 2026-06-13 — shipped v1.16 Brand-Faithful UI Iteration (brand conformance, demo/admin evidence, dynamic FleetDesk launcher proof, audit passed; next milestone requires fresh requirements)*

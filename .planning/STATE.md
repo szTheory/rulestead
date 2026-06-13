@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.16
 milestone_name: Brand-Faithful UI Iteration
-status: complete
-last_updated: "2026-06-13T01:07:03Z"
-last_activity: 2026-06-13 -- Phase 112.1 plan 02 complete
+status: Awaiting next milestone
+last_updated: "2026-06-13T01:32:45.257Z"
+last_activity: 2026-06-13 — Milestone v1.16 completed and archived
 progress:
   total_phases: 7
   completed_phases: 7
@@ -21,9 +21,9 @@ See: `.planning/PROJECT.md` (updated 2026-06-12)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
 
-**Current focus:** Phase 112.1 complete — close-gap-bui-05-bui-06-dynamic-fleetdesk-launcher-url-and-e
+**Current focus:** v1.16 archived; awaiting next milestone definition.
 
-**Milestone:** v1.16 Brand-Faithful UI Iteration shipped 2026-06-12 — see `.planning/ROADMAP.md` for phase structure
+**Milestone:** v1.16 Brand-Faithful UI Iteration shipped 2026-06-13 — see `.planning/milestones/v1.16-ROADMAP.md` for archived phase structure.
 
 **Previous milestone:** v1.15 Identity Tournament shipped 2026-06-12 — see `.planning/milestones/v1.15-ROADMAP.md`
 
@@ -31,10 +31,10 @@ See: `.planning/PROJECT.md` (updated 2026-06-12)
 
 ## Current Position
 
-Phase: 112.1 (close-gap-bui-05-bui-06-dynamic-fleetdesk-launcher-url-and-e) — COMPLETE
-Plan: 2 of 2 complete
-Status: Phase 112.1 complete; ready for v1.16 closeout review or next-step decision
-Last activity: 2026-06-13 -- Phase 112.1 plan 02 complete
+Phase: Milestone v1.16 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-06-13 — Milestone v1.16 completed and archived
 
 ## Phase Dependency Map
 
@@ -133,6 +133,7 @@ Human checkpoints:
 - **v1.16 compose proof fix:** Dynamic-port browser proof now serves the frontend with a matching `NEXT_PUBLIC_FLAGS_API_BASE` and backend CORS allowlist for both selected loopback origins.
 - **Phase 112.1-01:** Phoenix-owned FleetDesk launcher and shared layout navigation links now read `DEMO_FRONTEND_URL` through runtime application config, with `http://localhost:3000` only as the unaided local fallback. Backend regression tests prove a non-3000 configured URL renders in both surfaces.
 - **Phase 112.1-02:** Compose-backed Playwright evidence now asserts both Phoenix-rendered FleetDesk links against the selected `DEMO_FRONTEND_URL`, clicks through from the launcher to FleetDesk, includes the fleet-map-v2 rollouts evidence row, and records D-01 through D-12 verification truth.
+- **v1.16 audit close:** Backfilled canonical BUI requirement rows, `requirements-completed` summary frontmatter, and Nyquist validation artifacts for Phases 107-112; `.planning/milestones/v1.16-MILESTONE-AUDIT.md` is `passed`.
 
 ### Deferred Items (v2)
 
@@ -162,14 +163,13 @@ All closed — v1.12 adoption evidence depth complete.
 
 ## Operator Next Steps
 
-- Decide branch topology for the still-unmerged v1.13 -> v1.16 chain before merging to `main` because main auto-publishes to Hex.
-- Preserve scope boundaries in any follow-up: no public runtime APIs, schemas, component framework, admin publish prep, palette redesign, or logo redraw.
-- If the parked admin-polish WIP is resumed, merge it after this branch and resolve against the Phase 105/v1.16 shell component class scheme.
+- Start the next milestone with /gsd-new-milestone
 
 ## Latest Verification
 
 Fresh v1.16 proof bars:
 
+- Milestone audit: `.planning/milestones/v1.16-MILESTONE-AUDIT.md` (`passed`, 6/6 requirements, 7/7 phases).
 - Deterministic brand/token/logo guard chain: `check_synced_pair.py`, `check_brand_tokens.py`, `check_tokens_css.py`, `check_contrast.py`, `check_brandbook_html.py`, `check_logo_assets.py`.
 - Frontend fixture/file evidence: `brandbook.spec.ts`, `design-system.spec.ts`, `theme-cascade.spec.ts`, `theme-control.spec.ts`, `theme-scope.spec.ts`.
 - Full compose/browser proof: `scripts/demo/verify.sh` including smoke health and browser suite.
