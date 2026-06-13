@@ -32,6 +32,7 @@ FINAL_LOGOS = [
     "rs-mark-mono.svg",
     "rs-favicon.svg",
     "rs-social-card.svg",
+    "rs-social-card-light.svg",
 ]
 
 SPECIMENS = [
@@ -61,8 +62,23 @@ LOGO_PLATE_INFO = {
     "rs-mark-dark.svg": ("dark", "d-sigil mark — dark surfaces"),
     "rs-mark-mono.svg": ("light", "Monochrome mark — single-ink contexts"),
     "rs-favicon.svg": ("any", "Favicon — browser chrome, any theme"),
-    "rs-social-card.svg": ("any", "Social card — self-backed, theme-independent"),
 }
+
+SOCIAL_CARD_EXPORT_INFO = {
+    "rs-social-card.svg": ("dark", "Social card — dark Basalt export"),
+    "rs-social-card-light.svg": ("light", "Social card — light Rain Tint export"),
+}
+
+BRAND_ANCHOR_TOKENS = [
+    ("primitive.ink-blue.base", "Ink Blue", "Wordmark and primary text"),
+    ("primitive.stead-blue.base", "Stead Blue", "Routing trace and primary action"),
+    ("primitive.ember-copper.base", "Ember Copper", "Selected path and accent"),
+    ("primitive.basalt.base", "Basalt", "Deep dark surface"),
+    ("primitive.rain-tint.base", "Rain Tint", "Light page field"),
+    ("primitive.stone-mist.base", "Stone Mist", "Contrast check surface"),
+    ("primitive.quarry.base", "Quarry", "Muted route and structure"),
+    ("primitive.signal-gold.base", "Signal Gold", "Decorative only"),
+]
 
 SECTION_ORDER = [
     "overview",
@@ -632,6 +648,34 @@ def render_color_swatches(tokens: list[dict[str, str]]) -> str:
     return '<div class="swatch-grid">' + "".join(swatches) + "</div>"
 
 
+def render_brand_anchor_strip(tokens: list[dict[str, str]]) -> str:
+    by_name = {token["name"]: token for token in tokens}
+    anchors = []
+    for token_name, label, role in BRAND_ANCHOR_TOKENS:
+        token = by_name.get(token_name)
+        if token is None:
+            raise BrandbookError(f"ERROR: required brand anchor token {token_name} not found")
+        value = token["value"]
+        if not value.startswith("#"):
+            raise BrandbookError(f"ERROR: brand anchor token {token_name} must be a hex color")
+        anchors.append(
+            '<article class="anchor-card" style="--anchor-color: '
+            f'{html.escape(value, quote=True)}">'
+            '<span class="anchor-chip" aria-hidden="true"></span>'
+            '<span class="anchor-meta">'
+            f'<strong>{html.escape(label)}</strong>'
+            f'<code>{html.escape(value)}</code>'
+            "</span>"
+            f'<span class="anchor-role">{html.escape(role)}</span>'
+            "</article>"
+        )
+    return (
+        '<div class="brand-anchors" aria-label="Brand anchor colors">'
+        + "".join(anchors)
+        + "</div>"
+    )
+
+
 def render_semantic_swatches(tokens: list[dict[str, str]], group: str, pair_bg: str, pair_label: str) -> str:
     cards = []
     for token in tokens:
@@ -759,16 +803,66 @@ def render_logo_plates(assets: list[dict[str, Any]]) -> str:
         compact = filename in {"rs-mark.svg", "rs-mark-dark.svg", "rs-mark-mono.svg", "rs-favicon.svg"}
         plate_class = "plate plate--compact" if compact else "plate plate--wide"
         href = page_href(asset["source_path"])
-        light_tag = '<span class="plate-tag">primary surface</span>' if intended == "light" else ""
-        dark_tag = '<span class="plate-tag plate-tag--dark">primary surface</span>' if intended == "dark" else ""
-        if filename == "rs-mark-mono.svg":
-            dark_tag = '<span class="plate-tag plate-tag--dark">single ink &mdash; light surfaces only</span>'
+
+        def plate_tile(
+            surface: str,
+            svg_markup: str,
+            label: str,
+            primary: bool,
+            diagnostic: str | None = None,
+        ) -> str:
+            classes = [
+                "plate-tile",
+                f"plate-tile--{surface}",
+                "plate-tile--primary" if primary else "plate-tile--secondary",
+            ]
+            tag_classes = ["plate-tag"]
+            if surface == "dark":
+                tag_classes.append("plate-tag--dark")
+            if not primary:
+                tag_classes.append("plate-tag--secondary")
+            content = svg_markup
+            if diagnostic:
+                content = (
+                    '<div class="plate-diagnostic">'
+                    '<span class="plate-diagnostic-kicker">Invalid surface</span>'
+                    f'<strong class="plate-diagnostic-title">{html.escape(diagnostic)}</strong>'
+                    '<span class="plate-diagnostic-note">Use the matched logo asset for this surface.</span>'
+                    f'<span class="plate-diagnostic-sample">{svg_markup}</span>'
+                    "</div>"
+                )
+            return (
+                f'<div class="{" ".join(classes)}" data-plate-role="{"primary" if primary else "secondary"}" '
+                f'data-plate-surface="{surface}">'
+                f"{content}"
+                f'<span class="{" ".join(tag_classes)}">{label}</span>'
+                "</div>"
+            )
+
+        if intended == "dark":
+            primary_surface = "dark"
+            secondary_surface = "light"
+        else:
+            primary_surface = "light"
+            secondary_surface = "dark"
+
+        primary_label = "valid surface" if intended == "any" else "primary surface"
+        secondary_label = "valid surface" if intended == "any" else "compatibility check"
+        secondary_diagnostic = None
+        if intended != "any":
+            secondary_diagnostic = f"Do not use on {secondary_surface} surface"
         plates.append(
             f'<figure class="{plate_class}">'
             '<div class="plate-tiles">'
-            f'<div class="plate-tile plate-tile--light">{inline_svg}{light_tag}</div>'
-            f'<div class="plate-tile plate-tile--dark">{svg_use(root_id, view_box)}{dark_tag}</div>'
-            "</div>"
+            + plate_tile(primary_surface, inline_svg, primary_label, True)
+            + plate_tile(
+                secondary_surface,
+                svg_use(root_id, view_box),
+                secondary_label,
+                False,
+                secondary_diagnostic,
+            )
+            + "</div>"
             "<figcaption>"
             f'<strong>{html.escape(asset["label"])}</strong>'
             f"<span>{html.escape(caption)}</span>"
@@ -777,6 +871,28 @@ def render_logo_plates(assets: list[dict[str, Any]]) -> str:
             "</figure>"
         )
     return '<div class="plate-grid">' + "".join(plates) + "</div>"
+
+
+def render_social_card_exports(assets: list[dict[str, Any]]) -> str:
+    cards = []
+    for asset in assets:
+        filename = Path(asset["source_path"]).name
+        surface, caption = SOCIAL_CARD_EXPORT_INFO[filename]
+        href = page_href(asset["source_path"])
+        cards.append(
+            f'<figure class="social-card-export" data-social-surface="{surface}">'
+            '<div class="social-card-preview">'
+            f'{asset["svg"]}'
+            f'<span class="plate-tag social-card-tag">{html.escape(surface)} export</span>'
+            "</div>"
+            "<figcaption>"
+            f'<strong>{html.escape(asset["label"])}</strong>'
+            f"<span>{html.escape(caption)}</span>"
+            f'<span class="plate-file"><a href="{html.escape(href, quote=True)}">{html.escape(href)}</a> &middot; {asset["bytes"]} bytes</span>'
+            "</figcaption>"
+            "</figure>"
+        )
+    return '<div class="social-card-export-grid">' + "".join(cards) + "</div>"
 
 
 def render_clearspace_diagram(assets: list[dict[str, Any]]) -> str:
@@ -1199,8 +1315,9 @@ $dark_aliases
   font-weight: 700;
   line-height: 1;
   letter-spacing: -0.03em;
-  color: transparent;
-  -webkit-text-stroke: 1.25px var(--rs-border);
+  color: var(--rs-text-muted);
+  opacity: 0.76;
+  -webkit-text-stroke: 0;
 }
 
 .section-head h2 {
@@ -1324,6 +1441,56 @@ $dark_aliases
 }
 
 /* ---------- Token swatches ---------- */
+
+.brand-anchors {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(176px, 1fr));
+  gap: 10px;
+  margin: 28px 0 8px;
+}
+
+.anchor-card {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  gap: 8px 12px;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid var(--rs-border-subtle);
+  border-radius: var(--rs-radius-md);
+  background: var(--rs-surface);
+}
+
+.anchor-chip {
+  grid-row: 1 / span 2;
+  display: block;
+  width: 52px;
+  height: 52px;
+  border: 1px solid var(--rs-border-subtle);
+  border-radius: var(--rs-radius-sm);
+  background: var(--anchor-color);
+}
+
+.anchor-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+}
+
+.anchor-meta strong {
+  font-family: var(--rs-font-display);
+  font-size: 0.88rem;
+}
+
+.anchor-meta code,
+.anchor-role {
+  color: var(--rs-text-muted);
+  font-size: var(--rs-text-xs);
+}
+
+.anchor-role {
+  line-height: 1.4;
+}
 
 .swatch-grid {
   display: grid;
@@ -1489,7 +1656,9 @@ $dark_aliases
 
 .plate-tiles {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(148px, 0.42fr);
+  gap: 1px;
+  background: var(--rs-border-subtle);
 }
 
 .plate-tile {
@@ -1498,6 +1667,15 @@ $dark_aliases
   place-items: center;
   min-height: 150px;
   padding: 30px 26px;
+}
+
+.plate-tile--primary {
+  min-height: 190px;
+}
+
+.plate-tile--secondary {
+  min-height: 150px;
+  padding: 24px 18px;
 }
 
 .plate-tile--light {
@@ -1516,8 +1694,91 @@ $dark_aliases
   height: auto;
 }
 
-.plate--compact .plate-tile svg {
+.plate-tile--primary > svg {
+  max-width: 410px;
+  max-height: 132px;
+}
+
+.plate-tile--secondary > svg {
+  max-width: 220px;
+  max-height: 82px;
+}
+
+.plate--compact .plate-tile > svg {
   max-width: 84px;
+}
+
+.plate--compact .plate-tile--primary > svg {
+  max-width: 108px;
+}
+
+.plate--compact .plate-tile--secondary > svg {
+  max-width: 72px;
+}
+
+.plate-diagnostic {
+  display: grid;
+  justify-items: start;
+  align-content: center;
+  gap: 8px;
+  width: min(100%, 260px);
+  min-height: 104px;
+  padding-top: 20px;
+  text-align: left;
+}
+
+.plate-diagnostic-kicker,
+.plate-diagnostic-note {
+  color: #647383;
+  font-family: var(--rs-font-mono);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+
+.plate-diagnostic-title {
+  color: #183247;
+  font-family: var(--rs-font-display);
+  font-size: clamp(0.92rem, 1.5vw, 1.2rem);
+  line-height: 1.05;
+  text-wrap: balance;
+}
+
+.plate-diagnostic-note {
+  max-width: 23ch;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.plate-diagnostic-sample {
+  display: block;
+  width: min(100%, 172px);
+  margin-top: 6px;
+  opacity: 0.32;
+}
+
+.plate-diagnostic-sample svg {
+  max-width: 100%;
+  max-height: 52px;
+}
+
+.plate--compact .plate-diagnostic-sample {
+  width: 62px;
+}
+
+.plate--compact .plate-diagnostic-sample svg {
+  max-height: 54px;
+}
+
+.plate-tile--dark .plate-diagnostic-title {
+  color: #e8edf3;
+}
+
+.plate-tile--dark .plate-diagnostic-kicker,
+.plate-tile--dark .plate-diagnostic-note {
+  color: #a8b9ca;
 }
 
 .plate-tag {
@@ -1538,6 +1799,11 @@ $dark_aliases
 .plate-tag--dark {
   border-color: rgba(232, 237, 243, 0.26);
   color: #a8b9ca;
+}
+
+.plate-tag--secondary {
+  border-style: dashed;
+  opacity: 0.86;
 }
 
 .plate figcaption {
@@ -1567,6 +1833,62 @@ $dark_aliases
   color: var(--rs-text-muted);
   font-size: var(--rs-text-xs);
   font-weight: 400;
+}
+
+.social-card-export-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.social-card-export {
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--rs-border-subtle);
+  border-radius: var(--rs-radius-md);
+  background: var(--rs-surface);
+}
+
+.social-card-preview {
+  position: relative;
+  display: grid;
+  min-height: 220px;
+  place-items: center;
+  padding: 28px 24px;
+  background: #e8ece8;
+}
+
+.social-card-preview svg {
+  display: block;
+  width: min(100%, 640px);
+  height: auto;
+  outline: 1px solid rgba(15, 23, 32, 0.14);
+  outline-offset: -1px;
+  box-shadow: 0 18px 44px rgba(15, 23, 32, 0.12);
+}
+
+.social-card-tag {
+  color: #5c6b7a;
+  border-color: rgba(26, 35, 50, 0.22);
+  background: rgba(244, 246, 248, 0.84);
+}
+
+.social-card-export figcaption {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 14px;
+  padding: 12px 16px;
+}
+
+.social-card-export figcaption strong {
+  font-family: var(--rs-font-display);
+  font-size: 0.88rem;
+}
+
+.social-card-export figcaption span {
+  color: var(--rs-text-muted);
+  font-size: var(--rs-text-xs);
 }
 
 /* ---------- Clear space ---------- */
@@ -1819,6 +2141,16 @@ th {
   text-transform: uppercase;
 }
 
+.doc-excerpt table {
+  min-width: 720px;
+}
+
+.doc-excerpt th:first-child,
+.doc-excerpt td:first-child {
+  min-width: 86px;
+  white-space: nowrap;
+}
+
 .asset-card {
   margin: 0;
   overflow: hidden;
@@ -1866,7 +2198,13 @@ th {
 .doc-excerpt {
   min-width: 0;
   padding: 16px;
+  overflow-x: auto;
   overflow-wrap: anywhere;
+}
+
+.doc-stack {
+  display: grid;
+  gap: 18px;
 }
 
 .brand-footer {
@@ -1956,6 +2294,10 @@ th {
   }
 
   .plate-tiles {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .social-card-export-grid {
     grid-template-columns: minmax(0, 1fr);
   }
 
@@ -2063,8 +2405,9 @@ $light_aliases
   }
 
   .section-num {
-    color: transparent;
-    -webkit-text-stroke: 1.25px #d8dee6;
+    color: #5c6b7a;
+    opacity: 1;
+    -webkit-text-stroke: 0;
   }
 
   [data-rulestead-brandbook] a {
@@ -2248,7 +2591,7 @@ def render_overview_section(sources: dict[str, Any]) -> str:
 def render_voice_messaging_section(sources: dict[str, Any]) -> str:
     return (
         brand_section_html(sources, ["7", "8", "9", "19"])
-        + '<div class="doc-grid">'
+        + '<div class="doc-stack">'
         + f'<article class="doc-excerpt">{render_markdown(sources["brandbook/VOICE.md"])}</article>'
         + f'<article class="doc-excerpt">{render_markdown(sources["brandbook/COPY.md"])}</article>'
         + "</div>"
@@ -2260,6 +2603,7 @@ def render_color_section(sources: dict[str, Any]) -> str:
     mappings = tokens["admin_css_mapping"]
     return (
         brand_section_html(sources, ["12"])
+        + render_brand_anchor_strip(tokens["primitive"])
         + '<p class="policy-note"><strong>Signal Gold <code>#D2A94E</code> is decorative-only.</strong> Never use it as normal-weight text.</p>'
         + "<h3>Primitive palette</h3>"
         + render_color_swatches(tokens["primitive"])
@@ -2293,12 +2637,25 @@ def render_typography_section(sources: dict[str, Any]) -> str:
 
 def render_logo_section(sources: dict[str, Any]) -> str:
     logos = sources["logos"]
+    plate_logos = [
+        asset
+        for asset in logos
+        if Path(asset["source_path"]).name not in SOCIAL_CARD_EXPORT_INFO
+    ]
+    social_cards = [
+        asset
+        for asset in logos
+        if Path(asset["source_path"]).name in SOCIAL_CARD_EXPORT_INFO
+    ]
     return (
         brand_section_html(sources, ["14"])
         + "<h3>Logo plates</h3>"
-        + '<p class="plate-note">Every shipped file, rendered live on both reference surfaces '
+        + '<p class="plate-note">Transparent logo files rendered live on both reference surfaces '
         + "(<code>#f4f6f8</code> light &middot; <code>#10161f</code> dark). The tagged tile is the variant&rsquo;s primary surface.</p>"
-        + render_logo_plates(logos)
+        + render_logo_plates(plate_logos)
+        + "<h3>Social card exports</h3>"
+        + '<p class="plate-note">Self-backed 1200&times;630 social/OG cards. Use the dark or light export directly; do not place these inside another surface tile.</p>'
+        + render_social_card_exports(social_cards)
         + "<h3>Clear space</h3>"
         + render_clearspace_diagram(logos)
         + "<h3>Use and misuse</h3>"
@@ -2343,7 +2700,7 @@ def render_motion_section(sources: dict[str, Any]) -> str:
 def render_assets_maintenance_section(sources: dict[str, Any]) -> str:
     return (
         brand_section_html(sources, ["25"])
-        + '<div class="doc-grid">'
+        + '<div class="doc-stack doc-stack--maintenance">'
         + f'<article class="doc-excerpt">{render_markdown(sources["brandbook/README.md"])}</article>'
         + f'<article class="doc-excerpt">{render_markdown(sources["brandbook/BUDGET.md"])}</article>'
         + f'<article class="doc-excerpt">{render_markdown(sources["brandbook/docs/brand-usage.md"])}</article>'

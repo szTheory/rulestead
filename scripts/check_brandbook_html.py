@@ -35,6 +35,7 @@ FINAL_LOGO_SOURCE_REFS = [
     "assets/logo/rs-mark-mono.svg",
     "assets/logo/rs-favicon.svg",
     "assets/logo/rs-social-card.svg",
+    "assets/logo/rs-social-card-light.svg",
 ]
 
 SPECIMEN_SOURCE_REFS = [

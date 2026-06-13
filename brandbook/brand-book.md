@@ -621,6 +621,7 @@ from the route's lowest point, not from the glyph baseline.
 | `rs-mark-mono.svg` | Single-color contexts; node hierarchy carried by geometry alone |
 | `rs-favicon.svg` | Favicon: transparent d-sigil, no container rectangle |
 | `rs-social-card.svg` | 1200×630 social/OG card — lockup and tagline on a Basalt field |
+| `rs-social-card-light.svg` | 1200×630 social/OG card — lockup and tagline on a Rain Tint field |
 
 ### Misuse
 
@@ -996,4 +997,3 @@ Rulestead is a calm, infrastructure-grade, Elixir-native feature management bran
 ## 27. Final brand mantra
 
 **Rulestead makes change feel governed, not chaotic.**
-
