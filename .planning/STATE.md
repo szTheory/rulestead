@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.16
 milestone_name: Brand-Faithful UI Iteration
-status: executing
-last_updated: "2026-06-12T21:56:10Z"
-last_activity: 2026-06-12 -- Phase 112.1 plan 01 complete
+status: complete
+last_updated: "2026-06-13T01:07:03Z"
+last_activity: 2026-06-13 -- Phase 112.1 plan 02 complete
 progress:
   total_phases: 7
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 8
-  completed_plans: 7
-  percent: 87
+  completed_plans: 8
+  percent: 100
 ---
 
 # State: Rulestead
@@ -21,7 +21,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-12)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
 
-**Current focus:** Phase 112.1 — close-gap-bui-05-bui-06-dynamic-fleetdesk-launcher-url-and-e
+**Current focus:** Phase 112.1 complete — close-gap-bui-05-bui-06-dynamic-fleetdesk-launcher-url-and-e
 
 **Milestone:** v1.16 Brand-Faithful UI Iteration shipped 2026-06-12 — see `.planning/ROADMAP.md` for phase structure
 
@@ -31,10 +31,10 @@ See: `.planning/PROJECT.md` (updated 2026-06-12)
 
 ## Current Position
 
-Phase: 112.1 (close-gap-bui-05-bui-06-dynamic-fleetdesk-launcher-url-and-e) — EXECUTING
-Plan: 2 of 2
-Status: Ready for Phase 112.1 plan 02
-Last activity: 2026-06-12 -- Phase 112.1 plan 01 complete
+Phase: 112.1 (close-gap-bui-05-bui-06-dynamic-fleetdesk-launcher-url-and-e) — COMPLETE
+Plan: 2 of 2 complete
+Status: Phase 112.1 complete; ready for v1.16 closeout review or next-step decision
+Last activity: 2026-06-13 -- Phase 112.1 plan 02 complete
 
 ## Phase Dependency Map
 
@@ -45,9 +45,10 @@ Last activity: 2026-06-12 -- Phase 112.1 plan 01 complete
                 └──► 110 (admin workflow screen pass)
                        └──► 111 (demo surface alignment)
                               └──► 112 (visual evidence + closeout)
+                                     └──► 112.1 (dynamic FleetDesk launcher URL/evidence gap closure)
 ```
 
-Strictly sequential: **107 → 108 → 109 → 110 → 111 → 112**
+Strictly sequential: **107 → 108 → 109 → 110 → 111 → 112 → 112.1**
 
 Human checkpoints:
 
@@ -131,6 +132,7 @@ Human checkpoints:
 - **v1.16 runtime verifier fix:** Compose/browser evidence exposed a Redis publisher transaction race; the snapshot fetch is now deferred through the publisher process with a bounded retry so kill-switch browser proof reflects the committed runtime state.
 - **v1.16 compose proof fix:** Dynamic-port browser proof now serves the frontend with a matching `NEXT_PUBLIC_FLAGS_API_BASE` and backend CORS allowlist for both selected loopback origins.
 - **Phase 112.1-01:** Phoenix-owned FleetDesk launcher and shared layout navigation links now read `DEMO_FRONTEND_URL` through runtime application config, with `http://localhost:3000` only as the unaided local fallback. Backend regression tests prove a non-3000 configured URL renders in both surfaces.
+- **Phase 112.1-02:** Compose-backed Playwright evidence now asserts both Phoenix-rendered FleetDesk links against the selected `DEMO_FRONTEND_URL`, clicks through from the launcher to FleetDesk, includes the fleet-map-v2 rollouts evidence row, and records D-01 through D-12 verification truth.
 
 ### Deferred Items (v2)
 
@@ -210,3 +212,4 @@ Fresh v1.16 proof bars:
 | Phase 100-marketing-copy-repo-artifact-plan P03 | 5min | 2 tasks | 5 files |
 | Phase 100-marketing-copy-repo-artifact-plan P04 | 5min | 2 tasks | 3 files |
 | Phase 112.1-close-gap-bui-05-bui-06-dynamic-fleetdesk-launcher-url-and-e P01 | 8min | 3 tasks | 6 files |
+| Phase 112.1-close-gap-bui-05-bui-06-dynamic-fleetdesk-launcher-url-and-e P02 | recovered | 2 tasks | 6 files |
