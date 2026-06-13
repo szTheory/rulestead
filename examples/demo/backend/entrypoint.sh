@@ -25,5 +25,10 @@ mix ecto.migrate --migrations-path "$RULESTEAD_MIGRATIONS_PATH"
 echo "[demo-backend] seeding demo data"
 mix run priv/repo/seeds.exs
 
+if [ -n "${RULESTEAD_REDIS_URL:-}" ]; then
+  echo "[demo-backend] syncing runtime snapshots to redis"
+  mix rulestead.redis.sync
+fi
+
 echo "[demo-backend] starting application"
 exec "$@"

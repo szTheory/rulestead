@@ -2,6 +2,7 @@
 set -euo pipefail
 
 RULESTEAD_REPO="${RULESTEAD_REPO:-${GITHUB_WORKSPACE:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}}"
+PHX_NEW_VERSION="${PHX_NEW_VERSION:-1.8.8}"
 
 usage() {
   echo "usage: $0 <released-version>" >&2
@@ -76,13 +77,16 @@ require_cmd jq
 require_cmd mix
 
 ensure_phx_new_archive() {
-  if mix help phx.new >/dev/null 2>&1; then
-    return 0
-  fi
+  local archives
+  archives="$(mix archive)"
 
-  echo "Installing phx_new archive for admin consumer fixture generation"
+  case "${archives}" in
+    *"* phx_new-${PHX_NEW_VERSION}"*) return 0 ;;
+  esac
+
+  echo "Installing phx_new ${PHX_NEW_VERSION} archive for admin consumer fixture generation"
   mix local.hex --force
-  mix archive.install hex phx_new --force
+  mix archive.install hex phx_new "${PHX_NEW_VERSION}" --force
 }
 
 ensure_phx_new_archive

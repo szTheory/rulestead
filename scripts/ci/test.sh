@@ -7,6 +7,7 @@ MATRIX_OTP="${MATRIX_OTP:-}"
 TEST_SCOPE="${RULESTEAD_TEST_SCOPE:-${1:-all}}"
 export MIX_ENV="${MIX_ENV:-test}"
 MOUNTED_PROOF_RUNBOOK="${RULESTEAD_REPO}/MAINTAINING.md"
+PHX_NEW_VERSION="${PHX_NEW_VERSION:-1.8.8}"
 
 run_mix() {
   local package_dir="$1"
@@ -25,9 +26,15 @@ prepare_rulestead_test_db() {
 }
 
 ensure_phx_new() {
-  if ! (cd "${RULESTEAD_REPO}/rulestead" && mix help phx.new >/dev/null 2>&1); then
-    run_mix rulestead archive.install hex phx_new --force
-  fi
+  local archives
+  archives="$(cd "${RULESTEAD_REPO}/rulestead" && mix archive)"
+
+  case "${archives}" in
+    *"* phx_new-${PHX_NEW_VERSION}"*) return 0 ;;
+  esac
+
+  run_mix rulestead local.hex --force
+  run_mix rulestead archive.install hex phx_new "${PHX_NEW_VERSION}" --force
 }
 
 run_mix_logged() {
