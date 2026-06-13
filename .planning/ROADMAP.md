@@ -22,7 +22,7 @@ Turn the mounted admin/operator UI into a coherent, testable design system acros
 **Plans:** 3 plans
 
 Plans:
-- [ ] 113-01-PLAN.md - Source-backed design-system inventory.
+- [x] 113-01-PLAN.md - Source-backed design-system inventory.
 - [ ] 113-02-PLAN.md - UI matrix state, evidence, operator-lens, and fixture-data contract.
 - [ ] 113-03-PLAN.md - Acceptance gates, requirement closeout, and state handoff.
 
@@ -94,7 +94,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 113. Design-System Inventory + UI Matrix Contract | 0/3 | Planned | - |
+| 113. Design-System Inventory + UI Matrix Contract | 1/3 | Executing | - |
 | 114. Repo-Native Component Matrix Harness | 0/0 | Pending | - |
 | 115. Foundations Hardening | 0/0 | Pending | - |
 | 116. Primitive + Composite Polish | 0/0 | Pending | - |
@@ -116,6 +116,6 @@ Plans:
 
 ## Next
 
-Execute Phase 113:
+Continue Phase 113 execution:
 
 `$gsd-execute-phase 113`
