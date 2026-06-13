@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v1.17
 milestone_name: Admin Design System Stress Test
 status: planning
-last_updated: "2026-06-13T18:47:22.211Z"
-last_activity: 2026-06-13
+last_updated: "2026-06-13T18:48:24.000Z"
+last_activity: 2026-06-13 - Milestone v1.17 roadmap created
 progress:
-  total_phases: 0
+  total_phases: 6
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -17,51 +17,55 @@ progress:
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-06-12)
+See: `.planning/PROJECT.md` (updated 2026-06-13)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
 
-**Current focus:** v1.16 archived; awaiting next milestone definition.
+**Current focus:** Phase 113 - Design-System Inventory + UI Matrix Contract.
 
-**Milestone:** v1.16 Brand-Faithful UI Iteration shipped 2026-06-13 — see `.planning/milestones/v1.16-ROADMAP.md` for archived phase structure.
+**Milestone:** v1.17 Admin Design System Stress Test — see `.planning/ROADMAP.md`.
 
-**Previous milestone:** v1.15 Identity Tournament shipped 2026-06-12 — see `.planning/milestones/v1.15-ROADMAP.md`
+**Previous milestone:** v1.16 Brand-Faithful UI Iteration shipped 2026-06-13 — see `.planning/milestones/v1.16-ROADMAP.md`
 
-**Assessment:** `.planning/threads/2026-05-28-post-v1.11-milestone-next-step-assessment.md` (done band 93–95%)
+**Assessment:** v1.17 plan is scoped as post-GA design-system quality work after v1.16 proved brand-faithful shell, fixture, demo, and workflow evidence.
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 113 - Design-System Inventory + UI Matrix Contract
 Plan: —
-Status: Defining requirements
-Last activity: 2026-06-13 — Milestone v1.17 started
+Status: Ready for phase discussion or planning
+Last activity: 2026-06-13 - Milestone v1.17 requirements and roadmap created
 
 ## Phase Dependency Map
 
 ```
-107 (brand/UI audit + UI-SPEC)
-  └──► 108 (fixture + guardrail alignment)
-         └──► 109 (shared admin primitive pass)
-                └──► 110 (admin workflow screen pass)
-                       └──► 111 (demo surface alignment)
-                              └──► 112 (visual evidence + closeout)
-                                     └──► 112.1 (dynamic FleetDesk launcher URL/evidence gap closure)
+113 (design-system inventory + UI matrix contract)
+  -> 114 (repo-native component matrix harness)
+        -> 115 (foundations hardening)
+              -> 116 (primitive + composite polish)
+                    -> 117 (page flow + IA pass)
+                          -> 118 (evidence + idempotence guardrails)
 ```
 
-Strictly sequential: **107 → 108 → 109 → 110 → 111 → 112 → 112.1**
+Strictly sequential: **113 -> 114 -> 115 -> 116 -> 117 -> 118**
 
 Human checkpoints:
 
-- None currently required. FleetDesk brand boundary is locked: FleetDesk remains host-branded, Rulestead-owned demo/admin chrome uses the v1.15 identity.
+- Phase 113 should confirm the component taxonomy, UI matrix state list, and any intentional exceptions before implementation broadens into CSS/component polish.
+- v1.17 keeps the v1.16 brand boundary: FleetDesk remains host-branded; Rulestead identity applies to mounted admin, brandbook, fixtures, and Rulestead-owned demo chrome.
 
 ## Accumulated Context
 
 ### Roadmap Evolution
 
+- v1.17 started after v1.16 audit closeout: Admin Design System Stress Test spans Phases 113-118 and focuses on repo-native component matrix evidence, foundations hardening, primitive/composite polish, page-flow IA, and idempotent design-system guardrails.
 - Phase 112.1 inserted after Phase 112: Close gap: BUI-05/BUI-06 - dynamic FleetDesk launcher URL and evidence (URGENT)
 
 ### Decisions
 
+- **v1.17 harness choice:** Use a repo-native Phoenix/Playwright UI matrix that renders real admin components. Do not adopt standard JavaScript Storybook for this milestone; PhoenixStorybook remains a future option if maintainer-facing component docs become necessary.
+- **v1.17 scope:** Full mounted admin/operator design-system pass, not runtime product work. No public runtime APIs, schemas, release workflow changes, palette redesign, logo redraw, component framework adoption, broad pixel-baseline maintenance, external AI judging dependency, v2 wedge, or `rulestead_admin` standalone publish prep.
+- **v1.17 evidence posture:** Screenshots plus deterministic assertions and human review. Continue the v1.16 preference for broad Playwright artifacts over checked-in pixel baselines.
 - **Hex release:** `rulestead` + `rulestead_admin` **0.1.3** live (2026-05-28). Post-publish verify trio green.
 - **Handoff thread:** `.planning/threads/2026-05-28-post-0.1.2-maintenance-handoff.md` — read after context clear.
 - **Path-to-done: complete** (v1.10.1 + v1.11 + v1.11.1 gap closure + v1.12 adoption evidence shipped).
@@ -163,19 +167,16 @@ All closed — v1.12 adoption evidence depth complete.
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Start Phase 113 with `$gsd-discuss-phase 113`.
+- Or plan directly with `$gsd-plan-phase 113`.
 
 ## Latest Verification
 
-Fresh v1.16 proof bars:
+Current v1.17 planning proof:
 
-- Milestone audit: `.planning/milestones/v1.16-MILESTONE-AUDIT.md` (`passed`, 6/6 requirements, 7/7 phases).
-- Deterministic brand/token/logo guard chain: `check_synced_pair.py`, `check_brand_tokens.py`, `check_tokens_css.py`, `check_contrast.py`, `check_brandbook_html.py`, `check_logo_assets.py`.
-- Frontend fixture/file evidence: `brandbook.spec.ts`, `design-system.spec.ts`, `theme-cascade.spec.ts`, `theme-control.spec.ts`, `theme-scope.spec.ts`.
-- Full compose/browser proof: `scripts/demo/verify.sh` including smoke health and browser suite.
-- Core package proof: `cd rulestead && mix test`.
-- Admin package proof: `cd rulestead_admin && mix test`.
-- Demo backend proof: `cd examples/demo/backend && mix test --max-cases 1`.
+- Requirements: `.planning/REQUIREMENTS.md` maps 22/22 v1.17 requirements to Phases 113-118.
+- Roadmap: `.planning/ROADMAP.md` defines 6 sequential phases and preserves linked-version sibling-package constraints.
+- Baseline inherited from v1.16: brand/token/logo guard chain, frontend fixture specs, admin workflow screenshot evidence, compose/browser proof, core/admin/demo tests, and passed v1.16 milestone audit.
 
 ## Performance Metrics
 
