@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.17
 milestone_name: Admin Design System Stress Test
 status: planning
-last_updated: "2026-06-13T18:48:24.000Z"
-last_activity: 2026-06-13 - Milestone v1.17 roadmap created
+last_updated: "2026-06-13T18:58:48.000Z"
+last_activity: 2026-06-13 - Phase 113 context gathered
 progress:
   total_phases: 6
   completed_phases: 0
@@ -33,8 +33,8 @@ See: `.planning/PROJECT.md` (updated 2026-06-13)
 
 Phase: 113 - Design-System Inventory + UI Matrix Contract
 Plan: —
-Status: Ready for phase discussion or planning
-Last activity: 2026-06-13 - Milestone v1.17 requirements and roadmap created
+Status: Context gathered; ready for phase planning
+Last activity: 2026-06-13 - Phase 113 context gathered in assumptions mode
 
 ## Phase Dependency Map
 
@@ -66,6 +66,7 @@ Human checkpoints:
 - **v1.17 harness choice:** Use a repo-native Phoenix/Playwright UI matrix that renders real admin components. Do not adopt standard JavaScript Storybook for this milestone; PhoenixStorybook remains a future option if maintainer-facing component docs become necessary.
 - **v1.17 scope:** Full mounted admin/operator design-system pass, not runtime product work. No public runtime APIs, schemas, release workflow changes, palette redesign, logo redraw, component framework adoption, broad pixel-baseline maintenance, external AI judging dependency, v2 wedge, or `rulestead_admin` standalone publish prep.
 - **v1.17 evidence posture:** Screenshots plus deterministic assertions and human review. Continue the v1.16 preference for broad Playwright artifacts over checked-in pixel baselines.
+- **Phase 113 context:** `.planning/phases/113-design-system-inventory-ui-matrix-contract/113-CONTEXT.md` locks the inventory taxonomy, UI matrix state contract, operator lenses, evidence posture, and scope constraints for downstream planning.
 - **Hex release:** `rulestead` + `rulestead_admin` **0.1.3** live (2026-05-28). Post-publish verify trio green.
 - **Handoff thread:** `.planning/threads/2026-05-28-post-0.1.2-maintenance-handoff.md` — read after context clear.
 - **Path-to-done: complete** (v1.10.1 + v1.11 + v1.11.1 gap closure + v1.12 adoption evidence shipped).
@@ -167,8 +168,8 @@ All closed — v1.12 adoption evidence depth complete.
 
 ## Operator Next Steps
 
-- Start Phase 113 with `$gsd-discuss-phase 113`.
-- Or plan directly with `$gsd-plan-phase 113`.
+- Plan Phase 113 with `$gsd-plan-phase 113`.
+- Or review/edit `.planning/phases/113-design-system-inventory-ui-matrix-contract/113-CONTEXT.md` before planning.
 
 ## Latest Verification
 
@@ -176,6 +177,7 @@ Current v1.17 planning proof:
 
 - Requirements: `.planning/REQUIREMENTS.md` maps 22/22 v1.17 requirements to Phases 113-118.
 - Roadmap: `.planning/ROADMAP.md` defines 6 sequential phases and preserves linked-version sibling-package constraints.
+- Phase 113 context: `.planning/phases/113-design-system-inventory-ui-matrix-contract/113-CONTEXT.md` exists and is visible to `gsd-sdk query init.phase-op 113` as `has_context: true`.
 - Baseline inherited from v1.16: brand/token/logo guard chain, frontend fixture specs, admin workflow screenshot evidence, compose/browser proof, core/admin/demo tests, and passed v1.16 milestone audit.
 
 ## Performance Metrics
