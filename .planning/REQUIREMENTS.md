@@ -38,8 +38,8 @@
 ### Verification
 
 - [ ] **VER-01**: Playwright captures UI matrix and admin workflow screenshots across light, dark, system-dark, desktop, mobile, and reduced-motion cases.
-- [ ] **VER-02**: Deterministic assertions cover horizontal overflow, focus visibility, key ARIA roles, keyboard flow, fixture load health, and selected contrast pairs.
-- [ ] **VER-03**: Existing brand/token/logo/contrast/brandbook guard scripts remain green and are extended only where they prevent real design-system drift.
+- [x] **VER-02**: Deterministic assertions cover horizontal overflow, focus visibility, key ARIA roles, keyboard flow, fixture load health, and selected contrast pairs.
+- [x] **VER-03**: Existing brand/token/logo/contrast/brandbook guard scripts remain green and are extended only where they prevent real design-system drift.
 - [ ] **VER-04**: Planning docs record v1.17 decisions, verification evidence, requirement completion, and any intentional exceptions before milestone closeout.
 
 ## Future Requirements
@@ -87,8 +87,8 @@ Deferred until a later milestone or a concrete maintainer need exists.
 | FLOW-03 | Phase 117 | Complete |
 | FLOW-04 | Phase 117 | Complete |
 | VER-01 | Phase 118 | Pending |
-| VER-02 | Phase 118 | Pending |
-| VER-03 | Phase 118 | Pending |
+| VER-02 | Phase 118 | Complete |
+| VER-03 | Phase 118 | Complete |
 | VER-04 | Phase 118 | Pending |
 | FUT-01 | Deferred | Future |
 | FUT-02 | Deferred | Future |

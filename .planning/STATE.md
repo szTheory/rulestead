@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.17
 milestone_name: Admin Design System Stress Test
 status: executing
-last_updated: "2026-06-14T22:17:01.423Z"
-last_activity: 2026-06-14 -- Phase 118 planning complete
+last_updated: "2026-06-14T22:24:36.265Z"
+last_activity: 2026-06-14 -- Phase 118 Plan 01 complete
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 19
-  completed_plans: 16
+  completed_plans: 17
   percent: 83
 ---
 
@@ -21,7 +21,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-13)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
 
-**Current focus:** Phase 118 — evidence + idempotence guardrails
+**Current focus:** Phase 118 — evidence-idempotence-guardrails
 
 **Milestone:** v1.17 Admin Design System Stress Test — see `.planning/ROADMAP.md`.
 
@@ -31,12 +31,12 @@ See: `.planning/PROJECT.md` (updated 2026-06-13)
 
 ## Current Position
 
-Phase: 118
-Plan: Not started
+Phase: 118 (evidence-idempotence-guardrails) — EXECUTING
+Plan: 2 of 3
 Status: Ready to execute
-Last activity: 2026-06-14 -- Phase 118 planning complete
-Stopped at: Phase 118 UI-SPEC approved
-Resume file: .planning/phases/118-evidence-idempotence-guardrails/118-UI-SPEC.md
+Last activity: 2026-06-14 -- Phase 118 Plan 01 complete
+Stopped at: Ready for Phase 118 Plan 02
+Resume file: .planning/phases/118-evidence-idempotence-guardrails/118-02-PLAN.md
 
 Phase 117 planning deliverables:
 
@@ -110,6 +110,8 @@ Human checkpoints:
 - **v1.17 harness choice:** Use a repo-native Phoenix/Playwright UI matrix that renders real admin components. Do not adopt standard JavaScript Storybook for this milestone; PhoenixStorybook remains a future option if maintainer-facing component docs become necessary.
 - **v1.17 scope:** Full mounted admin/operator design-system pass, not runtime product work. No public runtime APIs, schemas, release workflow changes, palette redesign, logo redraw, component framework adoption, broad pixel-baseline maintenance, external AI judging dependency, v2 wedge, or `rulestead_admin` standalone publish prep.
 - **v1.17 evidence posture:** Screenshots plus deterministic assertions and human review. Continue the v1.16 preference for broad Playwright artifacts over checked-in pixel baselines.
+- **Phase 118 Plan 01:** Added `scripts/check_design_system_evidence.py`, a stdlib source guard for UI matrix/workflow evidence hooks, generated screenshot posture, selected contrast labels, fixture-health states, and forbidden visual-baseline tooling.
+- **Phase 118 Plan 01 lint wiring:** `scripts/ci/lint.sh` now runs the design-system evidence guard after admin foundations and before SVG budgets, keeping the normal guard spine focused and dependency-free.
 - **Phase 113 context:** `.planning/phases/113-design-system-inventory-ui-matrix-contract/113-CONTEXT.md` locks the inventory taxonomy, UI matrix state contract, operator lenses, evidence posture, and scope constraints for downstream planning.
 - **Phase 114 context:** `.planning/phases/114-repo-native-component-matrix-harness/114-CONTEXT.md` locks a demo-hosted, dev/test-only Phoenix/Playwright matrix that renders real `RulesteadAdmin.Components.*` and selected seeded admin flow examples without widening `RulesteadAdmin.Router.rulestead_admin/2`, package metadata, release workflow, CSS foundation work, or component polish scope.
 - **Phase 114 Plan 01:** `/dev/rulestead-admin/ui-matrix` is a demo-hosted dev/test route outside `RulesteadAdmin.Router.rulestead_admin/2`; it renders real `RulesteadAdmin.Components.*` modules inside `Shell.page/1` with deterministic fixtures from `UiMatrixFixtures`.
