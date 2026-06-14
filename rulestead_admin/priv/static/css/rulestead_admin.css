@@ -619,6 +619,7 @@
   background: var(--rs-surface-muted);
   padding: 0.1em 0.35em;
   border-radius: 4px;
+  overflow-wrap: anywhere;
 }
 
 .rs-shell button,
@@ -1723,6 +1724,7 @@ a.rs-shell__env-link:active {
   border: 1px solid var(--rs-border);
   border-radius: var(--rs-radius-lg);
   padding: 1rem 1.15rem;
+  min-width: 0;
   box-shadow: var(--rs-shadow);
 }
 
@@ -2002,6 +2004,7 @@ a.rs-shell__env-link:active {
   display: grid;
   gap: var(--rs-space-4);
   max-width: 42rem;
+  min-width: 0;
 }
 
 .rs-mutation-confirm__scope {
@@ -2012,6 +2015,7 @@ a.rs-shell__env-link:active {
   border: 1px solid var(--rs-border-subtle);
   border-radius: var(--rs-radius-md);
   background: var(--rs-surface-faint);
+  min-width: 0;
 }
 
 .rs-mutation-confirm__scope > div {
@@ -2019,6 +2023,7 @@ a.rs-shell__env-link:active {
   flex-wrap: wrap;
   gap: var(--rs-space-2);
   align-items: baseline;
+  min-width: 0;
 }
 
 .rs-mutation-confirm__scope dt {
@@ -2032,11 +2037,13 @@ a.rs-shell__env-link:active {
 
 .rs-mutation-confirm__scope dd {
   margin: 0;
+  min-width: 0;
 }
 
 .rs-mutation-confirm__evidence {
   display: grid;
   gap: var(--rs-space-3);
+  min-width: 0;
 }
 
 .rs-mutation-confirm__actions {
@@ -2740,12 +2747,14 @@ a.rs-shell__env-link:active {
 /* Tables */
 
 .rs-table {
+  display: block;
   width: 100%;
+  table-layout: fixed;
   border-collapse: collapse;
   background: var(--rs-surface);
   border: 1px solid var(--rs-border);
   border-radius: var(--rs-radius-lg);
-  overflow: hidden;
+  overflow-x: auto;
   box-shadow: var(--rs-shadow);
   font-size: 0.875rem;
 }
@@ -2761,6 +2770,7 @@ a.rs-shell__env-link:active {
   text-align: left;
   vertical-align: top;
   border-bottom: 1px solid var(--rs-border);
+  overflow-wrap: anywhere;
 }
 
 .rs-table th {
@@ -3818,6 +3828,7 @@ a.rs-env-state:active {
   display: grid;
   grid-template-columns: var(--rs-timeline-time-width) 1.5rem minmax(0, 1fr);
   gap: 0.75rem;
+  min-width: 0;
   padding-bottom: 1rem;
 }
 
@@ -4106,6 +4117,8 @@ a.rs-env-state:active {
 }
 
 .rs-raw-detail pre {
+  box-sizing: border-box;
+  max-width: 100%;
   overflow: auto;
   margin: 0.65rem 0 0;
   padding: 0.85rem 0.95rem;
