@@ -124,24 +124,18 @@ defmodule RulesteadDemoWeb.UiMatrixFixtures do
 
   def route_examples do
     [
-      %{label: "Inventory", path: "/admin/flags?env=production-eu-central"},
-      %{label: "Rules", path: "/admin/flags/#{@long_flag_key}/rules?env=production-eu-central"},
+      %{label: "Overview", path: "/admin/flags"},
+      %{label: "Inventory", path: "/admin/flags/flags?env=staging&view=all"},
+      %{label: "Rules", path: "/admin/flags/enable-new-dashboard/rules?env=staging"},
+      %{label: "Kill switch", path: "/admin/flags/enable-new-dashboard/kill?env=staging"},
+      %{label: "Audiences", path: "/admin/flags/audiences?env=staging"},
+      %{label: "Audit", path: "/admin/flags/audit?env=staging"},
       %{
-        label: "Rollouts",
-        path: "/admin/flags/#{@long_flag_key}/rollouts?env=production-eu-central"
+        label: "Explain",
+        path:
+          "/admin/flags/enable-new-dashboard/explain?env=staging&targeting_key=support-user-42&tenant_key=acme"
       },
-      %{
-        label: "Timeline and audit",
-        path: "/admin/flags/#{@long_flag_key}/timeline?env=production-eu-central"
-      },
-      %{
-        label: "Explain and simulate",
-        path: "/admin/flags/#{@long_flag_key}/simulate?env=production-eu-central"
-      },
-      %{
-        label: "Destructive preview",
-        path: "/admin/flags/#{@long_flag_key}/kill?env=production-eu-central"
-      }
+      %{label: "Simulate", path: "/admin/flags/enable-new-dashboard/simulate?env=staging"}
     ]
   end
 
