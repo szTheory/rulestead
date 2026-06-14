@@ -29,7 +29,7 @@ defmodule RulesteadDemoWeb.UiMatrixFixtures do
       ],
       env_options: [
         %{
-          name: "Development",
+          environment: %{key: "development", name: "Development", status: :healthy, production?: false},
           href: "/dev/rulestead-admin/ui-matrix?env=development",
           current?: false,
           available?: true,
@@ -37,7 +37,12 @@ defmodule RulesteadDemoWeb.UiMatrixFixtures do
           title: "Development fixture scope"
         },
         %{
-          name: "Production EU Central Operations With An Intentionally Long Name",
+          environment: %{
+            key: "production-eu-central-operations-with-an-intentionally-long-name",
+            name: "Production EU Central Operations With An Intentionally Long Name",
+            status: :healthy,
+            production?: true
+          },
           href:
             "/dev/rulestead-admin/ui-matrix?env=production-eu-central-operations-with-an-intentionally-long-name",
           current?: true,
@@ -46,7 +51,7 @@ defmodule RulesteadDemoWeb.UiMatrixFixtures do
           title: "Production fixture scope"
         },
         %{
-          name: "Disabled regional failover",
+          environment: %{key: "disabled-region", name: "Disabled regional failover", status: :unavailable},
           href: "#",
           current?: false,
           available?: false,
@@ -68,7 +73,7 @@ defmodule RulesteadDemoWeb.UiMatrixFixtures do
         "tenant-read-only" => "/dev/rulestead-admin/ui-matrix?tenant=tenant-read-only"
       },
       policy_state: %{
-        capabilities: [:read, :preview],
+        capabilities: %{read?: true, propose?: false, execute?: false, admin?: false},
         denied_reason:
           "Fixture read-only policy: destructive writes are unavailable for this matrix example."
       },
@@ -147,6 +152,7 @@ defmodule RulesteadDemoWeb.UiMatrixFixtures do
         source_label: "guarded_rollout_auto_advance",
         resource_key: @long_flag_key,
         reason: @long_reason,
+        rollback_of_event_id: nil,
         raw: audit_raw("rollout.held")
       },
       %{
@@ -163,6 +169,7 @@ defmodule RulesteadDemoWeb.UiMatrixFixtures do
         source_label: nil,
         resource_key: @long_flag_key,
         reason: "Read-only audit fixture for denied audience dependency review.",
+        rollback_of_event_id: nil,
         raw: audit_raw("audience.reviewed")
       }
     ]
@@ -183,6 +190,7 @@ defmodule RulesteadDemoWeb.UiMatrixFixtures do
       source_label: nil,
       resource_key: @long_flag_key,
       reason: @long_reason,
+      rollback_of_event_id: nil,
       show_diff?: true,
       change_label: "Rollout percentage and guardrail fingerprint changed.",
       source_summary: "10% / rs_guardrail_old_fingerprint_for_wrapping",
@@ -334,9 +342,24 @@ defmodule RulesteadDemoWeb.UiMatrixFixtures do
       authoritative_population_count?: false,
       preview_fingerprint: "gov_preview_long_fingerprint_for_matrix_wrapping_proof",
       breach_reasons: [
-        "12 authored references exceed direct apply limit",
-        "Production environment requires reviewer approval",
-        "Host evidence is bounded and not an authoritative population count"
+        %{
+          code: "reference_limit_exceeded",
+          observed: %{reference_keys: Enum.map(1..12, &"#{@long_flag_key}-#{&1}")},
+          limit: 2,
+          remediation: "Route through change request review."
+        },
+        %{
+          code: "production_requires_review",
+          observed: "production-eu-central",
+          limit: "direct apply unavailable",
+          remediation: "Assign a reviewer before execution."
+        },
+        %{
+          code: "bounded_host_evidence",
+          observed: "explicit sample and impression evidence only",
+          limit: "not an authoritative population count",
+          remediation: "Keep the uncertainty line visible."
+        }
       ]
     }
   end
