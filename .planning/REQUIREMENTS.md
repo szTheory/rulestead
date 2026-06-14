@@ -32,7 +32,7 @@
 
 - [x] **FLOW-01**: Admin route clusters are mapped to operator jobs-to-be-done for build/release, explain/diagnose, review/approve, audiences, rollouts, audit, and destructive actions.
 - [x] **FLOW-02**: Page sections and component groups follow least-surprise information hierarchy for onboarding, intermediate, and advanced operator paths.
-- [ ] **FLOW-03**: Keyboard, focus order, mobile layout, and narrow viewport behavior remain usable across the primary admin route clusters.
+- [x] **FLOW-03**: Keyboard, focus order, mobile layout, and narrow viewport behavior remain usable across the primary admin route clusters.
 - [x] **FLOW-04**: Demo/fixture data includes enough happy-path, error, boundary, and rare-state examples to exercise the design system without changing product semantics.
 
 ### Verification
@@ -84,7 +84,7 @@ Deferred until a later milestone or a concrete maintainer need exists.
 | CMP-05 | Phase 116 | Complete |
 | FLOW-01 | Phase 117 | Complete |
 | FLOW-02 | Phase 117 | Complete |
-| FLOW-03 | Phase 117 | Pending |
+| FLOW-03 | Phase 117 | Complete |
 | FLOW-04 | Phase 117 | Complete |
 | VER-01 | Phase 118 | Pending |
 | VER-02 | Phase 118 | Pending |
