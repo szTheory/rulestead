@@ -1,7 +1,7 @@
 ---
 phase: 117
 slug: page-flow-ia-pass
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-06-14
@@ -20,7 +20,7 @@ created: 2026-06-14
 | Tool | none - repo-native Phoenix LiveView admin using the existing Rulestead admin design system |
 | Preset | not applicable |
 | Component library | Phoenix.Component plus existing `RulesteadAdmin.Components.*`; route-owned IA remains in LiveView modules |
-| Icon library | Existing admin component glyphs and inline affordances only; do not add an icon package |
+| Icon library | Existing admin component glyphs and inline affordances only; do not add an icon package. Icon-only controls must expose an accessible name via visible text, `aria-label`, or the existing component label pattern. |
 | Font | `--rs-font-display` Sora for page titles, `--rs-font-sans` Inter for UI/body roles, `--rs-font-mono` IBM Plex Mono for keys, fingerprints, JSON, and code values |
 
 Manual design-system source: `rulestead_admin/priv/static/css/rulestead_admin.css`, `brandbook/tokens.json`, `brandbook/tokens.css`, `RulesteadAdmin.Components.Shell.page/1`, `RulesteadAdmin.Navigation`, and the reusable component modules under `rulestead_admin/lib/rulestead_admin/components/`.
@@ -116,6 +116,7 @@ The existing Ember Copper `--rs-accent` remains a restrained brand and risky-sta
 | Keyboard path | Representative route evidence must cover rail/home navigation, command palette open/search/result selection, filters/forms, contextual subnav/tabs, and at least one destructive or review workflow. |
 | Focus order | Focus must follow visual and decision order: route orientation, primary action or filter, main evidence, secondary detail, then destructive or advanced controls. Avoid focus jumps into low-priority sidebars before the first answer. |
 | Command palette | Command palette grouping must derive from the same navigation source as rail/home. It must remain reachable by keyboard, expose grouped options, and keep selected option state visible. |
+| Accessible names | Icon-only shell, route, command-palette, and destructive-flow controls must expose a stable accessible name through visible text, `aria-label`, or an existing component label pattern. Do not rely on glyph shape, color, title-only hover text, or adjacent visual context as the only name. |
 | Mobile/narrow | Mobile route order must prioritize first answer, primary safe action, critical evidence, then dense detail. Primary actions must remain reachable without horizontal page overflow. |
 | Destructive flows | Keep preview -> confirm -> audit. Require reason where applicable, typed confirmation for high-risk actions, specific danger emphasis, explicit disabled/unavailable explanations, a non-danger back link, and audit handoff. |
 | Forms and filters | Prefer semantic links, buttons, forms, `handle_params/3`, `push_patch`, streams, and route-owned form handling. Use DOM-aware JavaScript only for existing focus-heavy widgets such as the command palette. |
@@ -186,11 +187,11 @@ No third-party component source is approved for Phase 117. If a future change pr
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** approved 2026-06-14
