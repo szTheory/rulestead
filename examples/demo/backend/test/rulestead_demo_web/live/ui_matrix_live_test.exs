@@ -177,6 +177,52 @@ defmodule RulesteadDemoWeb.UiMatrixLiveTest do
     assert UiMatrixFixtures.audience_dependencies().hidden_count > 0
   end
 
+  test "phase 117 route examples cover primary flow IA routes" do
+    route_examples = UiMatrixFixtures.route_examples()
+    route_labels = Enum.map(route_examples, & &1.label)
+    route_paths = Enum.map(route_examples, & &1.path)
+
+    for label <- [
+          "Overview",
+          "Inventory",
+          "Rules",
+          "Kill switch",
+          "Audiences",
+          "Audit",
+          "Explain",
+          "Simulate"
+        ] do
+      assert label in route_labels
+    end
+
+    for path_fragment <- [
+          "/admin/flags",
+          "/admin/flags/flags",
+          "/admin/flags/enable-new-dashboard/rules",
+          "/admin/flags/enable-new-dashboard/kill",
+          "/admin/flags/audiences",
+          "/admin/flags/audit",
+          "/admin/flags/enable-new-dashboard/explain",
+          "/admin/flags/enable-new-dashboard/simulate"
+        ] do
+      assert Enum.any?(route_paths, &String.contains?(&1, path_fragment))
+    end
+
+    rare_states = Enum.map(UiMatrixFixtures.rare_state_examples(), & &1.state)
+
+    for state <- [
+          :empty,
+          :permission_denied,
+          :read_only,
+          :unavailable,
+          :destructive,
+          :loading,
+          :error
+        ] do
+      assert state in rare_states
+    end
+  end
+
   test "source boundary stays demo-hosted and real-component backed" do
     router_source = read_source("lib/rulestead_demo_web/router.ex")
     live_source = read_source("lib/rulestead_demo_web/live/ui_matrix_live.ex")
