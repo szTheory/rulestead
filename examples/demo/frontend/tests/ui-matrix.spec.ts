@@ -1,4 +1,6 @@
 import { expect, test, type Browser, type Page } from "@playwright/test";
+import fs from "fs";
+import path from "path";
 
 import { backendUrl } from "./support/admin";
 
@@ -55,6 +57,21 @@ const matrixSections = [
   "workflow-states",
   "rare-states",
   "static-fixtures",
+] as const;
+
+const staticFixturePaths = [
+  "../../../../rulestead_admin/priv/static/design-system.html",
+  "../../../../rulestead_admin/priv/static/theme-control-harness.html",
+  "../../../../rulestead_admin/priv/static/theme-harness.html",
+] as const;
+
+const forbiddenSourceTerms = [
+  "toHave" + "Screenshot",
+  "match" + "Snapshot",
+  "pixel" + "match",
+  "visual" + "-diff",
+  "Story" + "book",
+  "Phoenix" + "Story" + "book",
 ] as const;
 
 const browserCases = [
@@ -140,4 +157,51 @@ test.describe("repo-native admin UI matrix evidence", () => {
       }
     });
   }
+
+  test("command palette opens from shell search and exposes filtered options", async ({
+    browser,
+  }) => {
+    const { context, page } = await openMatrixSurface(
+      browser,
+      viewports[0],
+      themes[0],
+      standardMotion,
+    );
+
+    try {
+      await page.locator(".rs-shell__search").press("Enter");
+      await expect(page.locator("#rs-cmdk")).toBeVisible();
+
+      await page
+        .getByRole("combobox", { name: "Search commands and pages" })
+        .fill("audit");
+      await page
+        .getByRole("combobox", { name: "Search commands and pages" })
+        .press("ArrowDown");
+
+      await expect(
+        page.locator("#rs-cmdk").getByRole("option").first(),
+      ).toBeVisible();
+    } finally {
+      await context.close();
+    }
+  });
+
+  test("static token and theme fixtures remain present", () => {
+    for (const fixturePath of staticFixturePaths) {
+      const resolvedPath = path.resolve(__dirname, fixturePath);
+      expect(fs.existsSync(resolvedPath)).toBe(true);
+    }
+  });
+
+  test("matrix spec keeps screenshots as artifacts without source baselines", () => {
+    const source = fs.readFileSync(
+      path.resolve(__dirname, "ui-matrix.spec.ts"),
+      "utf8",
+    );
+
+    for (const term of forbiddenSourceTerms) {
+      expect(source.includes(term)).toBe(false);
+    }
+  });
 });
