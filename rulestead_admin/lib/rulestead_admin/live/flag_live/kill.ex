@@ -106,6 +106,24 @@ defmodule RulesteadAdmin.Live.FlagLive.Kill do
           </div>
         </section>
 
+        <section class="rs-runbook__context" aria-label="Emergency evidence">
+          <div class="rs-runbook__note">
+            <p class="rs-eyebrow">Emergency evidence</p>
+            <h2>Confirm what will serve before acting</h2>
+            <p>
+              The kill switch forces the default value without changing authored rules. Use this evidence before entering the reason and confirmation fields.
+            </p>
+          </div>
+          <div class="rs-runbook__history">
+            <h2>Evidence checklist</h2>
+            <ul>
+              <li>Current state: <%= if(kill_switch_active?(@detail), do: "override active", else: "authored behavior active") %>.</li>
+              <li>Default served on kill: <code><%= inspect(default_flag_value(@detail.flag.default_value)) %></code>.</li>
+              <li>Latest audit reason: <%= latest_reason(@detail, @current_actor) || "no recent kill-switch reason visible" %>.</li>
+            </ul>
+          </div>
+        </section>
+
         <section
           class="rs-runbook__action"
           data-mode={if(kill_switch_active?(@detail), do: "release", else: "engage")}

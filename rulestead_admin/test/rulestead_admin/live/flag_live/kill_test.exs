@@ -78,6 +78,8 @@ defmodule RulesteadAdmin.Live.FlagLive.KillTest do
     {:ok, staging_view, staging_html} =
       live(conn, "/admin/flags/checkout-redesign/kill?env=staging")
 
+    assert staging_html =~ "Emergency evidence"
+    assert staging_html =~ "Confirm what will serve before acting"
     assert staging_html =~ "Standard confirmation required for non-production environments."
 
     staging_result =

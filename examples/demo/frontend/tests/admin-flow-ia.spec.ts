@@ -59,13 +59,13 @@ const adminFlowRoutes: AdminFlowRoute[] = [
     name: "rules",
     path: "/admin/flags/enable-new-dashboard/rules?env=staging",
     heading: "enable-new-dashboard",
-    evidence: "Rules workspace",
+    evidence: "First answer:",
   },
   {
     name: "kill",
     path: "/admin/flags/enable-new-dashboard/kill?env=staging",
     heading: "enable-new-dashboard kill switch",
-    evidence: "Authored behavior active",
+    evidence: "Emergency evidence",
   },
   {
     name: "audience",
@@ -348,6 +348,114 @@ test.describe("admin flow IA route evidence", () => {
       }
     } finally {
       await context.close();
+    }
+  });
+
+  test("rules and kill routes expose action sequence before dense detail", async ({
+    browser,
+  }) => {
+    const { context: rulesContext, page: rulesPage } = await openAdminSurface(
+      browser,
+      viewports[0],
+      themes[0],
+      "/admin/flags/enable-new-dashboard/rules?env=staging",
+    );
+
+    try {
+      await expect(
+        rulesPage.getByRole("region", { name: "Rules publish readiness" }),
+      ).toBeVisible();
+      await expect(
+        rulesPage.getByRole("region", { name: "Draft and publish actions" }),
+      ).toBeVisible();
+      await expect(
+        rulesPage.getByText(/No validation blockers|Resolve validation blockers/),
+      ).toBeVisible();
+
+      const rulesOrder = await rulesPage.evaluate(() => {
+        const readiness = document.querySelector(
+          "[aria-label='Rules publish readiness']",
+        );
+        const actions = document.querySelector(
+          "[aria-label='Draft and publish actions']",
+        );
+        const audience = document.querySelector("[aria-label='Audience library']");
+
+        return {
+          readinessBeforeActions:
+            Boolean(readiness && actions) &&
+            readiness.compareDocumentPosition(actions) &
+              Node.DOCUMENT_POSITION_FOLLOWING,
+          actionsBeforeAudience:
+            Boolean(actions && audience) &&
+            actions.compareDocumentPosition(audience) &
+              Node.DOCUMENT_POSITION_FOLLOWING,
+        };
+      });
+
+      expect(Boolean(rulesOrder.readinessBeforeActions)).toBe(true);
+      expect(Boolean(rulesOrder.actionsBeforeAudience)).toBe(true);
+    } finally {
+      await rulesContext.close();
+    }
+
+    const { context: killContext, page: killPage } = await openAdminSurface(
+      browser,
+      viewports[0],
+      themes[0],
+      "/admin/flags/enable-new-dashboard/kill?env=staging",
+    );
+
+    try {
+      await expect(
+        killPage.getByRole("region", { name: "Kill switch state" }).first(),
+      ).toBeVisible();
+      await expect(
+        killPage.getByRole("region", { name: "Emergency evidence" }),
+      ).toBeVisible();
+      await expect(
+        killPage
+          .getByRole("region", { name: /Engage override|Release override/ })
+          .first(),
+      ).toBeVisible();
+      await expect(
+        killPage.getByRole("region", { name: "After-action context" }),
+      ).toBeVisible();
+
+      const killOrder = await killPage.evaluate(() => {
+        const state = document.querySelector("[aria-label='Kill switch state']");
+        const evidence = document.querySelector(
+          "[aria-label='Emergency evidence']",
+        );
+        const action = document.querySelector("[aria-label='Engage override']");
+        const context = document.querySelector(
+          "[aria-label='After-action context']",
+        );
+
+        return {
+          stateBeforeEvidence:
+            Boolean(state && evidence) &&
+            state.compareDocumentPosition(evidence) &
+              Node.DOCUMENT_POSITION_FOLLOWING,
+          evidenceBeforeAction:
+            Boolean(evidence && action) &&
+            evidence.compareDocumentPosition(action) &
+              Node.DOCUMENT_POSITION_FOLLOWING,
+          actionBeforeContext:
+            Boolean(action && context) &&
+            action.compareDocumentPosition(context) &
+              Node.DOCUMENT_POSITION_FOLLOWING,
+        };
+      });
+
+      expect(Boolean(killOrder.stateBeforeEvidence)).toBe(true);
+      expect(Boolean(killOrder.evidenceBeforeAction)).toBe(true);
+      expect(Boolean(killOrder.actionBeforeContext)).toBe(true);
+
+      await killPage.getByRole("textbox", { name: "Reason" }).focus();
+      await expect(killPage.getByRole("textbox", { name: "Reason" })).toBeFocused();
+    } finally {
+      await killContext.close();
     }
   });
 

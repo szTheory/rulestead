@@ -86,6 +86,8 @@ defmodule RulesteadAdmin.Live.FlagLive.RulesTest do
     assert html =~ "Draft ruleset"
     assert html =~ "Save draft"
     assert html =~ "Publish"
+    assert html =~ "Rules publish readiness"
+    assert html =~ "No validation blockers"
     assert html =~ "Reusable audience"
     assert has_element?(view, "select[aria-label='Reusable audience']")
 
@@ -180,6 +182,7 @@ defmodule RulesteadAdmin.Live.FlagLive.RulesTest do
       |> render_change()
 
     assert invalid_html =~ "Variant weights must total 100"
+    assert invalid_html =~ "Resolve validation blockers before save or publish"
     assert invalid_html =~ "Save draft disabled until variant weights total 100"
 
     blocked_save_html =

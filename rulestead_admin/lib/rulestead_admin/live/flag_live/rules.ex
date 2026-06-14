@@ -155,6 +155,22 @@ defmodule RulesteadAdmin.Live.FlagLive.Rules do
         />
 
         <form aria-label="Rules workspace form" phx-change="validate" phx-submit="save_draft">
+          <section class="rs-rule-banner" aria-label="Rules publish readiness">
+            <p>
+              <strong>First answer:</strong>
+              Active <%= active_ruleset_label(@detail) %>; draft <%= draft_ruleset_label(@detail) %>.
+            </p>
+            <p>
+              <%= rules_readiness_message(@editable?, @error_messages) %>
+            </p>
+          </section>
+
+          <RuleEditorComponents.action_bar
+            detail={@detail}
+            editable?={@editable?}
+            error_messages={@error_messages}
+          />
+
           <div class="rs-rules-workspace__layout">
             <section class="rs-rules-workspace__editor">
               <div class="rs-rules-workspace__toolbar">
@@ -176,12 +192,6 @@ defmodule RulesteadAdmin.Live.FlagLive.Rules do
             </section>
 
             <aside class="rs-rules-workspace__sidebar">
-              <RuleEditorComponents.action_bar
-                detail={@detail}
-                editable?={@editable?}
-                error_messages={@error_messages}
-              />
-
               <RuleEditorComponents.audience_library audiences={@audiences} mount_path={@rulestead_admin_mount_path} />
             </aside>
           </div>
@@ -566,6 +576,24 @@ defmodule RulesteadAdmin.Live.FlagLive.Rules do
 
   defp rules_reason(detail, :draft), do: "Saved draft ruleset for #{detail.environment.key}"
   defp rules_reason(detail, :publish), do: "Published ruleset for #{detail.environment.key}"
+
+  defp active_ruleset_label(%{active_ruleset: nil}), do: "has no live ruleset"
+  defp active_ruleset_label(%{active_ruleset: ruleset}), do: "v#{ruleset.version} is live"
+
+  defp draft_ruleset_label(%{draft_rulesets: [draft | _rest]}), do: "v#{draft.version} is waiting"
+  defp draft_ruleset_label(%{draft_rulesets: []}), do: "is not saved yet"
+
+  defp rules_readiness_message(false, _errors),
+    do:
+      "This route is read-only; inspect rules and audience references before returning to the flag."
+
+  defp rules_readiness_message(true, []),
+    do:
+      "No validation blockers. Save draft to keep editing separate, or publish when the active ruleset should change."
+
+  defp rules_readiness_message(true, _errors),
+    do:
+      "Resolve validation blockers before save or publish; missing audience recovery links stay in the rule cards below."
 
   defp normalize_strategy(strategy) when is_atom(strategy), do: Atom.to_string(strategy)
   defp normalize_strategy(strategy) when is_binary(strategy), do: strategy
