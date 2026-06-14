@@ -404,17 +404,15 @@ This row shape matches the Phase 118 context recommendation for compact evidence
 |---|-------|---------|---------------|
 | A1 | Browser artifacts will land under Playwright's default `test-results` tree when using `testInfo.outputPath(...)`. [ASSUMED] | Architecture Patterns / Validation Architecture | If local reporter/output settings differ, evidence docs must record the actual artifact path from the run. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should Phase 118 create both `118-EVIDENCE.md` and `118-VERIFICATION.md`, or only one combined artifact?**
    - What we know: D-17 requires a final Phase 118 verification or evidence artifact mapping requirements to commands, artifacts, guard outputs, exceptions, and risks. [VERIFIED: `118-CONTEXT.md`]
-   - What's unclear: The exact artifact split is left to planner discretion. [VERIFIED: `118-CONTEXT.md`]
-   - Recommendation: Use `118-EVIDENCE.md` during execution and `118-VERIFICATION.md` for final verifier truth if the plan has two waves; use one `118-VERIFICATION.md` if the phase stays compact. [ASSUMED]
+   - RESOLVED: The execution plan set uses `118-EVIDENCE.md` as the committed requirement-to-proof evidence map. `118-VERIFICATION.md` remains the final verifier artifact if the verifier produces one after execution; it is not a separate execution-plan output. [VERIFIED: `118-02-PLAN.md`; `118-03-PLAN.md`]
 
 2. **Which backend port should execution use for browser proof?**
    - What we know: Specs default to `http://localhost:4000`, but Phase 117 evidence used `DEMO_BACKEND_URL=http://localhost:4061`. [VERIFIED: `tests/support/admin.ts`; `117-VERIFICATION.md`]
-   - What's unclear: The execution-time free port is environment-specific. [VERIFIED: local environment]
-   - Recommendation: Planner should include a backend startup step that records the chosen port and passes it through `DEMO_BACKEND_URL`. [VERIFIED: `118-CONTEXT.md`]
+   - RESOLVED: Execution defaults to backend port `4061`. If `4061` is occupied, use the first free port in `4062` through `4069`, record the chosen `DEMO_BACKEND_PORT` and `DEMO_BACKEND_URL` in `118-EVIDENCE.md`, and run browser proof through `$DEMO_BACKEND_URL` rather than a hardcoded URL. [VERIFIED: `118-CONTEXT.md`; `118-02-PLAN.md`]
 
 ## Environment Availability
 
