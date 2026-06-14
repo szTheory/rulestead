@@ -1,4 +1,6 @@
 import { expect, test, type Browser, type Page } from "@playwright/test";
+import fs from "fs";
+import path from "path";
 
 import { backendUrl } from "./support/admin";
 
@@ -91,6 +93,16 @@ const adminFlowRoutes: AdminFlowRoute[] = [
   },
 ];
 
+const forbiddenSourceTerms = [
+  "toHaveScreenshot",
+  "matchSnapshot",
+  "pixelmatch",
+  "visual-diff",
+  "pixel-baseline",
+  "Storybook",
+  "PhoenixStorybook",
+] as const;
+
 async function openAdminSurface(
   browser: Browser,
   viewport: ViewportCase,
@@ -175,4 +187,94 @@ test.describe("admin flow IA route evidence", () => {
       }
     }
   }
+
+  test("command palette exposes grouped route options on a real admin route", async ({
+    browser,
+  }) => {
+    const { context, page } = await openAdminSurface(
+      browser,
+      viewports[0],
+      themes[0],
+      "/admin/flags",
+    );
+
+    try {
+      await expect(page.locator(".rs-shell__search")).toBeVisible();
+      await expect(page.locator("#rs-cmdk")).toBeAttached();
+      await expect(page.locator("#rs-cmdk-input")).toBeAttached();
+      await expect(page.locator("#rs-cmdk [role=option]").first()).toBeAttached();
+
+      const keywords = await page
+        .locator("#rs-cmdk [role=option]")
+        .evaluateAll((options) =>
+          options.map((option) => (option as HTMLElement).dataset.keywords ?? ""),
+        );
+
+      expect(keywords.some((keyword) => keyword.includes("audit"))).toBe(true);
+      expect(keywords.some((keyword) => keyword.includes("audiences"))).toBe(true);
+    } finally {
+      await context.close();
+    }
+  });
+
+  test("kill switch route keeps keyboard focus in visible route controls", async ({
+    browser,
+  }) => {
+    const { context, page } = await openAdminSurface(
+      browser,
+      viewports[0],
+      themes[0],
+      "/admin/flags/enable-new-dashboard/kill?env=staging",
+    );
+
+    try {
+      await expect(
+        page.getByRole("region", { name: "Kill switch state" }),
+      ).toBeVisible();
+      await expect(
+        page
+          .getByRole("region", { name: /Engage override|Release override/ })
+          .first(),
+      ).toBeVisible();
+      await expect(
+        page.getByRole("region", { name: "After-action context" }),
+      ).toBeVisible();
+
+      for (let index = 0; index < 16; index += 1) {
+        await page.keyboard.press("Tab");
+        const focused = await page.evaluate(() => {
+          const active = document.activeElement;
+
+          if (!(active instanceof HTMLElement)) {
+            return {
+              insideBody: false,
+              hiddenPaletteControl: false,
+            };
+          }
+
+          return {
+            insideBody: document.body.contains(active),
+            hiddenPaletteControl: Boolean(active.closest("#rs-cmdk[hidden]")),
+          };
+        });
+
+        expect(focused.insideBody).toBe(true);
+        expect(focused.hiddenPaletteControl).toBe(false);
+        await expectNoHorizontalOverflow(page);
+      }
+    } finally {
+      await context.close();
+    }
+  });
+
+  test("admin flow spec keeps generated artifacts out of source baselines", () => {
+    const source = fs.readFileSync(
+      path.resolve(__dirname, "admin-flow-ia.spec.ts"),
+      "utf8",
+    );
+
+    for (const term of forbiddenSourceTerms) {
+      expect(source.includes(term)).toBe(false);
+    }
+  });
 });
