@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.17
 milestone_name: Admin Design System Stress Test
-status: executing
-last_updated: "2026-06-14T05:04:12.194Z"
-last_activity: 2026-06-14 -- Phase 114 Plan 01 complete; Plan 02 ready
+status: verifying
+last_updated: "2026-06-14T05:20:29.582Z"
+last_activity: 2026-06-14
 progress:
   total_phases: 6
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 5
-  completed_plans: 4
-  percent: 17
+  completed_plans: 5
+  percent: 33
 ---
 
 # State: Rulestead
@@ -33,8 +33,8 @@ See: `.planning/PROJECT.md` (updated 2026-06-13)
 
 Phase: 114 (repo-native-component-matrix-harness) — EXECUTING
 Plan: 2 of 2
-Status: Ready to execute
-Last activity: 2026-06-14 -- Phase 114 Plan 01 complete; Plan 02 ready
+Status: Phase complete — ready for verification
+Last activity: 2026-06-14
 
 Phase 114 planning deliverables:
 
@@ -154,6 +154,7 @@ Human checkpoints:
 - **Phase 112.1-01:** Phoenix-owned FleetDesk launcher and shared layout navigation links now read `DEMO_FRONTEND_URL` through runtime application config, with `http://localhost:3000` only as the unaided local fallback. Backend regression tests prove a non-3000 configured URL renders in both surfaces.
 - **Phase 112.1-02:** Compose-backed Playwright evidence now asserts both Phoenix-rendered FleetDesk links against the selected `DEMO_FRONTEND_URL`, clicks through from the launcher to FleetDesk, includes the fleet-map-v2 rollouts evidence row, and records D-01 through D-12 verification truth.
 - **v1.16 audit close:** Backfilled canonical BUI requirement rows, `requirements-completed` summary frontmatter, and Nyquist validation artifacts for Phases 107-112; `.planning/milestones/v1.16-MILESTONE-AUDIT.md` is `passed`.
+- [Phase 114]: Use curated Playwright screenshots and deterministic assertions instead of visual snapshot tooling. — Plan 114-02 followed the v1.17 evidence posture: screenshots are test artifacts only, with source guards blocking baseline/snapshot tooling.
 
 ### Deferred Items (v2)
 
@@ -240,3 +241,4 @@ Current v1.17 planning proof:
 | Phase 100-marketing-copy-repo-artifact-plan P04 | 5min | 2 tasks | 3 files |
 | Phase 112.1-close-gap-bui-05-bui-06-dynamic-fleetdesk-launcher-url-and-e P01 | 8min | 3 tasks | 6 files |
 | Phase 112.1-close-gap-bui-05-bui-06-dynamic-fleetdesk-launcher-url-and-e P02 | recovered | 2 tasks | 6 files |
+| Phase 114-repo-native-component-matrix-harness P02 | 11min | 2 tasks | 2 files |

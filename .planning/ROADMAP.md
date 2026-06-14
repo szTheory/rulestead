@@ -38,7 +38,7 @@ Plans:
 3. Playwright can visit the matrix in light, dark, system-dark, desktop, mobile, and reduced-motion contexts.
 4. Existing token/theme static fixtures remain available for low-level guard assertions.
 
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 **Wave 1**
@@ -47,7 +47,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 114-02-PLAN.md - Playwright matrix evidence across theme, viewport, motion, keyboard, overflow, screenshots, and static fixture preservation.
+- [x] 114-02-PLAN.md - Playwright matrix evidence across theme, viewport, motion, keyboard, overflow, screenshots, and static fixture preservation.
 
 ## Phase 115: Foundations Hardening
 
@@ -106,7 +106,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 113. Design-System Inventory + UI Matrix Contract | 3/3 | Complete    | 2026-06-13 |
-| 114. Repo-Native Component Matrix Harness | 1/2 | In Progress | - |
+| 114. Repo-Native Component Matrix Harness | 2/2 | Complete   | 2026-06-14 |
 | 115. Foundations Hardening | 0/0 | Pending | - |
 | 116. Primitive + Composite Polish | 0/0 | Pending | - |
 | 117. Page Flow + IA Pass | 0/0 | Pending | - |
