@@ -187,6 +187,52 @@ defmodule RulesteadDemoWeb.UiMatrixLive do
               Host evidence is unavailable, so the action remains disabled until evidence is refreshed.
             </p>
           </FlagComponents.callout>
+          <form class="rs-form" aria-label="Primitive form field examples">
+            <div class="rs-form-grid rs-form-grid--two">
+              <OperatorComponents.form_field
+                label="Support trace"
+                help="Read-only field preserves operator context without allowing mutation in the matrix."
+              >
+                <input
+                  id="matrix-support-trace"
+                  type="text"
+                  value="support-trace-long-fixture-for-wrapping-proof"
+                  readonly
+                />
+              </OperatorComponents.form_field>
+              <OperatorComponents.form_field
+                label="Host evidence status"
+                help="Blocked actions name the missing condition and keep a safe inspection path visible."
+                error="Host evidence is stale; refresh guardrail data before continuing."
+              >
+                <input
+                  id="matrix-host-evidence"
+                  type="text"
+                  value="stale guardrail sample"
+                  readonly
+                />
+              </OperatorComponents.form_field>
+              <OperatorComponents.action_row
+                aria_label="Primitive action row"
+                wide?
+              >
+                <button class="rs-button" type="button" disabled>Unavailable action</button>
+                <a class="rs-button rs-button--text" href="#workflow-states">Review evidence</a>
+                <:note>
+                  Host evidence is stale, so the destructive action remains unavailable until the fixture is refreshed.
+                </:note>
+              </OperatorComponents.action_row>
+            </div>
+          </form>
+          <OperatorComponents.state_note
+            title="Read-only policy"
+            body="Actor can inspect matrix evidence but cannot mutate this fixture; use the audit trail for the next safe check."
+            tone="warning"
+          >
+            <:actions>
+              <a class="rs-button rs-button--text" href="#timelines">Open audit timeline</a>
+            </:actions>
+          </OperatorComponents.state_note>
           <OperatorComponents.empty_state
             title="No matrix examples match this section"
             body="Add a deterministic fixture for the missing state before planning polish work for this bucket."

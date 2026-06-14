@@ -159,6 +159,66 @@ defmodule RulesteadAdmin.Components.OperatorComponents do
     """
   end
 
+  attr(:label, :string, required: true)
+  attr(:help, :string, default: nil)
+  attr(:error, :string, default: nil)
+  attr(:feedback_for, :string, default: nil)
+  attr(:wide?, :boolean, default: false)
+  slot(:inner_block, required: true)
+
+  def form_field(assigns) do
+    ~H"""
+    <div
+      phx-feedback-for={@feedback_for}
+      class={["rs-form-field", @wide? && "rs-form-field--wide"]}
+    >
+      <label>
+        <span><%= @label %></span>
+        <%= render_slot(@inner_block) %>
+        <p :if={@help} class="rs-field-help"><%= @help %></p>
+      </label>
+      <p :if={@error} class="rs-form-error" role="alert"><%= @error %></p>
+    </div>
+    """
+  end
+
+  attr(:aria_label, :string, default: nil)
+  attr(:wide?, :boolean, default: false)
+  slot(:inner_block, required: true)
+  slot(:note)
+
+  def action_row(assigns) do
+    ~H"""
+    <div
+      class={["rs-form-actions", @wide? && "rs-form-field--wide"]}
+      aria-label={@aria_label}
+    >
+      <%= render_slot(@inner_block) %>
+      <p :if={@note != []} class="rs-field-help"><%= render_slot(@note) %></p>
+    </div>
+    """
+  end
+
+  attr(:title, :string, required: true)
+  attr(:body, :string, required: true)
+  attr(:tone, :string, default: "warning")
+  attr(:role, :string, default: "status")
+  slot(:actions)
+
+  def state_note(assigns) do
+    ~H"""
+    <section class="rs-capability-explanation rs-state-note" data-tone={@tone} role={@role}>
+      <div>
+        <strong><%= @title %></strong>
+        <span><%= @body %></span>
+      </div>
+      <div :if={@actions != []} class="rs-state-note__actions">
+        <%= render_slot(@actions) %>
+      </div>
+    </section>
+    """
+  end
+
   attr(:title, :string, required: true)
   attr(:summary, :string, required: true)
   attr(:rows, :list, default: [])
@@ -247,5 +307,4 @@ defmodule RulesteadAdmin.Components.OperatorComponents do
     </section>
     """
   end
-
 end

@@ -39,6 +39,10 @@ defmodule RulesteadDemoWeb.UiMatrixLiveTest do
     assert rendered =~ "rs-stat"
     assert rendered =~ "rs-empty-state"
     assert rendered =~ "rs-cmdk"
+    assert rendered =~ "Primitive form field examples"
+    assert rendered =~ "Host evidence is stale"
+    assert rendered =~ "Unavailable action"
+    assert rendered =~ "Read-only policy"
   end
 
   test "read-only matrix interactions keep the LiveView mounted", %{conn: conn} do
@@ -100,6 +104,7 @@ defmodule RulesteadDemoWeb.UiMatrixLiveTest do
 
     for module <- [
           "RulesteadAdmin.Components.Shell",
+          "OperatorComponents",
           "ConfirmComponents",
           "RolloutComponents",
           "RuleEditorComponents",
