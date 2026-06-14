@@ -40,6 +40,28 @@ defmodule RulesteadAdmin.Live.AudienceLive.IndexTest do
 
     assert html =~ "Audiences"
     assert html =~ "Reusable targeting"
+    assert html =~ "Review reusable targeting before changing flags"
+    assert html =~ "Dependency visibility can be partial"
+  end
+
+  test "audience list exposes route summary and row dependency actions", %{conn: conn} do
+    alias Rulestead.Fake.Control
+
+    conn = init_session(conn)
+    Control.put_audience!(%{key: "vip-users", description: "VIP"})
+
+    {:ok, view, html} = live(conn, "/admin/flags/audiences?env=test")
+
+    assert html =~ "1 reusable audience in this scope"
+    assert html =~ "Review dependencies"
+    assert has_element?(view, "section[aria-label='Audience route summary']")
+    assert has_element?(view, "table[aria-label='Audience list']")
+
+    assert has_element?(
+             view,
+             "a[href='/admin/flags/audiences/vip-users?env=test']",
+             "Review dependencies"
+           )
   end
 
   test "audience detail surfaces hidden reference copy when flag reads are denied", %{conn: conn} do

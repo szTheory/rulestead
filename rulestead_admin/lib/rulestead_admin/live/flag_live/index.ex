@@ -199,6 +199,16 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
       </FlagComponents.callout>
 
       <section class="rs-inventory">
+        <header class="rs-section-header">
+          <div>
+            <p class="rs-eyebrow">Inventory route</p>
+            <h2>Find the flag that needs review</h2>
+            <p>
+              Search, view tabs, result count, and pagination stay linked to the URL so operators can share the exact triage state.
+            </p>
+          </div>
+        </header>
+
         <div
           :if={@rulestead_admin_policy_state.capabilities.edit? or @rulestead_admin_policy_state.capabilities.admin?}
           class="rs-inventory__toolbar"
@@ -231,6 +241,9 @@ defmodule RulesteadAdmin.Live.FlagLive.Index do
           <div class="rs-filter-panel__header">
             <div class="rs-filter-panel__search rs-omnisearch">
               <label for="flag-omnisearch-input" class="sr-only">Search</label>
+              <p class="rs-filter-panel__hint">
+                First answer: filter by key, owner, tag, or description, then pick a view that explains why each result is here.
+              </p>
               <div class="rs-omnisearch__control">
                 <span
                   :for={token <- query_tokens(@filters["query"])}

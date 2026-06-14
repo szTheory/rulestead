@@ -152,6 +152,8 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
     refute html =~ ~s(class="rs-shell__context-item" data-tone=)
     refute has_element?(view, "main aside.rs-policy-state")
     assert html =~ "checkout-redesign"
+    assert html =~ "Find the flag that needs review"
+    assert html =~ "First answer: filter by key, owner, tag, or description"
     refute html =~ "archive-me"
     assert has_element?(view, "form[aria-label='Flag filters']")
     assert has_element?(view, "form.rs-filter-panel[aria-label='Flag filters']")
@@ -426,7 +428,10 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
          conn: conn
        } do
     {:ok, view, _html} =
-      case live(conn, "/admin/flags/flags?env=prod&readiness=archive_candidate&evidence_quality=strong") do
+      case live(
+             conn,
+             "/admin/flags/flags?env=prod&readiness=archive_candidate&evidence_quality=strong"
+           ) do
         {:ok, view, html} ->
           {:ok, view, html}
 
@@ -444,7 +449,10 @@ defmodule RulesteadAdmin.Live.FlagLive.IndexTest do
     refute has_element?(view, "[data-flag-key='checkout-redesign']")
 
     {:ok, custom_view, _html} =
-      live(conn, "/admin/flags/flags?env=prod&view=custom&readiness=needs_review&evidence_quality=weak")
+      live(
+        conn,
+        "/admin/flags/flags?env=prod&view=custom&readiness=needs_review&evidence_quality=weak"
+      )
 
     assert has_element?(custom_view, "[data-flag-key='search-ranking']")
     refute has_element?(custom_view, "[data-flag-key='remote-config-review']")

@@ -53,7 +53,7 @@ const adminFlowRoutes: AdminFlowRoute[] = [
     name: "inventory",
     path: "/admin/flags/flags?env=staging&view=all",
     heading: "Flags",
-    evidence: "Feature flags",
+    evidence: "Find the flag that needs review",
   },
   {
     name: "rules",
@@ -71,7 +71,7 @@ const adminFlowRoutes: AdminFlowRoute[] = [
     name: "audience",
     path: "/admin/flags/audiences?env=staging",
     heading: "Audiences",
-    evidence: "Reusable targeting",
+    evidence: "Review reusable targeting before changing flags",
   },
   {
     name: "audit",
@@ -214,6 +214,90 @@ test.describe("admin flow IA route evidence", () => {
       expect(keywords.some((keyword) => keyword.includes("audiences"))).toBe(true);
     } finally {
       await context.close();
+    }
+  });
+
+  test("home, inventory, and audience expose route-owned first answers", async ({
+    browser,
+  }) => {
+    const { context: homeContext, page: homePage } = await openAdminSurface(
+      browser,
+      viewports[0],
+      themes[0],
+      "/admin/flags",
+    );
+
+    try {
+      await expect(
+        homePage.getByRole("navigation", { name: "Start a task" }),
+      ).toBeVisible();
+      await expect(
+        homePage.getByRole("heading", { name: "Build & release" }),
+      ).toBeVisible();
+      await expect(
+        homePage.getByText(/No urgent operator work|Needs you now/).first(),
+      ).toBeVisible();
+    } finally {
+      await homeContext.close();
+    }
+
+    const { context: inventoryContext, page: inventoryPage } =
+      await openAdminSurface(
+        browser,
+        viewports[0],
+        themes[0],
+        "/admin/flags/flags?env=staging&view=all",
+      );
+
+    try {
+      await expect(
+        inventoryPage.getByRole("heading", {
+          name: "Find the flag that needs review",
+        }),
+      ).toBeVisible();
+      await expect(
+        inventoryPage.getByText(
+          "First answer: filter by key, owner, tag, or description, then pick a view that explains why each result is here.",
+        ),
+      ).toBeVisible();
+      await expect(
+        inventoryPage.getByRole("navigation", { name: "Flag inventory views" }),
+      ).toBeVisible();
+      await expect(
+        inventoryPage.getByRole("combobox", { name: "Sort" }),
+      ).toBeVisible();
+    } finally {
+      await inventoryContext.close();
+    }
+
+    const { context: audienceContext, page: audiencePage } =
+      await openAdminSurface(
+        browser,
+        viewports[0],
+        themes[0],
+        "/admin/flags/audiences?env=staging",
+      );
+
+    try {
+      await expect(
+        audiencePage.getByRole("region", { name: "Audience route summary" }),
+      ).toBeVisible();
+      await expect(
+        audiencePage.getByRole("heading", {
+          name: "Review reusable targeting before changing flags",
+        }),
+      ).toBeVisible();
+      await expect(
+        audiencePage.getByText("Dependency visibility can be partial"),
+      ).toBeVisible();
+      await expect(
+        audiencePage.getByRole("table", { name: "Audience list" }),
+      ).toBeVisible();
+      await expect(
+        audiencePage.getByRole("link", { name: "Review dependencies" }).first(),
+      ).toBeVisible();
+    } finally {
+      await audienceContext.close();
     }
   });
 

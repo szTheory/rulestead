@@ -4,7 +4,7 @@ defmodule RulesteadAdmin.Live.AudienceLive.Index do
 
   use Phoenix.LiveView
 
-  alias RulesteadAdmin.Components.{FlagComponents, Shell}
+  alias RulesteadAdmin.Components.{FlagComponents, OperatorComponents, Shell}
   alias RulesteadAdmin.Live.{AudienceLive.Shared, Session}
 
   @impl true
@@ -50,6 +50,23 @@ defmodule RulesteadAdmin.Live.AudienceLive.Index do
     >
       <p :if={@error_message} role="alert"><%= @error_message %></p>
 
+      <section class="rs-page-section" aria-label="Audience route summary">
+        <header class="rs-section-header">
+          <div>
+            <p class="rs-eyebrow">Audience inventory</p>
+            <h2>Review reusable targeting before changing flags</h2>
+            <p>
+              {@audiences |> length()} reusable audience{if length(@audiences) == 1, do: "", else: "s"} in this scope. Open a row to inspect used-by dependencies, hidden references, and governed edit or archive paths.
+            </p>
+          </div>
+        </header>
+        <OperatorComponents.state_note
+          tone="warning"
+          title="Dependency visibility can be partial"
+          body="Archived audiences are read-only, and some flag references may be hidden by policy. The detail route names hidden or denied dependencies before mutation controls."
+        />
+      </section>
+
       <FlagComponents.section_card title="Audience library">
         <table :if={@audiences != []} aria-label="Audience list" class="rs-table">
           <thead>
@@ -58,6 +75,7 @@ defmodule RulesteadAdmin.Live.AudienceLive.Index do
               <th>Description</th>
               <th>Status</th>
               <th>Last modified</th>
+              <th>Next action</th>
             </tr>
           </thead>
           <tbody>
@@ -72,10 +90,19 @@ defmodule RulesteadAdmin.Live.AudienceLive.Index do
                 </span>
               </td>
               <td><%= format_time(audience.updated_at) %></td>
+              <td>
+                <a href={Shared.path(assigns, "/audiences/#{audience.key}")}>Review dependencies</a>
+              </td>
             </tr>
           </tbody>
         </table>
-        <p :if={@audiences == []}>No audiences found for this scope.</p>
+        <OperatorComponents.empty_state
+          :if={@audiences == []}
+          id="audiences-empty"
+          title="No audiences found for this scope"
+          body="Reusable targeting is not configured here yet. Return to flag rules when you need to add inline targeting or choose a different environment."
+          icon="∅"
+        />
       </FlagComponents.section_card>
     </Shell.page>
     """

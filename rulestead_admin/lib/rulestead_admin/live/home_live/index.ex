@@ -107,7 +107,7 @@ defmodule RulesteadAdmin.Live.HomeLive.Index do
           </header>
 
           <p :if={attention == []} class="rs-attention-empty">
-            Nothing needs your attention in {@current_environment.name} right now.
+            No urgent operator work in {@current_environment.name} right now. Live state loaded successfully; use the task board below to inspect inventory, rules, audiences, or audit history.
           </p>
 
           <div :if={attention != []} class="rs-attention">
@@ -135,7 +135,7 @@ defmodule RulesteadAdmin.Live.HomeLive.Index do
           </header>
 
           <p :if={summary.high_impact == []} class="rs-attention-empty">
-            No high-impact changes recorded recently.
+            No high-impact changes recorded recently. This is a quiet state, not missing audit data.
           </p>
 
           <div :if={summary.high_impact != []} class="rs-record-list">
