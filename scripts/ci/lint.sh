@@ -42,6 +42,10 @@ python3 "${RULESTEAD_REPO}/scripts/check_logo_assets.py"
 # Admin foundations: documented breakpoints, reduced-motion floor, and focus markers.
 python3 "${RULESTEAD_REPO}/scripts/check_admin_foundations.py"
 
+# Design-system evidence posture: generated screenshots stay artifacts and
+# forbidden visual-baseline tooling stays out of the normal guard chain.
+python3 "${RULESTEAD_REPO}/scripts/check_design_system_evidence.py"
+
 # SVG size budget: logo <=20KB, specimens <=50KB.
 shopt -s nullglob
 for f in "${RULESTEAD_REPO}/brandbook/assets/logo/"*.svg; do
