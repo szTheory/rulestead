@@ -359,17 +359,15 @@ Official docs state `handle_event/3` payloads are untrusted and must be authoriz
 |---|-------|---------|---------------|
 | A1 | The new route-level Playwright spec should be named `admin-flow-ia.spec.ts`. [ASSUMED] | Recommended Project Structure | Low; planner can choose a different filename without changing strategy. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Which exact route subset should be the Phase 117 browser evidence gate?** [VERIFIED: 117-CONTEXT.md]
    - What we know: Context requires representative primary route clusters and names the priority surfaces. [VERIFIED: 117-CONTEXT.md]
-   - What's unclear: The final count of routes is left to planner discretion. [VERIFIED: 117-CONTEXT.md]
-   - Recommendation: Use overview, inventory, rules, kill, audiences, audit, explain, and simulate as the default evidence set. [VERIFIED: 116-PHASE-117-HANDOFF.md]
+   - RESOLVED: Use overview, inventory, rules, kill, audiences, audit, explain, and simulate as the Phase 117 browser evidence set. This route set covers the grouped JTBD navigation, the Phase 116 page-owned handoff surfaces, and FLOW-01 through FLOW-04 without widening product seed semantics. [VERIFIED: 116-PHASE-117-HANDOFF.md]
 
 2. **Should execution create `117-VERIFICATION.md` or only `117-FLOW-IA-REVIEW.md`?** [ASSUMED]
    - What we know: Prior phases use verification artifacts and Phase 118 needs handoff evidence. [VERIFIED: .planning/STATE.md]
-   - What's unclear: Phase 117 context only explicitly prefers a compact IA review artifact. [VERIFIED: 117-CONTEXT.md]
-   - Recommendation: Plan `117-FLOW-IA-REVIEW.md` as required and allow a concise verification summary if execution follows established phase practice. [VERIFIED: prior phase artifacts]
+   - RESOLVED: Plan `117-FLOW-IA-REVIEW.md` as the required route-flow IA artifact. Allow execution to add a concise verification summary only if it follows the established phase closeout pattern, but do not make `117-VERIFICATION.md` a substitute for the route-flow review artifact. [VERIFIED: 117-CONTEXT.md]
 
 ## Environment Availability
 
