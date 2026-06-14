@@ -41,4 +41,12 @@ defmodule RulesteadDemoWeb.Router do
     pipe_through :browser
     rulestead_admin("/flags", policy: RulesteadDemo.AdminPolicy, mount_path: "/admin/flags")
   end
+
+  if Mix.env() in [:dev, :test] do
+    scope "/dev/rulestead-admin", RulesteadDemoWeb do
+      pipe_through :browser
+
+      live "/ui-matrix", UiMatrixLive, :index
+    end
+  end
 end
