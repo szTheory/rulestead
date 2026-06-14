@@ -59,6 +59,17 @@ defmodule RulesteadAdmin.Live.AuditLive.Index do
       <p :if={@error_message} role="alert">{@error_message}</p>
       <p :if={@notice} role="status">{@notice}</p>
 
+      <FlagComponents.section_card title="Audit first answer">
+        <p>
+          Start with the latest mutation, confirm the actor and environment, then use the row links
+          to inspect the flag, timeline, or explanation without leaving Support/SRE in the ledger.
+        </p>
+        <p>
+          Raw detail stays redacted and locally scrollable. Filters below narrow the ledger without
+          removing denied or failed actions from the support-safe audit trail.
+        </p>
+      </FlagComponents.section_card>
+
       <FlagComponents.section_card title="Filters">
         <form phx-change="filter" phx-submit="filter" aria-label="Audit filters" class="rs-filter-grid">
           <div class="rs-form-field">

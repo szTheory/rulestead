@@ -459,6 +459,129 @@ test.describe("admin flow IA route evidence", () => {
     }
   });
 
+  test("audit, explain, and simulate expose support-safe answers before route tools", async ({
+    browser,
+  }) => {
+    const { context: auditContext, page: auditPage } = await openAdminSurface(
+      browser,
+      viewports[0],
+      themes[0],
+      "/admin/flags/audit?env=staging",
+    );
+
+    try {
+      await expect(
+        auditPage.getByRole("heading", { name: "Audit first answer" }),
+      ).toBeVisible();
+      await expect(
+        auditPage.getByText("Raw detail stays redacted and locally scrollable"),
+      ).toBeVisible();
+
+      const auditOrder = await auditPage.evaluate(() => {
+        const answer = document
+          .evaluate(
+            "//*[self::h2 or self::h3][normalize-space()='Audit first answer']",
+            document,
+            null,
+            XPathResult.FIRST_ORDERED_NODE_TYPE,
+          )
+          .singleNodeValue;
+        const filters = document.querySelector("[aria-label='Audit filters']");
+
+        return (
+          Boolean(answer && filters) &&
+          Boolean(
+            answer.compareDocumentPosition(filters) &
+              Node.DOCUMENT_POSITION_FOLLOWING,
+          )
+        );
+      });
+
+      expect(auditOrder).toBe(true);
+    } finally {
+      await auditContext.close();
+    }
+
+    const { context: explainContext, page: explainPage } =
+      await openAdminSurface(
+        browser,
+        viewports[0],
+        themes[0],
+        "/admin/flags/enable-new-dashboard/explain?env=staging&targeting_key=support-user-42&tenant_key=acme",
+      );
+
+    try {
+      await expect(
+        explainPage.getByRole("region", { name: "Explain summary" }),
+      ).toBeVisible();
+      await expect(
+        explainPage.getByText("Traits are never stored in URLs"),
+      ).toBeVisible();
+
+      const explainOrder = await explainPage.evaluate(() => {
+        const summary = document.querySelector("[aria-label='Explain summary']");
+        const form = document.querySelector("[aria-label='Explain lookup form']");
+
+        return (
+          Boolean(summary && form) &&
+          Boolean(
+            summary.compareDocumentPosition(form) &
+              Node.DOCUMENT_POSITION_FOLLOWING,
+          )
+        );
+      });
+
+      expect(explainOrder).toBe(true);
+    } finally {
+      await explainContext.close();
+    }
+
+    const { context: simulateContext, page: simulatePage } =
+      await openAdminSurface(
+        browser,
+        viewports[0],
+        themes[0],
+        "/admin/flags/enable-new-dashboard/simulate?env=staging",
+      );
+
+    try {
+      await expect(
+        simulatePage.getByRole("heading", {
+          name: "Run a simulation to see the decision",
+        }),
+      ).toBeVisible();
+      await expect(
+        simulatePage.getByRole("region", { name: "Simulation workspace" }),
+      ).toBeVisible();
+
+      const simulateOrder = await simulatePage.evaluate(() => {
+        const firstAnswer = document
+          .evaluate(
+            "//*[self::h2 or self::h3][normalize-space()='Run a simulation to see the decision']",
+            document,
+            null,
+            XPathResult.FIRST_ORDERED_NODE_TYPE,
+          )
+          .singleNodeValue;
+        const workspace = document.querySelector(
+          "[aria-label='Simulation workspace']",
+        );
+
+        return (
+          Boolean(firstAnswer && workspace) &&
+          Boolean(
+            firstAnswer.compareDocumentPosition(workspace) &
+              Node.DOCUMENT_POSITION_FOLLOWING,
+          )
+        );
+      });
+
+      expect(simulateOrder).toBe(true);
+    } finally {
+      await simulateContext.close();
+    }
+  });
+
   test("admin flow spec keeps generated artifacts out of source baselines", () => {
     const source = fs.readFileSync(
       path.resolve(__dirname, "admin-flow-ia.spec.ts"),

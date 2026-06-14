@@ -89,6 +89,9 @@ defmodule RulesteadAdmin.Live.FlagLive.SimulateTest do
     assert String.contains?(result_html, "Trace detail")
 
     assert :binary.match(result_html, "Decision summary") <
+             :binary.match(result_html, "Context builder")
+
+    assert :binary.match(result_html, "Decision summary") <
              :binary.match(result_html, "Trace detail")
   end
 

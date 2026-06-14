@@ -77,6 +77,9 @@ defmodule RulesteadAdmin.Live.FlagLive.SimulateAccessibilityTest do
     assert result_html =~ "Decision summary"
     assert result_html =~ "Trace detail"
     assert result_html =~ "Regenerate fixture export"
+
+    assert :binary.match(result_html, "Decision summary") <
+             :binary.match(result_html, "Context builder")
   end
 
   test "visible metadata redacts non-allowlisted traits while fixture export keeps the canonical literal",

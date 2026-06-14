@@ -204,6 +204,18 @@ defmodule RulesteadAdmin.Live.FlagLive.Simulate do
         tone="accent"
       />
 
+      <FlagComponents.section_card :if={@simulation_result} title="Decision summary">
+        <OperatorComponents.summary_grid items={@summary_items} />
+      </FlagComponents.section_card>
+
+      <OperatorComponents.empty_state
+        :if={is_nil(@simulation_result)}
+        title="Run a simulation to see the decision"
+        body="The result will show the matched rule, returned value, bucket details, and fixture export for this environment."
+        icon="->"
+        variant="compact"
+      />
+
       <section class="rs-tool-layout" aria-label="Simulation workspace">
         <div class="rs-tool-layout__main">
           <FlagComponents.section_card title="Context builder">
@@ -279,18 +291,6 @@ defmodule RulesteadAdmin.Live.FlagLive.Simulate do
       </section>
 
       <p :if={@error_message} role="alert"><%= @error_message %></p>
-
-      <FlagComponents.section_card :if={@simulation_result} title="Decision summary">
-        <OperatorComponents.summary_grid items={@summary_items} />
-      </FlagComponents.section_card>
-
-      <OperatorComponents.empty_state
-        :if={is_nil(@simulation_result)}
-        title="Run a simulation to see the decision"
-        body="The result will show the matched rule, returned value, bucket details, and fixture export for this environment."
-        icon="->"
-        variant="compact"
-      />
 
       <FlagComponents.section_card title="Visible metadata">
         <p>Non-fixture UI metadata uses the admin redaction helper before it is displayed.</p>

@@ -77,6 +77,8 @@ defmodule RulesteadAdmin.Live.FlagLive.ExplainTest do
     assert html =~ "Decision explainer"
     assert html =~ "Traits are never stored"
     assert html =~ "user-1"
+    assert html =~ "Explain summary"
+    assert :binary.match(html, "Matched rule") < :binary.match(html, "Explain context")
   end
 
   test "explain surfaces audience trace when simulation runs", %{conn: conn} do

@@ -127,6 +127,24 @@ defmodule RulesteadAdmin.Live.FlagLive.Explain do
 
       <p :if={@error_message} role="alert"><%= @error_message %></p>
 
+      <OperatorComponents.summary_grid
+        :if={@summary_items != []}
+        items={@summary_items}
+        aria_label="Explain summary"
+      />
+
+      <FlagComponents.callout :if={@explanation} title="Decision explanation" tone="accent">
+        <p><%= @explanation %></p>
+      </FlagComponents.callout>
+
+      <OperatorComponents.empty_state
+        :if={@summary_items == [] and is_nil(@error_message)}
+        title="Enter a targeting key to explain a decision"
+        body="The explanation will show the returned value, matched rule, and audience trace without putting trait payloads in the URL."
+        icon="?"
+        variant="compact"
+      />
+
       <FlagComponents.section_card title="Explain context">
         <p>Permalink fields stay in the query string. Traits are never stored in URLs.</p>
         <form class="rs-form" phx-change="validate" phx-submit="run_explain" aria-label="Explain lookup form">
@@ -157,24 +175,6 @@ defmodule RulesteadAdmin.Live.FlagLive.Explain do
           </div>
         </form>
       </FlagComponents.section_card>
-
-      <OperatorComponents.summary_grid
-        :if={@summary_items != []}
-        items={@summary_items}
-        aria_label="Explain summary"
-      />
-
-      <FlagComponents.callout :if={@explanation} title="Decision explanation" tone="accent">
-        <p><%= @explanation %></p>
-      </FlagComponents.callout>
-
-      <OperatorComponents.empty_state
-        :if={@summary_items == [] and is_nil(@error_message)}
-        title="Enter a targeting key to explain a decision"
-        body="The explanation will show the returned value, matched rule, and audience trace without putting trait payloads in the URL."
-        icon="?"
-        variant="compact"
-      />
 
       <AudienceTraceComponents.audience_trace_steps :if={@trace} rule_traces={Map.get(@trace, :rule_traces, [])} />
 

@@ -94,6 +94,9 @@ defmodule RulesteadAdmin.Live.AuditLive.IndexTest do
     assert html =~ "Kill switch engage denied"
     assert html =~ "checkout-redesign"
     assert html =~ "search-ranking"
+    assert html =~ "Audit first answer"
+    assert html =~ "Raw detail stays redacted and locally scrollable"
+    assert :binary.match(html, "Audit first answer") < :binary.match(html, "Filters")
 
     filtered_html =
       view
