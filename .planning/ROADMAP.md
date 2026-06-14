@@ -143,6 +143,6 @@ Plans:
 
 ## Next
 
-Verify Phase 117 and prepare Phase 118:
+Discuss and plan Phase 118:
 
-`$gsd-verify-work 117`
+`$gsd-discuss-phase 118`
