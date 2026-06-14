@@ -24,7 +24,7 @@ Rulestead is a batteries-included, Elixir-native feature-flag and remote-config 
 - `v1.14` shipped on 2026-06-06 across Phases 95–101: source-controlled brand system, mineral admin re-skin, final SVG assets/specimens, copy kit, generated `brandbook/index.html`, stdlib generator, drift/budget guard, CI wiring, and file:// browser evidence — no new runtime APIs, schema changes, package-version changes, or publish-posture changes.
 - `v1.15` shipped on 2026-06-12 across Phases 102–106: tournament-selected integrated logo identity (winner A3-3, maintainer-gated rounds), 8-file lockup family, brand-book §14 logo system, admin/demo propagation, and the elevated designed `brandbook/index.html` (cover, scrollspy rail, AA-badged swatches, logo plates, print) — zero token deviations, no runtime API or publish-posture changes.
 - `v1.16` shipped on 2026-06-13 across Phases 107–112.1: full brand-faithful UI iteration over static fixtures, admin primitives, admin workflow evidence, demo launcher, FleetDesk host-brand boundary, logo/token/contrast drift guards, dynamic FleetDesk launcher URL/click-through evidence, and passed milestone audit backfill — no public runtime APIs, schemas, release workflow changes, component framework adoption, or admin publish prep.
-- `v1.17` is active; Phases 113–115 are complete, delivering the design-system inventory/contract, a repo-native Phoenix/Playwright UI matrix harness that renders real admin components with deterministic fixture assigns, and guard-backed foundation hardening for breakpoints, focus, reduced motion, radius/elevation rules, and dense technical containment.
+- `v1.17` completed on 2026-06-14 across Phases 113–118, delivering the design-system inventory/contract, repo-native Phoenix/Playwright UI matrix harness, foundation hardening, primitive/composite polish, page-flow IA pass, and reusable evidence/idempotence guardrails — no public runtime APIs, schemas, release workflow changes, component framework adoption, broad pixel baselines, external AI visual review, or admin publish prep.
 
 <details>
 <summary>Shipped: v1.11 Integration Spine (2026-05-28)</summary>
@@ -111,11 +111,11 @@ v1.1–v1.9 feature band is **complete**. v1.10.x–v1.11 doc bands are **shippe
 - Audit closeout backfilled canonical BUI requirement rows, `requirements-completed` summary frontmatter, and Nyquist validation artifacts for Phases 107-112; `.planning/milestones/v1.16-MILESTONE-AUDIT.md` is `passed`.
 - No new runtime APIs, schemas, release workflow changes, component framework, or `rulestead_admin` publish prep.
 
-## Current Milestone: v1.17 Admin Design System Stress Test
+## Shipped: v1.17 Admin Design System Stress Test
 
 **Goal:** Turn the mounted admin/operator UI into a coherent, testable design system across foundations, primitives, composites, page patterns, rare states, light/dark/system modes, and responsive widths.
 
-**Target features:**
+**Delivered features:**
 - Repo-native Phoenix/Playwright UI matrix that renders real admin components and seeded flows instead of duplicating HEEx in static Storybook-style fixtures.
 - Foundation hardening for breakpoints, scalar token usage, typography rhythm, radius/shape rules, shadows/elevation, focus rings, reduced motion, table responsiveness, and brand-token drift guards.
 - Systematic primitive and composite polish for buttons, forms, badges, cards, stats, tables, task links, banners, empty states, audit/timeline/diff panels, rollout panels, rule editor surfaces, audience/governance panels, and mutation-confirm flows.
@@ -138,7 +138,7 @@ v1.1–v1.9 feature band is **complete**. v1.10.x–v1.11 doc bands are **shippe
 | 4 | **v1.14 — Brand System Realization** | **Complete** (2026-06-06) — Phases 95–101; generated HTML brand book capstone; no runtime API or publish-posture changes |
 | 4b | **v1.15 — Identity Tournament** | **Complete** (2026-06-12) — Phases 102–106; tournament-selected integrated logo + elevated HTML brand book; no runtime API or publish-posture changes |
 | 4c | **v1.16 — Brand-Faithful UI Iteration** | **Complete** (2026-06-13) — v1.15 identity conformance + demo/admin visual evidence + dynamic FleetDesk launcher proof; no runtime APIs or publish-posture changes |
-| 4d | **v1.17 — Admin Design System Stress Test** | **Active** — component/system matrix, foundations hardening, primitive/composite polish, page-flow IA pass, and reusable evidence; no runtime APIs or publish-posture changes |
+| 4d | **v1.17 — Admin Design System Stress Test** | **Complete** (2026-06-14) — component/system matrix, foundations hardening, primitive/composite polish, page-flow IA pass, and reusable evidence; no runtime APIs or publish-posture changes |
 | 5+ | **v2.0+ wedges (triggered only)** | GOV-02-ext → ROL-08 → ADM-06 per `.planning/DEFERRED.md` |
 | — | **Maintenance** | Patches and adopter support until a v2 trigger fires |
 
@@ -260,11 +260,11 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 
 ### Active
 
-- **CMP-01** through **CMP-05**, **FLOW-01** through **FLOW-04**, **VER-01** through **VER-04** — remaining v1.17 admin design-system stress test work (Phases 116-118). No public runtime APIs, schema changes, component framework adoption, or publish-posture changes.
+- None currently. v2.0+ wedges remain trigger-based per `.planning/DEFERRED.md`.
 
 ### Validated
 
-- ✓ **DSM-01** through **DSM-03**, **FND-01** through **FND-06** — v1.17 design-system inventory, repo-native UI matrix harness, and foundation hardening: real admin components with deterministic fixture assigns, documented breakpoint exceptions, source guard/CI wiring, reduced-motion transform neutralization, focus/radius/elevation rules, and mobile dense-content containment — Phases 113-115 (2026-06-14). No public runtime APIs, schemas, release workflow changes, component framework adoption, or publish-posture changes.
+- ✓ **DSM-01** through **DSM-03**, **FND-01** through **FND-06**, **CMP-01** through **CMP-05**, **FLOW-01** through **FLOW-04**, **VER-01** through **VER-04** — v1.17 admin design-system stress test: design-system inventory, repo-native UI matrix harness, foundation hardening, primitive/composite polish, page-flow IA pass, and reusable evidence/idempotence guardrails — Phases 113-118 (2026-06-14). No public runtime APIs, schemas, release workflow changes, component framework adoption, broad pixel baselines, external AI visual review, or publish-posture changes.
 
 - ✓ **BUI-01** through **BUI-06** — brand-faithful UI iteration: conformance matrix, fixture/guardrail alignment, shared admin primitive token pass, admin workflow evidence, demo host/Rulestead boundary, browser evidence and audit closeout — `v1.16`, Phases 107-112.1 (2026-06-13). No public runtime APIs or publish-posture changes.
 
@@ -382,7 +382,7 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 | Path-to-done = support-truth → integration docs → optional v2 wedges → stop | 2026-05-28 milestone assessment; canonical sequence in path-to-done thread. | Active |
 | Open v1.13 as a deliberate post-GA UX-quality milestone (admin dark mode + design-system polish) outside the v2 trigger gate | Dark mode was already prescribed by the admin UX spec but unimplemented; the token-based CSS made a first-class theme high-leverage and low-risk; deepened the mounted UI without new runtime APIs or widening product shape. | Validated — shipped v1.13 (16/16 reqs, 8 phases) |
 | Close v1.16 only after audit backfill instead of accepting verification gaps as debt | The audit gate requires `*-VERIFICATION.md`, `requirements-completed` summary frontmatter, and Nyquist validation artifacts; backfilling preserves closeout truth without product code changes. | Validated — v1.16 audit passed |
-| Use a repo-native Phoenix/Playwright UI matrix for v1.17 instead of adding Storybook | The admin package is Phoenix LiveView with no JS bundler; rendering real components in a mounted test/dev harness avoids duplicated HEEx, keeps evidence close to the existing demo runner, and leaves PhoenixStorybook as a later maintainer-docs option if needed. | Active |
+| Use a repo-native Phoenix/Playwright UI matrix for v1.17 instead of adding Storybook | The admin package is Phoenix LiveView with no JS bundler; rendering real components in a mounted test/dev harness avoids duplicated HEEx, keeps evidence close to the existing demo runner, and leaves PhoenixStorybook as a later maintainer-docs option if needed. | Validated — shipped v1.17 |
 
 ## Milestone Archives
 

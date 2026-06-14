@@ -158,6 +158,6 @@ Plans:
 
 ## Next
 
-Verify Phase 118 and close the v1.17 milestone:
+v1.17 execution is complete. Archive the milestone when ready:
 
-`$gsd-verify-work 118`
+`$gsd-complete-milestone`

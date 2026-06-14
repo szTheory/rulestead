@@ -33,10 +33,10 @@ See: `.planning/PROJECT.md` (updated 2026-06-13)
 ## Current Position
 
 Phase: 118
-Plan: Not started
+Plan: Complete
 Status: Milestone complete
 Last activity: 2026-06-14
-Stopped at: Ready for Phase 118 verification
+Stopped at: Milestone complete (Phase 118 was final phase)
 Resume file: None
 
 Phase 117 planning deliverables:
@@ -225,7 +225,7 @@ All closed — v1.12 adoption evidence depth complete.
 
 ## Operator Next Steps
 
-- Run `$gsd-verify-work 118` to verify Phase 118 and close the v1.17 milestone.
+- Run `$gsd-complete-milestone` when ready to archive v1.17 planning artifacts.
 - Preserve the Phase 118 no-baseline/no-external-AI evidence posture unless a later roadmap explicitly reopens it.
 
 ## Latest Verification
