@@ -33,7 +33,61 @@ If port `4061` is occupied during rerun, use the first free port from `4062` thr
 | VER-02 | ExUnit fixture/source assertions | Phoenix LiveViewTest assertions for matrix route sections, route examples, rare-state fixtures, real component usage, and demo-hosted route isolation | `cd examples/demo/backend && MIX_ENV=test mix test test/rulestead_demo_web/live/ui_matrix_live_test.exs` | None | PASS: 6 tests, 0 failures. | Source assertions prove boundaries faster than browser evidence; no public route widening. | Does not replace browser proof for media/theme/viewport behavior. |
 | VER-02 | Selected contrast/static fixture assertions | Playwright static fixture checks for selected AA contrast pairs, placeholder exception lock, fixture load, wordmark/theme harnesses, and theme controls | `cd examples/demo/frontend && npm run test:e2e -- design-system.spec.ts theme-control.spec.ts theme-cascade.spec.ts theme-scope.spec.ts` | None | PASS: 29/29 static fixture and theme tests passed. | Selected contrast stays in static fixture/script layers; no exhaustive runtime route-pixel contrast audit. | Route-specific visual contrast remains reviewed through generated screenshots and existing tokens. |
 | VER-03 | Guard scripts | Existing guard spine plus Phase 118 design-system evidence source guard | `python3 scripts/check_synced_pair.py && python3 scripts/check_brand_tokens.py && python3 scripts/check_tokens_css.py && python3 scripts/check_contrast.py && python3 scripts/check_brandbook_html.py && python3 scripts/check_logo_assets.py && python3 scripts/check_admin_foundations.py && python3 scripts/check_design_system_evidence.py`; `bash scripts/ci/lint.sh` | None | PASS: individual guard chain passed; full lint wrapper passed with `SVG SIZE BUDGET OK`. | Guard additions are deterministic source checks only; no package installs. | Full lint was practical locally and passed. |
-| VER-04 | Planning closeout | Requirement, roadmap, state, and validation updates after evidence exists | Planned for Phase 118 Plan 03 | None | Pending Plan 03 | Do not mark VER-04 complete in Plan 02. | Planning truth remains pending until Plan 03 updates requirements, roadmap, state, and validation closeout. |
+| VER-04 | Planning closeout | Requirement, roadmap, state, validation, decision coverage, intentional exception, and residual-risk updates after Plan 02 evidence exists | `rg -n "Requirement Coverage|Decision Coverage|Planning Closeout|Milestone Boundary|D-01|D-20|VER-04|no broad pixel baselines|no external AI visual review" .planning/phases/118-evidence-idempotence-guardrails/118-EVIDENCE.md`; `git diff --check` | `.planning/REQUIREMENTS.md`; `.planning/ROADMAP.md`; `.planning/STATE.md`; `.planning/phases/118-evidence-idempotence-guardrails/118-VALIDATION.md` | PASS: Plan 03 records post-evidence planning truth and maps VER-04 to closeout docs, not speculative planning. | Completion is based on recorded Plan 02 proof and this Plan 03 closeout only. | Future milestone summaries must preserve the no-baseline/no-external-AI boundary unless a later roadmap explicitly reopens it. |
+
+## Requirement Coverage
+
+| Requirement | Verdict | Evidence | Closeout note |
+| --- | --- | --- | --- |
+| VER-01 | PASS | Plan 02 recorded `DEMO_BACKEND_URL=http://localhost:4061`, 70/70 combined Playwright tests, 7 generated `ui-matrix-overview-shell-*.png` artifacts, and 48 generated `flow-*.png` artifacts under ignored `test-results/phase118-evidence`. | Screenshots remain generated artifacts for human review, not committed baselines. |
+| VER-02 | PASS | Plan 02 recorded 70/70 matrix/workflow browser assertions, 6/6 backend matrix ExUnit tests, and 29/29 static fixture/theme tests. | Deterministic assertions cover overflow, focus, ARIA/regions, keyboard flow, fixture health, route order, reduced motion, and selected contrast pairs. |
+| VER-03 | PASS | Plan 01 added `scripts/check_design_system_evidence.py`; Plan 02 recorded the individual guard chain and full `bash scripts/ci/lint.sh` passing with `SVG SIZE BUDGET OK`. | Guard extension stayed narrow, deterministic, stdlib-only, and wired into the normal lint spine. |
+| VER-04 | PASS | Plan 03 updates this evidence artifact plus `.planning/REQUIREMENTS.md`, `.planning/ROADMAP.md`, `.planning/STATE.md`, and `118-VALIDATION.md` after Plan 02 proof exists. | Planning truth is post-evidence closeout, not speculative planning. |
+
+## Decision Coverage
+
+| Decision | Status | Coverage |
+| --- | --- | --- |
+| D-01 | covered | Phase 118 is closed as the v1.17 evidence and idempotence capstone; no new UI polish or visual-regression infrastructure is introduced. |
+| D-02 | covered | Generated Playwright artifacts continue through `testInfo.outputPath(...)`; screenshots are not committed baselines or pixel-diff gates. |
+| D-03 | covered | Evidence covers both required proof surfaces: the repo-native UI matrix and mounted workflow routes. |
+| D-04 | covered | Workflow evidence preserves the eight-route set: overview, inventory, rules, kill, audience, audit, explain, and simulate. |
+| D-05 | covered | Evidence records light, dark, system-dark, desktop, mobile, and targeted reduced-motion coverage without multiplying every route by motion mode. |
+| D-06 | covered | Browser assertions stay DOM/behavior based: `.rs-shell`, route/matrix text, overflow, focus, keyboard behavior, roles/regions, route order, and generated artifacts. |
+| D-07 | covered | Playwright handles browser-only proof; ExUnit/source checks handle fixture health, component/source boundaries, route exposure, forbidden tooling, and planning traceability. |
+| D-08 | covered | Selected static contrast remains in static fixture and script checks; no exhaustive runtime route-pixel contrast audit was added. |
+| D-09 | covered | The evidence artifact records exact backend command, `DEMO_BACKEND_PORT=4061`, and `DEMO_BACKEND_URL=http://localhost:4061`. |
+| D-10 | covered | `scripts/ci/lint.sh` remains the durable guard spine and now includes the Phase 118 design-system evidence guard. |
+| D-11 | covered | Guard extension policy stayed narrow: only `scripts/check_design_system_evidence.py` was added for repeatable evidence-posture drift. |
+| D-12 | covered | Forbidden visual-tooling posture is preserved: no Storybook, PhoenixStorybook, `toHaveScreenshot`, `matchSnapshot`, pixelmatch, visual-diff tooling, or checked-in pixel baselines. |
+| D-13 | covered | Reruns are additive and safe; generated screenshots remain ignored artifacts and committed changes are limited to guard/source tests plus planning evidence. |
+| D-14 | covered | No product seed semantics, public routes, package metadata, release workflows, schemas, migrations, runtime APIs, FleetDesk rebranding, or `rulestead_admin` publish-prep work were added. |
+| D-15 | covered | Demo-host matrix route isolation remains asserted; Phase 118 did not move `/dev/rulestead-admin/ui-matrix` into the mounted admin router. |
+| D-16 | covered | Linked-version two-package posture is preserved; no package publishing or standalone `rulestead_admin` publish preparation occurred. |
+| D-17 | covered | This `118-EVIDENCE.md` artifact maps VER-01 through VER-04 to commands, artifact patterns, guard output, intentional exceptions, and residual risks. |
+| D-18 | covered | Planning truth updates are performed only after Plan 02 recorded passing evidence output. |
+| D-19 | covered | No external research or package installation was needed for closeout. |
+| D-20 | covered | Methodology lenses produced no high-impact user decision because the capstone changes no public API, security/governance posture, package boundary, release model, product scope, FleetDesk branding, or publish posture. |
+
+## Planning Closeout
+
+Plan 03 closes planning truth after Plan 02 evidence exists. `.planning/REQUIREMENTS.md` marks VER-01 through VER-04 complete, `.planning/ROADMAP.md` records Phase 118 as 3/3 plans complete, `.planning/STATE.md` points future executors to this evidence artifact and its proof summary, and `118-VALIDATION.md` is approved with `nyquist_compliant: true`.
+
+The closeout is intentionally evidence-only. It records command output, artifact patterns, guard results, intentional exceptions, and residual risks without changing runtime APIs, schemas, routes, release workflows, package metadata, package publication posture, FleetDesk branding, or `rulestead_admin` standalone packaging.
+
+## Milestone Boundary
+
+- no broad pixel baselines
+- no external AI visual review
+- no Storybook/PhoenixStorybook
+- no forced-colors/high-contrast expansion
+- no deferred product wedges
+- no public runtime APIs
+- no schema or migration work
+- no release workflow change
+- no package publishing
+- no FleetDesk rebranding
+- no `rulestead_admin` standalone publish preparation
 
 ## Screenshot Artifact Patterns
 
@@ -81,11 +135,11 @@ Guard chain output:
 - Screenshots are generated artifacts, not committed baselines.
 - No `toHaveScreenshot`, `matchSnapshot`, pixelmatch, visual-diff tooling, checked-in pixel-baseline maintenance, Storybook, PhoenixStorybook, or external AI visual review belongs to this phase per D-12.
 - No schema, migration, runtime API, product seed semantics, public route widening, release workflow, FleetDesk rebranding, package metadata, package install, or `rulestead_admin` publish-prep work belongs to this phase per D-14, D-15, and D-16.
-- VER-04 remains pending for Plan 03 per D-18; this plan records evidence before planning truth closeout.
+- VER-04 is closed by Plan 03 per D-18; planning truth was updated only after Plan 02 recorded evidence.
 
 ## Residual Risks
 
 - Browser evidence depends on a locally running test-mode Phoenix backend and the recorded `DEMO_BACKEND_URL`.
 - Generated screenshot artifacts need human review after the Playwright run because this milestone intentionally avoids committed visual baselines.
 - Static selected contrast proof is not an exhaustive runtime pixel audit for every route.
-- VER-04 planning truth remains pending until Phase 118 Plan 03 updates `.planning/REQUIREMENTS.md`, `.planning/ROADMAP.md`, `.planning/STATE.md`, and validation artifacts.
+- Future planning truth depends on this Phase 118 closeout preserving the generated-artifact, no-baseline, and no-external-AI evidence boundary.
