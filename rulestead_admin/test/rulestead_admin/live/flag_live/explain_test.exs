@@ -101,6 +101,10 @@ defmodule RulesteadAdmin.Live.FlagLive.ExplainTest do
 
     assert html =~ "Audience targeting"
     assert html =~ "vip-users"
+
+    patched_path = assert_patch(view)
+    assert patched_path =~ "tenant_key=acme"
+    refute patched_path =~ "tenant=acme"
   end
 
   defp init_session(conn) do

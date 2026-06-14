@@ -243,7 +243,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Explain do
   defp explain_path(socket, flag_key, form) do
     params =
       %{"env" => socket.assigns.current_environment.key}
-      |> maybe_put("tenant", blank_to_nil(form["tenant_key"]))
+      |> maybe_put("tenant_key", blank_to_nil(form["tenant_key"]))
       |> maybe_put("targeting_key", blank_to_nil(form["targeting_key"]))
       |> maybe_put("session_id", blank_to_nil(form["session_id"]))
       |> maybe_put("request_id", blank_to_nil(form["request_id"]))
