@@ -24,7 +24,7 @@
 
 - [x] **CMP-01**: Primitive components for badges, buttons, cards, callouts, stats, tags, pagination, detail grids, task links, forms, and empty states are visually consistent in light, dark, and system modes.
 - [x] **CMP-02**: Repeated raw `rs-*` markup is either consolidated behind canonical components or documented as an intentional exception.
-- [ ] **CMP-03**: Mutation-confirm flows share a coherent interaction pattern for evidence, reason input, typed confirmation, danger emphasis, back links, and disabled states.
+- [x] **CMP-03**: Mutation-confirm flows share a coherent interaction pattern for evidence, reason input, typed confirmation, danger emphasis, back links, and disabled states.
 - [ ] **CMP-04**: Domain composites for audit/timeline/diff, rollout/guardrail, rule editor, audience impact, governance, simulation, and explain traces are polished as reusable component groups.
 - [x] **CMP-05**: Component-level microcopy is concise, on-brand, and tailored to the operator hat for success, warning, blocked, destructive, and unavailable states.
 
@@ -79,7 +79,7 @@ Deferred until a later milestone or a concrete maintainer need exists.
 | FND-06 | Phase 115 | Complete |
 | CMP-01 | Phase 116 | Complete |
 | CMP-02 | Phase 116 | Complete |
-| CMP-03 | Phase 116 | Pending |
+| CMP-03 | Phase 116 | Complete |
 | CMP-04 | Phase 116 | Pending |
 | CMP-05 | Phase 116 | Complete |
 | FLOW-01 | Phase 117 | Pending |
