@@ -2046,6 +2046,34 @@ a.rs-shell__env-link:active {
   min-width: 0;
 }
 
+.rs-mutation-confirm__state {
+  display: grid;
+  gap: var(--rs-space-1);
+  padding: var(--rs-space-3) var(--rs-space-4);
+  border: 1px solid var(--rs-border);
+  border-radius: var(--rs-radius-md);
+  background: var(--rs-surface-muted);
+  color: var(--rs-text-muted);
+  min-width: 0;
+}
+
+.rs-mutation-confirm__state[data-tone="warning"] {
+  border-color: var(--rs-warning-border);
+  background: var(--rs-warning-soft);
+}
+
+.rs-mutation-confirm__state strong {
+  color: var(--rs-text);
+}
+
+.rs-mutation-confirm__state p {
+  margin: 0;
+}
+
+.rs-mutation-confirm__typed {
+  margin-bottom: 0;
+}
+
 .rs-mutation-confirm__actions {
   display: flex;
   flex-wrap: wrap;
