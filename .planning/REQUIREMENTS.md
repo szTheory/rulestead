@@ -8,7 +8,7 @@
 ### Design-System Matrix
 
 - [x] **DSM-01**: Maintainer can inspect a documented admin component taxonomy that separates foundations, primitives, composites, page patterns, and workflow states.
-- [ ] **DSM-02**: Maintainer can open a repo-native UI matrix that renders real `RulesteadAdmin.Components.*` components with fixed assigns instead of duplicated static HEEx.
+- [x] **DSM-02**: Maintainer can open a repo-native UI matrix that renders real `RulesteadAdmin.Components.*` components with fixed assigns instead of duplicated static HEEx.
 - [x] **DSM-03**: UI matrix examples cover normal, dense, empty, loading, error, permission-denied, long-label, and destructive-action states needed for design-system review.
 
 ### Foundations
@@ -69,7 +69,7 @@ Deferred until a later milestone or a concrete maintainer need exists.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | DSM-01 | Phase 113 | Complete |
-| DSM-02 | Phase 114 | Pending |
+| DSM-02 | Phase 114 | Complete |
 | DSM-03 | Phase 113 | Complete |
 | FND-01 | Phase 115 | Pending |
 | FND-02 | Phase 115 | Pending |

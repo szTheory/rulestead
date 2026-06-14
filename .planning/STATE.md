@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.17
 milestone_name: Admin Design System Stress Test
 status: executing
-last_updated: "2026-06-14T04:46:42.021Z"
-last_activity: 2026-06-14 -- Phase 114 planning complete
+last_updated: "2026-06-14T05:04:12.194Z"
+last_activity: 2026-06-14 -- Phase 114 Plan 01 complete; Plan 02 ready
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 5
-  completed_plans: 3
+  completed_plans: 4
   percent: 17
 ---
 
@@ -21,7 +21,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-13)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
 
-**Current focus:** Phase 114 — repo native component matrix harness
+**Current focus:** Phase 114 — repo-native-component-matrix-harness
 
 **Milestone:** v1.17 Admin Design System Stress Test — see `.planning/ROADMAP.md`.
 
@@ -31,10 +31,10 @@ See: `.planning/PROJECT.md` (updated 2026-06-13)
 
 ## Current Position
 
-Phase: 114
-Plan: Not started
+Phase: 114 (repo-native-component-matrix-harness) — EXECUTING
+Plan: 2 of 2
 Status: Ready to execute
-Last activity: 2026-06-14 -- Phase 114 planning complete
+Last activity: 2026-06-14 -- Phase 114 Plan 01 complete; Plan 02 ready
 
 Phase 114 planning deliverables:
 
@@ -80,6 +80,8 @@ Human checkpoints:
 - **v1.17 evidence posture:** Screenshots plus deterministic assertions and human review. Continue the v1.16 preference for broad Playwright artifacts over checked-in pixel baselines.
 - **Phase 113 context:** `.planning/phases/113-design-system-inventory-ui-matrix-contract/113-CONTEXT.md` locks the inventory taxonomy, UI matrix state contract, operator lenses, evidence posture, and scope constraints for downstream planning.
 - **Phase 114 context:** `.planning/phases/114-repo-native-component-matrix-harness/114-CONTEXT.md` locks a demo-hosted, dev/test-only Phoenix/Playwright matrix that renders real `RulesteadAdmin.Components.*` and selected seeded admin flow examples without widening `RulesteadAdmin.Router.rulestead_admin/2`, package metadata, release workflow, CSS foundation work, or component polish scope.
+- **Phase 114 Plan 01:** `/dev/rulestead-admin/ui-matrix` is a demo-hosted dev/test route outside `RulesteadAdmin.Router.rulestead_admin/2`; it renders real `RulesteadAdmin.Components.*` modules inside `Shell.page/1` with deterministic fixtures from `UiMatrixFixtures`.
+- **Phase 114 Plan 01 evidence:** focused ExUnit coverage proves `.rs-shell`, all required `data-matrix-section` selectors, representative real component output, fixture health, demo/package router boundaries, and no Storybook/PhoenixStorybook/pixel-baseline tooling.
 - **Hex release:** `rulestead` + `rulestead_admin` **0.1.3** live (2026-05-28). Post-publish verify trio green.
 - **Handoff thread:** `.planning/threads/2026-05-28-post-0.1.2-maintenance-handoff.md` — read after context clear.
 - **Path-to-done: complete** (v1.10.1 + v1.11 + v1.11.1 gap closure + v1.12 adoption evidence shipped).
@@ -181,7 +183,7 @@ All closed — v1.12 adoption evidence depth complete.
 
 ## Operator Next Steps
 
-- Continue Phase 114 with `$gsd-plan-phase 114`.
+- Continue Phase 114 Plan 02 with Playwright matrix evidence now that `/dev/rulestead-admin/ui-matrix` and backend smoke/source coverage are committed.
 - Keep FND, CMP, FLOW, and VER requirements deferred to their mapped later phases.
 
 ## Latest Verification
@@ -198,6 +200,7 @@ Current v1.17 planning proof:
 - Phase 113 Plan 03: `113-ACCEPTANCE-GATES.md` exists; DSM-01, DSM-03, D-01 through D-20, guard-chain, and Phase 114-118 handoff assertions passed.
 - Phase 114 context: `.planning/phases/114-repo-native-component-matrix-harness/114-CONTEXT.md` exists and captures D-01 through D-15 for the demo-hosted dev/test matrix harness.
 - Phase 114 UI-SPEC: `.planning/phases/114-repo-native-component-matrix-harness/114-UI-SPEC.md` exists, is `status: approved`, records `reviewed_at: 2026-06-14T01:20:39Z`, and marks all 6 UI checker dimensions PASS.
+- Phase 114 Plan 01: `114-01-SUMMARY.md` exists; `/dev/rulestead-admin/ui-matrix` renders in the demo backend, uses real admin components inside `.rs-shell`, keeps `RulesteadAdmin.Router.rulestead_admin/2` unchanged, and passes `cd examples/demo/backend && mix test test/rulestead_demo_web/live/ui_matrix_live_test.exs` plus `mix compile`.
 - Baseline inherited from v1.16: brand/token/logo guard chain, frontend fixture specs, admin workflow screenshot evidence, compose/browser proof, core/admin/demo tests, and passed v1.16 milestone audit.
 
 ## Performance Metrics
@@ -223,6 +226,7 @@ Current v1.17 planning proof:
 | Phase 97-logo-mark-svg-system P01 | 15 | 2 tasks | 5 files |
 | Phase 97-logo-mark-svg-system P04 | 8 | 2 tasks | 3 files |
 | Phase 98-admin-re-skin-css-cascade P01 | 8 | 2 tasks | 3 files |
+| Phase 114-repo-native-component-matrix-harness P01 | 8min | 3 tasks | 4 files |
 | Phase 98-admin-re-skin-css-cascade P02 | 7min | 2 tasks | 2 files |
 | Phase 98-admin-re-skin-css-cascade P03 | 4min | 2 tasks | 1 files |
 | Phase 98-admin-re-skin-css-cascade P04 | 5min | 2 tasks | 4 files |
