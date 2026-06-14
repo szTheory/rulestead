@@ -90,12 +90,16 @@ Deferred until a later milestone or a concrete maintainer need exists.
 | VER-02 | Phase 118 | Pending |
 | VER-03 | Phase 118 | Pending |
 | VER-04 | Phase 118 | Pending |
+| FUT-01 | Deferred | Future |
+| FUT-02 | Deferred | Future |
+| FUT-03 | Deferred | Future |
 
 **Coverage:**
 - v1.17 requirements: 22 total
 - Mapped to phases: 22
 - Unmapped: 0
+- Future requirements deferred: 3
 
 ---
 *Requirements defined: 2026-06-13*
-*Last updated: 2026-06-13 after Phase 113 completion*
+*Last updated: 2026-06-14 after Phase 114 completion*
