@@ -24,7 +24,7 @@ Rulestead is a batteries-included, Elixir-native feature-flag and remote-config 
 - `v1.14` shipped on 2026-06-06 across Phases 95–101: source-controlled brand system, mineral admin re-skin, final SVG assets/specimens, copy kit, generated `brandbook/index.html`, stdlib generator, drift/budget guard, CI wiring, and file:// browser evidence — no new runtime APIs, schema changes, package-version changes, or publish-posture changes.
 - `v1.15` shipped on 2026-06-12 across Phases 102–106: tournament-selected integrated logo identity (winner A3-3, maintainer-gated rounds), 8-file lockup family, brand-book §14 logo system, admin/demo propagation, and the elevated designed `brandbook/index.html` (cover, scrollspy rail, AA-badged swatches, logo plates, print) — zero token deviations, no runtime API or publish-posture changes.
 - `v1.16` shipped on 2026-06-13 across Phases 107–112.1: full brand-faithful UI iteration over static fixtures, admin primitives, admin workflow evidence, demo launcher, FleetDesk host-brand boundary, logo/token/contrast drift guards, dynamic FleetDesk launcher URL/click-through evidence, and passed milestone audit backfill — no public runtime APIs, schemas, release workflow changes, component framework adoption, or admin publish prep.
-- `v1.17` is active; Phases 113–114 are complete, delivering the design-system inventory/contract and a repo-native Phoenix/Playwright UI matrix harness that renders real admin components with deterministic fixture assigns.
+- `v1.17` is active; Phases 113–115 are complete, delivering the design-system inventory/contract, a repo-native Phoenix/Playwright UI matrix harness that renders real admin components with deterministic fixture assigns, and guard-backed foundation hardening for breakpoints, focus, reduced motion, radius/elevation rules, and dense technical containment.
 
 <details>
 <summary>Shipped: v1.11 Integration Spine (2026-05-28)</summary>
@@ -260,9 +260,11 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 
 ### Active
 
-- **DSM-01** through **DSM-03**, **FND-01** through **FND-06**, **CMP-01** through **CMP-05**, **FLOW-01** through **FLOW-04**, **VER-01** through **VER-04** — v1.17 admin design-system stress test (Phases 113-118). No public runtime APIs, schema changes, component framework adoption, or publish-posture changes.
+- **CMP-01** through **CMP-05**, **FLOW-01** through **FLOW-04**, **VER-01** through **VER-04** — remaining v1.17 admin design-system stress test work (Phases 116-118). No public runtime APIs, schema changes, component framework adoption, or publish-posture changes.
 
 ### Validated
+
+- ✓ **DSM-01** through **DSM-03**, **FND-01** through **FND-06** — v1.17 design-system inventory, repo-native UI matrix harness, and foundation hardening: real admin components with deterministic fixture assigns, documented breakpoint exceptions, source guard/CI wiring, reduced-motion transform neutralization, focus/radius/elevation rules, and mobile dense-content containment — Phases 113-115 (2026-06-14). No public runtime APIs, schemas, release workflow changes, component framework adoption, or publish-posture changes.
 
 - ✓ **BUI-01** through **BUI-06** — brand-faithful UI iteration: conformance matrix, fixture/guardrail alignment, shared admin primitive token pass, admin workflow evidence, demo host/Rulestead boundary, browser evidence and audit closeout — `v1.16`, Phases 107-112.1 (2026-06-13). No public runtime APIs or publish-posture changes.
 
@@ -417,4 +419,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-13 — started v1.17 Admin Design System Stress Test*
+*Last updated: 2026-06-14 — completed Phase 115 Foundations Hardening*
