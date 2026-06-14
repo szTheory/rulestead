@@ -3737,6 +3737,93 @@ a.rs-env-state:active {
   margin-top: 0.75rem;
 }
 
+.rs-guardrail-status {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.rs-guardrail-status__definitions,
+.rs-guardrail-status__decision,
+.rs-guardrail-status__empty,
+.rs-auto-advance-state {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+  padding: 0.75rem;
+  border: 1px solid var(--rs-border);
+  border-radius: var(--rs-radius-md);
+  background: var(--rs-surface-muted);
+}
+
+.rs-guardrail-status__decision[data-tone="positive"] {
+  border-color: var(--rs-success-border);
+  background: var(--rs-success-soft);
+}
+
+.rs-guardrail-status__decision[data-tone="warning"],
+.rs-auto-advance-state[data-mode="blocked_health"],
+.rs-auto-advance-state[data-mode="config_incomplete"],
+.rs-auto-advance-state[data-mode="pending_observation"] {
+  border-color: var(--rs-warning-border);
+  background: var(--rs-warning-soft);
+}
+
+.rs-guardrail-status__decision[data-tone="critical"],
+.rs-auto-advance-state[data-mode="unavailable"] {
+  border-color: var(--rs-error-border);
+  background: var(--rs-error-soft);
+}
+
+.rs-guardrail-definitions {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0.35rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rs-guardrail-definitions li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.65rem;
+  align-items: baseline;
+  min-width: 0;
+}
+
+.rs-guardrail-evidence {
+  display: grid;
+  gap: 0.45rem 0.75rem;
+  margin: 0.5rem 0 0;
+}
+
+@media (min-width: 40rem) {
+  .rs-guardrail-evidence {
+    grid-template-columns: minmax(9rem, max-content) minmax(0, 1fr);
+  }
+}
+
+.rs-guardrail-evidence dt {
+  color: var(--rs-text-muted);
+  font-size: var(--rs-text-2xs);
+  font-weight: var(--rs-weight-medium);
+  letter-spacing: var(--rs-tracking-wider);
+  text-transform: uppercase;
+}
+
+.rs-guardrail-evidence dd {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.rs-auto-advance-state strong {
+  color: var(--rs-text);
+}
+
+.rs-auto-advance-state span {
+  color: var(--rs-text-muted);
+}
+
 /* Rules editor */
 
 .rs-rules-workspace__header {
@@ -4018,7 +4105,8 @@ a.rs-env-state:active {
 }
 
 .rs-event-panel__reason,
-.rs-event-panel__link {
+.rs-event-panel__link,
+.rs-event-panel__provenance {
   margin: 0;
   padding: 0.65rem 0.75rem;
   border-left: 3px solid var(--rs-border-strong);
@@ -4027,7 +4115,12 @@ a.rs-env-state:active {
   color: var(--rs-text-muted);
 }
 
-.rs-event-panel__reason strong {
+.rs-event-panel__provenance[data-source="automatic"] {
+  border-left-color: var(--rs-accent);
+}
+
+.rs-event-panel__reason strong,
+.rs-event-panel__provenance strong {
   display: block;
   margin-bottom: 0.15rem;
   color: var(--rs-text);

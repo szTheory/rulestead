@@ -91,12 +91,12 @@ defmodule RulesteadAdmin.Components.RolloutComponents do
 
   def guardrail_status(assigns) do
     ~H"""
-    <section class="rs-card" aria-label="Guardrail status">
+    <section class="rs-card rs-guardrail-status" data-state={guardrail_state(@status)} aria-label="Guardrail status">
       <h2>Guardrail status</h2>
 
-      <div :if={@definitions != []}>
+      <div :if={@definitions != []} class="rs-guardrail-status__definitions">
         <p>Authored guardrail definitions for this rollout stage.</p>
-        <ul>
+        <ul class="rs-guardrail-definitions">
           <li :for={definition <- @definitions}>
             <code><%= definition.signal_key %></code>
             <span><%= definition.threshold_operator %> <%= definition.threshold_value %></span>
@@ -107,18 +107,19 @@ defmodule RulesteadAdmin.Components.RolloutComponents do
         </ul>
       </div>
 
-      <div :if={@definitions == []}>
+      <div :if={@definitions == []} class="rs-guardrail-status__empty" role="status">
+        <strong>Guardrails unavailable</strong>
         <p>No guardrail definitions are authored for this rollout stage.</p>
       </div>
 
-      <div :if={@status}>
-        <p role="status"><strong><%= @status.state_label %></strong></p>
+      <div :if={@status} class="rs-guardrail-status__decision" data-tone={guardrail_tone(@status.state)} role="status">
+        <strong>Guardrail decision: <%= @status.state_label %></strong>
         <p><%= state_body(@status.state) %></p>
         <p :if={@status.reason}>Reason: <code><%= @status.reason %></code></p>
         <p :if={@status.effective_percentage}>Effective exposure: <strong><%= @status.effective_percentage %>%</strong></p>
 
         <h3>Thresholds and evidence</h3>
-        <dl>
+        <dl class="rs-guardrail-evidence" aria-label="Guardrail threshold and evidence">
           <dt>Signal</dt>
           <dd><code><%= evidence_value(@status.evidence, :signal_key) %></code></dd>
           <dt>Threshold</dt>
@@ -142,14 +143,14 @@ defmodule RulesteadAdmin.Components.RolloutComponents do
         </dl>
       </div>
 
-      <div :if={is_nil(@status) and @definitions != []}>
+      <div :if={is_nil(@status) and @definitions != []} class="rs-guardrail-status__decision" data-tone="warning">
         <h3>No guardrail decision recorded</h3>
         <p role="alert">
           <%= missing_status_body(@missing_reason) %>
         </p>
       </div>
 
-      <a href={@timeline_path}>Open full timeline</a>
+      <a class="rs-button rs-button--text" href={@timeline_path}>Open full timeline</a>
     </section>
     """
   end
@@ -162,7 +163,7 @@ defmodule RulesteadAdmin.Components.RolloutComponents do
     ~H"""
     <section class="rs-card" aria-label="Risky jump confirmation">
       <h2>Risky jump requires confirmation</h2>
-      <p>Publish risky jump from <strong><%= @current %>%</strong> to <strong><%= @target %>%</strong> only after reviewing the preview and recording why the ladder recommendation is being skipped.</p>
+      <p>Risky jump skips the advisory ladder. Publish from <strong><%= @current %>%</strong> to <strong><%= @target %>%</strong> only after reviewing the preview and recording why the ladder recommendation is being skipped.</p>
 
       <form aria-label="Risky jump confirmation form" phx-change="validate_confirmation">
         <label for="rollout-confirm-reason">Reason for risky jump</label>
@@ -213,6 +214,19 @@ defmodule RulesteadAdmin.Components.RolloutComponents do
 
   defp evidence_value(_evidence, _key), do: "n/a"
 
+  defp guardrail_state(nil), do: "missing"
+  defp guardrail_state(%{state: state}), do: to_string(state)
+  defp guardrail_state(%{"state" => state}), do: to_string(state)
+  defp guardrail_state(_status), do: "unknown"
+
+  defp guardrail_tone(:healthy), do: "positive"
+  defp guardrail_tone("healthy"), do: "positive"
+  defp guardrail_tone(:held), do: "critical"
+  defp guardrail_tone("held"), do: "critical"
+  defp guardrail_tone(:rollback_triggered), do: "critical"
+  defp guardrail_tone("rollback_triggered"), do: "critical"
+  defp guardrail_tone(_state), do: "warning"
+
   defp missing_status_body(_reason) do
     "This rollout stage has guardrail definitions, but no evaluated decision has been recorded for this environment yet. Wire the host signal provider or run the guarded evaluation before treating the stage as healthy."
   end
@@ -248,7 +262,10 @@ defmodule RulesteadAdmin.Components.RolloutComponents do
     <section class="rs-card" aria-label="Auto-advance">
       <h2>Auto-advance</h2>
 
-      <p role="status"><%= mode_body(@mode, @guardrail_status, @scheduled_tick) %></p>
+      <p class="rs-auto-advance-state" data-mode={@mode} role="status">
+        <strong><%= mode_label(@mode) %></strong>
+        <span><%= mode_body(@mode, @guardrail_status, @scheduled_tick) %></span>
+      </p>
 
       <div :if={@protected_callout?} class="rs-auto-advance-protected-callout">
         <p>
@@ -410,4 +427,12 @@ defmodule RulesteadAdmin.Components.RolloutComponents do
   defp mode_body(_mode, _status, _tick) do
     "Auto-advance status is unavailable for this rollout stage."
   end
+
+  defp mode_label(:unavailable), do: "Unavailable"
+  defp mode_label(:blocked_health), do: "Blocked by guardrail health"
+  defp mode_label(:config_incomplete), do: "Configuration incomplete"
+  defp mode_label(:ready), do: "Ready"
+  defp mode_label(:pending_observation), do: "Observation pending"
+  defp mode_label(:scheduled), do: "Scheduled"
+  defp mode_label(_mode), do: "Unavailable"
 end

@@ -48,6 +48,11 @@ defmodule RulesteadDemoWeb.UiMatrixLiveTest do
     assert rendered =~ "Production fixture archive requires the exact flag key."
     assert rendered =~ "Host evidence is stale. Refresh guardrail evidence before mutating."
     assert rendered =~ "Read-only fixture action"
+    assert rendered =~ "Provenance"
+    assert rendered =~ "Redacted JSON is locally scrollable"
+    assert rendered =~ "Guardrail decision: Held - stale host evidence"
+    assert rendered =~ "Blocked by guardrail health"
+    assert rendered =~ "Risky jump skips the advisory ladder"
   end
 
   test "read-only matrix interactions keep the LiveView mounted", %{conn: conn} do

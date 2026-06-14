@@ -91,11 +91,16 @@ defmodule RulesteadAdmin.Components.AuditComponents do
   attr(:show_rollback, :boolean, default: false)
 
   def timeline_item(assigns) do
+    automatic? = Map.get(assigns.entry, :automatic?, false)
+    rollout_event? = rollout_event?(assigns.entry)
+
     assigns =
       assigns
       |> assign(:event_id, "audit-event-#{assigns.entry.id}")
-      |> assign(:automatic?, Map.get(assigns.entry, :automatic?, false))
-      |> assign(:rollout_event?, rollout_event?(assigns.entry))
+      |> assign(:automatic?, automatic?)
+      |> assign(:rollout_event?, rollout_event?)
+      |> assign(:provenance_source, if(automatic?, do: "automatic", else: "manual"))
+      |> assign(:provenance_label, provenance_label(assigns.entry, automatic?, rollout_event?))
 
     ~H"""
     <li class="rs-event-timeline__item" data-result={@entry.result} data-automatic={@automatic?}>
@@ -127,6 +132,11 @@ defmodule RulesteadAdmin.Components.AuditComponents do
           <span :if={!@automatic? and @rollout_event?}>Run by operator</span>
           <span :if={Map.get(@entry, :resource_key)}>Flag <code>{@entry.resource_key}</code></span>
         </div>
+
+        <p class="rs-event-panel__provenance" data-source={@provenance_source}>
+          <strong>Provenance</strong>
+          <span>{@provenance_label}</span>
+        </p>
 
         <p :if={@entry.reason} class="rs-event-panel__reason">
           <strong>Reason</strong>
@@ -233,7 +243,9 @@ defmodule RulesteadAdmin.Components.AuditComponents do
     ~H"""
     <details class="rs-raw-detail" aria-label={"Raw detail for #{@entry.title}"}>
       <summary>Show redacted JSON</summary>
-      <p>Debug view. Sensitive or non-allowlisted fields may be hidden.</p>
+      <p>
+        Debug view. Sensitive or non-allowlisted fields may be hidden. Redacted JSON is locally scrollable.
+      </p>
       <pre><code class="rs-json" aria-label={"JSON raw detail for #{@entry.title}"}><span
         :for={token <- @tokens}
         class={"rs-json-token rs-json-token--#{token.type}"}
@@ -323,6 +335,14 @@ defmodule RulesteadAdmin.Components.AuditComponents do
     |> to_string()
     |> String.starts_with?("rollout.")
   end
+
+  defp provenance_label(entry, true, _rollout_event?) do
+    source = Map.get(entry, :source_label) || "automation"
+    "Automatic event recorded by #{source}."
+  end
+
+  defp provenance_label(_entry, false, true), do: "Manual operator rollout action."
+  defp provenance_label(_entry, false, _rollout_event?), do: "Manual operator audit event."
 
   defp result_label(:ok), do: "Applied"
   defp result_label("ok"), do: "Applied"
