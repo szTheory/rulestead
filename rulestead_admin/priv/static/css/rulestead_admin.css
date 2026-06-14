@@ -4336,6 +4336,18 @@ a.rs-env-state:active {
   }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .rs-shell,
+  .rs-shell *,
+  .rs-shell *::before,
+  .rs-shell *::after {
+    scroll-behavior: auto;
+    animation-duration: 0ms;
+    animation-iteration-count: 1;
+    transition-duration: 0ms;
+  }
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .rs-card--flag {
     animation: rs-slide-in var(--rs-motion-base) var(--rs-ease-out) both;

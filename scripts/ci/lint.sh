@@ -39,6 +39,9 @@ python3 "${RULESTEAD_REPO}/scripts/check_brandbook_html.py"
 # brandbook sources, and the real shell must retain the theme-aware classes.
 python3 "${RULESTEAD_REPO}/scripts/check_logo_assets.py"
 
+# Admin foundations: documented breakpoints, reduced-motion floor, and focus markers.
+python3 "${RULESTEAD_REPO}/scripts/check_admin_foundations.py"
+
 # SVG size budget: logo <=20KB, specimens <=50KB.
 shopt -s nullglob
 for f in "${RULESTEAD_REPO}/brandbook/assets/logo/"*.svg; do
