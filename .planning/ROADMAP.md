@@ -88,7 +88,7 @@ Plans:
 3. Keyboard flow, focus order, mobile layout, and narrow viewport behavior remain usable across primary admin route clusters.
 4. Demo or fixture data exercises happy-path, error, boundary, and rare states without changing product semantics.
 
-**Plans:** 2/4 plans executed
+**Plans:** 3/4 plans executed
 
 Plans:
 **Wave 1**
@@ -98,7 +98,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 117-03-PLAN.md — Route-owned IA fixes for home, inventory, audience, rules, and kill-switch flows.
+- [x] 117-03-PLAN.md — Route-owned IA fixes for home, inventory, audience, rules, and kill-switch flows.
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -125,7 +125,7 @@ Plans:
 | 114. Repo-Native Component Matrix Harness | 2/2 | Complete    | 2026-06-14 |
 | 115. Foundations Hardening | 3/3 | Complete    | 2026-06-14 |
 | 116. Primitive + Composite Polish | 4/4 | Complete    | 2026-06-14 |
-| 117. Page Flow + IA Pass | 2/4 | In Progress|  |
+| 117. Page Flow + IA Pass | 3/4 | In Progress|  |
 | 118. Evidence + Idempotence Guardrails | 0/0 | Pending | - |
 
 ## Requirement Coverage
