@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v1.17
 milestone_name: Admin Design System Stress Test
-status: ready_to_plan
-last_updated: 2026-06-14T05:41:27.709Z
+status: planning
+last_updated: "2026-06-14T06:35:10.604Z"
 last_activity: 2026-06-14
 progress:
   total_phases: 6
@@ -11,7 +11,7 @@ progress:
   total_plans: 5
   completed_plans: 5
   percent: 33
-stopped_at: Phase 114 complete (2/2) — ready to discuss Phase 115
+stopped_at: Phase 115 context gathered (assumptions mode) - ready to plan Phase 115
 ---
 
 # State: Rulestead
@@ -37,7 +37,12 @@ Plan: Not started
 Status: Ready to plan
 Last activity: 2026-06-14
 
-Phase 114 planning deliverables:
+Phase 115 planning deliverables:
+
+- `.planning/phases/115-foundations-hardening/115-CONTEXT.md`
+- `.planning/phases/115-foundations-hardening/115-DISCUSSION-LOG.md`
+
+Phase 114 complete deliverables:
 
 - `.planning/phases/114-repo-native-component-matrix-harness/114-CONTEXT.md`
 - `.planning/phases/114-repo-native-component-matrix-harness/114-DISCUSSION-LOG.md`
@@ -83,6 +88,7 @@ Human checkpoints:
 - **Phase 114 context:** `.planning/phases/114-repo-native-component-matrix-harness/114-CONTEXT.md` locks a demo-hosted, dev/test-only Phoenix/Playwright matrix that renders real `RulesteadAdmin.Components.*` and selected seeded admin flow examples without widening `RulesteadAdmin.Router.rulestead_admin/2`, package metadata, release workflow, CSS foundation work, or component polish scope.
 - **Phase 114 Plan 01:** `/dev/rulestead-admin/ui-matrix` is a demo-hosted dev/test route outside `RulesteadAdmin.Router.rulestead_admin/2`; it renders real `RulesteadAdmin.Components.*` modules inside `Shell.page/1` with deterministic fixtures from `UiMatrixFixtures`.
 - **Phase 114 Plan 01 evidence:** focused ExUnit coverage proves `.rs-shell`, all required `data-matrix-section` selectors, representative real component output, fixture health, demo/package router boundaries, and no Storybook/PhoenixStorybook/pixel-baseline tooling.
+- **Phase 115 context:** `.planning/phases/115-foundations-hardening/115-CONTEXT.md` locks foundation-only hardening for breakpoints, scalar token/docs alignment, focus, reduced motion, radius/elevation/emphasis rules, dense-table/technical-row containment, and focused matrix/guard verification without widening product, package, release, component, Storybook, pixel-baseline, FleetDesk, or publish-prep scope.
 - **Hex release:** `rulestead` + `rulestead_admin` **0.1.3** live (2026-05-28). Post-publish verify trio green.
 - **Handoff thread:** `.planning/threads/2026-05-28-post-0.1.2-maintenance-handoff.md` — read after context clear.
 - **Path-to-done: complete** (v1.10.1 + v1.11 + v1.11.1 gap closure + v1.12 adoption evidence shipped).
