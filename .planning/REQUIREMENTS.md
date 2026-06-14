@@ -30,10 +30,10 @@
 
 ### Flow and IA
 
-- [ ] **FLOW-01**: Admin route clusters are mapped to operator jobs-to-be-done for build/release, explain/diagnose, review/approve, audiences, rollouts, audit, and destructive actions.
-- [ ] **FLOW-02**: Page sections and component groups follow least-surprise information hierarchy for onboarding, intermediate, and advanced operator paths.
+- [x] **FLOW-01**: Admin route clusters are mapped to operator jobs-to-be-done for build/release, explain/diagnose, review/approve, audiences, rollouts, audit, and destructive actions.
+- [x] **FLOW-02**: Page sections and component groups follow least-surprise information hierarchy for onboarding, intermediate, and advanced operator paths.
 - [ ] **FLOW-03**: Keyboard, focus order, mobile layout, and narrow viewport behavior remain usable across the primary admin route clusters.
-- [ ] **FLOW-04**: Demo/fixture data includes enough happy-path, error, boundary, and rare-state examples to exercise the design system without changing product semantics.
+- [x] **FLOW-04**: Demo/fixture data includes enough happy-path, error, boundary, and rare-state examples to exercise the design system without changing product semantics.
 
 ### Verification
 
@@ -82,10 +82,10 @@ Deferred until a later milestone or a concrete maintainer need exists.
 | CMP-03 | Phase 116 | Complete |
 | CMP-04 | Phase 116 | Complete |
 | CMP-05 | Phase 116 | Complete |
-| FLOW-01 | Phase 117 | Pending |
-| FLOW-02 | Phase 117 | Pending |
+| FLOW-01 | Phase 117 | Complete |
+| FLOW-02 | Phase 117 | Complete |
 | FLOW-03 | Phase 117 | Pending |
-| FLOW-04 | Phase 117 | Pending |
+| FLOW-04 | Phase 117 | Complete |
 | VER-01 | Phase 118 | Pending |
 | VER-02 | Phase 118 | Pending |
 | VER-03 | Phase 118 | Pending |

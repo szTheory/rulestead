@@ -93,7 +93,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 117-01-PLAN.md — Route-cluster IA review artifact and deterministic fixture coverage.
+- [x] 117-01-PLAN.md — Route-cluster IA review artifact and deterministic fixture coverage.
 - [ ] 117-02-PLAN.md — Route-level Playwright evidence for route flow, keyboard, focus, mobile, and screenshots.
 
 **Wave 2** *(blocked on Wave 1 completion)*
@@ -125,7 +125,7 @@ Plans:
 | 114. Repo-Native Component Matrix Harness | 2/2 | Complete    | 2026-06-14 |
 | 115. Foundations Hardening | 3/3 | Complete    | 2026-06-14 |
 | 116. Primitive + Composite Polish | 4/4 | Complete    | 2026-06-14 |
-| 117. Page Flow + IA Pass | 0/4 | Planned | - |
+| 117. Page Flow + IA Pass | 1/4 | Executing | - |
 | 118. Evidence + Idempotence Guardrails | 0/0 | Pending | - |
 
 ## Requirement Coverage
