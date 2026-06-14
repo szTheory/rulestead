@@ -18,7 +18,7 @@
 - [x] **FND-03**: Focus states remain visible and consistent across shell controls, buttons, links, form controls, command palette, environment/tenant controls, and task links.
 - [x] **FND-04**: Reduced-motion users do not receive nonessential scale, translate, blur, or staged motion effects.
 - [x] **FND-05**: Radius, pill usage, shadows, elevation, and colored emphasis follow an explicit product-surface rule rather than component-by-component drift.
-- [ ] **FND-06**: Dense tables and technical rows have a responsive overflow or stacking pattern that prevents horizontal page overflow on mobile widths.
+- [x] **FND-06**: Dense tables and technical rows have a responsive overflow or stacking pattern that prevents horizontal page overflow on mobile widths.
 
 ### Components and Composites
 
@@ -76,7 +76,7 @@ Deferred until a later milestone or a concrete maintainer need exists.
 | FND-03 | Phase 115 | Complete |
 | FND-04 | Phase 115 | Complete |
 | FND-05 | Phase 115 | Complete |
-| FND-06 | Phase 115 | Pending |
+| FND-06 | Phase 115 | Complete |
 | CMP-01 | Phase 116 | Pending |
 | CMP-02 | Phase 116 | Pending |
 | CMP-03 | Phase 116 | Pending |
