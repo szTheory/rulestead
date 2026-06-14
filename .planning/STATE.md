@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.17
 milestone_name: Admin Design System Stress Test
 status: ready_to_plan
-last_updated: 2026-06-14T07:11:09.187Z
+last_updated: "2026-06-14T15:05:43.408Z"
 last_activity: 2026-06-14
 progress:
   total_phases: 6
@@ -11,7 +11,7 @@ progress:
   total_plans: 8
   completed_plans: 8
   percent: 50
-stopped_at: Phase 115 complete (3/3) — ready to discuss Phase 116
+stopped_at: Phase 116 context gathered (assumptions mode) - ready to plan Phase 116
 ---
 
 # State: Rulestead
@@ -36,6 +36,11 @@ Phase: 116
 Plan: Not started
 Status: Ready to plan
 Last activity: 2026-06-14
+
+Phase 116 planning deliverables:
+
+- `.planning/phases/116-primitive-composite-polish/116-CONTEXT.md`
+- `.planning/phases/116-primitive-composite-polish/116-DISCUSSION-LOG.md`
 
 Phase 115 planning deliverables:
 
@@ -89,6 +94,7 @@ Human checkpoints:
 - **Phase 114 Plan 01:** `/dev/rulestead-admin/ui-matrix` is a demo-hosted dev/test route outside `RulesteadAdmin.Router.rulestead_admin/2`; it renders real `RulesteadAdmin.Components.*` modules inside `Shell.page/1` with deterministic fixtures from `UiMatrixFixtures`.
 - **Phase 114 Plan 01 evidence:** focused ExUnit coverage proves `.rs-shell`, all required `data-matrix-section` selectors, representative real component output, fixture health, demo/package router boundaries, and no Storybook/PhoenixStorybook/pixel-baseline tooling.
 - **Phase 115 context:** `.planning/phases/115-foundations-hardening/115-CONTEXT.md` locks foundation-only hardening for breakpoints, scalar token/docs alignment, focus, reduced motion, radius/elevation/emphasis rules, dense-table/technical-row containment, and focused matrix/guard verification without widening product, package, release, component, Storybook, pixel-baseline, FleetDesk, or publish-prep scope.
+- **Phase 116 context:** `.planning/phases/116-primitive-composite-polish/116-CONTEXT.md` locks component-function-first polish, Phase 115 foundation reuse, canonical mutation-confirm alignment, domain composite in-place polish, bounded raw `rs-*` consolidation/documented exceptions, and operator-specific microcopy without widening API, schema, release, package, FleetDesk, Storybook, pixel-baseline, or publish-prep scope.
 - **Hex release:** `rulestead` + `rulestead_admin` **0.1.3** live (2026-05-28). Post-publish verify trio green.
 - **Handoff thread:** `.planning/threads/2026-05-28-post-0.1.2-maintenance-handoff.md` — read after context clear.
 - **Path-to-done: complete** (v1.10.1 + v1.11 + v1.11.1 gap closure + v1.12 adoption evidence shipped).
@@ -191,8 +197,8 @@ All closed — v1.12 adoption evidence depth complete.
 
 ## Operator Next Steps
 
-- Continue Phase 114 Plan 02 with Playwright matrix evidence now that `/dev/rulestead-admin/ui-matrix` and backend smoke/source coverage are committed.
-- Keep FND, CMP, FLOW, and VER requirements deferred to their mapped later phases.
+- Plan Phase 116 with `$gsd-plan-phase 116`; context is captured and ready.
+- Keep FLOW and VER requirements deferred to Phases 117 and 118.
 
 ## Latest Verification
 
@@ -209,6 +215,8 @@ Current v1.17 planning proof:
 - Phase 114 context: `.planning/phases/114-repo-native-component-matrix-harness/114-CONTEXT.md` exists and captures D-01 through D-15 for the demo-hosted dev/test matrix harness.
 - Phase 114 UI-SPEC: `.planning/phases/114-repo-native-component-matrix-harness/114-UI-SPEC.md` exists, is `status: approved`, records `reviewed_at: 2026-06-14T01:20:39Z`, and marks all 6 UI checker dimensions PASS.
 - Phase 114 Plan 01: `114-01-SUMMARY.md` exists; `/dev/rulestead-admin/ui-matrix` renders in the demo backend, uses real admin components inside `.rs-shell`, keeps `RulesteadAdmin.Router.rulestead_admin/2` unchanged, and passes `cd examples/demo/backend && mix test test/rulestead_demo_web/live/ui_matrix_live_test.exs` plus `mix compile`.
+- Phase 115 verification: `.planning/phases/115-foundations-hardening/115-VERIFICATION.md` is `status: passed` for FND-01 through FND-06 and records the targeted foundation guard, matrix, and fixture proof.
+- Phase 116 context: `.planning/phases/116-primitive-composite-polish/116-CONTEXT.md` exists and captures D-01 through D-19 for CMP-01 through CMP-05 planning.
 - Baseline inherited from v1.16: brand/token/logo guard chain, frontend fixture specs, admin workflow screenshot evidence, compose/browser proof, core/admin/demo tests, and passed v1.16 milestone audit.
 
 ## Performance Metrics
