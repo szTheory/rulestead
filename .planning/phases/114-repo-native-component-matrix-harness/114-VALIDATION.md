@@ -1,10 +1,14 @@
 ---
 phase: 114
 slug: repo-native-component-matrix-harness
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: final
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-06-14
+finalized: 2026-06-14
+validated_against:
+  - 114-01-PLAN.md
+  - 114-02-PLAN.md
 ---
 
 # Phase 114 - Validation Strategy
@@ -21,7 +25,7 @@ created: 2026-06-14
 | **Config file** | `examples/demo/frontend/playwright.config.ts`; Mix configs per package |
 | **Quick run command** | `cd examples/demo/backend && mix test test/rulestead_demo_web/live/ui_matrix_live_test.exs` |
 | **Full suite command** | `scripts/ci/lint.sh && cd examples/demo/frontend && npm run test:e2e -- ui-matrix.spec.ts` |
-| **Estimated runtime** | ~90 seconds once Wave 0 files exist |
+| **Estimated runtime** | ~90 seconds for focused checks after Plan 01 creates the backend matrix files; Playwright checks require the demo backend to be running |
 
 ---
 
@@ -38,19 +42,20 @@ created: 2026-06-14
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 114-W0-01 | TBD | 0 | DSM-02 | T-114-01 | Matrix route is demo-hosted and unavailable in production | source + route smoke | `cd examples/demo/backend && mix test test/rulestead_demo_web/live/ui_matrix_live_test.exs` | no W0 | pending |
-| 114-W0-02 | TBD | 0 | DSM-02 | T-114-02 | Matrix renders real `RulesteadAdmin.Components.*` modules with deterministic fixed assigns | ExUnit LiveView/component smoke | `cd examples/demo/backend && mix test test/rulestead_demo_web/live/ui_matrix_live_test.exs` | no W0 | pending |
-| 114-W0-03 | TBD | 0 | DSM-02 | T-114-03 | Browser evidence proves light/dark/system-dark, desktop/mobile, reduced-motion, overflow, focus, and screenshots | Playwright e2e | `cd examples/demo/frontend && npm run test:e2e -- ui-matrix.spec.ts` | no W0 | pending |
-| 114-W0-04 | TBD | 0 | DSM-02 | T-114-04 | Static token/theme fixtures remain reachable and are not replaced by matrix screenshots | Playwright/static guard regression | `cd examples/demo/frontend && npm run test:e2e -- design-system.spec.ts theme-control.spec.ts theme-cascade.spec.ts theme-scope.spec.ts` | yes | pending |
+| 114-01-T1 | 114-01-PLAN.md Task 1 | 1 | DSM-02 | T-114-03, T-114-04 | Deterministic fixture helpers use synthetic bounded data and do not read databases, environment, files, or network | compile + source assertions | `cd examples/demo/backend && mix compile` | created by task | planned |
+| 114-01-T2 | 114-01-PLAN.md Task 2 | 1 | DSM-02 | T-114-01, T-114-02, T-114-07 | Matrix route is demo-hosted, dev/test gated, outside `RulesteadAdmin.Router.rulestead_admin/2`, and renders real shell/components | compile + route/source assertions | `cd examples/demo/backend && mix compile && cd ../../.. && rg -q 'if Mix\\.env\\(\\) in \\[:dev, :test\\] do' examples/demo/backend/lib/rulestead_demo_web/router.ex && rg -q 'live "/ui-matrix", UiMatrixLive, :index' examples/demo/backend/lib/rulestead_demo_web/router.ex && ! rg -q 'ui-matrix' rulestead_admin/lib/rulestead_admin/router.ex` | created by task | planned |
+| 114-01-T3 | 114-01-PLAN.md Task 3 | 1 | DSM-02 | T-114-01, T-114-02, T-114-03, T-114-05 | ExUnit proves route reachability, `.rs-shell`, required sections, fixture health, real component source references, and no Storybook/pixel-baseline scope | ExUnit LiveView/source tests | `cd examples/demo/backend && mix test test/rulestead_demo_web/live/ui_matrix_live_test.exs` | created by task | planned |
+| 114-02-T1 | 114-02-PLAN.md Task 1 | 2 | DSM-02 | T-114-08, T-114-09, T-114-10, T-114-11, T-114-12 | Playwright proves light/dark/system-dark, desktop/mobile, reduced-motion, section visibility, overflow, and screenshot artifacts without baselines | Playwright e2e | `cd examples/demo/frontend && npm run test:e2e -- ui-matrix.spec.ts` | created by task | planned |
+| 114-02-T2 | 114-02-PLAN.md Task 2 | 2 | DSM-02 | T-114-10, T-114-13 | Playwright proves command palette keyboard/focus behavior and existing static token/theme fixtures remain covered | Playwright e2e + static guard regression | `cd examples/demo/frontend && npm run test:e2e -- ui-matrix.spec.ts && npm run test:e2e -- design-system.spec.ts theme-control.spec.ts theme-cascade.spec.ts theme-scope.spec.ts` | extended by task | planned |
 
 ---
 
-## Wave 0 Requirements
+## Automated Coverage Files
 
-- [ ] `examples/demo/backend/lib/rulestead_demo_web/live/ui_matrix_live.ex` - dev/test-only matrix LiveView route surface for DSM-02.
-- [ ] `examples/demo/backend/lib/rulestead_demo_web/live/ui_matrix_fixtures.ex` - deterministic fixture assigns for matrix sections and stress states.
-- [ ] `examples/demo/backend/test/rulestead_demo_web/live/ui_matrix_live_test.exs` - route guard, real-component rendering, section visibility, and fixture health assertions.
-- [ ] `examples/demo/frontend/tests/ui-matrix.spec.ts` - Playwright browser evidence for themes, viewports, reduced motion, focus/keyboard affordances, overflow, and screenshots.
+- [x] `examples/demo/backend/lib/rulestead_demo_web/live/ui_matrix_fixtures.ex` - planned by 114-01-PLAN.md Task 1 with `cd examples/demo/backend && mix compile`.
+- [x] `examples/demo/backend/lib/rulestead_demo_web/live/ui_matrix_live.ex` - planned by 114-01-PLAN.md Task 2 with compile plus route/source assertions.
+- [x] `examples/demo/backend/test/rulestead_demo_web/live/ui_matrix_live_test.exs` - planned by 114-01-PLAN.md Task 3 with `cd examples/demo/backend && mix test test/rulestead_demo_web/live/ui_matrix_live_test.exs`.
+- [x] `examples/demo/frontend/tests/ui-matrix.spec.ts` - planned by 114-02-PLAN.md Tasks 1-2 with matrix Playwright evidence and static fixture regression commands.
 
 ---
 
@@ -62,11 +67,11 @@ All phase behaviors have automated verification. Visual polish defects discovere
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify commands or Wave 0 dependencies.
-- [ ] Sampling continuity: no three consecutive implementation tasks without automated verification.
-- [ ] Wave 0 covers every missing validation file listed above.
-- [ ] No watch-mode flags are used in verification commands.
-- [ ] Feedback latency is under 90 seconds for the focused loop after Wave 0 exists.
-- [ ] `nyquist_compliant: true` is set in frontmatter after plans assign task IDs and commands.
+- [x] All tasks have `<automated>` verify commands in 114-01-PLAN.md and 114-02-PLAN.md.
+- [x] Sampling continuity: every implementation task carries an automated verification command.
+- [x] Final plans cover every validation file listed above.
+- [x] No watch-mode flags are used in verification commands.
+- [x] Feedback latency is under 90 seconds for focused backend checks; Playwright checks are explicit when the demo backend is running.
+- [x] `nyquist_compliant: true` is set in frontmatter after plans assign task IDs and commands.
 
-**Approval:** pending
+**Approval:** approved for execution; final Plan 01/02 provide automated validation coverage for DSM-02.

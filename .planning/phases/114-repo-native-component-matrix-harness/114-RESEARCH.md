@@ -392,17 +392,17 @@ Playwright recommends locator interactions for keyboard actions; `locator.press(
 | A1 | `examples/demo/backend/lib/rulestead_demo_web/live/` is the preferred folder for the new LiveView and fixture module. | Recommended Project Structure | Low: planner can choose an equivalent demo-host-only path. |
 | A2 | Hook failure warning signs include command palette/theme hook initialization failures. | Common Pitfalls | Low: planner can verify with Playwright if route renders but hooks do not respond. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Should the route guard use `Mix.env()` or application config?**
+1. **RESOLVED: Route guard uses `if Mix.env() in [:dev, :test] do`.**
    - What we know: D-02 allows either a demo-host config flag or `Mix.env()` style dev/test gate. [VERIFIED: 114-CONTEXT.md]
-   - What's unclear: The exact preferred implementation is left to planner discretion. [VERIFIED: 114-CONTEXT.md]
-   - Recommendation: Use the smallest explicit guard, `if Mix.env() in [:dev, :test]`, unless existing config conventions make a flag clearer. [ASSUMED]
+   - Selected decision: Plan 01 Task 2 uses the smallest explicit demo-host guard, `if Mix.env() in [:dev, :test] do`, around the `/dev/rulestead-admin/ui-matrix` scope. [RESOLVED: 114-01-PLAN.md]
+   - Verification route: Plan 01 Task 2 and Task 3 include source assertions for the dev/test gate and negative assertions that `rulestead_admin/lib/rulestead_admin/router.ex` does not contain `ui-matrix`. [RESOLVED: 114-01-PLAN.md]
 
-2. **How many route links should be embedded versus direct component examples?**
+2. **RESOLVED: Route-link fixture coverage stays small/seeded rather than exhaustive router introspection.**
    - What we know: D-06 says component examples remain direct renders, while full flows can link to seeded routes. [VERIFIED: 114-CONTEXT.md]
-   - What's unclear: Exact count of route examples is not locked. [VERIFIED: 114-CONTEXT.md]
-   - Recommendation: Include a small "page patterns / route examples" section with links to inventory, rules, rollouts, audit/timeline, command palette shell context, and destructive preview/confirm flows; keep most matrix rows direct component renders. [ASSUMED]
+   - Selected decision: Plan 01 Task 2 keeps route links to selected seeded/demo `/admin/flags` anchors for inventory, rules, rollouts, timeline/audit, explain/simulate, and destructive preview/confirm/audit paths; it does not introspect the router or try to enumerate every admin route. [RESOLVED: 114-01-PLAN.md]
+   - Verification route: Plan 01 Task 1 centralizes explicit fixture helpers and Plan 01 Task 3 verifies source boundaries, avoiding metaprogrammed discovery and broad route-flow scope. [RESOLVED: 114-01-PLAN.md]
 
 ## Environment Availability
 
