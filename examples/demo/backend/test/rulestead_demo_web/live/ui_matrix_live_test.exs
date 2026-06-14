@@ -41,6 +41,22 @@ defmodule RulesteadDemoWeb.UiMatrixLiveTest do
     assert rendered =~ "rs-cmdk"
   end
 
+  test "read-only matrix interactions keep the LiveView mounted", %{conn: conn} do
+    {:ok, view, _html} = live(conn, @matrix_path)
+
+    view
+    |> form(~s(form[aria-label="Confirm action"]), %{"reason" => "matrix proof"})
+    |> render_submit()
+
+    assert render(view) =~ "Rulestead admin UI matrix"
+
+    view
+    |> element(~s(button[phx-click="save_draft"]))
+    |> render_click()
+
+    assert render(view) =~ "Rulestead admin UI matrix"
+  end
+
   test "fixture helpers expose deterministic stress states" do
     assert UiMatrixFixtures.long_flag_key() ==
              "enterprise-checkout-redesign-rollout-experiment-long-key-for-wrapping-proof"
@@ -48,7 +64,11 @@ defmodule RulesteadDemoWeb.UiMatrixLiveTest do
     assert UiMatrixFixtures.long_audience_key() ==
              "audience:enterprise:regional:vip:long-key-for-matrix-proof"
 
-    assert String.contains?(UiMatrixFixtures.long_reason(), "intentionally long operator rationale")
+    assert String.contains?(
+             UiMatrixFixtures.long_reason(),
+             "intentionally long operator rationale"
+           )
+
     assert length(UiMatrixFixtures.dense_records()) > 10
     assert length(UiMatrixFixtures.audit_entries()) > 0
 
@@ -96,7 +116,13 @@ defmodule RulesteadDemoWeb.UiMatrixLiveTest do
     end
 
     for source <- [router_source, live_source, fixtures_source],
-        marker <- ["Storybook", "PhoenixStorybook", "phoenix_storybook", "visual-diff", "pixel-baseline"] do
+        marker <- [
+          "Storybook",
+          "PhoenixStorybook",
+          "phoenix_storybook",
+          "visual-diff",
+          "pixel-baseline"
+        ] do
       refute source =~ marker
     end
   end

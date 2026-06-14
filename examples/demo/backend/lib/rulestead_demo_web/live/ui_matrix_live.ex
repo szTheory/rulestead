@@ -16,6 +16,23 @@ defmodule RulesteadDemoWeb.UiMatrixLive do
   alias RulesteadAdmin.Components.SimulateComponents
   alias RulesteadDemoWeb.UiMatrixFixtures
 
+  @readonly_matrix_events ~w(
+    apply_archetype
+    archive_flag
+    cancel_confirmation
+    confirm_publish
+    move_rule
+    publish
+    release_kill_switch
+    render_destructive_preview
+    reset_archetype
+    rollback
+    save_auto_advance_policy
+    save_draft
+    validate_auto_advance
+    validate_confirmation
+  )
+
   @impl true
   def mount(_params, _session, socket) do
     shell = UiMatrixFixtures.shell_assigns()
@@ -45,6 +62,11 @@ defmodule RulesteadDemoWeb.UiMatrixLive do
       )
 
     {:ok, socket}
+  end
+
+  @impl true
+  def handle_event(event, _params, socket) when event in @readonly_matrix_events do
+    {:noreply, socket}
   end
 
   @impl true
@@ -91,14 +113,12 @@ defmodule RulesteadDemoWeb.UiMatrixLive do
 
       <section class="rs-card" data-matrix-section="foundations-reference" id="foundations-reference">
         <h2>Foundations reference</h2>
-        <OperatorComponents.detail_grid
-          rows={[
-            %{label: "Shell wrapper", value: "RulesteadAdmin.Components.Shell.page/1"},
-            %{label: "Long flag key", value: UiMatrixFixtures.long_flag_key()},
-            %{label: "Long audience key", value: UiMatrixFixtures.long_audience_key()},
-            %{label: "Long reason", value: UiMatrixFixtures.long_reason()}
-          ]}
-        />
+        <OperatorComponents.detail_grid rows={[
+          %{label: "Shell wrapper", value: "RulesteadAdmin.Components.Shell.page/1"},
+          %{label: "Long flag key", value: UiMatrixFixtures.long_flag_key()},
+          %{label: "Long audience key", value: UiMatrixFixtures.long_audience_key()},
+          %{label: "Long reason", value: UiMatrixFixtures.long_reason()}
+        ]} />
         <OperatorComponents.task_link
           title="Review Matrix Evidence"
           summary="Use this route for deterministic Phoenix and Playwright evidence before polish phases."
@@ -125,12 +145,10 @@ defmodule RulesteadDemoWeb.UiMatrixLive do
             meta="Owner: Checkout Platform Reliability And Release Team With A Long Label"
             tone="warning"
           >
-            <OperatorComponents.detail_grid
-              rows={[
-                %{label: "Environment", value: @shell.current_environment.name},
-                %{label: "Tenant", value: @shell.current_tenant.name}
-              ]}
-            />
+            <OperatorComponents.detail_grid rows={[
+              %{label: "Environment", value: @shell.current_environment.name},
+              %{label: "Tenant", value: @shell.current_tenant.name}
+            ]} />
             <:actions>
               <FlagComponents.lifecycle_badge state={:active} />
               <FlagComponents.stale_badge state={:stale} last_evaluated_at="2026-06-14T03:00:00Z" />
@@ -143,7 +161,15 @@ defmodule RulesteadDemoWeb.UiMatrixLive do
           </div>
           <FlagComponents.tag_list tags={["long-label", "keyboard", "focus", "read-only"]} />
           <FlagComponents.pagination
-            page={%{limit: 25, has_previous_page?: true, has_next_page?: true, prev_cursor: "prev", next_cursor: "next"}}
+            page={
+              %{
+                limit: 25,
+                has_previous_page?: true,
+                has_next_page?: true,
+                prev_cursor: "prev",
+                next_cursor: "next"
+              }
+            }
             base_path="/admin/flags"
             params={%{"env" => "production-eu-central"}}
           />
@@ -157,7 +183,9 @@ defmodule RulesteadDemoWeb.UiMatrixLive do
             />
           </FlagComponents.section_card>
           <FlagComponents.callout title="Unavailable dependency" tone="warning">
-            <p>Host evidence is unavailable, so the action remains disabled until evidence is refreshed.</p>
+            <p>
+              Host evidence is unavailable, so the action remains disabled until evidence is refreshed.
+            </p>
           </FlagComponents.callout>
           <OperatorComponents.empty_state
             title="No matrix examples match this section"
@@ -197,7 +225,9 @@ defmodule RulesteadDemoWeb.UiMatrixLive do
         <h2>Mutation flows</h2>
         <ConfirmComponents.mutation_confirm {@mutation_confirm}>
           <:evidence>
-            <p>Preview destructive fixture: Type the flag key before rendering the disabled or danger action example.</p>
+            <p>
+              Preview destructive fixture: Type the flag key before rendering the disabled or danger action example.
+            </p>
           </:evidence>
           <:extra_fields>
             <label class="rs-form-field">
@@ -222,7 +252,12 @@ defmodule RulesteadDemoWeb.UiMatrixLive do
       <section class="rs-card" data-matrix-section="timelines" id="timelines">
         <h2>Timelines</h2>
         <ol class="rs-event-timeline">
-          <AuditComponents.timeline_item :for={entry <- @audit_entries} entry={entry} show_flag show_rollback />
+          <AuditComponents.timeline_item
+            :for={entry <- @audit_entries}
+            entry={entry}
+            show_flag
+            show_rollback
+          />
         </ol>
         <AuditComponents.timeline_row entry={@readable_diff_entry} show_flag show_rollback />
         <AuditComponents.raw_detail entry={@readable_diff_entry} />
@@ -246,7 +281,10 @@ defmodule RulesteadDemoWeb.UiMatrixLive do
           editable?={@rule_editor.editable?}
           error_messages={@rule_editor.error_messages}
         />
-        <RuleEditorComponents.audience_library audiences={@rule_editor.audiences} mount_path="/admin/flags" />
+        <RuleEditorComponents.audience_library
+          audiences={@rule_editor.audiences}
+          mount_path="/admin/flags"
+        />
         <RuleEditorComponents.rule_card
           index={0}
           rule={@rule_editor.rule}
@@ -280,7 +318,11 @@ defmodule RulesteadDemoWeb.UiMatrixLive do
           definitions={@rollout.guardrail_definitions}
           timeline_path="/admin/flags/enterprise-checkout-redesign-rollout-experiment-long-key-for-wrapping-proof/timeline"
         />
-        <RolloutComponents.confirm_panel current={10} target={25} reason={UiMatrixFixtures.long_reason()} />
+        <RolloutComponents.confirm_panel
+          current={10}
+          target={25}
+          reason={UiMatrixFixtures.long_reason()}
+        />
         <RolloutComponents.auto_advance_panel {@auto_advance} />
       </section>
 
@@ -322,7 +364,12 @@ defmodule RulesteadDemoWeb.UiMatrixLive do
           title={example.label}
           href="#rare-states"
           meta={example.summary}
-          tone={if(example.state in [:error, :permission_denied, :destructive], do: "critical", else: "neutral")}
+          tone={
+            if(example.state in [:error, :permission_denied, :destructive],
+              do: "critical",
+              else: "neutral"
+            )
+          }
         >
           <p><code>{example.state}</code></p>
         </OperatorComponents.record_row>

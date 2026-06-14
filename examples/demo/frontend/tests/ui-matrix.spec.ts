@@ -46,6 +46,7 @@ const reducedMotion: MotionCase = {
 
 const matrixSections = [
   "overview-shell",
+  "foundations-reference",
   "primitives",
   "composites",
   "mutation-flows",
