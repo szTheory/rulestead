@@ -108,7 +108,7 @@ Plans:
 | 113. Design-System Inventory + UI Matrix Contract | 3/3 | Complete    | 2026-06-13 |
 | 114. Repo-Native Component Matrix Harness | 2/2 | Complete    | 2026-06-14 |
 | 115. Foundations Hardening | 3/3 | Complete    | 2026-06-14 |
-| 116. Primitive + Composite Polish | 2/4 | In Progress|  |
+| 116. Primitive + Composite Polish | 3/4 | In Progress|  |
 | 117. Page Flow + IA Pass | 0/0 | Pending | - |
 | 118. Evidence + Idempotence Guardrails | 0/0 | Pending | - |
 
