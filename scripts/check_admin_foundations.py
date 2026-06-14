@@ -80,7 +80,7 @@ def undocumented_media_widths(css, contract):
         for literal in widths:
             if literal in CANONICAL_MEDIA:
                 continue
-            if literal not in contract:
+            if f"`{literal}`" not in contract:
                 failures.append(f"@media width {literal} is missing from foundation contract")
 
     return failures

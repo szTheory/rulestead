@@ -3611,7 +3611,7 @@ a.rs-env-state:active {
   gap: 1rem;
 }
 
-@media (min-width: 960px) {
+@media (min-width: 60rem) {
   .rs-tool-layout {
     grid-template-columns: minmax(0, 1fr) 20rem;
     align-items: start;

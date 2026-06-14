@@ -58,8 +58,12 @@ migrated to a canonical rem value, remove or update the row in the same change.
 | `860px` | min | `.rs-hub-hero` | Hub hero side rail needs content capacity between tablet and desktop. |
 | `760px` | min | `.rs-env-state-grid` | Environment state cards auto-fit once cards can hold their labels without crowding. |
 | `920px` | min | `.rs-progressive-detail__grid` | Three-column progressive detail layout waits for wider technical content. |
-| `960px` | min | `.rs-tool-layout` | Exact pixel equivalent of canonical `60rem`; preferred migration target when this selector is next touched. |
 | `720px` | max | `.rs-event-timeline`, `.rs-event-timeline__item`, `.rs-event-timeline__time`, `.rs-event-panel`, `.rs-diff-card__values` | Mobile stack for audit timeline and diff content; content-specific complement to dense technical containment. |
+
+Resolved canonical migrations:
+
+- `.rs-tool-layout` now uses canonical `60rem` instead of the former exact pixel
+  equivalent.
 
 Feature media queries for `prefers-color-scheme: dark`,
 `prefers-reduced-motion: no-preference`, and
