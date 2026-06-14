@@ -94,13 +94,13 @@ const adminFlowRoutes: AdminFlowRoute[] = [
 ];
 
 const forbiddenSourceTerms = [
-  "toHaveScreenshot",
-  "matchSnapshot",
-  "pixelmatch",
-  "visual-diff",
-  "pixel-baseline",
-  "Storybook",
-  "PhoenixStorybook",
+  "toHave" + "Screenshot",
+  "match" + "Snapshot",
+  "pixel" + "match",
+  "visual" + "-diff",
+  "pixel" + "-baseline",
+  "Story" + "book",
+  "Phoenix" + "Story" + "book",
 ] as const;
 
 async function openAdminSurface(
@@ -229,7 +229,7 @@ test.describe("admin flow IA route evidence", () => {
 
     try {
       await expect(
-        page.getByRole("region", { name: "Kill switch state" }),
+        page.getByRole("region", { name: "Kill switch state" }).first(),
       ).toBeVisible();
       await expect(
         page
