@@ -445,7 +445,9 @@ defmodule RulesteadAdmin.Live.FlagLive.Simulate do
 
   defp normalize_string(nil), do: ""
   defp normalize_string(value) when is_binary(value), do: value
-  defp normalize_string(value), do: to_string(value)
+  defp normalize_string(value) when is_atom(value), do: Atom.to_string(value)
+  defp normalize_string(value) when is_number(value) or is_boolean(value), do: to_string(value)
+  defp normalize_string(_value), do: ""
 
   defp blank(""), do: "Not provided"
   defp blank(nil), do: "Not provided"

@@ -130,22 +130,28 @@ async function openMatrixSurface(
     viewport: { width: viewport.width, height: viewport.height },
     reducedMotion: motion.reducedMotion,
   });
-  const page = await context.newPage();
 
-  await page.goto(`${backendUrl}/demo/sign-in`);
-  await page.waitForURL(/\/admin\/flags/);
-  await page.evaluate((storedTheme) => {
-    if (storedTheme) {
-      localStorage.setItem("rulestead_admin.theme", storedTheme);
-    } else {
-      localStorage.removeItem("rulestead_admin.theme");
-    }
-  }, theme.storedTheme);
+  try {
+    const page = await context.newPage();
 
-  await page.goto(`${backendUrl}${matrixPath}`);
-  await expect(page.locator(".rs-shell")).toBeVisible();
+    await page.goto(`${backendUrl}/demo/sign-in`);
+    await page.waitForURL(/\/admin\/flags/);
+    await page.evaluate((storedTheme) => {
+      if (storedTheme) {
+        localStorage.setItem("rulestead_admin.theme", storedTheme);
+      } else {
+        localStorage.removeItem("rulestead_admin.theme");
+      }
+    }, theme.storedTheme);
 
-  return { context, page };
+    await page.goto(`${backendUrl}${matrixPath}`);
+    await expect(page.locator(".rs-shell")).toBeVisible();
+
+    return { context, page };
+  } catch (error) {
+    await context.close();
+    throw error;
+  }
 }
 
 async function expectNoHorizontalOverflow(page: Page) {

@@ -274,12 +274,18 @@ defmodule RulesteadAdmin.Live.FlagLive.Explain do
 
   defp normalize_form(params) do
     %{
-      "targeting_key" => Map.get(params, "targeting_key", ""),
-      "tenant_key" => Map.get(params, "tenant_key", ""),
-      "session_id" => Map.get(params, "session_id", ""),
-      "request_id" => Map.get(params, "request_id", "")
+      "targeting_key" => normalize_string(Map.get(params, "targeting_key")),
+      "tenant_key" => normalize_string(Map.get(params, "tenant_key")),
+      "session_id" => normalize_string(Map.get(params, "session_id")),
+      "request_id" => normalize_string(Map.get(params, "request_id"))
     }
   end
+
+  defp normalize_string(nil), do: ""
+  defp normalize_string(value) when is_binary(value), do: value
+  defp normalize_string(value) when is_atom(value), do: Atom.to_string(value)
+  defp normalize_string(value) when is_number(value) or is_boolean(value), do: to_string(value)
+  defp normalize_string(_value), do: ""
 
   defp maybe_put(params, _key, nil), do: params
   defp maybe_put(params, key, value), do: Map.put(params, key, value)

@@ -107,6 +107,24 @@ defmodule RulesteadAdmin.Live.FlagLive.ExplainTest do
     refute patched_path =~ "tenant=acme"
   end
 
+  test "malformed browser payloads validate without crashing the explain form", %{conn: conn} do
+    conn = init_session(conn)
+    {:ok, view, _html} = live(conn, "/admin/flags/checkout/explain?env=test")
+
+    html =
+      render_change(view, "validate", %{
+        "explain" => %{
+          "targeting_key" => %{"unexpected" => "nested"},
+          "tenant_key" => %{"unexpected" => "tenant"},
+          "session_id" => true,
+          "request_id" => 42
+        }
+      })
+
+    assert html =~ "Enter a targeting key to explain a decision"
+    assert html =~ "Explain context"
+  end
+
   defp init_session(conn) do
     Phoenix.ConnTest.init_test_session(conn, %{
       "current_actor" => %{id: 1, email: "ops@example.com"},

@@ -152,6 +152,25 @@ defmodule RulesteadAdmin.Live.FlagLive.SimulateTest do
     refute reset_html =~ "support-user-42"
   end
 
+  test "malformed browser payloads validate without crashing the simulation form", %{conn: conn} do
+    {:ok, view, _html} = live(conn, "/admin/flags/checkout-redesign/simulate?env=prod")
+
+    html =
+      render_change(view, "validate", %{
+        "simulation" => %{
+          "targeting_key" => %{"unexpected" => "nested"},
+          "tenant_key" => %{"unexpected" => "tenant"},
+          "session_id" => true,
+          "request_id" => 42,
+          "traits" => %{"plan" => "enterprise"}
+        }
+      })
+
+    assert html =~ "Run a simulation to see the decision"
+    assert html =~ "No traits submitted"
+    assert html =~ "ExUnit fixture export"
+  end
+
   defp simulation_params(traits) do
     %{
       "simulation" => %{
