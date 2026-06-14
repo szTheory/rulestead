@@ -27,7 +27,7 @@ defmodule RulesteadAdmin.Components.GovernanceComponents do
       |> assign(:overflow_breaches, Enum.drop(reasons, @max_visible_breaches))
 
     ~H"""
-    <section class="rs-card" aria-label="Blast radius governance">
+    <section class="rs-card rs-governance-panel" data-verdict={@verdict} aria-label="Blast radius governance">
       <FlagComponents.callout title={verdict_title(@verdict)} tone={verdict_tone(@verdict)}>
         <p :if={@environment_label}>
           Environment: <strong>{@environment_label}</strong>
@@ -39,6 +39,11 @@ defmodule RulesteadAdmin.Components.GovernanceComponents do
           </span>
         </p>
       </FlagComponents.callout>
+
+      <p class="rs-governance-panel__severity">
+        <strong>Governance severity:</strong>
+        {severity_line(@verdict)}
+      </p>
 
       <p :if={threshold_summary(@assessment, @verdict)}>
         {threshold_summary(@assessment, @verdict)}
@@ -104,6 +109,11 @@ defmodule RulesteadAdmin.Components.GovernanceComponents do
   defp verdict_tone(:below_threshold), do: "neutral"
   defp verdict_tone(:indeterminate), do: "critical"
   defp verdict_tone(_), do: "critical"
+
+  defp severity_line(:above_threshold), do: "Change request required before execution."
+  defp severity_line(:below_threshold), do: "Direct apply remains available."
+  defp severity_line(:indeterminate), do: "Blocked until preview evidence is safe to evaluate."
+  defp severity_line(_), do: "Blocked until preview evidence is safe to evaluate."
 
   defp threshold_summary(assessment, :above_threshold) do
     operation =

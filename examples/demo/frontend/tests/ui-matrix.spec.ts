@@ -253,6 +253,59 @@ test.describe("repo-native admin UI matrix evidence", () => {
     }
   });
 
+  test("composite state labels stay visible and contained", async ({ browser }) => {
+    const { context, page } = await openMatrixSurface(
+      browser,
+      viewports[1],
+      themes[0],
+      standardMotion,
+    );
+
+    try {
+      for (const label of [
+        "Preview uncertainty",
+        "Governance severity",
+        "Authored-state boundary",
+        "Support-safe trace",
+        "Audience trace state",
+        "Guardrail decision",
+        "Blocked by guardrail health",
+      ]) {
+        await expect(page.getByText(label).first()).toBeVisible();
+      }
+
+      const sectionBounds = await page
+        .locator(
+          [
+            '[data-matrix-section="composites"]',
+            '[data-matrix-section="rule-editor"]',
+            '[data-matrix-section="rollout-panels"]',
+            '[data-matrix-section="workflow-states"]',
+            '[data-matrix-section="timelines"]',
+          ].join(", "),
+        )
+        .evaluateAll((sections) =>
+          sections.map((section) => {
+            const rect = section.getBoundingClientRect();
+            return {
+              left: rect.left,
+              right: rect.right,
+              viewportWidth: window.innerWidth,
+            };
+          }),
+        );
+
+      for (const bounds of sectionBounds) {
+        expect(bounds.left).toBeGreaterThanOrEqual(-1);
+        expect(bounds.right).toBeLessThanOrEqual(bounds.viewportWidth + 1);
+      }
+
+      await expectNoHorizontalOverflow(page);
+    } finally {
+      await context.close();
+    }
+  });
+
   test("static token and theme fixtures remain present", () => {
     for (const fixturePath of staticFixturePaths) {
       const resolvedPath = path.resolve(__dirname, fixturePath);

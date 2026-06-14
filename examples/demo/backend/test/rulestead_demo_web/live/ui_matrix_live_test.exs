@@ -53,6 +53,11 @@ defmodule RulesteadDemoWeb.UiMatrixLiveTest do
     assert rendered =~ "Guardrail decision: Held - stale host evidence"
     assert rendered =~ "Blocked by guardrail health"
     assert rendered =~ "Risky jump skips the advisory ladder"
+    assert rendered =~ "Preview uncertainty"
+    assert rendered =~ "Governance severity"
+    assert rendered =~ "Authored-state boundary"
+    assert rendered =~ "Support-safe trace"
+    assert rendered =~ "Audience trace state"
   end
 
   test "read-only matrix interactions keep the LiveView mounted", %{conn: conn} do

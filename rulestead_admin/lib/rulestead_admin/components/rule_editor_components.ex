@@ -44,9 +44,15 @@ defmodule RulesteadAdmin.Components.RuleEditorComponents do
 
   def action_bar(assigns) do
     ~H"""
-    <section class="rs-rule-actions" aria-label="Draft and publish actions">
+    <section class="rs-rule-actions" data-editable={to_string(@editable?)} aria-label="Draft and publish actions">
       <h3>Draft and publish</h3>
-      <p>Save draft and publish remain separate actions so operators can stage work safely.</p>
+      <p>
+        <strong>Authored-state boundary:</strong>
+        Save draft and publish remain separate actions so operators can stage work safely.
+      </p>
+      <p :if={!@editable?} role="status">
+        Read-only authored state: rules can be inspected but not mutated.
+      </p>
       <button :if={@editable?} type="button" phx-click="save_draft">Save draft</button>
       <button :if={@editable?} type="button" phx-click="publish">Publish</button>
       <button :if={@editable?} type="button" phx-click="archive_flag">Archive flag</button>

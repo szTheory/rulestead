@@ -40,6 +40,7 @@ defmodule RulesteadAdmin.Components.AudienceComponentsTest do
 
     assert html =~ "Sample cohort"
     assert html =~ "Impression summary"
+    assert html =~ "Preview uncertainty"
     assert html =~ "Authored state with host-supplied evidence"
     assert html =~ "bounded host-supplied evidence"
     assert html =~ "actor-1"
@@ -62,6 +63,8 @@ defmodule RulesteadAdmin.Components.AudienceComponentsTest do
     refute html =~ "Sample cohort"
     refute html =~ "Impression summary"
     assert html =~ "Authored state and explicit samples"
+    assert html =~ "No explicit sample evidence supplied"
+    assert html =~ "No impression evidence supplied"
   end
 
   test "shows +N more when sample list exceeds display limit" do
@@ -94,7 +97,43 @@ defmodule RulesteadAdmin.Components.AudienceComponentsTest do
     assert html =~ "host evidence unavailable or denied"
   end
 
+  test "used-by table exposes hidden and denied dependency states" do
+    hidden_html =
+      render_used_by_table(%{
+        summary: "Audience is used by production flags.",
+        denied?: false,
+        hidden_count: 2,
+        entries: [],
+        redacted_entries: [%{visibility: %{reason: "policy_denied"}}]
+      })
+
+    assert hidden_html =~ "Hidden references"
+    assert hidden_html =~ "At least 2 references are hidden by your permissions."
+    assert hidden_html =~ "policy denied"
+
+    denied_html =
+      render_used_by_table(%{
+        summary: "Audience dependencies are policy scoped.",
+        denied?: true,
+        hidden_count: 0,
+        entries: [],
+        redacted_entries: []
+      })
+
+    assert denied_html =~ "Dependency visibility denied"
+    assert denied_html =~ "you do not have permission"
+  end
+
   defp render_impact_preview(preview) do
     render_component(&AudienceComponents.impact_preview/1, preview: preview)
+  end
+
+  defp render_used_by_table(dependencies) do
+    render_component(&AudienceComponents.used_by_table/1,
+      dependencies: dependencies,
+      mount_path: "/admin/flags",
+      environment_key: "test",
+      tenant_key: "tenant-a"
+    )
   end
 end

@@ -25,6 +25,8 @@ defmodule RulesteadAdmin.Components.GovernanceComponentsTest do
       render_blast_radius_panel(Map.merge(@base_assessment, %{verdict: :above_threshold}))
 
     assert html =~ "Governance required"
+    assert html =~ "Governance severity"
+    assert html =~ "Change request required before execution."
     assert html =~ "Exceeds direct-apply limit (update limit: 2, found: 5 references)."
   end
 
@@ -39,6 +41,7 @@ defmodule RulesteadAdmin.Components.GovernanceComponentsTest do
       )
 
     assert html =~ "Direct apply allowed"
+    assert html =~ "Direct apply remains available."
     refute html =~ "Exceeds direct-apply limit"
   end
 
@@ -59,6 +62,7 @@ defmodule RulesteadAdmin.Components.GovernanceComponentsTest do
       )
 
     assert html =~ "Cannot evaluate safely"
+    assert html =~ "Blocked until preview evidence is safe to evaluate."
     refute html =~ "Governance required"
   end
 

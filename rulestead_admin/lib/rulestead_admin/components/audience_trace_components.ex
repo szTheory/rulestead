@@ -7,14 +7,17 @@ defmodule RulesteadAdmin.Components.AudienceTraceComponents do
 
   def audience_trace_steps(assigns) do
     ~H"""
-    <section :if={@rule_traces != []} class="rs-card" aria-label="Audience trace steps">
+    <section :if={@rule_traces != []} class="rs-card rs-audience-trace" aria-label="Audience trace steps">
       <h3>Audience targeting</h3>
+      <p class="rs-audience-trace__summary">
+        Reusable audience trace preserves missing, archived, matched, and missed states from the simulation snapshot.
+      </p>
       <ul>
         <li :for={trace <- @rule_traces}>
           <strong><%= trace.rule_key %></strong>
           <span :if={audience_trace = Map.get(trace, :audience_trace)}>
             — audience <code><%= audience_trace.audience_key %></code>:
-            <%= audience_status(audience_trace) %>
+            <span>Audience trace state: <%= audience_status(audience_trace) %></span>
           </span>
           <span :if={is_nil(Map.get(trace, :audience_trace))}> — no reusable audience on this rule</span>
         </li>

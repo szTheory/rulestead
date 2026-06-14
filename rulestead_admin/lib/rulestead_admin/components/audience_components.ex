@@ -12,13 +12,15 @@ defmodule RulesteadAdmin.Components.AudienceComponents do
 
   def used_by_table(assigns) do
     ~H"""
-    <section class="rs-card" aria-label="Used by references">
+    <section class="rs-card rs-audience-dependencies" aria-label="Used by references">
       <h2>Used by</h2>
       <p><%= @dependencies.summary %></p>
       <p :if={@dependencies.denied?} role="alert">
+        <strong>Dependency visibility denied:</strong>
         Dependency list unavailable — you do not have permission to view audience dependencies in this scope.
       </p>
       <p :if={@dependencies.hidden_count > 0 and not @dependencies.denied?}>
+        <strong>Hidden references:</strong>
         At least <%= @dependencies.hidden_count %> references are hidden by your permissions.
       </p>
 
@@ -48,7 +50,7 @@ defmodule RulesteadAdmin.Components.AudienceComponents do
         </tbody>
       </table>
 
-      <ul :if={@dependencies.redacted_entries != []}>
+      <ul :if={@dependencies.redacted_entries != []} class="rs-audience-dependencies__redacted">
         <li :for={entry <- @dependencies.redacted_entries}>
           Hidden reference
           <span :if={policy_denied?(entry)}>(policy denied)</span>
@@ -80,10 +82,11 @@ defmodule RulesteadAdmin.Components.AudienceComponents do
       |> assign(:has_impression?, impression != %{})
 
     ~H"""
-    <section class="rs-card" aria-label="Impact preview">
+    <section class="rs-card rs-impact-preview" aria-label="Impact preview">
       <h2>Impact preview</h2>
       <p><strong>Preview basis:</strong> <%= humanize_preview_basis(@preview.preview_basis) %></p>
-      <p :if={uncertainty_message(@preview)}>
+      <p :if={uncertainty_message(@preview)} class="rs-impact-preview__uncertainty">
+        <strong>Preview uncertainty:</strong>
         <%= uncertainty_message(@preview) %>
       </p>
       <p><strong>Fingerprint:</strong> <code><%= @preview.preview_fingerprint %></code></p>
@@ -120,6 +123,9 @@ defmodule RulesteadAdmin.Components.AudienceComponents do
         </table>
         <p :if={@remaining_samples > 0}>+<%= @remaining_samples %> more</p>
       </div>
+      <p :if={!@has_samples?} class="rs-impact-preview__empty">
+        No explicit sample evidence supplied for this preview.
+      </p>
 
       <div :if={@has_impression?}>
         <h3>Impression summary</h3>
@@ -138,6 +144,9 @@ defmodule RulesteadAdmin.Components.AudienceComponents do
           </li>
         </ul>
       </div>
+      <p :if={!@has_impression?} class="rs-impact-preview__empty">
+        No impression evidence supplied for this preview.
+      </p>
     </section>
     """
   end

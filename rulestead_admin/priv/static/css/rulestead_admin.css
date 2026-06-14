@@ -3859,6 +3859,13 @@ a.rs-env-state:active {
   background: var(--rs-error-soft);
 }
 
+.rs-rule-actions[data-editable="false"] {
+  padding: 0.75rem;
+  border: 1px dashed var(--rs-border);
+  border-radius: var(--rs-radius-md);
+  background: var(--rs-surface-muted);
+}
+
 .rs-rule-card {
   border: 1px solid var(--rs-border);
   border-radius: var(--rs-radius-lg);
@@ -3912,6 +3919,47 @@ a.rs-env-state:active {
   display: flex;
   flex-wrap: wrap;
   gap: 0.35rem;
+}
+
+.rs-impact-preview__uncertainty,
+.rs-impact-preview__empty,
+.rs-governance-panel__severity,
+.rs-audience-trace__summary,
+.rs-trace-disclosure__basis {
+  margin: 0.5rem 0;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--rs-border);
+  border-radius: var(--rs-radius-md);
+  background: var(--rs-surface-muted);
+  color: var(--rs-text-muted);
+}
+
+.rs-impact-preview__uncertainty {
+  border-color: var(--rs-warning-border);
+  background: var(--rs-warning-soft);
+}
+
+.rs-governance-panel[data-verdict="above_threshold"] .rs-governance-panel__severity {
+  border-color: var(--rs-warning-border);
+  background: var(--rs-warning-soft);
+}
+
+.rs-governance-panel[data-verdict="indeterminate"] .rs-governance-panel__severity {
+  border-color: var(--rs-error-border);
+  background: var(--rs-error-soft);
+}
+
+.rs-impact-preview__uncertainty strong,
+.rs-governance-panel__severity strong,
+.rs-trace-disclosure__basis strong {
+  color: var(--rs-text);
+}
+
+.rs-audience-dependencies__redacted {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0.75rem 0 0;
+  padding-left: 1.25rem;
 }
 
 /* Trace, status, audit */

@@ -52,14 +52,18 @@ defmodule RulesteadAdmin.Components.SimulateComponents do
 
   def trace_disclosure(assigns) do
     ~H"""
-    <section class="rs-card">
+    <section class="rs-card rs-trace-disclosure">
       <h2>Trace detail</h2>
       <p>Show rule-by-rule detail only when the summary is not enough.</p>
+      <p class="rs-trace-disclosure__basis">
+        <strong>Support-safe trace:</strong>
+        Missing host evidence, unavailable audience snapshots, and bucket math stay inspectable without implying an authoritative population count.
+      </p>
       <details aria-label="Trace detail">
         <summary>Show rule-by-rule detail</summary>
 
         <div :if={is_nil(@trace)}>
-          <p>No trace yet. Run simulation first.</p>
+          <p>Trace unavailable: run simulation first.</p>
         </div>
 
         <div :if={@trace}>
