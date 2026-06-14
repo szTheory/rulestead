@@ -88,12 +88,26 @@ FORBIDDEN_ADOPTION_STRINGS = [
     ".toHaveScreenshot",
     "toMatchSnapshot(",
     "matchSnapshot(",
-    "pixelmatch(",
+    "pixelmatch",
+    "snapshotPath",
     "testInfo.snapshotPath",
     "__screenshots__",
+    "screenshots/",
+    "/screenshots",
     "-snapshots",
+    "snapshots/",
+    "/snapshots",
     "@storybook",
+    "Storybook",
     "phoenix_storybook",
+    "PhoenixStorybook",
+]
+
+MANIFEST_FORBIDDEN_ADOPTION_STRINGS = [
+    '"pixelmatch"',
+    "'pixelmatch'",
+    '"storybook"',
+    "'storybook'",
 ]
 
 
@@ -227,7 +241,11 @@ def check_forbidden_adoption(failures):
         if source is None:
             continue
 
-        for marker in FORBIDDEN_ADOPTION_STRINGS:
+        markers = list(FORBIDDEN_ADOPTION_STRINGS)
+        if path.name in {"package.json", "mix.exs"}:
+            markers.extend(MANIFEST_FORBIDDEN_ADOPTION_STRINGS)
+
+        for marker in markers:
             if marker in source:
                 failures.append(f"{rel(path)} contains forbidden visual-baseline tooling: {marker}")
 
