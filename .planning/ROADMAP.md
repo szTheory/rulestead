@@ -117,6 +117,21 @@ Plans:
 4. Planning docs record decisions, verification evidence, requirement completion, and intentional exceptions before milestone closeout.
 5. The final evidence posture does not introduce broad pixel-baseline maintenance or external AI visual-review requirements.
 
+**Plans:** 3 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 118-01-PLAN.md - Durable design-system evidence source guard and lint wiring.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 118-02-PLAN.md - Browser, ExUnit, static fixture, and guard evidence map.
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 118-03-PLAN.md - Requirement, roadmap, state, and validation closeout after evidence exists.
+
 ## Progress Table
 
 | Phase | Plans Complete | Status | Completed |
@@ -126,7 +141,7 @@ Plans:
 | 115. Foundations Hardening | 3/3 | Complete    | 2026-06-14 |
 | 116. Primitive + Composite Polish | 4/4 | Complete    | 2026-06-14 |
 | 117. Page Flow + IA Pass | 4/4 | Complete    | 2026-06-14 |
-| 118. Evidence + Idempotence Guardrails | 0/0 | Pending | - |
+| 118. Evidence + Idempotence Guardrails | 0/3 | Pending | - |
 
 ## Requirement Coverage
 
