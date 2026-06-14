@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.17
 milestone_name: Admin Design System Stress Test
-status: executing
-last_updated: "2026-06-14T22:35:14.820Z"
+status: ready_for_verification
+last_updated: "2026-06-14T22:38:20Z"
 last_activity: 2026-06-14
 progress:
   total_phases: 6
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 19
-  completed_plans: 18
-  percent: 94
+  completed_plans: 19
+  percent: 100
 ---
 
 # State: Rulestead
@@ -31,12 +31,12 @@ See: `.planning/PROJECT.md` (updated 2026-06-13)
 
 ## Current Position
 
-Phase: 118 (evidence-idempotence-guardrails) — EXECUTING
+Phase: 118 (evidence-idempotence-guardrails) — COMPLETE
 Plan: 3 of 3
-Status: Ready to execute
-Last activity: 2026-06-14 -- Phase 118 Plan 02 complete
-Stopped at: Ready for Phase 118 Plan 03
-Resume file: .planning/phases/118-evidence-idempotence-guardrails/118-03-PLAN.md
+Status: Ready for verification — complete evidence closeout recorded
+Last activity: 2026-06-14 -- Phase 118 Plan 03 complete
+Stopped at: Ready for Phase 118 verification
+Resume file: None
 
 Phase 117 planning deliverables:
 
@@ -114,7 +114,7 @@ Human checkpoints:
 - **Phase 118 Plan 01 lint wiring:** `scripts/ci/lint.sh` now runs the design-system evidence guard after admin foundations and before SVG budgets, keeping the normal guard spine focused and dependency-free.
 - **Phase 118 Plan 02 evidence map:** Created `118-EVIDENCE.md` with exact backend command, `DEMO_BACKEND_URL=http://localhost:4061`, generated screenshot artifact globs, PASS output, intentional exceptions, and residual risks for VER-01 through VER-04.
 - **Phase 118 Plan 02 artifact posture:** Browser evidence was rerun with `--output=test-results/phase118-evidence`, producing 7 matrix screenshots and 48 workflow screenshots as ignored Playwright artifacts; no screenshots, baselines, or visual-diff tooling were committed.
-- **Phase 118 Plan 02 closeout boundary:** VER-01 is complete after browser evidence; VER-04 remains pending for Plan 03 planning truth closeout.
+- **Phase 118 Plan 03 closeout:** `118-EVIDENCE.md` now maps VER-01 through VER-04 to proof commands, artifact patterns, guard output, decision coverage D-01 through D-20, intentional exceptions, and residual risks; requirements, roadmap, state, and validation truth are updated after evidence exists.
 - **Phase 113 context:** `.planning/phases/113-design-system-inventory-ui-matrix-contract/113-CONTEXT.md` locks the inventory taxonomy, UI matrix state contract, operator lenses, evidence posture, and scope constraints for downstream planning.
 - **Phase 114 context:** `.planning/phases/114-repo-native-component-matrix-harness/114-CONTEXT.md` locks a demo-hosted, dev/test-only Phoenix/Playwright matrix that renders real `RulesteadAdmin.Components.*` and selected seeded admin flow examples without widening `RulesteadAdmin.Router.rulestead_admin/2`, package metadata, release workflow, CSS foundation work, or component polish scope.
 - **Phase 114 Plan 01:** `/dev/rulestead-admin/ui-matrix` is a demo-hosted dev/test route outside `RulesteadAdmin.Router.rulestead_admin/2`; it renders real `RulesteadAdmin.Components.*` modules inside `Shell.page/1` with deterministic fixtures from `UiMatrixFixtures`.
@@ -224,8 +224,8 @@ All closed — v1.12 adoption evidence depth complete.
 
 ## Operator Next Steps
 
-- Execute Phase 117 with `$gsd-execute-phase 117`; planning is complete and verified.
-- Keep VER requirements deferred to Phase 118; FLOW requirements are scoped to Phase 117.
+- Run `$gsd-verify-work 118` to verify Phase 118 and close the v1.17 milestone.
+- Preserve the Phase 118 no-baseline/no-external-AI evidence posture unless a later roadmap explicitly reopens it.
 
 ## Latest Verification
 
@@ -250,6 +250,7 @@ Current v1.17 planning proof:
 - Phase 117 Plan 04: audit, explain, and simulate hierarchy fixes plus final FLOW closeout are committed; targeted audit/explain/simulate ExUnit, accessibility ExUnit, final `admin-flow-ia.spec.ts`, FLOW/D-coverage source guards, forbidden visual-baseline guard, and whitespace checks passed.
 - Phase 118 Plan 02: `118-EVIDENCE.md` records backend URL `http://localhost:4061`, 70/70 matrix/workflow Playwright tests, 7 generated matrix screenshots, 48 generated workflow screenshots, 29/29 static fixture/theme tests, 6/6 backend matrix ExUnit tests, individual guard-chain PASS output, and full `bash scripts/ci/lint.sh` PASS.
 - Phase 118 Plan 02: `git ls-files examples/demo/frontend/test-results` returned `0`, confirming generated screenshot artifacts remain untracked.
+- Phase 118 Plan 03: `118-EVIDENCE.md` closes VER-01 through VER-04 with Requirement Coverage, Decision Coverage D-01 through D-20, Planning Closeout, Milestone Boundary, browser artifact patterns (`ui-matrix-overview-shell-*.png`, `flow-*.png`), guard output, and the no-baseline/no-external-AI boundary.
 - Baseline inherited from v1.16: brand/token/logo guard chain, frontend fixture specs, admin workflow screenshot evidence, compose/browser proof, core/admin/demo tests, and passed v1.16 milestone audit.
 
 ## Performance Metrics

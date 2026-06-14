@@ -1,9 +1,9 @@
 ---
 phase: 118
 slug: evidence-idempotence-guardrails
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: approved
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-06-14
 ---
 
@@ -40,18 +40,18 @@ created: 2026-06-14
 
 | Requirement | Behavior | Test Type | Automated Command | File Exists | Status |
 |-------------|----------|-----------|-------------------|-------------|--------|
-| VER-01 | Matrix and mounted-admin workflow screenshots cover light, dark, system-dark, desktop, mobile, and targeted reduced-motion evidence. | browser/e2e artifact | `cd examples/demo/frontend && DEMO_BACKEND_URL=http://localhost:<port> npm run test:e2e -- ui-matrix.spec.ts admin-flow-ia.spec.ts` | yes | pending |
-| VER-02 | Deterministic assertions cover overflow, focus, ARIA/regions, keyboard flow, fixture health, and selected contrast pairs. | browser + ExUnit/source | `cd examples/demo/frontend && npm run test:e2e -- ui-matrix.spec.ts admin-flow-ia.spec.ts design-system.spec.ts` plus `cd examples/demo/backend && MIX_ENV=test mix test test/rulestead_demo_web/live/ui_matrix_live_test.exs` | yes | pending |
-| VER-03 | Brand/token/logo/contrast/brandbook/foundation guard scripts remain green and are extended only for concrete repeatable drift. | script/CI | `python3 scripts/check_synced_pair.py && python3 scripts/check_brand_tokens.py && python3 scripts/check_tokens_css.py && python3 scripts/check_contrast.py && python3 scripts/check_brandbook_html.py && python3 scripts/check_logo_assets.py && python3 scripts/check_admin_foundations.py` | yes | pending |
-| VER-04 | Planning docs record decisions, evidence, requirement completion, intentional exceptions, and residual risks before closeout. | source/doc assertion | `rg -n "VER-01|VER-02|VER-03|VER-04|intentional exception|artifact|118" .planning/phases/118-evidence-idempotence-guardrails .planning/REQUIREMENTS.md .planning/ROADMAP.md .planning/STATE.md` | partial | pending |
+| VER-01 | Matrix and mounted-admin workflow screenshots cover light, dark, system-dark, desktop, mobile, and targeted reduced-motion evidence. | browser/e2e artifact | `cd examples/demo/frontend && DEMO_BACKEND_URL=http://localhost:4061 npm run test:e2e -- --output=test-results/phase118-evidence ui-matrix.spec.ts admin-flow-ia.spec.ts` | yes | passed |
+| VER-02 | Deterministic assertions cover overflow, focus, ARIA/regions, keyboard flow, fixture health, and selected contrast pairs. | browser + ExUnit/source | `cd examples/demo/frontend && DEMO_BACKEND_URL=http://localhost:4061 npm run test:e2e -- ui-matrix.spec.ts admin-flow-ia.spec.ts`; `cd examples/demo/frontend && npm run test:e2e -- design-system.spec.ts theme-control.spec.ts theme-cascade.spec.ts theme-scope.spec.ts`; `cd examples/demo/backend && MIX_ENV=test mix test test/rulestead_demo_web/live/ui_matrix_live_test.exs` | yes | passed |
+| VER-03 | Brand/token/logo/contrast/brandbook/foundation guard scripts remain green and are extended only for concrete repeatable drift. | script/CI | `python3 scripts/check_synced_pair.py && python3 scripts/check_brand_tokens.py && python3 scripts/check_tokens_css.py && python3 scripts/check_contrast.py && python3 scripts/check_brandbook_html.py && python3 scripts/check_logo_assets.py && python3 scripts/check_admin_foundations.py && python3 scripts/check_design_system_evidence.py`; `bash scripts/ci/lint.sh` | yes | passed |
+| VER-04 | Planning docs record decisions, evidence, requirement completion, intentional exceptions, and residual risks before closeout. | source/doc assertion | `rg -n "Requirement Coverage|Decision Coverage|Planning Closeout|Milestone Boundary|D-01|D-20|VER-04|no broad pixel baselines|no external AI visual review" .planning/phases/118-evidence-idempotence-guardrails/118-EVIDENCE.md` | yes | passed |
 
 ---
 
 ## Wave 0 Requirements
 
-- [ ] `.planning/phases/118-evidence-idempotence-guardrails/118-EVIDENCE.md` or `.planning/phases/118-evidence-idempotence-guardrails/118-VERIFICATION.md` maps VER-01 through VER-04 to commands, artifacts, guard outputs, exceptions, and risks.
-- [ ] Browser backend startup command and chosen `DEMO_BACKEND_URL` are captured in execution evidence.
-- [ ] Optional source/doc assertion is added if the final plan needs automated VER-04 traceability before closeout.
+- [x] `.planning/phases/118-evidence-idempotence-guardrails/118-EVIDENCE.md` maps VER-01 through VER-04 to commands, artifacts, guard outputs, exceptions, and risks.
+- [x] Browser backend startup command and chosen `DEMO_BACKEND_URL` are captured in execution evidence.
+- [x] Optional source/doc assertion is added for automated VER-04 traceability before closeout.
 
 ---
 
@@ -65,11 +65,11 @@ created: 2026-06-14
 
 ## Validation Sign-Off
 
-- [ ] All tasks have automated verify commands or documented artifact review steps.
-- [ ] Sampling continuity: no 3 consecutive tasks without an automated verify command.
-- [ ] Wave 0 covers final evidence artifact creation and browser backend command capture.
-- [ ] No watch-mode flags.
-- [ ] No broad checked-in pixel baselines, `toHaveScreenshot`, `matchSnapshot`, pixelmatch, Storybook, PhoenixStorybook, or external AI visual-review gates.
-- [ ] `nyquist_compliant: true` is set in frontmatter only after the final plan includes complete verification coverage.
+- [x] All tasks have automated verify commands or documented artifact review steps.
+- [x] Sampling continuity: no 3 consecutive tasks without an automated verify command.
+- [x] Wave 0 covers final evidence artifact creation and browser backend command capture.
+- [x] No watch-mode flags.
+- [x] No broad checked-in pixel baselines, `toHaveScreenshot`, `matchSnapshot`, pixelmatch, Storybook, PhoenixStorybook, or external AI visual-review gates.
+- [x] `nyquist_compliant: true` is set in frontmatter only after the final plan includes complete verification coverage.
 
-**Approval:** pending
+**Approval:** approved

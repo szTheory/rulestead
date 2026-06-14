@@ -1,6 +1,6 @@
 # Roadmap: v1.17 Admin Design System Stress Test
 
-**Status:** Planned
+**Status:** Complete
 **Defined:** 2026-06-13
 **Phase range:** 113-118
 
@@ -117,7 +117,7 @@ Plans:
 4. Planning docs record decisions, verification evidence, requirement completion, and intentional exceptions before milestone closeout.
 5. The final evidence posture does not introduce broad pixel-baseline maintenance or external AI visual-review requirements.
 
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
 **Wave 1**
@@ -130,7 +130,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 118-03-PLAN.md - Requirement, roadmap, state, and validation closeout after evidence exists.
+- [x] 118-03-PLAN.md - Requirement, roadmap, state, and validation closeout after evidence exists.
 
 ## Progress Table
 
@@ -141,7 +141,7 @@ Plans:
 | 115. Foundations Hardening | 3/3 | Complete    | 2026-06-14 |
 | 116. Primitive + Composite Polish | 4/4 | Complete    | 2026-06-14 |
 | 117. Page Flow + IA Pass | 4/4 | Complete    | 2026-06-14 |
-| 118. Evidence + Idempotence Guardrails | 2/3 | In Progress|  |
+| 118. Evidence + Idempotence Guardrails | 3/3 | Complete    | 2026-06-14 |
 
 ## Requirement Coverage
 
@@ -158,6 +158,6 @@ Plans:
 
 ## Next
 
-Discuss and plan Phase 118:
+Verify Phase 118 and close the v1.17 milestone:
 
-`$gsd-discuss-phase 118`
+`$gsd-verify-work 118`
