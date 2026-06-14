@@ -4346,6 +4346,20 @@ a.rs-env-state:active {
     animation-iteration-count: 1;
     transition-duration: 0ms;
   }
+
+  .rs-shell button:active:not(:disabled),
+  .rs-shell .rs-button:active:not(:disabled),
+  a.rs-shell__brand:active,
+  a.rs-shell__env-link:active,
+  a.rs-env-state:active,
+  .rs-attention__card:hover,
+  .rs-task-link:hover,
+  .rs-task-link:active,
+  .rs-badge:hover,
+  .rs-signal:hover,
+  .rs-cmdk:not([hidden]) .rs-cmdk__panel {
+    transform: none;
+  }
 }
 
 @media (prefers-reduced-motion: no-preference) {
