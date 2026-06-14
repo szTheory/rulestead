@@ -116,6 +116,38 @@ defmodule RulesteadAdmin.Live.AuditLive.IndexTest do
     refute filtered_html =~ "search-ranking"
   end
 
+  test "global audit encodes resource links with reserved path and query characters", %{
+    conn: conn
+  } do
+    state = Control.snapshot!()
+    event = hd(state.audit_events)
+
+    reserved_event =
+      Map.merge(event, %{
+        id: "reserved-link-event",
+        resource_key: "flag/a?b#c&d",
+        environment_key: "prod?region=us&tier=1",
+        occurred_at: ~U[2026-04-23 16:01:00Z],
+        inserted_at: ~U[2026-04-23 16:01:00Z]
+      })
+
+    assert :ok = Control.restore!(%{state | audit_events: [reserved_event | state.audit_events]})
+
+    {:ok, _view, html} = live(conn, "/admin/flags/audit?env_filter=all")
+
+    hrefs =
+      html
+      |> LazyHTML.from_fragment()
+      |> LazyHTML.query(".rs-audit-row__resource a")
+      |> Enum.map(fn node -> List.first(LazyHTML.attribute(node, "href")) end)
+
+    assert "/admin/flags/flag%2Fa%3Fb%23c%26d?env=prod%3Fregion%3Dus%26tier%3D1" in hrefs
+
+    assert "/admin/flags/flag%2Fa%3Fb%23c%26d/timeline?env=prod%3Fregion%3Dus%26tier%3D1" in hrefs
+
+    assert "/admin/flags/flag%2Fa%3Fb%23c%26d/explain?env=prod%3Fregion%3Dus%26tier%3D1" in hrefs
+  end
+
   test "global audit renders ruleset reorder diff metadata from publish events", %{conn: conn} do
     operator = %{id: "operator-9", display: "On-call operator", roles: [:admin]}
 

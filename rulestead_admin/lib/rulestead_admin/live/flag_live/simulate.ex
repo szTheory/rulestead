@@ -292,7 +292,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Simulate do
 
       <p :if={@error_message} role="alert"><%= @error_message %></p>
 
-      <FlagComponents.section_card title="Visible metadata">
+      <FlagComponents.section_card id="simulation-visible-metadata" title="Visible metadata">
         <p>Non-fixture UI metadata uses the admin redaction helper before it is displayed.</p>
         <OperatorComponents.detail_grid rows={[
           %{label: "Environment", value: @page.current_environment.key},

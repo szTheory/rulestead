@@ -151,11 +151,12 @@ defmodule RulesteadAdmin.Components.FlagComponents do
   end
 
   attr(:title, :string, required: true)
+  attr(:id, :string, default: nil)
   slot(:inner_block, required: true)
 
   def section_card(assigns) do
     ~H"""
-    <section class="rs-card">
+    <section id={@id} class="rs-card">
       <h2><%= @title %></h2>
       <div><%= render_slot(@inner_block) %></div>
     </section>

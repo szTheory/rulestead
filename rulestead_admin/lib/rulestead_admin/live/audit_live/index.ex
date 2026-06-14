@@ -355,24 +355,27 @@ defmodule RulesteadAdmin.Live.AuditLive.Index do
   defp resource_nav(_mount_path, %{resource_key: key}) when key in [nil, ""], do: nil
 
   defp resource_nav(mount_path, %{resource_type: "flag", resource_key: key} = event) do
+    encoded_key = encode_path_segment(key)
     env_q = env_query(event.environment_key)
 
     %{
       label: "Flag",
       key: key,
-      primary: "#{mount_path}/#{key}#{env_q}",
+      primary: "#{mount_path}/#{encoded_key}#{env_q}",
       actions: [
-        %{label: "Timeline", href: "#{mount_path}/#{key}/timeline#{env_q}"},
-        %{label: "Explain", href: "#{mount_path}/#{key}/explain#{env_q}"}
+        %{label: "Timeline", href: "#{mount_path}/#{encoded_key}/timeline#{env_q}"},
+        %{label: "Explain", href: "#{mount_path}/#{encoded_key}/explain#{env_q}"}
       ]
     }
   end
 
   defp resource_nav(mount_path, %{resource_type: "audience", resource_key: key} = event) do
+    encoded_key = encode_path_segment(key)
+
     %{
       label: "Audience",
       key: key,
-      primary: "#{mount_path}/audiences/#{key}#{env_query(event.environment_key)}",
+      primary: "#{mount_path}/audiences/#{encoded_key}#{env_query(event.environment_key)}",
       actions: []
     }
   end
@@ -385,7 +388,9 @@ defmodule RulesteadAdmin.Live.AuditLive.Index do
   defp resource_label(resource_type), do: resource_type |> to_string() |> String.capitalize()
 
   defp env_query(env_key) when env_key in [nil, ""], do: ""
-  defp env_query(env_key), do: "?env=#{env_key}"
+  defp env_query(env_key), do: "?" <> URI.encode_query(%{"env" => env_key})
+
+  defp encode_path_segment(value), do: value |> to_string() |> URI.encode(&URI.char_unreserved?/1)
 
   defp diff_lines("ruleset.publish", %{"rules" => rules}) when is_list(rules) do
     Enum.map(rules, fn rule ->

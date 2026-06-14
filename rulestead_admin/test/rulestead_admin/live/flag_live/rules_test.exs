@@ -201,6 +201,52 @@ defmodule RulesteadAdmin.Live.FlagLive.RulesTest do
     assert Rulestead.fetch_flag!("checkout-redesign", "prod").active_ruleset.version == 1
   end
 
+  test "malformed browser payloads validate without crashing the rules workspace", %{conn: conn} do
+    {:ok, view, _html} = live(conn, "/admin/flags/checkout-redesign/rules?env=prod")
+
+    invalid_html =
+      render_change(view, "validate", %{
+        "ruleset" => %{
+          "rules" => %{
+            "bad-index" => %{
+              "key" => "ignored",
+              "name" => "Ignored invalid row",
+              "strategy" => "not_a_strategy",
+              "audience_key" => "",
+              "value" => "true",
+              "conditions" => %{},
+              "variants" => %{}
+            },
+            "0" => %{
+              "key" => "invalid-strategy-row",
+              "name" => "Invalid strategy row",
+              "strategy" => "not_a_strategy",
+              "audience_key" => "",
+              "value" => "true",
+              "conditions" => %{},
+              "variants" => %{}
+            },
+            "1" => %{
+              "key" => "fallthrough-rollout",
+              "name" => "Fallback split",
+              "strategy" => "variant_split",
+              "audience_key" => "",
+              "value" => "false",
+              "conditions" => %{},
+              "variants" => %{
+                "bad-index" => %{"key" => "ignored", "value" => "true", "weight" => "100"},
+                "0" => %{"key" => "control", "value" => "false", "weight" => "nan"},
+                "1" => %{"key" => "treatment", "value" => "true", "weight" => "50"}
+              }
+            }
+          }
+        }
+      })
+
+    assert invalid_html =~ "Variant weights must total 100"
+    assert invalid_html =~ "Resolve validation blockers before save or publish"
+  end
+
   test "workspace keeps save and publish distinct, warns on existing draft, rejects missing audience, and becomes read-only after archive",
        %{
          conn: conn

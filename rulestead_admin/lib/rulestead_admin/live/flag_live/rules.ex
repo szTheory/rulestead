@@ -8,6 +8,8 @@ defmodule RulesteadAdmin.Live.FlagLive.Rules do
   alias RulesteadAdmin.Components.{FlagComponents, RuleEditorComponents, Shell}
   alias RulesteadAdmin.Live.Session
 
+  @allowed_strategies ~w(forced_value segment_match variant_split)
+
   @impl true
   def mount(_params, _session, socket) do
     {:ok,
@@ -375,16 +377,22 @@ defmodule RulesteadAdmin.Live.FlagLive.Rules do
   defp parse_ruleset_params(params, existing_rules) do
     params
     |> Map.get("rules", %{})
-    |> Enum.sort_by(fn {index, _rule} -> String.to_integer(index) end)
+    |> Enum.flat_map(fn {index, rule_params} ->
+      case parse_index(index) do
+        {:ok, parsed_index} -> [{parsed_index, rule_params}]
+        :error -> []
+      end
+    end)
+    |> Enum.sort_by(fn {index, _rule} -> index end)
     |> Enum.map(fn {index, rule_params} ->
-      existing_rule = Enum.at(existing_rules, String.to_integer(index), %{})
+      existing_rule = Enum.at(existing_rules, index, %{})
       strategy = normalize_strategy(rule_params["strategy"] || existing_rule["strategy"])
 
       %{
-        "index" => String.to_integer(index),
+        "index" => index,
         "key" =>
           present(rule_params["key"]) || existing_rule["key"] ||
-            "rule-#{String.to_integer(index) + 1}",
+            "rule-#{index + 1}",
         "name" => rule_params["name"] || "",
         "strategy" => strategy,
         "audience_key" => rule_params["audience_key"] || "",
@@ -399,15 +407,21 @@ defmodule RulesteadAdmin.Live.FlagLive.Rules do
 
   defp parse_variants(variants, existing_variants) when is_map(variants) do
     variants
-    |> Enum.sort_by(fn {index, _variant} -> String.to_integer(index) end)
+    |> Enum.flat_map(fn {index, variant_params} ->
+      case parse_index(index) do
+        {:ok, parsed_index} -> [{parsed_index, variant_params}]
+        :error -> []
+      end
+    end)
+    |> Enum.sort_by(fn {index, _variant} -> index end)
     |> Enum.map(fn {index, variant_params} ->
-      existing_variant = Enum.at(existing_variants, String.to_integer(index), %{})
+      existing_variant = Enum.at(existing_variants, index, %{})
 
       %{
-        "index" => String.to_integer(index),
+        "index" => index,
         "key" =>
           variant_params["key"] || existing_variant["key"] ||
-            "variant-#{String.to_integer(index) + 1}",
+            "variant-#{index + 1}",
         "value" => normalize_value(variant_params["value"] || existing_variant["value"]),
         "weight" => variant_params["weight"] || existing_variant["weight"] || "0"
       }
@@ -426,7 +440,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Rules do
     payload = %{
       key: rule["key"],
       name: blank_to_nil(rule["name"]),
-      strategy: String.to_existing_atom(rule["strategy"]),
+      strategy: strategy_atom(rule["strategy"]),
       value: %{value: truthy_value(rule["value"])},
       conditions: [],
       variants: Enum.map(rule["variants"], &variant_to_payload/1)
@@ -595,8 +609,13 @@ defmodule RulesteadAdmin.Live.FlagLive.Rules do
     do:
       "Resolve validation blockers before save or publish; missing audience recovery links stay in the rule cards below."
 
-  defp normalize_strategy(strategy) when is_atom(strategy), do: Atom.to_string(strategy)
-  defp normalize_strategy(strategy) when is_binary(strategy), do: strategy
+  defp normalize_strategy(strategy) when is_atom(strategy),
+    do: normalize_strategy(Atom.to_string(strategy))
+
+  defp normalize_strategy(strategy) when is_binary(strategy) do
+    if strategy in @allowed_strategies, do: strategy, else: "forced_value"
+  end
+
   defp normalize_strategy(_strategy), do: "forced_value"
 
   defp normalize_value(%{value: value}), do: normalize_value(value)
@@ -615,8 +634,26 @@ defmodule RulesteadAdmin.Live.FlagLive.Rules do
   defp next_rule_index(rules), do: length(rules)
 
   defp parse_integer(value) when is_integer(value), do: value
-  defp parse_integer(value) when is_binary(value), do: String.to_integer(value)
+
+  defp parse_integer(value) when is_binary(value) do
+    case Integer.parse(value) do
+      {integer, ""} -> integer
+      _other -> 0
+    end
+  end
+
   defp parse_integer(_value), do: 0
+
+  defp parse_index(value) do
+    case Integer.parse(to_string(value)) do
+      {integer, ""} when integer >= 0 -> {:ok, integer}
+      _other -> :error
+    end
+  end
+
+  defp strategy_atom("segment_match"), do: :segment_match
+  defp strategy_atom("variant_split"), do: :variant_split
+  defp strategy_atom(_strategy), do: :forced_value
 
   defp blank_to_nil(nil), do: nil
   defp blank_to_nil(""), do: nil
