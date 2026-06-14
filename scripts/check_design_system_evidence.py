@@ -27,6 +27,7 @@ UI_MATRIX_LIVE_TEST = (
 SCAN_PATHS = [
     UI_MATRIX_SPEC,
     ADMIN_FLOW_SPEC,
+    DESIGN_SYSTEM_SPEC,
     ROOT / "package.json",
     ROOT / "rulestead/mix.exs",
     ROOT / "rulestead_admin/mix.exs",
