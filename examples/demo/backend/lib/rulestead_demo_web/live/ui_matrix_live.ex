@@ -57,7 +57,7 @@ defmodule RulesteadDemoWeb.UiMatrixLive do
         governance_assessment: UiMatrixFixtures.governance_assessment(),
         simulate_trace: UiMatrixFixtures.simulate_trace(),
         audience_trace_steps: UiMatrixFixtures.audience_trace_steps(),
-        mutation_confirm: UiMatrixFixtures.mutation_confirm_assigns(:destructive),
+        mutation_confirms: UiMatrixFixtures.mutation_confirm_variants(),
         rare_state_examples: UiMatrixFixtures.rare_state_examples()
       )
 
@@ -269,19 +269,17 @@ defmodule RulesteadDemoWeb.UiMatrixLive do
 
       <section class="rs-card" data-matrix-section="mutation-flows" id="mutation-flows">
         <h2>Mutation flows</h2>
-        <ConfirmComponents.mutation_confirm {@mutation_confirm}>
-          <:evidence>
-            <p>
-              Preview destructive fixture: Type the flag key before rendering the disabled or danger action example.
-            </p>
-          </:evidence>
-          <:extra_fields>
-            <label class="rs-form-field">
-              <span>Type the flag key</span>
-              <input type="text" value={UiMatrixFixtures.long_flag_key()} readonly />
-            </label>
-          </:extra_fields>
-        </ConfirmComponents.mutation_confirm>
+        <div class="rs-form-grid rs-form-grid--two">
+          <section :for={variant <- @mutation_confirms} aria-label={variant.title}>
+            <h3>{variant.title}</h3>
+            <p>{variant.summary}</p>
+            <ConfirmComponents.mutation_confirm {variant.assigns}>
+              <:evidence>
+                <p>{variant.evidence}</p>
+              </:evidence>
+            </ConfirmComponents.mutation_confirm>
+          </section>
+        </div>
       </section>
 
       <section class="rs-card" data-matrix-section="dense-tables" id="dense-tables">

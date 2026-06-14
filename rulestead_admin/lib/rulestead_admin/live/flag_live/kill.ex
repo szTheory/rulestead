@@ -51,7 +51,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Kill do
     <Shell.page
       page_title={if(@flag_key, do: "#{@flag_key} kill switch", else: "Kill switch")}
       page_kicker="Kill switch"
-      page_summary="Bookmarkable emergency override route reserved for explicit kill and restore flows."
+      page_summary="Bookmarkable emergency override route with state evidence, operator reason, production typed-key confirmation, diagnostics, and audit handoff."
       base_path={@rulestead_admin_mount_path}
       current_section={:flags}
       breadcrumbs={breadcrumbs(assigns)}
@@ -115,7 +115,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Kill do
             <p class="rs-eyebrow">Operator action</p>
             <h2><%= if(kill_switch_active?(@detail), do: "Release override", else: "Engage override") %></h2>
             <p>
-              Underlying rules stay untouched. This route only manages the environment override record and writes an audit event.
+              Review the current override state, type the flag key in production, record the reason, then confirm. Underlying rules stay untouched; this route only manages the environment override record and writes an audit event.
             </p>
           </div>
           <AuditComponents.kill_switch_form
@@ -131,7 +131,7 @@ defmodule RulesteadAdmin.Live.FlagLive.Kill do
         <section class="rs-runbook__context" aria-label="After-action context">
           <div class="rs-runbook__note">
             <h2>After action</h2>
-            <p>Verify diagnostics, then use the audit timeline as the incident handoff trail.</p>
+            <p>Verify diagnostics immediately, then use the audit timeline as the incident handoff trail.</p>
             <div class="rs-inline-actions">
               <a class="rs-button" href={path_for(assigns, "/diagnostics")}>Open diagnostics</a>
               <a class="rs-button" href={path_for(assigns, "/#{@detail.flag.key}/timeline")}>Open audit timeline</a>

@@ -8,6 +8,7 @@ defmodule RulesteadAdmin.Live.AudienceLive.EditPreview do
     AudienceComponents,
     FlagComponents,
     GovernanceComponents,
+    OperatorComponents,
     Shell
   }
 
@@ -83,7 +84,7 @@ defmodule RulesteadAdmin.Live.AudienceLive.EditPreview do
       <AudienceComponents.impact_preview :if={@preview} preview={@preview} />
 
       <FlagComponents.section_card :if={@preview} title="Continue">
-        <div class="rs-mutation-confirm__actions">
+        <OperatorComponents.action_row aria_label="Audience update preview actions">
           <a
             :if={@governance_mode != :blocked}
             href={confirm_path(assigns)}
@@ -97,7 +98,10 @@ defmodule RulesteadAdmin.Live.AudienceLive.EditPreview do
           >
             Back to audience
           </a>
-        </div>
+          <:note :if={@governance_mode == :blocked}>
+            Blast radius cannot be evaluated safely; resolve preview blockers before confirming.
+          </:note>
+        </OperatorComponents.action_row>
       </FlagComponents.section_card>
     </Shell.page>
     """

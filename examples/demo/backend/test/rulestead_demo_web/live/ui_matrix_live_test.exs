@@ -43,13 +43,21 @@ defmodule RulesteadDemoWeb.UiMatrixLiveTest do
     assert rendered =~ "Host evidence is stale"
     assert rendered =~ "Unavailable action"
     assert rendered =~ "Read-only policy"
+    assert rendered =~ "Destructive confirmation"
+    assert rendered =~ "Type production flag key"
+    assert rendered =~ "Production fixture archive requires the exact flag key."
+    assert rendered =~ "Host evidence is stale. Refresh guardrail evidence before mutating."
+    assert rendered =~ "Read-only fixture action"
   end
 
   test "read-only matrix interactions keep the LiveView mounted", %{conn: conn} do
     {:ok, view, _html} = live(conn, @matrix_path)
 
     view
-    |> form(~s(form[aria-label="Confirm action"]), %{"reason" => "matrix proof"})
+    |> form(~s(form[aria-label="Confirm destructive fixture action"]), %{
+      "confirmation" => UiMatrixFixtures.long_flag_key(),
+      "reason" => "matrix proof"
+    })
     |> render_submit()
 
     assert render(view) =~ "Rulestead admin UI matrix"
@@ -86,7 +94,17 @@ defmodule RulesteadDemoWeb.UiMatrixLiveTest do
     assert :error in rare_states
 
     assert UiMatrixFixtures.mutation_confirm_assigns(:destructive).danger? == true
+
+    assert UiMatrixFixtures.mutation_confirm_assigns(:destructive).typed_confirmation_required ==
+             true
+
     assert UiMatrixFixtures.mutation_confirm_assigns(:disabled).submit_label =~ "Unavailable"
+
+    assert UiMatrixFixtures.mutation_confirm_assigns(:disabled).unavailable_reason =~
+             "Host evidence is stale"
+
+    assert UiMatrixFixtures.mutation_confirm_assigns(:read_only).read_only? == true
+    assert length(UiMatrixFixtures.mutation_confirm_variants()) == 3
     assert UiMatrixFixtures.audience_dependencies().denied? == false
     assert UiMatrixFixtures.audience_dependencies().hidden_count > 0
   end

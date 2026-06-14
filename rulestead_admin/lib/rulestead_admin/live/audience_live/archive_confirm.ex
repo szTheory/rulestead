@@ -69,11 +69,6 @@ defmodule RulesteadAdmin.Live.AudienceLive.ArchiveConfirm do
       <p :if={@error_message} role="alert"><%= @error_message %></p>
 
       <FlagComponents.section_card :if={@preview} title="Confirm archive">
-        <p><strong>Fingerprint:</strong> <code><%= @preview.preview_fingerprint %></code></p>
-        <p><strong>Scope:</strong> <code><%= @current_environment.key %></code>
-          <span :if={@current_tenant}> · tenant <code><%= @current_tenant.key %></code></span>
-        </p>
-
         <GovernanceComponents.blast_radius_panel
           :if={@blast_radius_assessment && @governance_mode == :change_request}
           assessment={@blast_radius_assessment}
@@ -113,6 +108,7 @@ defmodule RulesteadAdmin.Live.AudienceLive.ArchiveConfirm do
           back_href={Shared.path(assigns, "/audiences/#{@audience_key}/archive/preview")}
           back_label="Back to preview"
           aria_label="Submit audience archive change request"
+          scope={confirm_scope(assigns)}
         />
 
         <ConfirmComponents.mutation_confirm
@@ -124,6 +120,7 @@ defmodule RulesteadAdmin.Live.AudienceLive.ArchiveConfirm do
           back_href={Shared.path(assigns, "/audiences/#{@audience_key}/archive/preview")}
           back_label="Back to preview"
           aria_label="Confirm audience archive"
+          scope={confirm_scope(assigns)}
         />
 
         <p :if={no_confirm_form?(@governance_mode, @can_submit?)}>
@@ -295,6 +292,17 @@ defmodule RulesteadAdmin.Live.AudienceLive.ArchiveConfirm do
 
   defp no_confirm_form?(:change_request, can_submit?), do: not can_submit?
   defp no_confirm_form?(mode, _can_submit?), do: not show_apply_form?(mode)
+
+  defp confirm_scope(assigns) do
+    %{
+      environment: assigns.current_environment.key,
+      tenant: tenant_key(assigns),
+      fingerprint: assigns.preview.preview_fingerprint
+    }
+  end
+
+  defp tenant_key(%{current_tenant: %{key: key}}), do: key
+  defp tenant_key(_assigns), do: nil
 
   defp visibility_attr(:full), do: :full
   defp visibility_attr(_), do: :redacted

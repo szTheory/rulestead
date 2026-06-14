@@ -29,7 +29,12 @@ defmodule RulesteadDemoWeb.UiMatrixFixtures do
       ],
       env_options: [
         %{
-          environment: %{key: "development", name: "Development", status: :healthy, production?: false},
+          environment: %{
+            key: "development",
+            name: "Development",
+            status: :healthy,
+            production?: false
+          },
           href: "/dev/rulestead-admin/ui-matrix?env=development",
           current?: false,
           available?: true,
@@ -51,7 +56,11 @@ defmodule RulesteadDemoWeb.UiMatrixFixtures do
           title: "Production fixture scope"
         },
         %{
-          environment: %{key: "disabled-region", name: "Disabled regional failover", status: :unavailable},
+          environment: %{
+            key: "disabled-region",
+            name: "Disabled regional failover",
+            status: :unavailable
+          },
           href: "#",
           current?: false,
           available?: false,
@@ -64,7 +73,10 @@ defmodule RulesteadDemoWeb.UiMatrixFixtures do
         name: "Enterprise Regional Tenant With An Intentionally Long Name"
       },
       tenants: [
-        %{key: "tenant-enterprise-regional-long-name", name: "Enterprise Regional Tenant With An Intentionally Long Name"},
+        %{
+          key: "tenant-enterprise-regional-long-name",
+          name: "Enterprise Regional Tenant With An Intentionally Long Name"
+        },
         %{key: "tenant-read-only", name: "Read-only tenant fixture"}
       ],
       tenant_links: %{
@@ -78,7 +90,8 @@ defmodule RulesteadDemoWeb.UiMatrixFixtures do
           "Fixture read-only policy: destructive writes are unavailable for this matrix example."
       },
       flash: %{
-        info: "Fixture-only matrix route; no database, cache, filesystem, environment, or network reads."
+        info:
+          "Fixture-only matrix route; no database, cache, filesystem, environment, or network reads."
       }
     }
   end
@@ -113,10 +126,22 @@ defmodule RulesteadDemoWeb.UiMatrixFixtures do
     [
       %{label: "Inventory", path: "/admin/flags?env=production-eu-central"},
       %{label: "Rules", path: "/admin/flags/#{@long_flag_key}/rules?env=production-eu-central"},
-      %{label: "Rollouts", path: "/admin/flags/#{@long_flag_key}/rollouts?env=production-eu-central"},
-      %{label: "Timeline and audit", path: "/admin/flags/#{@long_flag_key}/timeline?env=production-eu-central"},
-      %{label: "Explain and simulate", path: "/admin/flags/#{@long_flag_key}/simulate?env=production-eu-central"},
-      %{label: "Destructive preview", path: "/admin/flags/#{@long_flag_key}/kill?env=production-eu-central"}
+      %{
+        label: "Rollouts",
+        path: "/admin/flags/#{@long_flag_key}/rollouts?env=production-eu-central"
+      },
+      %{
+        label: "Timeline and audit",
+        path: "/admin/flags/#{@long_flag_key}/timeline?env=production-eu-central"
+      },
+      %{
+        label: "Explain and simulate",
+        path: "/admin/flags/#{@long_flag_key}/simulate?env=production-eu-central"
+      },
+      %{
+        label: "Destructive preview",
+        path: "/admin/flags/#{@long_flag_key}/kill?env=production-eu-central"
+      }
     ]
   end
 
@@ -129,7 +154,8 @@ defmodule RulesteadDemoWeb.UiMatrixFixtures do
       %{
         title: "Dense matrix flag #{index}: #{@long_flag_key}",
         href: "/admin/flags/#{@long_flag_key}-#{index}?env=production-eu-central",
-        meta: "owner=Checkout Platform Reliability And Release Team #{index} / #{@long_audience_key}",
+        meta:
+          "owner=Checkout Platform Reliability And Release Team #{index} / #{@long_audience_key}",
         tone: if(rem(index, 4) == 0, do: "warning", else: "neutral")
       }
     end
@@ -212,7 +238,11 @@ defmodule RulesteadDemoWeb.UiMatrixFixtures do
       error_messages: ["Condition references missing host evidence for #{@long_audience_key}."],
       audiences: [
         %{key: @long_audience_key, description: "Enterprise VIP audience with long wrapping key"},
-        %{key: "audience:archived:read-only", description: "Archived read-only audience", archived_at: "2026-06-01T00:00:00Z"}
+        %{
+          key: "audience:archived:read-only",
+          description: "Archived read-only audience",
+          archived_at: "2026-06-01T00:00:00Z"
+        }
       ],
       rule: %{
         "key" => "rule-long-key-for-enterprise-checkout-redesign",
@@ -272,7 +302,12 @@ defmodule RulesteadDemoWeb.UiMatrixFixtures do
   def auto_advance_assigns do
     %{
       mode: :blocked_health,
-      policy: %{enabled: true, observation_window_seconds: 1800, next_stage: "25_percent", next_percentage: 25},
+      policy: %{
+        enabled: true,
+        observation_window_seconds: 1800,
+        next_stage: "25_percent",
+        next_percentage: 25
+      },
       guardrail_status: rollout_assigns().guardrail_status,
       guardrail_definitions: rollout_assigns().guardrail_definitions,
       scheduled_tick: nil,
@@ -294,7 +329,8 @@ defmodule RulesteadDemoWeb.UiMatrixFixtures do
       tenant_scope: %{tenant_key: "tenant-enterprise-regional-long-name"},
       affected_references: [%{reference_key: "flag:#{@long_flag_key}:ruleset:8:rule:vip"}],
       uncertainty: %{
-        message: "authored state with bounded host-supplied evidence; not an authoritative population count",
+        message:
+          "authored state with bounded host-supplied evidence; not an authoritative population count",
         authoritative_population_count?: false
       },
       sample_evidence:
@@ -310,7 +346,10 @@ defmodule RulesteadDemoWeb.UiMatrixFixtures do
         window_label: "last_24h",
         sampled_impressions: 10_400,
         matched_impressions: 2_750,
-        variant_breakdown: [%{variant: "control", count: 7_650}, %{variant: "redesign", count: 2_750}]
+        variant_breakdown: [
+          %{variant: "control", count: 7_650},
+          %{variant: "redesign", count: 2_750}
+        ]
       }
     }
   end
@@ -373,12 +412,21 @@ defmodule RulesteadDemoWeb.UiMatrixFixtures do
           matched?: true,
           audience_trace: %{audience_key: @long_audience_key, matched?: true, reason: :matched},
           conditions: [%{attribute: "account.plan", reason: :matched, actual: "enterprise"}],
-          rollout: %{bucket_by: "actor-enterprise-regional-vip-1", bucket: 24, variant_bucket: 8, percentage: 25}
+          rollout: %{
+            bucket_by: "actor-enterprise-regional-vip-1",
+            bucket: 24,
+            variant_bucket: 8,
+            percentage: 25
+          }
         },
         %{
           rule_key: "rule-missing-audience-fixture",
           matched?: false,
-          audience_trace: %{audience_key: "audience:missing:matrix", matched?: false, reason: :missing},
+          audience_trace: %{
+            audience_key: "audience:missing:matrix",
+            matched?: false,
+            reason: :missing
+          },
           conditions: [],
           rollout: %{}
         }
@@ -387,6 +435,31 @@ defmodule RulesteadDemoWeb.UiMatrixFixtures do
   end
 
   def audience_trace_steps, do: Map.fetch!(simulate_trace(), :rule_traces)
+
+  def mutation_confirm_variants do
+    [
+      %{
+        title: "Destructive confirmation",
+        summary: "Production-scoped archive requires typed key entry before the reason.",
+        evidence:
+          "Preview destructive fixture: review the scope, type the flag key, record the reason, then archive or return.",
+        assigns: mutation_confirm_assigns(:destructive)
+      },
+      %{
+        title: "Unavailable confirmation",
+        summary: "Host evidence is stale, so the action is disabled with a safe return path.",
+        evidence: "Guardrail evidence is older than the fixture threshold.",
+        assigns: mutation_confirm_assigns(:disabled)
+      },
+      %{
+        title: "Read-only confirmation",
+        summary: "Policy permits inspection but blocks mutation.",
+        evidence:
+          "Viewer role can inspect the preview and audit trail but cannot apply the change.",
+        assigns: mutation_confirm_assigns(:read_only)
+      }
+    ]
+  end
 
   def mutation_confirm_assigns(variant) do
     base = %{
@@ -403,23 +476,84 @@ defmodule RulesteadDemoWeb.UiMatrixFixtures do
     }
 
     case variant do
-      :destructive -> Map.merge(base, %{danger?: true, submit_label: "Archive fixture flag"})
-      :disabled -> Map.merge(base, %{danger?: false, reason_required: false, submit_label: "Unavailable fixture action"})
-      :read_only -> Map.merge(base, %{danger?: false, submit_label: "Read-only preview"})
-      _normal -> base
+      :destructive ->
+        Map.merge(base, %{
+          danger?: true,
+          submit_label: "Archive fixture flag",
+          aria_label: "Confirm destructive fixture action",
+          typed_confirmation_label: "Type production flag key",
+          typed_confirmation_value: @long_flag_key,
+          typed_confirmation_required: true,
+          typed_confirmation_help: "Production fixture archive requires the exact flag key."
+        })
+
+      :disabled ->
+        Map.merge(base, %{
+          danger?: false,
+          reason_required: false,
+          submit_label: "Unavailable fixture action",
+          aria_label: "Unavailable fixture action",
+          unavailable_reason:
+            "Host evidence is stale. Refresh guardrail evidence before mutating."
+        })
+
+      :read_only ->
+        Map.merge(base, %{
+          danger?: false,
+          reason_required: false,
+          submit_label: "Read-only preview",
+          aria_label: "Read-only fixture action",
+          read_only?: true,
+          read_only_reason: "Actor can inspect this fixture and audit trail but cannot mutate it."
+        })
+
+      _normal ->
+        base
     end
   end
 
   def rare_state_examples do
     [
-      %{state: :empty, label: "No matrix examples match this section", summary: "Valid empty fixture state."},
-      %{state: :loading, label: "Loading host evidence", summary: "Pending async state with no mutation allowed."},
-      %{state: :error, label: "Matrix fixture failed to render", summary: "Inspect the named fixture helper."},
-      %{state: :permission_denied, label: "Permission denied", summary: "Actor can preview but not mutate."},
-      %{state: :read_only, label: "Read-only archived record", summary: "Navigation remains available."},
-      %{state: :unavailable, label: "Host evidence unavailable", summary: "Action is disabled with explanation."},
-      %{state: :focus, label: "Keyboard focus target", summary: "Stable target for focus assertions."},
-      %{state: :destructive, label: "Destructive action", summary: "Preview, confirm, audit handoff."}
+      %{
+        state: :empty,
+        label: "No matrix examples match this section",
+        summary: "Valid empty fixture state."
+      },
+      %{
+        state: :loading,
+        label: "Loading host evidence",
+        summary: "Pending async state with no mutation allowed."
+      },
+      %{
+        state: :error,
+        label: "Matrix fixture failed to render",
+        summary: "Inspect the named fixture helper."
+      },
+      %{
+        state: :permission_denied,
+        label: "Permission denied",
+        summary: "Actor can preview but not mutate."
+      },
+      %{
+        state: :read_only,
+        label: "Read-only archived record",
+        summary: "Navigation remains available."
+      },
+      %{
+        state: :unavailable,
+        label: "Host evidence unavailable",
+        summary: "Action is disabled with explanation."
+      },
+      %{
+        state: :focus,
+        label: "Keyboard focus target",
+        summary: "Stable target for focus assertions."
+      },
+      %{
+        state: :destructive,
+        label: "Destructive action",
+        summary: "Preview, confirm, audit handoff."
+      }
     ]
   end
 

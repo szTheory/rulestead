@@ -102,14 +102,15 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupConfirm do
             reason_label="Reason"
             danger?={true}
             aria_label="Archive flag confirmation form"
-          >
-            <:extra_fields>
-              <label class="rs-form-field">
-                <span>Typed confirmation</span>
-                <input type="text" name="confirmation" value={@confirmation_value} />
-              </label>
-            </:extra_fields>
-          </ConfirmComponents.mutation_confirm>
+            back_href={preview_path(assigns)}
+            back_label="Back to archive preview"
+            typed_confirmation_label="Type the flag key"
+            typed_confirmation_value={@confirmation_value}
+            typed_confirmation_required={production_env?(@current_environment.key)}
+            typed_confirmation_help={
+              typed_confirmation_help(@detail.flag.key, @current_environment.key)
+            }
+          />
         </FlagComponents.section_card>
       </div>
     </Shell.page>
@@ -279,6 +280,14 @@ defmodule RulesteadAdmin.Live.FlagLive.CleanupConfirm do
       "Typed key confirmation required for production."
     else
       "Reason required for non-production environments."
+    end
+  end
+
+  defp typed_confirmation_help(flag_key, environment_key) do
+    if production_env?(environment_key) do
+      "Production archive requires the exact flag key: #{flag_key}."
+    else
+      "Non-production archive records the reason; typed key entry is optional."
     end
   end
 
