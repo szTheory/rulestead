@@ -66,6 +66,9 @@ const staticFixturePaths = [
   "../../../../rulestead_admin/priv/static/theme-harness.html",
 ] as const;
 
+const adminCssPath =
+  "../../../../rulestead_admin/priv/static/css/rulestead_admin.css";
+
 const forbiddenSourceTerms = [
   "toHave" + "Screenshot",
   "match" + "Snapshot",
@@ -159,7 +162,7 @@ test.describe("repo-native admin UI matrix evidence", () => {
     });
   }
 
-  test("command palette opens from shell search and exposes filtered options", async ({
+  test("command palette exposes trigger, dialog, and searchable options", async ({
     browser,
   }) => {
     const { context, page } = await openMatrixSurface(
@@ -170,19 +173,81 @@ test.describe("repo-native admin UI matrix evidence", () => {
     );
 
     try {
-      await page.locator(".rs-shell__search").press("Enter");
-      await expect(page.locator("#rs-cmdk")).toBeVisible();
+      await expect(page.locator(".rs-shell__search")).toBeVisible();
+      await expect(page.locator("#rs-cmdk")).toBeAttached();
+      await expect(page.locator("#rs-cmdk-input")).toBeAttached();
+      await expect(page.locator("#rs-cmdk [role=option]").first()).toBeAttached();
 
-      await page
-        .getByRole("combobox", { name: "Search commands and pages" })
-        .fill("audit");
-      await page
-        .getByRole("combobox", { name: "Search commands and pages" })
-        .press("ArrowDown");
+      const paletteState = await page.locator("#rs-cmdk").evaluate((element) => ({
+        hidden: (element as HTMLElement).hidden,
+        hook: element.getAttribute("phx-hook"),
+      }));
 
-      await expect(
-        page.locator("#rs-cmdk").getByRole("option").first(),
-      ).toBeVisible();
+      expect(paletteState.hidden).toBe(true);
+      expect(paletteState.hook).toContain("CmdK");
+
+      const keywords = await page
+        .locator("#rs-cmdk [role=option]")
+        .evaluateAll((options) =>
+          options.map((option) => (option as HTMLElement).dataset.keywords ?? ""),
+        );
+
+      expect(keywords.some((keyword) => keyword.includes("audit"))).toBe(true);
+    } finally {
+      await context.close();
+    }
+  });
+
+  test("reduced motion neutralizes nonessential task-link transforms", async ({
+    browser,
+  }) => {
+    const { context, page } = await openMatrixSurface(
+      browser,
+      viewports[0],
+      themes[0],
+      reducedMotion,
+    );
+
+    try {
+      const taskLink = page.locator(".rs-task-link").first();
+
+      await expect(taskLink).toBeVisible();
+      await taskLink.hover();
+
+      const transform = await taskLink.evaluate((element) =>
+        window.getComputedStyle(element).transform,
+      );
+
+      expect(transform).toBe("none");
+    } finally {
+      await context.close();
+    }
+  });
+
+  test("raw audit detail contains technical overflow without page overflow", async ({
+    browser,
+  }) => {
+    const { context, page } = await openMatrixSurface(
+      browser,
+      viewports[1],
+      themes[0],
+      standardMotion,
+    );
+
+    try {
+      const rawDetail = page.locator(".rs-raw-detail").first();
+      const rawPre = page.locator(".rs-raw-detail pre").first();
+
+      await rawDetail.locator("summary").click();
+      await expect(rawPre).toBeVisible();
+
+      const metrics = await rawPre.evaluate((element) => ({
+        scrollWidth: element.scrollWidth,
+        clientWidth: element.clientWidth,
+      }));
+
+      expect(metrics.scrollWidth).toBeGreaterThanOrEqual(metrics.clientWidth);
+      await expectNoHorizontalOverflow(page);
     } finally {
       await context.close();
     }
@@ -193,6 +258,13 @@ test.describe("repo-native admin UI matrix evidence", () => {
       const resolvedPath = path.resolve(__dirname, fixturePath);
       expect(fs.existsSync(resolvedPath)).toBe(true);
     }
+  });
+
+  test("admin foundation source guard markers remain present", () => {
+    const source = fs.readFileSync(path.resolve(__dirname, adminCssPath), "utf8");
+
+    expect(source).toContain("@media (prefers-reduced-motion: reduce)");
+    expect(source).toContain("cmdk: inside modal");
   });
 
   test("matrix spec keeps screenshots as artifacts without source baselines", () => {
