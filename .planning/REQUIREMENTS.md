@@ -15,8 +15,8 @@
 
 - [x] **FND-01**: Admin CSS uses the documented breakpoint set or records an explicit exception for every additional responsive threshold.
 - [x] **FND-02**: Typography, spacing, radius, motion, shadow, focus, and logo/token source-of-truth docs agree with the shipped brandbook and admin CSS guards.
-- [ ] **FND-03**: Focus states remain visible and consistent across shell controls, buttons, links, form controls, command palette, environment/tenant controls, and task links.
-- [ ] **FND-04**: Reduced-motion users do not receive nonessential scale, translate, blur, or staged motion effects.
+- [x] **FND-03**: Focus states remain visible and consistent across shell controls, buttons, links, form controls, command palette, environment/tenant controls, and task links.
+- [x] **FND-04**: Reduced-motion users do not receive nonessential scale, translate, blur, or staged motion effects.
 - [x] **FND-05**: Radius, pill usage, shadows, elevation, and colored emphasis follow an explicit product-surface rule rather than component-by-component drift.
 - [ ] **FND-06**: Dense tables and technical rows have a responsive overflow or stacking pattern that prevents horizontal page overflow on mobile widths.
 
@@ -73,8 +73,8 @@ Deferred until a later milestone or a concrete maintainer need exists.
 | DSM-03 | Phase 113 | Complete |
 | FND-01 | Phase 115 | Complete |
 | FND-02 | Phase 115 | Complete |
-| FND-03 | Phase 115 | Pending |
-| FND-04 | Phase 115 | Pending |
+| FND-03 | Phase 115 | Complete |
+| FND-04 | Phase 115 | Complete |
 | FND-05 | Phase 115 | Complete |
 | FND-06 | Phase 115 | Pending |
 | CMP-01 | Phase 116 | Pending |
