@@ -74,9 +74,39 @@ const forbiddenSourceTerms = [
   "match" + "Snapshot",
   "pixel" + "match",
   "visual" + "-diff",
+  "pixel" + "-baseline",
   "Story" + "book",
   "Phoenix" + "Story" + "book",
+  "phoenix" + "_" + "storybook",
 ] as const;
+
+const phaseRequirementEvidence = {
+  "CMP-01": [
+    "Support trace",
+    "Review Matrix Evidence",
+    "No matrix examples match this section",
+  ],
+  "CMP-02": ["Review evidence", "Read-only policy", "Return to matrix overview"],
+  "CMP-03": [
+    "Destructive confirmation",
+    "Unavailable confirmation",
+    "Read-only confirmation",
+  ],
+  "CMP-04": [
+    "Provenance",
+    "Guardrail decision",
+    "Preview uncertainty",
+    "Governance severity",
+    "Support-safe trace",
+    "Audience trace state",
+  ],
+  "CMP-05": [
+    "Host evidence is stale",
+    "Blocked by guardrail health",
+    "Authored-state boundary",
+    "Hidden references",
+  ],
+} as const;
 
 const browserCases = [
   ...viewports.flatMap((viewport) =>
@@ -298,6 +328,48 @@ test.describe("repo-native admin UI matrix evidence", () => {
       for (const bounds of sectionBounds) {
         expect(bounds.left).toBeGreaterThanOrEqual(-1);
         expect(bounds.right).toBeLessThanOrEqual(bounds.viewportWidth + 1);
+      }
+
+      await expectNoHorizontalOverflow(page);
+    } finally {
+      await context.close();
+    }
+  });
+
+  test("phase 116 requirement evidence stays visible without mobile overflow", async ({
+    browser,
+  }) => {
+    const { context, page } = await openMatrixSurface(
+      browser,
+      viewports[1],
+      themes[0],
+      standardMotion,
+    );
+
+    try {
+      for (const [requirement, labels] of Object.entries(
+        phaseRequirementEvidence,
+      )) {
+        for (const label of labels) {
+          await expect(
+            page.getByText(label).first(),
+            `${requirement} evidence label: ${label}`,
+          ).toBeVisible();
+        }
+      }
+
+      for (const sectionName of [
+        "primitives",
+        "mutation-flows",
+        "composites",
+        "timelines",
+        "rule-editor",
+        "rollout-panels",
+        "workflow-states",
+      ] as const) {
+        await expect(
+          page.locator(`[data-matrix-section="${sectionName}"]`),
+        ).toBeVisible();
       }
 
       await expectNoHorizontalOverflow(page);

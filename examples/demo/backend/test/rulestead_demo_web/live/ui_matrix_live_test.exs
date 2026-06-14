@@ -21,6 +21,53 @@ defmodule RulesteadDemoWeb.UiMatrixLiveTest do
     "rare-states",
     "static-fixtures"
   ]
+  @cmp_evidence %{
+    "CMP-01" => [
+      "Primitive form field examples",
+      "rs-badge",
+      "rs-stat",
+      "rs-empty-state",
+      "rs-task-link"
+    ],
+    "CMP-02" => [
+      "Primitive action row",
+      "Read-only policy",
+      "Return to matrix overview",
+      "rs-form-field"
+    ],
+    "CMP-03" => [
+      "Destructive confirmation",
+      "Type production flag key",
+      "Unavailable confirmation",
+      "Read-only confirmation",
+      "rs-mutation-confirm"
+    ],
+    "CMP-04" => [
+      "Provenance",
+      "Guardrail decision: Held - stale host evidence",
+      "Preview uncertainty",
+      "Governance severity",
+      "Support-safe trace",
+      "Audience trace state"
+    ],
+    "CMP-05" => [
+      "Host evidence is stale",
+      "Blocked by guardrail health",
+      "Authored-state boundary",
+      "Hidden references",
+      "Read-only policy"
+    ]
+  }
+  @forbidden_source_terms [
+    "Storybook",
+    "PhoenixStorybook",
+    "phoenix_storybook",
+    "visual-diff",
+    "pixel-baseline",
+    "matchSnapshot",
+    "toHaveScreenshot",
+    "pixelmatch"
+  ]
 
   test "dev matrix route renders the real admin shell and required sections", %{conn: conn} do
     {:ok, view, html} = live(conn, @matrix_path)
@@ -58,6 +105,17 @@ defmodule RulesteadDemoWeb.UiMatrixLiveTest do
     assert rendered =~ "Authored-state boundary"
     assert rendered =~ "Support-safe trace"
     assert rendered =~ "Audience trace state"
+  end
+
+  test "phase 116 requirements have concrete matrix evidence", %{conn: conn} do
+    {:ok, view, html} = live(conn, @matrix_path)
+    rendered = html <> render(view)
+
+    for {requirement, markers} <- @cmp_evidence do
+      for marker <- markers do
+        assert rendered =~ marker, "#{requirement} evidence missing marker #{inspect(marker)}"
+      end
+    end
   end
 
   test "read-only matrix interactions keep the LiveView mounted", %{conn: conn} do
@@ -125,10 +183,22 @@ defmodule RulesteadDemoWeb.UiMatrixLiveTest do
     fixtures_source = read_source("lib/rulestead_demo_web/live/ui_matrix_fixtures.ex")
     admin_router_source = read_repo_source("rulestead_admin/lib/rulestead_admin/router.ex")
 
+    operator_source =
+      read_repo_source("rulestead_admin/lib/rulestead_admin/components/operator_components.ex")
+
+    confirm_source =
+      read_repo_source("rulestead_admin/lib/rulestead_admin/components/confirm_components.ex")
+
     assert router_source =~ "if Mix.env() in [:dev, :test] do"
     assert router_source =~ ~s(scope "/dev/rulestead-admin", RulesteadDemoWeb do)
     assert router_source =~ ~s(live "/ui-matrix", UiMatrixLive, :index)
     refute admin_router_source =~ "ui-matrix"
+    assert operator_source =~ "def form_field"
+    assert operator_source =~ "def action_row"
+    assert operator_source =~ "def state_note"
+    assert confirm_source =~ "typed_confirmation_label"
+    assert confirm_source =~ "unavailable_reason"
+    assert confirm_source =~ "read_only_reason"
 
     for module <- [
           "RulesteadAdmin.Components.Shell",
@@ -149,13 +219,7 @@ defmodule RulesteadDemoWeb.UiMatrixLiveTest do
     end
 
     for source <- [router_source, live_source, fixtures_source],
-        marker <- [
-          "Storybook",
-          "PhoenixStorybook",
-          "phoenix_storybook",
-          "visual-diff",
-          "pixel-baseline"
-        ] do
+        marker <- @forbidden_source_terms do
       refute source =~ marker
     end
   end
