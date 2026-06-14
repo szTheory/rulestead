@@ -85,6 +85,7 @@ RARE_STATES = [
 FORBIDDEN_ADOPTION_STRINGS = [
     "toHaveScreenshot(",
     ".toHaveScreenshot",
+    "toMatchSnapshot(",
     "matchSnapshot(",
     "pixelmatch(",
     "testInfo.snapshotPath",
@@ -138,6 +139,8 @@ def check_ui_matrix_spec(failures):
             "expectNoHorizontalOverflow",
             "#rs-cmdk",
             ".rs-task-link",
+            "for (const sectionName of matrixSections)",
+            'page.locator(`[data-matrix-section="${sectionName}"]`)',
             "testInfo.outputPath",
             "ui-matrix-${sectionName}-${theme.name}-${viewport.name}-${motion.name}.png",
         ],
