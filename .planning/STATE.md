@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: CI/CD Reliability
 status: planning
-last_updated: "2026-06-15T20:34:41.555Z"
-last_activity: 2026-06-15
+last_updated: "2026-06-15T21:13:34Z"
+last_activity: 2026-06-15 - Phase 119 context gathered
 progress:
   total_phases: 5
   completed_phases: 0
@@ -31,10 +31,10 @@ See: `.planning/PROJECT.md` (updated 2026-06-15)
 
 ## Current Position
 
-Phase: 119 Baseline + Expert Audit (not started)
+Phase: 119 Baseline + Expert Audit (context gathered)
 Plan: —
-Status: Ready to plan Phase 119
-Last activity: 2026-06-15 — Milestone v1.18 roadmap created
+Status: Ready to plan Phase 119 from `.planning/phases/119-baseline-expert-audit-0-plans/119-CONTEXT.md`
+Last activity: 2026-06-15 - Phase 119 context gathered in assumptions mode
 
 ## Phase Dependency Map
 
@@ -66,6 +66,7 @@ Human checkpoints:
 - **v1.18 scope:** Maintenance-quality CI/CD reliability milestone. Audit first, then implement conservative, evidence-backed improvements to pipeline performance, determinism, cache correctness, test value, release trust, and contributor DX.
 - **v1.18 optimization posture:** Preserve high-value release/adopter/mounted/OpenFeature proof bars unless Phase 119 proves a narrower equivalent catches the same bug class. Do not delete slow tests solely because they are slow.
 - **v1.18 research posture:** Put external-source and comparable-OSS workflow research inside Phase 119 audit artifacts instead of running a separate pre-milestone `.planning/research/` pass.
+- **Phase 119 context:** `.planning/phases/119-baseline-expert-audit-0-plans/119-CONTEXT.md` locks the audit-first posture, one integrated `119-CI-CD-AUDIT.md`, always-triggered CI plus aggregate `release_gate` baseline, linked sibling-package release trust, Mix/ExUnit diagnostics before tuning, no Phase 119 behavior changes, generated browser artifacts over pixel baselines, and scripts-first contributor DX.
 - **v1.17 harness choice:** Use a repo-native Phoenix/Playwright UI matrix that renders real admin components. Do not adopt standard JavaScript Storybook for this milestone; PhoenixStorybook remains a future option if maintainer-facing component docs become necessary.
 - **v1.17 scope:** Full mounted admin/operator design-system pass, not runtime product work. No public runtime APIs, schemas, release workflow changes, palette redesign, logo redraw, component framework adoption, broad pixel-baseline maintenance, external AI judging dependency, v2 wedge, or `rulestead_admin` standalone publish prep.
 - **v1.17 evidence posture:** Screenshots plus deterministic assertions and human review. Continue the v1.16 preference for broad Playwright artifacts over checked-in pixel baselines.
