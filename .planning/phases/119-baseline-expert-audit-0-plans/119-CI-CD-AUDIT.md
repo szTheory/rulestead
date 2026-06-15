@@ -157,7 +157,45 @@ Verification note: the diagnostic section intentionally records nonzero or noisy
 
 ## Test and Check Classification Matrix
 
-Pending D-03 classification.
+Allowed labels: `keep`, `optimize`, `move`, `quarantine/fix`, `delete/rewrite`.
+
+No row recommends deleting or demoting a slow check solely because it is slow. Every non-keep row includes an evidence tag and Phase 120, Phase 121, Phase 122, or Phase 123 handoff.
+
+| Surface | Classification | Evidence | Quality signal | Determinism or runtime basis | Handoff |
+|---------|----------------|----------|----------------|------------------------------|---------|
+| `release_gate` | keep | [VERIFIED: .github/workflows/ci.yml] | Aggregate required-style merge gate | Cheap gate; waits on upstream critical path | Preserve in Phase 120 |
+| `lint` | optimize | [VERIFIED: scripts/ci/lint.sh] | Format, compile, Credo, docs, Hex audit, Dialyzer, brand/design guard chain | Cache/PLT restore breadth and Dialyzer placement need evidence-backed tuning | Phase 120 for cache, Phase 121 for Dialyzer/test value |
+| `test` matrix | optimize | [VERIFIED: .github/workflows/ci.yml; VERIFIED: D-11 diagnostics] | Core test matrix across Elixir/OTP | Slowest job on sampled runs; cannot narrow without bug-class proof | Phase 121 |
+| `integration-placeholder` | keep | [VERIFIED: .github/workflows/ci.yml; VERIFIED: scripts/ci/integration_placeholder.sh] | FleetDesk adoption lab bridge | High-value adoption proof; runtime alone is not deletion evidence | Phase 122 if determinism findings appear |
+| `adopter-contract` / `post_ga_band_closure` | keep | [VERIFIED: scripts/ci/test.sh] | Post-GA band/adopter truth | Release trust proof bar | Phase 121 only for duplicate work analysis |
+| `openfeature-companion` | optimize | [VERIFIED: .github/workflows/ci.yml] | OpenFeature provider compatibility proof | Path-gated and absent from current `release_gate.needs` | Phase 120 |
+| `mounted-proof` | keep | [VERIFIED: .github/workflows/ci.yml; VERIFIED: scripts/ci/test.sh] | Mounted admin/router/session proof | High-value mounted companion boundary | Phase 122 for browser/demo determinism only |
+| `actionlint` | move | [VERIFIED: .github/workflows/actionlint.yml; VERIFIED: MAINTAINING.md] | Workflow syntax validation | Path-filtered advisory signal should not be required directly | Phase 120 |
+| `dependency-review` | keep | [VERIFIED: .github/workflows/dependency-review.yml] | Dependency supply-chain review | Documented required supply-chain check | Preserve in Phase 120 |
+| `Validate PR title` | keep | [VERIFIED: .github/workflows/pr-title.yml] | Release Please title hygiene | Cheap and release-note relevant | Preserve |
+| `dependabot-automerge` | keep | [VERIFIED: .github/workflows/dependabot-automerge.yml] | Dependency automation | Automation posture, not critical path | Phase 123 docs if needed |
+| `release-please` | keep | [VERIFIED: .github/workflows/release-please.yml] | Release intent | Linked release source of truth | Preserve |
+| `release-pr-ci` | keep | [VERIFIED: .github/workflows/release-pr-ci.yml] | Release PR CI dispatch | Release trust topology | Preserve |
+| `release-pr-automerge` | keep | [VERIFIED: .github/workflows/release-pr-automerge.yml] | Release PR automation | Release machine component | Preserve |
+| `publish-hex` | keep | [VERIFIED: .github/workflows/publish-hex.yml] | Protected Hex publish | Security boundary; protected `hex-publish`, `HEX_API_KEY`, core-before-admin | Preserve |
+| `verify-published-release` | keep | [VERIFIED: .github/workflows/verify-published-release.yml] | Post-publish proof | Release trust after irreversible publish | Preserve |
+| `repo-hygiene` | keep | [VERIFIED: .github/workflows/repo-hygiene.yml] | Scheduled hygiene | Scheduled/advisory maintenance signal | Phase 123 docs if noisy |
+| `Dialyzer` | optimize | [VERIFIED: scripts/ci/lint.sh; VERIFIED: Cache and Dialyzer PLT Posture] | Type-analysis trust gate | Keep trust gate; optimize PLT correctness and placement only with equivalent confidence | Phase 120/121 |
+| `Hex audit` | keep | [VERIFIED: scripts/ci/lint.sh] | Dependency advisory signal | Cheap security signal | Preserve |
+| `brand/design guard chain` | keep | [VERIFIED: scripts/ci/lint.sh] | Brand/token/logo/contrast/brandbook/admin foundation/design-system evidence | Prevents regressions from recent milestones | Preserve unless Phase 123 docs clarify reruns |
+| `scripts/demo/verify.sh` | keep | [VERIFIED: scripts/demo/verify.sh] | Compose-backed demo proof | High-value adoption evidence | Phase 122 for determinism/runtime ergonomics |
+| Playwright demo/frontend specs | quarantine/fix | [VERIFIED: examples/demo/frontend/playwright.config.ts] | Browser proof | `trace: "on-first-retry"` with `retries: 0`; trace artifact mismatch | Phase 122 |
+| generated screenshot/report artifacts | keep | [VERIFIED: .planning/phases/119-baseline-expert-audit-0-plans/119-CONTEXT.md] | Human-reviewable ignored evidence | Generated artifacts preferred over checked-in baselines | Phase 122/123 docs |
+| `RULESTEAD_TEST_SCOPE=all` | keep | [VERIFIED: scripts/ci/test.sh] | Default proof dispatcher | Baseline local/CI completeness | Phase 121 only for measured duplicate work |
+| `RULESTEAD_TEST_SCOPE=mounted_admin_contract` | keep | [VERIFIED: scripts/ci/test.sh] | Mounted companion proof | High-value mounted boundary | Phase 122 if browser determinism involved |
+| `RULESTEAD_TEST_SCOPE=openfeature_companion` | optimize | [VERIFIED: scripts/ci/test.sh; VERIFIED: .github/workflows/ci.yml] | OpenFeature proof | Path-gated but not aggregate-gated | Phase 120 |
+| `RULESTEAD_TEST_SCOPE=guarded_rollout_foundations` | keep | [VERIFIED: scripts/ci/test.sh] | Guarded rollout behavior | Release/runtime trust | Preserve |
+| `RULESTEAD_TEST_SCOPE=reusable_targeting_deepening` | keep | [VERIFIED: scripts/ci/test.sh] | Targeting contracts | Runtime correctness | Preserve |
+| `RULESTEAD_TEST_SCOPE=blast_radius_governance` | keep | [VERIFIED: scripts/ci/test.sh] | Governance threshold contracts | Operator safety boundary | Preserve |
+| `RULESTEAD_TEST_SCOPE=guarded_rollout_auto_advance` | keep | [VERIFIED: scripts/ci/test.sh] | Auto-advance orchestration | Safety-critical automation | Preserve |
+| `RULESTEAD_TEST_SCOPE=host_preview_evidence` | keep | [VERIFIED: scripts/ci/test.sh] | Preview evidence/redaction | Host-support boundary | Preserve |
+| `RULESTEAD_TEST_SCOPE=install_journey` | keep | [VERIFIED: scripts/ci/test.sh] | Install journey proof | Adoption proof | Phase 122 if flaky |
+| `RULESTEAD_TEST_SCOPE=post_ga_band_closure` | keep | [VERIFIED: scripts/ci/test.sh] | Post-GA band truth | Release/adopter proof | Phase 121 for duplicate work only |
 
 ## Rerun Command Catalog
 
