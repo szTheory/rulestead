@@ -224,6 +224,8 @@ Release and supply-chain trust surfaces are speed surfaces and security findings
 - Post-publish proof: `verify-published-release` and `bash scripts/ci/verify_published_release.sh <version>` remain release-trust gates, not optional speed targets. [VERIFIED: .github/workflows/verify-published-release.yml; VERIFIED: scripts/ci/verify_published_release.sh]
 - Secret boundary: `HEX_API_KEY` is named only as a secret identifier; no secret value was printed or requested.
 
+Verification note: cache, PLT, dependency, and release-trust findings remain audit-only; no workflow keys, protected environments, publish ordering, or secret boundaries were changed in Phase 119.
+
 ## Browser, Demo, and Integration Evidence
 
 Pending browser/demo/integration evidence findings.
