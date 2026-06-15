@@ -12,7 +12,14 @@ Evidence conventions:
 
 ## Executive Recommendation
 
-Pending final classification. The current working recommendation is to preserve the always-triggered `ci.yml` plus aggregate `release_gate` baseline while Phase 119 records static workflow inventory, live GitHub state, local Mix diagnostics, cache/PLT posture, and test/check classification before Phases 120-123 change behavior. [VERIFIED: .planning/phases/119-baseline-expert-audit-0-plans/119-CONTEXT.md]
+primary recommendation: preserve the always-triggered `ci.yml` plus aggregate `release_gate` baseline while using this one documentation/audit phase to measure and classify existing trust surfaces before behavior changes. Phase 119 should not change workflows, tests, release trust, product runtime APIs, schemas, browser evidence behavior, or package publish posture. [VERIFIED: .planning/phases/119-baseline-expert-audit-0-plans/119-CONTEXT.md]
+
+Priority handoffs:
+
+1. Phase 120: tighten required-check semantics around the live `Branch not protected` state, documented required checks, `openfeature-companion` vs `release_gate.needs`, and correctness-safe caches.
+2. Phase 121: investigate the slow published-Hex fixture, the full-suite sample failure, test duplication, and Mix/xref diagnostics before async, sharding, Dialyzer movement, or test-value cleanup.
+3. Phase 122: fix browser/demo/integration determinism, especially Playwright artifact mismatch, without hiding flakes.
+4. Phase 123: improve scripts-first contributor DX, failure microcopy, closeout metrics, and rollback notes from this audit.
 
 ## Evidence Collection
 
@@ -266,7 +273,13 @@ Verification note: cache, PLT, dependency, and release-trust findings remain aud
 
 ## Browser, Demo, and Integration Evidence
 
-Pending browser/demo/integration evidence findings.
+Browser/demo/integration proof must be audited by value and determinism, not runtime alone. Mounted admin, OpenFeature, adopter, demo, and release proof bars remain preserved unless evidence shows a narrower equivalent catches the same bug class. [VERIFIED: .planning/phases/119-baseline-expert-audit-0-plans/119-CONTEXT.md]
+
+Playwright mismatch: `examples/demo/frontend/playwright.config.ts` sets `trace: "on-first-retry"` with `retries: 0`. With zero retries, traces configured for first retry will not be produced. Phase 122 should choose root-cause fixes, failure screenshots, HTML reports, generated artifacts, or explicit quarantine; it should not add blind retries in Phase 119. [VERIFIED: examples/demo/frontend/playwright.config.ts; CITED: https://playwright.dev/docs/trace-viewer]
+
+Generated browser screenshots and reports remain ignored artifacts, not checked-in pixel baselines. Current brandbook/design-system artifacts override older prompt references when they differ. [VERIFIED: .planning/phases/119-baseline-expert-audit-0-plans/119-CONTEXT.md]
+
+FleetDesk host-branded evidence remains an example/adoption surface. There is no product UI, brand, or design-system expansion in Phase 119.
 
 ## No-Go and Rollback Guardrails
 
@@ -277,13 +290,50 @@ No Phase 119 recommendation may:
 - Prepare `rulestead_admin` for standalone publishing.
 - Replace generated browser artifacts with checked-in pixel baselines.
 - Hide browser flakes behind blind retries.
+- Propose deleting slow tests solely because they are slow.
 - Delete or demote slow checks solely because they are slow.
 - Move path selectivity to workflow-level filters for required PR checks.
 - Change product runtime APIs, schemas, product UI, brand, or the design system.
+- Use tag-only publish trust, weaker workflow permissions, weaker action pinning, unchecked Hex secret exposure, local publish shortcuts, or admin standalone publish prep.
+- Apply ExUnit async or sharding changes without evidence about global/shared-state hazards.
+
+Applicable official/comparable OSS notes:
+
+- required-check pending traps: GitHub documents path-filtered workflows can leave required checks pending; keep path selectivity inside always-reporting workflows or aggregate gates. [CITED: https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/collaborating-on-repositories-with-code-quality-features/troubleshooting-required-status-checks]
+- always-reporting aggregate gates: current `release_gate` follows this pattern with `if: always()`. [VERIFIED: .github/workflows/ci.yml]
+- correctness-safe caches: GitHub cache keys and restore keys must be scoped tightly enough to avoid stale or incompatible dependency/build reuse. [CITED: https://docs.github.com/en/actions/reference/workflows-and-actions/dependency-caching]
+- Dialyxir PLT: Dialyxir supports CI PLT caching patterns; Rulestead should keep PLT keys correctness-safe before moving Dialyzer. [CITED: https://hexdocs.pm/dialyxir/github_actions.html]
+- full-SHA action pinning: current workflows use full-SHA action pinning and should not weaken action pinning for convenience. [VERIFIED: .github/workflows/*.yml]
+- least-privilege permissions: keep workflow permissions narrow and explicit. [CITED: https://docs.github.com/actions/using-jobs/assigning-permissions-to-jobs]
+- protected Hex publish: `publish-hex` uses protected `hex-publish` approval before `HEX_API_KEY` exposure. [VERIFIED: .github/workflows/publish-hex.yml]
+- script-first local reproduction: existing rerun commands should stay the contributor and maintainer interface. [VERIFIED: scripts/ci/*.sh; VERIFIED: MAINTAINING.md]
 
 ## Handoff Notes for Phases 120-123
 
-Pending evidence-backed handoff bullets.
+Phase 120:
+
+- Resolve documented required checks vs live `Branch not protected`.
+- Decide whether `openfeature-companion` should feed `release_gate.needs` or stay advisory/path-gated.
+- Review cache restore breadth for correctness-safe caches across OS, Elixir, OTP, lockfiles, `.tool-versions`, `MIX_ENV`, and package scope.
+- Preserve full-SHA action pinning, least-privilege permissions, protected Hex publish, and post-publish verification.
+
+Phase 121:
+
+- Investigate the sample failure around `Rulestead.Mix.Tasks.VerifyReleasePublishTest` and why a focused rerun passed.
+- Use slowest tests, slowest modules, `profile-require`, compile profile, and xref findings before moving Dialyzer, applying ExUnit async, sharding tests, or deleting/rewrite candidates.
+- Treat the compile-connected cycle as architectural evidence, not an automatic refactor request.
+
+Phase 122:
+
+- Fix browser/demo/integration determinism by value: failure screenshots, HTML reports, explicit generated artifacts, or quarantine with explanation.
+- Address `trace: "on-first-retry"` plus `retries: 0` instead of adding blind retries.
+- Keep FleetDesk host-branded and preserve generated browser artifacts outside source control.
+
+Phase 123:
+
+- Turn the rerun catalog and failure microcopy into closeout docs.
+- Record before/after metrics and rollback notes.
+- Keep scripts-first local reproduction simple and reproducible.
 
 ## Sources
 
