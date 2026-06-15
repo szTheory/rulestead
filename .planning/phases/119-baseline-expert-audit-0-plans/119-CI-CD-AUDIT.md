@@ -29,11 +29,58 @@ Pending final classification. The current working recommendation is to preserve 
 
 ## Workflow and Job Inventory
 
-Pending detailed workflow table.
+Live workflow state was collected with:
+
+```bash
+gh workflow list --repo szTheory/rulestead --all --json name,path,state,id
+```
+
+Result summary: all checked-in workflow files are active; GitHub also reports the dynamic `Dependabot Updates` workflow. [VERIFIED: gh workflow list --repo szTheory/rulestead --all --json name,path,state,id]
+
+| File | Workflow name | Live ID | Triggers | Permissions | Concurrency | Jobs | Role |
+|------|---------------|---------|----------|-------------|-------------|------|------|
+| `.github/workflows/actionlint.yml` | `actionlint` | `265354684` | `pull_request` | `contents: read`, `pull-requests: write` | none | `actionlint` | advisory workflow syntax signal; not documented as required because path-filtered checks can sit pending |
+| `.github/workflows/ci.yml` | `ci` | `265354303` | `push`, `pull_request`, `workflow_dispatch` | `contents: read`, `actions: read`, `checks: read` | `ci-${{ github.workflow }}-${{ github.ref }}`, cancel in progress | `changes`, `lint`, `test`, `integration-placeholder`, `adopter-contract`, `openfeature-companion`, `mounted-proof`, `release_gate` | merge-blocking aggregate baseline through `release_gate` |
+| `.github/workflows/dependency-review.yml` | `dependency-review` | `265354683` | `pull_request` | `contents: read` | none | `dependency-review` | documented required dependency supply-chain check |
+| `.github/workflows/dependabot-automerge.yml` | `dependabot-automerge` | `265354685` | `pull_request` | `pull-requests: write`, `contents: write` | none | `auto-merge` | dependency automation |
+| `.github/workflows/pr-title.yml` | `Validate PR title` | `265354686` | `pull_request` | `contents: read`, `pull-requests: read` | none | `validate-pr-title` | documented required release-note hygiene check |
+| `.github/workflows/release-please.yml` | `release-please` | `265354302` | `push`, `workflow_dispatch` | `contents: write`, `pull-requests: write`, `issues: write`, `actions: write` | `release-please-${{ github.workflow }}-${{ github.ref }}`, cancel in progress | `release-please`, `dispatch-release-pr-ci`, `dispatch-publish` | release intent automation |
+| `.github/workflows/release-pr-ci.yml` | `release-pr-ci` | `284980013` | `push`, `workflow_dispatch` | `contents: read`, `actions: write` | `release-pr-ci-${{ github.ref }}`, cancel in progress | `dispatch-ci` | release PR CI dispatch |
+| `.github/workflows/release-pr-automerge.yml` | `release-pr-automerge` | `286030394` | `workflow_run`, `workflow_dispatch` | `contents: write`, `pull-requests: write`, `actions: write` | none | `automerge` | release PR automation |
+| `.github/workflows/publish-hex.yml` | `publish-hex` | `274861464` | `workflow_dispatch` | `contents: read`, `actions: read`; handoff job adds `issues: write` | none | `preflight`, `gate-ci-green`, `approval`, `publish-core`, `publish-admin`, `handoff-post-publish` | protected release-only Hex publish |
+| `.github/workflows/verify-published-release.yml` | `verify-published-release` | `274861466` | `schedule`, `workflow_dispatch` | `contents: read`, `issues: write` | `verify-published-release-${{ github.workflow }}-${{ github.ref }}`, cancel in progress | `verify-published-release` | post-publish proof and scheduled release hygiene |
+| `.github/workflows/repo-hygiene.yml` | `repo-hygiene` | `286030395` | `schedule`, `workflow_dispatch` | `contents: read`, `issues: write` | none | `hygiene-check` | scheduled hygiene |
+
+`ci.yml` stable job IDs are explicitly documented in the file comment and present in YAML: `changes`, `lint`, `test`, `integration-placeholder`, `adopter-contract`, `openfeature-companion`, `mounted-proof`, and `release_gate`. [VERIFIED: .github/workflows/ci.yml]
+
+`ci.yml` runner and service baseline:
+
+- All jobs use `ubuntu-24.04`.
+- `test` matrix axes are Elixir `1.17.3` / OTP `26.2.5` and Elixir `1.19.2` / OTP `28.4.3`.
+- `test` and `adopter-contract` use a Postgres 15 service with `MIX_ENV=test`.
+- `lint`, `test`, `adopter-contract`, `openfeature-companion`, and `mounted-proof` use Mix dependency/build caches.
+- `lint` restores and saves `rulestead/priv/plts` with `actions/cache/restore` and `actions/cache/save`. [VERIFIED: .github/workflows/ci.yml]
 
 ## Required-Check Semantics
 
-Pending documented-vs-live required-check analysis.
+Live branch-protection state was collected with:
+
+```bash
+gh api repos/szTheory/rulestead/branches/main/protection/required_status_checks
+```
+
+Exact output on 2026-06-15:
+
+```json
+{"message":"Branch not protected","documentation_url":"https://docs.github.com/rest/branches/branch-protection#get-status-checks-protection","status":"404"}
+gh: Branch not protected (HTTP 404)
+```
+
+documented-vs-live finding: `MAINTAINING.md` documents required checks (`release_gate`, `Validate PR title`, and `dependency-review`) and explicitly excludes path-filtered `actionlint`; the live GitHub API currently returns `Branch not protected`. This is external mutable repository state, not YAML source truth, so Phase 119 records it and makes no settings change. [VERIFIED: MAINTAINING.md; VERIFIED: gh api repos/szTheory/rulestead/branches/main/protection/required_status_checks]
+
+Required-check pending trap: workflow-level path filters must not be recommended for required PR checks. Path selectivity belongs inside always-reporting workflows or behind an aggregate required check. [VERIFIED: .planning/phases/119-baseline-expert-audit-0-plans/119-CONTEXT.md; CITED: https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/collaborating-on-repositories-with-code-quality-features/troubleshooting-required-status-checks]
+
+Aggregate gate baseline: `release_gate.needs` currently includes `changes`, `lint`, `test`, `integration-placeholder`, `adopter-contract`, and `mounted-proof`. The `openfeature-companion` job exists as a path-gated proof job, and openfeature-companion is absent from current release_gate.needs. Do not change `ci.yml` in Phase 119; carry this as a Phase 120 required-check semantics finding. [VERIFIED: .github/workflows/ci.yml]
 
 ## Critical Path and Metrics Baseline
 
