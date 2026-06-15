@@ -1,5 +1,32 @@
 # Milestones
 
+## v1.17 Admin Design System Stress Test (Shipped: 2026-06-15)
+
+**Phases completed:** 6 phases, 19 plans, 33 tasks
+
+**Key accomplishments:**
+
+- Plan 01 created the DSM-01 inventory artifact without touching runtime code, CSS, tests, packages, schemas, release workflow, FleetDesk branding, or publish-prep files.
+- Plan 02 created the DSM-03 matrix contract without implementing the future matrix harness or editing runtime code, CSS, tests, packages, schemas, release workflow, FleetDesk branding, or publish-prep files.
+- Plan 03 closed Phase 113 with acceptance gates and tracking updates after the inventory and matrix contract were already committed and verified.
+- Demo-hosted Phoenix LiveView matrix rendering real admin components with deterministic stress fixtures and source-boundary tests.
+- Playwright evidence for the real Phoenix admin UI matrix across theme, viewport, reduced-motion, keyboard, overflow, screenshot, and static-fixture preservation paths.
+- Breakpoint exception ledger and stdlib source guard now make admin foundation drift auditable in CI.
+- Reduced-motion behavior now neutralizes nonessential transforms, and one exact pixel breakpoint is normalized to canonical `60rem`.
+- UI matrix evidence now proves reduced-motion transform behavior, raw-detail containment, and foundation source markers without adding baseline tooling.
+- Raw markup classification plus shared operator primitive helpers for form fields, action rows, and blocked/read-only matrix states
+- Canonical mutation confirms with typed-key, blocked-state, scope, evidence, and matrix variant coverage
+- Reusable admin composite families with explicit provenance, guardrail, governance, uncertainty, trace, and authored-state labels
+- Requirement-level matrix evidence, final raw-markup dispositions, Phase 116 verification, and a bounded Phase 117 IA handoff
+- Route-cluster IA review plus deterministic UI matrix route examples for the Phase 117 flow set
+- Playwright route-flow evidence for primary admin clusters, command palette reachability, kill-switch focus order, mobile containment, and generated screenshots
+- Evidence-triggered audit, explain, and simulate hierarchy fixes with final FLOW requirement, decision, proof, and Phase 118 handoff coverage
+- Stdlib CI guard that protects matrix/workflow evidence hooks, generated screenshot posture, selected contrast proof, fixture-health coverage, and visual-baseline exclusions.
+- Reusable v1.17 evidence map with exact backend URL, generated screenshot counts, deterministic assertion results, and guard-chain output.
+- Post-evidence VER-04 closeout tying Phase 118 proof, D-01 through D-20 decisions, requirement status, roadmap progress, state handoff, and Nyquist validation together.
+
+---
+
 ## v1.16 Brand-Faithful UI Iteration (Shipped: 2026-06-13)
 
 **Phases completed:** 7 phases, 8 plans

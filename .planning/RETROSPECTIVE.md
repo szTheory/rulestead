@@ -2,6 +2,43 @@
 
 *A living document updated after each milestone. Lessons feed forward into future planning.*
 
+## Milestone: v1.17 — Admin Design System Stress Test
+
+**Shipped:** 2026-06-15
+**Phases:** 6 | **Plans:** 19 | **Tasks:** 33
+
+### What Was Built
+- Demo-hosted Phoenix LiveView matrix rendering real admin components with deterministic stress fixtures and source-boundary tests.
+- Playwright evidence for the real Phoenix admin UI matrix across theme, viewport, reduced-motion, keyboard, overflow, screenshot, and static-fixture preservation paths.
+- Breakpoint exception ledger and stdlib source guard now make admin foundation drift auditable in CI.
+- Reusable admin composite families with explicit provenance, guardrail, governance, uncertainty, trace, and authored-state labels.
+- Route-cluster IA review plus deterministic UI matrix route examples for the Phase 117 flow set.
+- Playwright route-flow evidence for primary admin clusters, command palette reachability, kill-switch focus order, mobile containment, and generated screenshots.
+- Stdlib CI guard that protects matrix/workflow evidence hooks, generated screenshot posture, selected contrast proof, fixture-health coverage, and visual-baseline exclusions.
+- Reusable v1.17 evidence map with exact backend URL, generated screenshot counts, deterministic assertion results, and guard-chain output.
+
+### What Worked
+- Rendering real Phoenix components in a dev-hosted matrix avoided duplicating markup in static fixtures, keeping evidence truthful to the running app.
+- Relying on deterministic Playwright assertions (contrast, overflow, focus, roles) rather than brittle pixel baselines allowed for rapid iteration without test maintenance overhead.
+- Grouping foundation hardening, primitive/composite polish, and IA flow into distinct phases provided a clear sequence from atomic rules to full-page layouts.
+
+### What Was Inefficient
+- Playwright combination runs experienced occasional transient flakiness, suggesting a need for stronger isolation or retries in CI.
+- Manual visual review is still required for the generated Playwright screenshots, as automated diffing was intentionally excluded.
+
+### Patterns Established
+- UI matrix as a dev-only route serving as the definitive contract for component states.
+- Assertions over screenshots: prefer programmatic Playwright checks for accessibility and layout rules, leaving screenshots strictly as artifacts for human review.
+
+### Key Lessons
+1. A repo-native component matrix provides much higher confidence than static HTML fixtures when building LiveView UIs.
+2. Design system stress testing is most effective when it includes rare states (empty, error, long-label, reduced-motion) upfront.
+3. It's possible to build rigorous UI tests without resorting to costly pixel-perfect diffing tools.
+
+### Cost Observations
+- 6 phases, 19 plans, 33 tasks executed smoothly.
+- Known deferred items at close: 2 (UAT and Verification gaps acknowledged).
+
 ## Milestone: v1.16 — Brand-Faithful UI Iteration
 
 **Shipped:** 2026-06-13
