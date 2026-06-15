@@ -100,11 +100,55 @@ Pending D-03 classification.
 
 ## Rerun Command Catalog
 
-Pending script-first rerun catalog.
+Script-first reruns stay the contributor-facing abstraction. [VERIFIED: scripts/ci/contributor.sh; VERIFIED: scripts/ci/local.sh; VERIFIED: scripts/ci/test.sh; VERIFIED: MAINTAINING.md]
+
+| Surface | Exact local rerun command | Boundary protected |
+|---------|---------------------------|--------------------|
+| Fast contributor loop | `bash scripts/ci/contributor.sh` | Common pre-push checks without slow proof scopes |
+| Full local monorepo gate | `bash scripts/ci/local.sh` | Lint, tests, adopter, mounted, and OpenFeature proof scopes |
+| Faster maintainer iteration | `bash scripts/ci/local.sh --fast` | Lint plus core package test loop while skipping mounted/OpenFeature companion scopes |
+| Core package gate | `cd rulestead && mix ci` | Core package format, compile, Credo, tests, and docs |
+| Adopter contract | `cd rulestead && mix verify.adopter` | Post-GA adopter contract proof |
+| Mounted admin companion proof | `RULESTEAD_TEST_SCOPE=mounted_admin_contract bash scripts/ci/test.sh` | Mounted companion router/session/admin boundary |
+| OpenFeature companion proof | `RULESTEAD_TEST_SCOPE=openfeature_companion bash scripts/ci/test.sh` | OpenFeature provider compatibility boundary |
+| Post-GA band closure | `RULESTEAD_TEST_SCOPE=post_ga_band_closure bash scripts/ci/test.sh` | Release/adopter/docs proof superset |
+| FleetDesk demo proof | `bash scripts/demo/verify.sh` | Compose-backed browser/demo adoption proof |
+| Post-publish verification | `bash scripts/ci/verify_published_release.sh <version>` | Published Hex package installability and linked-version proof |
+
+Additional supported `RULESTEAD_TEST_SCOPE` values from `scripts/ci/test.sh`: `all`, `guarded_rollout_foundations`, `reusable_targeting_deepening`, `blast_radius_governance`, `guarded_rollout_auto_advance`, `host_preview_evidence`, and `install_journey`. [VERIFIED: scripts/ci/test.sh]
+
+`scripts/ci/lint.sh` quality signals:
+
+- `format`: `mix format --check-formatted`
+- compile `warnings-as-errors`: `mix compile --warnings-as-errors`
+- `Credo` strict: `mix credo --strict`
+- docs `warnings-as-errors`: `mix docs --warnings-as-errors`
+- `Hex audit`: `mix hex.audit`
+- no-optional-deps compile: `mix compile --no-optional-deps --warnings-as-errors`
+- package whitelist: package guard in the core Mix lane and release preflight surfaces
+- `Dialyzer`: `mix dialyzer --format github`
+- synced pair: `scripts/check_synced_pair.py`
+- brand tokens: `scripts/check_brand_tokens.py`
+- tokens CSS: `scripts/check_tokens_css.py`
+- contrast: `scripts/check_contrast.py`
+- `brandbook HTML`: `scripts/check_brandbook_html.py`
+- logo assets: `scripts/check_logo_assets.py`
+- admin foundations: admin foundation guard chain inherited from prior milestones
+- design-system evidence: `scripts/check_design_system_evidence.py`
 
 ## Failure Categories and Maintainer Microcopy
 
-Pending maintainer microcopy catalog.
+Failure guidance should preserve the mounted-proof pattern already present in `scripts/ci/test.sh`:
+
+| Slot | Meaning | Example wording pattern |
+|------|---------|-------------------------|
+| `what failed` | Name the failed scope or category first | `mounted_admin_contract failure category: <category>` |
+| `boundary it protects` | Explain the support/release/adopter boundary | `Expected support boundary: mounted companion only; host app owns the router/session prerequisite contract.` |
+| `exact rerun command` | Give a copyable command | `Rerun: RULESTEAD_TEST_SCOPE=mounted_admin_contract bash scripts/ci/test.sh` |
+| `likely remediation` | Point to the likely repair domain, not a generic retry | Inspect contract regression output for resolver, governance, mounted workflow, or dependency drift depending on category |
+| `when to stop rather than bypass` | Tell maintainers when the signal is release-trust relevant | Stop before bypass when the failure protects adopter, release, mounted companion, OpenFeature, or post-publish trust |
+
+The microcopy posture is scripts-first and fail-closed: make failure categories actionable, but do not encourage bypassing protected proof bars just because they are slow. [VERIFIED: scripts/ci/test.sh; VERIFIED: MAINTAINING.md]
 
 ## Release and Supply-Chain Trust
 
