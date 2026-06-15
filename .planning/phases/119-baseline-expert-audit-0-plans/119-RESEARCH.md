@@ -346,22 +346,19 @@ Source: Mix task help confirms these options exist in the local toolchain. [VERI
 |---|-------|---------|---------------|
 | A1 | Comparable OSS examples in local prompt anchors remain directionally relevant to Rulestead even though they are not live upstream repositories checked in this session. [ASSUMED] | Summary / Sources | Planner may overweight inherited patterns; mitigate by requiring repo-specific evidence for every non-keep recommendation. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Is live branch protection intentionally disabled?**
-   - What we know: `MAINTAINING.md` documents required checks, but `gh api .../branches/main/protection/required_status_checks` returned `Branch not protected`. [VERIFIED: `MAINTAINING.md`, live `gh api`]
-   - What's unclear: Whether this is intentional during planning, a repo settings drift, or a permissions/API nuance. [ASSUMED]
-   - Recommendation: The audit should include a "documented vs live branch protection" row and avoid planning workflow changes that assume active required checks without maintainer confirmation. [VERIFIED: live `gh api`]
+   - Resolution: Phase 119 treats live branch protection as audit evidence, not as a Phase 119 implementation decision. The audit must record the documented-vs-live state: `MAINTAINING.md` documents required checks, while research-time `gh api .../branches/main/protection/required_status_checks` returned `Branch not protected`. [VERIFIED: `MAINTAINING.md`, live `gh api`]
+   - Planning implication: Phase 119 must not change repository settings or workflow behavior. Later phases may use the audit row to decide whether docs, branch protection, or required-check topology need alignment. [VERIFIED: `119-CONTEXT.md`, `.planning/ROADMAP.md`]
 
 2. **Should `openfeature-companion` join `release_gate.needs` later?**
-   - What we know: The proof bar exists and is path-gated, but current `release_gate.needs` excludes it. [VERIFIED: `.github/workflows/ci.yml`, `scripts/ci/test.sh`]
-   - What's unclear: Whether the intended blocking semantics are advisory, path-required, or release-only. [VERIFIED: `119-CONTEXT.md`]
-   - Recommendation: Phase 119 should classify it and defer any topology change to Phase 120. [VERIFIED: `.planning/ROADMAP.md`]
+   - Resolution: `openfeature-companion` membership in `release_gate.needs` is a Phase 120 recommendation candidate, not a Phase 119 change. Phase 119 records that the proof bar exists and is path-gated while current `release_gate.needs` excludes it. [VERIFIED: `.github/workflows/ci.yml`, `scripts/ci/test.sh`, `119-CONTEXT.md`]
+   - Planning implication: The Phase 119 audit must classify the current signal and hand off any topology recommendation to Phase 120 with evidence; it must not edit `ci.yml`. [VERIFIED: `.planning/ROADMAP.md`]
 
 3. **How much live timing sample is enough?**
-   - What we know: Recent `ci.yml` PR runs observed during research were about 5 minutes wall clock, with test matrix and integration lanes as likely critical path. [VERIFIED: `gh run list`, `gh run view 27542317576`]
-   - What's unclear: p95 and cache-hit trends need more than one or two observed runs. [ASSUMED]
-   - Recommendation: Plan collection of the latest 10-20 `ci.yml` runs and mark p95 unavailable if the sample is too small or too heterogeneous. [VERIFIED: `gh run list` supports the needed fields]
+   - Resolution: Enough Phase 119 baseline evidence is a recent representative `ci.yml` run sample plus the locked local Mix diagnostic commands from D-11. A 10-20 run sample is preferred when available; if CI access is unavailable or the sample is too small or heterogeneous for p95, the audit must record the fallback and state `p95 target unavailable from current sample`. [VERIFIED: `gh run list`, `119-CONTEXT.md`]
+   - Planning implication: Phase 119 can complete with representative live timing plus local diagnostics, provided unavailable CI metadata, sample limitations, and fallback evidence are explicit in `119-CI-CD-AUDIT.md`. [VERIFIED: `.planning/ROADMAP.md`]
 
 ## Environment Availability
 
