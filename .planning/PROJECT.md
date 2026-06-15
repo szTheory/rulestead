@@ -50,6 +50,17 @@ Rulestead is a batteries-included, Elixir-native feature-flag and remote-config 
 
 v1.1–v1.9 feature band is **complete**. v1.10.x–v1.11 doc bands are **shipped**. See `guides/introduction/product-boundary.md` and `.planning/DEFERRED.md` for v2 triggers.
 
+## Current Milestone: v1.18 CI/CD Reliability
+
+**Goal:** Make the CI/CD pipeline faster, more deterministic, more resource-efficient, and easier for contributors to reason about while preserving or increasing release-gate trust.
+
+**Target features:**
+- Baseline the current GitHub Actions, Mix/ExUnit, Dialyzer, Playwright, demo, release, dependency, and hygiene workflows before changing behavior.
+- Classify tests and checks by quality signal, runtime, determinism, redundancy, and failure actionability.
+- Implement conservative, evidence-backed optimizations for workflow topology, cache correctness, runner CPU use, ExUnit concurrency, expensive browser/demo paths, and local contributor commands.
+- Preserve the linked-version sibling-package release model, `release_gate`, post-publish proof, mounted companion proof, OpenFeature proof, and adopter contract unless the audit proves a narrower equivalent.
+- Record before/after metrics, residual risks, rollback notes, and contributor rerun guidance before closeout.
+
 ## Shipped: v1.13 Admin UI — First-Class Dark Mode + Design-System Polish (2026-06-04)
 
 **Delivered (Phases 87–94, 14 plans):** A first-class, system-aware tri-state (System / Light / Dark) theme that stays on-brand and WCAG-AA legible in both modes, with unified interaction states and a consolidated, documented token contract — deepening the mounted operator UI without widening the sibling-package product shape.
@@ -139,12 +150,13 @@ v1.1–v1.9 feature band is **complete**. v1.10.x–v1.11 doc bands are **shippe
 | 4b | **v1.15 — Identity Tournament** | **Complete** (2026-06-12) — Phases 102–106; tournament-selected integrated logo + elevated HTML brand book; no runtime API or publish-posture changes |
 | 4c | **v1.16 — Brand-Faithful UI Iteration** | **Complete** (2026-06-13) — v1.15 identity conformance + demo/admin visual evidence + dynamic FleetDesk launcher proof; no runtime APIs or publish-posture changes |
 | 4d | **v1.17 — Admin Design System Stress Test** | **Complete** (2026-06-14) — component/system matrix, foundations hardening, primitive/composite polish, page-flow IA pass, and reusable evidence; no runtime APIs or publish-posture changes |
+| 4e | **v1.18 — CI/CD Reliability** | **Active** — audit + conservative fixes for CI/CD performance, determinism, cache correctness, test value, release trust, and contributor DX; no product runtime APIs |
 | 5+ | **v2.0+ wedges (triggered only)** | GOV-02-ext → ROL-08 → ADM-06 per `.planning/DEFERRED.md` |
 | — | **Maintenance** | Patches and adopter support until a v2 trigger fires |
 
 **Done band:** Post-GA scope through v1.11 is repo-verified; feature band v1.1–v1.9 in `lib/` + contract tests.
 
-**Next action:** Revisit merge topology for v1.13→v1.16 before main auto-publish.
+**Next action:** Phase 119 baseline and expert audit for v1.18 CI/CD Reliability.
 
 <details>
 <summary>Latest shipped: v1.10.0 Post-GA Band Truth & Adopter Closure (2026-05-28)</summary>
@@ -260,7 +272,16 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 
 ### Active
 
-- None currently. v2.0+ wedges remain trigger-based per `.planning/DEFERRED.md`.
+- [ ] **CIDX-01**: Maintainer has a current workflow/job/step baseline covering PR, main, scheduled, release, dependency, and hygiene workflows.
+- [ ] **CIDX-02**: CI critical path, duplicated work, cache behavior, runner CPU use, and bottlenecks are documented with before/after targets.
+- [ ] **CIDX-03**: Test/check categories are classified as keep, optimize, move, quarantine/fix, or delete/rewrite based on value signal and determinism.
+- [ ] **CIDX-04**: PR gates remain trustworthy and deterministic while high-value adopter/release proof bars stay preserved.
+- [ ] **CIDX-05**: Lowest-signal redundant or flaky checks are fixed, demoted, rewritten, or removed only with evidence.
+- [ ] **CIDX-06**: Mix, ExUnit, Dialyzer, Playwright, demo, and release workflows use runner time efficiently without fragile over-sharding.
+- [ ] **CIDX-07**: Cache keys, restore keys, Dialyzer PLT handling, and cache observability are correctness-safe and documented.
+- [ ] **CIDX-08**: Contributor commands remain simple: fast local loop, full local gate, and clear rerun commands for failed CI jobs.
+- [ ] **CIDX-09**: Release and supply-chain posture remains at least as strict: pinned actions, minimal permissions, gated Hex publish, and post-publish proof.
+- [ ] **CIDX-10**: Final closeout records measured impact: PR wall-clock, p95 target if available, cache hit rate, top slow tests, flake notes, and rollback notes.
 
 ### Validated
 
@@ -383,6 +404,7 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 | Open v1.13 as a deliberate post-GA UX-quality milestone (admin dark mode + design-system polish) outside the v2 trigger gate | Dark mode was already prescribed by the admin UX spec but unimplemented; the token-based CSS made a first-class theme high-leverage and low-risk; deepened the mounted UI without new runtime APIs or widening product shape. | Validated — shipped v1.13 (16/16 reqs, 8 phases) |
 | Close v1.16 only after audit backfill instead of accepting verification gaps as debt | The audit gate requires `*-VERIFICATION.md`, `requirements-completed` summary frontmatter, and Nyquist validation artifacts; backfilling preserves closeout truth without product code changes. | Validated — v1.16 audit passed |
 | Use a repo-native Phoenix/Playwright UI matrix for v1.17 instead of adding Storybook | The admin package is Phoenix LiveView with no JS bundler; rendering real components in a mounted test/dev harness avoids duplicated HEEx, keeps evidence close to the existing demo runner, and leaves PhoenixStorybook as a later maintainer-docs option if needed. | Validated — shipped v1.17 |
+| Open v1.18 as a maintenance-quality CI/CD reliability milestone before any v2 wedge | CI/CD speed, determinism, cache correctness, and contributor DX are now high-leverage maintenance work; changes must be evidence-backed and preserve release-gate trust. | Active |
 
 ## Milestone Archives
 
@@ -419,4 +441,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-14 — completed Phase 115 Foundations Hardening*
+*Last updated: 2026-06-15 — started v1.18 CI/CD Reliability*
