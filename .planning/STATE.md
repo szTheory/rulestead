@@ -6,7 +6,7 @@ status: planning
 last_updated: "2026-06-15T20:34:41.555Z"
 last_activity: 2026-06-15
 progress:
-  total_phases: 0
+  total_phases: 5
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -17,52 +17,55 @@ progress:
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-06-13)
+See: `.planning/PROJECT.md` (updated 2026-06-15)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
 
-**Current focus:** Milestone complete
+**Current focus:** v1.18 CI/CD Reliability
 
-**Milestone:** v1.17 Admin Design System Stress Test — see `.planning/ROADMAP.md`.
+**Milestone:** v1.18 CI/CD Reliability — see `.planning/ROADMAP.md`.
 
-**Previous milestone:** v1.16 Brand-Faithful UI Iteration shipped 2026-06-13 — see `.planning/milestones/v1.16-ROADMAP.md`
+**Previous milestone:** v1.17 Admin Design System Stress Test shipped 2026-06-15 — see `.planning/milestones/v1.17-ROADMAP.md`
 
-**Assessment:** v1.17 plan is scoped as post-GA design-system quality work after v1.16 proved brand-faithful shell, fixture, demo, and workflow evidence.
+**Assessment:** v1.18 is scoped as post-GA CI/CD reliability and maintainer-DX work. It should improve speed, determinism, cache correctness, runner efficiency, and failure actionability without weakening release-gate trust or widening product scope.
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 119 Baseline + Expert Audit (not started)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-06-15 — Milestone v1.18 started
+Status: Ready to plan Phase 119
+Last activity: 2026-06-15 — Milestone v1.18 roadmap created
 
 ## Phase Dependency Map
 
 ```
-113 (design-system inventory + UI matrix contract)
-  -> 114 (repo-native component matrix harness)
-        -> 115 (foundations hardening)
-              -> 116 (primitive + composite polish)
-                    -> 117 (page flow + IA pass)
-                          -> 118 (evidence + idempotence guardrails)
+119 (baseline + expert audit)
+  -> 120 (workflow topology + cache hygiene)
+        -> 121 (Mix/ExUnit performance + test value cleanup)
+              -> 122 (browser/demo/integration determinism)
+                    -> 123 (DX + closeout proof)
 ```
 
-Strictly sequential: **113 -> 114 -> 115 -> 116 -> 117 -> 118**
+Strictly sequential: **119 -> 120 -> 121 -> 122 -> 123**
 
 Human checkpoints:
 
-- Phase 113 should confirm the component taxonomy, UI matrix state list, and any intentional exceptions before implementation broadens into CSS/component polish.
-- v1.17 keeps the v1.16 brand boundary: FleetDesk remains host-branded; Rulestead identity applies to mounted admin, brandbook, fixtures, and Rulestead-owned demo chrome.
+- Phase 119 should confirm the baseline, recommendations, test/check classification, and no-go guardrails before workflow or test behavior changes.
+- v1.18 keeps the release-trust boundary: conservative signal-first optimization, no product runtime APIs, no schema changes, no admin publish-prep, and no cosmetic speedup that hides risk.
 
 ## Accumulated Context
 
 ### Roadmap Evolution
 
+- v1.18 started after v1.17 audit closeout: CI/CD Reliability spans Phases 119-123 and focuses on baseline measurement, workflow/cache hygiene, Mix/ExUnit performance, browser/demo determinism, and contributor-DX closeout.
 - v1.17 started after v1.16 audit closeout: Admin Design System Stress Test spans Phases 113-118 and focuses on repo-native component matrix evidence, foundations hardening, primitive/composite polish, page-flow IA, and idempotent design-system guardrails.
 - Phase 112.1 inserted after Phase 112: Close gap: BUI-05/BUI-06 - dynamic FleetDesk launcher URL and evidence (URGENT)
 
 ### Decisions
 
+- **v1.18 scope:** Maintenance-quality CI/CD reliability milestone. Audit first, then implement conservative, evidence-backed improvements to pipeline performance, determinism, cache correctness, test value, release trust, and contributor DX.
+- **v1.18 optimization posture:** Preserve high-value release/adopter/mounted/OpenFeature proof bars unless Phase 119 proves a narrower equivalent catches the same bug class. Do not delete slow tests solely because they are slow.
+- **v1.18 research posture:** Put external-source and comparable-OSS workflow research inside Phase 119 audit artifacts instead of running a separate pre-milestone `.planning/research/` pass.
 - **v1.17 harness choice:** Use a repo-native Phoenix/Playwright UI matrix that renders real admin components. Do not adopt standard JavaScript Storybook for this milestone; PhoenixStorybook remains a future option if maintainer-facing component docs become necessary.
 - **v1.17 scope:** Full mounted admin/operator design-system pass, not runtime product work. No public runtime APIs, schemas, release workflow changes, palette redesign, logo redraw, component framework adoption, broad pixel-baseline maintenance, external AI judging dependency, v2 wedge, or `rulestead_admin` standalone publish prep.
 - **v1.17 evidence posture:** Screenshots plus deterministic assertions and human review. Continue the v1.16 preference for broad Playwright artifacts over checked-in pixel baselines.
@@ -180,33 +183,21 @@ All closed — v1.12 adoption evidence depth complete.
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Start Phase 119 with `$gsd-discuss-phase 119` or `$gsd-plan-phase 119`.
 
 ## Latest Verification
 
-Current v1.17 planning proof:
+Current v1.18 planning proof:
 
-- Requirements: `.planning/REQUIREMENTS.md` maps 22/22 v1.17 requirements to Phases 113-118.
-- Roadmap: `.planning/ROADMAP.md` defines 6 sequential phases and preserves linked-version sibling-package constraints.
-- Phase 113 context: `.planning/phases/113-design-system-inventory-ui-matrix-contract/113-CONTEXT.md` exists and is visible to `gsd-sdk query init.phase-op 113` as `has_context: true`.
-- Phase 113 support artifacts: `113-RESEARCH.md`, `113-VALIDATION.md`, `113-UI-SPEC.md`, and `113-PATTERNS.md` exist.
-- Phase 113 plans: three valid plan files cover DSM-01 and DSM-03 in two waves; `gsd-sdk query verify.plan-structure` is green for all three and `check.decision-coverage-plan` covers 20/20 context decisions.
-- Phase 113 Plan 01: `113-DESIGN-SYSTEM-INVENTORY.md` and `113-01-SUMMARY.md` exist; taxonomy, raw `rs-*` classification, and guard/evidence source assertions passed.
-- Phase 113 Plan 02: `113-UI-MATRIX-CONTRACT.md` and `113-02-SUMMARY.md` exist; required states, evidence dimensions, operator lenses, and fixture-data source assertions passed.
-- Phase 113 Plan 03: `113-ACCEPTANCE-GATES.md` exists; DSM-01, DSM-03, D-01 through D-20, guard-chain, and Phase 114-118 handoff assertions passed.
-- Phase 114 context: `.planning/phases/114-repo-native-component-matrix-harness/114-CONTEXT.md` exists and captures D-01 through D-15 for the demo-hosted dev/test matrix harness.
-- Phase 114 UI-SPEC: `.planning/phases/114-repo-native-component-matrix-harness/114-UI-SPEC.md` exists, is `status: approved`, records `reviewed_at: 2026-06-14T01:20:39Z`, and marks all 6 UI checker dimensions PASS.
-- Phase 114 Plan 01: `114-01-SUMMARY.md` exists; `/dev/rulestead-admin/ui-matrix` renders in the demo backend, uses real admin components inside `.rs-shell`, keeps `RulesteadAdmin.Router.rulestead_admin/2` unchanged, and passes `cd examples/demo/backend && mix test test/rulestead_demo_web/live/ui_matrix_live_test.exs` plus `mix compile`.
-- Phase 115 verification: `.planning/phases/115-foundations-hardening/115-VERIFICATION.md` is `status: passed` for FND-01 through FND-06 and records the targeted foundation guard, matrix, and fixture proof.
-- Phase 116 context: `.planning/phases/116-primitive-composite-polish/116-CONTEXT.md` exists and captures D-01 through D-19 for CMP-01 through CMP-05 planning.
-- Phase 117 context: `.planning/phases/117-page-flow-ia-pass/117-CONTEXT.md` exists and captures D-01 through D-18 for FLOW-01 through FLOW-04 planning.
-- Phase 117 planning: four plans exist across three waves; plan checker passed with FLOW-01 through FLOW-04 covered, 18/18 context decisions covered, all eight task checks mapped in `117-VALIDATION.md`, and no blockers or warnings.
-- Phase 117 Plan 03: route-owned IA fixes for home, inventory, audience, rules, and kill-switch flows are committed; targeted route ExUnit, accessibility ExUnit, browser flow IA evidence, source anchors, and whitespace checks passed.
-- Phase 117 Plan 04: audit, explain, and simulate hierarchy fixes plus final FLOW closeout are committed; targeted audit/explain/simulate ExUnit, accessibility ExUnit, final `admin-flow-ia.spec.ts`, FLOW/D-coverage source guards, forbidden visual-baseline guard, and whitespace checks passed.
-- Phase 118 Plan 02: `118-EVIDENCE.md` records backend URL `http://localhost:4061`, 70/70 matrix/workflow Playwright tests, 7 generated matrix screenshots, 48 generated workflow screenshots, 29/29 static fixture/theme tests, 6/6 backend matrix ExUnit tests, individual guard-chain PASS output, and full `bash scripts/ci/lint.sh` PASS.
-- Phase 118 Plan 02: `git ls-files examples/demo/frontend/test-results` returned `0`, confirming generated screenshot artifacts remain untracked.
-- Phase 118 Plan 03: `118-EVIDENCE.md` closes VER-01 through VER-04 with Requirement Coverage, Decision Coverage D-01 through D-20, Planning Closeout, Milestone Boundary, browser artifact patterns (`ui-matrix-overview-shell-*.png`, `flow-*.png`), guard output, and the no-baseline/no-external-AI boundary.
-- Baseline inherited from v1.16: brand/token/logo guard chain, frontend fixture specs, admin workflow screenshot evidence, compose/browser proof, core/admin/demo tests, and passed v1.16 milestone audit.
+- Requirements: `.planning/REQUIREMENTS.md` maps 10/10 v1.18 requirements to Phases 119-123.
+- Roadmap: `.planning/ROADMAP.md` defines 5 sequential phases and preserves linked-version sibling-package release constraints.
+- Phase 119 scope: baseline first; no workflow or test behavior changes before the audit and classification artifact.
+- Phase 120 scope: workflow topology, cache hygiene, required-check semantics, release gate, and supply-chain posture.
+- Phase 121 scope: Mix/ExUnit performance and test value cleanup, with async/partitioning only after evidence.
+- Phase 122 scope: browser, demo, integration, Playwright, and generated-evidence determinism.
+- Phase 123 scope: contributor DX, docs alignment, measured closeout, and rollback notes.
+- Active constraints: no product runtime APIs, schemas, release workflow trust reduction, admin standalone publish prep, broad pixel baselines, or cosmetic speedups that hide risk.
+- Baseline inherited from v1.17: design-system evidence guard, admin foundations guard, brand/token/logo/contrast guard chain, UI matrix/workflow Playwright evidence, core/admin/demo tests, and passed v1.17 milestone audit.
 
 ## Performance Metrics
 
