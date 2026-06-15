@@ -348,3 +348,38 @@ Phase 123:
 | `.github/workflows/*.yml` | Workflow definitions |
 | `scripts/ci/*.sh`, `scripts/demo/*.sh` | Script-first CI and proof commands |
 | `MAINTAINING.md` | Documented branch-protection and release posture |
+
+### Source Coverage
+
+| SOURCE | ID | Coverage | Status |
+|--------|----|----------|--------|
+| GOAL | - | Produce a repo-specific CI/CD performance, reliability, security, and DX baseline before changing behavior | COVERED |
+| REQ | CIDX-01 | Workflow/job/step baseline covering PR, main, scheduled, release, dependency, and hygiene workflows | COVERED |
+| REQ | CIDX-02 | Critical path, duplicated work, cache behavior, runner CPU use, bottlenecks, and before/after targets | COVERED |
+| REQ | CIDX-03 | Classify each major test/check category by evidence and determinism | COVERED |
+| RESEARCH | workflow inventory | Static and live workflow inventory plus branch-protection mismatch | COVERED |
+| RESEARCH | timing baseline | Recent CI timing, critical path, duplicated work, p95 fallback, runner labels, matrix, services, and missing metrics | COVERED |
+| RESEARCH | Mix diagnostics | D-11 Mix diagnostics and scheduler count | COVERED |
+| RESEARCH | classification matrix | D-03 classification matrix, Playwright trace mismatch, no-go guardrails, and phase handoffs | COVERED |
+| CONTEXT | D-01 | Integrated audit document, not split topical docs | COVERED |
+| CONTEXT | D-02 | Required audit section structure | COVERED |
+| CONTEXT | D-03 | Locked classification vocabulary and evidence for non-keep recommendations | COVERED |
+| CONTEXT | D-04 | Preserve current always-triggered `ci.yml` plus `release_gate` baseline unless proven safer | COVERED |
+| CONTEXT | D-05 | No workflow-level path filters for required PR checks | COVERED |
+| CONTEXT | D-06 | Audit whether `openfeature-companion` belongs in `release_gate.needs` | COVERED |
+| CONTEXT | D-07 | Inventory actionlint, repo hygiene, dependency, and release workflows | COVERED |
+| CONTEXT | D-08 | Preserve linked-version sibling-package release design | COVERED |
+| CONTEXT | D-09 | No local publish shortcuts, admin standalone publish prep, tag-only trust, weaker permissions/pinning, or unchecked secrets | COVERED |
+| CONTEXT | D-10 | Inspect pinning, permissions, dependency review, Dependabot, Hex preflight, cache restore, and post-publish proof | COVERED |
+| CONTEXT | D-11 | Record locked Mix/ExUnit/compile/xref diagnostics and scheduler count | COVERED |
+| CONTEXT | D-12 | No async flip, sharding, Dialyzer demotion, slow-test deletion, or proof rewrite in Phase 119 | COVERED |
+| CONTEXT | D-13 | ExUnit async requires proof of no unsafe global/shared-state hazards | COVERED |
+| CONTEXT | D-14 | Keep Dialyzer as trust gate unless safe equivalent is proven; PLT keys must be correctness-safe | COVERED |
+| CONTEXT | D-15 | Audit browser/demo/integration proof by value and determinism, not runtime alone | COVERED |
+| CONTEXT | D-16 | Do not hide flaky browser behavior behind blind retries; flag trace/retry mismatch | COVERED |
+| CONTEXT | D-17 | Generated browser screenshots/reports stay ignored artifacts, not checked-in pixel baselines | COVERED |
+| CONTEXT | D-18 | Keep FleetDesk host-branded and avoid product UI, brand, or design-system expansion | COVERED |
+| CONTEXT | D-19 | Keep scripts-first CI abstraction and exact local reruns | COVERED |
+| CONTEXT | D-20 | Use maintainer-friendly failure microcopy | COVERED |
+| CONTEXT | D-21 | Prefer simple reproducible loops over clever CI topology until evidence justifies later options | COVERED |
+| CONTEXT | Deferred Ideas | Phase 120-123/future work exclusions | EXCLUDED - deferred by CONTEXT.md |
