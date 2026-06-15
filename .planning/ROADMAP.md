@@ -101,7 +101,7 @@
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 119. Baseline + Expert Audit | v1.18 | 1/3 | In Progress|  |
+| 119. Baseline + Expert Audit | v1.18 | 2/3 | In Progress|  |
 | 120. Workflow Topology + Cache Hygiene | v1.18 | 0/? | Pending | — |
 | 121. Mix/ExUnit Performance + Test Value Cleanup | v1.18 | 0/? | Pending | — |
 | 122. Browser/Demo/Integration Determinism | v1.18 | 0/? | Pending | — |
