@@ -153,6 +153,8 @@ D-11 command results:
 
 Phase 121 async/sharding recommendations require proof that candidate modules avoid global app env mutation, DB ownership hazards, ports, filesystem or shared process state, logger or telemetry capture, fake-store resets, Ecto sandbox hazards, and LiveView process ownership issues. No test files, workflow YAML, Dialyzer configuration, ExUnit async flags, or proof scope scripts were modified for this diagnostic baseline.
 
+Verification note: the diagnostic section intentionally records nonzero or noisy command output as baseline evidence; it does not remediate the full-suite sample failure, compile-elixir dependency-loading errors, or compile-connected xref cycle in Phase 119.
+
 ## Test and Check Classification Matrix
 
 Pending D-03 classification.
