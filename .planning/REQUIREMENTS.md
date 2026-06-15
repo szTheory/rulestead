@@ -7,8 +7,8 @@
 
 ### Baseline and Audit
 
-- [ ] **CIDX-01**: Maintainer can review a current workflow/job/step baseline covering PR, main, scheduled, release, dependency, and hygiene workflows.
-- [ ] **CIDX-02**: Maintainer can see the CI critical path, duplicated work, cache behavior, runner CPU use, and likely bottlenecks with before/after targets.
+- [x] **CIDX-01**: Maintainer can review a current workflow/job/step baseline covering PR, main, scheduled, release, dependency, and hygiene workflows.
+- [x] **CIDX-02**: Maintainer can see the CI critical path, duplicated work, cache behavior, runner CPU use, and likely bottlenecks with before/after targets.
 - [ ] **CIDX-03**: Maintainer can classify each major test and check category as keep, optimize, move, quarantine/fix, or delete/rewrite based on quality signal and determinism.
 
 ### Gate Quality and Test Value
@@ -53,8 +53,8 @@ Deferred until a later milestone or until Phase 119 proves they are worth the ad
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CIDX-01 | Phase 119 | Pending |
-| CIDX-02 | Phase 119 | Pending |
+| CIDX-01 | Phase 119 | Complete |
+| CIDX-02 | Phase 119 | Complete |
 | CIDX-03 | Phase 119 | Pending |
 | CIDX-04 | Phase 120 | Pending |
 | CIDX-05 | Phase 122 | Pending |
