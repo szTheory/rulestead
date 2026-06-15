@@ -84,15 +84,74 @@ Aggregate gate baseline: `release_gate.needs` currently includes `changes`, `lin
 
 ## Critical Path and Metrics Baseline
 
-Pending live timing and local diagnostic evidence.
+Live run sample was collected with:
+
+```bash
+gh run list --repo szTheory/rulestead --workflow ci.yml --limit 20 --json databaseId,conclusion,createdAt,updatedAt,event,headBranch
+gh run view &lt;run-id&gt; --repo szTheory/rulestead --json jobs,createdAt,updatedAt,conclusion,event,workflowName
+```
+
+Representative recent `ci.yml` sample:
+
+| run ID | event | branch | conclusion | wall-clock | longest job | likely critical path |
+|--------|-------|--------|------------|------------|-------------|----------------------|
+| `27542317576` | `pull_request` | `dependabot/hex/rulestead_admin/a11y_audit-0.4.0` | success | 5m18s | `test (1.17.3 / OTP 26.2.5)` at 4m43s | matrix `test`, then `release_gate` |
+| `27471122598` | `push` | `main` | success | 5m04s | `test (1.17.3 / OTP 26.2.5)` at 4m38s | matrix `test`, then `release_gate` |
+| `27471186416` | `workflow_dispatch` | `release-please--branches--main` | failure | 4m46s | `test (1.19.2 / OTP 28.4.3)` at 4m03s; failing `test (1.17.3 / OTP 26.2.5)` at 3m12s | failing matrix `test`, then failed `release_gate` |
+
+The 20-run sample includes `pull_request`, `push`, and `workflow_dispatch` runs across dependabot, main, release branch, and feature branch contexts. The sample is enough to identify the current critical path, but not enough to claim a defensible p95 across event types and branch classes, so: p95 target unavailable from current sample. [VERIFIED: gh run list --repo szTheory/rulestead --workflow ci.yml --limit 20 --json databaseId,conclusion,createdAt,updatedAt,event,headBranch]
+
+duplicated work hypotheses:
+
+- `lint`, `test`, `adopter-contract`, `mounted-proof`, and `openfeature-companion` each restore Mix deps/build caches and run overlapping package setup.
+- `scripts/ci/local.sh` calls `scripts/ci/test.sh` scopes after `cd rulestead && mix ci`, so local full runs intentionally duplicate some test/lint work to preserve simple reproduction.
+- `adopter-contract` runs `RULESTEAD_TEST_SCOPE=post_ga_band_closure`, while the default `scripts/ci/test.sh` scope also routes through post-GA proof. This is a likely duplication candidate for Phase 121 classification, not a Phase 119 deletion.
+- `openfeature-companion` and `mounted-proof` are path-gated jobs; their current skipped status can hide proof-bar timing from many recent PR samples.
+
+Runner and scheduling observations:
+
+- All `ci.yml` jobs use `ubuntu-24.04`.
+- Matrix axes are Elixir `1.17.3` / OTP `26.2.5` and Elixir `1.19.2` / OTP `28.4.3`.
+- Postgres service usage appears in the `test` and `adopter-contract` jobs via `postgres:15`.
+- `release_gate` itself is cheap, but it waits on the matrix and proof jobs; the effective critical path is currently the slowest matrix/proof job plus aggregate-gate scheduling.
 
 ## Cache and Dialyzer PLT Posture
 
-Pending cache/PLT inventory.
+Cache inventory from `.github/workflows/ci.yml`:
+
+| Job | Action | Path | Key | restore-keys | Scope and posture |
+|-----|--------|------|-----|--------------|-------------------|
+| `lint` | `actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae` | `rulestead/deps`, `rulestead/_build` | `${{ runner.os }}-lint-mix-${{ hashFiles('**/mix.lock', '.tool-versions') }}` | `${{ runner.os }}-lint-mix-` | Includes OS, lockfiles, `.tool-versions`; no explicit `MIX_ENV` in key, likely safe for lint scope but should stay under Phase 120 attention. |
+| `lint` | `actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae` | `rulestead/priv/plts` | `${{ runner.os }}-plt-${{ hashFiles('**/mix.lock', '.tool-versions') }}` | none | PLT cache includes OS and lock/tool versions, but not explicit OTP/Elixir/MIX_ENV/package scope beyond `.tool-versions`; correctness-safe enough for current strict lint lane, worth Phase 120 attention before broader PLT moves. |
+| `lint` | `actions/cache/save@27d5ce7f107fe9357f9df03efb73ab90386fccae` | `rulestead/priv/plts` | `${{ runner.os }}-plt-${{ hashFiles('**/mix.lock', '.tool-versions') }}` | n/a | Save runs `if: always()` to preserve PLT cache even when Dialyzer fails. |
+| `test` | `actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae` | `rulestead/deps`, `rulestead/_build/test`, `rulestead_admin/deps`, `rulestead_admin/_build/test` | `${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-${{ hashFiles('**/mix.lock') }}` | `${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-`, `${{ runner.os }}-mix-` | Matrix-specific primary key is correctness-safe; broad `${{ runner.os }}-mix-` restore breadth needs Phase 120 attention. |
+| `adopter-contract` | `actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae` | `rulestead/deps`, `rulestead/_build/test`, `rulestead_admin/deps`, `rulestead_admin/_build/test` | `${{ runner.os }}-adopter-mix-${{ hashFiles('**/mix.lock', '.tool-versions') }}` | `${{ runner.os }}-adopter-mix-` | Package scope is explicit in paths; `.tool-versions` carries Elixir/OTP; `MIX_ENV=test` is in job env but not key. |
+| `openfeature-companion` | `actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae` | `open_feature_rulestead/deps`, `open_feature_rulestead/_build/test` | `${{ runner.os }}-openfeature-mix-${{ hashFiles('**/mix.lock', '.tool-versions') }}` | `${{ runner.os }}-openfeature-mix-` | Companion-package scoped cache; `MIX_ENV=test` is in env but not key. |
+| `mounted-proof` | `actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae` | `rulestead/deps`, `rulestead/_build/test`, `rulestead_admin/deps`, `rulestead_admin/_build/test` | `${{ runner.os }}-mounted-mix-${{ hashFiles('**/mix.lock', '.tool-versions') }}` | `${{ runner.os }}-mounted-mix-` | Proof-bar scoped cache; `MIX_ENV=test` is in env but not key. |
+
+Cache recommendation posture: keep existing keys during Phase 119; Phase 120 should tighten any restore breadth only where the key remains correctness-safe across OS, Elixir, OTP, lockfile, `.tool-versions`, `MIX_ENV`, and package scope. [VERIFIED: .github/workflows/ci.yml]
 
 ## Mix, ExUnit, Dialyzer, and Xref Diagnostics
 
-Pending D-11 diagnostics.
+Local CPU/scheduler baseline:
+
+- `getconf _NPROCESSORS_ONLN || sysctl -n hw.ncpu || true` exit status 0: `18`
+- `cd rulestead && elixir -e 'IO.puts(System.schedulers_online())'` exit status 0: `18`
+- `erl -noshell -eval 'io:format("~p~n", [erlang:system_info(schedulers_online)]), halt().'` exit status 0: `18`
+
+D-11 command results:
+
+| Command | exit status | elapsed | Key output |
+|---------|-------------|---------|------------|
+| `cd rulestead && mix test --warnings-as-errors --slowest 25` | 2 | `real 42.35s` | 587 tests, 8 properties, 1 failure. slowest test: `test admin consumer fixture compiles against published Hex packages` in `Rulestead.Mix.Tasks.VerifyReleasePublishTest`, about 27.95s. A focused rerun of that location passed in 20.8s with 0 failures. |
+| `cd rulestead && mix test --warnings-as-errors --slowest-modules 25` | 2 | `real 41.31s` | 587 tests, 8 properties, 1 failure. slowest modules: `Rulestead.Mix.Tasks.VerifyReleasePublishTest` about 27.89s, then `Rulestead.RolloutAutoAdvanceOrchestrationContractTest` about 1.61s, `Rulestead.Store.EctoAudienceImpactContractTest` about 1.43s. |
+| `cd rulestead && mix test --profile-require time` | 0 | `real 2.77s` | There are no tests to run; profile-require compiled 192 test modules, with examples including `test/rulestead/store/audience_impact_contract_test.exs` at 432ms, `test/rulestead/audience_mutation_audit_test.exs` at 430ms, and `test/rulestead/telemetry_test.exs` at 416ms. |
+| `cd rulestead && mix compile.elixir --force --profile time` | 0 shell capture with compiler errors printed | `real 1.41s` first run; confirmed with tail capture | compile profile shows `lib/rulestead/store/command.ex` at 465ms and multiple dependency waits. Command prints errors such as `module Ecto.Schema is not loaded` and `module Ecto.Query is not loaded`; record as environment/task-specific diagnostic behavior, not a Phase 119 fix. |
+| `cd rulestead && mix xref graph --format cycles --label compile-connected` | 0 | `real 4.60s` | One compile-connected cycle of length 47, centered on `lib/rulestead.ex`, governance/guardrails/manifest/runtime/store modules, and `lib/rulestead/ruleset/guardrail.ex (compile)`. |
+| `cd rulestead && mix xref graph --format stats --label compile-connected` | 0 | `real 4.55s` | Tracked files: 172 nodes; compile dependencies: 5 edges; exports dependencies: 62 edges; runtime dependencies: 341 edges; cycles: 1. |
+| `cd rulestead && mix xref graph --label compile-connected` | 0 | `real 0.38s` | `lib/rulestead/ruleset/guardrail.ex -> lib/rulestead/guardrails/query.ex (compile)`. |
+
+Phase 121 async/sharding recommendations require proof that candidate modules avoid global app env mutation, DB ownership hazards, ports, filesystem or shared process state, logger or telemetry capture, fake-store resets, Ecto sandbox hazards, and LiveView process ownership issues. No test files, workflow YAML, Dialyzer configuration, ExUnit async flags, or proof scope scripts were modified for this diagnostic baseline.
 
 ## Test and Check Classification Matrix
 
@@ -152,7 +211,16 @@ The microcopy posture is scripts-first and fail-closed: make failure categories 
 
 ## Release and Supply-Chain Trust
 
-Pending release and supply-chain trust inventory.
+Release and supply-chain trust surfaces are speed surfaces and security findings:
+
+- Action pinning: workflow actions are pinned to full SHA values in `ci.yml` and release workflows, with comments naming upstream versions. Keep by default. [VERIFIED: .github/workflows/ci.yml]
+- Least-privilege permissions: most workflows use narrow `contents: read`; release automation deliberately uses write permissions where it opens PRs, dispatches workflows, or writes handoff issues. Keep unless Phase 120 can narrow without breaking release flow. [VERIFIED: .github/workflows/*.yml]
+- `dependency-review`: active PR workflow and documented required check. Keep. [VERIFIED: .github/workflows/dependency-review.yml; VERIFIED: MAINTAINING.md]
+- Dependabot coverage: dynamic `Dependabot Updates` workflow is active and `.github/dependabot.yml` is part of dependency automation posture. [VERIFIED: gh workflow list --repo szTheory/rulestead --all --json name,path,state,id; VERIFIED: .github/dependabot.yml]
+- `publish-hex`: protected release-only workflow with protected `hex-publish` environment, `HEX_API_KEY` exposure only inside the publish boundary, preflight, `gate-ci-green`, core-before-admin publish order, admin publish guard, and handoff to post-publish verification. Keep by default. [VERIFIED: .github/workflows/publish-hex.yml]
+- Linked release posture: core-before-admin order preserves the linked-version sibling-package design; Phase 119 must not prepare standalone admin publishing. [VERIFIED: MAINTAINING.md; VERIFIED: AGENTS.md]
+- Post-publish proof: `verify-published-release` and `bash scripts/ci/verify_published_release.sh <version>` remain release-trust gates, not optional speed targets. [VERIFIED: .github/workflows/verify-published-release.yml; VERIFIED: scripts/ci/verify_published_release.sh]
+- Secret boundary: `HEX_API_KEY` is named only as a secret identifier; no secret value was printed or requested.
 
 ## Browser, Demo, and Integration Evidence
 
