@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: CI/CD Reliability
 status: executing
-last_updated: "2026-06-16T21:38:08.966Z"
-last_activity: 2026-06-16 -- Phase 121 planning complete
+last_updated: "2026-06-16T22:02:00.000Z"
+last_activity: 2026-06-16 -- Phase 121 Plan 01 complete (published_hex_smoke tag + guarded_rollout_foundations scope wiring)
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 9
-  completed_plans: 6
+  completed_plans: 7
   percent: 40
 ---
 
@@ -21,7 +21,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-15)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
 
-**Current focus:** Phase 121 (Mix/ExUnit Performance + Test Value Cleanup) — next to plan
+**Current focus:** Phase 121 — Mix/ExUnit Performance + Test Value Cleanup
 
 **Milestone:** v1.18 CI/CD Reliability — see `.planning/ROADMAP.md`.
 
@@ -31,10 +31,10 @@ See: `.planning/PROJECT.md` (updated 2026-06-15)
 
 ## Current Position
 
-Phase: 120
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-06-16 -- Phase 121 planning complete
+Phase: 121 (Mix/ExUnit Performance + Test Value Cleanup) — EXECUTING
+Plan: 2 of 3
+Status: Plan 01 complete; ready for Plan 02
+Last activity: 2026-06-16 -- Plan 121-01 complete
 
 ## Phase Dependency Map
 
@@ -63,6 +63,7 @@ Human checkpoints:
 
 ### Decisions
 
+- **Phase 121 Plan 01 (D-03/D-08):** Published-Hex smoke test (`"admin consumer fixture compiles against published Hex packages"`) moved behind `@tag :published_hex_smoke` + `RULESTEAD_RUN_PUBLISHED_HEX_SMOKE` env, excluded by default in `test_helper.exs`. Proof preserved and confirmed running on `guarded_rollout_foundations` scope via `RULESTEAD_RUN_PUBLISHED_HEX_SMOKE=1 run_mix rulestead test --include published_hex_smoke`. Default suite: ~5s, 586 tests, 0 failures (was ~42s). Failure microcopy added for guarded_rollout_foundations scope. No blind retry (D-04). install_integration gate preserved.
 - **v1.18 scope:** Maintenance-quality CI/CD reliability milestone. Audit first, then implement conservative, evidence-backed improvements to pipeline performance, determinism, cache correctness, test value, release trust, and contributor DX.
 - **v1.18 optimization posture:** Preserve high-value release/adopter/mounted/OpenFeature proof bars unless Phase 119 proves a narrower equivalent catches the same bug class. Do not delete slow tests solely because they are slow.
 - **v1.18 research posture:** Put external-source and comparable-OSS workflow research inside Phase 119 audit artifacts instead of running a separate pre-milestone `.planning/research/` pass.
@@ -254,3 +255,4 @@ Current v1.18 planning proof:
 | Phase 119 P01 | 12 min | 3 tasks | 1 files |
 | Phase 119 P02 | 38 min | 3 tasks | 1 files |
 | Phase 119 P03 | 16 min | 3 tasks | 1 files |
+| Phase 121 P01 | 6min | 2 tasks | 3 files |
