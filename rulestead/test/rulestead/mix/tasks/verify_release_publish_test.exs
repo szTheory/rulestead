@@ -198,6 +198,8 @@ defmodule Rulestead.Mix.Tasks.VerifyReleasePublishTest do
 
   @published_smoke_version "0.1.4"
 
+  @tag :published_hex_smoke
+  @tag timeout: 300_000
   test "admin consumer fixture compiles against published Hex packages" do
     tmp_dir = tmp_dir()
     on_exit(fn -> File.rm_rf!(tmp_dir) end)

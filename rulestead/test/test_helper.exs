@@ -1,11 +1,17 @@
-exunit_opts =
-  if System.get_env("RULESTEAD_RUN_INSTALL_INTEGRATION") == "1" do
-    []
-  else
-    [exclude: [install_integration: true]]
-  end
+default_excludes =
+  []
+  |> then(fn ex ->
+    if System.get_env("RULESTEAD_RUN_INSTALL_INTEGRATION") == "1",
+      do: ex,
+      else: [{:install_integration, true} | ex]
+  end)
+  |> then(fn ex ->
+    if System.get_env("RULESTEAD_RUN_PUBLISHED_HEX_SMOKE") == "1",
+      do: ex,
+      else: [{:published_hex_smoke, true} | ex]
+  end)
 
-ExUnit.start(exunit_opts)
+ExUnit.start(exclude: default_excludes)
 
 {:ok, _} = Application.ensure_all_started(:ecto_sql)
 {:ok, _} = Rulestead.Repo.start_link()
