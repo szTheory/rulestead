@@ -11,7 +11,7 @@
 <summary>◆ v1.18 CI/CD Reliability (Phases 119-123) — ACTIVE</summary>
 
 - [ ] Phase 119: Baseline + Expert Audit (0/? plans)
-- [ ] Phase 120: Workflow Topology + Cache Hygiene (0/? plans)
+- [ ] Phase 120: Workflow Topology + Cache Hygiene (0/3 plans)
 - [ ] Phase 121: Mix/ExUnit Performance + Test Value Cleanup (0/? plans)
 - [ ] Phase 122: Browser/Demo/Integration Determinism (0/? plans)
 - [ ] Phase 123: DX + Closeout Proof (0/? plans)
@@ -57,6 +57,13 @@
 3. CI logs or summaries show versions, cache posture, and local reproduction commands for failed lanes where practical.
 4. Release workflows still require green CI on the tagged SHA, protected Hex approval, package preflight, and post-publish verification.
 5. Action pinning, permissions, Dependabot coverage, and secret exposure remain at least as strict as the current baseline.
+
+**Plans:** 3 plans
+
+Plans:
+- [ ] 120-01-PLAN.md — Wire openfeature-companion into release_gate (D-03) + supply-chain non-regression (D-09/D-10)
+- [ ] 120-02-PLAN.md — Cache hygiene: remove cross-lane fallback (D-05), scope lint/PLT keys (D-06), scripts-first observability (D-08)
+- [ ] 120-03-PLAN.md — Docs reconciliation: per-cache busting rules (D-07) + branch-protection triad/404 note (D-11)
 
 ### Phase 121: Mix/ExUnit Performance + Test Value Cleanup
 
