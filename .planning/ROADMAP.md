@@ -11,7 +11,7 @@
 <summary>◆ v1.18 CI/CD Reliability (Phases 119-123) — ACTIVE</summary>
 
 - [ ] Phase 119: Baseline + Expert Audit (0/? plans)
-- [ ] Phase 120: Workflow Topology + Cache Hygiene (0/3 plans)
+- [x] Phase 120: Workflow Topology + Cache Hygiene (0/3 plans) (completed 2026-06-16)
 - [ ] Phase 121: Mix/ExUnit Performance + Test Value Cleanup (0/? plans)
 - [ ] Phase 122: Browser/Demo/Integration Determinism (0/? plans)
 - [ ] Phase 123: DX + Closeout Proof (0/? plans)
@@ -122,7 +122,7 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 119. Baseline + Expert Audit | v1.18 | 3/3 | Complete   | 2026-06-15 |
-| 120. Workflow Topology + Cache Hygiene | v1.18 | 3/3 | Complete   | 2026-06-16 |
+| 120. Workflow Topology + Cache Hygiene | v1.18 | 3/3 | Complete    | 2026-06-16 |
 | 121. Mix/ExUnit Performance + Test Value Cleanup | v1.18 | 0/? | Pending | — |
 | 122. Browser/Demo/Integration Determinism | v1.18 | 0/? | Pending | — |
 | 123. DX + Closeout Proof | v1.18 | 0/? | Pending | — |
