@@ -292,6 +292,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-mounted-mix-
       - name: Install mounted proof deps
+        # Load-bearing, not redundant: the mounted_admin_contract scope in
+        # scripts/ci/test.sh intentionally does NOT run `mix deps.get` (unlike
+        # peer scopes such as openfeature_companion / guarded_rollout_foundations).
+        # This step is the only dep fetch for the mounted lane — removing it as
+        # "redundant" would break the job with an Unchecked dependencies failure.
         run: |
           cd rulestead && mix deps.get
           cd ../rulestead_admin && mix deps.get
