@@ -349,14 +349,14 @@ REJECT `mix test --partitions`. Verified evidence:
 - Keep root docs honest about the current phase.
 - Post-GA band (v1.1–v1.9) feature-complete; v1.18 is CI/CD reliability — no product runtime API/schema/UI/brand changes (matches CONTEXT domain exclusions).
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Which named scope is the canonical home for the relocated published-Hex proof?**
+1. **Which named scope is the canonical home for the relocated published-Hex proof?** — **RESOLVED:** `guarded_rollout_foundations` (opt-in via `--include`, file already present, lowest churn). Locked in CONTEXT D-03 and Plan 121-01 Task 2.
    - What we know: D-03 names `post_ga_band_closure` and/or `adopter`; the file currently runs in `all` and `guarded_rollout_foundations`; `verify.phase82` (post_ga/adopter) does NOT include it today.
    - What's unclear: whether to (a) opt it back in on `guarded_rollout_foundations` (file already there), (b) add it to `verify.phase82`'s list so adopter gains it, or (c) both.
    - Recommendation: at minimum opt-in on `guarded_rollout_foundations` (lowest churn, file already present) and add a clear microcopy line; consider also adding to `verify.phase82` if the maintainer wants the adopter lane to own the release-trust proof. Confirm with maintainer at discuss/plan time — this is the one wiring choice CONTEXT left to planner discretion.
 
-2. **Flip `code_refs_plug_test.exs` (1) or 0 modules?**
+2. **Flip `code_refs_plug_test.exs` (1) or 0 modules?** — **RESOLVED:** 0 flips; `code_refs_plug_test.exs` stays serial (DDL-in-setup = DB-ownership hazard, correctness-first D-02). Locked in CONTEXT D-02 and Plan 121-02.
    - What we know: it is the only candidate with no Fake/app-env/telemetry hazard, but it runs `CREATE TABLE IF NOT EXISTS` DDL in `setup`.
    - What's unclear: whether the DDL is safe per-transaction under async in this repo's exact sandbox config (likely idempotent-safe, but D-01 lists "DB ownership" as a disqualifier).
    - Recommendation: default to 0 (correctness-first, D-02). If flipping, require a documented analysis + a verification run under `async: true` and confirm the table's provenance (test-local vs missing migration).
