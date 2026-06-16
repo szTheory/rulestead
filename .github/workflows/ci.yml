@@ -125,6 +125,8 @@ jobs:
         with:
           path: rulestead/priv/plts
           key: ${{ runner.os }}-plt-${{ hashFiles('rulestead/mix.lock', '.tool-versions') }}
+          restore-keys: |
+            ${{ runner.os }}-plt-
       - name: Run lint lane
         run: scripts/ci/lint.sh
       - name: Save Dialyzer PLT
