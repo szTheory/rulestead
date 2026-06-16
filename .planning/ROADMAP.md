@@ -12,7 +12,7 @@
 
 - [x] Phase 119: Baseline + Expert Audit (3/3 plans) (completed 2026-06-16)
 - [x] Phase 120: Workflow Topology + Cache Hygiene (0/3 plans) (completed 2026-06-16)
-- [ ] Phase 121: Mix/ExUnit Performance + Test Value Cleanup (0/? plans)
+- [ ] Phase 121: Mix/ExUnit Performance + Test Value Cleanup (0/3 plans)
 - [ ] Phase 122: Browser/Demo/Integration Determinism (0/? plans)
 - [ ] Phase 123: DX + Closeout Proof (0/? plans)
 
@@ -89,6 +89,18 @@ Plans:
 4. `scripts/ci/test.sh` remains understandable and provides actionable failure categories for maintained proof scopes.
 5. Before/after slowest-test and wall-clock notes are recorded in the phase summary.
 
+**Plans:** 3 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 121-01-PLAN.md — Relocate the dominant published-Hex test behind an opt-in tag (D-03/D-04) + keep the proof reachable on a named scope (D-08)
+- [ ] 121-02-PLAN.md — Evidence-gated async audit (D-01/D-02): per-module verdicts, 0 recommended flips, trio preserved
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 121-03-PLAN.md — Before/after measurement (D-09) + partitioning rejection (D-06) + no-action decisions (D-05/D-07/D-10)
+
 ### Phase 122: Browser/Demo/Integration Determinism
 
 **Goal:** Stabilize expensive browser, demo, integration, and generated-evidence paths while keeping high-value workflow proof.
@@ -123,7 +135,7 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 119. Baseline + Expert Audit | v1.18 | 3/3 | Complete   | 2026-06-15 |
 | 120. Workflow Topology + Cache Hygiene | v1.18 | 3/3 | Complete    | 2026-06-16 |
-| 121. Mix/ExUnit Performance + Test Value Cleanup | v1.18 | 0/? | Pending | — |
+| 121. Mix/ExUnit Performance + Test Value Cleanup | v1.18 | 0/3 | Pending | — |
 | 122. Browser/Demo/Integration Determinism | v1.18 | 0/? | Pending | — |
 | 123. DX + Closeout Proof | v1.18 | 0/? | Pending | — |
 
