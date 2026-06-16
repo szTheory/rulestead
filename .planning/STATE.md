@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: CI/CD Reliability
-status: executing
-last_updated: "2026-06-16T21:56:11.470Z"
+status: verifying
+last_updated: "2026-06-16T22:04:23.968Z"
 last_activity: 2026-06-16
 progress:
   total_phases: 5
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 9
-  completed_plans: 8
-  percent: 40
+  completed_plans: 9
+  percent: 60
 ---
 
 # State: Rulestead
@@ -31,10 +31,10 @@ See: `.planning/PROJECT.md` (updated 2026-06-15)
 
 ## Current Position
 
-Phase: 121 (Mix/ExUnit Performance + Test Value Cleanup) — EXECUTING
-Plan: 3 of 3
-Status: Plans 01 and 02 complete; ready for Plan 03
-Last activity: 2026-06-16 -- Plan 121-02 complete (evidence-gated async audit, 0 flips, suite green)
+Phase: 121 (Mix/ExUnit Performance + Test Value Cleanup) — COMPLETE
+Plan: 3 of 3 (all plans complete)
+Status: Phase complete — all 3 plans done; ready for Phase 122
+Last activity: 2026-06-16 -- Plan 121-03 complete (D-09 measurement record, D-06 partitioning rejected, D-05/D-07/D-10 no-action decisions recorded)
 
 ## Phase Dependency Map
 
@@ -158,6 +158,7 @@ Human checkpoints:
 - **Phase 112.1-02:** Compose-backed Playwright evidence now asserts both Phoenix-rendered FleetDesk links against the selected `DEMO_FRONTEND_URL`, clicks through from the launcher to FleetDesk, includes the fleet-map-v2 rollouts evidence row, and records D-01 through D-12 verification truth.
 - **v1.16 audit close:** Backfilled canonical BUI requirement rows, `requirements-completed` summary frontmatter, and Nyquist validation artifacts for Phases 107-112; `.planning/milestones/v1.16-MILESTONE-AUDIT.md` is `passed`.
 - [Phase 114]: Use curated Playwright screenshots and deterministic assertions instead of visual snapshot tooling. — Plan 114-02 followed the v1.17 evidence posture: screenshots are test artifacts only, with source guards blocking baseline/snapshot tooling.
+- [Phase ?]: Phase 121 Plan 03 (D-09 measurement): Default lane ~4.6s real (was ~42s baseline); dominant test 17090ms on opt-in lane; delta -37s (-88%). D-06 partitioning REJECTED: 5 verified premises (serial network test; async:false suite; per-partition DB/Fake isolation fragility; no partition config; 18 schedulers absorb async set) -> FUT-01 deferred. D-05 no splits (next-slowest 303ms). D-07 no Dialyzer/PLT change. D-10 length-47 xref cycle noted only.
 
 ### Deferred Items (v2)
 
@@ -257,3 +258,4 @@ Current v1.18 planning proof:
 | Phase 119 P02 | 38 min | 3 tasks | 1 files |
 | Phase 119 P03 | 16 min | 3 tasks | 1 files |
 | Phase 121 P01 | 6min | 2 tasks | 3 files |
+| Phase 121-mix-exunit-performance-test-value-cleanup P03 | 15 | 2 tasks | 1 files |
