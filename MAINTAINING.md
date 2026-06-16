@@ -31,12 +31,20 @@ The sibling-package publish decision is intentional:
 
 ## Branch protection settings
 
+> **Live state as of Phase 119 audit (2026-06-15):** the live GitHub API returned
+> `Branch not protected` (HTTP 404) for `main`. The settings below are the intended
+> target posture and must be applied manually by a maintainer — no automated workflow
+> applies them. The Phase 119 audit verified this gap via
+> `gh api repos/szTheory/rulestead/branches/main/protection/required_status_checks`.
+
 Document these settings exactly on `main`:
 
 - Required status checks:
   - `release_gate` (aggregates `lint`, `test`, `integration-placeholder`,
-    `adopter contract (post-GA band)`, and the path-gated mounted companion proof
-    result from `ci.yml`)
+    `adopter contract (post-GA band)`, the path-gated mounted companion proof,
+    and the path-gated openfeature companion proof — all from `ci.yml`; the
+    openfeature companion proof was wired into `release_gate.needs` in Phase 120
+    so that a failing OpenFeature provider contract blocks merge)
   - `Validate PR title`
   - `dependency-review`
 - `actionlint` is not a required status check because it is path-filtered
