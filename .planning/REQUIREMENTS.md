@@ -19,7 +19,7 @@
 
 ### Cache, Release, and Supply Chain
 
-- [ ] **CIDX-07**: Maintainer can verify cache keys, restore keys, Dialyzer PLT handling, and cache observability are correctness-safe and documented.
+- [x] **CIDX-07**: Maintainer can verify cache keys, restore keys, Dialyzer PLT handling, and cache observability are correctness-safe and documented.
 - [x] **CIDX-09**: Release and supply-chain posture remains at least as strict as the current baseline: pinned actions, minimal permissions, gated Hex publish, and post-publish proof.
 
 ### Contributor DX and Closeout
@@ -59,7 +59,7 @@ Deferred until a later milestone or until Phase 119 proves they are worth the ad
 | CIDX-04 | Phase 120 | Complete |
 | CIDX-05 | Phase 122 | Pending |
 | CIDX-06 | Phase 121 | Pending |
-| CIDX-07 | Phase 120 | Pending |
+| CIDX-07 | Phase 120 | Complete |
 | CIDX-08 | Phase 123 | Pending |
 | CIDX-09 | Phase 120 | Complete |
 | CIDX-10 | Phase 123 | Pending |

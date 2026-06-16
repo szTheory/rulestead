@@ -60,7 +60,7 @@
 4. Release workflows still require green CI on the tagged SHA, protected Hex approval, package preflight, and post-publish verification.
 5. Action pinning, permissions, Dependabot coverage, and secret exposure remain at least as strict as the current baseline.
 
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
 
 Plans:
 **Wave 1**
@@ -69,7 +69,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 120-02-PLAN.md — Cache hygiene: remove cross-lane fallback (D-05), scope lint/PLT keys (D-06), scripts-first observability (D-08)
+- [x] 120-02-PLAN.md — Cache hygiene: remove cross-lane fallback (D-05), scope lint/PLT keys (D-06), scripts-first observability (D-08)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -122,7 +122,7 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 119. Baseline + Expert Audit | v1.18 | 3/3 | Complete   | 2026-06-15 |
-| 120. Workflow Topology + Cache Hygiene | v1.18 | 1/3 | In Progress|  |
+| 120. Workflow Topology + Cache Hygiene | v1.18 | 2/3 | In Progress|  |
 | 121. Mix/ExUnit Performance + Test Value Cleanup | v1.18 | 0/? | Pending | — |
 | 122. Browser/Demo/Integration Determinism | v1.18 | 0/? | Pending | — |
 | 123. DX + Closeout Proof | v1.18 | 0/? | Pending | — |
