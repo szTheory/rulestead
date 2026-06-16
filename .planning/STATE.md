@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: CI/CD Reliability
-status: verifying
-last_updated: "2026-06-15T22:15:31.481Z"
-last_activity: 2026-06-15
+status: executing
+last_updated: "2026-06-16T19:37:17.052Z"
+last_activity: 2026-06-16 -- Phase 120 planning complete
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 3
+  total_plans: 6
   completed_plans: 3
   percent: 20
 ---
@@ -33,8 +33,8 @@ See: `.planning/PROJECT.md` (updated 2026-06-15)
 
 Phase: 119 (baseline-expert-audit-0-plans) — EXECUTING
 Plan: 3 of 3
-Status: Phase complete — ready for verification
-Last activity: 2026-06-15
+Status: Ready to execute
+Last activity: 2026-06-16 -- Phase 120 planning complete
 
 ## Phase Dependency Map
 
@@ -67,6 +67,7 @@ Human checkpoints:
 - **v1.18 optimization posture:** Preserve high-value release/adopter/mounted/OpenFeature proof bars unless Phase 119 proves a narrower equivalent catches the same bug class. Do not delete slow tests solely because they are slow.
 - **v1.18 research posture:** Put external-source and comparable-OSS workflow research inside Phase 119 audit artifacts instead of running a separate pre-milestone `.planning/research/` pass.
 - **Phase 119 context:** `.planning/phases/119-baseline-expert-audit-0-plans/119-CONTEXT.md` locks the audit-first posture, one integrated `119-CI-CD-AUDIT.md`, always-triggered CI plus aggregate `release_gate` baseline, linked sibling-package release trust, Mix/ExUnit diagnostics before tuning, no Phase 119 behavior changes, generated browser artifacts over pixel baselines, and scripts-first contributor DX.
+- **Phase 120 context:** `.planning/phases/120-workflow-topology-cache-hygiene-0-plans/120-CONTEXT.md` locks D-01..D-12 — preserve always-triggered CI + single `release_gate` aggregate; **wire `openfeature-companion` into `release_gate.needs`** with the mounted-proof not-relevant→success transform; correctness-first cache hygiene (drop the cross-lane `${{ runner.os }}-mix-` fallback, scope lint/PLT `hashFiles` to `rulestead/mix.lock`, document busting rules); lightweight scripts-first version/cache/repro observability; preserve all release/supply-chain trust surfaces unchanged; **branch-protection 404 reconciled by docs only — no `gh api` writes**. Two audit-flagged open questions (OpenFeature gate, branch-protection scope) resolved with maintainer.
 - **v1.17 harness choice:** Use a repo-native Phoenix/Playwright UI matrix that renders real admin components. Do not adopt standard JavaScript Storybook for this milestone; PhoenixStorybook remains a future option if maintainer-facing component docs become necessary.
 - **v1.17 scope:** Full mounted admin/operator design-system pass, not runtime product work. No public runtime APIs, schemas, release workflow changes, palette redesign, logo redraw, component framework adoption, broad pixel-baseline maintenance, external AI judging dependency, v2 wedge, or `rulestead_admin` standalone publish prep.
 - **v1.17 evidence posture:** Screenshots plus deterministic assertions and human review. Continue the v1.16 preference for broad Playwright artifacts over checked-in pixel baselines.
@@ -184,7 +185,7 @@ All closed — v1.12 adoption evidence depth complete.
 
 ## Operator Next Steps
 
-- Start Phase 119 with `$gsd-discuss-phase 119` or `$gsd-plan-phase 119`.
+- Phase 120 context is locked (`120-CONTEXT.md` + `120-DISCUSSION-LOG.md`). Start planning with `$gsd-plan-phase 120`.
 
 ## Latest Verification
 

@@ -39,6 +39,7 @@
 **Requirements:** CIDX-01, CIDX-02, CIDX-03
 
 **Success criteria:**
+
 1. `119-CI-CD-AUDIT.md` inventories every workflow, trigger, job, matrix, service, cache, required-check role, command, and quality signal.
 2. The audit records current critical path, duplicated work, likely bottlenecks, cache posture, runner CPU use, and missing metrics.
 3. Mix/ExUnit diagnostics record slowest tests, require-time profile, compile profile, xref cycle/connected graphs, and scheduler count.
@@ -52,6 +53,7 @@
 **Requirements:** CIDX-04, CIDX-07, CIDX-09
 
 **Success criteria:**
+
 1. `ci.yml` keeps a trustworthy `release_gate` aggregate and avoids required-check pending traps for docs-only or path-gated jobs.
 2. Mix/build, Dialyzer PLT, and any Node/Playwright caches use correctness-safe keys, restore keys, and documented busting rules.
 3. CI logs or summaries show versions, cache posture, and local reproduction commands for failed lanes where practical.
@@ -61,8 +63,16 @@
 **Plans:** 3 plans
 
 Plans:
+**Wave 1**
+
 - [ ] 120-01-PLAN.md — Wire openfeature-companion into release_gate (D-03) + supply-chain non-regression (D-09/D-10)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 120-02-PLAN.md — Cache hygiene: remove cross-lane fallback (D-05), scope lint/PLT keys (D-06), scripts-first observability (D-08)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 120-03-PLAN.md — Docs reconciliation: per-cache busting rules (D-07) + branch-protection triad/404 note (D-11)
 
 ### Phase 121: Mix/ExUnit Performance + Test Value Cleanup
@@ -72,6 +82,7 @@ Plans:
 **Requirements:** CIDX-06
 
 **Success criteria:**
+
 1. ExUnit modules are marked `async: true` only when proven free of unsafe global state, DB ownership, ports, filesystem, logger, telemetry, or app-env mutation.
 2. Oversized serialized modules are split only when profiling shows meaningful concurrency benefit.
 3. Test partitioning is either explicitly rejected with evidence or implemented with isolated DB/schema behavior and simple rerun commands.
@@ -85,6 +96,7 @@ Plans:
 **Requirements:** CIDX-05
 
 **Success criteria:**
+
 1. Playwright, demo, UI matrix, FleetDesk, and integration scripts are audited for fixed ports, sleeps, shared state, artifact leakage, and flaky readiness checks.
 2. Known transient browser/test behavior is fixed at root cause or quarantined with a clear follow-up, not hidden behind blind retries.
 3. Generated screenshots and browser artifacts remain ignored artifacts, not checked-in baselines.
@@ -98,6 +110,7 @@ Plans:
 **Requirements:** CIDX-08, CIDX-10
 
 **Success criteria:**
+
 1. `MAINTAINING.md` and any contributor-facing docs match the final fast loop, full local gate, CI rerun commands, and release proof posture.
 2. A concise CI failure triage table covers lint, test, mounted proof, OpenFeature proof, demo/Playwright, release publish, post-publish drift, and repo hygiene.
 3. `123-CI-CD-CLOSEOUT.md` records before/after PR wall-clock, p95 target if available, cache hit rate, top slow tests, flake notes, residual risks, and rollback notes.
@@ -130,6 +143,7 @@ Plans:
 | CIDX-10 | Phase 123 | Pending |
 
 **Coverage:**
+
 - v1.18 requirements: 10 total
 - Mapped to phases: 10
 - Unmapped: 0
