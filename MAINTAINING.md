@@ -53,12 +53,19 @@ Document these settings exactly on `main`:
 
 ## CI caching
 
-`ci.yml` restores and saves bounded Mix caches to keep lint and test lanes fast:
+`ci.yml` restores and saves bounded Mix caches to keep lint and test lanes fast.
+The cache shape below reflects the final Phase 120 (D-05/D-06) key structure.
 
-- **Mix deps/build** — `rulestead/` (and sibling packages where the job needs them)
-  keyed by `mix.lock` plus OTP/Elixir when matrixed.
-- **Dialyzer PLTs** — `rulestead/priv/plts/` uses restore → build-if-miss → save in
-  the lint job (PLTs are gitignored locally; CI owns the warm cache).
+| Lane | Cached paths | Cache key components | One-line busting rule |
+|------|-------------|----------------------|----------------------|
+| **lint** (Mix deps/build) | `rulestead/deps`, `rulestead/_build` | OS + `rulestead/mix.lock` + `.tool-versions` | Busted by any change to `rulestead/mix.lock` or `.tool-versions` |
+| **Dialyzer PLT** (lint job) | `rulestead/priv/plts` | OS + `rulestead/mix.lock` + `.tool-versions` | Busted by any change to `rulestead/mix.lock` or `.tool-versions` (save key equals restore key) |
+| **test matrix** (Mix deps/build) | `rulestead/deps`, `rulestead/_build/test`, `rulestead_admin/deps`, `rulestead_admin/_build/test` | OS + OTP version + Elixir version + `**/mix.lock` (all four repo lockfiles) | Busted by any lockfile, OTP version, or Elixir version change; matrix-scoped restore key `OS-OTP-ELIXIR-mix-` is the only fallback (the cross-lane `OS-mix-` fallback was removed in D-05 to prevent OTP-incompatible `_build` restores) |
+| **adopter-contract** (Mix deps/build) | `rulestead/deps`, `rulestead/_build/test`, `rulestead_admin/deps`, `rulestead_admin/_build/test` | OS + `**/mix.lock` + `.tool-versions` | Busted by any change to either sibling's `mix.lock` or `.tool-versions` |
+| **openfeature-companion** (Mix deps/build) | `open_feature_rulestead/deps`, `open_feature_rulestead/_build/test` | OS + `open_feature_rulestead/mix.lock` + `.tool-versions` | Busted by any change to `open_feature_rulestead/mix.lock` or `.tool-versions` |
+| **mounted-proof** (Mix deps/build) | `rulestead/deps`, `rulestead/_build/test`, `rulestead_admin/deps`, `rulestead_admin/_build/test` | OS + `**/mix.lock` + `.tool-versions` | Busted by any change to either sibling's `mix.lock` or `.tool-versions` |
+
+Lint and PLT caches are scoped to `rulestead/mix.lock` (single-package lane — `lint.sh` builds only `rulestead/`). Test, adopter-contract, and mounted-proof caches use `**/mix.lock` because those lanes build both sibling packages; narrowing to a single lockfile would cause silent under-invalidation on sibling dependency bumps.
 
 Cache keys intentionally exclude `.planning/`, `prompts/`, and guide-only edits.
 
