@@ -113,7 +113,12 @@ jobs:
       - name: Report lint cache hit
         run: |
           if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
-            echo "Cache hit: ${{ steps.mix-cache.outputs.cache-hit }}" >> "$GITHUB_STEP_SUMMARY"
+            hit="${{ steps.mix-cache.outputs.cache-hit }}"
+            if [[ "$hit" == "true" ]]; then
+              echo "Cache: exact hit" >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "Cache: miss or restore-key (partial) hit" >> "$GITHUB_STEP_SUMMARY"
+            fi
           fi
       - name: Restore Dialyzer PLT
         uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
@@ -184,7 +189,12 @@ jobs:
       - name: Report test cache hit
         run: |
           if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
-            echo "Cache hit: ${{ steps.mix-cache.outputs.cache-hit }}" >> "$GITHUB_STEP_SUMMARY"
+            hit="${{ steps.mix-cache.outputs.cache-hit }}"
+            if [[ "$hit" == "true" ]]; then
+              echo "Cache: exact hit" >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "Cache: miss or restore-key (partial) hit" >> "$GITHUB_STEP_SUMMARY"
+            fi
           fi
       - name: Run test lane
         run: scripts/ci/test.sh
