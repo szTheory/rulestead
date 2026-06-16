@@ -228,7 +228,7 @@ run_guarded_rollout_foundations() {
       test/rulestead/guarded_rollout_test.exs \
       test/rulestead/release_contract_test.exs \
       test/rulestead/mix/tasks/verify_release_publish_test.exs; then
-      if RULESTEAD_RUN_PUBLISHED_HEX_SMOKE=1 run_mix rulestead test --include published_hex_smoke \
+      if RULESTEAD_RUN_PUBLISHED_HEX_SMOKE=1 run_mix_logged rulestead "${log_file}" test --only published_hex_smoke \
         test/rulestead/mix/tasks/verify_release_publish_test.exs; then
         if run_mix_logged rulestead_admin "${log_file}" deps.get; then
           if run_mix_logged rulestead_admin "${log_file}" test \
