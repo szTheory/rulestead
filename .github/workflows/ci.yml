@@ -185,7 +185,7 @@ jobs:
             rulestead/_build/test
             rulestead_admin/deps
             rulestead_admin/_build/test
-          key: ${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-${{ hashFiles('**/mix.lock') }}
+          key: ${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-${{ hashFiles('rulestead/mix.lock', 'rulestead_admin/mix.lock', '.tool-versions') }}
           restore-keys: |
             ${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-
       - name: Report test cache hit
@@ -252,7 +252,7 @@ jobs:
             rulestead/_build/test
             rulestead_admin/deps
             rulestead_admin/_build/test
-          key: ${{ runner.os }}-adopter-mix-${{ hashFiles('**/mix.lock', '.tool-versions') }}
+          key: ${{ runner.os }}-adopter-mix-${{ hashFiles('rulestead/mix.lock', 'rulestead_admin/mix.lock', '.tool-versions') }}
           restore-keys: |
             ${{ runner.os }}-adopter-mix-
       - name: Run post-GA band closure proof bar
@@ -304,7 +304,7 @@ jobs:
             rulestead/_build/test
             rulestead_admin/deps
             rulestead_admin/_build/test
-          key: ${{ runner.os }}-mounted-mix-${{ hashFiles('**/mix.lock', '.tool-versions') }}
+          key: ${{ runner.os }}-mounted-mix-${{ hashFiles('rulestead/mix.lock', 'rulestead_admin/mix.lock', '.tool-versions') }}
           restore-keys: |
             ${{ runner.os }}-mounted-mix-
       - name: Install mounted proof deps
