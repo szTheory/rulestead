@@ -60,12 +60,12 @@
 4. Release workflows still require green CI on the tagged SHA, protected Hex approval, package preflight, and post-publish verification.
 5. Action pinning, permissions, Dependabot coverage, and secret exposure remain at least as strict as the current baseline.
 
-**Plans:** 3 plans
+**Plans:** 1/3 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 120-01-PLAN.md — Wire openfeature-companion into release_gate (D-03) + supply-chain non-regression (D-09/D-10)
+- [x] 120-01-PLAN.md — Wire openfeature-companion into release_gate (D-03) + supply-chain non-regression (D-09/D-10)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -122,7 +122,7 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 119. Baseline + Expert Audit | v1.18 | 3/3 | Complete   | 2026-06-15 |
-| 120. Workflow Topology + Cache Hygiene | v1.18 | 0/? | Pending | — |
+| 120. Workflow Topology + Cache Hygiene | v1.18 | 1/3 | In Progress|  |
 | 121. Mix/ExUnit Performance + Test Value Cleanup | v1.18 | 0/? | Pending | — |
 | 122. Browser/Demo/Integration Determinism | v1.18 | 0/? | Pending | — |
 | 123. DX + Closeout Proof | v1.18 | 0/? | Pending | — |

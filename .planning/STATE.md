@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: CI/CD Reliability
 status: executing
-last_updated: "2026-06-16T19:37:17.052Z"
-last_activity: 2026-06-16 -- Phase 120 planning complete
+last_updated: "2026-06-16T19:43:29.251Z"
+last_activity: 2026-06-16
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 6
-  completed_plans: 3
+  completed_plans: 4
   percent: 20
 ---
 
@@ -21,7 +21,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-15)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
 
-**Current focus:** Phase 119 — baseline-expert-audit-0-plans
+**Current focus:** Phase 120 — workflow-topology-cache-hygiene-0-plans
 
 **Milestone:** v1.18 CI/CD Reliability — see `.planning/ROADMAP.md`.
 
@@ -31,10 +31,10 @@ See: `.planning/PROJECT.md` (updated 2026-06-15)
 
 ## Current Position
 
-Phase: 119 (baseline-expert-audit-0-plans) — EXECUTING
-Plan: 3 of 3
+Phase: 120 (workflow-topology-cache-hygiene-0-plans) — EXECUTING
+Plan: 2 of 3
 Status: Ready to execute
-Last activity: 2026-06-16 -- Phase 120 planning complete
+Last activity: 2026-06-16
 
 ## Phase Dependency Map
 
