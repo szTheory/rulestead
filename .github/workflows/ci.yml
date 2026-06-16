@@ -112,7 +112,9 @@ jobs:
             ${{ runner.os }}-lint-mix-
       - name: Report lint cache hit
         run: |
-          echo "Cache hit: ${{ steps.mix-cache.outputs.cache-hit }}" >> "$GITHUB_STEP_SUMMARY"
+          if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
+            echo "Cache hit: ${{ steps.mix-cache.outputs.cache-hit }}" >> "$GITHUB_STEP_SUMMARY"
+          fi
       - name: Restore Dialyzer PLT
         uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
@@ -181,7 +183,9 @@ jobs:
             ${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-
       - name: Report test cache hit
         run: |
-          echo "Cache hit: ${{ steps.mix-cache.outputs.cache-hit }}" >> "$GITHUB_STEP_SUMMARY"
+          if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
+            echo "Cache hit: ${{ steps.mix-cache.outputs.cache-hit }}" >> "$GITHUB_STEP_SUMMARY"
+          fi
       - name: Run test lane
         run: scripts/ci/test.sh
 
