@@ -300,6 +300,7 @@ jobs:
       - integration-placeholder
       - adopter-contract
       - mounted-proof
+      - openfeature-companion
     if: always()
     runs-on: ubuntu-24.04
     steps:
@@ -311,6 +312,7 @@ jobs:
           integration_result="${{ needs['integration-placeholder'].result }}"
           adopter_result="${{ needs['adopter-contract'].result }}"
           mounted_proof_result="${{ needs['mounted-proof'].result }}"
+          openfeature_result="${{ needs['openfeature-companion'].result }}"
 
           if [[ "${{ needs.changes.outputs.docs-only }}" == "true" ]]; then
             [[ "${lint_result}" == "skipped" ]] && lint_result="success"
@@ -322,6 +324,10 @@ jobs:
             mounted_proof_result="success"
           fi
 
+          if [[ "${{ needs.changes.outputs.openfeature-companion }}" != "true" && "${openfeature_result}" == "skipped" ]]; then
+            openfeature_result="success"
+          fi
+
           scripts/ci/release_gate.sh \
             --skip-phase7 \
             "changes=${{ needs.changes.result }}" \
@@ -329,4 +335,5 @@ jobs:
             "test=${test_result}" \
             "integration-placeholder=${integration_result}" \
             "adopter-contract=${adopter_result}" \
-            "mounted-proof=${mounted_proof_result}"
+            "mounted-proof=${mounted_proof_result}" \
+            "openfeature-companion=${openfeature_result}"
