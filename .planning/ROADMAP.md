@@ -10,7 +10,7 @@
 <details open>
 <summary>◆ v1.18 CI/CD Reliability (Phases 119-123) — ACTIVE</summary>
 
-- [ ] Phase 119: Baseline + Expert Audit (0/? plans)
+- [x] Phase 119: Baseline + Expert Audit (3/3 plans) (completed 2026-06-16)
 - [x] Phase 120: Workflow Topology + Cache Hygiene (0/3 plans) (completed 2026-06-16)
 - [ ] Phase 121: Mix/ExUnit Performance + Test Value Cleanup (0/? plans)
 - [ ] Phase 122: Browser/Demo/Integration Determinism (0/? plans)
