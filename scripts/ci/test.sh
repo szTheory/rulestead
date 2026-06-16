@@ -497,17 +497,24 @@ run_post_ga_band_closure() {
   rm -f "${log_file}"
 }
 
+elixir_ver="$(elixir --version 2>/dev/null || true)"
+mix_ver="$(mix --version 2>/dev/null || true)"
+
 if [[ -n "${MATRIX_ELIXIR}" || -n "${MATRIX_OTP}" ]]; then
   echo "Running test lane for Elixir ${MATRIX_ELIXIR:-unknown} / OTP ${MATRIX_OTP:-unknown}"
-  elixir --version 2>/dev/null || true
-  mix --version 2>/dev/null || true
+  [[ -n "${elixir_ver}" ]] && echo "${elixir_ver}"
+  [[ -n "${mix_ver}" ]] && echo "${mix_ver}"
+  true
 fi
 
 if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
+  elixir_ver_line="$(printf '%s\n' "${elixir_ver}" | head -1)"
+  : "${elixir_ver_line:=elixir not found}"
+  mix_ver_summary="${mix_ver:-mix not found}"
   {
     echo "## Test lane: Elixir ${MATRIX_ELIXIR:-unknown} / OTP ${MATRIX_OTP:-unknown}"
     echo ""
-    echo "**Versions:** $(elixir --version 2>/dev/null | head -1 || echo 'elixir not found') / $(mix --version 2>/dev/null || echo 'mix not found')"
+    echo "**Versions:** ${elixir_ver_line} / ${mix_ver_summary}"
     echo ""
     echo "**Rerun:** \`MATRIX_ELIXIR=${MATRIX_ELIXIR:-unknown} MATRIX_OTP=${MATRIX_OTP:-unknown} bash scripts/ci/test.sh\`"
   } >> "${GITHUB_STEP_SUMMARY}"

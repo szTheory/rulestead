@@ -5,15 +5,22 @@ RULESTEAD_REPO="${GITHUB_WORKSPACE:-$(pwd)}"
 
 cd "${RULESTEAD_REPO}/rulestead"
 
+elixir_ver="$(elixir --version 2>/dev/null || true)"
+mix_ver="$(mix --version 2>/dev/null || true)"
+
 echo "Running lint lane"
-elixir --version 2>/dev/null || true
-mix --version 2>/dev/null || true
+[[ -n "${elixir_ver}" ]] && echo "${elixir_ver}"
+[[ -n "${mix_ver}" ]] && echo "${mix_ver}"
+true
 
 if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
+  elixir_ver_line="$(printf '%s\n' "${elixir_ver}" | head -1)"
+  : "${elixir_ver_line:=elixir not found}"
+  : "${mix_ver:=mix not found}"
   {
     echo "## Lint lane"
     echo ""
-    echo "**Versions:** $(elixir --version 2>/dev/null | head -1 || echo 'elixir not found') / $(mix --version 2>/dev/null || echo 'mix not found')"
+    echo "**Versions:** ${elixir_ver_line} / ${mix_ver}"
     echo ""
     echo "**Rerun:** \`bash scripts/ci/lint.sh\`"
   } >> "${GITHUB_STEP_SUMMARY}"
