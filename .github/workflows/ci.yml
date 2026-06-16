@@ -106,14 +106,14 @@ jobs:
           path: |
             rulestead/deps
             rulestead/_build
-          key: ${{ runner.os }}-lint-mix-${{ hashFiles('**/mix.lock', '.tool-versions') }}
+          key: ${{ runner.os }}-lint-mix-${{ hashFiles('rulestead/mix.lock', '.tool-versions') }}
           restore-keys: |
             ${{ runner.os }}-lint-mix-
       - name: Restore Dialyzer PLT
         uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: rulestead/priv/plts
-          key: ${{ runner.os }}-plt-${{ hashFiles('**/mix.lock', '.tool-versions') }}
+          key: ${{ runner.os }}-plt-${{ hashFiles('rulestead/mix.lock', '.tool-versions') }}
       - name: Run lint lane
         run: scripts/ci/lint.sh
       - name: Save Dialyzer PLT
@@ -121,7 +121,7 @@ jobs:
         uses: actions/cache/save@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: rulestead/priv/plts
-          key: ${{ runner.os }}-plt-${{ hashFiles('**/mix.lock', '.tool-versions') }}
+          key: ${{ runner.os }}-plt-${{ hashFiles('rulestead/mix.lock', '.tool-versions') }}
 
   test:
     name: test (${{ matrix.elixir }} / OTP ${{ matrix.otp }})
@@ -174,7 +174,6 @@ jobs:
           key: ${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-${{ hashFiles('**/mix.lock') }}
           restore-keys: |
             ${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-
-            ${{ runner.os }}-mix-
       - name: Run test lane
         run: scripts/ci/test.sh
 
@@ -254,7 +253,7 @@ jobs:
           path: |
             open_feature_rulestead/deps
             open_feature_rulestead/_build/test
-          key: ${{ runner.os }}-openfeature-mix-${{ hashFiles('**/mix.lock', '.tool-versions') }}
+          key: ${{ runner.os }}-openfeature-mix-${{ hashFiles('open_feature_rulestead/mix.lock', '.tool-versions') }}
           restore-keys: |
             ${{ runner.os }}-openfeature-mix-
       - name: Run OpenFeature companion proof bar
