@@ -101,6 +101,7 @@ jobs:
           version-file: .tool-versions
           version-type: strict
       - name: Cache Mix deps and build
+        id: mix-cache
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: |
@@ -109,6 +110,9 @@ jobs:
           key: ${{ runner.os }}-lint-mix-${{ hashFiles('rulestead/mix.lock', '.tool-versions') }}
           restore-keys: |
             ${{ runner.os }}-lint-mix-
+      - name: Report lint cache hit
+        run: |
+          echo "Cache hit: ${{ steps.mix-cache.outputs.cache-hit }}" >> "$GITHUB_STEP_SUMMARY"
       - name: Restore Dialyzer PLT
         uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
@@ -164,6 +168,7 @@ jobs:
           elixir-version: ${{ matrix.elixir }}
           otp-version: ${{ matrix.otp }}
       - name: Cache Mix deps and build
+        id: mix-cache
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: |
@@ -174,6 +179,9 @@ jobs:
           key: ${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-${{ hashFiles('**/mix.lock') }}
           restore-keys: |
             ${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-
+      - name: Report test cache hit
+        run: |
+          echo "Cache hit: ${{ steps.mix-cache.outputs.cache-hit }}" >> "$GITHUB_STEP_SUMMARY"
       - name: Run test lane
         run: scripts/ci/test.sh
 

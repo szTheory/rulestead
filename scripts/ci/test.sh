@@ -499,6 +499,18 @@ run_post_ga_band_closure() {
 
 if [[ -n "${MATRIX_ELIXIR}" || -n "${MATRIX_OTP}" ]]; then
   echo "Running test lane for Elixir ${MATRIX_ELIXIR:-unknown} / OTP ${MATRIX_OTP:-unknown}"
+  elixir --version 2>/dev/null || true
+  mix --version 2>/dev/null || true
+fi
+
+if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
+  {
+    echo "## Test lane: Elixir ${MATRIX_ELIXIR:-unknown} / OTP ${MATRIX_OTP:-unknown}"
+    echo ""
+    echo "**Versions:** $(elixir --version 2>/dev/null | head -1 || echo 'elixir not found') / $(mix --version 2>/dev/null || echo 'mix not found')"
+    echo ""
+    echo "**Rerun:** \`MATRIX_ELIXIR=${MATRIX_ELIXIR:-unknown} MATRIX_OTP=${MATRIX_OTP:-unknown} bash scripts/ci/test.sh\`"
+  } >> "${GITHUB_STEP_SUMMARY}"
 fi
 
 case "${TEST_SCOPE}" in

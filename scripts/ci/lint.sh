@@ -4,6 +4,21 @@ set -euo pipefail
 RULESTEAD_REPO="${GITHUB_WORKSPACE:-$(pwd)}"
 
 cd "${RULESTEAD_REPO}/rulestead"
+
+echo "Running lint lane"
+elixir --version 2>/dev/null || true
+mix --version 2>/dev/null || true
+
+if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
+  {
+    echo "## Lint lane"
+    echo ""
+    echo "**Versions:** $(elixir --version 2>/dev/null | head -1 || echo 'elixir not found') / $(mix --version 2>/dev/null || echo 'mix not found')"
+    echo ""
+    echo "**Rerun:** \`bash scripts/ci/lint.sh\`"
+  } >> "${GITHUB_STEP_SUMMARY}"
+fi
+
 mix deps.get
 mix format --check-formatted
 mix compile --warnings-as-errors
