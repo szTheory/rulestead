@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: CI/CD Reliability
 status: executing
-last_updated: "2026-06-16T22:02:00.000Z"
-last_activity: 2026-06-16 -- Phase 121 Plan 01 complete (published_hex_smoke tag + guarded_rollout_foundations scope wiring)
+last_updated: "2026-06-16T21:56:11.470Z"
+last_activity: 2026-06-16
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 9
-  completed_plans: 7
+  completed_plans: 8
   percent: 40
 ---
 
@@ -32,9 +32,9 @@ See: `.planning/PROJECT.md` (updated 2026-06-15)
 ## Current Position
 
 Phase: 121 (Mix/ExUnit Performance + Test Value Cleanup) — EXECUTING
-Plan: 2 of 3
-Status: Plan 01 complete; ready for Plan 02
-Last activity: 2026-06-16 -- Plan 121-01 complete
+Plan: 3 of 3
+Status: Plans 01 and 02 complete; ready for Plan 03
+Last activity: 2026-06-16 -- Plan 121-02 complete (evidence-gated async audit, 0 flips, suite green)
 
 ## Phase Dependency Map
 
@@ -63,6 +63,7 @@ Human checkpoints:
 
 ### Decisions
 
+- **Phase 121 Plan 02 (D-01/D-02 audit):** Evidence-gated async audit of 23 async:false RepoCase candidates produced 121-ASYNC-AUDIT.md. Net flips = 0: every candidate carries at least one disqualifying hazard (global Rulestead.Fake singleton, Application.put_env, :telemetry.attach, capture_log, or DDL-in-setup). code_refs_plug_test.exs: KEEP SERIAL (DDL-in-setup = DB-ownership hazard). Do-not-flip trio preserved (stale_flag_worker, batcher, inbound_http). Suite remains green: 586 tests, 0 failures.
 - **Phase 121 Plan 01 (D-03/D-08):** Published-Hex smoke test (`"admin consumer fixture compiles against published Hex packages"`) moved behind `@tag :published_hex_smoke` + `RULESTEAD_RUN_PUBLISHED_HEX_SMOKE` env, excluded by default in `test_helper.exs`. Proof preserved and confirmed running on `guarded_rollout_foundations` scope via `RULESTEAD_RUN_PUBLISHED_HEX_SMOKE=1 run_mix rulestead test --include published_hex_smoke`. Default suite: ~5s, 586 tests, 0 failures (was ~42s). Failure microcopy added for guarded_rollout_foundations scope. No blind retry (D-04). install_integration gate preserved.
 - **v1.18 scope:** Maintenance-quality CI/CD reliability milestone. Audit first, then implement conservative, evidence-backed improvements to pipeline performance, determinism, cache correctness, test value, release trust, and contributor DX.
 - **v1.18 optimization posture:** Preserve high-value release/adopter/mounted/OpenFeature proof bars unless Phase 119 proves a narrower equivalent catches the same bug class. Do not delete slow tests solely because they are slow.

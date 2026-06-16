@@ -89,13 +89,13 @@ Plans:
 4. `scripts/ci/test.sh` remains understandable and provides actionable failure categories for maintained proof scopes.
 5. Before/after slowest-test and wall-clock notes are recorded in the phase summary.
 
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
 
 Plans:
 **Wave 1**
 
 - [x] 121-01-PLAN.md — Relocate the dominant published-Hex test behind an opt-in tag (D-03/D-04) + keep the proof reachable on a named scope (D-08)
-- [ ] 121-02-PLAN.md — Evidence-gated async audit (D-01/D-02): per-module verdicts, 0 recommended flips, trio preserved
+- [x] 121-02-PLAN.md — Evidence-gated async audit (D-01/D-02): per-module verdicts, 0 recommended flips, trio preserved
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -135,7 +135,7 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 119. Baseline + Expert Audit | v1.18 | 3/3 | Complete   | 2026-06-15 |
 | 120. Workflow Topology + Cache Hygiene | v1.18 | 3/3 | Complete    | 2026-06-16 |
-| 121. Mix/ExUnit Performance + Test Value Cleanup | v1.18 | 1/3 | In Progress|  |
+| 121. Mix/ExUnit Performance + Test Value Cleanup | v1.18 | 2/3 | In Progress|  |
 | 122. Browser/Demo/Integration Determinism | v1.18 | 0/? | Pending | — |
 | 123. DX + Closeout Proof | v1.18 | 0/? | Pending | — |
 
