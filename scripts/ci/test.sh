@@ -170,19 +170,94 @@ reusable_targeting_failure_category() {
   fi
 }
 
+print_guarded_rollout_foundations_failure_guidance() {
+  local category="${1:-unknown}"
+
+  {
+    echo
+    echo "guarded_rollout_foundations failure category: ${category}"
+    echo "Expected support boundary: core owns guardrail contracts, guarded rollout logic, and release publish truth; mounted companion presents bounded rollout UX."
+    echo "Rerun: RULESTEAD_TEST_SCOPE=guarded_rollout_foundations bash scripts/ci/test.sh"
+    echo "Published-Hex smoke proof rerun: RULESTEAD_RUN_PUBLISHED_HEX_SMOKE=1 RULESTEAD_TEST_SCOPE=guarded_rollout_foundations bash scripts/ci/test.sh"
+    echo "Remediation: cd rulestead && mix test test/rulestead/guardrails/contract_test.exs test/rulestead/guardrails/decision_test.exs test/rulestead/guarded_rollout_test.exs test/rulestead/release_contract_test.exs test/rulestead/mix/tasks/verify_release_publish_test.exs"
+
+    if [[ "${category}" == "published_hex_smoke failure" ]]; then
+      echo "Published-Hex smoke hint: 'admin consumer fixture compiles against published Hex packages' failed — check hex.pm network reachability and that rulestead 0.1.4/rulestead_admin 0.1.4 are still live on Hex."
+      echo "Opt-in rerun: RULESTEAD_RUN_PUBLISHED_HEX_SMOKE=1 cd rulestead && mix test --include published_hex_smoke test/rulestead/mix/tasks/verify_release_publish_test.exs"
+    elif [[ "${category}" == "setup/prerequisite failure" ]]; then
+      echo "Setup expectation: install repo deps and prepare the rulestead test database before rerunning."
+      echo "Suggested setup:"
+      echo "  - cd rulestead && mix deps.get"
+      echo "  - cd rulestead && mix ecto.create && mix ecto.migrate"
+      echo "  - cd ../rulestead_admin && mix deps.get"
+    else
+      echo "Remediation focus: inspect contract regression output above for guardrail, rollout, or release-publish failures."
+    fi
+
+    echo "Runbook: ${MOUNTED_PROOF_RUNBOOK}"
+  } >&2
+}
+
+guarded_rollout_foundations_failure_category() {
+  local log_file="$1"
+
+  if grep -Eq "admin consumer fixture compiles against published Hex packages" "${log_file}" 2>/dev/null && \
+     grep -Eq "test failed|failures|ExUnit\\.AssertionError" "${log_file}" 2>/dev/null; then
+    echo "published_hex_smoke failure"
+  elif grep -Eq \
+    "Unchecked dependencies|Could not find Hex|Could not compile dependency|mix local\\.hex|mix deps\\.get|The database for" \
+    "${log_file}" 2>/dev/null; then
+    echo "setup/prerequisite failure"
+  elif grep -Eq "test failed|failures|ExUnit\\.AssertionError" "${log_file}" 2>/dev/null; then
+    echo "contract regression"
+  else
+    echo "unknown guarded-rollout-foundations failure"
+  fi
+}
+
 run_guarded_rollout_foundations() {
-  run_mix rulestead deps.get
-  prepare_rulestead_test_db
-  run_mix rulestead test \
-    test/rulestead/guardrails/contract_test.exs \
-    test/rulestead/guardrails/decision_test.exs \
-    test/rulestead/guarded_rollout_test.exs \
-    test/rulestead/release_contract_test.exs \
-    test/rulestead/mix/tasks/verify_release_publish_test.exs
-  run_mix rulestead_admin deps.get
-  run_mix rulestead_admin test \
-    test/rulestead_admin/live/flag_live/rollouts_test.exs \
-    test/rulestead_admin/live/flag_live/timeline_test.exs
+  local log_file
+  local status=0
+  log_file="$(mktemp)"
+
+  if run_mix_logged rulestead "${log_file}" deps.get; then
+    prepare_rulestead_test_db
+    if run_mix_logged rulestead "${log_file}" test \
+      test/rulestead/guardrails/contract_test.exs \
+      test/rulestead/guardrails/decision_test.exs \
+      test/rulestead/guarded_rollout_test.exs \
+      test/rulestead/release_contract_test.exs \
+      test/rulestead/mix/tasks/verify_release_publish_test.exs; then
+      if RULESTEAD_RUN_PUBLISHED_HEX_SMOKE=1 run_mix rulestead test --include published_hex_smoke \
+        test/rulestead/mix/tasks/verify_release_publish_test.exs; then
+        if run_mix_logged rulestead_admin "${log_file}" deps.get; then
+          if run_mix_logged rulestead_admin "${log_file}" test \
+            test/rulestead_admin/live/flag_live/rollouts_test.exs \
+            test/rulestead_admin/live/flag_live/timeline_test.exs; then
+            :
+          else
+            status=$?
+          fi
+        else
+          status=$?
+        fi
+      else
+        status=$?
+      fi
+    else
+      status=$?
+    fi
+  else
+    status=$?
+  fi
+
+  if [[ "${status}" -ne 0 ]]; then
+    print_guarded_rollout_foundations_failure_guidance "$(guarded_rollout_foundations_failure_category "${log_file}")"
+    rm -f "${log_file}"
+    return "${status}"
+  fi
+
+  rm -f "${log_file}"
 }
 
 print_blast_radius_governance_failure_guidance() {
