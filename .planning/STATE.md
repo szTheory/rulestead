@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: CI/CD Reliability
 status: executing
-last_updated: "2026-06-17T15:40:00.000Z"
-last_activity: 2026-06-17 -- Phase 123 Plan 01 complete (123-CI-CD-CLOSEOUT.md + 119 catalog reconciliation)
+last_updated: "2026-06-17T15:44:27.628Z"
+last_activity: 2026-06-17 -- Phase 123 Plan 02 complete (MAINTAINING.md CI Failure Triage + D-14 guard)
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 13
-  completed_plans: 11
-  percent: 85
+  completed_plans: 12
+  percent: 90
 ---
 
 # State: Rulestead
@@ -32,9 +32,9 @@ See: `.planning/PROJECT.md` (updated 2026-06-15)
 ## Current Position
 
 Phase: 123 (DX + Closeout Proof) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Executing Phase 123
-Last activity: 2026-06-17 -- Phase 123 Plan 01 complete (123-CI-CD-CLOSEOUT.md + 119 catalog reconciliation)
+Last activity: 2026-06-17 -- Phase 123 Plan 02 complete (MAINTAINING.md CI Failure Triage + D-14 guard)
 
 ## Phase Dependency Map
 
@@ -63,6 +63,7 @@ Human checkpoints:
 
 ### Decisions
 
+- **Phase 123 Plan 02 (D-12/D-13/D-14):** `MAINTAINING.md` shift-left gate section extended with command ladder paragraph naming `cd rulestead && mix ci` as the fast-loop alias for `bash scripts/ci/contributor.sh`; new `## CI Failure Triage` section added with 9-row 6-column table in `release_gate` pipeline order. Verbatim microcopy lifted from `scripts/ci/test.sh:67-90` (mounted-proof) and case switch (openfeature-companion) per D-12. `publish-hex` and `verify-published-release` rows labeled release-trust gate, not a speed target per D-13. D-14 guard: 5 `assert maintaining =~` assertions added inside existing maintainer guidance test in `release_contract_test.exs`; `mix test release_contract_test.exs` exits 0 (26 tests, 0 failures). Pre-existing `lint.sh` `ADMIN FOUNDATION DRIFT DETECTED` (missing 115-FOUNDATIONS-CONTRACT.md) is out-of-scope and deferred.
 - **Phase 123 Plan 01 (D-03/D-05/D-09):** `123-CI-CD-CLOSEOUT.md` created as CIDX-10 milestone counterpart to `119-CI-CD-AUDIT.md`. Before/after deltas cited from `121-MEASUREMENT.md:136-154` (no re-measurement per D-03). p95 recorded as unavailable with verbatim `119-CI-CD-AUDIT.md:109` reason (D-05). Cache hit rate qualitative only per `scripts/ci/report_cache_hit.sh` (D-05). `119-CI-CD-AUDIT.md:213` reconciled: fast-contributor-loop now names `cd rulestead && mix ci` (alias for `bash scripts/ci/contributor.sh`) per D-09; zero behavioral change confirmed by `mix.exs:172`.
 - **Phase 121 Plan 02 (D-01/D-02 audit):** Evidence-gated async audit of 23 async:false RepoCase candidates produced 121-ASYNC-AUDIT.md. Net flips = 0: every candidate carries at least one disqualifying hazard (global Rulestead.Fake singleton, Application.put_env, :telemetry.attach, capture_log, or DDL-in-setup). code_refs_plug_test.exs: KEEP SERIAL (DDL-in-setup = DB-ownership hazard). Do-not-flip trio preserved (stale_flag_worker, batcher, inbound_http). Suite remains green: 586 tests, 0 failures.
 - **Phase 121 Plan 01 (D-03/D-08):** Published-Hex smoke test (`"admin consumer fixture compiles against published Hex packages"`) moved behind `@tag :published_hex_smoke` + `RULESTEAD_RUN_PUBLISHED_HEX_SMOKE` env, excluded by default in `test_helper.exs`. Proof preserved and confirmed running on `guarded_rollout_foundations` scope via `RULESTEAD_RUN_PUBLISHED_HEX_SMOKE=1 run_mix rulestead test --include published_hex_smoke`. Default suite: ~5s, 586 tests, 0 failures (was ~42s). Failure microcopy added for guarded_rollout_foundations scope. No blind retry (D-04). install_integration gate preserved.
@@ -263,3 +264,4 @@ Current v1.18 planning proof:
 | Phase 121-mix-exunit-performance-test-value-cleanup P03 | 15 | 2 tasks | 1 files |
 | Phase 122-browser-demo-integration-determinism P01 | 4min | 4 tasks | 3 files |
 | Phase 123-dx-closeout-proof P01 | 12min | 2 tasks | 2 files |
+| Phase 123 P02 | 15 minutes | 2 tasks | 2 files |

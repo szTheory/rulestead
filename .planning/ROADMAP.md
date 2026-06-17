@@ -136,7 +136,7 @@ Plans:
 4. Final verification includes targeted changed lanes plus the agreed local/CI gates from the requirements.
 5. Requirements traceability and `STATE.md` are updated before milestone closeout.
 
-**Plans:** 3/3 plans
+**Plans:** 2/3 plans executed
 
 Plans:
 **Wave 1**
@@ -145,7 +145,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 123-02-PLAN.md — MAINTAINING.md command ladder + CI Failure Triage table (D-07/D-08/D-10..D-13) + D-14 anti-drift guard in release_contract_test.exs
+- [x] 123-02-PLAN.md — MAINTAINING.md command ladder + CI Failure Triage table (D-07/D-08/D-10..D-13) + D-14 anti-drift guard in release_contract_test.exs
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -159,7 +159,7 @@ Plans:
 | 120. Workflow Topology + Cache Hygiene | v1.18 | 3/3 | Complete    | 2026-06-16 |
 | 121. Mix/ExUnit Performance + Test Value Cleanup | v1.18 | 3/3 | Complete    | 2026-06-17 |
 | 122. Browser/Demo/Integration Determinism | v1.18 | 1/1 | Complete    | 2026-06-17 |
-| 123. DX + Closeout Proof | v1.18 | 1/3 | Executing | — |
+| 123. DX + Closeout Proof | v1.18 | 2/3 | In Progress|  |
 
 ## Traceability
 

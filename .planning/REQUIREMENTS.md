@@ -24,8 +24,8 @@
 
 ### Contributor DX and Closeout
 
-- [ ] **CIDX-08**: Contributor commands remain simple: fast local loop, full local gate, and clear rerun commands for failed CI jobs.
-- [ ] **CIDX-10**: Maintainer can review final before/after impact, including PR wall-clock, p95 target if available, cache hit rate, top slow tests, flake notes, residual risks, and rollback notes.
+- [x] **CIDX-08**: Contributor commands remain simple: fast local loop, full local gate, and clear rerun commands for failed CI jobs.
+- [x] **CIDX-10**: Maintainer can review final before/after impact, including PR wall-clock, p95 target if available, cache hit rate, top slow tests, flake notes, residual risks, and rollback notes.
 
 ## Future Requirements
 
@@ -60,9 +60,9 @@ Deferred until a later milestone or until Phase 119 proves they are worth the ad
 | CIDX-05 | Phase 122 | Complete |
 | CIDX-06 | Phase 121 | Complete |
 | CIDX-07 | Phase 120 | Complete |
-| CIDX-08 | Phase 123 | Pending |
+| CIDX-08 | Phase 123 | Complete |
 | CIDX-09 | Phase 120 | Complete |
-| CIDX-10 | Phase 123 | Pending |
+| CIDX-10 | Phase 123 | Complete |
 | FUT-01 | Deferred | Future |
 | FUT-02 | Deferred | Future |
 | FUT-03 | Deferred | Future |
