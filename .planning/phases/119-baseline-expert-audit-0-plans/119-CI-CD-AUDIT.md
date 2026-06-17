@@ -210,7 +210,7 @@ Script-first reruns stay the contributor-facing abstraction. [VERIFIED: scripts/
 
 | Surface | Exact local rerun command | Boundary protected |
 |---------|---------------------------|--------------------|
-| Fast contributor loop | `bash scripts/ci/contributor.sh` | Common pre-push checks without slow proof scopes |
+| Fast contributor loop | `cd rulestead && mix ci` (alias for `bash scripts/ci/contributor.sh`) | Common pre-push checks without slow proof scopes |
 | Full local monorepo gate | `bash scripts/ci/local.sh` | Lint, tests, adopter, mounted, and OpenFeature proof scopes |
 | Faster maintainer iteration | `bash scripts/ci/local.sh --fast` | Lint plus core package test loop while skipping mounted/OpenFeature companion scopes |
 | Core package gate | `cd rulestead && mix ci` | Core package format, compile, Credo, tests, and docs |
