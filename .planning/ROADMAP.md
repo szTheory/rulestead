@@ -141,7 +141,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 123-01-PLAN.md — Create 123-CI-CD-CLOSEOUT.md (D-01..D-06) + reconcile 119 rerun-catalog fast-loop row (D-09)
+- [x] 123-01-PLAN.md — Create 123-CI-CD-CLOSEOUT.md (D-01..D-06) + reconcile 119 rerun-catalog fast-loop row (D-09)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -159,7 +159,7 @@ Plans:
 | 120. Workflow Topology + Cache Hygiene | v1.18 | 3/3 | Complete    | 2026-06-16 |
 | 121. Mix/ExUnit Performance + Test Value Cleanup | v1.18 | 3/3 | Complete    | 2026-06-17 |
 | 122. Browser/Demo/Integration Determinism | v1.18 | 1/1 | Complete    | 2026-06-17 |
-| 123. DX + Closeout Proof | v1.18 | 0/3 | Pending | — |
+| 123. DX + Closeout Proof | v1.18 | 1/3 | Executing | — |
 
 ## Traceability
 

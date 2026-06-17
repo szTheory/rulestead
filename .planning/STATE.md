@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: CI/CD Reliability
 status: executing
-last_updated: "2026-06-17T15:25:18.574Z"
-last_activity: 2026-06-17 -- Phase 123 planning complete
+last_updated: "2026-06-17T15:40:00.000Z"
+last_activity: 2026-06-17 -- Phase 123 Plan 01 complete (123-CI-CD-CLOSEOUT.md + 119 catalog reconciliation)
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 13
-  completed_plans: 10
-  percent: 77
+  completed_plans: 11
+  percent: 85
 ---
 
 # State: Rulestead
@@ -21,7 +21,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-15)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
 
-**Current focus:** Milestone complete
+**Current focus:** Phase 123 — DX + Closeout Proof
 
 **Milestone:** v1.18 CI/CD Reliability — see `.planning/ROADMAP.md`.
 
@@ -31,10 +31,10 @@ See: `.planning/PROJECT.md` (updated 2026-06-15)
 
 ## Current Position
 
-Phase: 122
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-06-17 -- Phase 123 planning complete
+Phase: 123 (DX + Closeout Proof) — EXECUTING
+Plan: 2 of 3
+Status: Executing Phase 123
+Last activity: 2026-06-17 -- Phase 123 Plan 01 complete (123-CI-CD-CLOSEOUT.md + 119 catalog reconciliation)
 
 ## Phase Dependency Map
 
@@ -63,6 +63,7 @@ Human checkpoints:
 
 ### Decisions
 
+- **Phase 123 Plan 01 (D-03/D-05/D-09):** `123-CI-CD-CLOSEOUT.md` created as CIDX-10 milestone counterpart to `119-CI-CD-AUDIT.md`. Before/after deltas cited from `121-MEASUREMENT.md:136-154` (no re-measurement per D-03). p95 recorded as unavailable with verbatim `119-CI-CD-AUDIT.md:109` reason (D-05). Cache hit rate qualitative only per `scripts/ci/report_cache_hit.sh` (D-05). `119-CI-CD-AUDIT.md:213` reconciled: fast-contributor-loop now names `cd rulestead && mix ci` (alias for `bash scripts/ci/contributor.sh`) per D-09; zero behavioral change confirmed by `mix.exs:172`.
 - **Phase 121 Plan 02 (D-01/D-02 audit):** Evidence-gated async audit of 23 async:false RepoCase candidates produced 121-ASYNC-AUDIT.md. Net flips = 0: every candidate carries at least one disqualifying hazard (global Rulestead.Fake singleton, Application.put_env, :telemetry.attach, capture_log, or DDL-in-setup). code_refs_plug_test.exs: KEEP SERIAL (DDL-in-setup = DB-ownership hazard). Do-not-flip trio preserved (stale_flag_worker, batcher, inbound_http). Suite remains green: 586 tests, 0 failures.
 - **Phase 121 Plan 01 (D-03/D-08):** Published-Hex smoke test (`"admin consumer fixture compiles against published Hex packages"`) moved behind `@tag :published_hex_smoke` + `RULESTEAD_RUN_PUBLISHED_HEX_SMOKE` env, excluded by default in `test_helper.exs`. Proof preserved and confirmed running on `guarded_rollout_foundations` scope via `RULESTEAD_RUN_PUBLISHED_HEX_SMOKE=1 run_mix rulestead test --include published_hex_smoke`. Default suite: ~5s, 586 tests, 0 failures (was ~42s). Failure microcopy added for guarded_rollout_foundations scope. No blind retry (D-04). install_integration gate preserved.
 - **v1.18 scope:** Maintenance-quality CI/CD reliability milestone. Audit first, then implement conservative, evidence-backed improvements to pipeline performance, determinism, cache correctness, test value, release trust, and contributor DX.
@@ -261,3 +262,4 @@ Current v1.18 planning proof:
 | Phase 121 P01 | 6min | 2 tasks | 3 files |
 | Phase 121-mix-exunit-performance-test-value-cleanup P03 | 15 | 2 tasks | 1 files |
 | Phase 122-browser-demo-integration-determinism P01 | 4min | 4 tasks | 3 files |
+| Phase 123-dx-closeout-proof P01 | 12min | 2 tasks | 2 files |
