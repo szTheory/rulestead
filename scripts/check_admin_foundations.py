@@ -17,7 +17,10 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 CSS_PATH = ROOT / "rulestead_admin/priv/static/css/rulestead_admin.css"
-CONTRACT_PATH = ROOT / ".planning/phases/115-foundations-hardening/115-FOUNDATIONS-CONTRACT.md"
+# Relocated 2026-06-17 from .planning/phases/115-foundations-hardening/115-FOUNDATIONS-CONTRACT.md
+# to a living, non-archived home so this guard survives milestone phase-directory
+# archival (the v1.18 kickoff archived the v1.17 phase dirs — commit b78bedd).
+CONTRACT_PATH = ROOT / "brandbook/admin-foundations-contract.md"
 
 REQUIRED_CONTRACT_SECTIONS = [
     "## Scope",
