@@ -291,6 +291,11 @@ defmodule Rulestead.ReleaseContractTest do
     assert maintaining =~ "mounted companion proof"
     assert maintaining =~ "mounted-proof-relevant paths change"
     assert maintaining =~ "integration-placeholder"
+    assert maintaining =~ "## CI Failure Triage"
+    assert maintaining =~ "mounted-proof"
+    assert maintaining =~ "openfeature-companion"
+    assert maintaining =~ "RULESTEAD_TEST_SCOPE=openfeature_companion bash scripts/ci/test.sh"
+    assert maintaining =~ "release-trust gate"
 
     for fragments <- banned_phrases do
       phrase = Enum.join(fragments, " ")
