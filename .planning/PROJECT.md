@@ -134,6 +134,21 @@ v1.1–v1.9 feature band is **complete**. v1.10.x–v1.11 doc bands are **shippe
 
 **Scope note:** This is a post-GA design-system quality milestone. It does not add public runtime APIs, schemas, release workflow changes, palette redesign, logo redraw, v2 feature wedges, broad pixel-baseline infrastructure, external AI judging dependency, component framework adoption, or `rulestead_admin` standalone publish preparation.
 
+## Current Milestone: v2.0 — 1.0 GA Release & Adoption
+
+**Goal:** Publish a real, semver-stable `1.0.0` of all three packages on Hex with a 1.0-grade front door (HexDocs + adoption guides + announce), telling the truth about the platform's actual maturity. **No new runtime features** — this corrects a ZeroVer trust mismatch (published `0.1.7`/`0.1.0` despite an API-frozen, governance-rich, battle-tested platform).
+
+**Target features:**
+- API-surface lock & stability contract — reconcile `api_stability.md` vs code; render the 3 `@moduledoc false` public modules on HexDocs; audit `@doc`/`@spec`/dialyzer; author post-1.0 SemVer + deprecation policy.
+- HexDocs front door — logo, reordered `extras:`, "Why Rulestead?" positioning extra, refined module groups, README badges + social card.
+- Adoption guides — `troubleshooting.md` + `integrations-cookbook.md`, grounded in the canonical personas.
+- Release cut — all three packages → `1.0.0` together (release-please publishes `rulestead` + `rulestead_admin`; sequenced **manual** publish of `open_feature_rulestead`); version-truth sweep, `1.0.0` CHANGELOG, filled `upgrading.md`, `MAINTAINING.md` major-bump runbook, post-publish verify trio green.
+- Announce & closeout — ElixirForum + GitHub release, milestone audit, HexDocs front-door render confirmation.
+
+**Locked decisions (maintainer, 2026-06-17):** All three packages publish at `1.0.0` together (`open_feature_rulestead` is outside release-please → manual publish; its dep becomes `rulestead ~> 1.0`). Hex semver is THE public contract going forward; this GSD milestone is named **v2.0** to mark the external cut while the internal v-ledger is decoupled. Lock the existing public surface as-is — the API audit found no warts; no "last clean break" renames.
+
+**Scope note:** Release-truth + adoption milestone. No runtime API/schema changes, no renames. BRD-05 standalone marketing site is deferred (HexDocs + ElixirForum is the idiomatic front door). All v2 feature wedges (GOV-02-ext → ROL-08 → ADM-06) stay trigger-gated. Phase numbering continues from 124. See `.planning/threads/2026-06-17-1.0-release-posture-and-done-assessment.md`.
+
 ## Next Milestone Goals
 
 **Path-to-done (canonical):** See [`.planning/threads/2026-05-28-path-to-done-milestones.md`](.planning/threads/2026-05-28-path-to-done-milestones.md).
@@ -155,7 +170,7 @@ v1.1–v1.9 feature band is **complete**. v1.10.x–v1.11 doc bands are **shippe
 
 **Done band:** Post-GA scope through v1.11 is repo-verified; feature band v1.1–v1.9 in `lib/` + contract tests.
 
-**Next action:** v1.18 CI/CD Reliability is **complete** (Phases 119–123 shipped 2026-06-17). Open a new milestone (`/gsd:new-milestone`) for the next body of work; v2 feature wedges (GOV-02-ext → ROL-08 → ADM-06) require an explicit new milestone per `.planning/DEFERRED.md`.
+**Next action:** v1.18 CI/CD Reliability is **complete** (Phases 119–123 shipped 2026-06-17). The 2026-06-17 milestone-step assessment found the feature band complete (~92–95% for scope) and identified **release truth + distribution** as the highest-leverage next lever (published Hex is `0.1.7`/`0.1.0` despite internal v1.18 maturity — ZeroVer mismatch). **Recommended next milestone (maintainer-chosen): cut a real `1.0.0` Hex release + adoption push** — adopt the existing `api_stability.md` contract, add `0.1.x→1.0` upgrade/migration docs + CHANGELOG + version-truth sweep, then distribution (troubleshooting guide, integration cookbook, `1.0` announce/landing = BRD-05). Open it with `/gsd:new-milestone`. v2 feature wedges (GOV-02-ext → ROL-08 → ADM-06) remain trigger-gated per `.planning/DEFERRED.md` — none fired. See `.planning/threads/2026-06-17-1.0-release-posture-and-done-assessment.md`.
 
 <details>
 <summary>Latest shipped: v1.10.0 Post-GA Band Truth & Adopter Closure (2026-05-28)</summary>
@@ -271,7 +286,7 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 
 ### Active
 
-- (None — no active milestone. Open the next body of work with `/gsd:new-milestone`.)
+- **v2.0 — 1.0 GA Release & Adoption** (release-truth milestone). Requirements scoped in `.planning/REQUIREMENTS.md`; phases continue from 124. API-surface lock → HexDocs front door + adoption guides → release cut (all three packages → `1.0.0`) → announce. No new runtime APIs.
 
 ### Validated
 
@@ -397,6 +412,7 @@ To provide a clear path forward for Rulestead as a "batteries included" feature-
 | Close v1.16 only after audit backfill instead of accepting verification gaps as debt | The audit gate requires `*-VERIFICATION.md`, `requirements-completed` summary frontmatter, and Nyquist validation artifacts; backfilling preserves closeout truth without product code changes. | Validated — v1.16 audit passed |
 | Use a repo-native Phoenix/Playwright UI matrix for v1.17 instead of adding Storybook | The admin package is Phoenix LiveView with no JS bundler; rendering real components in a mounted test/dev harness avoids duplicated HEEx, keeps evidence close to the existing demo runner, and leaves PhoenixStorybook as a later maintainer-docs option if needed. | Validated — shipped v1.17 |
 | Open v1.18 as a maintenance-quality CI/CD reliability milestone before any v2 wedge | CI/CD speed, determinism, cache correctness, and contributor DX are now high-leverage maintenance work; changes must be evidence-backed and preserve release-gate trust. | Validated — shipped v1.18 (10/10 CIDX, Phases 119-123); audit-first + conservative evidence-backed fixes preserved release-gate trust |
+| Next milestone after v1.18 = cut a real `1.0.0` Hex release + adoption push (not more features) | Milestone-step assessment (2026-06-17) found the feature band complete (~92–95% for scope) but the published `0.1.7`/`0.1.0` Hex line undersells an API-frozen, RBAC-complete, battle-tested platform (ZeroVer mismatch). Release truth + distribution is now the highest-leverage lever; v2 feature wedges remain trigger-gated with no trigger fired. | Active — maintainer-chosen 2026-06-17; see `.planning/threads/2026-06-17-1.0-release-posture-and-done-assessment.md` |
 
 ## Milestone Archives
 
@@ -434,4 +450,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-17 after v1.18 milestone — v1.18 CI/CD Reliability **archived**: Phases 119–123 shipped, all 10 CIDX requirements (CIDX-01..CIDX-10) moved to Validated, milestone roadmap/requirements/audit archived to `.planning/milestones/`. No active milestone; next via `/gsd:new-milestone`.*
+*Last updated: 2026-06-17 after starting milestone v2.0 — 1.0 GA Release & Adoption. Added Current Milestone section (release-truth: all three packages → Hex `1.0.0`, 1.0-grade HexDocs front door, adoption guides, announce; no new runtime APIs); Active requirements now point at v2.0. Phase numbering continues from 124. Prior: v1.18 CI/CD Reliability archived (Phases 119–123, CIDX-01..CIDX-10 Validated).*

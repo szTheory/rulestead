@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.18
-milestone_name: CI/CD Reliability
-status: Awaiting next milestone
-last_updated: "2026-06-17T18:43:34.816Z"
-last_activity: 2026-06-17 — Milestone v1.18 completed and archived
+milestone: v2.0
+milestone_name: 1.0 GA Release & Adoption
+status: planning
+last_updated: "2026-06-17T21:42:36.420Z"
+last_activity: 2026-06-17
 progress:
-  total_phases: 6
-  completed_phases: 6
-  total_plans: 14
-  completed_plans: 14
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # State: Rulestead
@@ -31,10 +31,10 @@ See: `.planning/PROJECT.md` (updated 2026-06-17)
 
 ## Current Position
 
-Phase: Milestone v1.18 complete
+Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-06-17 — Milestone v1.18 completed and archived
+Status: Defining requirements
+Last activity: 2026-06-17 — Milestone v2.0 started
 
 ## Phase Dependency Map
 
@@ -65,6 +65,7 @@ Human checkpoints:
 
 ### Decisions
 
+- **Milestone-step assessment (2026-06-17):** Feature band complete (~92–95% done for stated scope); runtime features = diminishing returns. Dominant remaining lever is **release truth + distribution**, not code: Hex is `0.1.7`/`0.1.0` while internally at v1.18 (ZeroVer mismatch; `api_stability.md` carries v0.1.0 contract forward on `0.1.x` by deliberate design). **Maintainer-chosen next milestone = `1.0.0` release + adoption push.** v2 wedges (GOV-02-ext → ROL-08 → ADM-06) stay trigger-gated; none fired. Full record: `.planning/threads/2026-06-17-1.0-release-posture-and-done-assessment.md`. Graduation candidate flagged: weigh release/version/distribution truth before new runtime features in future milestone-step runs.
 - **Phase 123 Plan 02 (D-12/D-13/D-14):** `MAINTAINING.md` shift-left gate section extended with command ladder paragraph naming `cd rulestead && mix ci` as the fast-loop alias for `bash scripts/ci/contributor.sh`; new `## CI Failure Triage` section added with 9-row 6-column table in `release_gate` pipeline order. Verbatim microcopy lifted from `scripts/ci/test.sh:67-90` (mounted-proof) and case switch (openfeature-companion) per D-12. `publish-hex` and `verify-published-release` rows labeled release-trust gate, not a speed target per D-13. D-14 guard: 5 `assert maintaining =~` assertions added inside existing maintainer guidance test in `release_contract_test.exs`; `mix test release_contract_test.exs` exits 0 (26 tests, 0 failures). Pre-existing `lint.sh` `ADMIN FOUNDATION DRIFT DETECTED` (missing 115-FOUNDATIONS-CONTRACT.md) is out-of-scope and deferred.
 - **Phase 123 Plan 01 (D-03/D-05/D-09):** `123-CI-CD-CLOSEOUT.md` created as CIDX-10 milestone counterpart to `119-CI-CD-AUDIT.md`. Before/after deltas cited from `121-MEASUREMENT.md:136-154` (no re-measurement per D-03). p95 recorded as unavailable with verbatim `119-CI-CD-AUDIT.md:109` reason (D-05). Cache hit rate qualitative only per `scripts/ci/report_cache_hit.sh` (D-05). `119-CI-CD-AUDIT.md:213` reconciled: fast-contributor-loop now names `cd rulestead && mix ci` (alias for `bash scripts/ci/contributor.sh`) per D-09; zero behavioral change confirmed by `mix.exs:172`.
 - **Phase 121 Plan 02 (D-01/D-02 audit):** Evidence-gated async audit of 23 async:false RepoCase candidates produced 121-ASYNC-AUDIT.md. Net flips = 0: every candidate carries at least one disqualifying hazard (global Rulestead.Fake singleton, Application.put_env, :telemetry.attach, capture_log, or DDL-in-setup). code_refs_plug_test.exs: KEEP SERIAL (DDL-in-setup = DB-ownership hazard). Do-not-flip trio preserved (stale_flag_worker, batcher, inbound_http). Suite remains green: 586 tests, 0 failures.
@@ -191,10 +192,12 @@ All closed — v1.12 adoption evidence depth complete.
 | INV-API-01 | `api_stability.md` vs release contract | **Closed** | v1.10.1 API contract work |
 | INV-MAINT-01 | MAINTAINING vs `api_stability.md` | **Closed** | v1.10.1 maintainer-doc work |
 | INV-INTRO-01 | Intro spine missing Plug/supervision/lifecycle | **Closed** | v1.11 integration-spine work |
+| INV-REL-01 | `0.1.x` Hex line vs actual platform maturity (ZeroVer) | **Open** | Hex `0.1.7`/`0.1.0` + `api_stability.md` v0.1.0 carry-forward; next milestone = 1.0.0 release + adoption (see `.planning/threads/2026-06-17-1.0-release-posture-and-done-assessment.md`) |
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- **Next milestone is SCOPED + STAGED: `v2.0 — 1.0 GA Release & Adoption`.** Scope written to `.planning/MILESTONE-CONTEXT.md` (researched 2026-06-17). Run **`/gsd-new-milestone`** — it will consume MILESTONE-CONTEXT.md → REQUIREMENTS → ROADMAP. Locked decisions: all three packages → `1.0.0` together (incl. manual `open_feature_rulestead`); Hex semver is the contract going forward; lock public surface as-is (no warts). Phases: API-surface lock → HexDocs front door + adoption guides → release cut → announce. Docs land before the cut.
+- v2 feature wedges (GOV-02-ext → ROL-08 → ADM-06) and BRD-05 standalone site remain trigger-gated/deferred — out of scope for v2.0.
 
 ## Latest Verification
 
