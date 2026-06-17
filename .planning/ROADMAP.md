@@ -159,7 +159,7 @@ Plans:
 | 120. Workflow Topology + Cache Hygiene | v1.18 | 3/3 | Complete    | 2026-06-16 |
 | 121. Mix/ExUnit Performance + Test Value Cleanup | v1.18 | 3/3 | Complete    | 2026-06-17 |
 | 122. Browser/Demo/Integration Determinism | v1.18 | 1/1 | Complete    | 2026-06-17 |
-| 123. DX + Closeout Proof | v1.18 | 3/3 | Complete   | 2026-06-17 |
+| 123. DX + Closeout Proof | v1.18 | 3/3 | Complete    | 2026-06-17 |
 
 ## Traceability
 
