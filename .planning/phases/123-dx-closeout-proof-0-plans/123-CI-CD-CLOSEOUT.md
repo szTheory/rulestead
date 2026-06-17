@@ -153,7 +153,11 @@ No other flaky behavior was identified in the Phase 119–122 audit. The full-su
 
 ### D-14 Anti-Drift Guard for CI Failure Triage Table
 
-The D-14 anti-drift guard (asserting that every `ci.yml` job id and every `RULESTEAD_TEST_SCOPE` rerun command in `MAINTAINING.md`'s CI Failure Triage section matches the rerun catalog) is included in Wave 2 (plan 123-02) via a `release_contract_test.exs` extension. If that guard is ultimately scoped down or deferred by the planner, record as a residual risk: the triage table could silently rot as `ci.yml` job ids or scope names change. [ASSUMED: D-14 disposition pending 123-02 execution]
+The D-14 anti-drift guard (asserting that every `ci.yml` job id and every `RULESTEAD_TEST_SCOPE` rerun command in `MAINTAINING.md`'s CI Failure Triage section matches the rerun catalog) was **included** in Wave 2 (plan 123-02) via a `release_contract_test.exs` extension (5 assertions). It was not deferred, so the silent-rot risk is mitigated by a test-enforced guard. [VERIFIED: rulestead/test/rulestead/release_contract_test.exs; CITED: 123-02-SUMMARY.md]
+
+### Discovered-During-Closeout: `lint.sh` Red on `main` Across Entire v1.18 (RESOLVED)
+
+The D-15 verification gate surfaced that `scripts/ci/lint.sh` had been **failing on `main` for the entire v1.18 milestone** — unrelated to any phase 119-123 diff. Root cause: the v1.18 milestone-kickoff archival commit (`b78bedd`, "docs: start milestone v1.18") deleted the v1.17 phase directories, removing `.planning/phases/115-foundations-hardening/115-FOUNDATIONS-CONTRACT.md`; `scripts/check_admin_foundations.py` hard-coded that path and uses the contract to validate live admin CSS drift, so the guard (and thus `lint.sh`) went red at kickoff and stayed red. **Resolved in this phase** (commit `d13e6a1`): the contract was restored verbatim to a living, non-archived home (`brandbook/admin-foundations-contract.md`, alongside the `tokens.css`/`brand-book.md` it is sourced from) and the guard was repointed there; `lint.sh` is green again with CSS-drift protection intact. **Residual risk:** other guards may still pin paths under `.planning/phases/` that future milestone archival will break — a follow-up audit of `scripts/ci/*` and `scripts/check_*.py` for archival-fragile path constants is recommended. [VERIFIED: scripts/check_admin_foundations.py; VERIFIED: bash scripts/ci/lint.sh exit 0; CITED: commit b78bedd]
 
 ### FUT-01 — Test Partitioning
 
@@ -246,6 +250,18 @@ One entry per Phase 120/121/122 change:
 **Trust boundary:** After revert, traces will again not be produced with `retries: 0` (the original mismatch returns). The CI upload-artifact step disappears; failed Playwright runs will produce no downloadable report in GitHub Actions. The verify.sh failure block output (URLs, artifact paths, rerun commands) also disappears.
 
 **Footgun:** The fix is safe to preserve even if the companion proofs are rolled back — it makes failure evidence more accessible, not less. Reverting it silently removes failure ergonomics. If reverting for other reasons, explicitly confirm you want to lose the trace artifacts and the CI failure report upload. [CITED: .planning/phases/122-browser-demo-integration-determinism-0-plans/122-VERIFICATION.md]
+
+---
+
+### Phase 123: Relocate Admin Foundations Contract to a Living Path (lint guard fix)
+
+**What changed:** `115-FOUNDATIONS-CONTRACT.md` was restored verbatim from git history to `brandbook/admin-foundations-contract.md`, and `scripts/check_admin_foundations.py`'s `CONTRACT_PATH` was repointed there. This re-greened `lint.sh`, which had been red since the v1.18 kickoff archival (`b78bedd`) deleted the contract's old `.planning/phases/115-*/` location. [CITED: commit d13e6a1]
+
+**Revert handle:** Revert commit `d13e6a1`. Note: reverting restores the broken state (guard points at a deleted path → `lint.sh` red again). Only revert if also re-homing the contract elsewhere and repointing the guard in the same change.
+
+**Trust boundary:** Admin CSS drift protection (`scripts/check_admin_foundations.py` in `lint.sh`). The guard validates that every noncanonical `@media` width in `rulestead_admin/priv/static/css/rulestead_admin.css` is documented in the contract; losing it lets undocumented breakpoint drift through `lint.sh` silently.
+
+**Footgun:** Do not "fix" a future recurrence by making the guard skip-when-absent — that silently drops the CSS-drift check. Keep the contract in a living (non-`.planning/phases/`) path so milestone archival cannot remove it.
 
 ---
 
