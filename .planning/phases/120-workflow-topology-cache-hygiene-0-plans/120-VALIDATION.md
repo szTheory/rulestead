@@ -1,10 +1,11 @@
 ---
 phase: 120
 slug: workflow-topology-cache-hygiene-0-plans
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-06-16
+validated: 2026-06-17
 ---
 
 # Phase 120 — Validation Strategy
@@ -47,13 +48,13 @@ created: 2026-06-16
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| TBD (D-03 wiring) | — | — | CIDX-04 | T-120-bypass | openfeature gate blocks only when companion-relevant; skipped→success otherwise | static lint + shell unit | `actionlint .github/workflows/ci.yml` ; `bash scripts/ci/release_gate.sh --skip-phase7 ...` (expect 0 all-success, 1 on one `=failure`) | ✅ | ⬜ pending |
-| TBD (D-05 fallback removal) | — | — | CIDX-07 | — | cross-lane `${{ runner.os }}-mix-` restore key removed from test matrix | static lint + diff | `actionlint .github/workflows/ci.yml` ; `git diff ci.yml` shows line 177 removed | ✅ | ⬜ pending |
-| TBD (D-06 hash scoping) | — | — | CIDX-07 | — | lint/PLT keys scoped to `rulestead/mix.lock` + `.tool-versions`; multi-package lanes enumerate both built locks | static reasoning + lint | review each `key:`/`restore-keys:` against the lane's built `path:` | ✅ | ⬜ pending |
-| TBD (D-07 busting docs) | — | — | CIDX-07 | — | per-cache busting rule documented | doc presence | `grep -A30 'CI caching' MAINTAINING.md` shows per-cache rule | ✅ | ⬜ pending |
-| TBD (D-08 observability) | — | — | CIDX-07 | — | versions + cache posture + local rerun command emitted | run-step / summary inspection | review added `$GITHUB_STEP_SUMMARY` lines in diff | ✅ | ⬜ pending |
-| TBD (D-09/D-10 preserve) | — | — | CIDX-09 | T-120-supply | no regression in SHA pins, permissions, publish gating, secret boundaries | diff assertion | `git diff --name-only` excludes `publish-hex.yml`, `verify-published-release.yml`, `dependabot.yml`; `ci.yml` SHA pins unchanged | ✅ | ⬜ pending |
-| TBD (D-11 docs reconcile) | — | — | CIDX-04 | — | `MAINTAINING.md` states intended triad (`release_gate`, `Validate PR title`, `dependency-review`); no `gh api` writes | doc presence + diff | `grep` triad in `MAINTAINING.md`; `git diff` touches no live repo settings | ✅ | ⬜ pending |
+| 120-01-T1 (D-03 wiring) | 01 | 0 | CIDX-04 | T-120-bypass | openfeature gate blocks only when companion-relevant; skipped→success otherwise | static lint + shell unit | `actionlint .github/workflows/ci.yml` ; `bash scripts/ci/release_gate.sh --skip-phase7 ...` (expect 0 all-success, 1 on one `=failure`) | ✅ | ✅ green |
+| 120-02-T1 (D-05 fallback removal) | 02 | 0 | CIDX-07 | — | cross-lane `${{ runner.os }}-mix-` restore key removed from test matrix | static lint + diff | `actionlint .github/workflows/ci.yml` ; `grep -cE '\$\{\{ runner\.os \}\}-mix-'` → 0 | ✅ | ✅ green |
+| 120-02-T1 (D-06 hash scoping) | 02 | 0 | CIDX-07 | — | lint/PLT keys scoped to `rulestead/mix.lock` + `.tool-versions`; multi-package lanes enumerate both built locks | static reasoning + lint | `grep -c "hashFiles('rulestead/mix.lock', '.tool-versions')"` → 3 (lint deps/build + PLT restore + PLT save) | ✅ | ✅ green |
+| 120-03-T1 (D-07 busting docs) | 03 | 0 | CIDX-07 | — | per-cache busting rule documented | doc presence | `grep -A40 'CI caching' MAINTAINING.md` shows per-cache rule + `rulestead/mix.lock` | ✅ | ✅ green |
+| 120-02-T2 (D-08 observability) | 02 | 0 | CIDX-07 | — | versions + cache posture + local rerun command emitted | run-step / summary inspection | `grep steps.mix-cache.outputs.cache-hit ci.yml` ; `grep GITHUB_STEP_SUMMARY {test,lint}.sh` | ✅ | ✅ green |
+| 120-01-T2 (D-09/D-10 preserve) | 01 | 0 | CIDX-09 | T-120-supply | no regression in SHA pins, permissions, publish gating, secret boundaries | diff assertion | `git diff --name-only 1d9abaf~1 19873ea` excludes `publish-hex.yml`, `verify-published-release.yml`, `dependabot.yml`; `ci.yml` SHA pins unchanged | ✅ | ✅ green |
+| 120-03-T2 (D-11 docs reconcile) | 03 | 0 | CIDX-04 | — | `MAINTAINING.md` states intended triad (`release_gate`, `Validate PR title`, `dependency-review`); no `gh api` writes | doc presence + diff | `grep` triad + `Branch not protected` + openfeature aggregation in `MAINTAINING.md`; `git diff` touches no live repo settings | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -79,11 +80,43 @@ created: 2026-06-16
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify (actionlint / release_gate.sh / git diff / grep) or are listed under Manual-Only
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references (none required)
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 5s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify (actionlint / release_gate.sh / git diff / grep) or are listed under Manual-Only
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references (none required)
+- [x] No watch-mode flags
+- [x] Feedback latency < 5s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** validated 2026-06-17 — all 7 requirement rows automated and green; 2 residual live-environment confirmations are documented Manual-Only and out of scope per the no-live-merge posture.
+
+---
+
+## Validation Audit 2026-06-17
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 (no new tests needed) |
+| Escalated | 0 |
+
+Every phase requirement (CIDX-04, CIDX-07, CIDX-09) was already covered by an
+existing static check that exists and runs green. No test generation required.
+
+**Re-run evidence (2026-06-17):**
+
+| Check | Command | Result |
+|-------|---------|--------|
+| Workflow lint | `actionlint .github/workflows/*.yml` | exit 0 |
+| Release gate (all-success) | `release_gate.sh --skip-phase7 changes=success mounted-proof=success openfeature-companion=success` | exit 0 — `release gate passed` |
+| Release gate (one-failure) | `release_gate.sh --skip-phase7 … openfeature-companion=failure` | exit 1 — `openfeature-companion did not succeed: failure` |
+| D-03 wiring | `grep needs['openfeature-companion'].result` + changes-transform | both present |
+| D-05 fallback removed | `grep -cE '\$\{\{ runner\.os \}\}-mix-'` | 0 |
+| D-06 hash scoping | `grep -c "hashFiles('rulestead/mix.lock', '.tool-versions')"` | 3 |
+| D-08 observability | cache-hit output + `GITHUB_STEP_SUMMARY` in test.sh/lint.sh | present |
+| D-07/D-11 docs | MAINTAINING.md busting rules + 404 note + triad + openfeature | present |
+| D-09/D-10 supply chain | protected surfaces in phase diff | untouched |
+
+Note: post-execution code-review fixes (IN-01 shared cache-hit script, IN-02
+single `--version` capture, IN-04 mounted-proof `deps.get` doc) refined D-08
+without altering the validation surface — `steps.mix-cache.outputs.cache-hit`
+remains present and green.
