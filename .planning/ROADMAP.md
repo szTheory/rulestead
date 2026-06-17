@@ -13,7 +13,7 @@
 - [x] Phase 119: Baseline + Expert Audit (3/3 plans) (completed 2026-06-16)
 - [x] Phase 120: Workflow Topology + Cache Hygiene (0/3 plans) (completed 2026-06-16)
 - [x] Phase 121: Mix/ExUnit Performance + Test Value Cleanup (3/3 plans) (completed 2026-06-17)
-- [ ] Phase 122: Browser/Demo/Integration Determinism (0/? plans)
+- [ ] Phase 122: Browser/Demo/Integration Determinism (0/1 plans)
 - [ ] Phase 123: DX + Closeout Proof (0/? plans)
 
 </details>
@@ -115,6 +115,13 @@ Plans:
 4. Low-signal or redundant browser/demo checks are rewritten, demoted, or removed only with explicit evidence.
 5. Browser/demo failure output includes exact URLs, commands, and artifact paths needed for local reproduction.
 
+**Plans:** 1 plan
+
+Plans:
+**Wave 1**
+
+- [ ] 122-01-PLAN.md — Playwright config fix (D-01/D-02) + verify.sh failure ergonomics (D-04) + CI artifact upload (D-05) + D-03/D-06 audit evidence record
+
 ### Phase 123: DX + Closeout Proof
 
 **Goal:** Close the milestone with simple contributor commands, measurable impact, and rollback-ready documentation.
@@ -136,7 +143,7 @@ Plans:
 | 119. Baseline + Expert Audit | v1.18 | 3/3 | Complete   | 2026-06-15 |
 | 120. Workflow Topology + Cache Hygiene | v1.18 | 3/3 | Complete    | 2026-06-16 |
 | 121. Mix/ExUnit Performance + Test Value Cleanup | v1.18 | 3/3 | Complete    | 2026-06-17 |
-| 122. Browser/Demo/Integration Determinism | v1.18 | 0/? | Pending | — |
+| 122. Browser/Demo/Integration Determinism | v1.18 | 0/1 | Pending | — |
 | 123. DX + Closeout Proof | v1.18 | 0/? | Pending | — |
 
 ## Traceability
