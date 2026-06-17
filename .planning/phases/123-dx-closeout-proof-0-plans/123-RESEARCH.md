@@ -440,17 +440,19 @@ Step 2.6: No external service dependencies introduced by this phase. All work is
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **D-14 scope decision**
    - What we know: Both options (extend `release_contract_test.exs` vs new Python guard) are feasible. Option A is lower cost.
    - What's unclear: Whether the planner should include it in Wave 2 or defer to a residual risk note.
    - Recommendation: Include minimally in Wave 2 (3-5 assertions in `release_contract_test.exs`). Deferral is acceptable if the planner judges the closeout scope is already full.
+   - **RESOLVED:** Included in Wave 2 via Option A — see `123-02-PLAN.md` Task 2 (4-5 `assert maintaining =~` assertions extending `release_contract_test.exs`). Not deferred.
 
 2. **Wave 1 vs Wave 2 sequencing for catalog reconciliation (D-09)**
    - What we know: D-09 edits `119-CI-CD-AUDIT.md:213`, which is a planning artifact. The closeout ledger also lives in planning.
    - What's unclear: Whether to bundle D-09 into Wave 1 (closeout ledger + catalog) or Wave 2 (MAINTAINING.md).
    - Recommendation: Bundle D-09 into Wave 1. The audit doc reconciliation and the closeout ledger both live in planning artifacts and form a coherent "source-of-truth correction" wave.
+   - **RESOLVED:** Bundled into Wave 1 — see `123-01-PLAN.md` Task 2 (reconciles `119-CI-CD-AUDIT.md:213` alongside the closeout ledger).
 
 ---
 
