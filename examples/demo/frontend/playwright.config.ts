@@ -10,9 +10,12 @@ export default defineConfig({
   retries: 0,
   workers: process.env.CI ? 1 : undefined,
   fullyParallel: false,
+  reporter: [["html", { open: "never" }], ["list"]],
   use: {
     baseURL: frontendUrl,
-    trace: "on-first-retry",
+    trace: "retain-on-failure",
+    screenshot: "only-on-failure",
+    video: "retain-on-failure",
   },
   metadata: {
     frontendUrl,
