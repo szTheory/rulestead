@@ -577,14 +577,14 @@ None — no new test files are needed. All verification is via grep/static asser
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **`upload-artifact` SHA final verification**
+1. **`upload-artifact` SHA final verification** — RESOLVED: routed to the Task 3 human checkpoint in 122-01-PLAN.md, which runs the `curl … releases/latest` confirmation before the CI YAML is written.
    - What we know: WebFetch returned `ea165f8d65b6e75b540449e92b4886f43607fa02` for v4.6.2 (March 2025)
    - What's unclear: Whether a newer v4.x point release exists (v4.6.3+) that the planner should prefer
    - Recommendation: Implementer should run `curl -s https://api.github.com/repos/actions/upload-artifact/releases/latest | jq '.tag_name,.target_commitish'` to confirm the latest v4 SHA before writing the YAML step. Any v4.x SHA is acceptable; use the latest stable.
 
-2. **`if: failure()` vs `if: always()` final call**
+2. **`if: failure()` vs `if: always()` final call** — RESOLVED: Task 4 of 122-01-PLAN.md uses `if: failure()`.
    - What we know: D-05 says "`if: failure()` or `if: always()`"; the research recommends `if: failure()` for the reasons above
    - What's unclear: The CONTEXT.md deliberately left both as acceptable
    - Recommendation: Use `if: failure()` — avoids storage waste on green runs and is semantically correct for debug artifacts
