@@ -136,7 +136,7 @@ Plans:
 4. Final verification includes targeted changed lanes plus the agreed local/CI gates from the requirements.
 5. Requirements traceability and `STATE.md` are updated before milestone closeout.
 
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
 **Wave 1**
@@ -149,7 +149,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 123-03-PLAN.md — Final verification (D-15..D-18) + traceability/STATE closeout (D-19/D-20)
+- [x] 123-03-PLAN.md — Final verification (D-15..D-18) + traceability/STATE closeout (D-19/D-20)
 
 ## Progress
 
@@ -159,7 +159,7 @@ Plans:
 | 120. Workflow Topology + Cache Hygiene | v1.18 | 3/3 | Complete    | 2026-06-16 |
 | 121. Mix/ExUnit Performance + Test Value Cleanup | v1.18 | 3/3 | Complete    | 2026-06-17 |
 | 122. Browser/Demo/Integration Determinism | v1.18 | 1/1 | Complete    | 2026-06-17 |
-| 123. DX + Closeout Proof | v1.18 | 3/3 | Complete | 2026-06-17 |
+| 123. DX + Closeout Proof | v1.18 | 3/3 | Complete   | 2026-06-17 |
 
 ## Traceability
 

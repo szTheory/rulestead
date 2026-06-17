@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: CI/CD Reliability
-status: complete
-last_updated: "2026-06-17T16:00:00.000Z"
-last_activity: 2026-06-17 -- Phase 123 Plan 03 complete (final verification gates + traceability/STATE closeout)
+status: verifying
+last_updated: "2026-06-17T16:09:46.804Z"
+last_activity: 2026-06-17
 progress:
   total_phases: 5
   completed_phases: 5
@@ -33,8 +33,8 @@ See: `.planning/PROJECT.md` (updated 2026-06-15)
 
 Phase: 123 (DX + Closeout Proof) — COMPLETE
 Plan: 3 of 3 complete
-Status: v1.18 milestone closed — all 5 phases, 13 plans complete
-Last activity: 2026-06-17 -- Phase 123 Plan 03 complete (final verification gates + traceability/STATE closeout)
+Status: Phase complete — ready for verification
+Last activity: 2026-06-17
 
 ## Phase Dependency Map
 
@@ -162,6 +162,7 @@ Human checkpoints:
 - [Phase 114]: Use curated Playwright screenshots and deterministic assertions instead of visual snapshot tooling. — Plan 114-02 followed the v1.17 evidence posture: screenshots are test artifacts only, with source guards blocking baseline/snapshot tooling.
 - [Phase ?]: Phase 121 Plan 03 (D-09 measurement): Default lane ~4.6s real (was ~42s baseline); dominant test 17090ms on opt-in lane; delta -37s (-88%). D-06 partitioning REJECTED: 5 verified premises (serial network test; async:false suite; per-partition DB/Fake isolation fragility; no partition config; 18 schedulers absorb async set) -> FUT-01 deferred. D-05 no splits (next-slowest 303ms). D-07 no Dialyzer/PLT change. D-10 length-47 xref cycle noted only.
 - [Phase ?]: Phase 122 Plan 01 (D-01..D-06): Fixed Playwright trace/retry mismatch at root cause (retain-on-failure, retries:0 unchanged). verify.sh gets failure-output block via || {} idiom. CI gets SHA-pinned upload-artifact step (ea165f8d/v4.6.2, if:failure()). D-03 audit evidence: demo readiness sound (real Docker health polling, zero waitForTimeout). D-06: 15 specs all KEEP (10 functional journeys + 5 visual-evidence matrices, no CIDX-05 demotion evidence).
+- [Phase ?]: Phase 123 Plan 03 (D-15..D-20): Both mandatory verification gates passed; REQUIREMENTS.md already complete; ROADMAP.md updated with Phase 123 complete and all 10 CIDX rows Complete; STATE.md set to completed_phases 5, percent 100, v1.18 milestone closed.
 
 ### Deferred Items (v2)
 
@@ -265,3 +266,4 @@ Current v1.18 planning proof:
 | Phase 122-browser-demo-integration-determinism P01 | 4min | 4 tasks | 3 files |
 | Phase 123-dx-closeout-proof P01 | 12min | 2 tasks | 2 files |
 | Phase 123 P02 | 15 minutes | 2 tasks | 2 files |
+| Phase 123 P03 | 15min | 2 tasks | 3 files |
