@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: 1.0 GA Release & Adoption
-status: active
-last_updated: "2026-06-17T21:42:36.420Z"
-last_activity: 2026-06-17
+status: Not started
+last_updated: "2026-06-17T22:19:05.897Z"
+last_activity: 2026-06-17 — Roadmap created for v2.0
 progress:
   total_phases: 7
   completed_phases: 0
@@ -66,6 +66,7 @@ Phase D — Announce & closeout (after verify-trio green + HexDocs renders + ope
 ```
 
 Hard ordering rules:
+
 - 124 → 125 (api_stability rewrite anchors the sweep; reviewed together for drift-guard coherence)
 - 125 → 126 and 125 → 127 (version truth must land before HexDocs and guides reference it)
 - 126 + 127 → 128 (ALL pre-cut work lands before the cut so the published tarball is complete and honest)
@@ -73,6 +74,7 @@ Hard ordering rules:
 - 129 → 130 (announce only after verify-trio green + all three packages live + HexDocs front door confirmed)
 
 Human checkpoints:
+
 - Phase 128: disable auto-merge before adding `release-as`; hand-eyeball the release PR diff (both @version, manifest, CHANGELOG preamble); approve hex-publish environment manually.
 - Phase 128 post-cut: REMOVE `"release-as"` from config immediately — leave it and release-please re-proposes 1.0.0 forever.
 - Phase 129: confirm `hex.pm/api/packages/rulestead/releases/1.0.0` == 200 BEFORE publishing open_feature_rulestead.
