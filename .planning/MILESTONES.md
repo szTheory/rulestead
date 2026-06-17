@@ -1,5 +1,26 @@
 # Milestones
 
+## v1.18 CI/CD Reliability (Shipped: 2026-06-17)
+
+**Phases completed:** 6 phases, 14 plans, 20 tasks
+**Requirements:** 10/10 CIDX (CIDX-01..CIDX-10) Complete · 3 FUT-* deferred to a future milestone
+**Git range:** `be5c17c` → `1752ba3` · 113 commits · 182 files (+13,998 / −15,726) over 3 days
+
+**Key accomplishments:**
+
+- **Phase 119 (Baseline + Expert Audit):** Repo-specific `119-CI-CD-AUDIT.md` integrating workflow/job/step inventory, live required-check baseline, rerun catalog, live CI timing + local Mix/ExUnit diagnostics, cache/PLT posture, release-trust evidence, and an evidence-backed keep/optimize/move/quarantine/delete classification ledger.
+- **Phase 119.1 (Verify audit deliverable):** Inserted phase that produced `119.1-VERIFICATION.md`, de-orphaning CIDX-01/02/03 with line-cited section coverage against the audit.
+- **Phase 120 (Workflow Topology + Cache Hygiene):** Wired `openfeature-companion` into the `release_gate` aggregate with skipped→success transforms (no pending trap), removed the cross-lane mix cache fallback, scoped lint/PLT cache keys, added scripts-first version/cache/repro observability, and preserved every release/supply-chain trust surface.
+- **Phase 121 (Mix/ExUnit Performance + Test Value Cleanup):** Relocated the dominant published-Hex smoke test behind an opt-in `@tag :published_hex_smoke` (default lane ~42s → ~5s) while keeping the proof reachable on a named scope; evidence-gated async audit (0 recommended flips); partitioning explicitly rejected with evidence (FUT-01).
+- **Phase 122 (Browser/Demo/Integration Determinism):** Fixed the Playwright trace/retry mismatch at root cause (retain-on-failure), added a `verify.sh` failure-output block and a SHA-pinned CI `upload-artifact` step; D-03/D-06 evidence confirmed all 15 specs are KEEP and demo readiness was already sound.
+- **Phase 123 (DX + Closeout Proof):** Added the `mix ci` fast-loop alias + a `MAINTAINING.md` command ladder and 9-row CI Failure Triage table, authored `123-CI-CD-CLOSEOUT.md` (before/after wall-clock, honest p95/cache gaps, slow tests, flake/rollback notes), and added a D-14 anti-drift guard in `release_contract_test.exs`.
+
+**Closeout-discovered fix:** the v1.18-kickoff archival had broken `lint.sh` (a path-pinned admin-foundations guard referenced an archived v1.17 contract); the contract was relocated to `brandbook/admin-foundations-contract.md` and the guard repointed, restoring green lint with CSS-drift protection intact.
+
+**Scope note:** Post-GA CI/CD reliability + maintainer-DX milestone. No product runtime APIs, schemas, release-workflow trust reduction, admin standalone publish prep, broad pixel baselines, or cosmetic speedups that hide risk.
+
+---
+
 ## v1.17 Admin Design System Stress Test (Shipped: 2026-06-15)
 
 **Phases completed:** 6 phases, 19 plans, 33 tasks

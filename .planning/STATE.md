@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: CI/CD Reliability
-status: complete
-last_updated: "2026-06-17"
-last_activity: 2026-06-17
+status: Awaiting next milestone
+last_updated: "2026-06-17T18:43:34.816Z"
+last_activity: 2026-06-17 — Milestone v1.18 completed and archived
 progress:
   total_phases: 6
   completed_phases: 6
@@ -17,13 +17,13 @@ progress:
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-06-15)
+See: `.planning/PROJECT.md` (updated 2026-06-17)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
 
-**Current focus:** Phase 119.1 — verify-phase-119-audit-deliverable-cidx-01-02-03
+**Current focus:** Planning next milestone (`/gsd:new-milestone`). v2 feature wedges (GOV-02-ext → ROL-08 → ADM-06) require an explicit new milestone per `.planning/DEFERRED.md`.
 
-**Milestone:** v1.18 CI/CD Reliability — COMPLETE 2026-06-17 — see `.planning/ROADMAP.md`.
+**Milestone:** v1.18 CI/CD Reliability — COMPLETE + ARCHIVED 2026-06-17 — see `.planning/milestones/v1.18-ROADMAP.md`.
 
 **Previous milestone:** v1.17 Admin Design System Stress Test shipped 2026-06-15 — see `.planning/milestones/v1.17-ROADMAP.md`
 
@@ -31,10 +31,10 @@ See: `.planning/PROJECT.md` (updated 2026-06-15)
 
 ## Current Position
 
-Phase: 119.1 (verify-phase-119-audit-deliverable-cidx-01-02-03) — COMPLETE
-Plan: 119.1-01 complete
-Status: 119.1 complete — CIDX-01/02/03 de-orphaned via 119.1-VERIFICATION.md
-Last activity: 2026-06-17
+Phase: Milestone v1.18 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-06-17 — Milestone v1.18 completed and archived
 
 ## Phase Dependency Map
 
@@ -194,7 +194,7 @@ All closed — v1.12 adoption evidence depth complete.
 
 ## Operator Next Steps
 
-- Phase 120 context is locked (`120-CONTEXT.md` + `120-DISCUSSION-LOG.md`). Start planning with `$gsd-plan-phase 120`.
+- Start the next milestone with /gsd-new-milestone
 
 ## Latest Verification
 

@@ -2,6 +2,43 @@
 
 *A living document updated after each milestone. Lessons feed forward into future planning.*
 
+## Milestone: v1.18 — CI/CD Reliability
+
+**Shipped:** 2026-06-17
+**Phases:** 6 (incl. inserted 119.1) | **Plans:** 14 | **Tasks:** 20
+
+### What Was Built
+- Repo-specific `119-CI-CD-AUDIT.md`: workflow/job/step inventory, live required-check baseline, rerun catalog, live CI timing + local Mix/ExUnit diagnostics, cache/PLT posture, release-trust evidence, and a keep/optimize/move/quarantine/delete classification ledger.
+- Workflow topology + cache hygiene: `openfeature-companion` wired into the `release_gate` aggregate with skipped→success transforms (no pending trap), cross-lane mix cache fallback removed, lint/PLT cache keys scoped, and scripts-first version/cache/repro observability.
+- Mix/ExUnit performance: the dominant published-Hex smoke test relocated behind an opt-in `@tag :published_hex_smoke` (default lane ~42s → ~5s) while staying reachable on a named scope; evidence-gated async audit (0 recommended flips); partitioning rejected with evidence (FUT-01).
+- Browser/demo determinism: Playwright trace/retry mismatch fixed at root cause (retain-on-failure), `verify.sh` failure-output block, SHA-pinned CI `upload-artifact`; all 15 specs confirmed KEEP.
+- DX + closeout: `mix ci` fast-loop alias, `MAINTAINING.md` command ladder + 9-row CI Failure Triage table, `123-CI-CD-CLOSEOUT.md` before/after ledger with honest p95/cache gaps, and a D-14 anti-drift guard in `release_contract_test.exs`.
+
+### What Worked
+- Audit-first sequencing: Phase 119 produced repo-specific evidence before any behavior change, so every later optimization cited a measured baseline rather than a guess.
+- Evidence gates kept the milestone honest — async flips and test partitioning were both *rejected* with documented hazards instead of being adopted for cosmetic speed.
+- Conservative posture preserved release-gate trust: the `release_gate` aggregate, post-publish proof, mounted/OpenFeature proofs, and the adopter contract all stayed intact while the default test lane got ~8× faster.
+
+### What Was Inefficient
+- The orphaned CIDX-01/02/03 requirements forced an inserted Phase 119.1 (verify-audit-deliverable) and four audit iterations before the milestone reached `passed` — the audit deliverable should have carried explicit per-requirement traceability the first time.
+- SUMMARY `requirements_completed` frontmatter was left empty or mis-spelled (`requirements-completed`) across several phases, so coverage had to be confirmed manually against each VERIFICATION.md table at close — and produced `"One-liner:"` placeholders that had to be hand-corrected in MILESTONES.md.
+- The v1.18-kickoff archival silently broke `lint.sh` (a path-pinned admin-foundations guard pointed at an archived v1.17 contract); discovered only at closeout, fixed by relocating the contract to `brandbook/admin-foundations-contract.md`.
+
+### Patterns Established
+- Opt-in heavy tests: gate the slowest network-dependent proof behind an env-tagged scope, keep it reachable on a named lane, and assert it still runs there — speed without hiding risk.
+- Required-check hygiene: aggregate gate with skipped→success transforms + `if: always()` to avoid the path-gated/docs-only pending trap.
+- Anti-drift guards: assert maintainer-facing docs (MAINTAINING triage table) from a contract test so DX docs cannot silently drift from `scripts/ci/*` microcopy.
+
+### Key Lessons
+1. Audit deliverables must carry explicit per-requirement traceability up front; an audit that "covers" a requirement without naming its REQ-ID orphans it and costs an inserted verification phase later.
+2. Frontmatter conventions (`requirements_completed`) need a single enforced spelling — mixed/empty values quietly degrade the close-out extraction and require manual repair.
+3. Archival is a code-affecting operation: moving planning docs can break path-pinned CI guards, so milestone close should re-run lint, not just the planning audit.
+
+### Cost Observations
+- 6 phases, 14 plans, 20 tasks; 113 commits, 182 files (+13,998 / −15,726) over 3 days.
+- Closeout extraction produced 6 placeholder one-liners (empty SUMMARY frontmatter) requiring manual MILESTONES.md repair.
+- Known deferred items at close: 0 open artifacts; 3 non-blocking tech-debt notes recorded in the audit (doc-drift, docs-only adopter-contract run, frontmatter convention).
+
 ## Milestone: v1.17 — Admin Design System Stress Test
 
 **Shipped:** 2026-06-15
@@ -335,6 +372,7 @@
 | v1.6.0 | 4 | 16 | Deepened reusable targeting with equal core/mounted/proof phase split |
 | v1.7.0 | 4 | 16 | Closed reusable-targeting safety arc with blast-radius governance via change requests |
 | v1.16 | 7 | 8 | Closed brand-faithful UI iteration with browser evidence and audit traceability backfill |
+| v1.18 | 6 | 14 | First non-product (CI/CD reliability) milestone: audit-first sequencing + evidence-gated rejection of cosmetic speedups |
 
 ### Cumulative Quality
 
@@ -344,6 +382,7 @@
 | v1.6.0 | verify.phase54–56 | reusable targeting drift guards | 4 |
 | v1.7.0 | verify.phase60 | blast-radius governance drift guards | 3 |
 | v1.16 | v1.16 audit passed | brand/token/logo/contrast guards + demo verifier | 1 |
+| v1.18 | v1.18 audit passed (iter 4) | release_gate aggregate + post-publish proof + D-14 MAINTAINING anti-drift guard | 0 |
 
 ### Top Lessons (Verified Across Milestones)
 
