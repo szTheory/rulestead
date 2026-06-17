@@ -2,19 +2,19 @@
 
 ## Milestones
 
-- ◆ **v1.18 CI/CD Reliability** — Phases 119-123 (active)
+- ✅ **v1.18 CI/CD Reliability** — Phases 119-123 (shipped 2026-06-17)
 - ✅ **v1.17 Admin Design System Stress Test** — Phases 113-118 (shipped 2026-06-15)
 
 ## Phases
 
 <details open>
-<summary>◆ v1.18 CI/CD Reliability (Phases 119-123) — ACTIVE</summary>
+<summary>✅ v1.18 CI/CD Reliability (Phases 119-123) — SHIPPED 2026-06-17</summary>
 
 - [x] Phase 119: Baseline + Expert Audit (3/3 plans) (completed 2026-06-16)
 - [x] Phase 120: Workflow Topology + Cache Hygiene (0/3 plans) (completed 2026-06-16)
 - [x] Phase 121: Mix/ExUnit Performance + Test Value Cleanup (3/3 plans) (completed 2026-06-17)
 - [x] Phase 122: Browser/Demo/Integration Determinism (0/1 plans) (completed 2026-06-17)
-- [ ] Phase 123: DX + Closeout Proof (3/3 plans)
+- [x] Phase 123: DX + Closeout Proof (3/3 plans) (completed 2026-06-17)
 
 </details>
 
@@ -159,22 +159,22 @@ Plans:
 | 120. Workflow Topology + Cache Hygiene | v1.18 | 3/3 | Complete    | 2026-06-16 |
 | 121. Mix/ExUnit Performance + Test Value Cleanup | v1.18 | 3/3 | Complete    | 2026-06-17 |
 | 122. Browser/Demo/Integration Determinism | v1.18 | 1/1 | Complete    | 2026-06-17 |
-| 123. DX + Closeout Proof | v1.18 | 2/3 | In Progress|  |
+| 123. DX + Closeout Proof | v1.18 | 3/3 | Complete | 2026-06-17 |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CIDX-01 | Phase 119 | Pending |
-| CIDX-02 | Phase 119 | Pending |
-| CIDX-03 | Phase 119 | Pending |
-| CIDX-04 | Phase 120 | Pending |
+| CIDX-01 | Phase 119 | Complete |
+| CIDX-02 | Phase 119 | Complete |
+| CIDX-03 | Phase 119 | Complete |
+| CIDX-04 | Phase 120 | Complete |
 | CIDX-05 | Phase 122 | Complete |
-| CIDX-06 | Phase 121 | Pending |
-| CIDX-07 | Phase 120 | Pending |
-| CIDX-08 | Phase 123 | Pending |
-| CIDX-09 | Phase 120 | Pending |
-| CIDX-10 | Phase 123 | Pending |
+| CIDX-06 | Phase 121 | Complete |
+| CIDX-07 | Phase 120 | Complete |
+| CIDX-08 | Phase 123 | Complete |
+| CIDX-09 | Phase 120 | Complete |
+| CIDX-10 | Phase 123 | Complete |
 
 **Coverage:**
 
