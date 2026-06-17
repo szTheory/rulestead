@@ -14,7 +14,7 @@
 - [x] Phase 120: Workflow Topology + Cache Hygiene (0/3 plans) (completed 2026-06-16)
 - [x] Phase 121: Mix/ExUnit Performance + Test Value Cleanup (3/3 plans) (completed 2026-06-17)
 - [x] Phase 122: Browser/Demo/Integration Determinism (0/1 plans) (completed 2026-06-17)
-- [ ] Phase 123: DX + Closeout Proof (0/? plans)
+- [ ] Phase 123: DX + Closeout Proof (3/3 plans)
 
 </details>
 
@@ -136,6 +136,21 @@ Plans:
 4. Final verification includes targeted changed lanes plus the agreed local/CI gates from the requirements.
 5. Requirements traceability and `STATE.md` are updated before milestone closeout.
 
+**Plans:** 3/3 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 123-01-PLAN.md — Create 123-CI-CD-CLOSEOUT.md (D-01..D-06) + reconcile 119 rerun-catalog fast-loop row (D-09)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 123-02-PLAN.md — MAINTAINING.md command ladder + CI Failure Triage table (D-07/D-08/D-10..D-13) + D-14 anti-drift guard in release_contract_test.exs
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 123-03-PLAN.md — Final verification (D-15..D-18) + traceability/STATE closeout (D-19/D-20)
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -144,7 +159,7 @@ Plans:
 | 120. Workflow Topology + Cache Hygiene | v1.18 | 3/3 | Complete    | 2026-06-16 |
 | 121. Mix/ExUnit Performance + Test Value Cleanup | v1.18 | 3/3 | Complete    | 2026-06-17 |
 | 122. Browser/Demo/Integration Determinism | v1.18 | 1/1 | Complete    | 2026-06-17 |
-| 123. DX + Closeout Proof | v1.18 | 0/? | Pending | — |
+| 123. DX + Closeout Proof | v1.18 | 0/3 | Pending | — |
 
 ## Traceability
 
