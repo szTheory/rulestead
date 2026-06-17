@@ -269,3 +269,4 @@ Current v1.18 planning proof:
 | Phase 123-dx-closeout-proof P01 | 12min | 2 tasks | 2 files |
 | Phase 123 P02 | 15 minutes | 2 tasks | 2 files |
 | Phase 123 P03 | 15min | 2 tasks | 3 files |
+| Phase 119.1-verify-phase-119-audit-deliverable-cidx-01-02-03 P01 | 3min | 2 tasks | 3 files |
