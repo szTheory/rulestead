@@ -64,33 +64,33 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| API-01 | TBD | Pending |
-| API-02 | TBD | Pending |
-| API-03 | TBD | Pending |
-| DOC-01 | TBD | Pending |
-| DOC-02 | TBD | Pending |
-| DOC-03 | TBD | Pending |
-| DOC-04 | TBD | Pending |
-| DOC-05 | TBD | Pending |
-| DOC-06 | TBD | Pending |
-| GUIDE-01 | TBD | Pending |
-| GUIDE-02 | TBD | Pending |
-| GUIDE-03 | TBD | Pending |
-| REL-01 | TBD | Pending |
-| REL-02 | TBD | Pending |
-| REL-03 | TBD | Pending |
-| REL-04 | TBD | Pending |
-| REL-05 | TBD | Pending |
-| REL-06 | TBD | Pending |
-| ANN-01 | TBD | Pending |
-| ANN-02 | TBD | Pending |
-| ANN-03 | TBD | Pending |
+| API-01 | Phase 124 | Pending |
+| API-02 | Phase 124 | Pending |
+| API-03 | Phase 124 | Pending |
+| DOC-01 | Phase 126 | Pending |
+| DOC-02 | Phase 126 | Pending |
+| DOC-03 | Phase 126 | Pending |
+| DOC-04 | Phase 126 | Pending |
+| DOC-05 | Phase 126 | Pending |
+| DOC-06 | Phase 126 | Pending |
+| GUIDE-01 | Phase 127 | Pending |
+| GUIDE-02 | Phase 127 | Pending |
+| GUIDE-03 | Phase 127 | Pending |
+| REL-01 | Phase 128 | Pending |
+| REL-02 | Phase 125 | Pending |
+| REL-03 | Phase 125 | Pending |
+| REL-04 | Phase 128 | Pending |
+| REL-05 | Phase 129 | Pending |
+| REL-06 | Phase 128 | Pending |
+| ANN-01 | Phase 130 | Pending |
+| ANN-02 | Phase 130 | Pending |
+| ANN-03 | Phase 130 | Pending |
 
 **Coverage:**
 - v1 requirements: 21 total
-- Mapped to phases: 0 (roadmap pending)
-- Unmapped: 21 ⚠️ (filled by roadmap)
+- Mapped to phases: 21 (roadmap complete)
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-06-17 from `.planning/research/SUMMARY.md`*
-*Last updated: 2026-06-17 after initial definition*
+*Last updated: 2026-06-17 — traceability filled by roadmap creation (Phases 124-130)*
