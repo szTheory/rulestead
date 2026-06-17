@@ -45,7 +45,7 @@
       "jtbd_refresh_at_milestone_close": true,
       "flag_conformance_manifest_drift": true
     },
-    "_auto_chain_active": false,
+    "_auto_chain_active": true,
     "use_worktrees": false
   },
   "hooks": {

@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: CI/CD Reliability
-status: executing
-last_updated: "2026-06-17T03:00:10.468Z"
-last_activity: 2026-06-17 -- Phase 122 planning complete
+status: verifying
+last_updated: "2026-06-17T03:07:25.666Z"
+last_activity: 2026-06-17
 progress:
   total_phases: 5
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 10
-  completed_plans: 9
-  percent: 60
+  completed_plans: 10
+  percent: 80
 ---
 
 # State: Rulestead
@@ -21,7 +21,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-15)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
 
-**Current focus:** Milestone complete
+**Current focus:** Phase 122 — Browser/Demo/Integration Determinism
 
 **Milestone:** v1.18 CI/CD Reliability — see `.planning/ROADMAP.md`.
 
@@ -31,10 +31,10 @@ See: `.planning/PROJECT.md` (updated 2026-06-15)
 
 ## Current Position
 
-Phase: 121
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-06-17 -- Phase 122 planning complete
+Phase: 122 (Browser/Demo/Integration Determinism) — EXECUTING
+Plan: 1 of 1
+Status: Phase complete — ready for verification
+Last activity: 2026-06-17
 
 ## Phase Dependency Map
 
@@ -159,6 +159,7 @@ Human checkpoints:
 - **v1.16 audit close:** Backfilled canonical BUI requirement rows, `requirements-completed` summary frontmatter, and Nyquist validation artifacts for Phases 107-112; `.planning/milestones/v1.16-MILESTONE-AUDIT.md` is `passed`.
 - [Phase 114]: Use curated Playwright screenshots and deterministic assertions instead of visual snapshot tooling. — Plan 114-02 followed the v1.17 evidence posture: screenshots are test artifacts only, with source guards blocking baseline/snapshot tooling.
 - [Phase ?]: Phase 121 Plan 03 (D-09 measurement): Default lane ~4.6s real (was ~42s baseline); dominant test 17090ms on opt-in lane; delta -37s (-88%). D-06 partitioning REJECTED: 5 verified premises (serial network test; async:false suite; per-partition DB/Fake isolation fragility; no partition config; 18 schedulers absorb async set) -> FUT-01 deferred. D-05 no splits (next-slowest 303ms). D-07 no Dialyzer/PLT change. D-10 length-47 xref cycle noted only.
+- [Phase ?]: Phase 122 Plan 01 (D-01..D-06): Fixed Playwright trace/retry mismatch at root cause (retain-on-failure, retries:0 unchanged). verify.sh gets failure-output block via || {} idiom. CI gets SHA-pinned upload-artifact step (ea165f8d/v4.6.2, if:failure()). D-03 audit evidence: demo readiness sound (real Docker health polling, zero waitForTimeout). D-06: 15 specs all KEEP (10 functional journeys + 5 visual-evidence matrices, no CIDX-05 demotion evidence).
 
 ### Deferred Items (v2)
 
@@ -259,3 +260,4 @@ Current v1.18 planning proof:
 | Phase 119 P03 | 16 min | 3 tasks | 1 files |
 | Phase 121 P01 | 6min | 2 tasks | 3 files |
 | Phase 121-mix-exunit-performance-test-value-cleanup P03 | 15 | 2 tasks | 1 files |
+| Phase 122-browser-demo-integration-determinism P01 | 4min | 4 tasks | 3 files |

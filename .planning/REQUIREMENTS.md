@@ -14,7 +14,7 @@
 ### Gate Quality and Test Value
 
 - [x] **CIDX-04**: PR gates remain trustworthy and deterministic while high-value adopter, release, mounted companion, and OpenFeature proof bars stay preserved.
-- [ ] **CIDX-05**: Maintainer can fix, demote, rewrite, or remove the lowest-signal redundant or flaky checks only when the audit records concrete evidence.
+- [x] **CIDX-05**: Maintainer can fix, demote, rewrite, or remove the lowest-signal redundant or flaky checks only when the audit records concrete evidence.
 - [x] **CIDX-06**: Mix, ExUnit, Dialyzer, Playwright, demo, and release workflows use runner time efficiently without fragile over-sharding or hidden correctness risk.
 
 ### Cache, Release, and Supply Chain
@@ -57,7 +57,7 @@ Deferred until a later milestone or until Phase 119 proves they are worth the ad
 | CIDX-02 | Phase 119 | Complete |
 | CIDX-03 | Phase 119 | Complete |
 | CIDX-04 | Phase 120 | Complete |
-| CIDX-05 | Phase 122 | Pending |
+| CIDX-05 | Phase 122 | Complete |
 | CIDX-06 | Phase 121 | Complete |
 | CIDX-07 | Phase 120 | Complete |
 | CIDX-08 | Phase 123 | Pending |
