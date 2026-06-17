@@ -292,9 +292,13 @@ defmodule Rulestead.ReleaseContractTest do
     assert maintaining =~ "mounted-proof-relevant paths change"
     assert maintaining =~ "integration-placeholder"
     assert maintaining =~ "## CI Failure Triage"
-    assert maintaining =~ "mounted-proof"
-    assert maintaining =~ "openfeature-companion"
+    # Triage-table-specific cell form (backtick-wrapped + pipe), distinct from the
+    # bold `**mounted-proof**` cells in the CI caching table — so these fail if the
+    # triage rows are removed, not merely if the job names vanish repo-wide.
+    assert maintaining =~ "| `mounted-proof` |"
+    assert maintaining =~ "| `openfeature-companion` |"
     assert maintaining =~ "RULESTEAD_TEST_SCOPE=openfeature_companion bash scripts/ci/test.sh"
+    assert maintaining =~ "RULESTEAD_TEST_SCOPE=post_ga_band_closure bash scripts/ci/test.sh"
     assert maintaining =~ "release-trust gate"
 
     for fragments <- banned_phrases do

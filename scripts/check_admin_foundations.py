@@ -59,9 +59,11 @@ REQUIRED_CSS_MARKERS = [
 
 
 def read_text(path):
+    # Treat any read failure (missing, permission, decode) as "absent" so the guard
+    # emits structured ADMIN FOUNDATION DRIFT output instead of a raw traceback in CI.
     try:
         return path.read_text()
-    except FileNotFoundError:
+    except OSError:
         return None
 
 
