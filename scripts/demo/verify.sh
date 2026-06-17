@@ -39,6 +39,17 @@ echo "[verify] running FleetDesk adoption lab browser proof (kill switch + journ
 (
   cd examples/demo/frontend
   CI=true DEMO_BACKEND_URL="$DEMO_BACKEND_URL" DEMO_FRONTEND_URL="$DEMO_FRONTEND_URL" npm run test:e2e
-)
+) || {
+  echo ""
+  echo "[verify] Playwright failed."
+  echo "  Frontend URL : ${DEMO_FRONTEND_URL}"
+  echo "  Backend URL  : ${DEMO_BACKEND_URL}"
+  echo "  Artifacts    : examples/demo/frontend/playwright-report/"
+  echo "                 examples/demo/frontend/test-results/"
+  echo "  Local report : cd examples/demo/frontend && npx playwright show-report"
+  echo "  Local rerun  : cd examples/demo/frontend && npm run test:e2e"
+  echo ""
+  exit 1
+}
 
 echo "[verify] compose smoke and browser proof passed"
