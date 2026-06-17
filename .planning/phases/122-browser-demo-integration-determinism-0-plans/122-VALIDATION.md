@@ -1,10 +1,11 @@
 ---
 phase: 122
 slug: browser-demo-integration-determinism-0-plans
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: validated
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-06-16
+validated: 2026-06-17
 ---
 
 # Phase 122 — Validation Strategy
@@ -40,18 +41,18 @@ created: 2026-06-16
 
 | Task ID | Decision | Requirement | Verify Type | Automated Command | Status |
 |---------|----------|-------------|-------------|-------------------|--------|
-| D-01a | trace/video/screenshot modes | CIDX-05 | grep | `grep -c "retain-on-failure" examples/demo/frontend/playwright.config.ts` → ≥2; `grep -c "only-on-failure" …` → 1; `grep -c "on-first-retry" …` → 0 | ⬜ pending |
-| D-01b | explicit html+list reporter | CIDX-05 | grep | `grep "reporter" examples/demo/frontend/playwright.config.ts` shows `html` + `{ open: 'never' }` + `list` | ⬜ pending |
-| D-01c | retries unchanged (no flake-hiding) | CIDX-05 | grep | `grep "retries: 0" examples/demo/frontend/playwright.config.ts` → present | ⬜ pending |
-| D-02 | no webServer block added | CIDX-05 | grep | `grep -c "webServer" examples/demo/frontend/playwright.config.ts` → 0 | ⬜ pending |
-| D-03 | demo readiness unchanged (evidence recorded) | CIDX-05 | grep | `grep "wait_for_health" scripts/demo/smoke.sh` present; no diff to readiness logic | ⬜ pending |
-| D-04a | verify.sh prints URLs + rerun + paths on failure | CIDX-05 | grep | `grep "playwright show-report" scripts/demo/verify.sh`; `grep -c "DEMO_FRONTEND_URL" scripts/demo/verify.sh` ≥2 | ⬜ pending |
-| D-04b | cleanup trap intact | CIDX-05 | grep | `grep "trap cleanup" scripts/demo/verify.sh` → present | ⬜ pending |
-| D-05a | upload-artifact step on integration-placeholder | CIDX-05 | grep + YAML parse | `grep "upload-artifact" .github/workflows/ci.yml`; `python3 -c "import yaml; yaml.safe_load(open('.github/workflows/ci.yml'))"` no error | ⬜ pending |
-| D-05b | scoped to failure | CIDX-05 | grep | upload step block contains `if: failure()` | ⬜ pending |
-| D-05c | correct paths | CIDX-05 | grep | `grep "examples/demo/frontend/playwright-report" .github/workflows/ci.yml` → present | ⬜ pending |
-| D-05d | action SHA-pinned (repo posture) | CIDX-05, CIDX-09 | grep | `grep "upload-artifact@" .github/workflows/ci.yml` references a full 40-char SHA + version comment, never a bare `@v4` tag | ⬜ pending |
-| D-06 | all specs KEEP; hygiene preserved | CIDX-05 | git + grep | `git ls-files -- 'examples/demo/frontend/test-results' 'examples/demo/frontend/playwright-report'` → empty; `grep "forbiddenSourceTerms" examples/demo/frontend/tests/ui-matrix.spec.ts` present | ⬜ pending |
+| D-01a | trace/video/screenshot modes | CIDX-05 | grep | `grep -c "retain-on-failure" examples/demo/frontend/playwright.config.ts` → ≥2; `grep -c "only-on-failure" …` → 1; `grep -c "on-first-retry" …` → 0 | ✅ green |
+| D-01b | explicit html+list reporter | CIDX-05 | grep | `grep "reporter" examples/demo/frontend/playwright.config.ts` shows `html` + `{ open: 'never' }` + `list` | ✅ green |
+| D-01c | retries unchanged (no flake-hiding) | CIDX-05 | grep | `grep "retries: 0" examples/demo/frontend/playwright.config.ts` → present | ✅ green |
+| D-02 | no webServer block added | CIDX-05 | grep | `grep -c "webServer" examples/demo/frontend/playwright.config.ts` → 0 | ✅ green |
+| D-03 | demo readiness unchanged (evidence recorded) | CIDX-05 | grep | `grep "wait_for_health" scripts/demo/smoke.sh` present; no diff to readiness logic | ✅ green |
+| D-04a | verify.sh prints URLs + rerun + paths on failure | CIDX-05 | grep | `grep "playwright show-report" scripts/demo/verify.sh`; `grep -c "DEMO_FRONTEND_URL" scripts/demo/verify.sh` ≥2 | ✅ green |
+| D-04b | cleanup trap intact | CIDX-05 | grep | `grep "trap cleanup" scripts/demo/verify.sh` → present | ✅ green |
+| D-05a | upload-artifact step on integration-placeholder | CIDX-05 | grep + YAML parse | `grep "upload-artifact" .github/workflows/ci.yml`; `python3 -c "import yaml; yaml.safe_load(open('.github/workflows/ci.yml'))"` no error | ✅ green |
+| D-05b | scoped to failure | CIDX-05 | grep | upload step block contains `if: failure()` | ✅ green |
+| D-05c | correct paths | CIDX-05 | grep | `grep "examples/demo/frontend/playwright-report" .github/workflows/ci.yml` → present | ✅ green |
+| D-05d | action SHA-pinned (repo posture) | CIDX-05, CIDX-09 | grep | `grep "upload-artifact@" .github/workflows/ci.yml` references a full 40-char SHA + version comment, never a bare `@v4` tag | ✅ green |
+| D-06 | all specs KEEP; hygiene preserved | CIDX-05 | git + grep | `git ls-files -- 'examples/demo/frontend/test-results' 'examples/demo/frontend/playwright-report'` → empty; `grep "forbiddenSourceTerms" examples/demo/frontend/tests/ui-matrix.spec.ts` present | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -76,11 +77,25 @@ None — no new test files needed. All verification is grep/static assertions on
 
 ## Validation Sign-Off
 
-- [ ] All decisions D-01..D-06 have an automated static verify command
-- [ ] Sampling continuity: every changed file has a grep/parse check
-- [ ] Wave 0 covers all MISSING references (none required)
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 5s for static checks
-- [ ] `nyquist_compliant: true` set in frontmatter (set by planner/executor when map is complete)
+- [x] All decisions D-01..D-06 have an automated static verify command
+- [x] Sampling continuity: every changed file has a grep/parse check
+- [x] Wave 0 covers all MISSING references (none required)
+- [x] No watch-mode flags
+- [x] Feedback latency < 5s for static checks
+- [x] `nyquist_compliant: true` set in frontmatter (set by planner/executor when map is complete)
 
-**Approval:** pending
+**Approval:** validated 2026-06-17 — all 12 static checks green, no gaps
+
+---
+
+## Validation Audit 2026-06-17
+
+State A audit: re-ran every command in the Per-Task Verification Map against the live files. All 12 rows pass; phase is Nyquist-compliant. No test generation needed (Wave 0 requires none — verification is grep/YAML-parse only).
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+**Static check results:** retain-on-failure=2, only-on-failure=1, on-first-retry=0, reporter=html+list, retries:0 present, webServer=0, wait_for_health present, `playwright show-report` present, DEMO_FRONTEND_URL=2, `trap cleanup` present, `bash -n` clean, upload-artifact present + YAML parses, `if: failure()` present, both artifact paths present, `if-no-files-found: ignore` present, SHA pin 40-char (`ea165f8d…` v4.6.2, zero bare tags), committed-artifacts list empty, `forbiddenSourceTerms` guard present.
