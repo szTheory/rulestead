@@ -198,6 +198,16 @@ jobs:
           node-version: "22"
       - name: Run FleetDesk adoption lab (compose + Playwright)
         run: scripts/ci/integration_placeholder.sh
+      - name: Upload Playwright report and test artifacts
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: playwright-report-${{ github.run_id }}
+          path: |
+            examples/demo/frontend/playwright-report/
+            examples/demo/frontend/test-results/
+          retention-days: 7
+          if-no-files-found: ignore
 
   adopter-contract:
     name: adopter contract (post-GA band)
