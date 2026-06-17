@@ -50,16 +50,15 @@ Rulestead is a batteries-included, Elixir-native feature-flag and remote-config 
 
 v1.1–v1.9 feature band is **complete**. v1.10.x–v1.11 doc bands are **shipped**. See `guides/introduction/product-boundary.md` and `.planning/DEFERRED.md` for v2 triggers.
 
-## Current Milestone: v1.18 CI/CD Reliability
+## Shipped: v1.18 CI/CD Reliability (2026-06-17)
 
 **Goal:** Make the CI/CD pipeline faster, more deterministic, more resource-efficient, and easier for contributors to reason about while preserving or increasing release-gate trust.
 
-**Target features:**
-- Baseline the current GitHub Actions, Mix/ExUnit, Dialyzer, Playwright, demo, release, dependency, and hygiene workflows before changing behavior.
-- Classify tests and checks by quality signal, runtime, determinism, redundancy, and failure actionability.
-- Implement conservative, evidence-backed optimizations for workflow topology, cache correctness, runner CPU use, ExUnit concurrency, expensive browser/demo paths, and local contributor commands.
-- Preserve the linked-version sibling-package release model, `release_gate`, post-publish proof, mounted companion proof, OpenFeature proof, and adopter contract unless the audit proves a narrower equivalent.
-- Record before/after metrics, residual risks, rollback notes, and contributor rerun guidance before closeout.
+**Delivered (Phases 119–123, 10 plans):** repo-specific CI/CD baseline + expert audit; workflow topology + cache hygiene (openfeature-companion wired into `release_gate`, correctness-safe cache keys, scripts-first observability); Mix/ExUnit performance + test-value cleanup (dominant published-Hex smoke test relocated behind an opt-in tag, evidence-gated async audit, partitioning rejected with evidence); browser/demo/integration determinism (Playwright trace/retry fix, verify.sh failure ergonomics, CI artifact upload); and DX + closeout proof (`123-CI-CD-CLOSEOUT.md` before/after ledger with honest gaps, `MAINTAINING.md` command ladder + CI Failure Triage table, D-14 anti-drift guard). All static checks green; `release_gate` trust, post-publish proof, mounted/OpenFeature proofs, and the adopter contract preserved.
+
+**Closeout-discovered fix:** the v1.18-kickoff archival had broken `lint.sh` (a path-pinned admin-foundations guard referenced an archived v1.17 contract); the contract was relocated to `brandbook/admin-foundations-contract.md` and the guard repointed, restoring green lint with CSS-drift protection intact.
+
+**Scope note:** Post-GA CI/CD reliability and maintainer-DX milestone. No product runtime APIs, schemas, release-workflow trust reduction, admin standalone publish prep, broad pixel baselines, or cosmetic speedups that hide risk.
 
 ## Shipped: v1.13 Admin UI — First-Class Dark Mode + Design-System Polish (2026-06-04)
 
@@ -150,13 +149,13 @@ v1.1–v1.9 feature band is **complete**. v1.10.x–v1.11 doc bands are **shippe
 | 4b | **v1.15 — Identity Tournament** | **Complete** (2026-06-12) — Phases 102–106; tournament-selected integrated logo + elevated HTML brand book; no runtime API or publish-posture changes |
 | 4c | **v1.16 — Brand-Faithful UI Iteration** | **Complete** (2026-06-13) — v1.15 identity conformance + demo/admin visual evidence + dynamic FleetDesk launcher proof; no runtime APIs or publish-posture changes |
 | 4d | **v1.17 — Admin Design System Stress Test** | **Complete** (2026-06-14) — component/system matrix, foundations hardening, primitive/composite polish, page-flow IA pass, and reusable evidence; no runtime APIs or publish-posture changes |
-| 4e | **v1.18 — CI/CD Reliability** | **Active** — audit + conservative fixes for CI/CD performance, determinism, cache correctness, test value, release trust, and contributor DX; no product runtime APIs |
+| 4e | **v1.18 — CI/CD Reliability** | **Complete** (2026-06-17, Phases 119–123) — audit + conservative fixes for CI/CD performance, determinism, cache correctness, test value, release trust, and contributor DX; no product runtime APIs |
 | 5+ | **v2.0+ wedges (triggered only)** | GOV-02-ext → ROL-08 → ADM-06 per `.planning/DEFERRED.md` |
 | — | **Maintenance** | Patches and adopter support until a v2 trigger fires |
 
 **Done band:** Post-GA scope through v1.11 is repo-verified; feature band v1.1–v1.9 in `lib/` + contract tests.
 
-**Next action:** Phase 119 baseline and expert audit for v1.18 CI/CD Reliability.
+**Next action:** v1.18 CI/CD Reliability is **complete** (Phases 119–123 shipped 2026-06-17). Open a new milestone (`/gsd:new-milestone`) for the next body of work; v2 feature wedges (GOV-02-ext → ROL-08 → ADM-06) require an explicit new milestone per `.planning/DEFERRED.md`.
 
 <details>
 <summary>Latest shipped: v1.10.0 Post-GA Band Truth & Adopter Closure (2026-05-28)</summary>
@@ -441,4 +440,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-17 — v1.18 CI/CD Reliability in progress: Phases 119, 120, 121 complete (CIDX-01/02/03/04/06/07/09); Phases 122–123 remain.*
+*Last updated: 2026-06-17 — v1.18 CI/CD Reliability **complete**: Phases 119–123 shipped, all 10 CIDX requirements (CIDX-01..CIDX-10) Complete. Closeout discovered + fixed a pre-existing lint regression (archival-broken admin-foundations guard).*
