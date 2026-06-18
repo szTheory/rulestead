@@ -11,3 +11,8 @@ mix compile --warnings-as-errors
 mix test --exclude install_integration
 mix credo --strict
 mix docs --warnings-as-errors
+
+# D-10: assert real logo SVG bytes are present in the core hex tarball.
+# This gate will fail until plan 05 adds the brandbook/assets/logo/*.svg glob
+# to core files: — that is expected behaviour (the gate proves the manifest).
+bash "${PACKAGE_DIR}/../scripts/ci/check_logo_bytes.sh"
