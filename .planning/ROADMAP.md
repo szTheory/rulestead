@@ -125,7 +125,7 @@ Plans:
 5. The README has the centered brand hero (wordmark + tagline + 5 badges: Hex version, HexDocs, CI, License, Elixir version) with `~> 1.0` install snippets.
 6. `rulestead_admin` docs reach parity — same logo/favicon/theming, a real `@moduledoc` on `RulesteadAdmin.Router`, and admin flow guides wired into its docs configuration.
 
-**Plans:** 3/6 plans executed
+**Plans:** 4/6 plans executed
 
 Plans:
 **Wave 1**
@@ -133,7 +133,7 @@ Plans:
 - [x] 126-01-PLAN.md — Wave-0 prereqs: committed `brandbook` symlinks (both packages, D-09), rasterized `rs-social-card.png` (D-19), D-10 logo-bytes CI tarball assertion (DOC-02)
 - [x] 126-02-PLAN.md — New `guides/introduction/why-rulestead.md` positioning extra, brandbook-sourced, no named vendors (D-17/D-18, DOC-04)
 - [x] 126-03-PLAN.md — README centered wordmark-tagline hero + 5-badge clickable row, self-healing version badge (D-20, DOC-05)
-- [ ] 126-04-PLAN.md — Un-hide `TestHelpers`/`Telemetry`/`Config` `@moduledoc false`→real (D-02/D-03, DOC-01)
+- [x] 126-04-PLAN.md — Un-hide `TestHelpers`/`Telemetry`/`Config` `@moduledoc false`→real (D-02/D-03, DOC-01)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -234,7 +234,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 124. API Surface Lock & Stability Contract | 3/3 | Complete    | 2026-06-18 |
 | 125. Version-Truth Sweep + Release Docs | 3/3 | Complete   | 2026-06-18 |
-| 126. HexDocs Front Door | 3/6 | In Progress|  |
+| 126. HexDocs Front Door | 4/6 | In Progress|  |
 | 127. Adoption Guides | 0/TBD | Not started | - |
 | 128. The Release Cut | 0/TBD | Not started | - |
 | 129. Provider Publish | 0/TBD | Not started | - |
