@@ -84,7 +84,7 @@ Use `Rulestead.evaluate/3` only when you already have the flag payload (tests, s
 
 **Cause:** The runtime served a cached snapshot whose freshness lags the latest authored state — an expected cache window, surfaced rather than hidden. The provider is only the consumer boundary; the freshness behavior belongs to the runtime cache.
 
-**Fix:** Treat this as a snapshot-freshness window. The operational refresh outcome is to bring the latest runtime snapshots into the cache (the `mix rulestead.redis.sync` task exists for this refresh outcome); after refresh, consumers reading through `open_feature_rulestead` see the current value. For why readiness and snapshot timing matter, see [footguns](footguns.md#snapshot-cache-before-readiness).
+**Fix:** Treat this as a snapshot-freshness window. The operational refresh outcome is to bring the latest runtime snapshots into the cache (the package ships a dedicated **mix rulestead.redis.sync** Mix task for this refresh outcome); after refresh, consumers reading through `open_feature_rulestead` see the current value. For why readiness and snapshot timing matter, see [footguns](footguns.md#snapshot-cache-before-readiness).
 
 **Verify:** Watch the public cache telemetry events — `[:rulestead, :runtime, :cache, :stale_used]` firing indicates a stale read served, while `[:rulestead, :runtime, :cache, :miss]` and `[:rulestead, :runtime, :cache, :refresh]` show the refresh cycle. Once `Result.cache_age_ms` drops back to a fresh value, the staleness window has closed.
 
