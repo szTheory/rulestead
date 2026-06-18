@@ -244,6 +244,6 @@ Plans:
 | 125. Version-Truth Sweep + Release Docs | 3/3 | Complete   | 2026-06-18 |
 | 126. HexDocs Front Door | 6/6 | Complete   | 2026-06-18 |
 | 127. Adoption Guides | 0/TBD | Not started | - |
-| 128. The Release Cut | 0/TBD | Not started | - |
+| 128. The Release Cut | 0/3 | Planned | - |
 | 129. Provider Publish | 0/TBD | Not started | - |
 | 130. Announce & Closeout | 0/TBD | Not started | - |
