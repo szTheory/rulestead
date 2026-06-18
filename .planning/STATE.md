@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: 1.0 GA Release & Adoption
 status: executing
-last_updated: "2026-06-18T00:45:10.426Z"
+last_updated: "2026-06-18T00:50:37.519Z"
 last_activity: 2026-06-18
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 3
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -30,7 +30,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-17)
 ## Current Position
 
 Phase: 124 (api-surface-lock-stability-contract) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-06-18
 
@@ -40,7 +40,7 @@ Last activity: 2026-06-18
                127 ---+
 ```
 
-Progress: [███░░░░░░░] 33%
+Progress: [███████░░░] 67%
 
 ## Phase Dependency Map
 
@@ -104,6 +104,8 @@ Human checkpoints:
 - **`@deprecated` + `--warnings-as-errors` footgun** — repo's `lint.sh` runs `mix compile --warnings-as-errors`; hard-deprecating without migrating all internal callers first will break CI. Soft-deprecation (docs only) sidesteps this; document in the policy.
 - **`open_feature_rulestead` dep swap** — use env-gated pattern (mirroring existing `RULESTEAD_ADMIN_HEX_RELEASE`) so local dev/CI keep the path dep; only swap to `~> 1.0` for the publish step.
 - **CHANGELOG strategy** — keep release-please-generated, per-package; no root CHANGELOG; hand-author the "promotion, not rewrite" preamble above the bot's generated bullets in the release PR.
+- **api_stability.md 1.x contract** (124-P02) — Opening sentence flipped to "1.x release contract"; Versioning & Deprecation Policy added (breaking-change table, telemetry stability rules, soft-deprecation worked example, empty deprecations skeleton); Admin.Policy *_actions/0 helpers added to both doc and bidirectional test guard.
+- **release_contract_test.exs anchor updated** (124-P02) — Line ~181 assert updated to `1.x release contract` substring in lockstep (D-01); four *_actions/0 helpers assertion block added (D-12); all 26 tests pass.
 
 ### Milestone-specific constraints (v2.0)
 
@@ -154,6 +156,7 @@ Human checkpoints:
 
 | Phase | Plan | Duration | Notes |
 |-------|------|----------|-------|
+| Phase 124 P02 | 8min | 2 tasks | 2 files |
 | Phase 87 P01 | 15min | 2 tasks | 4 files |
 | Phase 88 P01 | 8min | 2 tasks | 1 files |
 | Phase 89-focus-interaction-state-unification P01 | 8 | 1 tasks | 1 files |

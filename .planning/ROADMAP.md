@@ -66,11 +66,11 @@ Full detail archived: [milestones/v1.17-ROADMAP.md](milestones/v1.17-ROADMAP.md)
 4. `release_contract_test.exs` stays green after all edits; the bidirectional `api_stability.md` ↔ code guard passes.
 5. `Rulestead.Runtime` appears in `groups_for_modules`; `Rulestead.Runtime.Snapshot` is removed from any public group.
 
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
 
 Plans:
 - [x] 124-P01-PLAN.md — @moduledoc+@doc on Context, Runtime, Admin.Policy + mix.exs groups_for_modules update
-- [ ] 124-P02-PLAN.md — Rewrite api_stability.md to 1.x contract + update release_contract_test.exs in lockstep
+- [x] 124-P02-PLAN.md — Rewrite api_stability.md to 1.x contract + update release_contract_test.exs in lockstep
 - [ ] 124-P03-PLAN.md — Release-gate verification: mix docs --warnings-as-errors, mix dialyzer, contract test
 
 ---
@@ -199,7 +199,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 124. API Surface Lock & Stability Contract | 1/3 | In Progress|  |
+| 124. API Surface Lock & Stability Contract | 2/3 | In Progress|  |
 | 125. Version-Truth Sweep + Release Docs | 0/TBD | Not started | - |
 | 126. HexDocs Front Door | 0/TBD | Not started | - |
 | 127. Adoption Guides | 0/TBD | Not started | - |
