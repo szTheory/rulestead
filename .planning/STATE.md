@@ -4,17 +4,17 @@ milestone: v2.0
 milestone_name: 1.0 GA Release & Adoption
 current_phase: 126
 current_phase_name: hexdocs-front-door
-status: executing
+status: verifying
 stopped_at: Completed 126-03-PLAN.md
-last_updated: "2026-06-18T13:51:31.632Z"
+last_updated: "2026-06-18T14:00:04.464Z"
 last_activity: 2026-06-18
 last_activity_desc: Phase 126 execution started
 progress:
   total_phases: 3
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 12
-  completed_plans: 11
-  percent: 67
+  completed_plans: 12
+  percent: 100
 ---
 
 # State: Rulestead
@@ -35,7 +35,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-17)
 
 Phase: 126 (hexdocs-front-door) — EXECUTING
 Plan: 6 of 6
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-06-18 -- Phase 126 execution started
 
 ```
@@ -123,6 +123,8 @@ Human checkpoints:
 - [Phase ?]: Zero named competitor vendors, no comparison matrix — brand guardrail D-18 upheld
 - [Phase ?]: D-20: Centered README hero uses rs-wordmark-tagline.svg (340x96) above existing H1; 5 shields.io badges each wrapped in <a href>; Hex version badge self-heals via shields hexpm/v/rulestead
 - [Phase ?]: D-01..D-05: 6 module groups; D-06: API & Stability first-match defuse; D-13..D-16: before_closing_head_tag --main* retint, body.dark, PNG og:image
+- [Phase ?]: Duplicated before_closing_head_tag/1 verbatim from core (D-21): two mix.exs cannot share code; only og:image host differs
+- [Phase ?]: @doc false on __using__/1 + live_session/3 in RulesteadAdmin.Router; real @moduledoc leads with host-owns-auth + 3 contracted session keys verbatim from api_stability.md (D-22/D-23)
 
 ### Milestone-specific constraints (v2.0)
 
@@ -238,9 +240,10 @@ Human checkpoints:
 | Phase 126 P02 | 1 minute | 1 tasks | 1 files |
 | Phase 126 P03 | 2min | 1 tasks | 1 files |
 | Phase 126 P05 | 3m | 2 tasks | 2 files |
+| Phase Phase 126 PP06 | 3min | 2 tasks | 2 files |
 
 ## Session
 
-**Last session:** 2026-06-18T13:50:36.140Z
+**Last session:** 2026-06-18T13:58:02.997Z
 **Stopped at:** Completed 126-03-PLAN.md
 **Resume file:** None

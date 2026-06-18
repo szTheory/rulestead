@@ -22,7 +22,7 @@ Requirements for the v2.0 milestone. Each maps to roadmap phases (continuing num
 - [x] **DOC-03**: A minimal `before_closing_head_tag` re-tints ExDoc CSS variables to the mineral palette and brand focus ring, respects ExDoc light/dark/system, and sets OG meta — with no theme JS and no custom stylesheet.
 - [x] **DOC-04**: A "Why Rulestead?" positioning extra (`guides/introduction/why-rulestead.md`) is the first Introduction extra, sourced from the brandbook narrative (not a README duplicate).
 - [x] **DOC-05**: The README has a brand hero (wordmark + tagline + 5 badges: Hex version · HexDocs · CI · License · Elixir version) and a `~> 1.0` install snippet; the "two version lines" callout is deleted; the social card is rasterized for the GitHub social-preview slot.
-- [ ] **DOC-06**: `rulestead_admin` docs reach parity — same logo/favicon/theming, a real `@moduledoc` on `RulesteadAdmin.Router`, and admin flow guides.
+- [x] **DOC-06**: `rulestead_admin` docs reach parity — same logo/favicon/theming, a real `@moduledoc` on `RulesteadAdmin.Router`, and admin flow guides.
 
 ### Adoption Guides
 
@@ -72,7 +72,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DOC-03 | Phase 126 | Complete |
 | DOC-04 | Phase 126 | Complete |
 | DOC-05 | Phase 126 | Complete |
-| DOC-06 | Phase 126 | Pending |
+| DOC-06 | Phase 126 | Complete |
 | GUIDE-01 | Phase 127 | Pending |
 | GUIDE-02 | Phase 127 | Pending |
 | GUIDE-03 | Phase 127 | Pending |
