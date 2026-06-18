@@ -144,8 +144,8 @@ Yes. Concretely:
   release is cut. The CI status badge reflects the current state.
 - **Honest 1.0 story.** This is a promotion, not a debut. Rulestead has been
   API-frozen, RBAC-complete, and governance-rich through an internal v1.x band
-  of real rollout, audience, lifecycle, and reliability hardening. The Hex
-  version line (`0.1.x`) had stopped telling the truth about that maturity.
+  of real rollout, audience, lifecycle, and reliability hardening. The
+  pre-1.0 Hex version line had stopped telling the truth about that maturity.
   1.0 corrects the record — and from here, SemVer is the public contract.
 
 ---
