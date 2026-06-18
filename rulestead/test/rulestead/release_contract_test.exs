@@ -925,7 +925,12 @@ defmodule Rulestead.ReleaseContractTest do
       assert contract =~ "`#{name}/#{arity}`" or contract =~ "`#{name}`"
     end
 
-    for {fun, arity} <- [governance_actions: 0, viewer_actions: 0, editor_actions: 0, admin_actions: 0] do
+    for {fun, arity} <- [
+          governance_actions: 0,
+          viewer_actions: 0,
+          editor_actions: 0,
+          admin_actions: 0
+        ] do
       assert contract =~ "`#{fun}/#{arity}`"
     end
 

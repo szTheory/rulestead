@@ -61,6 +61,9 @@ python3 "${RULESTEAD_REPO}/scripts/check_brandbook_html.py"
 # brandbook sources, and the real shell must retain the theme-aware classes.
 python3 "${RULESTEAD_REPO}/scripts/check_logo_assets.py"
 
+# Version-truth drift: shipped docs must not reintroduce stale pre-1.0 release language.
+python3 "${RULESTEAD_REPO}/scripts/check_version_truth.py"
+
 # Admin foundations: documented breakpoints, reduced-motion floor, and focus markers.
 python3 "${RULESTEAD_REPO}/scripts/check_admin_foundations.py"
 
