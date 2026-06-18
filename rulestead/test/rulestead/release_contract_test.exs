@@ -178,7 +178,7 @@ defmodule Rulestead.ReleaseContractTest do
   test "api stability guide states the explicit public and private boundary" do
     contract = File.read!(@api_stability_path)
 
-    assert contract =~ "`guides/api_stability.md` is the v0.1.0 release contract"
+    assert contract =~ "`guides/api_stability.md` is the 1.x release contract"
     assert contract =~ "## Stable `rulestead` Modules"
     assert contract =~ "## Stable `rulestead_admin` Boundary"
     assert contract =~ "## Non-Public Surface"
@@ -922,6 +922,10 @@ defmodule Rulestead.ReleaseContractTest do
 
     for {name, arity} <- Policy.behaviour_info(:callbacks) do
       assert contract =~ "`#{name}/#{arity}`" or contract =~ "`#{name}`"
+    end
+
+    for {fun, arity} <- [governance_actions: 0, viewer_actions: 0, editor_actions: 0, admin_actions: 0] do
+      assert contract =~ "`#{fun}/#{arity}`"
     end
 
     for type <- Error.leaf_types() do
