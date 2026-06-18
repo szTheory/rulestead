@@ -2,7 +2,7 @@
 phase: 126
 slug: hexdocs-front-door
 status: draft
-nyquist_compliant: false
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-06-18
 ---
@@ -42,19 +42,19 @@ created: 2026-06-18
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 126-DOC02 | TBD | TBD | DOC-02 | — | tarball ships real logo SVG bytes (no 404) | tarball assert | `cd rulestead && mix hex.build` → extract `brandbook/assets/logo/rs-mark.svg` → `grep -q 'viewBox="0 0 62 62"'` | ❌ W0 (D-10 script) | ⬜ pending |
-| 126-DOC02b | TBD | TBD | DOC-02 | — | `brandbook/assets/logo` in `files:`; CI whitelist not tripped | CI gate | `bash scripts/ci/check_package_whitelist.sh` → "package whitelist checks passed" | ✅ | ⬜ pending |
-| 126-DOC01 | TBD | TBD | DOC-01 | — | 6 module groups + 6 extras groups + funnel order | grep/AST + render | grep `rulestead/mix.exs` for 6 `groups_for_modules` + 6 `groups_for_extras` keys; `mix docs` → assert `why-rulestead` first Introduction extra | ✅ | ⬜ pending |
-| 126-DOC01b | TBD | TBD | DOC-01 | — | no dangling module ref; autolink clean | autolink gate | `mix docs --warnings-as-errors` (zero undefined-ref) + assert `Rulestead.Rule` absent from `mix.exs` | ✅ | ⬜ pending |
-| 126-DOC03 | TBD | TBD | DOC-03 | — | head-tag re-tints `--main*` + OG meta, no JS | grep | grep `mix.exs` `before_closing_head_tag` for `--main:`, `body.dark`, `og:image.*\.png`; assert no `<script>` / no custom stylesheet | ✅ | ⬜ pending |
-| 126-DOC04 | TBD | TBD | DOC-04 | — | `why-rulestead.md` exists, renders, not a README copy | file + diff + render | `test -f guides/introduction/why-rulestead.md` + assert not byte-identical to README + first Introduction extra in sidebar | ❌ W0 (new file) | ⬜ pending |
-| 126-DOC05 | TBD | TBD | DOC-05 | — | README hero + 5 clickable badges + `~> 1.0` | grep | grep `README.md` for `rs-wordmark-tagline.svg`, 5 badge `<a href>`s (hexpm/v, hex-docs, ci.yml, hexpm/l, elixir), `~> 1.0`; assert no `~> 0.1` | ✅ | ⬜ pending |
-| 126-DOC05b | TBD | TBD | DOC-05 | — | social card rasterized to 1200×630 PNG | file + dimension | `test -f brandbook/assets/logo/rs-social-card.png` + assert 1200×630 | ❌ W0 (rasterize) | ⬜ pending |
-| 126-DOC06 | TBD | TBD | DOC-06 | — | admin parity: logo/favicon/theming + real Router `@moduledoc` + flow guides | grep + autolink gate | grep `rulestead_admin/mix.exs` for logo/favicon/`before_closing_head_tag`/`admin-ui.md`/`explainability.md`/`Public Admin Seam`; assert `router.ex` not `@moduledoc false`; `cd rulestead_admin && mix docs --warnings-as-errors` | ✅ | ⬜ pending |
-| 126-REG | TBD | TBD | (regression) | — | frozen contract unchanged | ExUnit | `release_contract_test.exs` green (both packages) | ✅ | ⬜ pending |
+| 126-DOC02 | 126-01 | 1 | DOC-02 | — | tarball ships real logo SVG bytes (no 404) | tarball assert | `cd rulestead && mix hex.build` → extract `brandbook/assets/logo/rs-mark.svg` → `grep -q 'viewBox="0 0 62 62"'` | ❌ W0 (D-10 script) | ⬜ pending |
+| 126-DOC02b | 126-05 | 2 | DOC-02 | — | `brandbook/assets/logo` in `files:`; CI whitelist not tripped | CI gate | `bash scripts/ci/check_package_whitelist.sh` → "package whitelist checks passed" | ✅ | ⬜ pending |
+| 126-DOC01 | 126-05 | 2 | DOC-01 | — | 6 module groups + 6 extras groups + funnel order | grep/AST + render | grep `rulestead/mix.exs` for 6 `groups_for_modules` + 6 `groups_for_extras` keys; `mix docs` → assert `why-rulestead` first Introduction extra | ✅ | ⬜ pending |
+| 126-DOC01b | 126-05 | 2 | DOC-01 | — | no dangling module ref; autolink clean | autolink gate | `mix docs --warnings-as-errors` (zero undefined-ref) + assert `Rulestead.Rule` absent from `mix.exs` | ✅ | ⬜ pending |
+| 126-DOC03 | 126-05 | 2 | DOC-03 | — | head-tag re-tints `--main*` + OG meta, no JS | grep | grep `mix.exs` `before_closing_head_tag` for `--main:`, `body.dark`, `og:image.*\.png`; assert no `<script>` / no custom stylesheet | ✅ | ⬜ pending |
+| 126-DOC04 | 126-02 | 1 | DOC-04 | — | `why-rulestead.md` exists, renders, not a README copy | file + diff + render | `test -f guides/introduction/why-rulestead.md` + assert not byte-identical to README + first Introduction extra in sidebar | ❌ W0 (new file) | ⬜ pending |
+| 126-DOC05 | 126-03 | 1 | DOC-05 | — | README hero + 5 clickable badges + `~> 1.0` | grep | grep `README.md` for `rs-wordmark-tagline.svg`, 5 badge `<a href>`s (hexpm/v, hex-docs, ci.yml, hexpm/l, elixir), `~> 1.0`; assert no `~> 0.1` | ✅ | ⬜ pending |
+| 126-DOC05b | 126-01 | 1 | DOC-05 | — | social card rasterized to 1200×630 PNG | file + dimension | `test -f brandbook/assets/logo/rs-social-card.png` + assert 1200×630 | ❌ W0 (rasterize) | ⬜ pending |
+| 126-DOC06 | 126-06 | 2 | DOC-06 | — | admin parity: logo/favicon/theming + real Router `@moduledoc` + flow guides | grep + autolink gate | grep `rulestead_admin/mix.exs` for logo/favicon/`before_closing_head_tag`/`admin-ui.md`/`explainability.md`/`Public Admin Seam`; assert `router.ex` not `@moduledoc false`; `cd rulestead_admin && mix docs --warnings-as-errors` | ✅ | ⬜ pending |
+| 126-REG | (all) | 2 | (regression) | — | frozen contract unchanged | ExUnit | `release_contract_test.exs` green (both packages) | ✅ | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
-*Task IDs are placeholders until the planner assigns plan/wave numbers.*
+*Plan/wave columns assigned: Wave 1 = plans 01–04 (incl. Wave 0 artifacts in plan 01 + 02), Wave 2 = plans 05–06 + regression.*
 
 ---
 
@@ -82,7 +82,7 @@ created: 2026-06-18
 - [ ] Wave 0 covers the D-10 assertion script + the new-file/rasterize MISSING references
 - [ ] No watch-mode flags
 - [ ] Feedback latency < 120s
-- [ ] `nyquist_compliant: true` set in frontmatter (after planner maps task IDs)
+- [x] `nyquist_compliant: true` set in frontmatter (task IDs mapped to plans 126-01..126-06)
 
 **Approval:** pending
 </content>

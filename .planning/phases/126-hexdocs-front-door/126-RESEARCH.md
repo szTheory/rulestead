@@ -480,16 +480,20 @@ forms, and its SVG OG image — all superseded by CONTEXT.md D-13/D-09/D-15 and 
 values, workflow filename) were tool-verified this session and are NOT assumptions. Only the three operational
 items above carry residual risk, all with documented fallbacks.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **D-08: include `guides/recipes/telemetry.md` in extras?**
    - What we know: it exists on disk; only `flows/telemetry.md` is currently in `extras:`.
    - Recommendation: **leave it out** (avoid a duplicate telemetry surface). Executor's call; verify sidebar
      render order after first `mix docs`.
+   - **RESOLVED:** leave out, per D-08 / plan-05 (Task 1 action explicitly LEAVES `guides/recipes/telemetry.md`
+     OUT; only `flows/telemetry.md` ships).
 2. **Exact dark-mode HSL fine-tuning for AA contrast (A3).**
    - What we know: D-13 provides values; ExDoc derives dark link colors from `--mainLightest`/`--mainLight`.
    - Recommendation: render `mix docs`, toggle dark mode, eyeball link/accent contrast; nudge `--mainLightest`
      lighter if needed (UI hint on this phase is **yes**).
+   - **RESOLVED:** deferred to the manual UI pass per VALIDATION.md (Manual-Only Verifications: "Visual brand
+     pass … link/sidebar tint in light AND dark"); D-13 values ship as-is, eyeball nudge happens in that pass.
 
 ## Environment Availability
 
