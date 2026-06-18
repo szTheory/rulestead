@@ -94,7 +94,13 @@ Plans:
 5. `MAINTAINING.md` has a "Cutting a major (X.0.0)" runbook covering the `Release-As` mechanism, the three-package sequence, the deprecation-window checklist, and the mandatory post-cut `"release-as"` removal step.
 6. The "promotion, not rewrite" CHANGELOG preamble is pre-authored as a ready artifact for both packages (to be applied during the release PR in Phase 128).
 
-**Plans:** TBD
+**Plans:** 3 plans
+
+Plans:
+
+- [ ] 125-01-PLAN.md — Atomic version-truth sweep of 13 shipped files (delete "Two version lines" callout; `~> 0.1`→`~> 1.0`) + lockstep re-anchor of 6 `release_contract_test.exs` asserts (REL-02)
+- [ ] 125-02-PLAN.md — Fail-closed `scripts/check_version_truth.py` drift guard (`~> 0.1.3`-safe lookahead) wired into `scripts/ci/lint.sh` (REL-02)
+- [ ] 125-03-PLAN.md — Release docs: upgrading.md "Upgrading 0.1.x → 1.0" section, MAINTAINING.md "Cutting a major" runbook, staged `brandbook/CHANGELOG-PREAMBLE-1.0.md` (REL-03)
 
 ---
 
