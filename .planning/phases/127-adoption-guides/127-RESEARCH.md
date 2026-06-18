@@ -281,17 +281,19 @@ mix ecto.migrate
 | A2 | `mix rulestead.promote` and `mix rulestead.redis.sync` (both `@moduledoc false` but with `@shortdoc`) are acceptable to reference as operational tasks since they are in-scope surfaces (Promotion/GitOps; Redis adapter) | Recipe map; pattern 7 | If maintainer wants only `@moduledoc`-documented tasks referenced, recipes must describe outcomes (snapshot freshness, governed promotion) without naming the tasks |
 | A3 | The cookbook's fixed template headings (`## Goal`, `## For`, …) render cleanly under ExDoc without a `groups_for_extras` change | mix.exs edit | Low — regex membership is structural, heading text is irrelevant to grouping |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Are the `*_change_request/1` root functions intended as public 1.x API?**
    - What we know: they have `@doc`+`@spec` and render; absent from `api_stability.md` catalog.
    - What's unclear: whether omission is deliberate (governance flow is the public seam) or an oversight.
    - Recommendation: planner adds a `checkpoint:human-verify` or routes the CR recipe/pattern through `Admin.Policy.change_request_required?/4` + `[:rulestead, :admin, :mutation, :stop]` to be safe regardless.
+   - **RESOLVED** — routed via `Admin.Policy.change_request_required?/4` + `[:rulestead, :admin, :mutation, :stop]` telemetry in plans 127-01/127-02; uncataloged `*_change_request/1` never headlined.
 
 2. **OpenFeature provider surface for pattern 7.**
    - What we know: `open_feature_rulestead/lib/open_feature_rulestead/provider.ex` exposes `resolve_boolean_value/4`, `resolve_string_value/4`, `resolve_number_value/4`, `resolve_map_value/4`, `initialize/3`, `shutdown/1` `[VERIFIED: provider.ex:12-40]`.
    - What's unclear: whether the OF provider has its own published stability doc analogous to api_stability.md.
    - Recommendation: keep pattern 7 focused on the Rulestead-side stale-cache telemetry (`stale_used`/`miss`/`refresh`) and `mix rulestead.redis.sync`; mention OF provider resolve_* funcs as the consumer boundary only.
+   - **RESOLVED** — pattern 7 confines OpenFeature to the consumer-boundary mention only (127-01).
 
 ## Environment Availability
 
