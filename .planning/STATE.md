@@ -2,9 +2,11 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: 1.0 GA Release & Adoption
-status: verifying
-last_updated: "2026-06-18T00:55:06.769Z"
+current_phase: 125
+status: in_progress
+last_updated: "2026-06-18T01:01:25.480Z"
 last_activity: 2026-06-18
+last_activity_desc: Phase 124 complete
 progress:
   total_phases: 7
   completed_phases: 1
@@ -29,10 +31,10 @@ See: `.planning/PROJECT.md` (updated 2026-06-17)
 
 ## Current Position
 
-Phase: 124 (api-surface-lock-stability-contract) — COMPLETE
-Plan: 3 of 3 (all gates green — mix docs, dialyzer, release_contract_test.exs)
+Phase: 124
+Plan: Not started
 Status: Phase complete — Phase 125 is next
-Last activity: 2026-06-18
+Last activity: 2026-06-18 — Phase 124 complete
 
 ```
 [Phase A — Pre-cut doc/contract truth] [Phase B] [Phase C] [Phase D]
@@ -40,7 +42,7 @@ Last activity: 2026-06-18
                127 ---+
 ```
 
-Progress: [██████████] 100%
+Progress: 1/7 phases complete [██░░░░░░░░░░░░░░░░░░] 14%
 
 ## Phase Dependency Map
 

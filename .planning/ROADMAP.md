@@ -60,6 +60,7 @@ Full detail archived: [milestones/v1.17-ROADMAP.md](milestones/v1.17-ROADMAP.md)
 **Requirements:** API-01, API-02, API-03
 
 **Success Criteria** (what must be TRUE):
+
 1. `Rulestead.Context`, `Rulestead.Runtime`, and `Rulestead.Admin.Policy` each carry a real `@moduledoc` (not `@moduledoc false`); running `mix docs` confirms all three render as navigable module pages with no module excluded from the HexDocs output.
 2. Every symbol listed public in `api_stability.md` has `@doc` + `@spec`; `mix dialyzer` is clean on the public surface; `mix docs` produces zero undefined-reference warnings (treated as a release gate).
 3. `api_stability.md` is rewritten from "0.1.x contract" to "1.x contract" and includes the full Versioning & Deprecation Policy (breaking-change table, telemetry stability rules, worked deprecation example, empty deprecations-table skeleton).
@@ -69,6 +70,7 @@ Full detail archived: [milestones/v1.17-ROADMAP.md](milestones/v1.17-ROADMAP.md)
 **Plans:** 3/3 plans complete
 
 Plans:
+
 - [x] 124-P01-PLAN.md — @moduledoc+@doc on Context, Runtime, Admin.Policy + mix.exs groups_for_modules update
 - [x] 124-P02-PLAN.md — Rewrite api_stability.md to 1.x contract + update release_contract_test.exs in lockstep
 - [x] 124-P03-PLAN.md — Release-gate verification: mix docs --warnings-as-errors, mix dialyzer, contract test
@@ -84,6 +86,7 @@ Plans:
 **Requirements:** REL-02, REL-03
 
 **Success Criteria** (what must be TRUE):
+
 1. `grep -rn '0\.1\.x\|~> 0\.1\b\|0\.1\.7\|future.*1\.0\|1\.0 API freeze' README.md rulestead/README.md rulestead_admin/README.md open_feature_rulestead/README.md guides/ MAINTAINING.md CONTRIBUTING.md` returns zero hits in the shipped surface (`.planning/` and `prompts/` historical references are intentionally excluded).
 2. The README "Two version lines" callout (the admonition block describing the ZeroVer mismatch) is deleted entirely — leaving it would re-introduce the exact confusion the milestone resolves.
 3. A CI drift guard in `lint.sh` fails if `~> 0.1` or "future `1.0`" reappears in the shipped doc surface, same posture as the existing brand-token drift guards.
@@ -104,6 +107,7 @@ Plans:
 **Requirements:** DOC-01, DOC-02, DOC-03, DOC-04, DOC-05, DOC-06
 
 **Success Criteria** (what must be TRUE):
+
 1. `mix hex.build` (run from `rulestead/`) produces a tarball that contains `brandbook/assets/logo/` SVGs (and `specimens/` for the README header); `brandbook/assets/logo` is present in `files:` in `mix.exs`, proving no logo 404 on launch day.
 2. `rulestead/mix.exs` `docs:` is configured with the 5 module groups (Core API · Runtime (cached lookup) · Behaviours & Seams · Store Adapters · Telemetry & Config) and 6 extras groups in the onboarding-funnel `extras:` order (Why → Install → Getting Started → Spine → concepts → flows → recipes → API & Stability → Contributing).
 3. The logo (`rs-mark.svg`) and favicon (`rs-favicon.svg`) are wired into ExDoc config; `before_closing_head_tag` re-tints ExDoc CSS variables to the mineral palette and sets OG meta — with no custom theme JS.
@@ -126,6 +130,7 @@ Plans:
 **Requirements:** GUIDE-01, GUIDE-02, GUIDE-03
 
 **Success Criteria** (what must be TRUE):
+
 1. `guides/recipes/troubleshooting.md` ships with 7 symptom-indexed patterns in Symptom → Cause → Fix → Verify form (install/migration, payload-vs-keyed-runtime, snapshot boot race, context propagation, RBAC 403, change-request block, OpenFeature/Redis stale), cross-linking `footguns.md` for the "why" without duplicating it; tone is blame-free.
 2. `guides/recipes/integrations-cookbook.md` ships with 4 persona/JTBD-grounded recipes (Stripe-tier audience, eval-telemetry → Segment, staging→prod CR promotion, Oban-gated job), each using the fixed template (Goal → For → Prerequisites → Steps → Verification → Gotchas → Related), with an honest boundary line and using only shipped public seams.
 3. Both guides are wired into the existing Recipes extras group (cookbook early, troubleshooting last); the 15-minute golden-path guide is untouched; no new extras group is added.
@@ -145,6 +150,7 @@ Plans:
 **Requirements:** REL-01, REL-04, REL-06
 
 **Success Criteria** (what must be TRUE):
+
 1. `"release-as": "1.0.0"` is added to the `rulestead` block in `release-please-config.json`; release-PR auto-merge is disabled; the release PR diff shows `@version "1.0.0"` in both `rulestead/mix.exs` and `rulestead_admin/mix.exs` (linked-versions propagated correctly) before the deliberate hand-merge.
 2. The release PR includes the hand-authored "promotion, not rewrite" preamble in both CHANGELOGs (explicit zero breaking changes statement); the maintainer hand-merges the PR after eyeballing the diff.
 3. `rulestead` and `rulestead_admin` are published at `1.0.0` via the gated `hex-publish` environment approval; `handoff-post-publish` dispatches `verify-published-release.yml`.
@@ -166,6 +172,7 @@ Plans:
 **Requirements:** REL-05
 
 **Success Criteria** (what must be TRUE):
+
 1. `open_feature_rulestead/mix.exs` is bumped to `@version "1.0.0"` with its dep flipped to `{:rulestead, "~> 1.0"}` via the env-gated swap (mirroring the existing `RULESTEAD_ADMIN_HEX_RELEASE` pattern); the version+dep bump is committed to main.
 2. `open_feature_rulestead` is published at `1.0.0` via `mix hex.publish`; `hex.pm/api/packages/open_feature_rulestead/releases/1.0.0` returns 200 and HexDocs renders the provider.
 3. A fresh consumer with `{:open_feature_rulestead, "~> 1.0"}` resolves `rulestead ~> 1.0` from Hex (not a path dep); the `openfeature_companion` contract tests pass against the published provider.
@@ -186,6 +193,7 @@ Plans:
 **Requirements:** ANN-01, ANN-02, ANN-03
 
 **Success Criteria** (what must be TRUE):
+
 1. A GitHub release is published from `brandbook/RELEASE-TEMPLATE.md` with filled content — three packages, one note, operator-consequence-first framing, explicit "no behavior changes" statement.
 2. An ElixirForum post is published in Libraries (single post, `announcement` tag) containing: tl;dr → real `Rulestead.evaluate/3` snippet → honest maturity story → proof bullets → scope honesty → respectful FunWithFlags note → confirmed-live artifact links only; the post is made only after the verify-trio is green and the HexDocs front door renders.
 3. The front door is confirmed provably live and honest: logo resolves on HexDocs, "Why Rulestead?" extra renders as the first Introduction page, all three public modules (`Rulestead.Context`, `Rulestead.Runtime`, `Rulestead.Admin.Policy`) are visible as navigable HexDocs pages, and all 5 README badges resolve to live targets.
@@ -199,7 +207,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 124. API Surface Lock & Stability Contract | 3/3 | Complete   | 2026-06-18 |
+| 124. API Surface Lock & Stability Contract | 3/3 | Complete    | 2026-06-18 |
 | 125. Version-Truth Sweep + Release Docs | 0/TBD | Not started | - |
 | 126. HexDocs Front Door | 0/TBD | Not started | - |
 | 127. Adoption Guides | 0/TBD | Not started | - |
