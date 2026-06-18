@@ -109,6 +109,12 @@ None — no external service configuration required.
 - Plan 126-04 (HexDocs module groups + extras) can proceed without dependency on this plan
 - Plan 126-05 (asset wiring + `files:` manifest) can proceed — this plan's hero references the SVG via its in-repo path which works for GitHub/local; hex.pm asset resolution covered by plan 126-05
 
+## Self-Check: PASSED
+
+- README.md: FOUND
+- 126-03-SUMMARY.md: FOUND
+- Commit 18d01db: FOUND
+
 ---
 *Phase: 126-hexdocs-front-door*
 *Completed: 2026-06-18*
