@@ -739,7 +739,10 @@ Observable truths that prove the 1.0.0 cut succeeded. These map directly to veri
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED — operational assumptions with embedded mitigations)
+
+> All three are non-blocking: each is either answered inline or carries a documented
+> fallback that the PLAN.md tasks already encode. No plan-blocking gaps remain.
 
 1. **Is `hex-publish` environment configured?**
    - What we know: The workflow references `environment: name: hex-publish` and MAINTAINING.md
