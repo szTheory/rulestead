@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: 1.0 GA Release & Adoption
-current_phase: 126
-current_phase_name: hexdocs-front-door
-status: verifying
-stopped_at: Completed 126-03-PLAN.md
-last_updated: "2026-06-18T14:00:04.464Z"
+current_phase: 127
+current_phase_name: adoption-guides
+status: planning
+stopped_at: Phase 126 verified — UAT automated (render gate + published-docs gate)
+last_updated: "2026-06-18T11:15:00.000Z"
 last_activity: 2026-06-18
-last_activity_desc: Phase 126 execution started
+last_activity_desc: Phase 126 verified (4 UAT checks automated); advancing to Phase 127
 progress:
   total_phases: 3
   completed_phases: 3
