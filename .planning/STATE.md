@@ -4,16 +4,16 @@ milestone: v2.0
 milestone_name: 1.0 GA Release & Adoption
 current_phase: 127
 current_phase_name: adoption-guides
-status: planning
-stopped_at: Phase 126 verified — UAT automated (render gate + published-docs gate)
-last_updated: "2026-06-18T11:15:00.000Z"
+status: verified
+stopped_at: Phase 127 verified (3/3 must-haves) — all pre-cut work (124-127) complete; Phase 128 is the human-gated release cut
+last_updated: "2026-06-18T15:45:00.000Z"
 last_activity: 2026-06-18
-last_activity_desc: Phase 126 verified (4 UAT checks automated); advancing to Phase 127
+last_activity_desc: Phase 127 executed + verified (GUIDE-01/02/03); pre-cut band 124-127 done
 progress:
-  total_phases: 3
-  completed_phases: 3
-  total_plans: 12
-  completed_plans: 12
+  total_phases: 4
+  completed_phases: 4
+  total_plans: 15
+  completed_plans: 15
   percent: 100
 ---
 
@@ -25,7 +25,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-17)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
 
-**Current focus:** Phase 126 — hexdocs-front-door
+**Current focus:** Phase 127 — adoption-guides
 
 **Milestone:** v2.0 — 1.0 GA Release & Adoption — IN PROGRESS (Phases 124-130)
 
@@ -33,10 +33,10 @@ See: `.planning/PROJECT.md` (updated 2026-06-17)
 
 ## Current Position
 
-Phase: 126 (hexdocs-front-door) — EXECUTING
-Plan: 6 of 6
-Status: Phase complete — ready for verification
-Last activity: 2026-06-18 -- Phase 126 execution started
+Phase: 127 (adoption-guides) — EXECUTING
+Plan: 1 of 3
+Status: Executing Phase 127
+Last activity: 2026-06-18 — Phase 127 execution started
 
 ```
 [Phase A — Pre-cut doc/contract truth] [Phase B] [Phase C] [Phase D]

@@ -14,7 +14,7 @@
 - [x] **Phase 124: API Surface Lock & Stability Contract** — Render the 3 hidden public modules; @doc/@spec audit; api_stability.md → "1.x" + Versioning & Deprecation Policy
 - [x] **Phase 125: Version-Truth Sweep + Release Docs** — Reframe 14 stale 0.1.x files; delete README callout; add CI drift guard; upgrading.md + MAINTAINING.md runbook
 - [x] **Phase 126: HexDocs Front Door** — 5 module groups, 6 extras groups, logo/favicon/assets (no 404), theming head-tag, README hero+badges, rulestead_admin docs parity
-- [ ] **Phase 127: Adoption Guides** — troubleshooting.md (7 patterns) + integrations-cookbook.md (4 recipes); wire into extras
+- [x] **Phase 127: Adoption Guides** — troubleshooting.md (7 patterns) + integrations-cookbook.md (4 recipes); wire into extras
 - [ ] **Phase 128: The Release Cut** — release-as 1.0.0, disable auto-merge, hand-merge, publish both packages, verify-trio green, post-cut cleanup
 - [ ] **Phase 129: Provider Publish** — Manual open_feature_rulestead@1.0.0 publish, strictly after rulestead@1.0.0 is live
 - [ ] **Phase 130: Announce & Closeout** — GitHub release + ElixirForum post + front-door confirmation + milestone audit
