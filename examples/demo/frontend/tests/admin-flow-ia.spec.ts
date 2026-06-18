@@ -433,7 +433,12 @@ test.describe("admin flow IA route evidence", () => {
         const evidence = document.querySelector(
           "[aria-label='Emergency evidence']",
         );
-        const action = document.querySelector("[aria-label='Engage override']");
+        // The action section is labelled "Engage override" or "Release override"
+        // depending on whether the kill switch is already active for the seeded
+        // flag/env — match either, mirroring the region-visibility assertion above.
+        const action = document.querySelector(
+          "[aria-label='Engage override'], [aria-label='Release override']",
+        );
         const context = document.querySelector(
           "[aria-label='After-action context']",
         );
