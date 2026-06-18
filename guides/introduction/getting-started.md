@@ -1,29 +1,25 @@
 # Getting Started
 
-This is the first-success path for the current `0.1.x` package line on Hex: install
+This is the first-success path for the current `1.x` package line on Hex: install
 the runtime, gate one code path, and optionally mount the admin UI.
-
-> **Two version lines:** GitHub repo milestones (e.g. `v1.0.0` GA, May 2026)
-> track project delivery. **Hex packages** use `0.1.x` semver until a future `1.0`
-> API freeze. Install with `{:rulestead, "~> 0.1"}`.
 
 ## 1. Add dependencies
 
 Runtime only:
 
 ```elixir
-{:rulestead, "~> 0.1"}
+{:rulestead, "~> 1.0"}
 ```
 
 Runtime plus admin UI:
 
 ```elixir
-{:rulestead, "~> 0.1"},
-{:rulestead_admin, "~> 0.1"}
+{:rulestead, "~> 1.0"},
+{:rulestead_admin, "~> 1.0"}
 ```
 
-Repo GA shipped in `v1.0.0` on 2026-05-21, but adoption today still starts
-from the `0.1.x` sibling packages shown above.
+Repo GA shipped in `v1.0.0` on 2026-05-21, and adoption today starts
+from the `1.x` sibling packages shown above.
 
 ## 2. Install and migrate
 

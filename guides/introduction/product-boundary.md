@@ -17,7 +17,7 @@ Rulestead is a **self-hostable, Elixir-native** feature-flag and remote-config s
 | **Tenancy helpers** | Explicit tenant scope in runtime, admin, promotion, audit — not environment-per-tenant topology |
 | **Integration** | OpenFeature companion package, installer, Fake adapter, Plug/LiveView/Oban seams |
 
-### Runtime semver (0.1.x)
+### Runtime semver (1.x)
 
 `Rulestead.Runtime` is the supported **keyed lookup** path when using
 environment + flag key with the snapshot cache. See
@@ -25,7 +25,7 @@ environment + flag key with the snapshot cache. See
 for the evaluation flow.
 
 The **six-function catalog** in [API Stability](../api_stability.md) is stable
-for `0.1.x` patch releases.
+for `1.x` patch releases.
 
 **Implementation modules** under `Rulestead.Runtime.*` (cache, snapshot,
 refresh) are not semver-locked and may change without notice.

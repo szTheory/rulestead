@@ -5,8 +5,8 @@ One-page reference for the locked `v0.1.0` package surface.
 ## Add Dependencies
 
 ```elixir
-{:rulestead, "~> 0.1"},
-{:rulestead_admin, "~> 0.1"}
+{:rulestead, "~> 1.0"},
+{:rulestead_admin, "~> 1.0"}
 ```
 
 ## Install In A Host App

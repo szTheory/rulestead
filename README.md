@@ -4,11 +4,6 @@
 > Typed feature flags, variants, and remote config for Elixir apps, with an
 > optional mounted Phoenix LiveView admin.
 
-> **Two version lines:** GitHub repo milestones (e.g. `v1.0.0` GA, May 2026)
-> track project delivery. **Hex packages** use `0.1.x` semver (currently
-> **0.1.x** on Hex) until a future `1.0` API freeze. Install with
-> `{:rulestead, "~> 0.1"}`.
-
 ## What this is (60 seconds)
 
 Rulestead ships as two sibling Hex packages:
@@ -37,7 +32,7 @@ Start with the runtime package:
 ```elixir
 defp deps do
   [
-    {:rulestead, "~> 0.1"}
+    {:rulestead, "~> 1.0"}
   ]
 end
 ```
@@ -96,8 +91,8 @@ If your Phoenix app also needs the mounted companion admin, add
 ```elixir
 defp deps do
   [
-    {:rulestead, "~> 0.1"},
-    {:rulestead_admin, "~> 0.1"}
+    {:rulestead, "~> 1.0"},
+    {:rulestead_admin, "~> 1.0"}
   ]
 end
 ```
@@ -191,4 +186,4 @@ Proof bars, CI scopes, and release verification:
 ## Versioning
 
 See [Upgrading](guides/introduction/upgrading.md) for compatibility posture on
-the `0.1.x` package line.
+the `1.x` package line.

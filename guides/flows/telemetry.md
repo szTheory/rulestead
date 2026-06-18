@@ -1,7 +1,7 @@
 # Telemetry
 
 Phase 4 locks Rulestead telemetry as a versioned public API. The event names in
-this guide are additive-only for the rest of `v0.1.x`.
+this guide are additive-only for the rest of `1.x`.
 
 ## Principles
 
