@@ -2,6 +2,58 @@
 
 Public API stability contract: see [`../guides/api_stability.md`](../guides/api_stability.md).
 
+## 1.0.0 — Promotion, not rewrite
+
+`rulestead` and `rulestead_admin` graduate to `1.0.0` together (linked versions).
+This is the **same battle-tested code** that has been running in production — now
+honestly versioned. **Zero breaking changes.**
+
+- **No public API changes.** The supported surface documented in
+  `guides/api_stability.md` is unchanged — nothing moved, renamed, or changed
+  behavior.
+- **Upgrade is a dependency-pin bump only.** Point your `mix.exs` at the `1.x` line
+  (`~> 1.0`) and run `mix deps.get`. No call-site audit, config change, or host-app
+  integration work is required. See `guides/introduction/upgrading.md`.
+- **Both sibling packages move together.** `rulestead` and `rulestead_admin` are
+  linked versions and graduate in lockstep; `rulestead` publishes first, then
+  `rulestead_admin`.
+
+The `1.0.0` tag is a statement of confidence, not a migration event: the version
+number is catching up to code that was already stable.
+
+## [1.0.0](https://github.com/szTheory/rulestead/compare/rulestead_admin-v0.1.7...rulestead_admin-v1.0.0) (2026-06-18)
+
+
+### Features
+
+* **116-01:** add primitive polish helpers ([d0eed8a](https://github.com/szTheory/rulestead/commit/d0eed8a2acbabf52efc15a70fbb93fa06598db19))
+* **116-02:** align mutation confirm flows ([0f400f7](https://github.com/szTheory/rulestead/commit/0f400f724e1ec128ceaf8e220df73bec3b17e9b3))
+* **116-02:** strengthen mutation confirm states ([0f3d309](https://github.com/szTheory/rulestead/commit/0f3d309695f54e69cd8433fa75bfca64f98aa659))
+* **116-03:** polish audit and rollout composites ([eae9092](https://github.com/szTheory/rulestead/commit/eae9092aeb949eaef2bfba4f2d7327552c1bd3f5))
+* **116-03:** polish governance and trace composites ([28ed06a](https://github.com/szTheory/rulestead/commit/28ed06aae80234edb3e3715c5c860a54a81b15ce))
+* **117-03:** fix home inventory and audience IA ([03c3cbe](https://github.com/szTheory/rulestead/commit/03c3cbe6d5516d8655d37c23164097d986079771))
+* **117-03:** fix rules and kill route sequencing ([21384f8](https://github.com/szTheory/rulestead/commit/21384f8275c3718582e263acc117dc78a19515ad))
+* **117-04:** fix audit explain and simulate hierarchy ([20c844c](https://github.com/szTheory/rulestead/commit/20c844c39f6523df066e8f4e3f1ec7d983823fb8))
+* **126-01:** commit brandbook symlinks in both packages (D-09) ([314be02](https://github.com/szTheory/rulestead/commit/314be021a758d25e2911950eebe46cb65e2cb20d))
+* **126-06:** expand admin mix.exs docs to parity (D-21) ([8ed2c33](https://github.com/szTheory/rulestead/commit/8ed2c33a5eb9fcc0c9f650ead83a7c69a040d74f))
+* **126-06:** real RulesteadAdmin.Router [@moduledoc](https://github.com/moduledoc) + [@doc](https://github.com/doc) false internals (D-22/D-23) ([80caa6f](https://github.com/szTheory/rulestead/commit/80caa6f659e05a19e13bb962f2d8b2c71f050bee))
+* **98-03:** mirror Block 3 → Block 2 (dark synced-pair invariant) + phx.digest ([d6f341c](https://github.com/szTheory/rulestead/commit/d6f341c32fc714b6a23643044fd5b4b437b0487f))
+* **98-03:** re-skin Block 3 — 8 dark hex swaps from tokens.json admin_css_mapping.dark ([54d5bfa](https://github.com/szTheory/rulestead/commit/54d5bfa929904e8caf8dd5aff847666c03ed326b))
+* **admin:** render winner wordmark lockup in shell header ([9f02a49](https://github.com/szTheory/rulestead/commit/9f02a490ae2b47d16089c4411a90beeea1c3b88f))
+* **admin:** replace static rs-mark family with winner d-sigil ([60deace](https://github.com/szTheory/rulestead/commit/60deacec9ce041780e6ed32a18e9c024359b577f))
+* **admin:** theme winner lockup via --logo-* vars in all four cascade blocks ([24d227d](https://github.com/szTheory/rulestead/commit/24d227de298dc6dc6ed6e7a15b4ee8702184d29e))
+* pre-cut GA-prep band (phases 124–127) for the 1.0.0 release ([1b4fafd](https://github.com/szTheory/rulestead/commit/1b4fafd0a6779aa38ecc2f822ba2c0dd049384da))
+
+
+### Bug Fixes
+
+* **115-02:** neutralize reduced-motion transforms ([1cb024f](https://github.com/szTheory/rulestead/commit/1cb024f223ff75a04073ce4ad2b6f76006bc0642))
+* **117:** close route flow review findings ([fbc7db1](https://github.com/szTheory/rulestead/commit/fbc7db1546531af9f5011d3666802c5d9708dfc9))
+* **117:** harden explain simulate evidence paths ([93ebe76](https://github.com/szTheory/rulestead/commit/93ebe76dc0ea36d78c3222ea154cfe425e291d63))
+* **117:** preserve explain tenant permalinks ([a834efc](https://github.com/szTheory/rulestead/commit/a834efc78cab94b8dbe3a658e5479514ae170bec))
+* **126-06:** add skip_undefined_reference_warnings_on for cross-doc refs in admin ([ab3ad74](https://github.com/szTheory/rulestead/commit/ab3ad744bb1392e4fc5e645b7458bc5596c7a009))
+* **release:** correct changelog-path so 1.0.0 notes ship in the real CHANGELOG ([#50](https://github.com/szTheory/rulestead/issues/50)) ([bf282c2](https://github.com/szTheory/rulestead/commit/bf282c2b7aaeebece3c92375a7dd2dd920000dcf))
+
 ## [0.1.7](https://github.com/szTheory/rulestead/compare/rulestead_admin-v0.1.6...rulestead_admin-v0.1.7) (2026-06-04)
 
 

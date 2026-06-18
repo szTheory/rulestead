@@ -2,6 +2,43 @@
 
 Public API stability contract: see [`../guides/api_stability.md`](../guides/api_stability.md).
 
+## 1.0.0 — Promotion, not rewrite
+
+`rulestead` and `rulestead_admin` graduate to `1.0.0` together (linked versions).
+This is the **same battle-tested code** that has been running in production — now
+honestly versioned. **Zero breaking changes.**
+
+- **No public API changes.** The supported surface documented in
+  `guides/api_stability.md` is unchanged — nothing moved, renamed, or changed
+  behavior.
+- **Upgrade is a dependency-pin bump only.** Point your `mix.exs` at the `1.x` line
+  (`~> 1.0`) and run `mix deps.get`. No call-site audit, config change, or host-app
+  integration work is required. See `guides/introduction/upgrading.md`.
+- **Both sibling packages move together.** `rulestead` and `rulestead_admin` are
+  linked versions and graduate in lockstep; `rulestead` publishes first, then
+  `rulestead_admin`.
+
+The `1.0.0` tag is a statement of confidence, not a migration event: the version
+number is catching up to code that was already stable.
+
+## [1.0.0](https://github.com/szTheory/rulestead/compare/rulestead-v0.1.7...rulestead-v1.0.0) (2026-06-18)
+
+
+### Features
+
+* **121-01:** tag published-Hex smoke test default-excluded with opt-in env ([488e811](https://github.com/szTheory/rulestead/commit/488e811d3a36a846c96bc0b3958966691c9f20c2))
+* **125-02:** wire version-truth guard into lint.sh ([319ece5](https://github.com/szTheory/rulestead/commit/319ece52c6ec83e8792650572aceb508b46e48a6))
+* **126-01:** commit brandbook symlinks in both packages (D-09) ([314be02](https://github.com/szTheory/rulestead/commit/314be021a758d25e2911950eebe46cb65e2cb20d))
+* **126-05:** 6 module groups, funnel extras, asset wiring, and --main* theming (D-01..D-16) ([992681d](https://github.com/szTheory/rulestead/commit/992681da2f0ef1f2ba916af4fb1067ab9c281f04))
+* pre-cut GA-prep band (phases 124–127) for the 1.0.0 release ([1b4fafd](https://github.com/szTheory/rulestead/commit/1b4fafd0a6779aa38ecc2f822ba2c0dd049384da))
+
+
+### Bug Fixes
+
+* **123:** apply code-review findings to CI triage table + D-14 guard ([cf8d48d](https://github.com/szTheory/rulestead/commit/cf8d48dfa4b1c4bd9c3694b1549173b86d96044b))
+* **124-127:** restore green lint + re-anchor stale version-truth guards to 1.x ([f50a1c9](https://github.com/szTheory/rulestead/commit/f50a1c921613d8e0bdbecb2c6d3c1bcac6e3b16e))
+* **release:** correct changelog-path so 1.0.0 notes ship in the real CHANGELOG ([#50](https://github.com/szTheory/rulestead/issues/50)) ([bf282c2](https://github.com/szTheory/rulestead/commit/bf282c2b7aaeebece3c92375a7dd2dd920000dcf))
+
 ## [0.1.7](https://github.com/szTheory/rulestead/compare/rulestead-v0.1.6...rulestead-v0.1.7) (2026-06-04)
 
 
