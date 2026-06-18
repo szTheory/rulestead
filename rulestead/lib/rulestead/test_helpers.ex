@@ -1,5 +1,36 @@
 defmodule Rulestead.TestHelpers do
-  @moduledoc false
+  @moduledoc """
+  Fake-backed test helpers for host-app tests.
+
+  `Rulestead.TestHelpers` is a **Supported adopter facade** in the 1.x contract
+  (`api_stability.md` — "Supported adopter facades"). It provides a stable,
+  in-memory-backed API your host application's ExUnit tests can use to control
+  flag state without touching a real store or database.
+
+  ## Quickstart
+
+      # In your test_helper.exs or a shared test support module:
+      import Rulestead.TestHelpers
+
+      # Seed a flag for the duration of a block:
+      with_flag("my_feature", true) do
+        assert MyApp.feature_enabled?()
+      end
+
+      # Or seed for the remainder of a test:
+      put_flag("my_feature", true)
+
+  ## Public API (closed catalog)
+
+  - `with_flag/3` — scope a flag value to a block; restores prior state after
+  - `put_flag/3` — seed a fake-backed flag for the rest of the current test
+  - `clear_flags/0` — reset all fake state for test isolation
+  - `seed_bucket/3` — pin a variant assignment for one targeting key
+  - `assert_flag_evaluated/2` — assert a matching eval telemetry event was emitted
+
+  The backing store (`Rulestead.Fake`) and its control module are internal and
+  not part of the 1.x public contract.
+  """
   # Public fake-backed test helpers for host app tests.
 
   import ExUnit.Assertions
