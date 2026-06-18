@@ -2,16 +2,19 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: 1.0 GA Release & Adoption
+current_phase: 126
+current_phase_name: hexdocs-front-door
 status: executing
 stopped_at: Phase 126 context gathered (assumptions mode)
-last_updated: "2026-06-18T06:46:30.787Z"
-last_activity: 2026-06-18 -- Phase 126 planning complete
+last_updated: "2026-06-18T06:55:23.526Z"
+last_activity: 2026-06-18
+last_activity_desc: Phase 126 execution started
 progress:
   total_phases: 3
   completed_phases: 2
   total_plans: 12
-  completed_plans: 6
-  percent: 50
+  completed_plans: 7
+  percent: 58
 ---
 
 # State: Rulestead
@@ -22,7 +25,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-17)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
 
-**Current focus:** Phase 125 — version-truth-sweep-release-docs
+**Current focus:** Phase 126 — hexdocs-front-door
 
 **Milestone:** v2.0 — 1.0 GA Release & Adoption — IN PROGRESS (Phases 124-130)
 
@@ -30,10 +33,10 @@ See: `.planning/PROJECT.md` (updated 2026-06-17)
 
 ## Current Position
 
-Phase: 125 (version-truth-sweep-release-docs) — EXECUTING
-Plan: 3 of 3
+Phase: 126 (hexdocs-front-door) — EXECUTING
+Plan: 2 of 6
 Status: Ready to execute
-Last activity: 2026-06-18 -- Phase 126 planning complete
+Last activity: 2026-06-18 -- Phase 126 execution started
 
 ```
 [Phase A — Pre-cut doc/contract truth] [Phase B] [Phase C] [Phase D]
@@ -113,6 +116,9 @@ Human checkpoints:
 - [Phase ?]: 125-02: guard exempts the sanctioned 0.1.x -> 1.0 upgrade-arrow line (line-scoped, Unicode+ASCII) so ROADMAP SC-4's Plan-03 heading stays satisfiable while other stale 0.1.x claims still caught
 - [Phase 125]: 125-03: MAINTAINING runbook states open_feature_rulestead is a separate MANUAL publish (Phase 129), not release-please managed (D-08)
 - [Phase 125]: 125-03: 1.0.0 CHANGELOG preamble staged in brandbook/, not committed into bot-managed CHANGELOGs (D-09)
+- [Phase ?]: D-09 brandbook symlinks committed as mode 120000 in both packages
+- [Phase ?]: D-19 rs-social-card.png rasterized at 1200x630 via @resvg/resvg-js JS API; pure-path SVG so no text-flatten needed
+- [Phase ?]: D-10 check_logo_bytes.sh asserts real SVG bytes in core tarball; wired into contributor.sh; expected-fail until plan 05 adds files: glob
 
 ### Milestone-specific constraints (v2.0)
 
@@ -224,9 +230,10 @@ Human checkpoints:
 | Phase 125 P01 | 6 min | 3 tasks | 13 files |
 | Phase 125 P02 | 3min | 2 tasks | 3 files |
 | Phase 125 P03 | 12m | 3 tasks | 3 files |
+| Phase 126 P01 | 15 | 3 tasks | 5 files |
 
 ## Session
 
-**Last session:** 2026-06-18T06:17:47.007Z
+**Last session:** 2026-06-18T06:54:12.066Z
 **Stopped at:** Phase 126 context gathered (assumptions mode)
 **Resume file:** .planning/phases/126-hexdocs-front-door/126-CONTEXT.md

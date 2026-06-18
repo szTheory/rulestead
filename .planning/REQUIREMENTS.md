@@ -18,7 +18,7 @@ Requirements for the v2.0 milestone. Each maps to roadmap phases (continuing num
 ### HexDocs Front Door
 
 - [ ] **DOC-01**: `rulestead/mix.exs` `docs:` is configured with the 5 module groups (incl. `Rulestead.Runtime` grouped; non-public `Rulestead.Runtime.Snapshot` removed), 6 extras groups, and the onboarding-funnel `extras:` order.
-- [ ] **DOC-02**: Brand logo + favicon + assets are wired AND `brandbook/assets/logo` (+ specimens) is added to the package `files:` list, so `mix hex.build` ships the SVGs and the logo resolves on HexDocs/hex.pm (no launch-day 404).
+- [x] **DOC-02**: Brand logo + favicon + assets are wired AND `brandbook/assets/logo` (+ specimens) is added to the package `files:` list, so `mix hex.build` ships the SVGs and the logo resolves on HexDocs/hex.pm (no launch-day 404).
 - [ ] **DOC-03**: A minimal `before_closing_head_tag` re-tints ExDoc CSS variables to the mineral palette and brand focus ring, respects ExDoc light/dark/system, and sets OG meta — with no theme JS and no custom stylesheet.
 - [ ] **DOC-04**: A "Why Rulestead?" positioning extra (`guides/introduction/why-rulestead.md`) is the first Introduction extra, sourced from the brandbook narrative (not a README duplicate).
 - [ ] **DOC-05**: The README has a brand hero (wordmark + tagline + 5 badges: Hex version · HexDocs · CI · License · Elixir version) and a `~> 1.0` install snippet; the "two version lines" callout is deleted; the social card is rasterized for the GitHub social-preview slot.
@@ -68,7 +68,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | API-02 | Phase 124 | Complete |
 | API-03 | Phase 124 | Complete |
 | DOC-01 | Phase 126 | Pending |
-| DOC-02 | Phase 126 | Pending |
+| DOC-02 | Phase 126 | Complete |
 | DOC-03 | Phase 126 | Pending |
 | DOC-04 | Phase 126 | Pending |
 | DOC-05 | Phase 126 | Pending |
@@ -87,6 +87,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ANN-03 | Phase 130 | Pending |
 
 **Coverage:**
+
 - v1 requirements: 21 total
 - Mapped to phases: 21 (roadmap complete)
 - Unmapped: 0 ✓
