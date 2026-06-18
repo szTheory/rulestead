@@ -185,7 +185,12 @@ Plans:
 4. The post-publish verify-trio (`bash scripts/ci/verify_published_release.sh 1.0.0`) is green: workspace clean, fresh consumer compiles against Hex `1.0.0`, HexDocs `1.0.0` reachable, and Hex tarball matches tagged source.
 5. Post-cut cleanup is complete: `"release-as"` is removed from `release-please-config.json` (so release-please stops re-proposing `1.0.0`), release-PR auto-merge is re-enabled, and `MAINTAINING.md` notes that `bump-minor-pre-major` / `bump-patch-for-minor-pre-major` are now no-ops post-1.0.
 
-**Plans:** TBD
+**Plans:** 3 plans
+
+Plans:
+- [ ] 128-01-PLAN.md — Pre-cut gate + disable auto-merge + add release-as + open release PR + hand-add preamble + eyeball diff (REL-01)
+- [ ] 128-02-PLAN.md — Hand-merge release PR + approve hex-publish env + confirm both packages live + verify-trio green (REL-04)
+- [ ] 128-03-PLAN.md — Remove release-as + re-enable auto-merge + confirm MAINTAINING.md no-op note (REL-06)
 
 ---
 
