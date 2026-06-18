@@ -1,14 +1,9 @@
 # API Stability
 
-`guides/api_stability.md` is the v0.1.0 release contract for Rulestead's public
-API catalog, carried forward on the
-**`0.1.x` Hex package line**. Repository milestone docs (v1.0.0 GA through
-v1.9.0 post-GA band) describe shipped capabilities and proof posture; they do
-not change the semver boundary below.
-
-Anything listed here is part of the supported public surface for `0.1.x`.
-Anything not listed here may change without notice, even if it is visible in
-source.
+`guides/api_stability.md` is the 1.x release contract for Rulestead's public
+API catalog. Symbols listed here are stable across minor and patch releases on
+the **`1.x` line**. Symbols not listed here may change without notice, even if
+they are visible in source.
 
 The boundary is intentionally asymmetric:
 
@@ -17,16 +12,58 @@ The boundary is intentionally asymmetric:
 - Internal implementation details remain flexible behind those package
   boundaries.
 
-## Versioning Posture
+## Versioning & Deprecation Policy
 
-- New public modules or functions are a minor-version change, not a patch.
-- Removing or changing a documented contract requires a major-version change.
-- Additive telemetry keys and additive docs are allowed when they do not change
-  the semantics listed below.
+### Breaking-Change Table
+
+| Change Type | Version Required | Example |
+|-------------|------------------|---------|
+| Removing a listed symbol | Major | Delete `fetch_flag/1` |
+| Renaming a listed symbol | Major | Rename `evaluate/3` to `run/3` |
+| Changing argument count of a listed symbol | Major | `enabled?/3` → `enabled?/2` |
+| Adding a new public module | Minor | New `Rulestead.Hooks` module |
+| Adding a new function to a listed module | Minor | Add `fetch_flag!/1` |
+| Additive telemetry keys | Patch | New metadata key `:latency_band` |
+| Doc-only changes | Patch | Clarify `@doc` for `evaluate/3` |
+
+### Telemetry-Event Stability Rules
+
+Events in the catalog below are stable for the 1.x line:
+
+- Adding a new event name is a **minor** change.
+- Removing or renaming an event name or any of its documented metadata keys is
+  a **breaking** (major) change.
+- Additive metadata keys on existing events are a **patch** change.
+
+### Soft-Deprecation Policy
+
+When a function will be superseded, the approach is:
+
+1. Add a note to the `@doc` of the old function: "Soft-deprecated: use `X/N`
+   instead. Will be removed in 2.0."
+2. List the function in the Deprecations table below.
+3. Do NOT use the `@deprecated` macro until all internal callers have been
+   migrated — the `mix compile --warnings-as-errors` gate in `scripts/ci/lint.sh`
+   would fail otherwise.
+
+**Worked example (docs-only — no real `@deprecated` here):**
+
+```
+# In the @doc for the old function:
+#
+#   Soft-deprecated: use `evaluate/3` instead. Will be removed in 2.0.
+#   The payload-first form provides richer context and result detail.
+```
+
+### Deprecations
+
+| Function | Deprecated in | Removal target | Replacement |
+|----------|---------------|----------------|-------------|
+| No deprecations in 1.x | — | — | — |
 
 ## Stable `rulestead` Modules
 
-These modules are public in v0.1.0:
+These modules are public in 1.x:
 
 - `Rulestead`
 - `Rulestead.Context`
@@ -37,9 +74,8 @@ These modules are public in v0.1.0:
 - `Rulestead.Telemetry`
 - `Rulestead.Config`
 
-The **v0.1.0 core module list** above remains closed. **Post-GA supported
-adopter facades** (below) are additionally public on `0.1.x` without opening
-implementation trees.
+The **1.x core module list** above remains closed. **Supported adopter facades**
+(below) are additionally public on `1.x` without opening implementation trees.
 
 ## Supported adopter facades (post-GA)
 
@@ -73,7 +109,7 @@ Backed by `Rulestead.Fake` for in-memory state. `Rulestead.Fake.Control` is
 
 ## Stable `Rulestead` Function Catalog
 
-The root facade is a closed catalog in v0.1.0:
+The root facade is a closed catalog in 1.x:
 
 - `version/0`
 - `fetch_flag/1`
@@ -259,7 +295,7 @@ continue to exclude `:cause`.
 
 ### `Rulestead.Store`
 
-The store behavior is public. Its callback catalog is closed in v0.1.0:
+The store behavior is public. Its callback catalog is closed in 1.x:
 
 - `fetch_flag/1`
 - `fetch_snapshot/1`
@@ -282,13 +318,25 @@ The store behavior is public. Its callback catalog is closed in v0.1.0:
 
 ### `Rulestead.Admin.Policy`
 
-The admin policy seam is public and intentionally small:
+The admin policy seam is public and intentionally small. The decision
+callbacks are the core of the seam:
 
 - `can?/4`
 - `allow_self_approval?/4`
 - `change_request_required?/4`
 
 Hosts own authorization. Rulestead does not ship a bundled auth stack. `can?/4` maps host actors to the canonical Rulestead operator role model (Viewer, Editor, Admin) and specific workflow actions.
+
+Role vocabulary is also introspectable via four read-only catalog helpers:
+
+- `governance_actions/0`
+- `viewer_actions/0`
+- `editor_actions/0`
+- `admin_actions/0`
+
+These helpers return the closed atom catalogs for each role. They are read-only
+introspection functions, not decision callbacks. Use them in your `can?/4`
+implementation to stay in sync with the canonical role vocabulary.
 
 ## Stable Lifecycle Verification Seams
 
@@ -421,7 +469,7 @@ stops at the mount seam and documented host-facing conventions.
 
 ### Stable Host-Facing URL Conventions
 
-The route family mounted beneath the chosen base path is public in v0.1.0:
+The route family mounted beneath the chosen base path is public in 1.x:
 
 - `/`
 - `/new`
@@ -443,7 +491,7 @@ and documented URL level only.
 
 ## Non-Public Surface
 
-The following are explicitly outside the v0.1.0 compatibility promise:
+The following are explicitly outside the 1.x compatibility promise:
 
 - post-GA facade support does not make governance, manifest, or admin LiveView
   modules public
