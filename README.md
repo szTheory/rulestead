@@ -1,3 +1,15 @@
+<div align="center">
+  <img src="brandbook/assets/logo/rs-wordmark-tagline.svg" alt="Rulestead — Runtime decisions, made clear." width="340" height="96">
+
+  <p>
+    <a href="https://hex.pm/packages/rulestead"><img src="https://img.shields.io/hexpm/v/rulestead" alt="Hex version"></a>
+    <a href="https://hexdocs.pm/rulestead"><img src="https://img.shields.io/badge/hex-docs-3A6F8F" alt="HexDocs"></a>
+    <a href="https://github.com/szTheory/rulestead/actions/workflows/ci.yml"><img src="https://github.com/szTheory/rulestead/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+    <a href="https://hex.pm/packages/rulestead"><img src="https://img.shields.io/hexpm/l/rulestead" alt="License"></a>
+    <a href="https://elixir-lang.org"><img src="https://img.shields.io/badge/elixir-%7E%3E%201.17-9b5931" alt="Elixir ~> 1.17"></a>
+  </p>
+</div>
+
 # Rulestead
 
 > **Runtime decisions, made clear.**
