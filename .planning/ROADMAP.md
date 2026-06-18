@@ -160,7 +160,10 @@ Plans:
 2. `guides/recipes/integrations-cookbook.md` ships with 4 persona/JTBD-grounded recipes (Stripe-tier audience, eval-telemetry → Segment, staging→prod CR promotion, Oban-gated job), each using the fixed template (Goal → For → Prerequisites → Steps → Verification → Gotchas → Related), with an honest boundary line and using only shipped public seams.
 3. Both guides are wired into the existing Recipes extras group (cookbook early, troubleshooting last); the 15-minute golden-path guide is untouched; no new extras group is added.
 
-**Plans:** TBD
+**Plans:** 3 plans
+- [ ] 127-01-PLAN.md — troubleshooting.md: 7 symptom-indexed patterns (GUIDE-01)
+- [ ] 127-02-PLAN.md — integrations-cookbook.md: 4 persona-grounded recipes (GUIDE-02)
+- [ ] 127-03-PLAN.md — wire both into Recipes extras group in mix.exs (GUIDE-03)
 
 ---
 
