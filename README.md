@@ -185,5 +185,7 @@ Proof bars, CI scopes, and release verification:
 
 ## Versioning
 
-See [Upgrading](guides/introduction/upgrading.md) for compatibility posture on
-the `1.x` package line.
+Repo GA shipped in `v1.0.0` on 2026-05-21; the Hex packages install on the
+`1.x` line (`{:rulestead, "~> 1.0"}`). See
+[Upgrading](guides/introduction/upgrading.md) for compatibility posture on the
+`1.x` package line.
