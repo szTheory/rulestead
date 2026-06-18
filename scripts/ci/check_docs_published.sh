@@ -50,7 +50,10 @@ echo "check_docs_published.sh: admin Hex-release docs gate passed"
 # --- Check 4: live OG / asset resolution per host ----------------------------
 assert_url_200() {
   local url="$1" expect_ct="$2" headers
-  headers="$(curl -fsSI "${url}" 2>/dev/null)" \
+  # -L follows redirects: hexdocs.pm/<pkg>/... now 301s to the per-package
+  # canonical subdomain (<pkg>.hexdocs.pm), so the final 200 + content-type
+  # only appear after following the redirect.
+  headers="$(curl -fsSLI "${url}" 2>/dev/null)" \
     || fail "${url} did not resolve (non-2xx or unreachable)"
   if [[ -n "${expect_ct}" ]]; then
     printf '%s' "${headers}" | grep -iqE "^content-type:[[:space:]]*${expect_ct}" \
@@ -62,7 +65,7 @@ assert_url_200() {
 assert_png_1200x630() {
   local url="$1" tmp
   tmp="$(mktemp)"
-  curl -fsS "${url}" -o "${tmp}" || { rm -f "${tmp}"; fail "could not download ${url}"; }
+  curl -fsSL "${url}" -o "${tmp}" || { rm -f "${tmp}"; fail "could not download ${url}"; }
   file "${tmp}" | grep -q '1200 x 630' || { rm -f "${tmp}"; fail "${url} is not a 1200x630 PNG"; }
   rm -f "${tmp}"
   echo "    1200x630 PNG: ${url}"
@@ -78,7 +81,7 @@ verify_host() {
   # advertise<->resolve loop: the published page must advertise the og:image we
   # expect, and that URL must actually resolve.
   local remote_readme og_url
-  remote_readme="$(curl -fsS "${base}/readme.html")" || fail "cannot fetch ${base}/readme.html"
+  remote_readme="$(curl -fsSL "${base}/readme.html")" || fail "cannot fetch ${base}/readme.html"
   og_url="$(printf '%s' "${remote_readme}" \
     | grep -oE 'og:image"[[:space:]]*content="[^"]*"' | head -1 \
     | sed -E 's/.*content="([^"]*)"/\1/')"
