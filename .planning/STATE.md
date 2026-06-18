@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: 1.0 GA Release & Adoption
 status: executing
-last_updated: "2026-06-18T00:36:22.177Z"
-last_activity: 2026-06-18 -- Phase 124 planning complete
+last_updated: "2026-06-18T00:45:10.426Z"
+last_activity: 2026-06-18
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 3
-  completed_plans: 0
+  completed_plans: 1
   percent: 0
 ---
 
@@ -21,7 +21,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-17)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
 
-**Current focus:** v2.0 — 1.0 GA Release & Adoption. Cut a real `1.0.0` of all three Hex packages, ship a 1.0-grade HexDocs front door + adoption guides, and announce. No new runtime features.
+**Current focus:** Phase 124 — api-surface-lock-stability-contract
 
 **Milestone:** v2.0 — 1.0 GA Release & Adoption — IN PROGRESS (Phases 124-130)
 
@@ -29,10 +29,10 @@ See: `.planning/PROJECT.md` (updated 2026-06-17)
 
 ## Current Position
 
-Phase: 124 — API Surface Lock & Stability Contract
-Plan: —
+Phase: 124 (api-surface-lock-stability-contract) — EXECUTING
+Plan: 2 of 3
 Status: Ready to execute
-Last activity: 2026-06-18 -- Phase 124 planning complete
+Last activity: 2026-06-18
 
 ```
 [Phase A — Pre-cut doc/contract truth] [Phase B] [Phase C] [Phase D]
@@ -40,7 +40,7 @@ Last activity: 2026-06-18 -- Phase 124 planning complete
                127 ---+
 ```
 
-Progress: 0/7 phases complete [░░░░░░░░░░░░░░░░░░░░] 0%
+Progress: [███░░░░░░░] 33%
 
 ## Phase Dependency Map
 
@@ -93,7 +93,9 @@ Human checkpoints:
 - **`"release-as": "1.0.0"` is the ONLY mechanism to force 1.0.0** under the repo's `bump-minor-pre-major: true` + `bump-patch-for-minor-pre-major: true` config; `feat!:` yields only `0.2.0`, not `1.0.0`. Post-1.0 these two flags become no-ops.
 - **Lock the existing public surface as-is** — no "last clean break" renames; API audit found no warts; zero breaking changes is the honest 1.0 story.
 - **`brandbook/` is missing from package `files:`** — release-blocker; must add `brandbook/assets/logo` (and `specimens`) before the cut or logo/README 404s on hex.pm/HexDocs on launch day.
-- **Three public modules are `@moduledoc false`** — `Rulestead.Context`, `Rulestead.Runtime`, `Rulestead.Admin.Policy` listed public in `api_stability.md` but excluded from HexDocs; must be fixed in Phase 124.
+- **Three public modules are `@moduledoc false`** — `Rulestead.Context`, `Rulestead.Runtime`, `Rulestead.Admin.Policy` listed public in `api_stability.md` but excluded from HexDocs; **FIXED in 124-P01** (all three now have real `@moduledoc` and per-function `@doc`).
+- **Admin.Policy `*_actions/0` helpers promoted to 1.x contract** (D-10, 124-P01) — `governance_actions/0`, `viewer_actions/0`, `editor_actions/0`, `admin_actions/0` promoted with `@doc` as read-only role-vocabulary / introspection helpers.
+- **`mix.exs` `groups_for_modules` updated** (D-09, 124-P01) — "Runtime (cached lookup)": [Rulestead.Runtime] added; `Rulestead.Runtime.Snapshot` removed from Extensibility group.
 - **14-file version-truth sweep** — stale `0.1.x`/`~> 0.1`/`future 1.0`/`API freeze` language across READMEs, guides, `api_stability.md`, `upgrading.md`, `MAINTAINING.md`; do not touch `.planning/` or `prompts/` (historically accurate).
 - **README "Two version lines" callout must be deleted** — leaving it re-introduces the exact ZeroVer confusion the milestone exists to resolve.
 - **Announce gate** — ElixirForum post only AFTER verify-trio green + `open_feature_rulestead@1.0.0` live + HexDocs front door confirmed rendered (logo, "Why Rulestead?", 3 public modules visible, badges resolve).

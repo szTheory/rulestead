@@ -11,8 +11,8 @@ Requirements for the v2.0 milestone. Each maps to roadmap phases (continuing num
 
 ### API Surface Lock & Stability Contract
 
-- [ ] **API-01**: The three listed-public modules (`Rulestead.Context`, `Rulestead.Runtime`, `Rulestead.Admin.Policy`) carry real `@moduledoc` and render on HexDocs — no `@moduledoc false` on any module listed public in `api_stability.md`.
-- [ ] **API-02**: Every symbol listed public in `api_stability.md` has `@doc` + `@spec`; no accidental public surface; dialyzer is clean on the public surface; ExDoc undefined-reference warnings are treated as a release gate.
+- [x] **API-01**: The three listed-public modules (`Rulestead.Context`, `Rulestead.Runtime`, `Rulestead.Admin.Policy`) carry real `@moduledoc` and render on HexDocs — no `@moduledoc false` on any module listed public in `api_stability.md`.
+- [x] **API-02**: Every symbol listed public in `api_stability.md` has `@doc` + `@spec`; no accidental public surface; dialyzer is clean on the public surface; ExDoc undefined-reference warnings are treated as a release gate.
 - [ ] **API-03**: `api_stability.md` is rewritten to the "1.x" contract and adds a Versioning & Deprecation Policy (soft→hard `@deprecated`→remove-on-major window, telemetry-event stability, breaking-change table, a worked deprecation example); `release_contract_test.exs` stays green.
 
 ### HexDocs Front Door
@@ -64,8 +64,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| API-01 | Phase 124 | Pending |
-| API-02 | Phase 124 | Pending |
+| API-01 | Phase 124 | Complete |
+| API-02 | Phase 124 | Complete |
 | API-03 | Phase 124 | Pending |
 | DOC-01 | Phase 126 | Pending |
 | DOC-02 | Phase 126 | Pending |
