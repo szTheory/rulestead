@@ -128,13 +128,15 @@ defmodule Rulestead.MixProject do
           Rulestead.Result,
           Rulestead.Error
         ],
+        "Runtime (cached lookup)": [
+          Rulestead.Runtime
+        ],
         "Store Adapters": [
           Rulestead.Store.Ecto,
           Rulestead.Store.Redis
         ],
         Extensibility: [
           Rulestead.Store,
-          Rulestead.Runtime.Snapshot,
           Rulestead.Tenancy
         ]
       ],
