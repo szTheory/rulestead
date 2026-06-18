@@ -106,3 +106,10 @@ run_mix verify.release_publish "${RELEASE_VERSION}"
 run_mix verify.release_parity "${RELEASE_VERSION}"
 
 echo "post-publish verification trio passed for ${RELEASE_VERSION}"
+
+# Published-docs gate (Phase 126 UAT checks 1 & 4): admin Hex-release docs gate
+# + live CDN resolution of the advertised og:image/logo/favicon. Only meaningful
+# post-publish, which the version-resolve caller has already confirmed.
+RULESTEAD_REPO="${RULESTEAD_REPO}" bash "${RULESTEAD_REPO}/scripts/ci/check_docs_published.sh" "${RELEASE_VERSION}"
+
+echo "post-publish docs gate passed for ${RELEASE_VERSION}"
