@@ -4,13 +4,13 @@ milestone: v2.0
 milestone_name: 1.0 GA Release & Adoption
 status: executing
 stopped_at: Phase 125 context gathered (assumptions mode)
-last_updated: "2026-06-18T05:34:37.049Z"
+last_updated: "2026-06-18T05:44:55.613Z"
 last_activity: 2026-06-18
 progress:
   total_phases: 2
   completed_phases: 1
   total_plans: 6
-  completed_plans: 4
+  completed_plans: 5
   percent: 50
 ---
 
@@ -31,7 +31,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-17)
 ## Current Position
 
 Phase: 125 (version-truth-sweep-release-docs) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-06-18
 
@@ -41,7 +41,7 @@ Last activity: 2026-06-18
                127 ---+
 ```
 
-Progress: [███████░░░] 67%
+Progress: [████████░░] 83%
 
 ## Phase Dependency Map
 
@@ -109,6 +109,8 @@ Human checkpoints:
 - **release_contract_test.exs anchor updated** (124-P02) — Line ~181 assert updated to `1.x release contract` substring in lockstep (D-01); four *_actions/0 helpers assertion block added (D-12); all 26 tests pass.
 - **Phase 124 release-gate verified green** (124-P03) — `mix docs --warnings-as-errors` exits 0 (three module HTML pages confirmed); `mix dialyzer` exits 0 (195 pre-existing skipped, unnecessary_skips: 0); `release_contract_test.exs` exits 0 (26 tests, 0 failures); no source edits required.
 - [Phase ?]: 125-01: restored v1.0.0 GA fact in root README Versioning after deleting the Two version lines callout, keeping contract-test L232 green
+- [Phase ?]: 125-02: shipped fail-closed scripts/check_version_truth.py — anchored ~> 0.1 lookahead skips third-party ~> 0.1.3 pin; wired into lint.sh under set -euo pipefail
+- [Phase ?]: 125-02: guard exempts the sanctioned 0.1.x -> 1.0 upgrade-arrow line (line-scoped, Unicode+ASCII) so ROADMAP SC-4's Plan-03 heading stays satisfiable while other stale 0.1.x claims still caught
 
 ### Milestone-specific constraints (v2.0)
 
@@ -218,9 +220,10 @@ Human checkpoints:
 | Phase 123 P03 | 15min | 2 tasks | 3 files |
 | Phase 119.1-verify-phase-119-audit-deliverable-cidx-01-02-03 P01 | 3min | 2 tasks | 3 files |
 | Phase 125 P01 | 6 min | 3 tasks | 13 files |
+| Phase 125 P02 | 3min | 2 tasks | 3 files |
 
 ## Session
 
-**Last session:** 2026-06-18T05:34:29.009Z
+**Last session:** 2026-06-18T05:44:33.821Z
 **Stopped at:** Phase 125 context gathered (assumptions mode)
 **Resume file:** None

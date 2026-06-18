@@ -94,7 +94,7 @@ Plans:
 5. `MAINTAINING.md` has a "Cutting a major (X.0.0)" runbook covering the `Release-As` mechanism, the three-package sequence, the deprecation-window checklist, and the mandatory post-cut `"release-as"` removal step.
 6. The "promotion, not rewrite" CHANGELOG preamble is pre-authored as a ready artifact for both packages (to be applied during the release PR in Phase 128).
 
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
 
 Plans:
 **Wave 1**
@@ -103,7 +103,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 125-02-PLAN.md — Fail-closed `scripts/check_version_truth.py` drift guard (`~> 0.1.3`-safe lookahead) wired into `scripts/ci/lint.sh` (REL-02)
+- [x] 125-02-PLAN.md — Fail-closed `scripts/check_version_truth.py` drift guard (`~> 0.1.3`-safe lookahead) wired into `scripts/ci/lint.sh` (REL-02)
 - [ ] 125-03-PLAN.md — Release docs: upgrading.md "Upgrading 0.1.x → 1.0" section, MAINTAINING.md "Cutting a major" runbook, staged `brandbook/CHANGELOG-PREAMBLE-1.0.md` (REL-03)
 
 ---
@@ -218,7 +218,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 124. API Surface Lock & Stability Contract | 3/3 | Complete    | 2026-06-18 |
-| 125. Version-Truth Sweep + Release Docs | 1/3 | In Progress|  |
+| 125. Version-Truth Sweep + Release Docs | 2/3 | In Progress|  |
 | 126. HexDocs Front Door | 0/TBD | Not started | - |
 | 127. Adoption Guides | 0/TBD | Not started | - |
 | 128. The Release Cut | 0/TBD | Not started | - |
