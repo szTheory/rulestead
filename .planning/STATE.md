@@ -6,14 +6,14 @@ current_phase: 126
 current_phase_name: hexdocs-front-door
 status: executing
 stopped_at: Completed 126-03-PLAN.md
-last_updated: "2026-06-18T07:05:29.696Z"
+last_updated: "2026-06-18T13:51:31.632Z"
 last_activity: 2026-06-18
 last_activity_desc: Phase 126 execution started
 progress:
   total_phases: 3
   completed_phases: 2
   total_plans: 12
-  completed_plans: 10
+  completed_plans: 11
   percent: 67
 ---
 
@@ -34,7 +34,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-17)
 ## Current Position
 
 Phase: 126 (hexdocs-front-door) — EXECUTING
-Plan: 5 of 6
+Plan: 6 of 6
 Status: Ready to execute
 Last activity: 2026-06-18 -- Phase 126 execution started
 
@@ -122,6 +122,7 @@ Human checkpoints:
 - [Phase ?]: Canonical positioning page, NOT a README quickstart duplicate
 - [Phase ?]: Zero named competitor vendors, no comparison matrix — brand guardrail D-18 upheld
 - [Phase ?]: D-20: Centered README hero uses rs-wordmark-tagline.svg (340x96) above existing H1; 5 shields.io badges each wrapped in <a href>; Hex version badge self-heals via shields hexpm/v/rulestead
+- [Phase ?]: D-01..D-05: 6 module groups; D-06: API & Stability first-match defuse; D-13..D-16: before_closing_head_tag --main* retint, body.dark, PNG og:image
 
 ### Milestone-specific constraints (v2.0)
 
@@ -236,9 +237,10 @@ Human checkpoints:
 | Phase 126 P01 | 15 | 3 tasks | 5 files |
 | Phase 126 P02 | 1 minute | 1 tasks | 1 files |
 | Phase 126 P03 | 2min | 1 tasks | 1 files |
+| Phase 126 P05 | 3m | 2 tasks | 2 files |
 
 ## Session
 
-**Last session:** 2026-06-18T07:05:29.691Z
+**Last session:** 2026-06-18T13:50:36.140Z
 **Stopped at:** Completed 126-03-PLAN.md
 **Resume file:** None
