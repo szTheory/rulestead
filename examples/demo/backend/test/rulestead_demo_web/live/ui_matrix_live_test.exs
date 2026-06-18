@@ -235,7 +235,11 @@ defmodule RulesteadDemoWeb.UiMatrixLiveTest do
     confirm_source =
       read_repo_source("rulestead_admin/lib/rulestead_admin/components/confirm_components.ex")
 
-    assert router_source =~ "if Mix.env() in [:dev, :test] do"
+    # Route stays dev/test-gated by default; the adoption-lab prod image opts in
+    # explicitly via RULESTEAD_DEMO_DEV_ROUTES=1 so it is never exposed in a real
+    # production build that does not set the flag.
+    assert router_source =~ "if Mix.env() in [:dev, :test] or"
+    assert router_source =~ ~s|System.get_env("RULESTEAD_DEMO_DEV_ROUTES") == "1"|
     assert router_source =~ ~s(scope "/dev/rulestead-admin", RulesteadDemoWeb do)
     assert router_source =~ ~s(live "/ui-matrix", UiMatrixLive, :index)
     refute admin_router_source =~ "ui-matrix"

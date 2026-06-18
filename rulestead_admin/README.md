@@ -6,11 +6,7 @@ Optional sibling package for host apps that need an operator surface — flag
 inventory, rollouts, kill switch, audit, audiences, and governance workflows.
 Your app owns auth, policy, and session; this package renders inside your router.
 
-Install `{:rulestead_admin, "~> 0.1"}` alongside `rulestead` (currently **0.1.x**
-on Hex).
-
-> **Two version lines:** GitHub repo milestones track project delivery. **Hex
-> packages** use `0.1.x` semver until a future `1.0` API freeze.
+Install `{:rulestead_admin, "~> 1.0"}` alongside `rulestead` from Hex.
 
 This is a **mounted companion**, not a standalone control plane.
 
@@ -19,8 +15,8 @@ This is a **mounted companion**, not a standalone control plane.
 ```elixir
 defp deps do
   [
-    {:rulestead, "~> 0.1"},
-    {:rulestead_admin, "~> 0.1"}
+    {:rulestead, "~> 1.0"},
+    {:rulestead_admin, "~> 1.0"}
   ]
 end
 ```

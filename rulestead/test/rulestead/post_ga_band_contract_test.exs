@@ -14,7 +14,7 @@ defmodule Rulestead.PostGaBandContractTest do
 
     boundary = File.read!(@product_boundary)
     assert boundary =~ "Runtime semver"
-    assert boundary =~ "0.1.x"
+    assert boundary =~ "1.x"
   end
 
   test "operator docs do not claim pre-v1.8 gaps as open" do

@@ -8,8 +8,8 @@ Rulestead ships as a linked-version sibling-package monorepo:
 - `rulestead_admin`
 
 Repo GA shipped in `v1.0.0` on 2026-05-21. The current installable
-sibling-package line on Hex is **`0.1.x`**, so maintainer release work should treat
-the `0.1.x` packages as the live consumer surface while keeping
+sibling-package line on Hex is **`1.x`**, so maintainer release work should treat
+the `1.x` packages as the live consumer surface while keeping
 `rulestead_admin` documented as the mounted companion rather than a standalone
 product.
 
@@ -164,7 +164,7 @@ with the minimum write scope needed for the workflow.
 
 ## Gated publish choreography
 
-The expected release path for the current shipped `0.1.x` line is:
+The expected release path for the current shipped `1.x` line is:
 
 1. Merge the Release Please PR for the intended version.
 2. Let `release-please.yml` create the linked tags and dispatch
@@ -185,6 +185,80 @@ to ~15 minutes for a green `ci.yml` run on the release tag SHA (handles the
 release-please race where publish dispatches before merge CI finishes), including the
 `adopter contract (post-GA band)` job (`mix verify.phase82` via
 `post_ga_band_closure` scope).
+
+## Cutting a major (X.0.0)
+
+A major cut (the `1.0.0` promotion, and any future `X.0.0`) does not flow from
+ordinary conventional commits — it must be forced. This runbook documents the
+mechanism; it does **not** execute it. The actual `1.0.0` cut is performed in its
+own dedicated release wave.
+
+### What release-please manages (and what it does not)
+
+Only **`rulestead`** and **`rulestead_admin`** are release-please managed. They
+are declared as `linked-versions` in `release-please-config.json` and always move
+together under one shared release version.
+
+`open_feature_rulestead` is **NOT** release-please managed. It is absent from the
+`linked-versions` group and is published by a **separate manual step** (tracked
+for a later provider wave), strictly **after** `rulestead@X.0.0` is live on Hex.
+Do not assume a release-please run cuts the provider — it never touches it.
+
+### The `Release-As` mechanism
+
+Because the pre-1.0 config carries `bump-minor-pre-major` and
+`bump-patch-for-minor-pre-major`, a `feat!:` commit pre-1.0 bumps the *minor*, not
+the major — so a major cannot be reached by commit convention alone. Force it with
+`Release-As`:
+
+1. Add `"release-as": "X.0.0"` into the **`rulestead`** package block of
+   `release-please-config.json`. Because `rulestead` and `rulestead_admin` are
+   linked, both packages are proposed at `X.0.0` together.
+   - The `release-please.yml` bootstrap step that echoes a `Release-As:` footer is
+     historical (it seeded the very first release) — it is **not** the major-cut
+     path. Use the config-block `release-as` for the major.
+   - Reference the manifest (`.release-please-manifest.json`) generically; do not
+     hard-code whatever version it currently holds.
+2. Let release-please open the `X.0.0` PR for both linked packages.
+3. Merge the PR and follow the existing **Gated publish choreography** above:
+   `rulestead` publishes **first**, then `rulestead_admin`.
+
+### Mandatory post-cut removal
+
+**After the `X.0.0` PR merges, you MUST remove `"release-as": "X.0.0"` from
+`release-please-config.json`.** If you leave it in, release-please re-proposes the
+exact same `X.0.0` on every subsequent run forever. This removal is not optional
+cleanup — it is a required step of the cut. (Likewise, any historical `Release-As:`
+echo in `release-please.yml` should not be left pointing at a fixed version.)
+
+After the major lands, `bump-minor-pre-major` / `bump-patch-for-minor-pre-major`
+become **no-ops** — they only affect `< 1.0.0` versioning. From `1.0.0` onward,
+ordinary semver applies and `feat!:` correctly drives the next major.
+
+### Deprecation-window checklist
+
+A major is the only place public surface may be removed. Tie the cut to the
+Versioning & Deprecation Policy in `guides/api_stability.md`
+(soft-deprecate → hard `@deprecated` → remove-on-major):
+
+- [ ] Every surface being removed at `X.0.0` has already passed through a soft and
+      then a hard `@deprecated` window in a prior minor — nothing is removed cold.
+- [ ] Hard deprecations did not silently break the build (mind the
+      `--warnings-as-errors` footgun documented in the api_stability policy).
+- [ ] The CHANGELOG preamble (staged in `brandbook/`) states explicitly whether
+      this major carries breaking changes. For the `1.0.0` promotion, it is
+      **zero breaking changes** — same code, honestly versioned.
+- [ ] Provider (`open_feature_rulestead`) follow-up manual publish is queued for
+      after `rulestead@X.0.0` is confirmed live on Hex.
+
+### Sequence summary
+
+1. Confirm deprecation-window checklist is satisfied.
+2. Add `"release-as": "X.0.0"` to the `rulestead` block in
+   `release-please-config.json`.
+3. Merge the release-please PR; publish `rulestead`, then `rulestead_admin`.
+4. **Remove** `"release-as": "X.0.0"` from `release-please-config.json`.
+5. Manually publish `open_feature_rulestead` after `rulestead@X.0.0` is live.
 
 ## Manual recovery path
 
@@ -589,7 +663,7 @@ Do not use the existence of the release workflows alone as the signal to ship.
 
 Ship or document support only when these conditions are true:
 
-1. The current `0.1.x` package line is aligned with the root and sibling docs.
+1. The current `1.x` package line is aligned with the root and sibling docs.
 2. The multi-environment compare/promote and import/export seams are documented
    well enough for early adopters to use honestly.
 3. The mounted companion posture is clear in `README.md`, `rulestead/README.md`,

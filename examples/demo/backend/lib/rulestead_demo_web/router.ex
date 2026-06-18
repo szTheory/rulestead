@@ -42,7 +42,12 @@ defmodule RulesteadDemoWeb.Router do
     rulestead_admin("/flags", policy: RulesteadDemo.AdminPolicy, mount_path: "/admin/flags")
   end
 
-  if Mix.env() in [:dev, :test] do
+  # Fixture-only UI matrix evidence route. Dev/test by default so it never ships
+  # in a real production deployment. The adoption-lab Docker image opts in via
+  # RULESTEAD_DEMO_DEV_ROUTES=1 (set in examples/demo/backend/Dockerfile before
+  # `mix compile`) so the integration Playwright suite can drive it against the
+  # prod-built backend. Evaluated at compile time — matches the build env.
+  if Mix.env() in [:dev, :test] or System.get_env("RULESTEAD_DEMO_DEV_ROUTES") == "1" do
     scope "/dev/rulestead-admin", RulesteadDemoWeb do
       pipe_through :browser
 

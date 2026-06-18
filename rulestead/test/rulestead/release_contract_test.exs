@@ -178,7 +178,7 @@ defmodule Rulestead.ReleaseContractTest do
   test "api stability guide states the explicit public and private boundary" do
     contract = File.read!(@api_stability_path)
 
-    assert contract =~ "`guides/api_stability.md` is the v0.1.0 release contract"
+    assert contract =~ "`guides/api_stability.md` is the 1.x release contract"
     assert contract =~ "## Stable `rulestead` Modules"
     assert contract =~ "## Stable `rulestead_admin` Boundary"
     assert contract =~ "## Non-Public Surface"
@@ -230,8 +230,9 @@ defmodule Rulestead.ReleaseContractTest do
     maintaining = File.read!(@maintaining_path)
 
     assert root_readme =~ "v1.0.0"
-    assert root_readme =~ "0.1.x"
-    assert root_readme =~ "Two version lines"
+    assert root_readme =~ "~> 1.0"
+    assert root_readme =~ "1.x"
+    refute root_readme =~ "Two version lines"
     assert root_readme =~ "MAINTAINING.md"
     assert root_readme =~ "adoption-lab"
     assert root_readme =~ "rulestead_admin/README.md"
@@ -246,12 +247,12 @@ defmodule Rulestead.ReleaseContractTest do
     assert maintaining =~ "RULESTEAD_TEST_SCOPE=mounted_admin_contract bash scripts/ci/test.sh"
     assert maintaining =~ "mounted companion proof"
 
-    assert runtime_readme =~ "0.1.x"
+    assert runtime_readme =~ "~> 1.0"
     assert runtime_readme =~ "hexdocs.pm/rulestead"
     refute runtime_readme =~ ~r/\]\(\.\.\//
     refute runtime_readme =~ "mix verify.phase"
 
-    assert admin_readme =~ "0.1.x"
+    assert admin_readme =~ "~> 1.0"
     assert admin_readme =~ "mounted companion"
     assert admin_readme =~ "not a standalone control plane"
     assert admin_readme =~ "host owns auth"
@@ -259,7 +260,7 @@ defmodule Rulestead.ReleaseContractTest do
     refute admin_readme =~ ~r/\]\(\.\.\//
 
     assert upgrading =~ "v1.0.0"
-    assert upgrading =~ "0.1.x"
+    assert upgrading =~ "~> 1.0"
     assert upgrading =~ "MAINTAINING.md"
 
     assert demo_readme =~ "0.1.x"
@@ -282,7 +283,7 @@ defmodule Rulestead.ReleaseContractTest do
 
     assert maintaining =~ "v1.0.0"
     assert maintaining =~ "2026-05-21"
-    assert maintaining =~ "0.1.x"
+    assert maintaining =~ "1.x"
     assert maintaining =~ "mounted companion"
     assert maintaining =~ "examples/demo/"
     assert maintaining =~ "mix verify.release_publish <version>"
@@ -922,6 +923,15 @@ defmodule Rulestead.ReleaseContractTest do
 
     for {name, arity} <- Policy.behaviour_info(:callbacks) do
       assert contract =~ "`#{name}/#{arity}`" or contract =~ "`#{name}`"
+    end
+
+    for {fun, arity} <- [
+          governance_actions: 0,
+          viewer_actions: 0,
+          editor_actions: 0,
+          admin_actions: 0
+        ] do
+      assert contract =~ "`#{fun}/#{arity}`"
     end
 
     for type <- Error.leaf_types() do

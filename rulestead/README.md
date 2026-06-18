@@ -6,11 +6,7 @@ Typed feature flags, variants, and remote config for Elixir and Phoenix apps —
 deterministic evaluation, explainable decisions, and fake-backed tests without
 Postgres on the hot path.
 
-Install `{:rulestead, "~> 0.1"}` (currently **0.1.x** on Hex).
-
-> **Two version lines:** GitHub repo milestones (e.g. `v1.0.0` GA, May 2026)
-> track project delivery. **Hex packages** use `0.1.x` semver until a future `1.0`
-> API freeze.
+Install `{:rulestead, "~> 1.0"}` from Hex.
 
 ## What you get (60 seconds)
 
@@ -30,7 +26,7 @@ Host apps need `ecto_sql ~> 3.14`.
 ```elixir
 defp deps do
   [
-    {:rulestead, "~> 0.1"},
+    {:rulestead, "~> 1.0"},
     {:ecto_sql, "~> 3.14"}
   ]
 end

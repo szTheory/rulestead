@@ -39,6 +39,12 @@ mix dialyzer --format github
 # Restore CWD to repo root — guard scripts use relative paths (rulestead_admin/..., brandbook/...)
 cd "${RULESTEAD_REPO}"
 
+# Docs render gate (Phase 126 UAT checks 2 & 3): static + filesystem proof that
+# both packages' generated HexDocs reference resolvable assets (no 404), carry
+# the Stead Blue tint + body.dark dark mode, advertise the correct og:image
+# host, and stay at brand parity. Self-cds into each package.
+RULESTEAD_REPO="${RULESTEAD_REPO}" "${RULESTEAD_REPO}/scripts/ci/check_docs_render.sh"
+
 # Synced-pair guard: Block 2/3 (dark) must be byte-identical in rulestead_admin.css
 python3 "${RULESTEAD_REPO}/scripts/check_synced_pair.py"
 
@@ -60,6 +66,9 @@ python3 "${RULESTEAD_REPO}/scripts/check_brandbook_html.py"
 # Logo asset drift: copied admin/demo assets must stay byte-identical with
 # brandbook sources, and the real shell must retain the theme-aware classes.
 python3 "${RULESTEAD_REPO}/scripts/check_logo_assets.py"
+
+# Version-truth drift: shipped docs must not reintroduce stale pre-1.0 release language.
+python3 "${RULESTEAD_REPO}/scripts/check_version_truth.py"
 
 # Admin foundations: documented breakpoints, reduced-motion floor, and focus markers.
 python3 "${RULESTEAD_REPO}/scripts/check_admin_foundations.py"

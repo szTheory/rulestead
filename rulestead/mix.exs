@@ -79,7 +79,8 @@ defmodule Rulestead.MixProject do
         "Guides" => "#{@source_url}/tree/main/guides"
       },
       files:
-        ~w(lib priv/templates priv/repo/migrations guides .formatter.exs mix.exs README.md LICENSE CHANGELOG.md CONTRIBUTING.md SECURITY.md)
+        ~w(lib priv/templates priv/repo/migrations guides .formatter.exs mix.exs README.md LICENSE CHANGELOG.md CONTRIBUTING.md SECURITY.md
+           brandbook/assets/logo/*.svg brandbook/assets/specimens/readme-header.svg)
     ]
   end
 
@@ -89,9 +90,13 @@ defmodule Rulestead.MixProject do
       source_ref: "v#{@version}",
       source_url: @source_url,
       homepage_url: @homepage_url,
+      logo: "brandbook/assets/logo/rs-mark.svg",
+      favicon: "brandbook/assets/logo/rs-favicon.svg",
+      assets: %{"brandbook/assets/logo" => "assets"},
+      before_closing_head_tag: &before_closing_head_tag/1,
       extras: [
         "README.md",
-        "../CONVENTIONS.md",
+        "../guides/introduction/why-rulestead.md",
         "../guides/introduction/installation.md",
         "../guides/introduction/getting-started.md",
         "../guides/introduction/phoenix-integration-spine.md",
@@ -99,9 +104,6 @@ defmodule Rulestead.MixProject do
         "../guides/introduction/product-boundary.md",
         "../guides/introduction/user-flows-and-jtbd.md",
         "../guides/introduction/adoption-lab.md",
-        "../guides/introduction/upgrading.md",
-        "../guides/cheatsheet.cheatmd",
-        "../guides/api_stability.md",
         "../guides/flows/evaluation.md",
         "../guides/flows/rulesets.md",
         "../guides/flows/flag-lifecycle.md",
@@ -111,37 +113,56 @@ defmodule Rulestead.MixProject do
         "../guides/flows/multi-env.md",
         "../guides/flows/telemetry.md",
         "../guides/flows/extending-rulestead.md",
+        "../guides/recipes/integrations-cookbook.md",
         "../guides/recipes/testing.md",
         "../guides/recipes/ecto-conventions.md",
         "../guides/recipes/oban-background-jobs.md",
         "../guides/recipes/deployment.md",
         "../guides/recipes/context-propagation.md",
         "../guides/recipes/footguns.md",
-        "../guides/recipes/migrating-from-funwithflags.md"
+        "../guides/recipes/migrating-from-funwithflags.md",
+        "../guides/recipes/troubleshooting.md",
+        "../guides/api_stability.md",
+        "../guides/introduction/upgrading.md",
+        "../guides/cheatsheet.cheatmd",
+        "../CONVENTIONS.md"
       ],
       groups_for_modules: [
-        "Public API": [
+        "Core API": [
           Rulestead,
-          Rulestead.Ruleset,
-          Rulestead.Rule,
-          Rulestead.Flag,
+          Rulestead.Context,
           Rulestead.Result,
           Rulestead.Error
+        ],
+        "Runtime (cached lookup)": [
+          Rulestead.Runtime
+        ],
+        Testing: [
+          Rulestead.TestHelpers
+        ],
+        "Behaviours & Seams": [
+          Rulestead.Store,
+          Rulestead.Admin.Policy
         ],
         "Store Adapters": [
           Rulestead.Store.Ecto,
           Rulestead.Store.Redis
         ],
-        Extensibility: [
-          Rulestead.Store,
-          Rulestead.Runtime.Snapshot,
-          Rulestead.Tenancy
+        "Telemetry & Config": [
+          Rulestead.Telemetry,
+          Rulestead.Config
         ]
       ],
       groups_for_extras: [
+        "API & Stability": [
+          "../guides/api_stability.md",
+          "../guides/introduction/upgrading.md",
+          "../guides/cheatsheet.cheatmd"
+        ],
         Introduction: ~r"guides/introduction/",
-        Flows: ~r"guides/flows/",
-        Recipes: ~r"guides/recipes/"
+        "Concepts & Guides": ~r"guides/flows/",
+        Recipes: ~r"guides/recipes/",
+        Contributing: ~r"CONVENTIONS"
       ],
       skip_undefined_reference_warnings_on: fn ref ->
         is_binary(ref) and
@@ -155,6 +176,37 @@ defmodule Rulestead.MixProject do
       end
     ]
   end
+
+  defp before_closing_head_tag(:html) do
+    """
+    <meta property="og:title" content="Rulestead — Runtime decisions, made clear.">
+    <meta property="og:description" content="Elixir-native feature flags, experimentation, and remote config — deterministic, explainable runtime decisions for Phoenix.">
+    <meta property="og:image" content="https://hexdocs.pm/rulestead/assets/rs-social-card.png">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content="https://hexdocs.pm/rulestead/assets/rs-social-card.png">
+    <style>
+      :root {
+        --main:        hsl(203, 42%, 39%);  /* #3A6F8F Stead Blue */
+        --mainDark:    hsl(202, 47%, 33%);  /* #2d5f7c */
+        --mainDarkest: hsl(207, 49%, 19%);  /* #183247 ink */
+        --mainLight:   hsl(202, 29%, 49%);  /* #5885a0 */
+        --mainLightest:hsl(202, 29%, 60%);
+        --searchBarFocusColor: #3A6F8F;
+        --searchBarBorderColor: rgba(58, 111, 143, .25);
+      }
+      body.dark {
+        --main:        hsl(202, 29%, 49%);  /* #5885a0 */
+        --mainDark:    hsl(203, 36%, 45%);  /* #4a7d9c */
+        --mainDarkest: hsl(203, 42%, 39%);  /* #3A6F8F */
+        --mainLight:   hsl(203, 36%, 60%);
+        --mainLightest:hsl(202, 29%, 72%);  /* AA on dark surface */
+      }
+    </style>
+    """
+  end
+
+  defp before_closing_head_tag(:epub), do: ""
 
   defp dialyzer do
     [

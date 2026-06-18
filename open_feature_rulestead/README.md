@@ -10,9 +10,8 @@ custom provider adapter.
 
 ## Current posture
 
-- Repo GA shipped in `v1.0.0` on 2026-05-21, while this companion package
-  remains on the installable `0.1.0` line with the rest of the sibling
-  packages.
+- Repo GA shipped in `v1.0.0` on 2026-05-21; this companion package ships on the
+  installable `1.x` line alongside the rest of the sibling packages.
 - This package is a secondary companion surface, not the primary front door.
 - The package contract is the Elixir provider shown below. The browser demo in
   [../examples/demo/README.md](../examples/demo/README.md) is a secondary,
@@ -26,7 +25,7 @@ Add the Elixir OpenFeature SDK plus the Rulestead provider companion:
 defp deps do
   [
     {:open_feature, "~> 0.1.3"},
-    {:open_feature_rulestead, "~> 0.1"}
+    {:open_feature_rulestead, "~> 1.0"}
   ]
 end
 ```

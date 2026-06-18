@@ -1,12 +1,80 @@
 defmodule RulesteadAdmin.Router do
-  @moduledoc false
+  @moduledoc """
+  Mounts the Rulestead admin UI into your Phoenix router.
 
+  ## Quick start
+
+  Add the admin UI to your Phoenix router:
+
+      scope "/admin", MyAppWeb do
+        pipe_through [:browser, :require_admin]
+
+        rulestead_admin "/flags", policy: MyApp.AdminPolicy
+      end
+
+  Your host app is responsible for authentication. The admin UI does **not**
+  authenticate requests — it reads an already-authenticated session.
+
+  ## What you must provide
+
+  1. **A `:browser` pipeline** that includes session parsing and CSRF protection.
+  2. **Authentication in front of the scope** — use a plug or a `pipe_through`
+     with your auth pipeline. Rulestead never authenticates users.
+  3. **A `policy:` option** pointing at a module that implements `Rulestead.Admin.Policy`.
+  4. **The required session keys** listed below.
+
+  ## Options
+
+  - `:policy` — **required** — a module implementing `Rulestead.Admin.Policy`.
+    Controls which actions each actor may perform.
+  - `:mount_path` — optional — overrides the base path used inside the live
+    session (defaults to the first argument, `path`).
+
+  ## Session keys read from the host
+
+  The admin UI reads the following keys from the Plug session on each request.
+  They must be placed there by your authentication layer before the scope is entered.
+
+  ### Required (frozen 1.x contract)
+
+  - `"current_actor"` — the authenticated actor map (passed to every policy call).
+  - `"rulestead_admin_environments"` — list of environment maps to populate the env switcher.
+  - `"rulestead_admin_last_env"` — string key of the environment the actor last selected.
+
+  ### Optional (not part of the frozen 1.x contract)
+
+  The following tenant-related keys are read when present; omit them in single-tenant setups:
+
+  - `"rulestead_admin_tenants"` — list of tenant maps.
+  - `"rulestead_admin_last_tenant"` — string key of the last-selected tenant.
+  - `"rulestead_admin_default_tenant"` — string key of the default tenant.
+
+  ## Boundary
+
+  Internal implementation details — `RulesteadAdmin.Live.*`, `RulesteadAdmin.Components.*`,
+  DOM structure, and CSS class names — are **not** part of the 1.x promise and may change
+  between minor releases. Depend only on the public mount seam (`rulestead_admin/2`) and the
+  session-key contract documented above.
+  """
+
+  @doc false
   defmacro __using__(_opts) do
     quote do
       import RulesteadAdmin.Router, only: [rulestead_admin: 1, rulestead_admin: 2]
     end
   end
 
+  @doc """
+  Mounts all Rulestead admin LiveView routes under `path`.
+
+  Accepts an optional `policy:` keyword argument specifying a module that
+  implements `Rulestead.Admin.Policy`. The `:policy` option is required.
+
+  ## Example
+
+      rulestead_admin "/flags", policy: MyApp.AdminPolicy
+
+  """
   defmacro rulestead_admin(path, opts \\ []) do
     quote bind_quoted: [path: path, opts: opts] do
       policy = Keyword.fetch!(opts, :policy)
@@ -81,6 +149,7 @@ defmodule RulesteadAdmin.Router do
     end
   end
 
+  @doc false
   def live_session(conn, path, policy) do
     session = Plug.Conn.get_session(conn)
 

@@ -58,6 +58,10 @@ COPY rulestead_admin/priv/static ./rulestead_admin/priv/static
 COPY examples/demo/backend ./examples/demo/backend
 
 WORKDIR /workspace/examples/demo/backend
+# Adoption-lab opt-in: compile the dev/test-only UI matrix evidence route into
+# this prod image so the integration Playwright suite can drive it. Real
+# production builds never set this flag, so the route stays absent there.
+ENV RULESTEAD_DEMO_DEV_ROUTES=1
 RUN mix compile
 RUN mix assets.deploy
 

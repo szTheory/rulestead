@@ -1,6 +1,35 @@
 defmodule Rulestead.Context do
-  @moduledoc false
-  # Canonical runtime context used by the Phase 3 evaluator surface.
+  @moduledoc """
+  Explicit evaluation context: who is asking, in which environment, and with what
+  attributes.
+
+  `Rulestead.Context` is the second argument to every evaluation call. It is a
+  plain struct you build once per request (or once per job) and pass into
+  `Rulestead.evaluate/3`, `Rulestead.Runtime.enabled?/3`, and the other evaluation
+  functions. Evaluation never reads ambient process state — context is always
+  explicit, which is what makes a decision reproducible and explainable.
+
+  ## Building a context
+
+      iex> ctx =
+      ...>   Rulestead.Context.new(
+      ...>     environment: "production",
+      ...>     targeting_key: "user-123",
+      ...>     attributes: %{plan: :pro}
+      ...>   )
+      iex> ctx.targeting_key
+      "user-123"
+
+  The `:targeting_key` is the stable identity used for deterministic, sticky
+  bucketing — pass the same key and a flag resolves the same way every time.
+  `:attributes` carry the traits your ordered rules match on.
+
+  ## Stable fields
+
+  See [API Stability](api_stability.md) for the frozen field list. The supported
+  fields are `:actor`, `:targeting_key`, `:tenant_key`, `:environment`,
+  `:attributes`, `:request_id`, `:session_id`, and `:strict?`.
+  """
 
   @enforce_keys []
   defstruct actor: nil,
@@ -25,6 +54,25 @@ defmodule Rulestead.Context do
           strict?: boolean()
         }
 
+  @doc """
+  Builds a `%Rulestead.Context{}` from a keyword list, a map, or an existing
+  context struct.
+
+  Accepts the following input shapes:
+
+  - `keyword()` — e.g. `[environment: "production", targeting_key: "u1"]`
+  - `map()` — e.g. `%{environment: "production", targeting_key: "u1"}`
+  - `%Rulestead.Context{}` — idempotent; re-normalizes the struct
+
+  Normalizes legacy key aliases on the way in: `:subject` is promoted to `:actor`,
+  and `:traits` is merged into `:attributes` (explicit `:attributes` wins on key
+  conflicts).
+
+  When `:targeting_key` is not supplied, it defaults to the `:key` or `:id` field
+  of the `:actor` map or struct, if present.
+
+  Returns a fully-normalized `%Rulestead.Context{}`.
+  """
   @spec new(t() | keyword() | map()) :: t()
   def new(%__MODULE__{} = context), do: normalize(context)
 
@@ -44,6 +92,21 @@ defmodule Rulestead.Context do
     }
   end
 
+  @doc """
+  Normalizes a keyword list, map, or existing `%Rulestead.Context{}` into a
+  fully-normalized struct.
+
+  Accepts the same input union as `new/1`. Ensures:
+
+  - All scalar fields (`:targeting_key`, `:tenant_key`, `:environment`,
+    `:request_id`, `:session_id`) are strings or `nil`
+  - `:actor` is a map or struct, or `nil`
+  - `:attributes` is a map
+  - `:strict?` is a boolean
+
+  This function is idempotent: calling it on an already-normalized
+  `%Rulestead.Context{}` returns an equivalent struct.
+  """
   @spec normalize(t() | keyword() | map()) :: t()
   def normalize(%__MODULE__{} = context), do: new(Map.from_struct(context))
   def normalize(attrs) when is_list(attrs) or is_map(attrs), do: new(attrs)

@@ -6,10 +6,7 @@ Rulestead ships as two sibling packages:
 - `rulestead_admin` for the optional mounted admin UI
 
 Repo GA shipped in `v1.0.0` on 2026-05-21, and the current installable package
-line on Hex is **`0.1.x`** (`~> 0.1`). Install only the package boundary your app needs.
-
-> **Two version lines:** GitHub repo milestones track project delivery. **Hex
-> packages** use `0.1.x` semver until a future `1.0` API freeze.
+line on Hex is **`1.x`** (`~> 1.0`). Install only the package boundary your app needs.
 
 ## Runtime-only apps
 
@@ -19,7 +16,7 @@ not need the mounted admin UI in the host Phoenix app.
 ```elixir
 defp deps do
   [
-    {:rulestead, "~> 0.1"}
+    {:rulestead, "~> 1.0"}
   ]
 end
 ```
@@ -32,8 +29,8 @@ operator UI.
 ```elixir
 defp deps do
   [
-    {:rulestead, "~> 0.1"},
-    {:rulestead_admin, "~> 0.1"}
+    {:rulestead, "~> 1.0"},
+    {:rulestead_admin, "~> 1.0"}
   ]
 end
 ```

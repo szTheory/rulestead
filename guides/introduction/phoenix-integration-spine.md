@@ -16,8 +16,8 @@ Add the packages you need (see [Installation](installation.md)):
 ```elixir
 defp deps do
   [
-    {:rulestead, "~> 0.1"},
-    {:rulestead_admin, "~> 0.1"}  # optional operator UI
+    {:rulestead, "~> 1.0"},
+    {:rulestead_admin, "~> 1.0"}  # optional operator UI
   ]
 end
 ```

@@ -1,13 +1,20 @@
+<div align="center">
+  <img src="brandbook/assets/logo/rs-wordmark-tagline.svg" alt="Rulestead — Runtime decisions, made clear." width="340" height="96">
+
+  <p>
+    <a href="https://hex.pm/packages/rulestead"><img src="https://img.shields.io/hexpm/v/rulestead" alt="Hex version"></a>
+    <a href="https://hexdocs.pm/rulestead"><img src="https://img.shields.io/badge/hex-docs-3A6F8F" alt="HexDocs"></a>
+    <a href="https://github.com/szTheory/rulestead/actions/workflows/ci.yml"><img src="https://github.com/szTheory/rulestead/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+    <a href="https://hex.pm/packages/rulestead"><img src="https://img.shields.io/hexpm/l/rulestead" alt="License"></a>
+    <a href="https://elixir-lang.org"><img src="https://img.shields.io/badge/elixir-%7E%3E%201.17-9b5931" alt="Elixir ~> 1.17"></a>
+  </p>
+</div>
+
 # Rulestead
 
 > **Runtime decisions, made clear.**
 > Typed feature flags, variants, and remote config for Elixir apps, with an
 > optional mounted Phoenix LiveView admin.
-
-> **Two version lines:** GitHub repo milestones (e.g. `v1.0.0` GA, May 2026)
-> track project delivery. **Hex packages** use `0.1.x` semver (currently
-> **0.1.x** on Hex) until a future `1.0` API freeze. Install with
-> `{:rulestead, "~> 0.1"}`.
 
 ## What this is (60 seconds)
 
@@ -37,7 +44,7 @@ Start with the runtime package:
 ```elixir
 defp deps do
   [
-    {:rulestead, "~> 0.1"}
+    {:rulestead, "~> 1.0"}
   ]
 end
 ```
@@ -96,8 +103,8 @@ If your Phoenix app also needs the mounted companion admin, add
 ```elixir
 defp deps do
   [
-    {:rulestead, "~> 0.1"},
-    {:rulestead_admin, "~> 0.1"}
+    {:rulestead, "~> 1.0"},
+    {:rulestead_admin, "~> 1.0"}
   ]
 end
 ```
@@ -190,5 +197,7 @@ Proof bars, CI scopes, and release verification:
 
 ## Versioning
 
-See [Upgrading](guides/introduction/upgrading.md) for compatibility posture on
-the `0.1.x` package line.
+Repo GA shipped in `v1.0.0` on 2026-05-21; the Hex packages install on the
+`1.x` line (`{:rulestead, "~> 1.0"}`). See
+[Upgrading](guides/introduction/upgrading.md) for compatibility posture on the
+`1.x` package line.
