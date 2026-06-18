@@ -9,6 +9,30 @@ than upgrading, but the compatibility posture is still important:
   outside an explicit, release-noted major bump
 - Anything not documented as public should be treated as internal
 
+## Upgrading 0.1.x → 1.0
+
+**Promotion, not rewrite.** The `1.0.0` release is the *same* battle-tested code
+that shipped on the earlier line — just honestly versioned. There are **zero
+breaking changes** and **no code changes** required on your side. Nothing in the
+public surface moved, renamed, or changed behavior.
+
+The entire upgrade is a single **dependency-pin bump** — point your `mix.exs`
+at the `1.x` line:
+
+```elixir
+def deps do
+  [
+    {:rulestead, "~> 1.0"},
+    {:rulestead_admin, "~> 1.0"}
+  ]
+end
+```
+
+Then run `mix deps.get`. That is the whole upgrade. Because this is a promotion
+and not a rewrite, you do **not** need to audit call sites, adjust configuration,
+or change any host-app integration — the documented router seam, `policy:`
+behavior, session keys, and `?env=` convention are all unchanged.
+
 ## What to review before upgrading
 
 - The package `CHANGELOG.md` files in `rulestead/` and `rulestead_admin/`
