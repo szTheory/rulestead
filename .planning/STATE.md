@@ -5,15 +5,15 @@ milestone_name: 1.0 GA Release & Adoption
 current_phase: 126
 current_phase_name: hexdocs-front-door
 status: executing
-stopped_at: Phase 126 context gathered (assumptions mode)
-last_updated: "2026-06-18T06:58:54.033Z"
+stopped_at: Completed 126-03-PLAN.md
+last_updated: "2026-06-18T07:02:07.050Z"
 last_activity: 2026-06-18
 last_activity_desc: Phase 126 execution started
 progress:
   total_phases: 3
   completed_phases: 2
   total_plans: 12
-  completed_plans: 8
+  completed_plans: 9
   percent: 67
 ---
 
@@ -34,7 +34,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-17)
 ## Current Position
 
 Phase: 126 (hexdocs-front-door) — EXECUTING
-Plan: 3 of 6
+Plan: 4 of 6
 Status: Ready to execute
 Last activity: 2026-06-18 -- Phase 126 execution started
 
@@ -121,6 +121,7 @@ Human checkpoints:
 - [Phase ?]: D-10 check_logo_bytes.sh asserts real SVG bytes in core tarball; wired into contributor.sh; expected-fail until plan 05 adds files: glob
 - [Phase ?]: Canonical positioning page, NOT a README quickstart duplicate
 - [Phase ?]: Zero named competitor vendors, no comparison matrix — brand guardrail D-18 upheld
+- [Phase ?]: D-20: Centered README hero uses rs-wordmark-tagline.svg (340x96) above existing H1; 5 shields.io badges each wrapped in <a href>; Hex version badge self-heals via shields hexpm/v/rulestead
 
 ### Milestone-specific constraints (v2.0)
 
@@ -234,9 +235,10 @@ Human checkpoints:
 | Phase 125 P03 | 12m | 3 tasks | 3 files |
 | Phase 126 P01 | 15 | 3 tasks | 5 files |
 | Phase 126 P02 | 1 minute | 1 tasks | 1 files |
+| Phase 126 P03 | 2min | 1 tasks | 1 files |
 
 ## Session
 
-**Last session:** 2026-06-18T06:58:36.270Z
-**Stopped at:** Phase 126 context gathered (assumptions mode)
-**Resume file:** .planning/phases/126-hexdocs-front-door/126-CONTEXT.md
+**Last session:** 2026-06-18T07:02:07.042Z
+**Stopped at:** Completed 126-03-PLAN.md
+**Resume file:** None
