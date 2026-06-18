@@ -94,12 +94,12 @@ Plans:
 5. `MAINTAINING.md` has a "Cutting a major (X.0.0)" runbook covering the `Release-As` mechanism, the three-package sequence, the deprecation-window checklist, and the mandatory post-cut `"release-as"` removal step.
 6. The "promotion, not rewrite" CHANGELOG preamble is pre-authored as a ready artifact for both packages (to be applied during the release PR in Phase 128).
 
-**Plans:** 3 plans
+**Plans:** 1/3 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 125-01-PLAN.md — Atomic version-truth sweep of 13 shipped files (delete "Two version lines" callout; `~> 0.1`→`~> 1.0`) + lockstep re-anchor of 6 `release_contract_test.exs` asserts (REL-02)
+- [x] 125-01-PLAN.md — Atomic version-truth sweep of 13 shipped files (delete "Two version lines" callout; `~> 0.1`→`~> 1.0`) + lockstep re-anchor of 6 `release_contract_test.exs` asserts (REL-02)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -218,7 +218,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 124. API Surface Lock & Stability Contract | 3/3 | Complete    | 2026-06-18 |
-| 125. Version-Truth Sweep + Release Docs | 0/TBD | Not started | - |
+| 125. Version-Truth Sweep + Release Docs | 1/3 | In Progress|  |
 | 126. HexDocs Front Door | 0/TBD | Not started | - |
 | 127. Adoption Guides | 0/TBD | Not started | - |
 | 128. The Release Cut | 0/TBD | Not started | - |
