@@ -137,7 +137,7 @@ defmodule Rulestead.MixProject do
         "Runtime (cached lookup)": [
           Rulestead.Runtime
         ],
-        "Testing": [
+        Testing: [
           Rulestead.TestHelpers
         ],
         "Behaviours & Seams": [
@@ -159,10 +159,10 @@ defmodule Rulestead.MixProject do
           "../guides/introduction/upgrading.md",
           "../guides/cheatsheet.cheatmd"
         ],
-        "Introduction": ~r"guides/introduction/",
+        Introduction: ~r"guides/introduction/",
         "Concepts & Guides": ~r"guides/flows/",
-        "Recipes": ~r"guides/recipes/",
-        "Contributing": ~r"CONVENTIONS"
+        Recipes: ~r"guides/recipes/",
+        Contributing: ~r"CONVENTIONS"
       ],
       skip_undefined_reference_warnings_on: fn ref ->
         is_binary(ref) and

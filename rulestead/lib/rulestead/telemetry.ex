@@ -39,6 +39,7 @@ defmodule Rulestead.Telemetry do
   the Rulestead runtime. They are part of the public module but primarily exist
   to normalise metadata; most adopters only need `attach_many/4` and `detach/1`.
   """
+
   # Shared telemetry helpers for the locked Phase 4 public event catalog.
 
   alias Rulestead.{Context, Result}

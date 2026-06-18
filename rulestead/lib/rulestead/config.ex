@@ -50,6 +50,7 @@ defmodule Rulestead.Config do
 
   The full default set is returned by `defaults/0`.
   """
+
   # Validated Phase 5 host-app seam configuration.
   #
   # This schema owns the explicit defaults for the Plug, LiveView, and Oban

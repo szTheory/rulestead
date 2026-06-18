@@ -31,6 +31,7 @@ defmodule Rulestead.TestHelpers do
   The backing store (`Rulestead.Fake`) and its control module are internal and
   not part of the 1.x public contract.
   """
+
   # Public fake-backed test helpers for host app tests.
 
   import ExUnit.Assertions

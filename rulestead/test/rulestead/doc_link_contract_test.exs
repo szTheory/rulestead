@@ -42,8 +42,7 @@ defmodule Rulestead.DocLinkContractTest do
   test "adopter docs mention current Hex version family" do
     for path <- [@runtime_readme_path, @getting_started_path] do
       content = File.read!(path)
-      assert content =~ "~> 0.1"
-      assert content =~ "0.1.x"
+      assert content =~ "~> 1.0"
     end
   end
 end
