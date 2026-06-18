@@ -114,32 +114,89 @@ defmodule Mix.Tasks.Verify.ReleaseParity do
     tag = core_release_tag(version)
     package_root = "rulestead"
 
-    with {paths_output, 0} <-
-           System.cmd("git", ["ls-tree", "-r", "--name-only", tag, package_root],
+    case tag_tree_files(tag, package_root) do
+      {:ok, files} ->
+        manifest =
+          Enum.reduce(files, %{}, fn {abs_path, contents}, acc ->
+            relative_path = Path.relative_to(abs_path, package_root)
+
+            if relative_path in [".", ""] do
+              acc
+            else
+              Map.put(acc, relative_path, digest(contents))
+            end
+          end)
+
+        {:ok, manifest}
+
+      {:error, _reason} = error ->
+        error
+    end
+  end
+
+  # Lists every file blob under `root` at `tag` as {repo_relative_path, contents}.
+  # `git ls-tree -r` does not descend into symlinks, so a symlinked directory
+  # (mode 120000 pointing at an in-repo dir — e.g. the `brandbook` symlink) is
+  # resolved here and its files are spliced in under the symlink path. This
+  # matches how Hex resolves the `files:` globs when building the tarball; without
+  # it, symlinked assets like brandbook/assets/specimens/readme-header.svg look
+  # "extra" in the tarball even though they are part of the tagged source.
+  defp tag_tree_files(tag, root) do
+    with {output, 0} <-
+           System.cmd("git", ["ls-tree", "-r", tag, root],
              cd: repo_root(),
              stderr_to_stdout: true
            ) do
-      paths =
-        paths_output
+      files =
+        output
         |> String.split("\n", trim: true)
-        |> Enum.map(fn path -> Path.relative_to(path, package_root) end)
-        |> Enum.reject(&(&1 == "." or &1 == ""))
+        |> Enum.flat_map(&tree_line_files(tag, &1))
 
-      manifest =
-        Enum.reduce(paths, %{}, fn relative_path, acc ->
-          {contents, 0} =
-            System.cmd("git", ["show", "#{tag}:#{package_root}/#{relative_path}"],
-              cd: repo_root(),
-              stderr_to_stdout: true
-            )
-
-          Map.put(acc, relative_path, digest(contents))
-        end)
-
-      {:ok, manifest}
+      {:ok, files}
     else
       {output, status} -> {:error, {:git_tag_manifest_failed, status, output}}
     end
+  end
+
+  # Parses one `git ls-tree -r` line ("<mode> <type> <sha>\t<path>") into a list
+  # of {path, contents}. Regular blobs yield a single entry; a symlink to an
+  # in-repo directory expands into the files it points at, re-prefixed with the
+  # symlink path so the keys match the published tarball layout.
+  defp tree_line_files(tag, line) do
+    [meta, path] = String.split(line, "\t", parts: 2)
+    [mode | _rest] = String.split(meta, " ", trim: true)
+
+    if mode == "120000" do
+      target = String.trim(git_show(tag, path))
+
+      resolved =
+        Path.dirname(path)
+        |> Path.join(target)
+        |> Path.expand("/")
+        |> Path.relative_to("/")
+
+      case tag_tree_files(tag, resolved) do
+        {:ok, [_ | _] = sub_files} ->
+          Enum.map(sub_files, fn {sub_abs, contents} ->
+            {Path.join(path, Path.relative_to(sub_abs, resolved)), contents}
+          end)
+
+        _ ->
+          [{path, git_show(tag, path)}]
+      end
+    else
+      [{path, git_show(tag, path)}]
+    end
+  end
+
+  defp git_show(tag, path) do
+    {contents, 0} =
+      System.cmd("git", ["show", "#{tag}:#{path}"],
+        cd: repo_root(),
+        stderr_to_stdout: true
+      )
+
+    contents
   end
 
   defp hex_tarball_manifest(version) do
