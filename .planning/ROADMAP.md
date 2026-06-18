@@ -11,7 +11,7 @@
 <details open>
 <summary>🔄 v2.0 — 1.0 GA Release & Adoption (Phases 124-130) — IN PROGRESS</summary>
 
-- [ ] **Phase 124: API Surface Lock & Stability Contract** — Render the 3 hidden public modules; @doc/@spec audit; api_stability.md → "1.x" + Versioning & Deprecation Policy
+- [x] **Phase 124: API Surface Lock & Stability Contract** — Render the 3 hidden public modules; @doc/@spec audit; api_stability.md → "1.x" + Versioning & Deprecation Policy
 - [ ] **Phase 125: Version-Truth Sweep + Release Docs** — Reframe 14 stale 0.1.x files; delete README callout; add CI drift guard; upgrading.md + MAINTAINING.md runbook
 - [ ] **Phase 126: HexDocs Front Door** — 5 module groups, 6 extras groups, logo/favicon/assets (no 404), theming head-tag, README hero+badges, rulestead_admin docs parity
 - [ ] **Phase 127: Adoption Guides** — troubleshooting.md (7 patterns) + integrations-cookbook.md (4 recipes); wire into extras
@@ -66,12 +66,12 @@ Full detail archived: [milestones/v1.17-ROADMAP.md](milestones/v1.17-ROADMAP.md)
 4. `release_contract_test.exs` stays green after all edits; the bidirectional `api_stability.md` ↔ code guard passes.
 5. `Rulestead.Runtime` appears in `groups_for_modules`; `Rulestead.Runtime.Snapshot` is removed from any public group.
 
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
 - [x] 124-P01-PLAN.md — @moduledoc+@doc on Context, Runtime, Admin.Policy + mix.exs groups_for_modules update
 - [x] 124-P02-PLAN.md — Rewrite api_stability.md to 1.x contract + update release_contract_test.exs in lockstep
-- [ ] 124-P03-PLAN.md — Release-gate verification: mix docs --warnings-as-errors, mix dialyzer, contract test
+- [x] 124-P03-PLAN.md — Release-gate verification: mix docs --warnings-as-errors, mix dialyzer, contract test
 
 ---
 
@@ -199,7 +199,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 124. API Surface Lock & Stability Contract | 2/3 | In Progress|  |
+| 124. API Surface Lock & Stability Contract | 3/3 | Complete   | 2026-06-18 |
 | 125. Version-Truth Sweep + Release Docs | 0/TBD | Not started | - |
 | 126. HexDocs Front Door | 0/TBD | Not started | - |
 | 127. Adoption Guides | 0/TBD | Not started | - |

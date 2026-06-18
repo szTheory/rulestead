@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: 1.0 GA Release & Adoption
-status: executing
-last_updated: "2026-06-18T00:50:37.519Z"
+status: verifying
+last_updated: "2026-06-18T00:55:06.769Z"
 last_activity: 2026-06-18
 progress:
   total_phases: 7
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 2
-  percent: 0
+  completed_plans: 3
+  percent: 14
 ---
 
 # State: Rulestead
@@ -21,7 +21,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-17)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
 
-**Current focus:** Phase 124 — api-surface-lock-stability-contract
+**Current focus:** Phase 125 — version-truth sweep (next; 124 complete)
 
 **Milestone:** v2.0 — 1.0 GA Release & Adoption — IN PROGRESS (Phases 124-130)
 
@@ -29,9 +29,9 @@ See: `.planning/PROJECT.md` (updated 2026-06-17)
 
 ## Current Position
 
-Phase: 124 (api-surface-lock-stability-contract) — EXECUTING
-Plan: 3 of 3
-Status: Ready to execute
+Phase: 124 (api-surface-lock-stability-contract) — COMPLETE
+Plan: 3 of 3 (all gates green — mix docs, dialyzer, release_contract_test.exs)
+Status: Phase complete — Phase 125 is next
 Last activity: 2026-06-18
 
 ```
@@ -40,7 +40,7 @@ Last activity: 2026-06-18
                127 ---+
 ```
 
-Progress: [███████░░░] 67%
+Progress: [██████████] 100%
 
 ## Phase Dependency Map
 
@@ -106,6 +106,7 @@ Human checkpoints:
 - **CHANGELOG strategy** — keep release-please-generated, per-package; no root CHANGELOG; hand-author the "promotion, not rewrite" preamble above the bot's generated bullets in the release PR.
 - **api_stability.md 1.x contract** (124-P02) — Opening sentence flipped to "1.x release contract"; Versioning & Deprecation Policy added (breaking-change table, telemetry stability rules, soft-deprecation worked example, empty deprecations skeleton); Admin.Policy *_actions/0 helpers added to both doc and bidirectional test guard.
 - **release_contract_test.exs anchor updated** (124-P02) — Line ~181 assert updated to `1.x release contract` substring in lockstep (D-01); four *_actions/0 helpers assertion block added (D-12); all 26 tests pass.
+- **Phase 124 release-gate verified green** (124-P03) — `mix docs --warnings-as-errors` exits 0 (three module HTML pages confirmed); `mix dialyzer` exits 0 (195 pre-existing skipped, unnecessary_skips: 0); `release_contract_test.exs` exits 0 (26 tests, 0 failures); no source edits required.
 
 ### Milestone-specific constraints (v2.0)
 
@@ -156,6 +157,7 @@ Human checkpoints:
 
 | Phase | Plan | Duration | Notes |
 |-------|------|----------|-------|
+| Phase 124 P03 | 2min | 2 tasks | 0 files |
 | Phase 124 P02 | 8min | 2 tasks | 2 files |
 | Phase 87 P01 | 15min | 2 tasks | 4 files |
 | Phase 88 P01 | 8min | 2 tasks | 1 files |
