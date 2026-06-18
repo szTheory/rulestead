@@ -1,5 +1,55 @@
 defmodule Rulestead.Config do
-  @moduledoc false
+  @moduledoc """
+  Validated host-app seam configuration for Rulestead.
+
+  `Rulestead.Config` is stable in the 1.x contract (`api_stability.md` —
+  "Stable rulestead Modules"). It owns the validated configuration schema for
+  the Plug, LiveView, Oban, Runtime, and Tenancy integration points.
+
+  ## Configuration
+
+  Rulestead reads its configuration from `Application.get_env(:rulestead, :host)`.
+  All keys are optional — the defaults below are used for any key not supplied.
+
+  ```elixir
+  # config/config.exs
+  config :rulestead, :host,
+    environment_key: "production",
+    plug: [
+      context_assign: :rulestead_context,
+      targeting_key_sources: [
+        {:session, "targeting_key"},
+        {:cookie, "rulestead_targeting_key"},
+        {:header, "x-rulestead-targeting-key"}
+      ]
+    ],
+    runtime: [
+      api: Rulestead.Runtime,
+      pubsub: MyApp.PubSub
+    ]
+  ```
+
+  ## Public API
+
+  - `validate/1` — validate a keyword list, returning `{:ok, config}` or `{:error, reason}`
+  - `validate!/1` — validate a keyword list, raising on invalid input
+  - `load/1` — load from application env, merge overrides, and validate; raises on invalid config
+  - `defaults/0` — return the compiled default configuration keyword list
+  - `schema/0` — return the raw NimbleOptions schema keyword list
+
+  ## Defaults
+
+  | Key | Default |
+  |-----|---------|
+  | `environment_key` | `"dev"` |
+  | `plug.context_assign` | `:rulestead_context` |
+  | `live_view.assign_flags_mode` | `:enabled` |
+  | `oban.enabled` | `true` |
+  | `runtime.notifier` | `Rulestead.Runtime.Notifier.PhoenixPubSub` |
+  | `tenancy.module` | `Rulestead.Tenancy.SingleTenant` |
+
+  The full default set is returned by `defaults/0`.
+  """
   # Validated Phase 5 host-app seam configuration.
   #
   # This schema owns the explicit defaults for the Plug, LiveView, and Oban

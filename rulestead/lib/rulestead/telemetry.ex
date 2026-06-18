@@ -1,6 +1,44 @@
 # credo:disable-for-this-file
 defmodule Rulestead.Telemetry do
-  @moduledoc false
+  @moduledoc """
+  Telemetry helpers and the locked 1.x public event catalog for Rulestead.
+
+  `Rulestead.Telemetry` is stable in the 1.x contract (`api_stability.md` —
+  "Stable rulestead Modules"). It wraps `:telemetry` with Rulestead-aware
+  metadata normalisation and provides the canonical event names emitted by the
+  runtime.
+
+  ## Event Catalog (stable, 1.x)
+
+  All events follow the `[:rulestead | rest]` prefix convention.
+
+  | Event | When emitted |
+  |-------|-------------|
+  | `[:rulestead, :eval, :decide, :stop]` | After every flag evaluation |
+  | `[:rulestead, :admin, :scheduled_execution, :*]` | Scheduled governance executions |
+  | `[:rulestead, :admin, :webhook_outbound, :*]` | Outbound webhook deliveries |
+
+  Event names and their documented metadata keys are **stable for 1.x**.
+  Adding a new event name is a minor change; removing or renaming one is a
+  breaking change.
+
+  ## Attaching handlers
+
+      Rulestead.Telemetry.attach_many(
+        "my-app-rulestead-handler",
+        [[:rulestead, :eval, :decide, :stop]],
+        &MyApp.Telemetry.handle_event/4,
+        nil
+      )
+
+  Use `detach/1` with the same handler ID to remove a handler.
+
+  ## Internal use
+
+  `span/3`, `execute/3`, and the `*_metadata` helpers are used internally by
+  the Rulestead runtime. They are part of the public module but primarily exist
+  to normalise metadata; most adopters only need `attach_many/4` and `detach/1`.
+  """
   # Shared telemetry helpers for the locked Phase 4 public event catalog.
 
   alias Rulestead.{Context, Result}
