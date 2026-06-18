@@ -91,6 +91,15 @@ defmodule RulesteadAdmin.MixProject do
       groups_for_modules: [
         "Public Admin Seam": [RulesteadAdmin.Router]
       ],
+      skip_undefined_reference_warnings_on: fn ref ->
+        # Cross-doc refs to core extras (rollout.md, multi-env.md, adoption-lab.md)
+        # and cross-package callback refs (Rulestead.Admin.Policy.can?/4) — these
+        # resolve in the full rulestead docs but are outside admin's narrower extras.
+        is_binary(ref) and
+          (String.ends_with?(ref, ".md") or
+             String.ends_with?(ref, ".md#operator--admin-feel") or
+             String.starts_with?(ref, "Rulestead.Admin.Policy."))
+      end,
       skip_code_autolink_to: fn ref ->
         is_binary(ref) and String.starts_with?(ref, "RulesteadAdmin.Live.")
       end
