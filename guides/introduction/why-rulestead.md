@@ -136,7 +136,7 @@ Yes. Concretely:
 - **Published deprecation policy.** Symbols are soft-deprecated in docs first;
   hard deprecation requires a cycle and a tested migration path. The full policy
   is in [API Stability](../api_stability.md).
-- **Maintainer runbook.** [MAINTAINING.md](../../MAINTAINING.md) documents
+- **Maintainer runbook.** [MAINTAINING.md](https://github.com/szTheory/rulestead/blob/main/MAINTAINING.md) documents
   the release process, CI gates, the verification trio, and the major-bump
   runbook. The process is transparent and auditable.
 - **Verification trio on every release.** `release_contract_test.exs`, `mix
