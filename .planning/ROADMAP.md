@@ -211,7 +211,10 @@ Plans:
 3. A fresh consumer with `{:open_feature_rulestead, "~> 1.0"}` resolves `rulestead ~> 1.0` from Hex (not a path dep); the `openfeature_companion` contract tests pass against the published provider.
 4. A minimal CHANGELOG entry is added to `open_feature_rulestead` for trust parity (version-truth promotion, zero breaking changes).
 
-**Plans:** TBD
+**Plans:** 3 plans
+- [ ] 129-01-PLAN.md — Package-ready: version 1.0.0 + env-gated rulestead dep swap + ex_doc/docs + LICENSE + 1.0.0 CHANGELOG + moduledocs (criteria 1, 4)
+- [ ] 129-02-PLAN.md — Scripts-first pre-publish guard + MAINTAINING.md ordered runbook (D-12/D-13/D-14)
+- [ ] 129-03-PLAN.md — Guarded manual publish + git tag + post-publish verification → 129-VERIFICATION.md (criteria 2, 3)
 
 ---
 
