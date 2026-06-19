@@ -2,19 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: 1.0 GA Release & Adoption
-current_phase: 128
-current_phase_name: the-release-cut
-status: verified
-stopped_at: Phase 128 (release cut) complete — rulestead + rulestead_admin 1.0.0 live on hex.pm, verify-trio green, post-cut cleanup done. Milestone in progress; next Phase 129 (Provider Publish).
-last_updated: 2026-06-19T14:24:14.796Z
+status: executing
+stopped_at: Phase 129 context gathered (assumptions mode + deep research)
+last_updated: "2026-06-19T14:52:52.417Z"
 last_activity: 2026-06-19
-last_activity_desc: Phase 128 the-release-cut executed + verified — 1.0.0 GA published to hex.pm (both packages)
 progress:
-  total_phases: 5
+  total_phases: 6
   completed_phases: 5
   total_plans: 18
   completed_plans: 18
-  percent: 100
+  percent: 83
 ---
 
 # State: Rulestead
@@ -244,6 +241,6 @@ Human checkpoints:
 
 ## Session
 
-**Last session:** 2026-06-18T13:58:02.997Z
-**Stopped at:** Completed 126-03-PLAN.md
-**Resume file:** None
+**Last session:** 2026-06-19T14:52:52.411Z
+**Stopped at:** Phase 129 context gathered (assumptions mode + deep research)
+**Resume file:** .planning/phases/129-provider-publish/129-CONTEXT.md
