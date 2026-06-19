@@ -80,7 +80,7 @@ Human checkpoints:
 
 - Phase 128: disable auto-merge before adding `release-as`; hand-eyeball the release PR diff (both @version, manifest, CHANGELOG preamble); approve hex-publish environment manually.
 - Phase 128 post-cut: REMOVE `"release-as"` from config immediately — leave it and release-please re-proposes 1.0.0 forever.
-- Phase 129: confirm `hex.pm/api/packages/rulestead/releases/1.0.0` == 200 BEFORE publishing open_feature_rulestead.
+- Phase 129: confirm `hex.pm/api/packages/rulestead/releases/1.0.0` == 200 BEFORE publishing open_feature_rulestead (✅ 200 confirmed 2026-06-19). Publish is now via `gh workflow run publish-openfeature.yml` + the `hex-publish` approval gate, NOT a laptop `mix hex.publish`.
 - Phase 130: post to ElixirForum only AFTER verify-trio is green AND HexDocs renders the new shape.
 
 ## Accumulated Context
@@ -106,6 +106,7 @@ Human checkpoints:
 - **v2 feature wedges stay trigger-gated** — GOV-02-ext → ROL-08 → ADM-06; no trigger has fired.
 - **`@deprecated` + `--warnings-as-errors` footgun** — repo's `lint.sh` runs `mix compile --warnings-as-errors`; hard-deprecating without migrating all internal callers first will break CI. Soft-deprecation (docs only) sidesteps this; document in the policy.
 - **`open_feature_rulestead` dep swap** — use env-gated pattern (mirroring existing `RULESTEAD_ADMIN_HEX_RELEASE`) so local dev/CI keep the path dep; only swap to `~> 1.0` for the publish step.
+- **Provider publish is CI-dispatched, NOT manual-local** (maintainer-chosen 2026-06-19, overrides the original 129-03 "manual satellite publish" decision): added `.github/workflows/publish-openfeature.yml` (`workflow_dispatch`, inputs `provider_tag`+`provider_version`) mirroring `publish-hex.yml`'s `preflight → gate-ci-green → approval(hex-publish) → publish` pattern. Reuses the 129-02 guard + `OPEN_FEATURE_RULESTEAD_HEX_RELEASE=1` env gate; publishes with the existing GitHub `secrets.HEX_API_KEY` (a GH Actions secret, never on a laptop). Stays OUT of the linked core/admin release-please lifecycle and out of `publish-hex.yml` (independent OpenFeature versioning). Rationale: DevOps/automate-the-world — no reason for a laptop publish now that core is live. The 129-03 prohibition "no new CI publish job" is intentionally reversed.
 - **CHANGELOG strategy** — keep release-please-generated, per-package; no root CHANGELOG; hand-author the "promotion, not rewrite" preamble above the bot's generated bullets in the release PR.
 - **api_stability.md 1.x contract** (124-P02) — Opening sentence flipped to "1.x release contract"; Versioning & Deprecation Policy added (breaking-change table, telemetry stability rules, soft-deprecation worked example, empty deprecations skeleton); Admin.Policy *_actions/0 helpers added to both doc and bidirectional test guard.
 - **release_contract_test.exs anchor updated** (124-P02) — Line ~181 assert updated to `1.x release contract` substring in lockstep (D-01); four *_actions/0 helpers assertion block added (D-12); all 26 tests pass.
