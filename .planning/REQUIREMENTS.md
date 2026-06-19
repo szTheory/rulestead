@@ -36,7 +36,7 @@ Requirements for the v2.0 milestone. Each maps to roadmap phases (continuing num
 - [x] **REL-02**: The version-truth sweep reframes the ~14 stale `0.1.x` files (READMEs, `api_stability.md`, `upgrading.md`, `MAINTAINING.md`) to the 1.0 reality and deletes the README "two version lines" callout; a CI drift guard is added to `lint.sh`; `.planning/` and `prompts/` historical references are left untouched.
 - [x] **REL-03**: `1.0.0` CHANGELOG entries are framed "promotion, not rewrite" (explicit zero breaking changes); `upgrading.md` documents the 0.1.x→1.0 path (dep-pin bump only); `MAINTAINING.md` gains a major-bump ("Cutting a major") runbook.
 - [ ] **REL-04**: `rulestead` and `rulestead_admin` are published at `1.0.0` via the gated release-please pipeline, and the post-publish verify-trio (`scripts/ci/verify_published_release.sh 1.0.0`) is green.
-- [ ] **REL-05**: `open_feature_rulestead` is published at `1.0.0` manually, strictly after `rulestead@1.0.0` is live, with its dep flipped to `rulestead ~> 1.0` (env-gated); a fresh consumer resolves the published provider; a minimal CHANGELOG is added for trust parity.
+- [x] **REL-05**: `open_feature_rulestead` is published at `1.0.0` manually, strictly after `rulestead@1.0.0` is live, with its dep flipped to `rulestead ~> 1.0` (env-gated); a fresh consumer resolves the published provider; a minimal CHANGELOG is added for trust parity.
 - [ ] **REL-06**: Post-cut cleanup — `"release-as"` is removed from the config (so release-please stops re-proposing `1.0.0`), release-PR auto-merge is re-enabled, and the now-no-op `bump-*-pre-major` flags are documented as such.
 
 ### Announce & Closeout
@@ -80,7 +80,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | REL-02 | Phase 125 | Complete |
 | REL-03 | Phase 125 | Complete |
 | REL-04 | Phase 128 | Pending |
-| REL-05 | Phase 129 | Pending |
+| REL-05 | Phase 129 | Complete |
 | REL-06 | Phase 128 | Pending |
 | ANN-01 | Phase 130 | Pending |
 | ANN-02 | Phase 130 | Pending |

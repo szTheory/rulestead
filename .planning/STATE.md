@@ -4,13 +4,13 @@ milestone: v2.0
 milestone_name: 1.0 GA Release & Adoption
 status: executing
 stopped_at: Phase 129 context gathered (assumptions mode + deep research)
-last_updated: "2026-06-19T14:52:52.417Z"
+last_updated: "2026-06-19T15:15:33.793Z"
 last_activity: 2026-06-19
 progress:
   total_phases: 6
   completed_phases: 5
-  total_plans: 18
-  completed_plans: 18
+  total_plans: 21
+  completed_plans: 19
   percent: 83
 ---
 
@@ -22,7 +22,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-17)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
 
-**Current focus:** Phase 129 — Provider Publish (next; open_feature_rulestead@1.0.0)
+**Current focus:** Phase 129 — provider-publish
 
 **Milestone:** v2.0 — 1.0 GA Release & Adoption — IN PROGRESS (Phases 124-130; 124-128 done, 129-130 remain)
 
@@ -30,9 +30,9 @@ See: `.planning/PROJECT.md` (updated 2026-06-17)
 
 ## Current Position
 
-Phase: 128 (the-release-cut) — COMPLETE + VERIFIED; 1.0.0 GA live on hex.pm
-Plan: 3/3 complete
-Status: Phase 128 verified; milestone in progress (129 Provider Publish, 130 Announce remain)
+Phase: 129 (provider-publish) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
 Last activity: 2026-06-19
 
 ```
@@ -41,7 +41,7 @@ Last activity: 2026-06-19
                127 ---+
 ```
 
-Progress: [██████████] 100%
+Progress: [█████████░] 90%
 
 ## Phase Dependency Map
 
@@ -122,6 +122,7 @@ Human checkpoints:
 - [Phase ?]: D-01..D-05: 6 module groups; D-06: API & Stability first-match defuse; D-13..D-16: before_closing_head_tag --main* retint, body.dark, PNG og:image
 - [Phase ?]: Duplicated before_closing_head_tag/1 verbatim from core (D-21): two mix.exs cannot share code; only og:image host differs
 - [Phase ?]: @doc false on __using__/1 + live_session/3 in RulesteadAdmin.Router; real @moduledoc leads with host-owns-auth + 3 contracted session keys verbatim from api_stability.md (D-22/D-23)
+- [Phase ?]: open_feature_rulestead dep constraint is loose ~> 1.0 pin, not ~> @version (D-03)
 
 ### Milestone-specific constraints (v2.0)
 
@@ -238,9 +239,10 @@ Human checkpoints:
 | Phase 126 P03 | 2min | 1 tasks | 1 files |
 | Phase 126 P05 | 3m | 2 tasks | 2 files |
 | Phase Phase 126 PP06 | 3min | 2 tasks | 2 files |
+| Phase 129 P01 | 15 minutes | 3 tasks | 5 files |
 
 ## Session
 
-**Last session:** 2026-06-19T14:52:52.411Z
+**Last session:** 2026-06-19T15:15:33.788Z
 **Stopped at:** Phase 129 context gathered (assumptions mode + deep research)
-**Resume file:** .planning/phases/129-provider-publish/129-CONTEXT.md
+**Resume file:** None
