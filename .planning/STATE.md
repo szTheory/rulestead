@@ -2,15 +2,17 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: 1.0 GA Release & Adoption
+current_phase: 129
+current_phase_name: provider-publish
 status: executing
 stopped_at: Phase 129 context gathered (assumptions mode + deep research)
-last_updated: "2026-06-19T15:15:33.793Z"
+last_updated: "2026-06-19T15:20:57.870Z"
 last_activity: 2026-06-19
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 21
-  completed_plans: 19
+  completed_plans: 20
   percent: 83
 ---
 
@@ -31,7 +33,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-17)
 ## Current Position
 
 Phase: 129 (provider-publish) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-06-19
 
@@ -123,6 +125,8 @@ Human checkpoints:
 - [Phase ?]: Duplicated before_closing_head_tag/1 verbatim from core (D-21): two mix.exs cannot share code; only og:image host differs
 - [Phase ?]: @doc false on __using__/1 + live_session/3 in RulesteadAdmin.Router; real @moduledoc leads with host-owns-auth + 3 contracted session keys verbatim from api_stability.md (D-22/D-23)
 - [Phase ?]: open_feature_rulestead dep constraint is loose ~> 1.0 pin, not ~> @version (D-03)
+- [Phase ?]: D-14 catch implemented as mix.lock grep: absent hex entry proves path dep = silent tarball breakage; guard is assertion-only
+- [Phase ?]: Provider runbook in MAINTAINING.md preserves manual-step posture with 6-step ordered procedure including dry-run visual inspection
 
 ### Milestone-specific constraints (v2.0)
 
@@ -240,9 +244,10 @@ Human checkpoints:
 | Phase 126 P05 | 3m | 2 tasks | 2 files |
 | Phase Phase 126 PP06 | 3min | 2 tasks | 2 files |
 | Phase 129 P01 | 15 minutes | 3 tasks | 5 files |
+| Phase 129 P02 | 8min | 2 tasks | 2 files |
 
 ## Session
 
-**Last session:** 2026-06-19T15:15:33.788Z
+**Last session:** 2026-06-19T15:20:51.012Z
 **Stopped at:** Phase 129 context gathered (assumptions mode + deep research)
 **Resume file:** None
