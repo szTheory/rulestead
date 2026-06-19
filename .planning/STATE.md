@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: 1.0 GA Release & Adoption
-current_phase: 127
-current_phase_name: adoption-guides
+current_phase: 128
+current_phase_name: the-release-cut
 status: verified
-stopped_at: Phase 127 verified (3/3 must-haves) — all pre-cut work (124-127) complete; Phase 128 is the human-gated release cut
-last_updated: "2026-06-18T15:45:00.000Z"
-last_activity: 2026-06-18
-last_activity_desc: Phase 127 executed + verified (GUIDE-01/02/03); pre-cut band 124-127 done
+stopped_at: Phase 128 (release cut) complete — rulestead + rulestead_admin 1.0.0 live on hex.pm, verify-trio green, post-cut cleanup done. Milestone in progress; next Phase 129 (Provider Publish).
+last_updated: 2026-06-19T14:24:14.796Z
+last_activity: 2026-06-19
+last_activity_desc: Phase 128 the-release-cut executed + verified — 1.0.0 GA published to hex.pm (both packages)
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 15
-  completed_plans: 15
+  total_phases: 5
+  completed_phases: 5
+  total_plans: 18
+  completed_plans: 18
   percent: 100
 ---
 
@@ -25,18 +25,18 @@ See: `.planning/PROJECT.md` (updated 2026-06-17)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
 
-**Current focus:** Phase 127 — adoption-guides
+**Current focus:** Phase 129 — Provider Publish (next; open_feature_rulestead@1.0.0)
 
-**Milestone:** v2.0 — 1.0 GA Release & Adoption — IN PROGRESS (Phases 124-130)
+**Milestone:** v2.0 — 1.0 GA Release & Adoption — IN PROGRESS (Phases 124-130; 124-128 done, 129-130 remain)
 
 **Previous milestone:** v1.18 CI/CD Reliability — COMPLETE + ARCHIVED 2026-06-17 — see `.planning/milestones/v1.18-ROADMAP.md`.
 
 ## Current Position
 
-Phase: 127 (adoption-guides) — EXECUTING
-Plan: 1 of 3
-Status: Executing Phase 127
-Last activity: 2026-06-18 — Phase 127 execution started
+Phase: 128 (the-release-cut) — COMPLETE + VERIFIED; 1.0.0 GA live on hex.pm
+Plan: 3/3 complete
+Status: Phase 128 verified; milestone in progress (129 Provider Publish, 130 Announce remain)
+Last activity: 2026-06-19
 
 ```
 [Phase A — Pre-cut doc/contract truth] [Phase B] [Phase C] [Phase D]

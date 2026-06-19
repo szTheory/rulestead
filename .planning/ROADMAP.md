@@ -15,7 +15,7 @@
 - [x] **Phase 125: Version-Truth Sweep + Release Docs** — Reframe 14 stale 0.1.x files; delete README callout; add CI drift guard; upgrading.md + MAINTAINING.md runbook
 - [x] **Phase 126: HexDocs Front Door** — 5 module groups, 6 extras groups, logo/favicon/assets (no 404), theming head-tag, README hero+badges, rulestead_admin docs parity
 - [x] **Phase 127: Adoption Guides** — troubleshooting.md (7 patterns) + integrations-cookbook.md (4 recipes); wire into extras
-- [ ] **Phase 128: The Release Cut** — release-as 1.0.0, disable auto-merge, hand-merge, publish both packages, verify-trio green, post-cut cleanup
+- [x] **Phase 128: The Release Cut** — release-as 1.0.0, disable auto-merge, hand-merge, publish both packages, verify-trio green, post-cut cleanup
 - [ ] **Phase 129: Provider Publish** — Manual open_feature_rulestead@1.0.0 publish, strictly after rulestead@1.0.0 is live
 - [ ] **Phase 130: Announce & Closeout** — GitHub release + ElixirForum post + front-door confirmation + milestone audit
 
@@ -185,12 +185,12 @@ Plans:
 4. The post-publish verify-trio (`bash scripts/ci/verify_published_release.sh 1.0.0`) is green: workspace clean, fresh consumer compiles against Hex `1.0.0`, HexDocs `1.0.0` reachable, and Hex tarball matches tagged source.
 5. Post-cut cleanup is complete: `"release-as"` is removed from `release-please-config.json` (so release-please stops re-proposing `1.0.0`), release-PR auto-merge is re-enabled, and `MAINTAINING.md` notes that `bump-minor-pre-major` / `bump-patch-for-minor-pre-major` are now no-ops post-1.0.
 
-**Plans:** 3 plans
+**Plans:** 3/3 plans complete
 
 Plans:
-- [ ] 128-01-PLAN.md — Pre-cut gate + disable auto-merge + add release-as + open release PR + hand-add preamble + eyeball diff (REL-01)
-- [ ] 128-02-PLAN.md — Hand-merge release PR + approve hex-publish env + confirm both packages live + verify-trio green (REL-04)
-- [ ] 128-03-PLAN.md — Remove release-as + re-enable auto-merge + confirm MAINTAINING.md no-op note (REL-06)
+- [x] 128-01-PLAN.md — Pre-cut gate + disable auto-merge + add release-as + open release PR + hand-add preamble + eyeball diff (REL-01)
+- [x] 128-02-PLAN.md — Hand-merge release PR + approve hex-publish env + confirm both packages live + verify-trio green (REL-04)
+- [x] 128-03-PLAN.md — Remove release-as + re-enable auto-merge + confirm MAINTAINING.md no-op note (REL-06)
 
 ---
 
@@ -244,6 +244,6 @@ Plans:
 | 125. Version-Truth Sweep + Release Docs | 3/3 | Complete   | 2026-06-18 |
 | 126. HexDocs Front Door | 6/6 | Complete   | 2026-06-18 |
 | 127. Adoption Guides | 0/TBD | Not started | - |
-| 128. The Release Cut | 0/3 | Planned | - |
+| 128. The Release Cut | 3/3 | Complete    | 2026-06-19 |
 | 129. Provider Publish | 0/TBD | Not started | - |
 | 130. Announce & Closeout | 0/TBD | Not started | - |
