@@ -391,6 +391,99 @@ runnable and documented. It is not sufficient to claim browser/demo glue,
 publish choreography, or unrelated repo surfaces are now part of the same
 contract.
 
+## OpenFeature Provider Publish Runbook
+
+`open_feature_rulestead` is a **separate, manual publish** — it is absent from
+`release-please-config.json` and `publish-hex.yml`. This is not a three-package
+publish machine. The provider is published after `rulestead@1.0.0` is confirmed
+live on Hex, following the ordered steps below.
+
+The two safety catches are:
+
+1. `scripts/ci/openfeature_publish_guard.sh` — a pre-flight assertion that
+   refuses to proceed unless the env gate is set and `rulestead` resolves from
+   Hex (not a path dep).
+2. `mix hex.publish --dry-run` dependency-list inspection — the non-negotiable
+   human catch for the D-14 footgun (Hex silently drops path deps from the
+   tarball; a missing `rulestead` line in the dry-run output means the tarball
+   would ship broken to every consumer).
+
+### Ordered publish steps
+
+**Step 1 — Confirm `rulestead@1.0.0` is live on Hex.**
+
+```bash
+curl -fsS https://hex.pm/api/packages/rulestead/releases/1.0.0
+```
+
+The command must return 200. Do not proceed until it does.
+
+**Step 2 — Set the env gate and refresh the lock.**
+
+```bash
+export OPEN_FEATURE_RULESTEAD_HEX_RELEASE=1
+cd open_feature_rulestead
+mix deps.get
+cd ..
+```
+
+The env var must be exported *before* `mix deps.get` so that `rulestead`
+resolves from Hex in `mix.lock` rather than as a local path dep.
+
+**Step 3 — Run the pre-publish guard.**
+
+```bash
+bash scripts/ci/openfeature_publish_guard.sh
+```
+
+The guard asserts:
+- `OPEN_FEATURE_RULESTEAD_HEX_RELEASE` equals `"1"`.
+- `rulestead` resolves as a hex dep in `open_feature_rulestead/mix.lock`
+  (the `{:hex, :rulestead,` entry is present).
+- `open_feature_rulestead/mix.lock` is non-empty (fresh lock).
+
+If the guard exits non-zero, stop and follow its error message before
+proceeding.
+
+**Step 4 — Dry-run and visually confirm the dependency list.**
+
+```bash
+cd open_feature_rulestead
+mix hex.publish --dry-run
+```
+
+**REQUIRED:** Scroll through the output and confirm `rulestead ~> 1.0`
+appears in the published dependency list.
+
+> **D-14 footgun:** Hex silently drops path deps from the published tarball
+> instead of erroring. If `OPEN_FEATURE_RULESTEAD_HEX_RELEASE=1` was not set
+> before `mix deps.get`, the tarball will contain no `rulestead` dependency —
+> uploading a broken package to every consumer with no publish error. A missing
+> `rulestead` line here is the proof the env gate was not effective. Stop, go
+> back to Step 2, and do not proceed.
+
+**Step 5 — Publish.**
+
+```bash
+mix hex.publish --yes
+```
+
+`HEX_API_KEY` must be set in the local environment. Never commit or log the
+key. This step is irreversible.
+
+**Step 6 — Tag the publish commit and clean up.**
+
+```bash
+cd ..
+git tag open_feature_rulestead-v1.0.0 HEAD
+git push origin open_feature_rulestead-v1.0.0
+unset OPEN_FEATURE_RULESTEAD_HEX_RELEASE
+```
+
+The `open_feature_rulestead-v#{version}` tag is required so `source_ref` and
+HexDocs `[source]` links resolve to exactly the published source, following the
+repo's `include-component-in-tag` convention (cf. `rulestead_admin-v1.0.0`).
+
 ## Guarded Rollout Foundations Proof
 
 Use the guarded rollout foundations proof when work touches VER-01 support

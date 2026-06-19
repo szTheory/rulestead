@@ -1,0 +1,209 @@
+# Job id contract — stable YAML `jobs:` keys relied on by docs, `act`, and branch protection:
+#   preflight, gate-ci-green, approval, publish-openfeature
+# `name:` strings evolve freely; `id:` strings are immutable without coordinated docs + branch-protection updates.
+#
+# Satellite publish for `open_feature_rulestead`. Intentionally SEPARATE from publish-hex.yml:
+# the provider is independently versioned (OpenFeature convention) and is NOT release-please
+# managed, so it does not share the linked core/admin version lifecycle. It can only publish
+# AFTER `rulestead@1.x` is live on Hex — the env-gated dep swap + guard enforce that the
+# published tarball carries `rulestead ~> 1.0` as a real Hex dep (D-14 silent-path-drop guard).
+name: publish-openfeature
+
+on:
+  workflow_dispatch:
+    inputs:
+      provider_tag:
+        description: Git tag for the `open_feature_rulestead` package publish (e.g. open_feature_rulestead-v1.0.0)
+        required: true
+        type: string
+      provider_version:
+        description: Provider release version that must match open_feature_rulestead/mix.exs (e.g. 1.0.0)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  preflight:
+    name: preflight
+    runs-on: ubuntu-24.04
+    env:
+      OPEN_FEATURE_RULESTEAD_HEX_RELEASE: "1"
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          ref: ${{ inputs.provider_tag }}
+          fetch-depth: 0
+      - uses: erlef/setup-beam@8251c48667b97e88a0a24ec512f5b72a039fcea7 # v1
+        with:
+          version-file: .tool-versions
+          version-type: strict
+      - name: Verify version matches release
+        working-directory: open_feature_rulestead
+        run: grep -n "@version \"${{ inputs.provider_version }}\"" mix.exs
+      - name: Verify core dependency is live on Hex
+        run: |
+          # The provider's `rulestead ~> 1.0` dep cannot resolve until core is published.
+          # deps.get below would fail anyway, but assert explicitly for a clear error.
+          if ! curl -fsS -o /dev/null "https://hex.pm/api/packages/rulestead"; then
+            echo "Delivery blocked: rulestead is not on Hex yet — publish core (~> 1.x) before the provider." >&2
+            exit 1
+          fi
+      - name: Fetch dependencies (hex-resolve rulestead via env gate)
+        working-directory: open_feature_rulestead
+        run: mix deps.get
+      - name: Guard publish structure (D-14 silent-path-drop)
+        run: scripts/ci/openfeature_publish_guard.sh
+
+  gate-ci-green:
+    name: gate-ci-green
+    needs: preflight
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Resolve tagged SHA
+        id: resolve-sha
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const ref = '${{ inputs.provider_tag }}';
+            const commit = await github.rest.repos.getCommit({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref
+            });
+            core.setOutput('sha', commit.data.sha);
+      - name: Verify CI is green on tagged SHA
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const sha = '${{ steps.resolve-sha.outputs.sha }}';
+            const maxAttempts = 30;
+            const sleepMs = 30000;
+
+            const failRun = async (latest, detail) => {
+              core.setFailed(
+                `Delivery blocked: ci.yml on SHA ${sha} is not green.\n${detail}\nRun: ${latest.html_url}`
+              );
+            };
+
+            for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+              const {data} = await github.rest.actions.listWorkflowRuns({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                workflow_id: 'ci.yml',
+                head_sha: sha,
+                per_page: 10
+              });
+
+              if (data.total_count === 0) {
+                if (attempt === maxAttempts) {
+                  core.setFailed(
+                    `Delivery blocked: no ci.yml runs found for SHA ${sha} (tag ${{ inputs.provider_tag }}). ` +
+                    'Push the tagged commit and let CI complete, or workflow_dispatch ci.yml on that ref before publishing.'
+                  );
+                  return;
+                }
+
+                core.info(`No ci.yml run yet for ${sha}; waiting (${attempt}/${maxAttempts})`);
+                await new Promise((resolve) => setTimeout(resolve, sleepMs));
+                continue;
+              }
+
+              const latest = data.workflow_runs[0];
+
+              if (latest.status !== 'completed') {
+                if (attempt === maxAttempts) {
+                  core.setFailed(
+                    `Delivery blocked: ci.yml still running for SHA ${sha} after ${maxAttempts} attempts.\nRun: ${latest.html_url}`
+                  );
+                  return;
+                }
+
+                core.info(`CI still running (${latest.html_url}); waiting (${attempt}/${maxAttempts})`);
+                await new Promise((resolve) => setTimeout(resolve, sleepMs));
+                continue;
+              }
+
+              if (latest.conclusion === 'success') {
+                core.info(`CI green on ${sha}: ${latest.html_url}`);
+                return;
+              }
+
+              const jobs = await github.paginate(
+                github.rest.actions.listJobsForWorkflowRun,
+                {
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  run_id: latest.id,
+                  per_page: 100
+                }
+              );
+
+              const blockingFailures = jobs.filter(
+                (j) => j.conclusion !== 'success' && j.conclusion !== 'skipped'
+              );
+
+              if (blockingFailures.length > 0) {
+                const detail = blockingFailures
+                  .map((j) => `  - ${j.name} (${j.conclusion})`)
+                  .join('\n');
+                await failRun(latest, detail);
+                return;
+              }
+
+              core.info(`CI completed with conclusion ${latest.conclusion}; treating as green.`);
+              return;
+            }
+
+  approval:
+    name: approval
+    needs:
+      - preflight
+      - gate-ci-green
+    runs-on: ubuntu-24.04
+    environment:
+      name: hex-publish
+    steps:
+      - name: Await maintainer approval
+        run: |
+          echo "Approval granted for ${GITHUB_WORKFLOW} ${GITHUB_RUN_ID}"
+          echo "Publishing open_feature_rulestead ${{ inputs.provider_version }} (irreversible)"
+
+  publish-openfeature:
+    name: publish-openfeature
+    needs:
+      - preflight
+      - gate-ci-green
+      - approval
+    runs-on: ubuntu-24.04
+    env:
+      HEX_API_KEY: ${{ secrets.HEX_API_KEY }}
+      OPEN_FEATURE_RULESTEAD_HEX_RELEASE: "1"
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          ref: ${{ inputs.provider_tag }}
+          fetch-depth: 0
+      - uses: erlef/setup-beam@8251c48667b97e88a0a24ec512f5b72a039fcea7 # v1
+        with:
+          version-file: .tool-versions
+          version-type: strict
+      - name: Fetch dependencies (hex-resolve rulestead via env gate)
+        working-directory: open_feature_rulestead
+        run: mix deps.get
+      - name: Guard publish structure (D-14 silent-path-drop)
+        run: scripts/ci/openfeature_publish_guard.sh
+      - name: Verify version matches release
+        working-directory: open_feature_rulestead
+        run: grep -n "@version \"${{ inputs.provider_version }}\"" mix.exs
+      - name: Publish open_feature_rulestead package
+        working-directory: open_feature_rulestead
+        run: |
+          if curl -fsS "https://hex.pm/api/packages/open_feature_rulestead/releases/${{ inputs.provider_version }}" >/dev/null; then
+            echo "open_feature_rulestead ${{ inputs.provider_version }} is already on Hex; skipping publish-openfeature"
+          else
+            mix hex.publish --dry-run
+            mix hex.publish --yes
+          fi

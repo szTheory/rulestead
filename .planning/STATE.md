@@ -2,19 +2,18 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: 1.0 GA Release & Adoption
-current_phase: 128
-current_phase_name: the-release-cut
-status: verified
-stopped_at: Phase 128 (release cut) complete — rulestead + rulestead_admin 1.0.0 live on hex.pm, verify-trio green, post-cut cleanup done. Milestone in progress; next Phase 129 (Provider Publish).
-last_updated: 2026-06-19T14:24:14.796Z
+current_phase: 129
+current_phase_name: provider-publish
+status: executing
+stopped_at: Phase 129 context gathered (assumptions mode + deep research)
+last_updated: "2026-06-19T15:20:57.870Z"
 last_activity: 2026-06-19
-last_activity_desc: Phase 128 the-release-cut executed + verified — 1.0.0 GA published to hex.pm (both packages)
 progress:
-  total_phases: 5
+  total_phases: 6
   completed_phases: 5
-  total_plans: 18
-  completed_plans: 18
-  percent: 100
+  total_plans: 21
+  completed_plans: 20
+  percent: 83
 ---
 
 # State: Rulestead
@@ -25,7 +24,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-17)
 
 **Core value:** Phoenix teams can safely gate, roll out, and explain runtime decisions — booleans, variants, and remote config — with 15-minute quickstart, deterministic evaluation, and a calm admin UI that operators, support, and SRE can all trust at 3am.
 
-**Current focus:** Phase 129 — Provider Publish (next; open_feature_rulestead@1.0.0)
+**Current focus:** Phase 129 — provider-publish
 
 **Milestone:** v2.0 — 1.0 GA Release & Adoption — IN PROGRESS (Phases 124-130; 124-128 done, 129-130 remain)
 
@@ -33,9 +32,9 @@ See: `.planning/PROJECT.md` (updated 2026-06-17)
 
 ## Current Position
 
-Phase: 128 (the-release-cut) — COMPLETE + VERIFIED; 1.0.0 GA live on hex.pm
-Plan: 3/3 complete
-Status: Phase 128 verified; milestone in progress (129 Provider Publish, 130 Announce remain)
+Phase: 129 (provider-publish) — EXECUTING
+Plan: 3 of 3
+Status: Ready to execute
 Last activity: 2026-06-19
 
 ```
@@ -44,7 +43,7 @@ Last activity: 2026-06-19
                127 ---+
 ```
 
-Progress: [██████████] 100%
+Progress: [█████████░] 90%
 
 ## Phase Dependency Map
 
@@ -81,7 +80,7 @@ Human checkpoints:
 
 - Phase 128: disable auto-merge before adding `release-as`; hand-eyeball the release PR diff (both @version, manifest, CHANGELOG preamble); approve hex-publish environment manually.
 - Phase 128 post-cut: REMOVE `"release-as"` from config immediately — leave it and release-please re-proposes 1.0.0 forever.
-- Phase 129: confirm `hex.pm/api/packages/rulestead/releases/1.0.0` == 200 BEFORE publishing open_feature_rulestead.
+- Phase 129: confirm `hex.pm/api/packages/rulestead/releases/1.0.0` == 200 BEFORE publishing open_feature_rulestead (✅ 200 confirmed 2026-06-19). Publish is now via `gh workflow run publish-openfeature.yml` + the `hex-publish` approval gate, NOT a laptop `mix hex.publish`.
 - Phase 130: post to ElixirForum only AFTER verify-trio is green AND HexDocs renders the new shape.
 
 ## Accumulated Context
@@ -107,6 +106,7 @@ Human checkpoints:
 - **v2 feature wedges stay trigger-gated** — GOV-02-ext → ROL-08 → ADM-06; no trigger has fired.
 - **`@deprecated` + `--warnings-as-errors` footgun** — repo's `lint.sh` runs `mix compile --warnings-as-errors`; hard-deprecating without migrating all internal callers first will break CI. Soft-deprecation (docs only) sidesteps this; document in the policy.
 - **`open_feature_rulestead` dep swap** — use env-gated pattern (mirroring existing `RULESTEAD_ADMIN_HEX_RELEASE`) so local dev/CI keep the path dep; only swap to `~> 1.0` for the publish step.
+- **Provider publish is CI-dispatched, NOT manual-local** (maintainer-chosen 2026-06-19, overrides the original 129-03 "manual satellite publish" decision): added `.github/workflows/publish-openfeature.yml` (`workflow_dispatch`, inputs `provider_tag`+`provider_version`) mirroring `publish-hex.yml`'s `preflight → gate-ci-green → approval(hex-publish) → publish` pattern. Reuses the 129-02 guard + `OPEN_FEATURE_RULESTEAD_HEX_RELEASE=1` env gate; publishes with the existing GitHub `secrets.HEX_API_KEY` (a GH Actions secret, never on a laptop). Stays OUT of the linked core/admin release-please lifecycle and out of `publish-hex.yml` (independent OpenFeature versioning). Rationale: DevOps/automate-the-world — no reason for a laptop publish now that core is live. The 129-03 prohibition "no new CI publish job" is intentionally reversed.
 - **CHANGELOG strategy** — keep release-please-generated, per-package; no root CHANGELOG; hand-author the "promotion, not rewrite" preamble above the bot's generated bullets in the release PR.
 - **api_stability.md 1.x contract** (124-P02) — Opening sentence flipped to "1.x release contract"; Versioning & Deprecation Policy added (breaking-change table, telemetry stability rules, soft-deprecation worked example, empty deprecations skeleton); Admin.Policy *_actions/0 helpers added to both doc and bidirectional test guard.
 - **release_contract_test.exs anchor updated** (124-P02) — Line ~181 assert updated to `1.x release contract` substring in lockstep (D-01); four *_actions/0 helpers assertion block added (D-12); all 26 tests pass.
@@ -125,6 +125,9 @@ Human checkpoints:
 - [Phase ?]: D-01..D-05: 6 module groups; D-06: API & Stability first-match defuse; D-13..D-16: before_closing_head_tag --main* retint, body.dark, PNG og:image
 - [Phase ?]: Duplicated before_closing_head_tag/1 verbatim from core (D-21): two mix.exs cannot share code; only og:image host differs
 - [Phase ?]: @doc false on __using__/1 + live_session/3 in RulesteadAdmin.Router; real @moduledoc leads with host-owns-auth + 3 contracted session keys verbatim from api_stability.md (D-22/D-23)
+- [Phase ?]: open_feature_rulestead dep constraint is loose ~> 1.0 pin, not ~> @version (D-03)
+- [Phase ?]: D-14 catch implemented as mix.lock grep: absent hex entry proves path dep = silent tarball breakage; guard is assertion-only
+- [Phase ?]: Provider runbook in MAINTAINING.md preserves manual-step posture with 6-step ordered procedure including dry-run visual inspection
 
 ### Milestone-specific constraints (v2.0)
 
@@ -241,9 +244,11 @@ Human checkpoints:
 | Phase 126 P03 | 2min | 1 tasks | 1 files |
 | Phase 126 P05 | 3m | 2 tasks | 2 files |
 | Phase Phase 126 PP06 | 3min | 2 tasks | 2 files |
+| Phase 129 P01 | 15 minutes | 3 tasks | 5 files |
+| Phase 129 P02 | 8min | 2 tasks | 2 files |
 
 ## Session
 
-**Last session:** 2026-06-18T13:58:02.997Z
-**Stopped at:** Completed 126-03-PLAN.md
+**Last session:** 2026-06-19T15:20:51.012Z
+**Stopped at:** Phase 129 context gathered (assumptions mode + deep research)
 **Resume file:** None

@@ -1,4 +1,45 @@
 defmodule OpenFeatureRulestead.Provider do
+  @moduledoc """
+  OpenFeature provider implementation backed by `Rulestead.Runtime`.
+
+  This module implements the `OpenFeature.Provider` behaviour, bridging the
+  standard OpenFeature SDK evaluation API to Rulestead's deterministic flag
+  evaluation engine.
+
+  ## Initialization
+
+  Create a provider struct and initialize it with the Rulestead environment
+  (domain) you want to evaluate against:
+
+      provider = %OpenFeatureRulestead.Provider{}
+      {:ok, provider} =
+        OpenFeatureRulestead.Provider.initialize(provider, "production", %{})
+      OpenFeature.set_provider(provider, domain: "production")
+
+  The `domain` argument becomes the provider's `environment_key` and is
+  required — `initialize/3` returns `{:error, :invalid_context}` when the
+  domain is missing or blank.
+
+  ## Context translation
+
+  OpenFeature evaluation context is translated into `%Rulestead.Context{}` via
+  `OpenFeatureRulestead.ContextMapper.translate/1` before being passed to
+  `Rulestead.Runtime.evaluate/3`. See `OpenFeatureRulestead.ContextMapper` for
+  the full field mapping.
+
+  ## Resolution metadata
+
+  The provider exposes the following scalar fields from `Rulestead.Result`
+  through the OpenFeature `flag_metadata` map:
+
+  - `"matched_rule"` — which rule produced the result
+  - `"flag_version"` — version of the flag definition evaluated
+  - `"cache_age_ms"` — age of the cached snapshot at evaluation time
+
+  The full internal Rulestead explanation payload is not promised through the
+  OpenFeature metadata surface.
+  """
+
   @behaviour OpenFeature.Provider
 
   alias OpenFeature.ResolutionDetails
