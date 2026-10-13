@@ -32,7 +32,7 @@ jobs:
     env:
       OPEN_FEATURE_RULESTEAD_HEX_RELEASE: "1"
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           ref: ${{ inputs.provider_tag }}
           fetch-depth: 0
@@ -182,7 +182,7 @@ jobs:
       HEX_API_KEY: ${{ secrets.HEX_API_KEY }}
       OPEN_FEATURE_RULESTEAD_HEX_RELEASE: "1"
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           ref: ${{ inputs.provider_tag }}
           fetch-depth: 0
